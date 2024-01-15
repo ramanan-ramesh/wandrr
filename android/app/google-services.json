@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "778106737436",
+    "project_id": "wandrr-15f70",
+    "storage_bucket": "wandrr-15f70.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:778106737436:android:71325538910a5e411c20d9",
+        "android_client_info": {
+          "package_name": "com.wandrr.wandrr"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "778106737436-u2cmhpuo0v6anee0fhdckj426edkir5s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYsx5jESm-3PJJFeisEuxCmrNg9ke5YYs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "778106737436-u2cmhpuo0v6anee0fhdckj426edkir5s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
