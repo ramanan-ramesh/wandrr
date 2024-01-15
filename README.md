@@ -1,16 +1,15 @@
 # wandrr
 
-A new Flutter project.
+A travel app made with Flutter and ❤️.
 
-## Getting Started
+These are the key functionalities offered:-
+1) Manage travel and lodging data, and related expenses.
+2) Add notes, checklists and places to visit for the trip, and also for any day in the itinerary.
+3) Manage trip related data, like contributors and default currency.
+4) View expense breakdown per day/category charts, debt summary and Edit trip budget.
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Key takeaways-
+1) State management - Bloc
+2) Responsive to all screen sizes
+3) Database/Authentication - Firebase
+4) Local storage - HiveDB
