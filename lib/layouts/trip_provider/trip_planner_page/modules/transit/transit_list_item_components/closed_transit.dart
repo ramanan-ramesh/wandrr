@@ -1,8 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:intl/intl.dart';
 import 'package:wandrr/contracts/communicators.dart';
 import 'package:wandrr/contracts/location.dart';
 import 'package:wandrr/contracts/transit.dart';
@@ -15,8 +12,9 @@ class ClosedTransitListItem extends StatelessWidget {
   List<TransitOptionMetadata> transitOptionMetadatas;
   ClosedTransitListItem(
       {super.key,
-      required this.transitUpdator,
-      required this.transitOptionMetadatas});
+      required TransitUpdator transitUpdator,
+      required this.transitOptionMetadatas})
+      : transitUpdator = transitUpdator.clone();
 
   @override
   Widget build(BuildContext context) {
@@ -29,88 +27,91 @@ class ClosedTransitListItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
       ),
       color: Colors.black12,
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
+      child: Row(
+        // TODO: Is IntrinsicHeight needed here?
+        children: [
+          Expanded(
+            flex: 3,
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    child: _createTransitOption(context),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    child: _createDepartureDetailTitle(context),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    child: _createArrivalDetailTitle(context),
+                  ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 4.0),
-                      child: _createLocationDetailTitle(context),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4.0),
-                      child: _createDateTimeDetail(context),
-                    ),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 4.0),
-                        child: Text(
-                          _getTransitCarrier().toUpperCase(),
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
+                      child: Text(
+                        _getTransitCarrier().toUpperCase(),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            VerticalDivider(
-              color: Colors.white,
-            ),
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (isConfirmationIdValid)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: _createTitleSubText(
-                            '${AppLocalizations.of(context)!.confirmation} #',
-                            transitUpdator.confirmationId!),
-                      ),
-                    if (isConfirmationIdValid) Divider(),
-                    if (isNotesValid)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: _createTitleSubText(
-                            AppLocalizations.of(context)!.notes,
-                            transitUpdator.notes!),
-                      ),
-                    if (isNotesValid) Divider(),
-                    Align(
-                      alignment: Alignment.center,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: ExpenditureEditTile(
-                            expenseUpdator: transitUpdator.expenseUpdator!,
-                            isEditable: false),
-                      ),
-                    )
-                  ],
-                ),
+          ),
+          VerticalDivider(
+            color: Colors.white,
+          ),
+          Expanded(
+            flex: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (isConfirmationIdValid)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: _createTitleSubText(
+                          '${AppLocalizations.of(context)!.confirmation} #',
+                          transitUpdator.confirmationId!),
+                    ),
+                  if (isConfirmationIdValid) Divider(),
+                  if (isNotesValid)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: _createTitleSubText(
+                          AppLocalizations.of(context)!.notes,
+                          transitUpdator.notes!),
+                    ),
+                  if (isNotesValid) Divider(),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: ExpenditureEditTile(
+                          expenseUpdator: transitUpdator.expenseUpdator!,
+                          isEditable: false),
+                    ),
+                  )
+                ],
               ),
-            )
-          ],
-        ),
+            ),
+          )
+        ],
       ),
     );
   }
 
   String _getTransitCarrier() {
     if (transitUpdator.transitOption == TransitOptions.Flight) {
-      return '${transitUpdator.name!} ${transitUpdator.operator!}';
+      return transitUpdator.operator!;
     } else {
       var pascalWordsPattern = RegExp(r"(?:[A-Z]+|^)[a-z]*");
       List<String> getPascalWords(String input) =>
@@ -143,64 +144,82 @@ class ClosedTransitListItem extends StatelessWidget {
     );
   }
 
-  Widget _createLocationDetailTitle(BuildContext context) {
-    String departureLocationTitle, arrivalLocationTitle;
+  Widget _createArrivalDetailTitle(BuildContext context) {
+    String arrivalLocationTitle;
     if (transitUpdator.transitOption == TransitOptions.Flight) {
-      departureLocationTitle =
-          (transitUpdator.departureLocation!.context as AirportLocationContext)
-              .airportCode;
       arrivalLocationTitle =
           (transitUpdator.arrivalLocation!.context as AirportLocationContext)
               .airportCode;
     } else {
-      departureLocationTitle = transitUpdator.departureLocation!.toString();
       arrivalLocationTitle = transitUpdator.arrivalLocation!.toString();
     }
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Flexible(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+
+    var timeText =
+        "${transitUpdator.arrivalDateTime!.hour.toString().padLeft(2, '0')} : ${transitUpdator.arrivalDateTime!.minute.toString().padLeft(2, '0')}";
+
+    return IgnorePointer(
+      child: ListTile(
+        leading: Text(AppLocalizations.of(context)!.arrive),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 2.0),
+              child: PlatformTextElements.createSubHeader(
+                  context: context,
+                  text: arrivalLocationTitle,
+                  shouldBold: true),
+            ),
+            if (transitUpdator.transitOption == TransitOptions.Flight)
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 2.0),
-                child: PlatformTextElements.createSubHeader(
-                    context: context,
-                    text: departureLocationTitle,
-                    shouldBold: true),
+                child: Text(transitUpdator.arrivalLocation!.context.name),
               ),
-              if (transitUpdator.transitOption == TransitOptions.Flight)
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 2.0),
-                  child: Text(transitUpdator.departureLocation!.context.name),
-                ),
-            ],
-          ),
+          ],
         ),
-        Expanded(child: Divider()),
-        _createTransitOption(context),
-        Expanded(child: Divider()),
-        Flexible(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        trailing: PlatformTextElements.createSubHeader(
+            context: context, text: '@ $timeText', shouldBold: true),
+      ),
+    );
+  }
+
+  Widget _createDepartureDetailTitle(BuildContext context) {
+    String departureLocationTitle;
+    if (transitUpdator.transitOption == TransitOptions.Flight) {
+      departureLocationTitle =
+          (transitUpdator.departureLocation!.context as AirportLocationContext)
+              .airportCode;
+    } else {
+      departureLocationTitle = transitUpdator.departureLocation!.toString();
+    }
+
+    var timeText =
+        "${transitUpdator.departureDateTime!.hour.toString().padLeft(2, '0')} : ${transitUpdator.departureDateTime!.minute.toString().padLeft(2, '0')}";
+
+    return IgnorePointer(
+      child: ListTile(
+        onTap: null,
+        leading: Text(AppLocalizations.of(context)!.depart),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 2.0),
+              child: PlatformTextElements.createSubHeader(
+                  context: context,
+                  text: departureLocationTitle,
+                  shouldBold: true),
+            ),
+            if (transitUpdator.transitOption == TransitOptions.Flight)
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 2.0),
-                child: PlatformTextElements.createSubHeader(
-                    context: context,
-                    text: arrivalLocationTitle,
-                    shouldBold: true),
+                child: Text(transitUpdator.departureLocation!.context.name),
               ),
-              if (transitUpdator.transitOption == TransitOptions.Flight)
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 2.0),
-                  child: Text(transitUpdator.arrivalLocation!.context.city!),
-                ),
-            ],
-          ),
+          ],
         ),
-      ],
+        trailing: PlatformTextElements.createSubHeader(
+            context: context, text: '@ $timeText', shouldBold: true),
+      ),
     );
   }
 
@@ -215,25 +234,6 @@ class ClosedTransitListItem extends StatelessWidget {
             Text(transitOptionMetadata.name)
           ],
         ));
-  }
-
-  Widget _createDateTimeDetail(BuildContext context) {
-    var dateFormat = DateFormat.MMMEd();
-    var timeFormat = DateFormat(DateFormat.HOUR24_MINUTE);
-    var numberOfTravelDays = transitUpdator.departureDateTime!
-        .compareTo(transitUpdator.arrivalDateTime!);
-    var arrivalTime = timeFormat.format(transitUpdator.arrivalDateTime!);
-    if (numberOfTravelDays >= 1) {
-      arrivalTime += convertToSuperScript('+$numberOfTravelDays');
-    }
-    var timeDetail =
-        '${timeFormat.format(transitUpdator.departureDateTime!)} to $arrivalTime';
-    var bulletPoint = utf8.decode([0xE2, 0x80, 0xA2]); // or use \u2022
-    var dateTimeText =
-        '${dateFormat.format(transitUpdator.departureDateTime!)} $bulletPoint $timeDetail';
-
-    return PlatformTextElements.createSubHeader(
-        context: context, text: dateTimeText);
   }
 }
 

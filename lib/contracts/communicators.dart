@@ -65,7 +65,6 @@ class TransitUpdator extends Equatable {
   String? confirmationId;
   LocationFacade? departureLocation, arrivalLocation;
   String? operator;
-  String? name;
   String? id;
   String? tripId;
   DataState dataState;
@@ -84,8 +83,7 @@ class TransitUpdator extends Equatable {
         notes: notes,
         id: id,
         confirmationId: confirmationId,
-        operator: operator,
-        name: name);
+        operator: operator);
   }
 
   TransitUpdator._create(
@@ -100,7 +98,6 @@ class TransitUpdator extends Equatable {
       this.id,
       this.confirmationId,
       this.operator,
-      this.name,
       required this.dataState});
 
   TransitUpdator.fromTransit({required TransitFacade transit})
@@ -123,40 +120,8 @@ class TransitUpdator extends Equatable {
       : dataState = DataState.None,
         transitOption = TransitOptions.PublicTransport;
 
-  bool _areDateTimesEqual(DateTime? dateTime1, DateTime? dateTime2) {
-    if (dateTime1 == null && dateTime2 == null) {
-      return true;
-    } else if (dateTime1 != null && dateTime2 != null) {
-      if (dateTime1.compareTo(dateTime2) == 0) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  // @override
-  // bool operator ==(Object other) {
-  //   if (other is! TransitUpdator) {
-  //     return false;
-  //   }
-  //
-  //   return other.name == name &&
-  //       other.operator == operator &&
-  //       other.confirmationId == confirmationId &&
-  //       other.id == id &&
-  //       other.notes == notes &&
-  //       _areDateTimesEqual(other.departureDateTime, departureDateTime) &&
-  //       _areDateTimesEqual(other.arrivalDateTime, arrivalDateTime) &&
-  //       other.expenseUpdator == expenseUpdator &&
-  //       other.arrivalLocation == arrivalLocation &&
-  //       other.departureLocation == departureLocation &&
-  //       other.transitOption == transitOption &&
-  //       other.tripId == tripId;
-  // }
-
   @override
   List<Object?> get props => [
-        name,
         operator,
         confirmationId,
         id,
@@ -321,33 +286,6 @@ class ExpenseUpdator extends Equatable {
         .where((element) => element != currentUserName)
         .map((e) => MapEntry(e, 0)));
   }
-
-  // @override
-  // bool operator ==(Object other) {
-  //   if (other is! ExpenseUpdator) {
-  //     return false;
-  //   }
-  //   var areDateTimesEqual = false;
-  //   if (other.dateTime == null && dateTime == null) {
-  //     areDateTimesEqual = true;
-  //   } else if (other.dateTime != null && dateTime != null) {
-  //     if (other.dateTime!.compareTo(dateTime!) == 0) {
-  //       areDateTimesEqual = true;
-  //     }
-  //   }
-  //
-  //   return other.id == id &&
-  //       areDateTimesEqual &&
-  //       other.link == link &&
-  //       other.location == location &&
-  //       listEquals(other.splitBy, splitBy) &&
-  //       mapEquals(other.paidBy, paidBy) &&
-  //       other.title == title &&
-  //       other.category == category &&
-  //       other.description == description &&
-  //       other.totalExpense == totalExpense &&
-  //       other.tripId == tripId;
-  // }
 
   ExpenseUpdator._create(
       {this.totalExpense,

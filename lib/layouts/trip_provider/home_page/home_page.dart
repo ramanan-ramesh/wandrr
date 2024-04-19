@@ -5,6 +5,7 @@ import 'package:wandrr/blocs/master_page_bloc/master_page_events.dart';
 import 'package:wandrr/blocs/trip_management_bloc/bloc.dart';
 import 'package:wandrr/blocs/trip_management_bloc/events.dart';
 
+import 'home_page_content.dart';
 import 'trip_creator_fragment.dart';
 import 'trips_list_fragment.dart';
 
@@ -17,11 +18,11 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool _isTripCreatorPage = false;
-  TripListFragment? _tripListFragment;
-  TripCreatorFragment? _tripCreatorFragment;
-  static const _maximumPageWidth = 1000.0;
+  late HomePageContent _tripListFragment;
+  late HomePageContent _tripCreatorFragment;
+  static const _cutOffPageWidth = 1000.0;
 
-  void updateState() {
+  void _switchFragment() {
     setState(() {
       _isTripCreatorPage = !_isTripCreatorPage;
     });
@@ -30,77 +31,58 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     print("HomePage-build");
-    if (_tripListFragment == null) {
-      _tripListFragment ??= TripListFragment(context, updateState);
-    } else {
-      _tripListFragment!.updateContext(context);
-    }
-    if (_tripCreatorFragment == null) {
-      _tripCreatorFragment =
-          TripCreatorFragment(context: context, maxWidth: _maximumPageWidth);
-    } else {
-      _tripCreatorFragment!.updateContext(context);
-    }
+    _initializeFragments(context);
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth > _maximumPageWidth) {
-          return _buildLayout(
-              context: context, contentWidth: _maximumPageWidth);
+        if (constraints.maxWidth > _cutOffPageWidth) {
+          return _buildLayout(contentWidth: constraints.maxWidth / 2);
         } else {
-          return _buildLayout(context: context);
+          return _buildLayout();
         }
       },
     );
   }
 
-  Widget _buildLayout({required BuildContext context, double? contentWidth}) {
+  void _initializeFragments(BuildContext context) {
+    _tripListFragment = TripListFragment(context, _switchFragment);
+    _tripCreatorFragment = TripCreatorFragment(context: context);
+  }
+
+  Widget _buildLayout({double? contentWidth}) {
     return Scaffold(
-      appBar: _PlatformAppBar(
+      appBar: _HomeAppBar(
         contentWidth: contentWidth,
       ),
       floatingActionButton: _isTripCreatorPage
-          ? _tripCreatorFragment?.floatingActionButton
-          : _tripListFragment?.floatingActionButton,
+          ? _tripCreatorFragment.floatingActionButton
+          : _tripListFragment.floatingActionButton,
       floatingActionButtonLocation: _isTripCreatorPage
-          ? _tripCreatorFragment?.floatingActionButtonLocation
-          : _tripListFragment?.floatingActionButtonLocation,
+          ? _tripCreatorFragment.floatingActionButtonLocation
+          : _tripListFragment.floatingActionButtonLocation,
       body: contentWidth != null
           ? Center(
               child: SizedBox(
                 width: contentWidth,
                 child: _isTripCreatorPage
-                    ? _tripCreatorFragment?.body
-                    : _tripListFragment?.body,
+                    ? _tripCreatorFragment.body
+                    : _tripListFragment.body,
               ),
             )
-          : SizedBox(
-              width: contentWidth,
-              child: _isTripCreatorPage
-                  ? _tripCreatorFragment?.body
-                  : _tripListFragment?.body,
-            ),
+          : _isTripCreatorPage
+              ? _tripCreatorFragment.body
+              : _tripListFragment.body,
     );
   }
 }
 
-abstract class HomePageContent {
-  Widget? get floatingActionButton;
-
-  Widget? get body;
-
-  FloatingActionButtonLocation get floatingActionButtonLocation;
-
-  void updateContext(BuildContext context);
-}
-
-class _PlatformAppBar extends StatelessWidget implements PreferredSizeWidget {
+class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   static const String _appLogoAsset = 'assets/images/logo.jpg';
   final double? contentWidth;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
-  const _PlatformAppBar({Key? key, this.contentWidth}) : super(key: key);
+  const _HomeAppBar({Key? key, this.contentWidth}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

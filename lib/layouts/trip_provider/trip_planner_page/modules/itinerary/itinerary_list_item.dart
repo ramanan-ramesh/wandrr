@@ -31,7 +31,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
   late List<LodgingFacade> _lodgings;
   late PlanDataUpdator _planDataUpdator;
   bool _isCollapsed = true;
-  var _canUpdateItineraryDataNotifier = ValueNotifier(false);
+  final _canUpdateItineraryDataNotifier = ValueNotifier(false);
   late List _sortedEvents;
 
   @override

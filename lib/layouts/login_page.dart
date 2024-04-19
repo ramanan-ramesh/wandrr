@@ -38,6 +38,45 @@ class _LoginPageState extends State<LoginPage>
     super.dispose();
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Card(
+            shape: RoundedRectangleBorder(
+                borderRadius: const BorderRadius.all(Radius.circular(25))),
+            child: BlocProvider<AuthenticationBloc>(
+              create: (context) => AuthenticationBloc(),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _createTabBar(),
+                  const SizedBox(height: 16.0),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: _buildUserNamePasswordForm(),
+                  ),
+                  const SizedBox(height: 24.0),
+                  ConstrainedBox(
+                    constraints:
+                        const BoxConstraints(maxWidth: 200, minWidth: 150),
+                    child: SubmitButton(
+                      submitAction: _submitLoginForm,
+                    ),
+                  ),
+                  const SizedBox(height: 24.0),
+                  _buildAlternateLoginMethods(context),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _submitLoginForm(BuildContext context) {
     if (_formKey.currentState!.validate()) {
       String username = _usernameController.text;
@@ -49,52 +88,6 @@ class _LoginPageState extends State<LoginPage>
           passWord: password,
           isLogin: _tabController!.index == 0));
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      // color: Colors.black45,
-      child: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.black,
-                    width: 2.5,
-                  ),
-                  borderRadius: const BorderRadius.all(Radius.circular(25))),
-              child: BlocProvider<AuthenticationBloc>(
-                create: (context) => AuthenticationBloc(),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _createTabBar(),
-                    const SizedBox(height: 16.0),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: _buildUserNamePasswordForm(),
-                    ),
-                    const SizedBox(height: 24.0),
-                    ConstrainedBox(
-                      constraints:
-                          const BoxConstraints(maxWidth: 200, minWidth: 150),
-                      child: SubmitButton(
-                        submitAction: _submitLoginForm,
-                      ),
-                    ),
-                    const SizedBox(height: 24.0),
-                    _buildAlternateLoginMethods(context),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   Column _buildAlternateLoginMethods(BuildContext context) {
@@ -144,15 +137,9 @@ class _LoginPageState extends State<LoginPage>
   TabBar _createTabBar() {
     return TabBar(
       controller: _tabController,
-      indicatorColor: Colors.green,
-      labelColor: Colors.white,
-      unselectedLabelColor: Colors.black,
       labelStyle: const TextStyle(fontSize: 22),
       unselectedLabelStyle: TextStyle(
         fontSize: 22,
-      ),
-      indicator: BoxDecoration(
-        color: Colors.black,
       ),
       tabs: [
         Tab(text: AppLocalizations.of(context)!.login),
@@ -166,10 +153,7 @@ class _LoginPageState extends State<LoginPage>
       key: _formKey,
       child: BlocConsumer<AuthenticationBloc, AuthenticationState>(
         builder: (BuildContext context, AuthenticationState state) {
-          print(
-              'builder of LoginPage.userNamePasswordForm created for state - ${state}');
           return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _createUserNameField(state),
               const SizedBox(height: 16.0),
@@ -191,7 +175,6 @@ class _LoginPageState extends State<LoginPage>
     }
     return PlatformPasswordField(
       controller: _passwordController,
-      icon: Icons.password_rounded,
       labelText: AppLocalizations.of(context)!.password,
       errorText: errorText,
       validator: (password) {
@@ -210,16 +193,13 @@ class _LoginPageState extends State<LoginPage>
     if (authState is AuthenticationFailure) {
       if (authState.failureReason ==
           AuthenticationFailures.UsernameAlreadyExists) {
-        errorText =
-            'This username is already registered. You can login with it instead.';
+        errorText = AppLocalizations.of(context)!.userNameAlreadyExists;
       } else if (authState.failureReason ==
           AuthenticationFailures.NoSuchUsernameExists) {
-        errorText =
-            'No such username exists. You can register with it instead.';
+        errorText = AppLocalizations.of(context)!.noSuchUserExists;
       }
     }
     return PlatformTextField(
-      isDarkMode: false,
       controller: _usernameController,
       icon: Icons.person_2_rounded,
       labelText: AppLocalizations.of(context)!.userName,
@@ -229,7 +209,7 @@ class _LoginPageState extends State<LoginPage>
           var matches = _emailRegExValidator.firstMatch(username);
           final matchedText = matches?.group(0);
           if (matchedText != username) {
-            return 'Enter a valid email';
+            return AppLocalizations.of(context)!.enterValidEmail;
           }
         }
         return null;

@@ -46,11 +46,8 @@ class Location with EquatableMixin implements LocationFacade {
 
   static Location fromDocument(Map<String, dynamic> json) {
     var geoPoint = json[_latitudeLongitudeField] as GeoPoint;
-    var locationType = json[_locationTypeField];
-    var locationContext = locationType == LocationType.Airport.name
-        ? AirportLocationContext.fromDocument(json[_contextField])
-            as LocationContext
-        : GeoLocationApiContext.fromDocument(json[_contextField]);
+    var locationContext =
+        LocationContext.createInstance(json: json[_contextField]);
     return Location(
         latitude: geoPoint.latitude,
         longitude: geoPoint.longitude,
@@ -141,6 +138,13 @@ abstract class LocationContext {
   String get name;
   Map<String, dynamic> toJson();
   LocationContext clone();
+  static LocationContext createInstance({required Map<String, dynamic> json}) {
+    if (json['type'] == 'Airport') {
+      return AirportLocationContext.fromDocument(json);
+    }
+
+    return GeoLocationApiContext.fromDocument(json);
+  }
 }
 
 class AirportLocationContext with EquatableMixin implements LocationContext {

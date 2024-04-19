@@ -25,15 +25,11 @@ abstract class TripManagementFacade {
 abstract class TripManagementModifier {
   Future<Trip?> createTrip({required TripMetadataUpdator tripMetadataUpdator});
 
-  // Future<bool> updateTransit({required TransitUpdator transitUpdator});
-  //
-  // Future<bool> updateLodging({required LodgingUpdator lodgingUpdator});
-  //
-  // Future<bool> updateExpense({required ExpenseUpdator expenseUpdator});
+  Future<void> deleteTrip({required TripMetadataUpdator tripMetadataUpdator});
 
   CurrencyConverter get currencyConverter;
 
-  FlightOperationsService get flightOperationsService;
+  FlightOperations get flightOperationsService;
 }
 
 class TripManagement implements TripManagementFacade, TripManagementModifier {
@@ -50,6 +46,8 @@ class TripManagement implements TripManagementFacade, TripManagementModifier {
   @override
   TripFacade? get activeTrip => _activeTrip;
   Trip? _activeTrip;
+
+  final PlatformUser _activeUser;
 
   @override
   UnmodifiableListView<TripMetaDataFacade> get tripMetadatas =>
@@ -73,7 +71,7 @@ class TripManagement implements TripManagementFacade, TripManagementModifier {
     return null;
   }
 
-  static Future<TripManagement> createForUser(PlatformUser activeUser) async {
+  static Future<TripManagement> createInstance(PlatformUser activeUser) async {
     if (_activeTripManagement != null) {
       return _activeTripManagement!;
     }
@@ -100,6 +98,7 @@ class TripManagement implements TripManagementFacade, TripManagementModifier {
         tripMetadatas: tripMetadatas,
         geoLocator: geoLocator,
         currencyConverter: currencyConverter,
+        activeUser: activeUser,
         flightOperationsService: flightOperationsService);
 
     currencies.sort((firstCurrency, secondCurrency) =>
@@ -117,22 +116,39 @@ class TripManagement implements TripManagementFacade, TripManagementModifier {
         currencyConverter: _currencyConverter);
   }
 
-  void setActiveTrip(Trip trip) {
+  void setActiveTrip(Trip? trip) {
     _activeTrip = trip;
+    //TODO: Ideally start listening to document changes on transit/lodgings/tripMetadata etc.. here?
   }
 
   TripManagement._(
       {required List<TripMetaData> tripMetadatas,
       required GeoLocator geoLocator,
+      required PlatformUser activeUser,
       required CurrencyConverter currencyConverter,
-      required FlightOperationsService flightOperationsService})
+      required FlightOperations flightOperationsService})
       : _tripMetadatas = tripMetadatas,
         _geoLocator = geoLocator,
+        _activeUser = activeUser,
         _currencyConverter = currencyConverter,
         _flightOperationsService = flightOperationsService;
 
   @override
-  FlightOperationsService get flightOperationsService =>
-      _flightOperationsService;
-  final FlightOperationsService _flightOperationsService;
+  FlightOperations get flightOperationsService => _flightOperationsService;
+  final FlightOperations _flightOperationsService;
+
+  @override
+  Future<void> deleteTrip(
+      {required TripMetadataUpdator tripMetadataUpdator}) async {
+    await FirebaseFirestore.instance
+        .collection(FirestoreCollections.tripsMetadataCollection)
+        .doc(tripMetadataUpdator.id)
+        .delete();
+    await FirebaseFirestore.instance
+        .collection(FirestoreCollections.tripsCollection)
+        .doc(tripMetadataUpdator.id)
+        .delete();
+    _tripMetadatas
+        .removeWhere((element) => element.id == tripMetadataUpdator.id);
+  }
 }

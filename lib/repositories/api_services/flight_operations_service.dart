@@ -7,7 +7,13 @@ import 'package:http/http.dart' as http;
 import 'package:wandrr/contracts/collection_names.dart';
 import 'package:wandrr/contracts/location.dart';
 
-class FlightOperationsService {
+abstract class FlightOperations {
+  Future<List<LocationFacade>> queryAirportsData(String airportToSearch);
+  Future<List<(String airlineName, String airlineCode)>> queryAirlinesData(
+      String airlineNameToSearch);
+}
+
+class FlightOperationsService implements FlightOperations {
   static const _apiServiceIdentifier = 'flightOperationsService';
   static const _typeField = 'type';
   static const _apiKeyField = 'key';
@@ -23,7 +29,7 @@ class FlightOperationsService {
   static final HashSet<(String, String)> _allAirlinesData = HashSet();
   static final HashSet<LocationFacade> _allAirportsData = HashSet();
 
-  static Future<FlightOperationsService> create() async {
+  static Future<FlightOperations> create() async {
     var apiDocumentQueryResult = await FirebaseFirestore.instance
         .collection(FirestoreCollections.apiServicesCollection)
         .where(_typeField, isEqualTo: _apiServiceIdentifier)
@@ -33,6 +39,7 @@ class FlightOperationsService {
         apiKey: flightOperationsServiceDocument[_apiKeyField]);
   }
 
+  @override
   Future<List<(String airlineName, String airlineCode)>> queryAirlinesData(
       String airlineNameToSearch) async {
     if (!_shouldAllowAirlineQuery ||
@@ -79,6 +86,7 @@ class FlightOperationsService {
         : allMatchedAirlineNames;
   }
 
+  @override
   Future<List<LocationFacade>> queryAirportsData(String airportToSearch) async {
     if (!_shouldAllowAirportQuery ||
         airportToSearch.isEmpty ||

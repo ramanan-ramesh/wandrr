@@ -61,11 +61,11 @@ class PlatformButtonElements {
       required BuildContext context,
       VoidCallback? callback}) {
     return FloatingActionButton(
-      backgroundColor: Colors.black,
+      // backgroundColor: Colors.black,
       onPressed: callback,
       child: Icon(
         icon,
-        color: Colors.white,
+        // color: Colors.white,
       ),
     );
   }
@@ -95,14 +95,16 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
   Widget build(BuildContext context) {
     return FloatingActionButton(
       backgroundColor: widget.backgroundColor,
-      onPressed: () {
-        if (widget.callback != null && !_isSubmitted) {
-          widget.callback!();
-          setState(() {
-            _isSubmitted = true;
-          });
-        }
-      },
+      onPressed: _isSubmitted
+          ? null
+          : () {
+              if (widget.callback != null && !_isSubmitted) {
+                widget.callback!();
+                setState(() {
+                  _isSubmitted = true;
+                });
+              }
+            },
       child: _isSubmitted
           ? CircularProgressIndicator()
           : Icon(

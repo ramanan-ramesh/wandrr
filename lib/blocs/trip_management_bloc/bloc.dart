@@ -58,7 +58,6 @@ class TripManagementBloc
     if (requestedDataState == DataState.RequestedDeletion) {
       if (transitUpdator.id == null ||
           currentOperation == DataState.CreateNewUIEntry) {
-        transitUpdator.dataState = DataState.Deleted;
         emit(TransitUpdated.deleted(
             transitUpdator: transitUpdator, isOperationSuccess: true));
         return;
@@ -432,6 +431,15 @@ class TripManagementBloc
           }
           break;
         }
+      case DataState.RequestedDeletion:
+        {
+          await _tripManagement.deleteTrip(
+              tripMetadataUpdator: event.tripMetadataUpdator);
+          emit(UpdatedTripMetadata.deleted(
+              tripMetadataUpdator: event.tripMetadataUpdator,
+              isOperationSuccess: true));
+          add(GoToHome());
+        }
       default:
         {}
     }
@@ -439,6 +447,7 @@ class TripManagementBloc
 
   FutureOr<void> _onGoToHome(
       GoToHome event, Emitter<TripManagementState> emit) async {
+    _tripManagement.setActiveTrip(null);
     emit(LoadedTripMetadatas(tripMetadatas: _tripManagement.tripMetadatas));
   }
 
@@ -460,13 +469,16 @@ class TripManagementBloc
           emit(ExpenseViewUpdated.showBudgetEditor());
           break;
         }
-      case ExpenseViewType.RequestExpenseList:{
-        emit(ExpenseViewUpdated.showExpenseList());
-        break;
-      }
-      case ExpenseViewType.RequestAddTripmate:{
-        emit(ExpenseViewUpdated.showAddTripMate());break;
-      }
+      case ExpenseViewType.RequestExpenseList:
+        {
+          emit(ExpenseViewUpdated.showExpenseList());
+          break;
+        }
+      case ExpenseViewType.RequestAddTripmate:
+        {
+          emit(ExpenseViewUpdated.showAddTripMate());
+          break;
+        }
       default:
         {
           emit(ExpenseViewUpdated.showExpenseList());

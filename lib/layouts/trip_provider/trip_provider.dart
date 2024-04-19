@@ -13,7 +13,7 @@ class TripProvider extends StatelessWidget {
   Widget build(BuildContext context) {
     print("TripProvider-build");
     return FutureBuilder(
-      future: TripManagement.createForUser(
+      future: TripManagement.createInstance(
           RepositoryProvider.of<PlatformDataRepository>(context)
               .appLevelData
               .activeUser!),

@@ -9,59 +9,42 @@ import 'package:wandrr/platform_elements/date_picker.dart';
 import 'package:wandrr/platform_elements/text.dart';
 import 'package:wandrr/repositories/platform_data_repository.dart';
 
-import 'home_page.dart';
+import 'home_page_content.dart';
 
 class TripCreatorFragment implements HomePageContent {
-  TripCreatorFragment(
-      {required BuildContext context,
-      VoidCallback? callback,
-      required this.maxWidth})
-      : _fragmentData =
-            ValueNotifier<_FragmentData>(_FragmentData(context: context)) {
+  TripCreatorFragment({required BuildContext context, VoidCallback? callback})
+      : _tripCreationMetadataNotifier =
+            ValueNotifier<_TripCreationMetadata>(_TripCreationMetadata()),
+        _context = context {
     _floatingActionButton = _buildFloatingActionButton(callback);
     _body = _buildBody();
-    _textEditingController.addListener(() {
-      var currentTripName = _textEditingController.text;
-      if (currentTripName.isEmpty || currentTripName.length == 1) {
-        var fragmentData = _fragmentData.value;
-        _fragmentData.value = fragmentData.copyWith(name: currentTripName);
-      }
-    });
   }
-
-  final ValueNotifier<_FragmentData> _fragmentData;
-
-  Widget? _floatingActionButton;
-
-  Widget? _body;
-
-  final TextEditingController _textEditingController = TextEditingController();
-  final double maxWidth;
 
   @override
-  void updateContext(BuildContext context) {
-    var oldFragmentData = _fragmentData.value;
-    _fragmentData.value = oldFragmentData.copyWith(context: context);
-  }
+  Widget? get floatingActionButton => _floatingActionButton;
+  Widget? _floatingActionButton;
+
+  @override
+  Widget? get body => _body;
+  Widget? _body;
+
+  final ValueNotifier<_TripCreationMetadata> _tripCreationMetadataNotifier;
+
+  final BuildContext _context;
+
+  final TextEditingController _tripNameEditingController =
+      TextEditingController();
 
   void _updateLocation(Location location) {
-    var oldFragmentData = _fragmentData.value;
-    _fragmentData.value = oldFragmentData.copyWith(location: location);
+    var currentMetadata = _tripCreationMetadataNotifier.value;
+    _tripCreationMetadataNotifier.value =
+        currentMetadata.copyWith(location: location);
   }
 
   void _updateTripName(String newTripName) {
-    var oldFragmentData = _fragmentData.value;
-    _fragmentData.value = oldFragmentData.copyWith(name: newTripName);
-  }
-
-  @override
-  Widget? get floatingActionButton {
-    return _floatingActionButton;
-  }
-
-  @override
-  Widget? get body {
-    return _body;
+    var currentMetadata = _tripCreationMetadataNotifier.value;
+    _tripCreationMetadataNotifier.value =
+        currentMetadata.copyWith(name: newTripName);
   }
 
   Widget _createFABFromParameters(
@@ -73,22 +56,22 @@ class TripCreatorFragment implements HomePageContent {
         onPressed: isEnabled
             ? () {
                 callback?.call();
-                var fragmentData = _fragmentData.value;
-                if (_isTripCreateRequestValid(fragmentData)) {
-                  var userName = RepositoryProvider.of<PlatformDataRepository>(
-                          fragmentData.context)
-                      .appLevelData
-                      .activeUser!
-                      .userName;
+                var currentMetadata = _tripCreationMetadataNotifier.value;
+                if (_isTripCreateRequestValid(currentMetadata)) {
+                  var userName =
+                      RepositoryProvider.of<PlatformDataRepository>(_context)
+                          .appLevelData
+                          .activeUser!
+                          .userName;
                   var tripManagement =
-                      BlocProvider.of<TripManagementBloc>(fragmentData.context);
+                      BlocProvider.of<TripManagementBloc>(_context);
                   tripManagement.add(UpdateTripMetadata.create(
                       tripMetadataUpdator: TripMetadataUpdator.create(
-                          startDate: fragmentData.startDate!,
-                          endDate: fragmentData.endDate!,
-                          name: fragmentData.name!,
+                          startDate: currentMetadata.startDate!,
+                          endDate: currentMetadata.endDate!,
+                          name: currentMetadata.name!,
                           contributors: [userName],
-                          location: fragmentData.location!)));
+                          location: currentMetadata.location!)));
                 }
               }
             : null,
@@ -100,24 +83,23 @@ class TripCreatorFragment implements HomePageContent {
     );
   }
 
-  bool _isTripCreateRequestValid(_FragmentData fragmentData) {
-    var hasValidName =
-        fragmentData.name != null && fragmentData.name!.isNotEmpty;
-    var hasValidDateRange =
-        fragmentData.startDate != null && fragmentData.endDate != null;
-    var hasValidLocation = fragmentData.location != null;
+  bool _isTripCreateRequestValid(_TripCreationMetadata tripCreationMetadata) {
+    var hasValidName = tripCreationMetadata.name != null &&
+        tripCreationMetadata.name!.isNotEmpty;
+    var hasValidDateRange = tripCreationMetadata.startDate != null &&
+        tripCreationMetadata.endDate != null;
+    var hasValidLocation = tripCreationMetadata.location != null;
     return hasValidName && hasValidDateRange && hasValidLocation;
   }
 
   Widget _buildFloatingActionButton(VoidCallback? callback) {
-    bool keyboardIsOpened =
-        MediaQuery.of(_fragmentData.value.context).viewInsets.bottom != 0.0;
-    return ValueListenableBuilder<_FragmentData>(
-      valueListenable: _fragmentData,
-      builder: (context, fragmentData, widget) {
-        var canEnableFAB = _isTripCreateRequestValid(fragmentData);
+    bool keyboardIsOpened = MediaQuery.of(_context).viewInsets.bottom != 0.0;
+    return ValueListenableBuilder<_TripCreationMetadata>(
+      valueListenable: _tripCreationMetadataNotifier,
+      builder: (context, tripCreationMetadata, widget) {
+        var canEnableFAB = _isTripCreateRequestValid(tripCreationMetadata);
         bool keyboardIsOpened =
-            MediaQuery.of(_fragmentData.value.context).viewInsets.bottom != 0.0;
+            MediaQuery.of(_context).viewInsets.bottom != 0.0;
         if (canEnableFAB) {
           return _createFABFromParameters(keyboardIsOpened, callback, true);
         } else {
@@ -132,58 +114,46 @@ class TripCreatorFragment implements HomePageContent {
   }
 
   Widget _buildBody() {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        var width =
-            constraints.minWidth / 2 >= 500.0 ? 500.0 : constraints.maxWidth;
-        return Center(
-          child: SizedBox(
-            width: width,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child: PlatformTextElements.createHeader(
-                      context: context,
-                      text: AppLocalizations.of(context)!.planTrip),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 10),
+          child: PlatformTextElements.createHeader(
+              context: _context, text: AppLocalizations.of(_context)!.planTrip),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 10),
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: _buildLocationAutoComplete(_context),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: InkWell(
+                  splashColor: Colors.white,
+                  child: Container(
+                      color: Colors.black12,
+                      child: _buildTripNameField(_context)),
                 ),
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: _buildLocationAutoComplete(context),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: InkWell(
-                          splashColor: Colors.white,
-                          child: Container(
-                              color: Colors.black12,
-                              child: _buildTripNameField(context)),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: PlatformDateRangePicker(
-                          callback: (startDate, endDate) {
-                            var currentFragmentData = _fragmentData.value;
-                            _fragmentData.value = currentFragmentData.copyWith(
-                                startDate: startDate, endDate: endDate);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: PlatformDateRangePicker(
+                  callback: (startDate, endDate) {
+                    var currentMetadata = _tripCreationMetadataNotifier.value;
+                    _tripCreationMetadataNotifier.value = currentMetadata
+                        .copyWith(startDate: startDate, endDate: endDate);
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 
@@ -193,14 +163,14 @@ class TripCreatorFragment implements HomePageContent {
         labelText: AppLocalizations.of(context)!.tripName,
         onTextChanged: _updateTripName,
         border: OutlineInputBorder(),
-        controller: _textEditingController);
+        controller: _tripNameEditingController);
   }
 
   Widget _buildLocationAutoComplete(BuildContext context) {
-    return ValueListenableBuilder<_FragmentData>(
-      valueListenable: _fragmentData,
-      builder: (context, fragmentData, widget) {
-        var initialText = fragmentData.location?.toString();
+    return ValueListenableBuilder<_TripCreationMetadata>(
+      valueListenable: _tripCreationMetadataNotifier,
+      builder: (context, tripCreationMetadata, widget) {
+        var initialText = tripCreationMetadata.location?.toString();
         return PlatformGeoLocationAutoComplete(
           initialText: initialText,
           onLocationSelected: _updateLocation,
@@ -218,28 +188,30 @@ class TripCreatorFragment implements HomePageContent {
       FloatingActionButtonLocation.centerFloat;
 }
 
-class _FragmentData {
+class _TripCreationMetadata {
   DateTime? startDate;
   DateTime? endDate;
   String? name;
-  BuildContext context;
   Location? location;
 
-  _FragmentData({required this.context});
-
-  _FragmentData copyWith(
+  _TripCreationMetadata copyWith(
       {DateTime? startDate,
       DateTime? endDate,
       String? name,
       BuildContext? context,
       Location? location}) {
-    _FragmentData fragmentData = context == null
-        ? _FragmentData(context: this.context)
-        : _FragmentData(context: context);
-    fragmentData.name = name ?? this.name;
-    fragmentData.endDate = endDate ?? this.endDate;
-    fragmentData.startDate = startDate ?? this.startDate;
-    fragmentData.location = location ?? this.location;
-    return fragmentData;
+    var tripCreationMetadata = _TripCreationMetadata();
+    tripCreationMetadata.name = name ?? this.name;
+    tripCreationMetadata.endDate = endDate ?? this.endDate;
+    tripCreationMetadata.startDate = startDate ?? this.startDate;
+    tripCreationMetadata.location = location ?? this.location;
+    return tripCreationMetadata;
+  }
+
+  bool isValid() {
+    var isNameValid = name != null && name!.isNotEmpty;
+    var isDateRangeValid = startDate != null && endDate != null;
+    var isLocationValid = location != null;
+    return isNameValid && isDateRangeValid && isLocationValid;
   }
 }

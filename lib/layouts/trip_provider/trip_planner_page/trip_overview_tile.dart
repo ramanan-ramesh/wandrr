@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/blocs/trip_management_bloc/bloc.dart';
+import 'package:wandrr/blocs/trip_management_bloc/events.dart';
+import 'package:wandrr/contracts/communicators.dart';
 import 'package:wandrr/contracts/trip_data.dart';
 import 'package:wandrr/contracts/trip_metadata.dart';
+import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/date_picker.dart';
 import 'package:wandrr/platform_elements/text.dart';
 import 'package:wandrr/repositories/trip_management.dart';
@@ -58,11 +62,9 @@ class TripOverviewTile extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: PlatformTextElements.createTextField(
-                    border: OutlineInputBorder(),
-                    context: context,
-                    maxLines: 1,
-                    controller: _titleEditingController),
+                child: _TitleEditField(
+                  tripMetaDataFacade: activeTrip.tripMetaData,
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -119,6 +121,75 @@ class TripOverviewTile extends StatelessWidget {
       initialStartDate: startDate,
       initialEndDate: endDate,
       callback: (startDate, endDate) {},
+    );
+  }
+}
+
+class _TitleEditField extends StatefulWidget {
+  const _TitleEditField({
+    required this.tripMetaDataFacade,
+  });
+
+  final TripMetaDataFacade tripMetaDataFacade;
+
+  @override
+  State<_TitleEditField> createState() => _TitleEditFieldState();
+}
+
+class _TitleEditFieldState extends State<_TitleEditField> {
+  late TextEditingController _editingController = TextEditingController();
+  bool _canUpdateField = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _editingController.text = widget.tripMetaDataFacade.name;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: PlatformTextElements.createTextField(
+              context: context,
+              border: OutlineInputBorder(),
+              onTextChanged: (newTitle) {
+                if (newTitle.isNotEmpty &&
+                    newTitle != widget.tripMetaDataFacade.name) {
+                  setState(() {
+                    _canUpdateField = true;
+                  });
+                } else {
+                  setState(() {
+                    _canUpdateField = false;
+                  });
+                }
+              },
+              maxLines: 1,
+              controller: _editingController),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 3.0),
+          child: PlatformSubmitterFAB(
+            icon: Icons.check_rounded,
+            context: context,
+            backgroundColor: _canUpdateField ? Colors.black : Colors.white12,
+            callback: !_canUpdateField
+                ? null
+                : () {
+                    var tripManagementBloc =
+                        BlocProvider.of<TripManagementBloc>(context);
+                    var tripMetadataUpdator =
+                        TripMetadataUpdator.fromTripMetadata(
+                            tripMetaDataFacade: widget.tripMetaDataFacade);
+                    tripMetadataUpdator.name = _editingController.text;
+                    tripManagementBloc.add(UpdateTripMetadata.update(
+                        tripMetadataUpdator: tripMetadataUpdator));
+                  },
+          ),
+        ),
+      ],
     );
   }
 }

@@ -194,7 +194,7 @@ class _UserManagement {
   //TODO: Should ideally attach AuthProviderUser here(if it persists)?
   static Future<PlatformUser?> _getUserFromCache() async {
     var usersBox = await Hive.openBox(_usersCollectionInDB);
-    var isLoggedInValue = usersBox.get(_isLoggedIn);
+    var isLoggedInValue = usersBox.get(_isLoggedIn) ?? '';
     if (bool.tryParse(isLoggedInValue) == true) {
       var userID = await usersBox.get(_userID) as String;
       var authType = await usersBox.get(_authenticationType) as String;

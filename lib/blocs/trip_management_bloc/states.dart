@@ -31,6 +31,10 @@ class UpdatedTripMetadata extends TripManagementState {
   UpdatedTripMetadata.updated(
       {required this.tripMetadataUpdator, required this.isOperationSuccess})
       : operation = DataState.Updated;
+
+  UpdatedTripMetadata.deleted(
+      {required this.tripMetadataUpdator, required this.isOperationSuccess})
+      : operation = DataState.Updated;
 }
 
 class TransitUpdated extends TripManagementState {

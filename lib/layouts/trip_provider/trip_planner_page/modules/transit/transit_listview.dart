@@ -34,6 +34,7 @@ class TransitOptionMetadata {
 class _TransitListViewState extends State<TransitListView>
     with SingleTickerProviderStateMixin {
   var _transitUpdators = <TransitUpdator>[];
+  var _transitUpdatorKeys = <GlobalKey>[];
   bool _isCollapsed = true;
   late var _animationController;
   final _transitOptionMetadatas = <TransitOptionMetadata>[];
@@ -133,7 +134,8 @@ class _TransitListViewState extends State<TransitListView>
       //TODO: Should handle update done on any property that is affected by SortOption(ex: update done to dateTime field of any expense, must potentially rebuild the list, if selected sort option is DateTime)
       if (currentState.operation == DataState.Deleted) {
         return true;
-      } else if (currentState.operation == DataState.Created) {
+      } else if (currentState.operation == DataState.Created ||
+          currentState.operation == DataState.Updated) {
         var newUIItemIncomingButSuchOneExists = currentState
                     .transitUpdator.dataState ==
                 DataState.CreateNewUIEntry &&
@@ -224,12 +226,14 @@ class _TransitListViewState extends State<TransitListView>
   void _updateTransitsOnBuild(BuildContext context, TripManagementState state) {
     var activeTrip = RepositoryProvider.of<TripManagement>(context).activeTrip!;
 
-    _transitUpdators.removeWhere(
-        (element) => element.dataState != DataState.CreateNewUIEntry);
+    var newEntry = _transitUpdators
+        .where((element) => element.dataState == DataState.CreateNewUIEntry)
+        .firstOrNull;
+    _transitUpdators.clear();
 
-    _transitUpdators = activeTrip.transits
-        .map((element) => TransitUpdator.fromTransit(transit: element))
-        .toList();
+    if (newEntry != null) {
+      _transitUpdators.add(newEntry);
+    }
 
     if (state is TransitUpdated && state.operation == DataState.Created) {
       if (state.transitUpdator.dataState == DataState.CreateNewUIEntry &&
@@ -248,10 +252,20 @@ class _TransitListViewState extends State<TransitListView>
             (element) => element.dataState == DataState.CreateNewUIEntry);
       }
     }
+    _transitUpdators.addAll(activeTrip.transits
+        .map((element) => TransitUpdator.fromTransit(transit: element)));
+
     _sortTransits();
   }
 
   void _sortTransits() {
+    var newEntry = _transitUpdators
+        .where((element) => element.dataState == DataState.CreateNewUIEntry)
+        .firstOrNull;
+    if (newEntry != null) {
+      _transitUpdators.removeWhere(
+          (element) => element.dataState == DataState.CreateNewUIEntry);
+    }
     var transitsWithValidDateTime = <TransitUpdator>[];
     var transitsWithInvalidDateTime = <TransitUpdator>[];
     for (var transit in _transitUpdators) {
@@ -262,10 +276,14 @@ class _TransitListViewState extends State<TransitListView>
         transitsWithInvalidDateTime.add(transit);
       }
     }
+    _transitUpdators.clear();
+    if (newEntry != null) {
+      _transitUpdators.add(newEntry);
+    }
     transitsWithValidDateTime
         .sort((a, b) => a.departureDateTime!.compareTo(b.departureDateTime!));
-    _transitUpdators = transitsWithValidDateTime
-      ..addAll(transitsWithInvalidDateTime);
+    _transitUpdators.addAll(transitsWithValidDateTime);
+    _transitUpdators.addAll(transitsWithInvalidDateTime);
   }
 }
 
@@ -286,34 +304,30 @@ class _TransitListItem extends StatelessWidget {
             transitUpdator.dataState == DataState.Selected ||
                 transitUpdator.dataState == DataState.CreateNewUIEntry;
         return Material(
-          child: AnimatedSize(
-              curve: shouldOpenForEditing ? Curves.easeInOut : Curves.easeOut,
-              duration: Duration(milliseconds: 700),
-              reverseDuration: Duration(milliseconds: 700),
-              child: InkWell(
-                onTap: shouldOpenForEditing
-                    ? null
-                    : () {
-                        var currentOperation = transitUpdator.dataState;
-                        if (currentOperation == DataState.Created ||
-                            currentOperation == DataState.Updated ||
-                            currentOperation == DataState.None) {
-                          var tripManagementBloc =
-                              BlocProvider.of<TripManagementBloc>(context);
-                          tripManagementBloc.add(UpdateTransit.select(
-                              transitUpdator: transitUpdator));
-                        }
-                      },
-                child: shouldOpenForEditing
-                    ? OpenedTransitListItem(
-                        initialTransitUpdator: transitUpdator,
-                        transitOptionMetadatas: transitOptionMetadatas,
-                      )
-                    : ClosedTransitListItem(
-                        transitUpdator: transitUpdator,
-                        transitOptionMetadatas: transitOptionMetadatas,
-                      ),
-              )),
+          child: InkWell(
+            onTap: shouldOpenForEditing
+                ? null
+                : () {
+                    var currentOperation = transitUpdator.dataState;
+                    if (currentOperation == DataState.Created ||
+                        currentOperation == DataState.Updated ||
+                        currentOperation == DataState.None) {
+                      var tripManagementBloc =
+                          BlocProvider.of<TripManagementBloc>(context);
+                      tripManagementBloc.add(
+                          UpdateTransit.select(transitUpdator: transitUpdator));
+                    }
+                  },
+            child: shouldOpenForEditing
+                ? OpenedTransitListItem(
+                    initialTransitUpdator: transitUpdator,
+                    transitOptionMetadatas: transitOptionMetadatas,
+                  )
+                : ClosedTransitListItem(
+                    transitUpdator: transitUpdator,
+                    transitOptionMetadatas: transitOptionMetadatas,
+                  ),
+          ),
         );
       },
       listener: (BuildContext context, TripManagementState state) {},
@@ -336,7 +350,7 @@ class _TransitListItem extends StatelessWidget {
         }
       } else if (operationToPerform == DataState.Updated &&
           transitUpdator.id == currentState.transitUpdator.id) {
-        transitUpdator = currentState.transitUpdator;
+        transitUpdator = currentState.transitUpdator.clone();
         return true;
       }
     }

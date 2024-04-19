@@ -19,14 +19,10 @@ mixin ItineraryFacade {
 
   List calculateSortedEvents();
 
-  bool isOnSameDayAs(DateTime dateTime) {
-    return day.day == dateTime.day &&
-        day.month == dateTime.month &&
-        day.year == dateTime.year;
-  }
+  bool isOnSameDayAs(DateTime dateTime);
 }
 
-abstract class ItineraryModifier {
+abstract class ItineraryModifier with ItineraryFacade {
   set planData(PlanDataFacade planData);
 
   Future<bool> updatePlanData(PlanDataFacade planData);
@@ -40,9 +36,7 @@ abstract class ItineraryModifier {
   void removeLodging(Lodging lodging);
 }
 
-class Itinerary
-    with ItineraryFacade, EquatableMixin
-    implements ItineraryModifier {
+class Itinerary with EquatableMixin implements ItineraryModifier {
   final List<Lodging> _lodgings;
   final List<Transit> _transits;
 
@@ -59,7 +53,6 @@ class Itinerary
   final DateTime _day;
   static const _dayField = 'day';
 
-  @override
   final String tripId;
 
   @override
@@ -68,6 +61,13 @@ class Itinerary
         planDataUpdator: PlanDataUpdator.fromPlanData(
             planDataFacade: planData, tripId: tripId),
         day: _day);
+  }
+
+  @override
+  bool isOnSameDayAs(DateTime dateTime) {
+    return day.day == dateTime.day &&
+        day.month == dateTime.month &&
+        day.year == dateTime.year;
   }
 
   @override
@@ -127,9 +127,10 @@ class Itinerary
 
   @override
   List calculateSortedEvents() {
-    List sortedEvents = List.of(_transits)..addAll(List.of(_lodgings));
+    List sortedEvents = List.of(_transits);
     sortedEvents.sort((event1, event2) =>
         _getDateTimeFromEvent(event1).compareTo(_getDateTimeFromEvent(event2)));
+    sortedEvents.addAll(List.of(_lodgings));
     return sortedEvents;
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:intl/intl.dart';
@@ -6,6 +8,143 @@ import 'package:wandrr/contracts/communicators.dart';
 import 'package:wandrr/contracts/expense.dart';
 import 'package:wandrr/contracts/firestore_helpers.dart';
 import 'package:wandrr/contracts/location.dart';
+
+class Model {
+  String get tripId => _tripId;
+  String _tripId;
+
+  String get id => _id;
+  String _id;
+
+  TransitOptions get transitOption => _transitOptions;
+  TransitOptions _transitOptions;
+
+  LocationFacade get departureLocation => _departureLocation;
+  Location _departureLocation;
+
+  DateTime get departureDateTime => _departureDateTime;
+  DateTime _departureDateTime;
+
+  LocationFacade get arrivalLocation => _arrivalLocation;
+  Location _arrivalLocation;
+
+  DateTime get arrivalDateTime => _arrivalDateTime;
+  DateTime _arrivalDateTime;
+
+  String? get operator => _operator;
+  String? _operator;
+
+  String? get confirmationId => _confirmationId;
+  String? _confirmationId;
+
+  String? get notes => _notes;
+  String? _notes;
+
+  ExpenseFacade get expense => _expense;
+  Expense _expense;
+
+  Model.create(
+      {required String tripId,
+      required TransitOptions transitOption,
+      required DateTime departureDateTime,
+      required DateTime arrivalDateTime,
+      required Location departureLocation,
+      required Location arrivalLocation,
+      required Expense expense,
+      String? confirmationId,
+      String? id,
+      String? operator,
+      String? notes})
+      : _expense = expense,
+        _tripId = tripId,
+        _id = id ?? '',
+        _transitOptions = transitOption,
+        _confirmationId = confirmationId,
+        _departureDateTime = departureDateTime,
+        _departureLocation = departureLocation,
+        _arrivalDateTime = arrivalDateTime,
+        _arrivalLocation = arrivalLocation,
+        _operator = operator,
+        _notes = notes;
+}
+
+abstract interface class RepositoryPattern1 {
+  DocumentReference get documentReference;
+  Map<String, dynamic> toJson();
+  Stream<Model> onDocumentUpdated();
+  Stream<Model> onDocumentDeleted();
+}
+
+mixin RepositoryPattern on Model {
+  static const _departureLocationField = 'departureLocation';
+  static const _departureDateTimeField = 'departureDateTime';
+  static const _arrivalLocationField = 'arrivalLocation';
+  static const _arrivalDateTimeField = 'arrivalDateTime';
+  static const _transitOptionField = 'transitOption';
+  static const _operatorField = 'operator';
+  static const _confirmationIdField = 'confirmationId';
+  static const _expenseField = 'expense';
+  static const _notesField = 'notes';
+
+  DocumentReference _getDocumentReference() {
+    return FirebaseFirestore.instance
+        .collection(FirestoreCollections.tripsCollection)
+        .doc(tripId)
+        .collection(FirestoreCollections.transitCollection)
+        .doc(id);
+  }
+
+  static Model fromJson(String tripId, DocumentSnapshot documentSnapshot) {
+    return Model.create(
+        id: documentSnapshot.id,
+        tripId: tripId,
+        notes: documentSnapshot[_notesField],
+        transitOption: TransitOptions.values.firstWhere(
+            (element) => element.name == documentSnapshot[_transitOptionField]),
+        expense:
+            Expense.fromLinkedDocument(tripId, documentSnapshot[_expenseField]),
+        confirmationId: documentSnapshot[_confirmationIdField],
+        departureDateTime:
+            (documentSnapshot[_departureDateTimeField] as Timestamp).toDate(),
+        arrivalDateTime:
+            (documentSnapshot[_arrivalDateTimeField] as Timestamp).toDate(),
+        arrivalLocation:
+            Location.fromDocument(documentSnapshot[_arrivalLocationField]),
+        departureLocation:
+            Location.fromDocument(documentSnapshot[_departureLocationField]),
+        operator: documentSnapshot[_operatorField]);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      _transitOptionField: transitOption.name,
+      _expenseField: (expense as Expense).toJson(),
+      _departureDateTimeField: Timestamp.fromDate(departureDateTime),
+      _arrivalDateTimeField: Timestamp.fromDate(arrivalDateTime),
+      _departureLocationField: departureLocation.toJson(),
+      _arrivalLocationField: arrivalLocation.toJson(),
+      _confirmationIdField: confirmationId,
+      _operatorField: operator,
+      _notesField: notes
+    };
+  }
+
+  Stream<Model> onUpdateHappened() => _getDocumentReference()
+      .snapshots()
+      .map((event) => fromJson(tripId, event));
+}
+
+class ModelImpl extends Model with RepositoryPattern {
+  ModelImpl.create(
+      {required super.tripId,
+      required super.transitOption,
+      required super.departureDateTime,
+      required super.arrivalDateTime,
+      required super.departureLocation,
+      required super.arrivalLocation,
+      required super.expense})
+      : super.create();
+}
 
 abstract class TransitFacade {
   String get tripId;

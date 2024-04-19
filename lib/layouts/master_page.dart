@@ -69,6 +69,10 @@ class MasterPage extends StatelessWidget {
           listener: (context, state) {},
           builder: (context, state) {
             print('builder of masterpage called for state-${state}');
+            var currentTheme =
+                RepositoryProvider.of<PlatformDataRepository>(context)
+                    .appLevelData
+                    .activeThemeMode;
             return MaterialApp(
               localizationsDelegates: const [
                 AppLocalizations.delegate,
@@ -84,8 +88,26 @@ class MasterPage extends StatelessWidget {
               ),
               darkTheme: ThemeData(
                 brightness: Brightness.dark,
+                inputDecorationTheme: InputDecorationTheme(
+                  border: OutlineInputBorder(),
+                ),
+                // inputDecorationTheme: InputDecorationTheme(
+                //   labelStyle: TextStyle(color: Colors.white),
+                // ),
+                // scaffoldBackgroundColor: Colors.black87,
+                // primaryColor: Colors.black87,
+                // iconTheme: IconThemeData(color: Colors.black),
+                // splashColor: Colors.white,
+                // textTheme: Typography().white
+                // primaryColor: Colors.black,
+                // backgroundColor: Colors.black
+                // colorScheme: ColorScheme.dark(
+                //   primary: Colors.black87,
+                //   secondary: Colors.green,
+                //   background: Colors.black54,
+                // ),
               ),
-              themeMode: ThemeMode.dark,
+              themeMode: currentTheme,
               home: Material(child: _buildContentPage(state)),
             );
           },

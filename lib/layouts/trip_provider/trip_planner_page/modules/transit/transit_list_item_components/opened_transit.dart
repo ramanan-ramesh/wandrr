@@ -24,8 +24,9 @@ class OpenedTransitListItem extends StatefulWidget {
 
   OpenedTransitListItem(
       {super.key,
-      required this.initialTransitUpdator,
-      required this.transitOptionMetadatas});
+      required TransitUpdator initialTransitUpdator,
+      required this.transitOptionMetadatas})
+      : initialTransitUpdator = initialTransitUpdator.clone();
 
   @override
   State<OpenedTransitListItem> createState() => _OpenedTransitListItemState();
@@ -308,9 +309,8 @@ class _OpenedTransitListItemState extends State<OpenedTransitListItem> {
   Widget _createTransitCarrier(BuildContext context) {
     String transitCarrier = '';
     if (_transitUpdator.transitOption == TransitOptions.Flight) {
-      if (_transitUpdator.name != null && _transitUpdator.operator != null) {
-        transitCarrier =
-            '${_transitUpdator.name!} ${_transitUpdator.operator!}';
+      if (_transitUpdator.operator != null) {
+        transitCarrier = _transitUpdator.operator!;
       }
     } else {
       var pascalWordsPattern = RegExp(r"(?:[A-Z]+|^)[a-z]*");

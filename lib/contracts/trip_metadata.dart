@@ -5,12 +5,46 @@ import 'package:equatable/equatable.dart';
 import 'package:wandrr/contracts/collection_names.dart';
 import 'package:wandrr/contracts/communicators.dart';
 import 'package:wandrr/contracts/expense.dart';
+import 'package:wandrr/contracts/transit.dart';
 
 import 'firestore_helpers.dart';
 import 'location.dart';
 
 abstract class TripMetadataModifier {
   Future<bool> updateTotalExpenditure(double amount);
+}
+
+abstract class TripMetadataSetter extends TripMetaDataFacade {
+  void initializeWatches(ModelImpl modelImpl) {
+    var documentChanges = FirebaseFirestore.instance.doc(id).snapshots();
+    documentChanges.listen((event) {});
+  }
+
+  set startDate(DateTime startDate);
+  set endDate(DateTime endDate);
+  set name(String name);
+  set contributors(List<String> contributors);
+  set location(LocationFacade location);
+  set totalExpenditure(double totalExpenditure);
+  set budget(CurrencyWithValue budget);
+}
+
+abstract class TripMetaDataFacade {
+  String get id;
+
+  DateTime get startDate;
+
+  DateTime get endDate;
+
+  String get name;
+
+  UnmodifiableListView<String> get contributors;
+
+  LocationFacade get location;
+
+  double get totalExpenditure;
+
+  CurrencyWithValue get budget;
 }
 
 class TripMetaData
@@ -217,22 +251,4 @@ class TripMetaData
         id,
         _totalExpenditure
       ];
-}
-
-abstract class TripMetaDataFacade {
-  String get id;
-
-  DateTime get startDate;
-
-  DateTime get endDate;
-
-  String get name;
-
-  UnmodifiableListView<String> get contributors;
-
-  LocationFacade get location;
-
-  double get totalExpenditure;
-
-  CurrencyWithValue get budget;
 }

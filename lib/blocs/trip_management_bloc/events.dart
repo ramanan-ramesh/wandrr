@@ -25,6 +25,9 @@ class UpdateTripMetadata extends TripManagementEvent {
 
   UpdateTripMetadata.update({required this.tripMetadataUpdator})
       : requestedDataState = DataState.RequestedUpdate;
+
+  UpdateTripMetadata.delete({required this.tripMetadataUpdator})
+      : requestedDataState = DataState.RequestedDeletion;
 }
 
 class UpdateTransit extends TripManagementEvent {

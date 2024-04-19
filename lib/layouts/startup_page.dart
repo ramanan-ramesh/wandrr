@@ -64,10 +64,7 @@ class _StartupPageState extends State<StartupPage> {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      return Container(
-        color: Colors.white,
-        child: _performLayout(context, constraints),
-      );
+      return _performLayout(context, constraints);
     });
   }
 }

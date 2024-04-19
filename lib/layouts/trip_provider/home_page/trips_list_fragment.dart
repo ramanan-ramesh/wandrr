@@ -5,69 +5,48 @@ import 'package:intl/intl.dart' as intl;
 import 'package:wandrr/blocs/trip_management_bloc/bloc.dart';
 import 'package:wandrr/blocs/trip_management_bloc/events.dart';
 import 'package:wandrr/blocs/trip_management_bloc/states.dart';
+import 'package:wandrr/contracts/communicators.dart';
 import 'package:wandrr/contracts/trip_metadata.dart';
 import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
-import 'home_page.dart';
+import 'home_page_content.dart';
 
 class TripListFragment implements HomePageContent {
   TripListFragment(BuildContext context, VoidCallback? callback)
-      : _buildContext = ValueNotifier(context) {
+      : _context = context {
     _floatingActionButton = _buildCreateTripButton(callback);
     _body = _buildBody(context);
   }
 
+  final BuildContext _context;
+
   @override
-  void updateContext(BuildContext context) {
-    _buildContext.value = context;
-  }
-
-  final ValueNotifier<BuildContext> _buildContext;
-
+  Widget? get floatingActionButton => _floatingActionButton;
   Widget? _floatingActionButton;
 
   @override
-  Widget? get floatingActionButton {
-    return _floatingActionButton;
-  }
-
+  Widget? get body => _body;
   Widget? _body;
 
-  @override
-  Widget? get body {
-    return _body;
-  }
-
   Widget _createFABFromParameters(
-      BuildContext context, bool isKeyboardOpened, VoidCallback? callback) {
+      bool isKeyboardOpened, VoidCallback? callback) {
     return Visibility(
         visible: !isKeyboardOpened,
         child: PlatformButtonElements.createExtendedFAB(
             iconData: Icons.add_location_alt_rounded,
-            text: AppLocalizations.of(context)!.planTrip,
+            text: AppLocalizations.of(_context)!.planTrip,
             onPressed: () {
               if (callback != null) {
                 callback.call();
               }
             },
-            context: context));
+            context: _context));
   }
 
   Widget _buildCreateTripButton(VoidCallback? callback) {
-    var buildContext = _buildContext.value;
-    bool keyboardIsOpened =
-        MediaQuery.of(buildContext).viewInsets.bottom != 0.0;
-    return ValueListenableBuilder(
-      valueListenable: _buildContext,
-      builder: (context, updatedContext, widget) {
-        bool keyboardIsOpened =
-            MediaQuery.of(updatedContext).viewInsets.bottom != 0.0;
-        return _createFABFromParameters(
-            updatedContext, keyboardIsOpened, callback);
-      },
-      child: _createFABFromParameters(buildContext, keyboardIsOpened, callback),
-    );
+    bool keyboardIsOpened = MediaQuery.of(_context).viewInsets.bottom != 0.0;
+    return _createFABFromParameters(keyboardIsOpened, callback);
   }
 
   Widget _buildTripList() {
@@ -186,11 +165,61 @@ class _TripMetadataGridItem extends StatelessWidget {
                         style: const TextStyle(
                             fontWeight: FontWeight.bold, color: Colors.white),
                       ),
+                      trailing: _TripSettingsMenu(
+                        tripMetaDataFacade: tripMetaDataFacade,
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TripSettingsMenu extends StatelessWidget {
+  final TripMetaDataFacade tripMetaDataFacade;
+
+  _TripSettingsMenu({required this.tripMetaDataFacade});
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<Widget>(
+      itemBuilder: (BuildContext context) {
+        return [
+          PopupMenuItem(
+            child: Row(
+              children: [
+                Icon(Icons.delete_rounded),
+                SizedBox(width: 8),
+                Text(AppLocalizations.of(context)!.deleteTrip),
+              ],
+            ),
+            onTap: () {
+              var tripManagementBloc =
+                  BlocProvider.of<TripManagementBloc>(context);
+              tripManagementBloc.add(
+                UpdateTripMetadata.delete(
+                  tripMetadataUpdator: TripMetadataUpdator.fromTripMetadata(
+                      tripMetaDataFacade: tripMetaDataFacade),
+                ),
+              );
+            },
+          ),
+        ];
+      },
+      offset: const Offset(0, kToolbarHeight + 5),
+      child: Padding(
+        padding: EdgeInsets.all(2.0),
+        child: CircleAvatar(
+          radius: 30,
+          backgroundColor: Colors.black,
+          child: Icon(
+            Icons.settings_rounded,
+            color: Colors.white,
           ),
         ),
       ),
