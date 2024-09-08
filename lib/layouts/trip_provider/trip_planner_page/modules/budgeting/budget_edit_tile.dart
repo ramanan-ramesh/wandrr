@@ -3,9 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
+import 'package:wandrr/blocs/trip_management/states.dart';
+import 'package:wandrr/contracts/data_states.dart';
 import 'package:wandrr/contracts/expense.dart';
+import 'package:wandrr/contracts/extensions.dart';
+import 'package:wandrr/contracts/model_collection.dart';
 import 'package:wandrr/contracts/trip_metadata.dart';
-import 'package:wandrr/contracts/trip_repository.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/currencies.dart';
 import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/form.dart';
@@ -21,11 +24,7 @@ class BudgetEditTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (_currentBudget == null) {
-      var currentBudget =
-          RepositoryProvider.of<TripRepositoryModelFacade>(context)
-              .activeTrip!
-              .tripMetadata
-              .budget;
+      var currentBudget = context.getActiveTrip().tripMetadata.budget;
       _currentBudget = CurrencyWithValue(
           currency: currentBudget.currency, amount: currentBudget.amount);
     }
@@ -68,23 +67,7 @@ class BudgetEditTile extends StatelessWidget {
             ),
             Padding(
               padding: EdgeInsets.symmetric(vertical: 3.0),
-              child: PlatformSubmitterFAB.conditionallyEnabled(
-                valueNotifier: _budgetValidityNotifier,
-                callback: () {
-                  var tripManagementBloc =
-                      BlocProvider.of<TripManagementBloc>(context);
-                  var tripMetadata =
-                      RepositoryProvider.of<TripRepositoryModelFacade>(context)
-                          .activeTrip!
-                          .tripMetadata;
-                  tripMetadata.budget = _currentBudget!;
-                  tripManagementBloc.add(
-                      UpdateTripEntity<TripMetadataModelFacade>.update(
-                          tripEntity: tripMetadata));
-                },
-                icon: Icons.save_rounded,
-                context: context,
-              ),
+              child: _buildUpdateBudgetButton(),
             ),
           ],
         ),
@@ -92,33 +75,45 @@ class BudgetEditTile extends StatelessWidget {
     );
   }
 
-  int findDifferenceIndex(String newValue, String currentValue) {
-    if (currentValue.isEmpty) {
-      return newValue.length;
-    }
-    if (newValue.isEmpty) {
-      return 0;
-    }
-    if (newValue.length > currentValue.length) {
-      for (int i = 0; i < currentValue.length; i++) {
-        if (newValue[i] != currentValue[i]) {
-          return i + 1;
+  BlocConsumer<TripManagementBloc, TripManagementState>
+      _buildUpdateBudgetButton() {
+    return BlocConsumer<TripManagementBloc, TripManagementState>(
+      builder: (BuildContext context, TripManagementState state) {
+        if (state.isTripEntity<TripMetadataModelFacade>()) {
+          var updatedTripEntity = state as UpdatedTripEntity;
+          if (updatedTripEntity.dataState == DataState.Update) {
+            var tripMetadataModelModificationData =
+                updatedTripEntity.tripEntityModificationData
+                    as CollectionModificationData<TripMetadataModelFacade>;
+            if (tripMetadataModelModificationData.isFromEvent) {
+              if (tripMetadataModelModificationData
+                      .modifiedCollectionItem.budget !=
+                  _currentBudget) {
+                _currentBudget = tripMetadataModelModificationData
+                    .modifiedCollectionItem.budget;
+                _amountEditingController.text =
+                    _currentBudget!.amount.toString();
+              }
+            }
+          }
         }
-      }
-      return newValue.length;
-    } else if (newValue.length < currentValue.length) {
-      for (int i = 0; i < newValue.length; i++) {
-        if (newValue[i] != currentValue[i]) {
-          return i + 1;
-        }
-      }
-      return newValue.length;
-    }
-    for (int i = 0; i < newValue.length; i++) {
-      if (newValue[i] != currentValue[i]) {
-        return i + 1;
-      }
-    }
-    return newValue.length; // Strings are equal
+        return PlatformSubmitterFAB.conditionallyEnabled(
+          valueNotifier: _budgetValidityNotifier,
+          isSubmitted: false,
+          callback: () {
+            var tripManagementBloc =
+                BlocProvider.of<TripManagementBloc>(context);
+            var tripMetadata = context.getActiveTrip().tripMetadata;
+            tripMetadata.budget = _currentBudget!;
+            tripManagementBloc.add(
+                UpdateTripEntity<TripMetadataModelFacade>.update(
+                    tripEntity: tripMetadata));
+          },
+          icon: Icons.save_rounded,
+          context: context,
+        );
+      },
+      listener: (BuildContext context, TripManagementState state) {},
+    );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PlatformTextField extends StatefulWidget {
   PlatformTextField(
@@ -112,10 +113,13 @@ class _PlatformPasswordFieldState extends State<PlatformPasswordField> {
       decoration: InputDecoration(
         icon: Icon(Icons.password_rounded),
         labelText: widget.labelText,
-        suffixIcon: IconButton(
-          icon:
-              Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-          onPressed: _togglePasswordVisibility,
+        suffixIcon: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3.0),
+          child: IconButton(
+            icon: Icon(
+                _obscurePassword ? Icons.visibility_off : Icons.visibility),
+            onPressed: _togglePasswordVisibility,
+          ),
         ),
         errorText: widget.errorText,
       ),
@@ -194,18 +198,27 @@ class _PlatformCurrencyDropDownState extends State<PlatformCurrencyDropDown> {
                 offset: Offset(0.0, 5.0),
                 child: Material(
                   elevation: 4.0,
-                  child: Container(
-                    constraints: BoxConstraints(
-                      maxHeight: 350,
-                    ),
-                    child: ScrollConfiguration(
-                      behavior: ScrollConfiguration.of(context),
-                      child: ListView(
-                        padding: EdgeInsets.zero,
-                        shrinkWrap: true,
-                        children: widget.allCurrencies.map((item) {
-                          return _buildCurrencyListTile(item, false);
-                        }).toList(),
+                  child: ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(context),
+                    child: Container(
+                      constraints: BoxConstraints(
+                        maxHeight: 300,
+                      ),
+                      child: _SearchableCurrencyDropDown(
+                        allCurrencies: widget.allCurrencies,
+                        currencyInfo: widget.currencyInfo,
+                        callBack: (Map<String, dynamic> selectedCurrencyInfo) {
+                          if (widget.currencyInfo != selectedCurrencyInfo) {
+                            setState(() {
+                              widget.currencyInfo = selectedCurrencyInfo;
+                              widget.callBack(selectedCurrencyInfo);
+                            });
+                          }
+                        },
+                        currencyListTileBuilder:
+                            (Map<String, dynamic> currency) {
+                          return _buildCurrencyListTile(currency, false);
+                        },
                       ),
                     ),
                   ),
@@ -228,42 +241,166 @@ class _PlatformCurrencyDropDownState extends State<PlatformCurrencyDropDown> {
     }
     return SizedBox(
       height: 60,
-      child: ListTile(
-        onTap: !isDropDownButton
-            ? () {
-                if (!mapEquals(currency, widget.currencyInfo)) {
-                  setState(() {
-                    widget.currencyInfo = currency;
-                    widget.callBack(currency);
-                    _toggleDropdown();
-                  });
+      child: Container(
+        color: isEqualToCurrentlySelectedItem
+            ? Colors.white10
+            : Colors.transparent,
+        child: InkWell(
+          onTap: !isDropDownButton
+              ? () {
+                  if (!mapEquals(currency, widget.currencyInfo)) {
+                    setState(() {
+                      widget.currencyInfo = currency;
+                      widget.callBack(currency);
+                      _toggleDropdown();
+                    });
+                  }
                 }
-              }
-            : null,
-        selected: isDropDownButton ? true : isEqualToCurrentlySelectedItem,
-        leading: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            currency['symbol'],
-            style: TextStyle(
-                fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
+              : null,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    currency['symbol'],
+                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                        fontWeight: FontWeight.bold, color: textColor),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          currency['name'],
+                          style: TextStyle(
+                              color:
+                                  textColor), //TODO: This should also be scaled down. But it makes text center in the ListTile. How to avoid this?
+                        ),
+                      ),
+                      Text(
+                        currency['code'],
+                        style: TextStyle(color: textColor),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (isDropDownButton)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                  child: Icon(Icons.arrow_drop_down),
+                )
+            ],
           ),
         ),
-        title: FittedBox(
-          alignment: Alignment.centerLeft,
-          fit: BoxFit.scaleDown,
-          child: Text(
-            currency['name'],
-            style: TextStyle(
-                color:
-                    textColor), //TODO: This should also be scaled down. But it makes text center in the ListTile. How to avoid this?
+      ),
+    );
+  }
+}
+
+class _SearchableCurrencyDropDown extends StatefulWidget {
+  final List<Map<String, dynamic>> allCurrencies;
+  Map<String, dynamic> currencyInfo;
+  final Function(Map<String, dynamic> selectedCurrencyInfo) callBack;
+  Widget Function(Map<String, dynamic> currency) currencyListTileBuilder;
+
+  _SearchableCurrencyDropDown(
+      {super.key,
+      required this.allCurrencies,
+      required this.currencyInfo,
+      required this.callBack,
+      required this.currencyListTileBuilder});
+
+  @override
+  State<_SearchableCurrencyDropDown> createState() =>
+      _SearchableCurrencyDropDownState();
+}
+
+class _SearchableCurrencyDropDownState
+    extends State<_SearchableCurrencyDropDown> {
+  late List<Map<String, dynamic>> _currencies;
+
+  @override
+  void initState() {
+    super.initState();
+    _currencies = widget.allCurrencies.toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3.0),
+          child: _buildSearchEditor(context),
+        ),
+        Flexible(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3.0),
+            child: ListView(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              children: _currencies.map((item) {
+                return widget.currencyListTileBuilder(item);
+              }).toList(),
+            ),
           ),
         ),
-        subtitle: Text(
-          currency['code'],
-          style: TextStyle(color: textColor),
-        ),
-        trailing: isDropDownButton ? Icon(Icons.arrow_drop_down) : null,
+      ],
+    );
+  }
+
+  Widget _buildSearchEditor(BuildContext context) {
+    return SizedBox(
+      height: 60,
+      child: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3.0),
+            child: Icon(Icons.search_rounded),
+          ),
+          Expanded(
+            child: TextField(
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: AppLocalizations.of(context)!.searchForCurrency,
+              ),
+              onChanged: (searchText) {
+                _currencies.clear();
+                if (searchText.isEmpty) {
+                  _currencies = widget.allCurrencies.toList();
+                } else {
+                  var searchResultsForCurrencyName = widget.allCurrencies.where(
+                      (currencyInfo) => currencyInfo['name']
+                          .toLowerCase()
+                          .contains(searchText.toLowerCase()));
+                  var searchResultsForCurrencyCode = widget.allCurrencies.where(
+                      (currencyInfo) => currencyInfo['code']
+                          .toLowerCase()
+                          .contains(searchText.toLowerCase()));
+                  _currencies.addAll(searchResultsForCurrencyName);
+                  for (var currencyInfo in searchResultsForCurrencyCode) {
+                    if (!_currencies.contains(currencyInfo)) {
+                      _currencies.add(currencyInfo);
+                    }
+                  }
+                }
+                setState(() {});
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -297,6 +434,15 @@ class _PlatformCurrencyDropDownTextFieldState
     extends State<PlatformCurrencyDropDownTextField> {
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
+  static const _inputBorder = UnderlineInputBorder(
+    borderSide: BorderSide(color: Colors.green, width: 2.0),
+    borderRadius: BorderRadius.only(
+      topLeft: Radius.circular(0),
+      topRight: Radius.circular(0),
+      bottomLeft: Radius.circular(0),
+      bottomRight: Radius.circular(0),
+    ),
+  );
 
   final _amountEditingController = TextEditingController();
 
@@ -335,82 +481,24 @@ class _PlatformCurrencyDropDownTextFieldState
                 ),
               ),
               Expanded(
-                child: TextField(
-                  readOnly: !widget.isAmountEditable,
-                  onChanged: (newValue) {
-                    if (newValue != widget.amount) {
-                      var differenceIndex =
-                          findDifferenceIndex(newValue, widget.amount);
-                      _amountEditingController.selection =
-                          TextSelection.fromPosition(
-                              TextPosition(offset: differenceIndex));
-                      widget.amount = newValue;
-                      widget.onAmountUpdatedCallback(double.parse(newValue));
-                    }
-                  },
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  controller: _amountEditingController,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'\d+\.?\d{0,2}'))
-                  ],
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.green, width: 2.0),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(0),
-                        topRight: Radius.circular(0),
-                        bottomLeft: Radius.circular(0),
-                        bottomRight: Radius.circular(0),
-                      ),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.green, width: 2.0),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(0),
-                        topRight: Radius.circular(0),
-                        bottomLeft: Radius.circular(0),
-                        bottomRight: Radius.circular(0),
-                      ),
-                    ),
-                  ),
+                  child: PlatformExpenseEditTextField(
+                amount: widget.amount,
+                isReadonly: !widget.isAmountEditable,
+                onExpenseAmountChanged: (newValue) {
+                  widget.amount = newValue.toStringAsFixed(2);
+                  widget.onAmountUpdatedCallback(newValue);
+                },
+                inputDecoration: InputDecoration(
+                  border: InputBorder.none,
+                  enabledBorder: _inputBorder,
+                  focusedBorder: _inputBorder,
                 ),
-              ),
+              )),
             ],
           ),
         ),
       ),
     );
-  }
-
-  int findDifferenceIndex(String newValue, String currentValue) {
-    if (currentValue.isEmpty) {
-      return newValue.length;
-    }
-    if (newValue.isEmpty) {
-      return 0;
-    }
-    if (newValue.length > currentValue.length) {
-      for (int i = 0; i < currentValue.length; i++) {
-        if (newValue[i] != currentValue[i]) {
-          return i + 1;
-        }
-      }
-      return newValue.length;
-    } else if (newValue.length < currentValue.length) {
-      for (int i = 0; i < newValue.length; i++) {
-        if (newValue[i] != currentValue[i]) {
-          return i + 1;
-        }
-      }
-      return newValue.length;
-    }
-    for (int i = 0; i < newValue.length; i++) {
-      if (newValue[i] != currentValue[i]) {
-        return i + 1;
-      }
-    }
-    return newValue.length; // Strings are equal
   }
 
   void _toggleDropdown() {
@@ -515,5 +603,78 @@ class _PlatformCurrencyDropDownTextFieldState
         ),
       ),
     );
+  }
+}
+
+class PlatformExpenseEditTextField extends StatelessWidget {
+  bool isReadonly;
+  Function(double)? onExpenseAmountChanged;
+  String amount;
+  final TextEditingController _amountEditingController;
+  InputDecoration? inputDecoration;
+  Color? textColor;
+
+  PlatformExpenseEditTextField(
+      {super.key,
+      this.isReadonly = false,
+      this.onExpenseAmountChanged,
+      this.inputDecoration,
+      this.textColor,
+      required this.amount})
+      : _amountEditingController = TextEditingController(text: amount);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      readOnly: isReadonly,
+      style: TextStyle(color: textColor),
+      onChanged: (newValue) {
+        if (newValue != amount) {
+          var differenceIndex = _findDifferenceIndex(newValue, amount);
+          _amountEditingController.selection =
+              TextSelection.fromPosition(TextPosition(offset: differenceIndex));
+          amount = newValue;
+          if (onExpenseAmountChanged != null) {
+            onExpenseAmountChanged!(double.parse(newValue));
+          }
+        }
+      },
+      keyboardType: TextInputType.numberWithOptions(decimal: true),
+      controller: _amountEditingController,
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'\d+\.?\d{0,2}'))
+      ],
+      decoration: inputDecoration,
+    );
+  }
+
+  int _findDifferenceIndex(String newValue, String currentValue) {
+    if (currentValue.isEmpty) {
+      return newValue.length;
+    }
+    if (newValue.isEmpty) {
+      return 0;
+    }
+    if (newValue.length > currentValue.length) {
+      for (int i = 0; i < currentValue.length; i++) {
+        if (newValue[i] != currentValue[i]) {
+          return i + 1;
+        }
+      }
+      return newValue.length;
+    } else if (newValue.length < currentValue.length) {
+      for (int i = 0; i < newValue.length; i++) {
+        if (newValue[i] != currentValue[i]) {
+          return i;
+        }
+      }
+      return newValue.length;
+    }
+    for (int i = 0; i < newValue.length; i++) {
+      if (newValue[i] != currentValue[i]) {
+        return i + 1;
+      }
+    }
+    return newValue.length;
   }
 }

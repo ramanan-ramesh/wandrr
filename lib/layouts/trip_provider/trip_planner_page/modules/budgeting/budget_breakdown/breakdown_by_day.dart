@@ -2,11 +2,9 @@ import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:wandrr/contracts/budgeting_module.dart';
 import 'package:wandrr/contracts/extensions.dart';
-import 'package:wandrr/contracts/trip_repository.dart';
 
 extension ColorExtension on Color {
   /// Convert the color to a darken color based on the [percent]
@@ -133,9 +131,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
       );
 
   Widget getLeftTitles(double value, TitleMeta meta) {
-    var tripMetadata = RepositoryProvider.of<TripRepositoryModelFacade>(context)
-        .activeTrip!
-        .tripMetadata;
+    var tripMetadata = context.getActiveTrip().tripMetadata;
 
     var numberOfDaysOfTrip =
         tripMetadata.startDate!.calculateDaysInBetween(tripMetadata.endDate!);
@@ -163,9 +159,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
 
   Widget getRightTitles(double value, TitleMeta meta,
       Map<DateTime?, double> totalExpensesPerDay) {
-    var tripMetadata = RepositoryProvider.of<TripRepositoryModelFacade>(context)
-        .activeTrip!
-        .tripMetadata;
+    var tripMetadata = context.getActiveTrip().tripMetadata;
     var numberOfDaysOfTrip =
         tripMetadata.startDate!.calculateDaysInBetween(tripMetadata.endDate!);
 

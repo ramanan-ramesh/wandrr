@@ -4,6 +4,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:wandrr/blocs/master_page_bloc/master_page_bloc.dart';
 import 'package:wandrr/blocs/master_page_bloc/master_page_states.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/repositories/platform_data_repository.dart';
 
 import 'startup_page.dart';
@@ -60,18 +61,13 @@ class _MasterPageState extends State<MasterPage> {
             return _masterPageBloc!;
           }
           _masterPageBloc = MasterPageBloc(
-              platformDataRepository:
-                  RepositoryProvider.of<PlatformDataRepositoryFacade>(context));
+              platformDataRepository: context.getPlatformDataRepository());
           return _masterPageBloc!;
         },
         child: BlocConsumer<MasterPageBloc, MasterPageState>(
           listener: (context, state) {},
           builder: (context, state) {
-            print('builder of masterpage called for state-${state}');
-            var currentTheme =
-                RepositoryProvider.of<PlatformDataRepositoryFacade>(context)
-                    .appData
-                    .activeThemeMode;
+            var currentTheme = context.getAppLevelData().activeThemeMode;
             return MaterialApp(
               localizationsDelegates: const [
                 AppLocalizations.delegate,
@@ -124,13 +120,12 @@ class _MasterPageState extends State<MasterPage> {
                 ),
                 tabBarTheme: TabBarTheme(
                   indicatorSize: TabBarIndicatorSize.tab,
-                  labelStyle: TextStyle(color: Colors.white),
-                  indicator: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: Colors.green),
-                      bottom: BorderSide(color: Colors.green),
-                    ),
-                  ),
+                  labelStyle: Theme.of(context).textTheme.headlineMedium,
+                  unselectedLabelStyle:
+                      Theme.of(context).textTheme.headlineMedium,
+                  indicatorColor: Colors.white10,
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.grey,
                 ),
                 appBarTheme: AppBarTheme(
                   color: Colors.grey.shade900,
@@ -158,7 +153,8 @@ class _MasterPageState extends State<MasterPage> {
               themeMode: currentTheme,
               home: Material(
                   child: DropdownButtonHideUnderline(
-                      child: _buildContentPage(state))),
+                child: SafeArea(child: _buildContentPage(state)),
+              )),
             );
           },
           buildWhen: (previousState, currentState) {

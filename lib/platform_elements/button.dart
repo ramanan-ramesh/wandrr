@@ -1,25 +1,6 @@
 import 'package:flutter/material.dart';
 
 class PlatformButtonElements {
-  static Widget createExtendedFAB(
-      {required IconData iconData,
-      required String text,
-      required BuildContext context,
-      VoidCallback? onPressed,
-      bool enabled = true,
-      GlobalKey? widgetKey}) {
-    return FloatingActionButton.extended(
-      onPressed: onPressed,
-      key: widgetKey,
-      icon: Icon(
-        iconData,
-      ),
-      label: Text(
-        text,
-      ),
-    );
-  }
-
   static Widget createTextButtonWithIcon(
       {required String text,
       required IconData iconData,
@@ -37,20 +18,6 @@ class PlatformButtonElements {
       ),
       label: Text(
         text,
-      ),
-    );
-  }
-
-  static Widget createFAB(
-      {required IconData icon,
-      required BuildContext context,
-      VoidCallback? callback}) {
-    return FloatingActionButton(
-      // backgroundColor: Colors.black,
-      onPressed: callback,
-      child: Icon(
-        icon,
-        // color: Colors.white,
       ),
     );
   }

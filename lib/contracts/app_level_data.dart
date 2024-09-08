@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'platform_user.dart';
 
-class AppLevelData implements AppDataFacade, AppLevelDataModifier {
+class AppLevelData implements AppLevelDataModifier {
   PlatformUser? _activeUser;
   String _activeLanguage;
   ThemeMode _activeThemeMode;
@@ -22,7 +22,8 @@ class AppLevelData implements AppDataFacade, AppLevelDataModifier {
       required ThemeMode initialThemeMode})
       : _activeUser = initialUser,
         _activeThemeMode = initialThemeMode,
-        _activeLanguage = initialLanguage;
+        _activeLanguage = initialLanguage,
+        isBigLayout = false;
 
   @override
   void updateActiveLanguage(String language) {
@@ -41,9 +42,17 @@ class AppLevelData implements AppDataFacade, AppLevelDataModifier {
 
   @override
   String get defaultCurrency => 'INR';
+
+  @override
+  bool isBigLayout;
+
+  @override
+  void updateLayoutType(bool isBigLayout) {
+    this.isBigLayout = isBigLayout;
+  }
 }
 
-abstract class AppDataFacade {
+abstract class AppLevelDataFacade {
   PlatformUser? get activeUser;
 
   String get activeLanguage;
@@ -51,12 +60,16 @@ abstract class AppDataFacade {
   ThemeMode get activeThemeMode;
 
   String get defaultCurrency;
+
+  bool get isBigLayout;
 }
 
-abstract class AppLevelDataModifier {
+abstract class AppLevelDataModifier extends AppLevelDataFacade {
   void updateActiveLanguage(String language);
 
   void updateActiveUser(PlatformUser? platformUser);
 
   void updateActiveThemeMode(ThemeMode themeMode);
+
+  void updateLayoutType(bool isBigLayout);
 }

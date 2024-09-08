@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:wandrr/contracts/extensions.dart';
 
 class OnBoardingPage extends StatelessWidget {
   VoidCallback? loginCallback;
@@ -10,6 +11,7 @@ class OnBoardingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var isBigLayout = context.isBigLayout();
     return Stack(
       fit: StackFit.expand,
       alignment: Alignment.center,
@@ -37,15 +39,16 @@ class OnBoardingPage extends StatelessWidget {
                 )),
           ),
         ),
-        Align(
-          alignment: Alignment.centerRight,
-          child: Container(
-            padding: EdgeInsets.only(right: 4),
-            child: LanguageSwitcher(
-              loginCallback: loginCallback,
+        if (!isBigLayout)
+          Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              padding: EdgeInsets.only(right: 4),
+              child: LanguageSwitcher(
+                loginCallback: loginCallback,
+              ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -110,15 +113,14 @@ class _LanguageSwitcherState extends State<LanguageSwitcher> {
             size: 75,
           ),
         ),
-        if (widget.loginCallback != null)
-          FloatingActionButton.large(
-            onPressed: widget.loginCallback,
-            shape: CircleBorder(),
-            child: Icon(
-              Icons.navigate_next_rounded,
-              size: 75,
-            ),
-          )
+        FloatingActionButton.large(
+          onPressed: widget.loginCallback,
+          shape: CircleBorder(),
+          child: Icon(
+            Icons.navigate_next_rounded,
+            size: 75,
+          ),
+        )
       ],
     );
   }

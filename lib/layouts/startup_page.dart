@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/contracts/app_level_data.dart';
+import 'package:wandrr/contracts/extensions.dart';
 
 import 'login_page.dart';
 import 'onboarding_page.dart';
@@ -27,6 +29,7 @@ class _StartupPageState extends State<StartupPage> {
         constraints.minHeight < 600 ? 600 : constraints.minHeight;
     double maxHeight =
         constraints.maxHeight < 600 ? 600 : constraints.maxHeight;
+    var appLevelData = context.getAppLevelData() as AppLevelDataModifier;
     if (constraints.minWidth > 1000) {
       boxConstraints = BoxConstraints(
           minWidth: constraints.minWidth,
@@ -34,6 +37,7 @@ class _StartupPageState extends State<StartupPage> {
           minHeight: minHeight,
           maxHeight: maxHeight);
       pageToRender = _buildLayoutForBigScreen(context);
+      appLevelData.updateLayoutType(true);
     } else {
       pageToRender = _shouldNavigateToLoginScreen
           ? LoginPage()
@@ -49,6 +53,7 @@ class _StartupPageState extends State<StartupPage> {
           maxWidth: 550,
           minHeight: minHeight,
           maxHeight: maxHeight);
+      appLevelData.updateLayoutType(false);
     }
     return SingleChildScrollView(
       child: Container(constraints: boxConstraints, child: pageToRender),

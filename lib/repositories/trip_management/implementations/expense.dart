@@ -166,10 +166,17 @@ class ExpenseModelImplementation extends ExpenseModelFacade
       }
     }
 
+    var paidByValue = Map<String, dynamic>.from(json[_paidByField]);
+    var paidBy = <String, double>{};
+    for (var paidByEntry in paidByValue.entries) {
+      var amount = paidByEntry.value;
+      paidBy[paidByEntry.key] = double.parse(amount.toString());
+    }
+
     return ExpenseModelImplementation(
         totalExpense: CurrencyWithValue(currency: currency, amount: cost),
         tripId: tripId,
-        paidBy: Map.from(json[_paidByField]),
+        paidBy: paidBy,
         dateTime: dateTimeValue?.toDate(),
         category: category,
         splitBy: splitBy,

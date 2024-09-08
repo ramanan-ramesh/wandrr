@@ -5,15 +5,15 @@
   "enter_login_details": "Enter your username and password",
   "userName": "UserName",
   "password": "Password",
-  "alternativeLogin": "You can also login with",
+  "alternativeLogin": "Sign in with",
   "userNameAlreadyExists": "This username is already registered. You can login with it instead",
   "noSuchUserExists": "No such username exists. You can register with it instead",
   "enterValidEmail": "Enter a valid email",
   "viewRecentTrips": "View upcoming trips",
   "noTripsCreated": "No upcoming trips? Have fun creating a new one!",
   "planTrip": "Plan a trip!",
-  "dateRangePickerStart": "Start Day:",
-  "dateRangePickerEnd": "End Day:",
+  "dateRangePickerStart": "Start Date:",
+  "dateRangePickerEnd": "End Date:",
   "destination": "Destination",
   "tripName": "Trip Name",
   "transit": "Transit",
@@ -97,5 +97,8 @@
   "cancel": "Cancel",
   "share": "Share",
   "stayAddress": "Hostel or Lodging Address",
-  "carrierName":"Carrier Name"
+  "carrierName":"Carrier Name",
+  "dateTimeSelection" : "Select a date and time",
+  "loadingTrip":"Loading Trip...",
+  "searchForCurrency":"Search for a currency"
 }

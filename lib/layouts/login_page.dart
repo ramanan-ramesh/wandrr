@@ -44,6 +44,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
   TabController? _tabController;
   static const String googleLogoAsset = 'assets/images/google_logo.png';
   static final _emailRegExValidator = RegExp('.*@.*.com');
+  static const double _roundedCornerRadius = 25.0;
 
   @override
   void initState() {
@@ -63,7 +64,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
   Widget build(BuildContext context) {
     return Card(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(25)),
+        borderRadius: BorderRadius.all(Radius.circular(_roundedCornerRadius)),
       ),
       child: FocusTraversalGroup(
         policy: OrderedTraversalPolicy(),
@@ -175,14 +176,27 @@ class _LoginPageFormState extends State<_LoginPageForm>
     );
   }
 
-  TabBar _createTabBar() {
-    return TabBar(
-      controller: _tabController,
-      labelStyle: const TextStyle(fontSize: 22),
-      tabs: [
-        Tab(text: AppLocalizations.of(context)!.login),
-        Tab(text: AppLocalizations.of(context)!.register),
-      ],
+  Widget _createTabBar() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(_roundedCornerRadius),
+      clipBehavior: Clip.hardEdge,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(_roundedCornerRadius),
+          border: Border.all(color: Colors.green),
+        ),
+        child: TabBar(
+          controller: _tabController,
+          indicator: BoxDecoration(
+            color: Theme.of(context).tabBarTheme.indicatorColor,
+            borderRadius: BorderRadius.circular(_roundedCornerRadius),
+          ),
+          tabs: [
+            Tab(text: AppLocalizations.of(context)!.login),
+            Tab(text: AppLocalizations.of(context)!.register),
+          ],
+        ),
+      ),
     );
   }
 

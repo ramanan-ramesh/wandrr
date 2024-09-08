@@ -47,13 +47,15 @@ class TripMetadataModelImplementation extends TripMetadataModelFacade
     } else {
       budget = CurrencyWithValue(currency: _defaultCurrency, amount: 0);
     }
+
+    var totalExpenditureValue = documentData[_totalExpenditureField];
     return TripMetadataModelImplementation._(
         id: documentSnapshot.id,
         startDate: startDateTime,
         endDate: endDateTime,
         name: documentData[_nameField],
         contributors: contributors,
-        totalExpenditure: documentData[_totalExpenditureField],
+        totalExpenditure: double.parse(totalExpenditureValue.toString()),
         budget: budget);
   }
 

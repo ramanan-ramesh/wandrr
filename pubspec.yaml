@@ -51,6 +51,7 @@ dependencies:
   dropdown_search: ^5.0.6
   fl_chart: ^0.66.0
   google_sign_in: ^6.2.1
+  flutter_datetime_picker_plus: ^2.2.0
 
 dev_dependencies:
   flutter_test:

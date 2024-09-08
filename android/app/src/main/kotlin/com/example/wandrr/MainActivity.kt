@@ -1,0 +1,5 @@
+package com.example.wandrr
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity: FlutterActivity()

@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/contracts/expense.dart';
-import 'package:wandrr/contracts/trip_repository.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/layouts/constants.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/currencies.dart';
 import 'package:wandrr/platform_elements/form.dart';
 import 'package:wandrr/platform_elements/text.dart';
-import 'package:wandrr/repositories/platform_data_repository.dart';
 
 class ExpenditureEditTile extends StatefulWidget {
   Map<String, double> paidBy;
@@ -47,10 +44,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   }
 
   void _initializeContributors(BuildContext context) {
-    var contributors = RepositoryProvider.of<TripRepositoryModelFacade>(context)
-        .activeTrip!
-        .tripMetadata
-        .contributors;
+    var contributors = context.getActiveTrip().tripMetadata.contributors;
     var allContributors = List.from(contributors);
     allContributors.sort();
     for (int index = 0; index < allContributors.length; index++) {
@@ -228,11 +222,7 @@ class _PaidByTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var currentUserName =
-        RepositoryProvider.of<PlatformDataRepositoryFacade>(context)
-            .appData
-            .activeUser!
-            .userName;
+    var currentUserName = context.getAppLevelData().activeUser!.userName;
     var allContributions = _createContributions(context, currentUserName);
     var widgets = allContributions
         .map((contributorVsColor) => Padding(
@@ -319,26 +309,21 @@ class _ExpenseEditFieldState extends State<_ExpenseEditField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      style: TextStyle(color: Colors.white),
-      onChanged: (newValue) {
-        if (newValue != _currentValue) {
-          var differenceIndex = findDifferenceIndex(newValue, _currentValue);
-          _textEditingController.selection =
-              TextSelection.fromPosition(TextPosition(offset: differenceIndex));
-          _currentValue = newValue;
-          widget.onChanged(newValue);
-        }
+    return PlatformExpenseEditTextField(
+      amount: widget.initialExpense,
+      textColor: Colors.white,
+      onExpenseAmountChanged: (newValue) {
+        var newExpenseStringValue = newValue.toStringAsFixed(2);
+        _currentValue = newExpenseStringValue;
+        widget.onChanged(newExpenseStringValue);
       },
-      keyboardType: TextInputType.numberWithOptions(decimal: true),
-      controller: _textEditingController,
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'\d+\.?\d{0,2}'))
-      ],
-      decoration: InputDecoration(
+      inputDecoration: InputDecoration(
         fillColor: Colors.white24,
         border: OutlineInputBorder(),
-        prefixText: widget.prefixText,
+        prefix: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3.0),
+          child: Text(widget.prefixText),
+        ),
         icon: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2.0),
           child: Container(
@@ -359,36 +344,6 @@ class _ExpenseEditFieldState extends State<_ExpenseEditField> {
         ),
       ),
     );
-  }
-
-  int findDifferenceIndex(String newValue, String currentValue) {
-    if (currentValue.isEmpty) {
-      return newValue.length;
-    }
-    if (newValue.isEmpty) {
-      return 0;
-    }
-    if (newValue.length > currentValue.length) {
-      for (int i = 0; i < currentValue.length; i++) {
-        if (newValue[i] != currentValue[i]) {
-          return i + 1;
-        }
-      }
-      return newValue.length;
-    } else if (newValue.length < currentValue.length) {
-      for (int i = 0; i < newValue.length; i++) {
-        if (newValue[i] != currentValue[i]) {
-          return i + 1;
-        }
-      }
-      return newValue.length;
-    }
-    for (int i = 0; i < newValue.length; i++) {
-      if (newValue[i] != currentValue[i]) {
-        return i + 1;
-      }
-    }
-    return newValue.length; // Strings are equal
   }
 }
 

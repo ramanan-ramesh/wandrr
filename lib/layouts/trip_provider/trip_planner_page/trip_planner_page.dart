@@ -3,8 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
+import 'package:wandrr/contracts/app_level_data.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/trip_metadata.dart';
-import 'package:wandrr/contracts/trip_repository.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/budgeting/expense_view_adapter.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/itinerary/itinerary_listview.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/lodging/lodging_listview.dart';
@@ -12,20 +13,8 @@ import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/plan_data
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/transit/transit_listview.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/trip_overview_tile.dart';
 
+import 'expense_view_type.dart';
 import 'modules/budgeting/header_tile.dart';
-
-enum ExpenseViewType {
-  ShowExpenseList,
-  RequestExpenseList,
-  ShowBreakdownViewer,
-  RequestBreakdownViewer,
-  ShowBudgetEditor,
-  RequestBudgetEditor,
-  ShowDebtSummary,
-  RequestDebtSummary,
-  ShowAddTripmate,
-  RequestAddTripmate
-}
 
 class TripPlannerPage extends StatelessWidget {
   static const _breakOffLayoutWidth = 800;
@@ -39,7 +28,9 @@ class TripPlannerPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        var appLevelData = context.getAppLevelData() as AppLevelDataModifier;
         if (constraints.maxWidth > _breakOffLayoutWidth) {
+          appLevelData.updateLayoutType(true);
           return Row(
             children: [
               _buildPageWithSize(_buildLayout(context, true)),
@@ -60,6 +51,7 @@ class TripPlannerPage extends StatelessWidget {
             ],
           );
         } else {
+          appLevelData.updateLayoutType(false);
           return Center(
             child: Container(
               constraints:
@@ -201,10 +193,7 @@ class _TripSettingsMenu extends StatelessWidget {
               ],
             ),
             onTap: () {
-              var tripMetadataFacade =
-                  RepositoryProvider.of<TripRepositoryModelFacade>(context)
-                      .activeTrip!
-                      .tripMetadata;
+              var tripMetadataFacade = context.getActiveTrip().tripMetadata;
               var tripManagementBloc =
                   BlocProvider.of<TripManagementBloc>(context);
               tripManagementBloc.add(

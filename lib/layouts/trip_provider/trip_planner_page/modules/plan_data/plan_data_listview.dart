@@ -6,8 +6,8 @@ import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
 import 'package:wandrr/contracts/communicators.dart';
 import 'package:wandrr/contracts/data_states.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/plan_data.dart';
-import 'package:wandrr/contracts/trip_repository.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/plan_data/opened_plan_data/opened_plan_data.dart';
 import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/text.dart';
@@ -51,15 +51,14 @@ class _PlanDataListViewState extends State<PlanDataListView> {
   }
 
   Widget _buildCreatePlanDataListButton(BuildContext context) {
-    return PlatformButtonElements.createExtendedFAB(
-        iconData: Icons.add_rounded,
-        text: AppLocalizations.of(context)!.newList,
+    return FloatingActionButton.extended(
         onPressed: () {
           var tripManagementBloc = BlocProvider.of<TripManagementBloc>(context);
           tripManagementBloc
               .add(UpdateTripEntity<PlanDataModelFacade>.createNewUiEntry());
         },
-        context: context);
+        label: Text(AppLocalizations.of(context)!.newList),
+        icon: Icon(Icons.add_rounded));
   }
 
   bool _shouldBuildPlanDataList(
@@ -77,8 +76,7 @@ class _PlanDataListViewState extends State<PlanDataListView> {
 
   void _updatePlanDataListOnBuild(
       BuildContext context, TripManagementState state) {
-    var activeTrip =
-        RepositoryProvider.of<TripRepositoryModelFacade>(context).activeTrip!;
+    var activeTrip = context.getActiveTrip();
 
     _planDataUiElements.removeWhere((x) => x.dataState != DataState.NewUiEntry);
 

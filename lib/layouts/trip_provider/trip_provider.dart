@@ -4,11 +4,11 @@ import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
 import 'package:wandrr/contracts/data_states.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/trip_metadata.dart';
 import 'package:wandrr/contracts/trip_repository.dart';
 import 'package:wandrr/layouts/trip_provider/home_page/home_page.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/trip_planner_page.dart';
-import 'package:wandrr/repositories/platform_data_repository.dart';
 import 'package:wandrr/repositories/trip_management/trip_repository.dart';
 
 class TripProvider extends StatelessWidget {
@@ -18,9 +18,8 @@ class TripProvider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print("TripProvider-build");
-    var platformDataRepository =
-        RepositoryProvider.of<PlatformDataRepositoryFacade>(context);
-    var platformUser = platformDataRepository.appData.activeUser!;
+    var platformDataRepository = context.getPlatformDataRepository();
+    var platformUser = context.getAppLevelData().activeUser!;
     return FutureBuilder(
       future: TripRepositoryImplementation.createInstanceAsync(
           userName: platformUser.userName,

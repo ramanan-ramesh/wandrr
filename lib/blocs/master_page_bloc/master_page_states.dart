@@ -7,7 +7,7 @@ abstract class MasterPageState {}
 class Loading extends MasterPageState {}
 
 class Startup extends MasterPageState {
-  AppDataFacade appLevelData;
+  AppLevelDataFacade appLevelData;
 
   Startup({required this.appLevelData});
 }

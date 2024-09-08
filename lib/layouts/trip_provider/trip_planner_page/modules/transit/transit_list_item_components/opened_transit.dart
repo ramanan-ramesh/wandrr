@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/contracts/communicators.dart';
 import 'package:wandrr/contracts/expense.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/location.dart';
 import 'package:wandrr/contracts/transit.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/budgeting/expense_list_item_components/expenditure_edit_tile.dart';
-import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/transit/transit_listview.dart';
+import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/transit/transit_option_metadata.dart';
 import 'package:wandrr/platform_elements/date_picker.dart';
 import 'package:wandrr/platform_elements/form.dart';
 import 'package:wandrr/platform_elements/location.dart';
 import 'package:wandrr/platform_elements/text.dart';
-import 'package:wandrr/repositories/platform_data_repository.dart';
 
 class OpenedTransitListItem extends StatefulWidget {
   UiElement<TransitModelFacade> transitUiElement;
@@ -41,50 +40,81 @@ class _OpenedTransitListItemState extends State<OpenedTransitListItem> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    var isBigLayout = context.isBigLayout();
+    if (isBigLayout) {
+      return Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildLocationDetails(context, false, isBigLayout),
+                  _buildLocationDetails(context, true, isBigLayout),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: _buildTransitCarrierPicker(context),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: _buildNotesField(context),
+                  )
+                ],
+              ),
+            ),
+          ),
+          VerticalDivider(
+            color: Colors.black,
+          ),
+          Expanded(
+            flex: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 3.0),
+                    child: _buildConfirmationIdField(context),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 3.0),
+                    child: _buildExpenditureEditField(context),
+                  )
+                ],
+              ),
+            ),
+          )
+        ],
+      );
+    }
+    return Column(
       children: [
-        Expanded(
-          flex: 3,
-          child: Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildLocationDetails(context, false),
-                _buildLocationDetails(context, true),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: _buildTransitCarrierPicker(context),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: _buildNotesField(context),
-                )
-              ],
-            ),
-          ),
+        Padding(
+          padding: const EdgeInsets.all(3.0),
+          child: _buildLocationDetails(context, false, isBigLayout),
         ),
-        VerticalDivider(
-          color: Colors.black,
+        Padding(
+          padding: const EdgeInsets.all(3.0),
+          child: _buildLocationDetails(context, true, isBigLayout),
         ),
-        Expanded(
-          flex: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(3.0),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3.0),
-                  child: _buildConfirmationIdField(context),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3.0),
-                  child: _buildExpenditureEditField(context),
-                )
-              ],
-            ),
-          ),
-        )
+        Padding(
+          padding: const EdgeInsets.all(3.0),
+          child: _buildTransitCarrierPicker(context),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(3.0),
+          child: _buildExpenditureEditField(context),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(3.0),
+          child: _buildConfirmationIdField(context),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(3.0),
+          child: _buildNotesField(context),
+        ),
       ],
     );
   }
@@ -151,6 +181,9 @@ class _OpenedTransitListItemState extends State<OpenedTransitListItem> {
         },
         onTransitOptionChanged: (newTransitOption) {
           _transitUiElement.element.transitOption = newTransitOption;
+          var expense = _transitUiElement.element.expense;
+          expense.category =
+              TransitModelFacade.getExpenseCategory(newTransitOption);
           setState(() {});
           _calculateTransitValidity();
         },
@@ -158,11 +191,49 @@ class _OpenedTransitListItemState extends State<OpenedTransitListItem> {
     );
   }
 
-  Widget _buildLocationDetails(BuildContext context, bool isArrival) {
+  Widget _buildLocationDetails(
+      BuildContext context, bool isArrival, bool isBigLayout) {
     var transitModelFacade = _transitUiElement.element;
     var locationToConsider = isArrival
         ? transitModelFacade.arrivalLocation
         : transitModelFacade.departureLocation;
+    var locationEditorWidget =
+        transitModelFacade.transitOption == TransitOption.Flight
+            ? _AirportsDataEditor(
+                initialLocation: locationToConsider,
+                onLocationSelected: (newLocation) {
+                  if (isArrival) {
+                    transitModelFacade.arrivalLocation = newLocation;
+                  } else {
+                    transitModelFacade.departureLocation = newLocation;
+                  }
+                  _calculateTransitValidity();
+                },
+              )
+            : PlatformGeoLocationAutoComplete(
+                onLocationSelected: (newLocation) {
+                  if (isArrival) {
+                    transitModelFacade.arrivalLocation = newLocation;
+                  } else {
+                    transitModelFacade.departureLocation = newLocation;
+                  }
+                  _calculateTransitValidity();
+                },
+                initialText: locationToConsider?.toString(),
+              );
+    var dateTimeEditorWidget = PlatformDateTimePicker(
+      initialDateTime: isArrival
+          ? transitModelFacade.arrivalDateTime
+          : transitModelFacade.departureDateTime,
+      dateTimeUpdated: (updatedDateTime) {
+        if (isArrival) {
+          transitModelFacade.arrivalDateTime = updatedDateTime;
+        } else {
+          transitModelFacade.departureDateTime = updatedDateTime;
+        }
+        _calculateTransitValidity();
+      },
+    );
     return _createTitleSubText(
       isArrival
           ? AppLocalizations.of(context)!.arrive
@@ -170,44 +241,15 @@ class _OpenedTransitListItemState extends State<OpenedTransitListItem> {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            child: transitModelFacade.transitOption == TransitOption.Flight
-                ? _AirportsDataEditor(
-                    initialLocation: locationToConsider,
-                    onLocationSelected: (newLocation) {
-                      if (isArrival) {
-                        transitModelFacade.arrivalLocation = newLocation;
-                      } else {
-                        transitModelFacade.departureLocation = newLocation;
-                      }
-                      _calculateTransitValidity();
-                    },
-                  )
-                : PlatformGeoLocationAutoComplete(
-                    onLocationSelected: (newLocation) {
-                      if (isArrival) {
-                        transitModelFacade.arrivalLocation = newLocation;
-                      } else {
-                        transitModelFacade.departureLocation = newLocation;
-                      }
-                      _calculateTransitValidity();
-                    },
-                    initialText: locationToConsider?.toString(),
-                  ),
-          ),
-          PlatformDateTimePicker(
-            initialDateTime: isArrival
-                ? transitModelFacade.arrivalDateTime
-                : transitModelFacade.departureDateTime,
-            dateTimeUpdated: (updatedDateTime) {
-              if (isArrival) {
-                transitModelFacade.arrivalDateTime = updatedDateTime;
-              } else {
-                transitModelFacade.departureDateTime = updatedDateTime;
-              }
-              _calculateTransitValidity();
-            },
-          )
+          if (isBigLayout)
+            Expanded(
+              child: locationEditorWidget,
+            )
+          else
+            Flexible(
+              child: locationEditorWidget,
+            ),
+          dateTimeEditorWidget
         ],
       ),
     );
@@ -234,15 +276,12 @@ class _OpenedTransitListItemState extends State<OpenedTransitListItem> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 2.0),
-          child: Text(
-            title,
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+        Text(
+          title,
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 2.0),
+          padding: EdgeInsets.only(top: 2.0),
           child: subtitle,
         ),
       ],
@@ -275,12 +314,10 @@ class _AirportsDataEditorState extends State<_AirportsDataEditor> {
     var airportCode =
         (_location?.context as AirportLocationContext?)?.airportCode ?? '   ';
     return PlatformAutoComplete<LocationModelFacade>(
+      maxOptionWidgetWidth: 250,
       hintText: AppLocalizations.of(context)!.airport,
       text: _location?.toString(),
-      customPrefix: Text(
-        airportCode,
-        style: TextStyle(color: Colors.black),
-      ),
+      customPrefix: Text(airportCode),
       onSelected: (newAirport) {
         if (newAirport != _location) {
           setState(() {
@@ -291,26 +328,26 @@ class _AirportsDataEditorState extends State<_AirportsDataEditor> {
           }
         }
       },
-      optionsBuilder:
-          RepositoryProvider.of<PlatformDataRepositoryFacade>(context)
-              .flightOperationsService
-              .queryAirportsData,
+      optionsBuilder: context
+          .getPlatformDataRepository()
+          .flightOperationsService
+          .queryAirportsData,
       listItem: (airportData) {
         var airportLocationContext =
             airportData.context as AirportLocationContext;
         return Material(
-          child: Container(
-            color: Colors.black12,
-            child: ListTile(
-              leading: Icon(PlatformLocationElements
-                  .locationTypesAndIcons[airportLocationContext.locationType]),
-              title: Text(airportLocationContext.name,
-                  style: const TextStyle(color: Colors.white)),
-              trailing: Text(airportLocationContext.airportCode,
-                  style: const TextStyle(color: Colors.white)),
-              subtitle: Text(airportLocationContext.city,
+          child: ListTile(
+            leading: Icon(PlatformLocationElements
+                .locationTypesAndIcons[airportLocationContext.locationType]),
+            title: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(airportLocationContext.name,
                   style: const TextStyle(color: Colors.white)),
             ),
+            trailing: Text(airportLocationContext.airportCode,
+                style: const TextStyle(color: Colors.white)),
+            subtitle: Text(airportLocationContext.city,
+                style: const TextStyle(color: Colors.white)),
           ),
         );
       },
@@ -360,6 +397,8 @@ class _TransitCarrierPickerState extends State<_TransitCarrierPicker> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 3.0),
@@ -407,10 +446,10 @@ class _TransitCarrierPickerState extends State<_TransitCarrierPicker> {
         customPrefix: _buildTransitOptionPicker(),
         hintText: AppLocalizations.of(context)!.flightCarrierName,
         text: _airlineData?.airLineName,
-        optionsBuilder:
-            RepositoryProvider.of<PlatformDataRepositoryFacade>(context)
-                .flightOperationsService
-                .queryAirlinesData,
+        optionsBuilder: context
+            .getPlatformDataRepository()
+            .flightOperationsService
+            .queryAirlinesData,
         onSelected: (airlineData) {
           _airlineData?.airLineName = airlineData.$1;
           _airlineData?.airLineCode = airlineData.$2;

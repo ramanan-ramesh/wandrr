@@ -56,7 +56,7 @@ class TransitModelFacade extends Equatable implements TripEntity {
             title: '',
             totalExpense:
                 CurrencyWithValue(currency: defaultCurrency, amount: 0),
-            category: _getExpenseCategory(transitOption),
+            category: getExpenseCategory(transitOption),
             paidBy: Map.fromIterables(allTripContributors,
                 List.filled(allTripContributors.length, 0)),
             splitBy: [currentUserName]);
@@ -97,7 +97,7 @@ class TransitModelFacade extends Equatable implements TripEntity {
         notes: notes);
   }
 
-  static ExpenseCategory _getExpenseCategory(TransitOption transitOptions) {
+  static ExpenseCategory getExpenseCategory(TransitOption transitOptions) {
     switch (transitOptions) {
       case TransitOption.PublicTransport:
       case TransitOption.Train:

@@ -15,7 +15,7 @@ import 'api_services/flight_operations_service.dart';
 import 'api_services/geo_locator.dart';
 
 abstract class PlatformDataRepositoryFacade {
-  AppDataFacade get appData;
+  AppLevelDataFacade get appData;
 
   CurrencyConverter get currencyConverter;
 
@@ -46,7 +46,7 @@ class PlatformDataRepository implements PlatformDataRepositoryModifier {
   final _UserManagement _userManagement;
 
   @override
-  AppDataFacade get appData {
+  AppLevelDataFacade get appData {
     return _appLevelData;
   }
 
@@ -63,15 +63,19 @@ class PlatformDataRepository implements PlatformDataRepositoryModifier {
   final FlightOperations _flightOperationsService;
 
   @override
-  Stream<AppDataFacade> get appLevelDataFacadeStreamer =>
+  Stream<AppLevelDataFacade> get appLevelDataFacadeStreamer =>
       _appLevelDataFacadeStreamController.stream;
 
-  final StreamController<AppDataFacade> _appLevelDataFacadeStreamController =
-      StreamController<AppDataFacade>.broadcast();
+  final StreamController<AppLevelDataFacade>
+      _appLevelDataFacadeStreamController =
+      StreamController<AppLevelDataFacade>.broadcast();
 
   static const String _themeMode = "themeMode";
 
   static PlatformDataRepositoryFacade? _singleTonInstance;
+
+  @override
+  bool isBigLayout;
 
   static Future<PlatformDataRepositoryFacade> create() async {
     if (_singleTonInstance != null) {
@@ -118,7 +122,8 @@ class PlatformDataRepository implements PlatformDataRepositoryModifier {
         _appLevelData = AppLevelData(
             initialUser: userManagement.activeUser,
             initialLanguage: initialLanguage,
-            initialThemeMode: initialThemeMode);
+            initialThemeMode: initialThemeMode),
+        isBigLayout = false;
 
   @override
   Future<bool> tryUpdateActiveUser(
@@ -172,6 +177,11 @@ class PlatformDataRepository implements PlatformDataRepositoryModifier {
     }
     return didSignOut;
   }
+
+  @override
+  void updateLayoutType(bool isBigLayout) {
+    this.isBigLayout = isBigLayout;
+  }
 }
 
 class _UserManagement {
@@ -182,6 +192,7 @@ class _UserManagement {
   static const _userID = 'userID';
   static const _displayName = 'displayName';
   static const _isLoggedIn = 'isLoggedIn';
+  static const _photoUrl = 'photoUrl';
 
   PlatformUser? _activeUser;
 
@@ -225,7 +236,6 @@ class _UserManagement {
       await _persistUser();
       return true;
     } catch (e) {
-      print(e);
       return false;
     }
   }
@@ -236,7 +246,6 @@ class _UserManagement {
       await _persistUser();
       return true;
     } catch (e) {
-      print(e);
       return false;
     }
   }
@@ -272,6 +281,10 @@ class _UserManagement {
         await _writeRecordToLocalStorage(usersBox, _displayName, displayName);
       }
       await _writeRecordToLocalStorage(usersBox, _isLoggedIn, true.toString());
+      if (_activeUser!.photoUrl != null) {
+        await _writeRecordToLocalStorage(
+            usersBox, _photoUrl, _activeUser!.photoUrl!);
+      }
     } else {
       await usersBox.clear();
       await _writeRecordToLocalStorage(usersBox, _isLoggedIn, false.toString());
