@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/contracts/note.dart';
-import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/form.dart';
 
 class NotesListView extends StatefulWidget {
@@ -91,8 +90,12 @@ class _NoteListItemState extends State<_NoteListItem> {
           duration: Duration(seconds: 1),
           child: Align(
             alignment: Alignment.bottomRight,
-            child: PlatformButtonElements.createFAB(
-                icon: Icons.check_rounded, context: context),
+            child: FloatingActionButton(
+              onPressed: null,
+              child: Icon(
+                Icons.check_rounded,
+              ),
+            ),
           ),
         )
       ],

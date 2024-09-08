@@ -5,10 +5,9 @@ import 'package:wandrr/blocs/master_page_bloc/master_page_bloc.dart';
 import 'package:wandrr/blocs/master_page_bloc/master_page_events.dart';
 import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
+import 'package:wandrr/contracts/app_level_data.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/trip_metadata.dart';
-import 'package:wandrr/platform_elements/button.dart';
-import 'package:wandrr/platform_elements/text.dart';
-import 'package:wandrr/repositories/platform_data_repository.dart';
 
 import 'trip_creator_dialog.dart';
 import 'trips_list_view.dart';
@@ -23,10 +22,13 @@ class HomePage extends StatelessWidget {
     print("HomePage-build");
     return LayoutBuilder(
       builder: (context, constraints) {
+        var appLevelData = context.getAppLevelData() as AppLevelDataModifier;
         if (constraints.maxWidth > _cutOffPageWidth) {
+          appLevelData.updateLayoutType(true);
           return _buildLayout(
               contentWidth: constraints.maxWidth / 2, context: context);
         } else {
+          appLevelData.updateLayoutType(false);
           return _buildLayout(context: context);
         }
       },
@@ -59,9 +61,9 @@ class HomePage extends StatelessWidget {
         children: [
           Padding(
             padding: EdgeInsets.all(10),
-            child: PlatformTextElements.createHeader(
-              context: context,
-              text: AppLocalizations.of(context)!.viewRecentTrips,
+            child: Text(
+              AppLocalizations.of(context)!.viewRecentTrips,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
           ),
           Expanded(
@@ -76,49 +78,43 @@ class HomePage extends StatelessWidget {
     bool keyboardIsOpened = MediaQuery.of(pageContext).viewInsets.bottom != 0.0;
     return Visibility(
       visible: !keyboardIsOpened,
-      child: PlatformButtonElements.createExtendedFAB(
-          iconData: Icons.add_location_alt_rounded,
-          text: AppLocalizations.of(pageContext)!.planTrip,
-          onPressed: () {
-            var geoLocator =
-                RepositoryProvider.of<PlatformDataRepositoryFacade>(pageContext)
-                    .geoLocator;
-            showGeneralDialog(
-              context: pageContext,
-              barrierDismissible: true,
-              barrierLabel: 'Close',
-              pageBuilder: (BuildContext context, Animation<double> animation,
-                  Animation<double> secondaryAnimation) {
-                return Material(
-                  color: Colors.black12,
-                  //TODO: Is this the right way to set dialog color?
-                  child: Dialog(
-                    child: Container(
-                      constraints: BoxConstraints(maxWidth: 450),
-                      child: TripCreatorDialog(
-                        geoLocator: geoLocator,
-                        eventSubmitter: (tripCreationMetadata) {
-                          _submitTripCreationEvent(
-                              pageContext, tripCreationMetadata);
-                        },
-                      ),
+      child: FloatingActionButton.extended(
+        onPressed: () {
+          var geoLocator = pageContext.getPlatformDataRepository().geoLocator;
+          showGeneralDialog(
+            context: pageContext,
+            barrierDismissible: true,
+            barrierLabel: 'Close',
+            pageBuilder: (BuildContext context, Animation<double> animation,
+                Animation<double> secondaryAnimation) {
+              return Material(
+                color: Colors.black12,
+                //TODO: Is this the right way to set dialog color?
+                child: Dialog(
+                  child: Container(
+                    constraints: BoxConstraints(maxWidth: 450),
+                    child: TripCreatorDialog(
+                      geoLocator: geoLocator,
+                      eventSubmitter: (tripCreationMetadata) {
+                        _submitTripCreationEvent(
+                            pageContext, tripCreationMetadata);
+                      },
                     ),
                   ),
-                );
-              },
-            );
-          },
-          context: pageContext),
+                ),
+              );
+            },
+          );
+        },
+        label: Text(AppLocalizations.of(pageContext)!.planTrip),
+        icon: Icon(Icons.add_location_alt_rounded),
+      ),
     );
   }
 
   void _submitTripCreationEvent(
       BuildContext pageContext, TripMetadataModelFacade tripCreationMetadata) {
-    var userName =
-        RepositoryProvider.of<PlatformDataRepositoryFacade>(pageContext)
-            .appData
-            .activeUser!
-            .userName;
+    var userName = pageContext.getAppLevelData().activeUser!.userName;
     var tripManagement = BlocProvider.of<TripManagementBloc>(pageContext);
     var tripMetadata = tripCreationMetadata.clone();
     tripMetadata.contributors = [userName];
@@ -175,6 +171,7 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 class _UserProfilePopupMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    var userPhotoUrl = context.getAppLevelData().activeUser!.photoUrl;
     return PopupMenuButton<Widget>(
       itemBuilder: (BuildContext context) {
         return [
@@ -186,9 +183,7 @@ class _UserProfilePopupMenu extends StatelessWidget {
                 Text('Settings'),
               ],
             ),
-            onTap: () {
-              // Handle settings click
-            },
+            onTap: () {},
           ),
           PopupMenuItem(
             child: const Row(
@@ -206,16 +201,21 @@ class _UserProfilePopupMenu extends StatelessWidget {
         ];
       },
       offset: const Offset(0, kToolbarHeight + 5),
-      child: const Padding(
+      child: Padding(
         padding: EdgeInsets.all(2.0),
-        child: _ProfileActionButton(),
+        child: _ProfileActionButton(
+          photoUrl: userPhotoUrl,
+        ),
       ),
     );
   }
 }
 
 class _ProfileActionButton extends StatefulWidget {
-  const _ProfileActionButton({Key? key}) : super(key: key);
+  final String? photoUrl;
+
+  const _ProfileActionButton({Key? key, required this.photoUrl})
+      : super(key: key);
 
   @override
   State<_ProfileActionButton> createState() => _ProfileActionButtonState();
@@ -223,22 +223,24 @@ class _ProfileActionButton extends StatefulWidget {
 
 class _ProfileActionButtonState extends State<_ProfileActionButton> {
   var _isImageLoaded = false;
-  final NetworkImage _userProfileNetworkImage =
-      const NetworkImage("https://picsum.photos/250?image=9");
+  NetworkImage? _userProfileNetworkImage;
 
   @override
   void initState() {
     super.initState();
-    var imageStreamListener = ImageStreamListener((image, synchronousCall) {
-      if (mounted) {
-        setState(() {
-          _isImageLoaded = true;
-        });
-      }
-    });
-    _userProfileNetworkImage
-        .resolve(const ImageConfiguration(size: Size(40, 40)))
-        .addListener(imageStreamListener);
+    if (widget.photoUrl != null) {
+      _userProfileNetworkImage = NetworkImage(widget.photoUrl!);
+      var imageStreamListener = ImageStreamListener((image, synchronousCall) {
+        if (mounted) {
+          setState(() {
+            _isImageLoaded = true;
+          });
+        }
+      });
+      _userProfileNetworkImage!
+          .resolve(const ImageConfiguration(size: Size(40, 40)))
+          .addListener(imageStreamListener);
+    }
   }
 
   @override

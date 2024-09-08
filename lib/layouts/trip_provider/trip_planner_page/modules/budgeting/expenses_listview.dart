@@ -8,10 +8,10 @@ import 'package:wandrr/contracts/budgeting_module.dart';
 import 'package:wandrr/contracts/communicators.dart';
 import 'package:wandrr/contracts/data_states.dart';
 import 'package:wandrr/contracts/expense.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/lodging.dart';
 import 'package:wandrr/contracts/transit.dart';
 import 'package:wandrr/contracts/trip_data.dart';
-import 'package:wandrr/contracts/trip_repository.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/trip_entity_list_elements.dart';
 import 'package:wandrr/platform_elements/button.dart';
 
@@ -63,9 +63,7 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
       },
       uiElementsSorter: (List<UiElement<ExpenseModelFacade>> uiElements) {
         var budgetingModuleFacade =
-            RepositoryProvider.of<TripRepositoryModelFacade>(context)
-                .activeTrip!
-                .budgetingModuleFacade;
+            context.getActiveTrip().budgetingModuleFacade;
         return budgetingModuleFacade.sortExpenseElements(
             uiElements, _selectedSortOption);
       },

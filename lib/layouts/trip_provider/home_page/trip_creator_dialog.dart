@@ -54,10 +54,6 @@ class TripCreatorDialog extends StatelessWidget {
             children: [
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
-                child: _buildTripNameField(context),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
                 child: PlatformDateRangePicker(
                   callback: (startDate, endDate) {
                     _currentTripMetadata.startDate = startDate;
@@ -66,6 +62,10 @@ class TripCreatorDialog extends StatelessWidget {
                         _isTripCreateRequestValid();
                   },
                 ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: _buildTripNameField(context),
               ),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),

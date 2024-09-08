@@ -1,10 +1,13 @@
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/dialog.dart';
 
+//Align the dialog against the button that was pressed, rather than showing as bottomModalSheet
 class PlatformDateTimePicker extends StatefulWidget {
   final DateTime? initialDateTime;
   final Function(DateTime)? dateTimeUpdated;
@@ -18,8 +21,6 @@ class PlatformDateTimePicker extends StatefulWidget {
 
 class _PlatformDateTimePickerState extends State<PlatformDateTimePicker> {
   DateTime? _dateTime;
-  static const _placeHolderString = '                   ';
-  var _timePickerKey = GlobalKey();
 
   @override
   void initState() {
@@ -29,80 +30,34 @@ class _PlatformDateTimePickerState extends State<PlatformDateTimePicker> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 2.0),
-          child: PlatformDatePicker(
-            initialDateTime: _dateTime,
-            callBack: (updatedDateTime) {
-              var shouldUpdate = false;
-              if (_dateTime != null) {
-                if (_dateTime!.compareTo(updatedDateTime) != 0) {
-                  _dateTime = updatedDateTime.add(Duration(
-                      hours: _dateTime!.hour, minutes: _dateTime!.minute));
-                  shouldUpdate = true;
-                }
-              } else {
-                _dateTime = updatedDateTime;
-                shouldUpdate = true;
-              }
-              if (shouldUpdate) {
-                setState(() {});
-                if (widget.dateTimeUpdated != null) {
-                  widget.dateTimeUpdated!(_dateTime!);
-                }
-              }
-            },
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 2.0),
-          child: TextButton(
-              key: _timePickerKey,
-              child: Text(_dateTime != null
-                  ? '${_dateTime!.hour} : ${_dateTime!.minute}'
-                  : _placeHolderString),
-              onPressed: widget.dateTimeUpdated == null
-                  ? null
-                  : () async {
-                      PlatformDialogElements.showAlignedDialog(
-                          context: context,
-                          widgetBuilder: (context) {
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Material(
-                                  elevation: 5.0,
-                                  child: TimePickerDialog(
-                                    initialTime: TimeOfDay(
-                                        hour: _dateTime!.hour,
-                                        minute: _dateTime!.minute),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                          widgetKey: _timePickerKey,
-                          onDialogResult: (result) {
-                            if (result is TimeOfDay) {
-                              setState(() {
-                                _dateTime ??= DateTime.now();
-                                _dateTime = DateTime(_dateTime!.year,
-                                        _dateTime!.month, _dateTime!.day)
-                                    .add(Duration(
-                                        hours: result.hour,
-                                        minutes: result.minute));
-                                if (widget.dateTimeUpdated != null) {
-                                  widget.dateTimeUpdated!(_dateTime!);
-                                }
-                              });
-                            }
-                          });
-                    }),
-        )
-      ],
+    var placeHolderString = AppLocalizations.of(context)!.dateTimeSelection;
+    var dateTimeText = _dateTime != null
+        ? '${_dateTime!.day}/${_dateTime!.month}/${_dateTime!.year} ${_dateTime!.hour}:${_dateTime!.minute}'
+        : placeHolderString;
+    return TextButton(
+      onPressed: () {
+        bool shouldRebuild = false;
+        DatePicker.showDateTimePicker(context, showTitleActions: true,
+                onConfirm: (date) {
+          if (_dateTime == null) {
+            _dateTime = date;
+            shouldRebuild = true;
+          } else {
+            if (!_dateTime!.isAtSameMomentAs(date)) {
+              _dateTime = date;
+              shouldRebuild = true;
+            }
+          }
+        }, currentTime: _dateTime ?? DateTime.now())
+            .then(
+          (selectedDateTime) {
+            if (shouldRebuild) {
+              setState(() {});
+            }
+          },
+        );
+      },
+      child: Text(dateTimeText),
     );
   }
 }
@@ -142,14 +97,29 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
     if (_endDate != null) {
       endDateTime = _dateFormat.format(_endDate!);
     }
+    var isBigLayout = context.isBigLayout();
     return TextButton(
         key: _dateRangePickerKey,
         onPressed: () {
           PlatformDialogElements.showAlignedDialog(
               context: context,
               widgetBuilder: (context) {
+                var dateRangePickerButtonRenderBox =
+                    _dateRangePickerKey.currentContext!.findRenderObject()
+                        as RenderBox;
+                double width;
+                if (isBigLayout) {
+                  width = 400;
+                } else {
+                  if (dateRangePickerButtonRenderBox.size.width <= 300) {
+                    width = 300.0;
+                  } else {
+                    width = dateRangePickerButtonRenderBox.size.width;
+                  }
+                }
                 return SizedBox(
-                  width: 400,
+                  width: width > 400 ? 400 : width,
+                  //TODO: Make this work for android, by setting a max height
                   child: Material(
                     elevation: 5.0,
                     child: CalendarDatePicker2WithActionButtons(
@@ -237,7 +207,7 @@ class PlatformFABDateRangePicker extends StatefulWidget {
   final DateTime? initialStartDate, initialEndDate;
   final Function(DateTime? start, DateTime? end)? callback;
 
-  const PlatformFABDateRangePicker(
+  PlatformFABDateRangePicker(
       {super.key, this.initialStartDate, this.initialEndDate, this.callback});
 
   @override
@@ -277,65 +247,82 @@ class _PlatformFABDateRangePickerState
       endDateTime = _dateFormat.format(_endDate!);
     }
     var dateRangeText = '$startDateTime to $endDateTime';
-    return PlatformButtonElements.createExtendedFAB(
-        iconData: Icons.date_range_rounded,
+    return FloatingActionButton.extended(
+      onPressed: _onPressed,
+      key: _dateRangePickerKey,
+      icon: Icon(
+        Icons.date_range_rounded,
+      ),
+      label: Text(
+        dateRangeText,
+      ),
+    );
+  }
+
+  void _onPressed() {
+    var isBigLayout = context.isBigLayout();
+    PlatformDialogElements.showAlignedDialog(
         context: context,
-        text: dateRangeText,
-        widgetKey: _dateRangePickerKey,
-        onPressed: () {
-          PlatformDialogElements.showAlignedDialog(
-              context: context,
-              widgetBuilder: (context) {
-                return SizedBox(
-                  width: 400,
-                  child: Material(
-                    elevation: 5.0,
-                    child: CalendarDatePicker2WithActionButtons(
-                      onCancelTapped: () {
-                        Navigator.of(context).pop();
-                      },
-                      onOkTapped: () {
-                        Navigator.of(context).pop();
-                      },
-                      config: CalendarDatePicker2WithActionButtonsConfig(
-                        closeDialogOnCancelTapped: true,
-                        closeDialogOnOkTapped: true,
-                        firstDayOfWeek: 1,
-                        calendarType: CalendarDatePicker2Type.range,
-                        centerAlignModePicker: true,
-                        controlsTextStyle: TextStyle(color: Colors.white),
-                        dayTextStyle: TextStyle(color: Colors.white),
-                        selectedDayHighlightColor: Colors.green,
-                        selectedDayTextStyle: TextStyle(color: Colors.black),
-                        selectedRangeHighlightColor: Colors.green,
-                        selectedRangeDayTextStyle:
-                            TextStyle(color: Colors.black),
-                        todayTextStyle: TextStyle(color: Colors.white),
-                        okButtonTextStyle: TextStyle(color: Colors.black),
-                        cancelButtonTextStyle: TextStyle(color: Colors.black),
-                        cancelButton: IgnorePointer(
-                          child: TextButton(
-                            onPressed: () {},
-                            child:
-                                Text(AppLocalizations.of(this.context)!.cancel),
-                          ),
-                        ),
-                        okButton: IgnorePointer(
-                          child: TextButton(
-                            onPressed: () {},
-                            child: Text('OK'),
-                          ),
-                        ),
-                      ),
-                      // value: _dates,
-                      onValueChanged: _tryUpdateDateRange,
-                      value: [_startDate, _endDate],
+        widgetBuilder: (context) {
+          var renderBox = _dateRangePickerKey.currentContext!.findRenderObject()
+              as RenderBox;
+          double width;
+          if (isBigLayout) {
+            width = 400;
+          } else {
+            if (renderBox.size.width <= 300) {
+              width = 300.0;
+            } else {
+              width = renderBox.size.width;
+            }
+          }
+          return SizedBox(
+            width: width,
+            child: Material(
+              elevation: 5.0,
+              child: CalendarDatePicker2WithActionButtons(
+                onCancelTapped: () {
+                  Navigator.of(context).pop();
+                },
+                onOkTapped: () {
+                  Navigator.of(context).pop();
+                },
+                config: CalendarDatePicker2WithActionButtonsConfig(
+                  closeDialogOnCancelTapped: true,
+                  closeDialogOnOkTapped: true,
+                  firstDayOfWeek: 1,
+                  calendarType: CalendarDatePicker2Type.range,
+                  centerAlignModePicker: true,
+                  controlsTextStyle: TextStyle(color: Colors.white),
+                  dayTextStyle: TextStyle(color: Colors.white),
+                  selectedDayHighlightColor: Colors.green,
+                  selectedDayTextStyle: TextStyle(color: Colors.black),
+                  selectedRangeHighlightColor: Colors.green,
+                  selectedRangeDayTextStyle: TextStyle(color: Colors.black),
+                  todayTextStyle: TextStyle(color: Colors.white),
+                  okButtonTextStyle: TextStyle(color: Colors.black),
+                  cancelButtonTextStyle: TextStyle(color: Colors.black),
+                  cancelButton: IgnorePointer(
+                    child: TextButton(
+                      onPressed: () {},
+                      child: Text(AppLocalizations.of(this.context)!.cancel),
                     ),
                   ),
-                );
-              },
-              widgetKey: _dateRangePickerKey);
-        });
+                  okButton: IgnorePointer(
+                    child: TextButton(
+                      onPressed: () {},
+                      child: Text('OK'),
+                    ),
+                  ),
+                ),
+                // value: _dates,
+                onValueChanged: _tryUpdateDateRange,
+                value: [_startDate, _endDate],
+              ),
+            ),
+          );
+        },
+        widgetKey: _dateRangePickerKey);
   }
 
   void _tryUpdateDateRange(List<DateTime?> dates) {
@@ -380,15 +367,28 @@ class _PlatformDatePickerState extends State<PlatformDatePicker> {
   Widget build(BuildContext context) {
     var buttonText =
         _dateTime != null ? _dateFormat.format(_dateTime!) : '            ';
+    var isBigLayout = context.isBigLayout();
     return PlatformButtonElements.createTextButtonWithIcon(
         key: _widgetKey,
         text: buttonText,
         iconData: Icons.date_range_rounded,
         onPressed: () {
+          var renderBox =
+              _widgetKey.currentContext!.findRenderObject() as RenderBox;
+          double width;
+          if (isBigLayout) {
+            width = 400;
+          } else {
+            if (renderBox.size.width <= 300) {
+              width = 300.0;
+            } else {
+              width = renderBox.size.width;
+            }
+          }
           PlatformDialogElements.showAlignedDialog(
               context: context,
-              widgetBuilder: (context) => Container(
-                    width: 400,
+              widgetBuilder: (context) => SizedBox(
+                    width: width,
                     child: Material(
                       elevation: 5.0,
                       child: CalendarDatePicker2WithActionButtons(

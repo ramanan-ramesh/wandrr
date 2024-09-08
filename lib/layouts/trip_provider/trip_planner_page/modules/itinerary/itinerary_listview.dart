@@ -6,7 +6,6 @@ import 'package:wandrr/blocs/trip_management/states.dart';
 import 'package:wandrr/contracts/data_states.dart';
 import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/trip_metadata.dart';
-import 'package:wandrr/contracts/trip_repository.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
 import 'itinerary_list_item.dart';
@@ -23,29 +22,11 @@ class _ItineraryListViewState extends State<ItineraryListView> {
 
   @override
   Widget build(BuildContext context) {
-    _tripMetadataModelFacade =
-        RepositoryProvider.of<TripRepositoryModelFacade>(context)
-            .activeTrip!
-            .tripMetadata;
+    _tripMetadataModelFacade = context.getActiveTrip().tripMetadata;
     return BlocConsumer<TripManagementBloc, TripManagementState>(
-      buildWhen: (previousState, currentState) {
-        if (currentState is UpdatedTripEntity<TripMetadataModelFacade> &&
-            currentState.dataState == DataState.Update) {
-          var modifiedTripMetadata =
-              currentState.tripEntityModificationData.modifiedCollectionItem;
-          var areStartDatesSame = modifiedTripMetadata.startDate!
-              .isOnSameDayAs(_tripMetadataModelFacade.startDate!);
-          var areEndDatesSame = modifiedTripMetadata.endDate!
-              .isOnSameDayAs(_tripMetadataModelFacade.endDate!);
-          _tripMetadataModelFacade = modifiedTripMetadata;
-          return !areStartDatesSame || !areEndDatesSame;
-        }
-        return false;
-      },
+      buildWhen: _shouldBuildItineraries,
       builder: (BuildContext context, TripManagementState state) {
-        var activeTrip =
-            RepositoryProvider.of<TripRepositoryModelFacade>(context)
-                .activeTrip!;
+        var activeTrip = context.getActiveTrip();
         var itineraryModelCollection = activeTrip.itineraryModelCollection;
         return SliverList.separated(
           itemBuilder: (BuildContext context, int index) {
@@ -66,5 +47,21 @@ class _ItineraryListViewState extends State<ItineraryListView> {
       },
       listener: (BuildContext context, TripManagementState state) {},
     );
+  }
+
+  bool _shouldBuildItineraries(
+      TripManagementState previousState, TripManagementState currentState) {
+    if (currentState is UpdatedTripEntity<TripMetadataModelFacade> &&
+        currentState.dataState == DataState.Update) {
+      var modifiedTripMetadata =
+          currentState.tripEntityModificationData.modifiedCollectionItem;
+      var areStartDatesSame = modifiedTripMetadata.startDate!
+          .isOnSameDayAs(_tripMetadataModelFacade.startDate!);
+      var areEndDatesSame = modifiedTripMetadata.endDate!
+          .isOnSameDayAs(_tripMetadataModelFacade.endDate!);
+      _tripMetadataModelFacade = modifiedTripMetadata;
+      return !areStartDatesSame || !areEndDatesSame;
+    }
+    return false;
   }
 }

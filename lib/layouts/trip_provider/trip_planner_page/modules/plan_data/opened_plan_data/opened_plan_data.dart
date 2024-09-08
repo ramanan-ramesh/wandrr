@@ -1,13 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/contracts/check_list.dart';
 import 'package:wandrr/contracts/check_list_item.dart';
 import 'package:wandrr/contracts/communicators.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/note.dart';
 import 'package:wandrr/contracts/plan_data.dart';
-import 'package:wandrr/contracts/trip_repository.dart';
-import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
 import 'checklists.dart';
@@ -76,10 +74,7 @@ class _OpenedPlanDataListItemState extends State<OpenedPlanDataListItem> {
 
   @override
   Widget build(BuildContext context) {
-    var tripId = RepositoryProvider.of<TripRepositoryModelFacade>(context)
-        .activeTrip!
-        .tripMetadata
-        .id!;
+    var tripId = context.getActiveTrip().tripMetadata.id!;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0),
       child: Column(
@@ -135,35 +130,32 @@ class _OpenedPlanDataListItemState extends State<OpenedPlanDataListItem> {
   }
 
   Widget _buildCheckListCreator(String tripId) {
-    return PlatformButtonElements.createFAB(
-      icon: Icons.checklist_rounded,
-      context: context,
-      callback: () {
-        var newCheckListEntry = CheckListModelFacade.newUiEntry(
-            items: [CheckListItem(item: '', isChecked: false)], tripId: tripId);
-        var isAnyCheckListEmpty = false;
-        for (var checkList in _planDataUiElement.element.checkLists) {
-          if (checkList.items.isEmpty ||
-              checkList.items
-                  .any((checkListItem) => checkListItem.item.isEmpty)) {
-            isAnyCheckListEmpty = true;
+    return FloatingActionButton(
+        child: Icon(Icons.checklist_rounded),
+        onPressed: () {
+          var newCheckListEntry = CheckListModelFacade.newUiEntry(
+              items: [CheckListItem(item: '', isChecked: false)],
+              tripId: tripId);
+          var isAnyCheckListEmpty = false;
+          for (var checkList in _planDataUiElement.element.checkLists) {
+            if (checkList.items.isEmpty ||
+                checkList.items
+                    .any((checkListItem) => checkListItem.item.isEmpty)) {
+              isAnyCheckListEmpty = true;
+            }
           }
-        }
-        if (!isAnyCheckListEmpty) {
-          _planDataUiElement.element.checkLists.add(newCheckListEntry);
-          setState(() {});
+          if (!isAnyCheckListEmpty) {
+            _planDataUiElement.element.checkLists.add(newCheckListEntry);
+            setState(() {});
 
-          widget.planDataUpdated(_planDataUiElement.element);
-        }
-      },
-    );
+            widget.planDataUpdated(_planDataUiElement.element);
+          }
+        });
   }
 
   Widget _buildNoteCreator(String tripId) {
-    return PlatformButtonElements.createFAB(
-      icon: Icons.note_rounded,
-      context: context,
-      callback: () {
+    return FloatingActionButton(
+      onPressed: () {
         var newNoteEntry = NoteModelFacade.newUiEntry(note: '', tripId: tripId);
         var isAnyNoteEmpty = _planDataUiElement.element.notes
             .any((noteFacade) => noteFacade.note.isEmpty);
@@ -173,6 +165,7 @@ class _OpenedPlanDataListItemState extends State<OpenedPlanDataListItem> {
           widget.planDataUpdated(_planDataUiElement.element);
         }
       },
+      child: Icon(Icons.note_rounded),
     );
   }
 

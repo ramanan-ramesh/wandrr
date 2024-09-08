@@ -6,10 +6,10 @@ import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
 import 'package:wandrr/contracts/data_states.dart';
 import 'package:wandrr/contracts/expense.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/trip_metadata.dart';
-import 'package:wandrr/contracts/trip_repository.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/currencies.dart';
-import 'package:wandrr/layouts/trip_provider/trip_planner_page/trip_planner_page.dart';
+import 'package:wandrr/layouts/trip_provider/trip_planner_page/expense_view_type.dart';
 import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
@@ -100,14 +100,6 @@ class BudgetingHeaderTile extends StatelessWidget {
                                 AppLocalizations.of(context)!.view_breakdown,
                                 Icons.bar_chart),
                           ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(vertical: 3.0),
-                            child: _buildExpenseViewButton(
-                                context,
-                                ExpenseViewType.ShowAddTripmate,
-                                AppLocalizations.of(context)!.add_tripmate,
-                                Icons.add_rounded),
-                          ),
                         ],
                       ),
                     ),
@@ -167,10 +159,7 @@ class BudgetingHeaderTile extends StatelessWidget {
         return false;
       },
       builder: (BuildContext context, TripManagementState state) {
-        var tripMetadata =
-            RepositoryProvider.of<TripRepositoryModelFacade>(context)
-                .activeTrip!
-                .tripMetadata;
+        var tripMetadata = context.getActiveTrip().tripMetadata;
         var totalExpenditure = tripMetadata.totalExpenditure;
         var totalBudget = tripMetadata.budget;
         double expenseRatio =
@@ -226,18 +215,17 @@ class BudgetingHeaderTile extends StatelessWidget {
             shouldEnableButton = true;
           }
         }
-        return PlatformButtonElements.createExtendedFAB(
-            iconData: Icons.add_circle,
-            text: AppLocalizations.of(context)!.add_expense,
-            enabled: shouldEnableButton,
-            onPressed: () {
-              var tripManagementBloc =
-                  BlocProvider.of<TripManagementBloc>(context);
-              var expenseUpdated =
-                  UpdateTripEntity<ExpenseModelFacade>.createNewUiEntry();
-              tripManagementBloc.add(expenseUpdated);
-            },
-            context: context);
+        return FloatingActionButton.extended(
+          onPressed: () {
+            var tripManagementBloc =
+                BlocProvider.of<TripManagementBloc>(context);
+            var expenseUpdated =
+                UpdateTripEntity<ExpenseModelFacade>.createNewUiEntry();
+            tripManagementBloc.add(expenseUpdated);
+          },
+          label: Text(AppLocalizations.of(context)!.add_expense),
+          icon: Icon(Icons.add_circle),
+        );
       },
       buildWhen: (previousState, currentState) {
         if (currentState.isTripEntity<ExpenseModelFacade>()) {

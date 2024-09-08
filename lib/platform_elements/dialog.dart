@@ -28,7 +28,16 @@ class PlatformDialogElements {
       alignedDialog
           .showAlignedDialog(
         context: context,
-        builder: widgetBuilder,
+        builder: (context) {
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: screenSize.height * 0.8,
+            ),
+            child: SingleChildScrollView(
+              child: widgetBuilder(context),
+            ),
+          );
+        },
         followerAnchor: Alignment.topLeft,
         targetAnchor: Alignment.bottomLeft,
         barrierColor: Colors.transparent,

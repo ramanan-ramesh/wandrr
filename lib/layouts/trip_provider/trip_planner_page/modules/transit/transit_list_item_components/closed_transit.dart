@@ -5,7 +5,7 @@ import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/location.dart';
 import 'package:wandrr/contracts/transit.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/budgeting/expense_list_item_components/expenditure_edit_tile.dart';
-import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/transit/transit_listview.dart';
+import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/transit/transit_option_metadata.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
 class ClosedTransitListItem extends StatelessWidget {

@@ -2,11 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/location.dart';
 import 'package:wandrr/repositories/api_services/geo_locator.dart';
-import 'package:wandrr/repositories/platform_data_repository.dart';
 
 import 'location.dart';
 
@@ -86,9 +85,7 @@ class PlatformGeoLocationAutoComplete extends StatelessWidget {
         text: initialText,
         onSelected: onLocationSelected,
         optionsBuilder: geoLocator?.performQuery ??
-            RepositoryProvider.of<PlatformDataRepositoryFacade>(context)
-                .geoLocator
-                .performQuery,
+            context.getPlatformDataRepository().geoLocator.performQuery,
         customPrefix: shouldShowPrefix
             ? FittedBox(
                 fit: BoxFit.cover,
@@ -132,6 +129,7 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
   final String? text;
   final Widget? suffix;
   final String? hintText;
+  final double? maxOptionWidgetWidth;
   static const _defaultAutoCompleteHintText = 'e.g. Paris, Hawaii, Japan';
 
   PlatformAutoComplete(
@@ -142,6 +140,7 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
       this.onSelected,
       this.hintText,
       this.suffix,
+      this.maxOptionWidgetWidth,
       this.customPrefix})
       : super(key: key);
 
@@ -220,10 +219,10 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
                 AutocompleteOnSelected<T> onSelected, Iterable<T> options) {
               return Align(
                 alignment: Alignment.topLeft,
-                child: Container(
-                  color: Colors.green,
-                  child: SizedBox(
-                    width: constraints.maxWidth,
+                child: SizedBox(
+                  width: maxOptionWidgetWidth ?? constraints.maxWidth,
+                  child: Container(
+                    color: Colors.green,
                     child: Material(
                       child: ConstrainedBox(
                         constraints: BoxConstraints(maxHeight: 200),

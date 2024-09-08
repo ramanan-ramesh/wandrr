@@ -8,8 +8,8 @@ import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
 import 'package:wandrr/contracts/data_states.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/trip_metadata.dart';
-import 'package:wandrr/contracts/trip_repository.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
 class TripListView extends StatelessWidget {
@@ -38,28 +38,11 @@ class TripListView extends StatelessWidget {
       },
       listener: (context, state) {},
       builder: (context, state) {
-        print("TripsList-builder-${state}");
-        var tripMetadatas =
-            RepositoryProvider.of<TripRepositoryModelFacade>(context)
-                .tripMetadatas
-              ..sort((tripMetadata1, tripMetadata2) =>
-                  tripMetadata1.startDate!.compareTo(tripMetadata2.startDate!));
+        var tripMetadatas = context.getTripRepository().tripMetadatas
+          ..sort((tripMetadata1, tripMetadata2) =>
+              tripMetadata1.startDate!.compareTo(tripMetadata2.startDate!));
         if (tripMetadatas.isNotEmpty) {
-          var imageAssets = _generateRandomImages(tripMetadatas.length);
-          var tripMetadataGridItems = <_TripMetadataGridItem>[];
-          for (var index = 0; index < tripMetadatas.length; index++) {
-            var imageAsset = imageAssets[index];
-            var tripMetadataFacade = tripMetadatas[index];
-            tripMetadataGridItems.add(_TripMetadataGridItem(
-                tripMetaDataFacade: tripMetadataFacade,
-                imageAsset: imageAsset));
-          }
-          return GridView.extent(
-            maxCrossAxisExtent: 350,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            children: tripMetadataGridItems,
-          );
+          return _generateTripMetadataGrid(context, tripMetadatas);
         } else {
           return Align(
             alignment: Alignment.center,
@@ -73,17 +56,69 @@ class TripListView extends StatelessWidget {
     );
   }
 
+  Widget _generateTripMetadataGrid(
+      BuildContext context, List<TripMetadataModelFacade> tripMetadatas) {
+    var imageAssets = _generateRandomImages(tripMetadatas.length);
+    var tripMetadataGridItems = <_TripMetadataGridItem>[];
+    for (var index = 0; index < tripMetadatas.length; index++) {
+      var imageAsset = imageAssets[index];
+      var tripMetadataFacade = tripMetadatas[index];
+      tripMetadataGridItems.add(_TripMetadataGridItem(
+        tripMetaDataFacade: tripMetadataFacade,
+        imageAsset: imageAsset,
+        onTripSelected: () {
+          showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext dialogContext) {
+                return BlocConsumer<TripManagementBloc, TripManagementState>(
+                  bloc: BlocProvider.of<TripManagementBloc>(context),
+                  listener: (context, state) {},
+                  buildWhen: (previousState, currentState) {
+                    return currentState is ActivatedTrip;
+                  },
+                  builder: (BuildContext context, TripManagementState state) {
+                    if (state is ActivatedTrip) {
+                      Navigator.of(dialogContext).pop();
+                    }
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 3.0),
+                          child:
+                              Text(AppLocalizations.of(context)!.loadingTrip),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 3.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              });
+        },
+      ));
+    }
+    return GridView.extent(
+      maxCrossAxisExtent: 350,
+      mainAxisSpacing: 7,
+      crossAxisSpacing: 7,
+      childAspectRatio: 0.7,
+      children: tripMetadataGridItems,
+    );
+  }
+
   List<String> _generateRandomImages(int numberOfTripMetadatas) {
     List<String> tempImages = List.from(_tripPlanningImageAssets);
     Random random = Random();
     var gridImages = <String>[];
     for (int i = 0; i < numberOfTripMetadatas; i++) {
       if (i < 3) {
-        // Initial random distribution
         tempImages.shuffle(random);
         gridImages.add(tempImages[i % 3]);
       } else {
-        // Ensure no repetition in three consequent items
         List<String> remainingImages = List.from(_tripPlanningImageAssets);
         remainingImages.remove(gridImages[i - 1]);
         remainingImages.remove(gridImages[i - 2]);
@@ -96,60 +131,20 @@ class TripListView extends StatelessWidget {
   }
 }
 
-class _TripSettingsMenu extends StatelessWidget {
-  final TripMetadataModelFacade tripMetaDataFacade;
-
-  _TripSettingsMenu({required this.tripMetaDataFacade});
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<Widget>(
-      itemBuilder: (BuildContext context) {
-        return [
-          PopupMenuItem(
-            child: Row(
-              children: [
-                Icon(Icons.delete_rounded),
-                SizedBox(width: 8),
-                Text(AppLocalizations.of(context)!.deleteTrip),
-              ],
-            ),
-            onTap: () {
-              var tripManagementBloc =
-                  BlocProvider.of<TripManagementBloc>(context);
-              tripManagementBloc.add(
-                UpdateTripEntity<TripMetadataModelFacade>.delete(
-                  tripEntity: tripMetaDataFacade,
-                ),
-              );
-            },
-          ),
-        ];
-      },
-      offset: const Offset(0, kToolbarHeight + 5),
-      child: Padding(
-        padding: EdgeInsets.all(2.0),
-        child: CircleAvatar(
-          radius: 30,
-          backgroundColor: Colors.black,
-          child: Icon(
-            Icons.settings_rounded,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _TripMetadataGridItem extends StatelessWidget {
   final _dateFormat = DateFormat.MMMEd();
+  VoidCallback onTripSelected;
 
   _TripMetadataGridItem(
-      {super.key, required this.tripMetaDataFacade, required String imageAsset})
-      : imageAsset = AssetImage(imageAsset);
+      {super.key,
+      required this.tripMetaDataFacade,
+      required String imageAsset,
+      required this.onTripSelected})
+      : imageAsset = AssetImage(imageAsset),
+        imageAssetLocation = imageAsset;
 
   TripMetadataModelFacade tripMetaDataFacade;
+  final String imageAssetLocation;
   final AssetImage imageAsset;
 
   @override
@@ -161,53 +156,71 @@ class _TripMetadataGridItem extends StatelessWidget {
         return ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: Material(
-            child: Ink.image(
-              image: imageAsset,
-              fit: BoxFit.fill,
-              child: InkWell(
-                onTap: () {
-                  var tripManagementBloc =
-                      BlocProvider.of<TripManagementBloc>(context);
-                  tripManagementBloc
-                      .add(LoadTrip(tripMetadata: tripMetaDataFacade));
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Opacity(
-                      opacity: 0.8,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Colors.white12, Colors.black],
-                            stops: [0, 1],
+            child: InkWell(
+              onTap: () {
+                onTripSelected();
+                var tripManagementBloc =
+                    BlocProvider.of<TripManagementBloc>(context);
+                tripManagementBloc
+                    .add(LoadTrip(tripMetadata: tripMetaDataFacade));
+              },
+              child: Column(
+                //TODO: There is empty space below the Column widget. Remove it
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Stack(
+                    children: [
+                      Image.asset(imageAssetLocation, fit: BoxFit.cover),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 3),
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.black, Colors.black38],
+                              stops: [0, 1],
+                            ),
                           ),
-                        ),
-                        child: ListTile(
-                          tileColor: Colors.transparent,
-                          title: Text(
-                            tripMetaDataFacade.name,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
-                          ),
-                          subtitle: Text(
-                            subTitle,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
-                          ),
-                          trailing: IconButton(
-                            onPressed: () {
-                              _buildDeleteTripConfirmationDialog(context);
-                            },
-                            icon: Icon(Icons.delete_rounded),
+                          child: FittedBox(
+                            child: Text(
+                              subTitle,
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
                           ),
                         ),
                       ),
+                    ],
+                  ),
+                  Card(
+                    shape: StadiumBorder(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              tripMetaDataFacade.name,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 3.0),
+                            child: IconButton(
+                              onPressed: () {
+                                _buildDeleteTripConfirmationDialog(context);
+                              },
+                              icon: Icon(Icons.delete_rounded),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
+                  )
+                ],
               ),
             ),
           ),

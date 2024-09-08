@@ -5,9 +5,9 @@ import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
 import 'package:wandrr/contracts/budgeting_module.dart';
 import 'package:wandrr/contracts/expense.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/lodging.dart';
 import 'package:wandrr/contracts/transit.dart';
-import 'package:wandrr/contracts/trip_repository.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/budgeting/budget_breakdown/breakdown_by_category.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/budgeting/budget_breakdown/breakdown_by_day.dart';
 
@@ -28,9 +28,7 @@ class _BudgetBreakdownTileState extends State<BudgetBreakdownTile>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _budgetingModule = RepositoryProvider.of<TripRepositoryModelFacade>(context)
-        .activeTrip!
-        .budgetingModuleFacade;
+    _budgetingModule = context.getActiveTrip().budgetingModuleFacade;
   }
 
   @override

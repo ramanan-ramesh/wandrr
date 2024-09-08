@@ -7,9 +7,8 @@ import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
 import 'package:wandrr/contracts/communicators.dart';
 import 'package:wandrr/contracts/data_states.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/trip_data.dart';
-import 'package:wandrr/contracts/trip_repository.dart';
-import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
 import 'trip_entity_list_element.dart';
@@ -209,19 +208,18 @@ class _TripEntityListViewState<T extends TripEntity>
             shouldEnableButton = true;
           }
         }
-        return PlatformButtonElements.createExtendedFAB(
-            iconData: Icons.add_rounded,
-            text: widget.headerTileLabel,
-            enabled: shouldEnableButton,
-            onPressed: !shouldEnableButton
-                ? null
-                : () {
-                    var tripManagementBloc =
-                        BlocProvider.of<TripManagementBloc>(context);
-                    tripManagementBloc
-                        .add(UpdateTripEntity<T>.createNewUiEntry());
-                  },
-            context: context);
+        return FloatingActionButton.extended(
+          onPressed: !shouldEnableButton
+              ? null
+              : () {
+                  var tripManagementBloc =
+                      BlocProvider.of<TripManagementBloc>(context);
+                  tripManagementBloc
+                      .add(UpdateTripEntity<T>.createNewUiEntry());
+                },
+          label: Text(widget.headerTileLabel),
+          icon: Icon(Icons.add_rounded),
+        );
       },
       buildWhen: (previousState, currentState) {
         if (currentState.isTripEntity<T>()) {
@@ -238,8 +236,7 @@ class _TripEntityListViewState<T extends TripEntity>
 
   void _updateListElementsOnBuild(
       BuildContext context, TripManagementState state) {
-    var activeTrip =
-        RepositoryProvider.of<TripRepositoryModelFacade>(context).activeTrip!;
+    var activeTrip = context.getActiveTrip();
 
     _uiElements.removeWhere((x) => x.dataState != DataState.NewUiEntry);
 

@@ -8,15 +8,7 @@ import 'package:wandrr/layouts/trip_provider/trip_planner_page/trip_entity_list_
 
 import 'transit_list_item_components/closed_transit.dart';
 import 'transit_list_item_components/opened_transit.dart';
-
-class TransitOptionMetadata {
-  final TransitOption transitOption;
-  final IconData icon;
-  final String name;
-
-  TransitOptionMetadata(
-      {required this.transitOption, required this.icon, required this.name});
-}
+import 'transit_option_metadata.dart';
 
 class TransitListView extends StatelessWidget {
   const TransitListView({super.key});
