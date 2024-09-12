@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
 import 'package:wandrr/contracts/budgeting_module.dart';
-import 'package:wandrr/contracts/expense.dart';
 import 'package:wandrr/contracts/extensions.dart';
-import 'package:wandrr/contracts/lodging.dart';
-import 'package:wandrr/contracts/transit.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
+import 'package:wandrr/contracts/trip_entity_facades/lodging.dart';
+import 'package:wandrr/contracts/trip_entity_facades/transit.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/budgeting/budget_breakdown/breakdown_by_category.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/budgeting/budget_breakdown/breakdown_by_day.dart';
 
@@ -67,9 +66,9 @@ class _BudgetBreakdownTileState extends State<BudgetBreakdownTile>
         );
       },
       buildWhen: (previousState, currentState) {
-        return currentState.isTripEntity<ExpenseModelFacade>() ||
-            currentState.isTripEntity<TransitModelFacade>() ||
-            currentState.isTripEntity<LodgingModelFacade>();
+        return currentState.isTripEntity<ExpenseFacade>() ||
+            currentState.isTripEntity<TransitFacade>() ||
+            currentState.isTripEntity<LodgingFacade>();
       },
       listener: (BuildContext context, TripManagementState state) {},
     );
@@ -87,8 +86,8 @@ class _BudgetBreakdownTileState extends State<BudgetBreakdownTile>
       labelColor: Colors.white,
       unselectedLabelColor: Colors.black,
       tabs: [
-        Tab(text: AppLocalizations.of(context)!.category),
-        Tab(text: AppLocalizations.of(context)!.dayByDay),
+        Tab(text: context.withLocale().category),
+        Tab(text: context.withLocale().dayByDay),
       ],
     );
   }

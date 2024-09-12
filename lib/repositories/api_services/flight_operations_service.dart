@@ -5,10 +5,10 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:wandrr/contracts/collection_names.dart';
-import 'package:wandrr/contracts/location.dart';
+import 'package:wandrr/contracts/trip_entity_facades/location.dart';
 
 abstract class FlightOperations {
-  Future<List<LocationModelFacade>> queryAirportsData(String airportToSearch);
+  Future<List<LocationFacade>> queryAirportsData(String airportToSearch);
 
   Future<List<(String airlineName, String airlineCode)>> queryAirlinesData(
       String airlineNameToSearch);
@@ -28,7 +28,7 @@ class FlightOperationsService implements FlightOperations {
       'https://api.api-ninjas.com/v1/airports?';
 
   static final HashSet<(String, String)> _allAirlinesData = HashSet();
-  static final HashSet<LocationModelFacade> _allAirportsData = HashSet();
+  static final HashSet<LocationFacade> _allAirportsData = HashSet();
 
   static Future<FlightOperations> create() async {
     var apiDocumentQueryResult = await FirebaseFirestore.instance
@@ -88,8 +88,7 @@ class FlightOperationsService implements FlightOperations {
   }
 
   @override
-  Future<List<LocationModelFacade>> queryAirportsData(
-      String airportToSearch) async {
+  Future<List<LocationFacade>> queryAirportsData(String airportToSearch) async {
     if (!_shouldAllowAirportQuery ||
         airportToSearch.isEmpty ||
         airportToSearch.length <= 2) {
@@ -106,7 +105,7 @@ class FlightOperationsService implements FlightOperations {
     }
 
     var queryUrl = _constructQueryForAirportSearch(airportToSearch);
-    List<LocationModelFacade> allMatchedAirports = [];
+    List<LocationFacade> allMatchedAirports = [];
     try {
       var response = await http
           .get(Uri.parse(queryUrl), headers: {_apiKeyQueryField: _apiKey});
@@ -114,7 +113,7 @@ class FlightOperationsService implements FlightOperations {
         var decodedResponse = json.decode(response.body);
         var allAirportsList = List.from(decodedResponse);
         var airportsDataList = allAirportsList
-            .map((e) => LocationModelFacade(
+            .map((e) => LocationFacade(
                 tripId: '',
                 latitude: double.parse(e['latitude']),
                 longitude: double.parse(e['longitude']),

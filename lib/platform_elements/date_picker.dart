@@ -4,7 +4,6 @@ import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:wandrr/contracts/extensions.dart';
-import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/dialog.dart';
 
 //Align the dialog against the button that was pressed, rather than showing as bottomModalSheet
@@ -30,7 +29,7 @@ class _PlatformDateTimePickerState extends State<PlatformDateTimePicker> {
 
   @override
   Widget build(BuildContext context) {
-    var placeHolderString = AppLocalizations.of(context)!.dateTimeSelection;
+    var placeHolderString = context.withLocale().dateTimeSelection;
     var dateTimeText = _dateTime != null
         ? '${_dateTime!.day}/${_dateTime!.month}/${_dateTime!.year} ${_dateTime!.hour}:${_dateTime!.minute}'
         : placeHolderString;
@@ -173,10 +172,10 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
             children: [
               Expanded(
                   child: Text(
-                      '${(widget.startDateLabelText ?? AppLocalizations.of(context)!.dateRangePickerStart)} $startDateTime')),
+                      '${(widget.startDateLabelText ?? context.withLocale().dateRangePickerStart)} $startDateTime')),
               Expanded(
                   child: Text(
-                      '${(widget.endDateLabelText ?? AppLocalizations.of(context)!.dateRangePickerEnd)} $endDateTime'))
+                      '${(widget.endDateLabelText ?? context.withLocale().dateRangePickerEnd)} $endDateTime'))
             ],
           ),
         ));
@@ -367,50 +366,61 @@ class _PlatformDatePickerState extends State<PlatformDatePicker> {
   Widget build(BuildContext context) {
     var buttonText =
         _dateTime != null ? _dateFormat.format(_dateTime!) : '            ';
-    var isBigLayout = context.isBigLayout();
-    return PlatformButtonElements.createTextButtonWithIcon(
-        key: _widgetKey,
-        text: buttonText,
-        iconData: Icons.date_range_rounded,
-        onPressed: () {
-          var renderBox =
-              _widgetKey.currentContext!.findRenderObject() as RenderBox;
-          double width;
-          if (isBigLayout) {
-            width = 400;
-          } else {
-            if (renderBox.size.width <= 300) {
-              width = 300.0;
-            } else {
-              width = renderBox.size.width;
-            }
-          }
-          PlatformDialogElements.showAlignedDialog(
-              context: context,
-              widgetBuilder: (context) => SizedBox(
-                    width: width,
-                    child: Material(
-                      elevation: 5.0,
-                      child: CalendarDatePicker2WithActionButtons(
-                        config: CalendarDatePicker2WithActionButtonsConfig(
-                          calendarType: CalendarDatePicker2Type.single,
-                          firstDayOfWeek: 1,
-                          centerAlignModePicker: true,
-                        ),
-                        value: [DateTime.now()],
-                        onValueChanged: (dateTimes) {
-                          if (dateTimes.length == 1) {
-                            setState(() {
-                              _dateTime = dateTimes.single!;
-                              widget.callBack(_dateTime!);
-                            });
-                          }
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ),
+    return TextButton.icon(
+      onPressed: () {
+        var dialogWidth = _calculateDialogWidth();
+        _showDatePickerDialog(context, dialogWidth);
+      },
+      label: Text(buttonText),
+      icon: Icon(Icons.date_range_rounded),
+      key: _widgetKey,
+    );
+  }
+
+  double _calculateDialogWidth() {
+    var currentWidgetContext = _widgetKey.currentContext!;
+    var isBigLayout = currentWidgetContext.isBigLayout();
+    var renderBox = _widgetKey.currentContext!.findRenderObject() as RenderBox;
+
+    double width;
+    if (isBigLayout) {
+      width = 400;
+    } else {
+      if (renderBox.size.width <= 300) {
+        width = 300.0;
+      } else {
+        width = renderBox.size.width;
+      }
+    }
+    return width;
+  }
+
+  void _showDatePickerDialog(BuildContext widgetContext, double dialogWidth) {
+    return PlatformDialogElements.showAlignedDialog(
+        context: widgetContext,
+        widgetBuilder: (dialogContext) => SizedBox(
+              width: dialogWidth,
+              child: Material(
+                elevation: 5.0,
+                child: CalendarDatePicker2WithActionButtons(
+                  config: CalendarDatePicker2WithActionButtonsConfig(
+                    calendarType: CalendarDatePicker2Type.single,
+                    firstDayOfWeek: 1,
+                    centerAlignModePicker: true,
                   ),
-              widgetKey: _widgetKey);
-        });
+                  value: [DateTime.now()],
+                  onValueChanged: (dateTimes) {
+                    if (dateTimes.length == 1) {
+                      setState(() {
+                        _dateTime = dateTimes.single!;
+                        widget.callBack(_dateTime!);
+                      });
+                    }
+                    Navigator.of(dialogContext).pop();
+                  },
+                ),
+              ),
+            ),
+        widgetKey: _widgetKey);
   }
 }

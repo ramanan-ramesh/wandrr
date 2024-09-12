@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:wandrr/blocs/authentication_bloc/auth_bloc.dart';
+import 'package:wandrr/blocs/authentication_bloc/auth_events.dart';
+import 'package:wandrr/blocs/master_page_bloc/master_page_bloc.dart';
+import 'package:wandrr/blocs/master_page_bloc/master_page_events.dart';
+import 'package:wandrr/blocs/trip_management/bloc.dart';
+import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/contracts/app_level_data.dart';
 import 'package:wandrr/contracts/trip_data.dart';
 import 'package:wandrr/contracts/trip_repository.dart';
@@ -21,6 +28,26 @@ extension DateTimeExt on DateTime {
   }
 }
 
+extension AppLocalizationsExt on BuildContext {
+  AppLocalizations withLocale() {
+    return AppLocalizations.of(this)!;
+  }
+}
+
+extension BlocProviderExt on BuildContext {
+  void addAuthenticationEvent(AuthenticationEvent event) {
+    BlocProvider.of<AuthenticationBloc>(this).add(event);
+  }
+
+  void addMasterPageEvent(MasterPageEvent event) {
+    BlocProvider.of<MasterPageBloc>(this).add(event);
+  }
+
+  void addTripManagementEvent(TripManagementEvent event) {
+    BlocProvider.of<TripManagementBloc>(this).add(event);
+  }
+}
+
 extension RepositoryExt on BuildContext {
   PlatformDataRepositoryFacade getPlatformDataRepository() {
     return RepositoryProvider.of<PlatformDataRepositoryFacade>(this);
@@ -34,11 +61,11 @@ extension RepositoryExt on BuildContext {
     return getAppLevelData().isBigLayout;
   }
 
-  TripRepositoryModelFacade getTripRepository() {
-    return RepositoryProvider.of<TripRepositoryModelFacade>(this);
+  TripRepositoryFacade getTripRepository() {
+    return RepositoryProvider.of<TripRepositoryFacade>(this);
   }
 
-  TripDataModelFacade getActiveTrip() {
+  TripDataFacade getActiveTrip() {
     return getTripRepository().activeTrip!;
   }
 }

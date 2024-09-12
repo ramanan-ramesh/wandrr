@@ -1,11 +1,12 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:wandrr/contracts/budgeting_module.dart';
-import 'package:wandrr/contracts/expense.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/budgeting/constants.dart';
 
 class BreakdownByCategoryChart extends StatefulWidget {
   final BudgetingModuleFacade budgetingModule;
+
   const BreakdownByCategoryChart({super.key, required this.budgetingModule});
 
   @override
@@ -105,6 +106,7 @@ class _Badge extends StatelessWidget {
     this.icon, {
     required this.size,
   });
+
   final IconData icon;
   final double size;
 

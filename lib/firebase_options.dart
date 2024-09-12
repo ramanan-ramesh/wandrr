@@ -67,7 +67,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '778106737436',
     projectId: 'wandrr-15f70',
     storageBucket: 'wandrr-15f70.appspot.com',
-    iosClientId: '778106737436-hs03h421nn76c5qc1hi2pnehha55474h.apps.googleusercontent.com',
+    iosClientId:
+        '778106737436-hs03h421nn76c5qc1hi2pnehha55474h.apps.googleusercontent.com',
     iosBundleId: 'com.wandrr.wandrr',
   );
 
@@ -77,7 +78,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '778106737436',
     projectId: 'wandrr-15f70',
     storageBucket: 'wandrr-15f70.appspot.com',
-    iosClientId: '778106737436-9v09jfbegq275q6r8s88tpc9017c795l.apps.googleusercontent.com',
+    iosClientId:
+        '778106737436-9v09jfbegq275q6r8s88tpc9017c795l.apps.googleusercontent.com',
     iosBundleId: 'com.wandrr.wandrr.RunnerTests',
   );
 }

@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
 import 'package:wandrr/contracts/budgeting_module.dart';
-import 'package:wandrr/contracts/communicators.dart';
-import 'package:wandrr/contracts/data_states.dart';
-import 'package:wandrr/contracts/expense.dart';
+import 'package:wandrr/contracts/database_connectors/data_states.dart';
 import 'package:wandrr/contracts/extensions.dart';
-import 'package:wandrr/contracts/lodging.dart';
-import 'package:wandrr/contracts/transit.dart';
 import 'package:wandrr/contracts/trip_data.dart';
+import 'package:wandrr/contracts/trip_entity.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
+import 'package:wandrr/contracts/trip_entity_facades/lodging.dart';
+import 'package:wandrr/contracts/trip_entity_facades/transit.dart';
+import 'package:wandrr/contracts/ui_element.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/trip_entity_list_elements.dart';
-import 'package:wandrr/platform_elements/button.dart';
 
 import 'expense_list_item_components/closed_expense.dart';
 import 'expense_list_item_components/opened_expense.dart';
@@ -33,10 +30,10 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
   @override
   Widget build(BuildContext context) {
     _initializeUIComponentNames(context);
-    return TripEntityListView<ExpenseModelFacade>.customHeaderTileButton(
+    return TripEntityListView<ExpenseFacade>.customHeaderTileButton(
       additionalListBuildWhenCondition: _additionalBuildWhenCondition,
-      emptyListMessage: AppLocalizations.of(context)!.noExpensesCreated,
-      headerTileLabel: AppLocalizations.of(context)!.expenses,
+      emptyListMessage: context.withLocale().noExpensesCreated,
+      headerTileLabel: context.withLocale().expenses,
       uiElementsCreator: expenseUiElementsCreator,
       headerTileButton: _createSortOptionsDropDown(),
       onUiElementPressed: _onExpenseUiElementPressed,
@@ -45,14 +42,14 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
       canDelete: (uiElement) {
         return uiElement is! UiElementWithMetadata;
       },
-      openedListElementCreator: (UiElement<ExpenseModelFacade> uiElement,
+      openedListElementCreator: (UiElement<ExpenseFacade> uiElement,
               ValueNotifier<bool> validityNotifier) =>
           OpenedExpenseListItem(
         expenseUiElement: uiElement,
         categoryNames: _categoryNames,
         validityNotifier: validityNotifier,
       ),
-      closedListElementCreator: (UiElement<ExpenseModelFacade> uiElement) {
+      closedListElementCreator: (UiElement<ExpenseFacade> uiElement) {
         if (uiElement is UiElementWithMetadata) {
           uiElement.element.title =
               (uiElement as UiElementWithMetadata).metadata.toString();
@@ -61,7 +58,7 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
             expenseModelFacade: uiElement.element,
             categoryNames: _categoryNames);
       },
-      uiElementsSorter: (List<UiElement<ExpenseModelFacade>> uiElements) {
+      uiElementsSorter: (List<UiElement<ExpenseFacade>> uiElements) {
         var budgetingModuleFacade =
             context.getActiveTrip().budgetingModuleFacade;
         return budgetingModuleFacade.sortExpenseElements(
@@ -70,37 +67,38 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
     );
   }
 
-  void _onUpdatePressed(UiElement<ExpenseModelFacade> expenseUiElement) {
-    var tripManagementBloc = BlocProvider.of<TripManagementBloc>(context);
+  void _onUpdatePressed(UiElement<ExpenseFacade> expenseUiElement) {
+    TripManagementEvent eventToAdd;
     if (expenseUiElement.dataState == DataState.NewUiEntry) {
-      tripManagementBloc.add(UpdateTripEntity<ExpenseModelFacade>.create(
-          tripEntity: expenseUiElement.element));
+      eventToAdd = UpdateTripEntity<ExpenseFacade>.create(
+          tripEntity: expenseUiElement.element);
     } else {
       if (expenseUiElement
-          is UiElementWithMetadata<ExpenseModelFacade, TransitModelFacade>) {
+          is UiElementWithMetadata<ExpenseFacade, TransitFacade>) {
         var linkedExpenseUiElement = expenseUiElement as UiElementWithMetadata;
-        tripManagementBloc.add(UpdateLinkedExpense<TransitModelFacade>.update(
+        eventToAdd = UpdateLinkedExpense<TransitFacade>.update(
             link: linkedExpenseUiElement.metadata,
-            expense: linkedExpenseUiElement.element));
+            expense: linkedExpenseUiElement.element);
       } else if (expenseUiElement
-          is UiElementWithMetadata<ExpenseModelFacade, LodgingModelFacade>) {
+          is UiElementWithMetadata<ExpenseFacade, LodgingFacade>) {
         var linkedExpenseUiElement = expenseUiElement as UiElementWithMetadata;
-        tripManagementBloc.add(UpdateLinkedExpense<TransitModelFacade>.update(
+        eventToAdd = UpdateLinkedExpense<LodgingFacade>.update(
             link: linkedExpenseUiElement.metadata,
-            expense: linkedExpenseUiElement.element));
+            expense: linkedExpenseUiElement.element);
       } else {
-        tripManagementBloc.add(UpdateTripEntity<ExpenseModelFacade>.update(
-            tripEntity: expenseUiElement.element));
+        eventToAdd = UpdateTripEntity<ExpenseFacade>.update(
+            tripEntity: expenseUiElement.element);
       }
     }
+    context.addTripManagementEvent(eventToAdd);
   }
 
   bool _isLinkedExpenseChanged<T extends TripEntity>(
       TripManagementState currentState,
-      UiElement<ExpenseModelFacade> expenseUiElement) {
+      UiElement<ExpenseFacade> expenseUiElement) {
     if (currentState is UpdatedLinkedExpense<T>) {
       var operationPerformed = currentState.dataState;
-      if (expenseUiElement is UiElementWithMetadata<ExpenseModelFacade, T>) {
+      if (expenseUiElement is UiElementWithMetadata<ExpenseFacade, T>) {
         var updatedId = currentState.link.id;
         if (operationPerformed == DataState.Select) {
           if (updatedId == expenseUiElement.metadata.id) {
@@ -130,10 +128,10 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
 
   bool _isLinkedTripEntityChanged<T extends TripEntity>(
       TripManagementState currentState,
-      UiElement<ExpenseModelFacade> expenseUiElement) {
+      UiElement<ExpenseFacade> expenseUiElement) {
     if (currentState.isTripEntity<T>() &&
         (currentState as UpdatedTripEntity).dataState == DataState.Update) {
-      if (expenseUiElement is UiElementWithMetadata<ExpenseModelFacade, T>) {
+      if (expenseUiElement is UiElementWithMetadata<ExpenseFacade, T>) {
         var updatedTripEntity =
             currentState.tripEntityModificationData.modifiedCollectionItem;
         var updatedId = updatedTripEntity.id;
@@ -151,17 +149,17 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
   bool _shouldBuildExpenseListItem(
       TripManagementState previousState,
       TripManagementState currentState,
-      UiElement<ExpenseModelFacade> expenseUiElement) {
-    if (_isLinkedExpenseChanged<TransitModelFacade>(
+      UiElement<ExpenseFacade> expenseUiElement) {
+    if (_isLinkedExpenseChanged<TransitFacade>(
         currentState, expenseUiElement)) {
       return true;
-    } else if (_isLinkedExpenseChanged<LodgingModelFacade>(
+    } else if (_isLinkedExpenseChanged<LodgingFacade>(
         currentState, expenseUiElement)) {
       return true;
-    } else if (_isLinkedTripEntityChanged<TransitModelFacade>(
+    } else if (_isLinkedTripEntityChanged<TransitFacade>(
         currentState, expenseUiElement)) {
       return true;
-    } else if (_isLinkedTripEntityChanged<LodgingModelFacade>(
+    } else if (_isLinkedTripEntityChanged<LodgingFacade>(
         currentState, expenseUiElement)) {
       return true;
     }
@@ -169,36 +167,37 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
   }
 
   void _onExpenseUiElementPressed(
-      BuildContext context, UiElement<ExpenseModelFacade> expenseUiElement) {
-    var tripManagementBloc = BlocProvider.of<TripManagementBloc>(context);
+      BuildContext context, UiElement<ExpenseFacade> expenseUiElement) {
+    TripManagementEvent eventToAdd;
     if (expenseUiElement
-        is UiElementWithMetadata<ExpenseModelFacade, TransitModelFacade>) {
+        is UiElementWithMetadata<ExpenseFacade, TransitFacade>) {
       var expenseUiElementWithMetadata =
           expenseUiElement as UiElementWithMetadata;
-      tripManagementBloc.add(UpdateLinkedExpense<TransitModelFacade>.select(
+      eventToAdd = UpdateLinkedExpense<TransitFacade>.select(
           link: expenseUiElementWithMetadata.metadata,
-          expense: expenseUiElement.element));
+          expense: expenseUiElement.element);
     } else if (expenseUiElement
-        is UiElementWithMetadata<ExpenseModelFacade, LodgingModelFacade>) {
+        is UiElementWithMetadata<ExpenseFacade, LodgingFacade>) {
       var expenseUiElementWithMetadata =
           expenseUiElement as UiElementWithMetadata;
-      tripManagementBloc.add(UpdateLinkedExpense<LodgingModelFacade>.select(
+      eventToAdd = UpdateLinkedExpense<LodgingFacade>.select(
           link: expenseUiElementWithMetadata.metadata,
-          expense: expenseUiElement.element));
+          expense: expenseUiElement.element);
     } else {
-      tripManagementBloc.add(UpdateTripEntity<ExpenseModelFacade>.select(
-          tripEntity: expenseUiElement.element));
+      eventToAdd = UpdateTripEntity<ExpenseFacade>.select(
+          tripEntity: expenseUiElement.element);
     }
+    context.addTripManagementEvent(eventToAdd);
   }
 
   bool _additionalBuildWhenCondition(previousState, currentState) {
-    if (currentState.isTripEntity<TransitModelFacade>()) {
+    if (currentState.isTripEntity<TransitFacade>()) {
       var transitUpdatedState = currentState as UpdatedTripEntity;
       if (transitUpdatedState.dataState == DataState.Create ||
           transitUpdatedState.dataState == DataState.Delete) {
         return true;
       }
-    } else if (currentState.isTripEntity<LodgingModelFacade>()) {
+    } else if (currentState.isTripEntity<LodgingFacade>()) {
       var lodgingUpdatedState = currentState as UpdatedTripEntity;
       if (lodgingUpdatedState.dataState == DataState.Create ||
           lodgingUpdatedState.dataState == DataState.Delete) {
@@ -226,19 +225,18 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
     );
   }
 
-  List<UiElement<ExpenseModelFacade>> expenseUiElementsCreator(
-      TripDataModelFacade tripDataModelFacade) {
-    var expenseUiElements = <UiElement<ExpenseModelFacade>>[];
+  List<UiElement<ExpenseFacade>> expenseUiElementsCreator(
+      TripDataFacade tripDataModelFacade) {
+    var expenseUiElements = <UiElement<ExpenseFacade>>[];
     expenseUiElements.addAll(tripDataModelFacade.expenses.map((element) =>
-        UiElement<ExpenseModelFacade>(
-            element: element, dataState: DataState.None)));
+        UiElement<ExpenseFacade>(element: element, dataState: DataState.None)));
     expenseUiElements.addAll(tripDataModelFacade.transits.map((element) =>
-        UiElementWithMetadata<ExpenseModelFacade, TransitModelFacade>(
+        UiElementWithMetadata<ExpenseFacade, TransitFacade>(
             element: element.expense,
             dataState: DataState.None,
             metadata: element)));
     expenseUiElements.addAll(tripDataModelFacade.lodgings.map((element) =>
-        UiElementWithMetadata<ExpenseModelFacade, LodgingModelFacade>(
+        UiElementWithMetadata<ExpenseFacade, LodgingFacade>(
             element: element.expense,
             dataState: DataState.None,
             metadata: element)));
@@ -247,28 +245,25 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
 
   void _initializeUIComponentNames(BuildContext context) {
     _categoryNames = {
-      ExpenseCategory.Flights: AppLocalizations.of(context)!.flights,
-      ExpenseCategory.Lodging: AppLocalizations.of(context)!.lodging,
-      ExpenseCategory.CarRental: AppLocalizations.of(context)!.carRental,
-      ExpenseCategory.PublicTransit:
-          AppLocalizations.of(context)!.publicTransit,
-      ExpenseCategory.Food: AppLocalizations.of(context)!.food,
-      ExpenseCategory.Drinks: AppLocalizations.of(context)!.drinks,
-      ExpenseCategory.Sightseeing: AppLocalizations.of(context)!.sightseeing,
-      ExpenseCategory.Activities: AppLocalizations.of(context)!.activities,
-      ExpenseCategory.Shopping: AppLocalizations.of(context)!.shopping,
-      ExpenseCategory.Fuel: AppLocalizations.of(context)!.fuel,
-      ExpenseCategory.Groceries: AppLocalizations.of(context)!.groceries,
-      ExpenseCategory.Other: AppLocalizations.of(context)!.other
+      ExpenseCategory.Flights: context.withLocale().flights,
+      ExpenseCategory.Lodging: context.withLocale().lodging,
+      ExpenseCategory.CarRental: context.withLocale().carRental,
+      ExpenseCategory.PublicTransit: context.withLocale().publicTransit,
+      ExpenseCategory.Food: context.withLocale().food,
+      ExpenseCategory.Drinks: context.withLocale().drinks,
+      ExpenseCategory.Sightseeing: context.withLocale().sightseeing,
+      ExpenseCategory.Activities: context.withLocale().activities,
+      ExpenseCategory.Shopping: context.withLocale().shopping,
+      ExpenseCategory.Fuel: context.withLocale().fuel,
+      ExpenseCategory.Groceries: context.withLocale().groceries,
+      ExpenseCategory.Other: context.withLocale().other
     };
     _availableSortOptions = {
-      ExpenseSortOption.OldToNew: AppLocalizations.of(context)!.oldToNew,
-      ExpenseSortOption.NewToOld: AppLocalizations.of(context)!.newToOld,
-      ExpenseSortOption.LowToHighCost:
-          AppLocalizations.of(context)!.lowToHighCost,
-      ExpenseSortOption.HighToLowCost:
-          AppLocalizations.of(context)!.highToLowCost,
-      ExpenseSortOption.Category: AppLocalizations.of(context)!.category
+      ExpenseSortOption.OldToNew: context.withLocale().oldToNew,
+      ExpenseSortOption.NewToOld: context.withLocale().newToOld,
+      ExpenseSortOption.LowToHighCost: context.withLocale().lowToHighCost,
+      ExpenseSortOption.HighToLowCost: context.withLocale().highToLowCost,
+      ExpenseSortOption.Category: context.withLocale().category
     };
   }
 }
@@ -392,10 +387,11 @@ class _CategoryPickerState extends State<_CategoriesPicker> {
     //TODO: Track focus and then decide whether to overlay the date range picker
     return CompositedTransformTarget(
       link: _layerLink,
-      child: PlatformButtonElements.createTextButtonWithIcon(
-          text: AppLocalizations.of(context)!.category,
-          iconData: iconsForCategories[widget.category]!,
-          onPressed: _showCategoryPickerWindow),
+      child: TextButton.icon(
+        onPressed: _showCategoryPickerWindow,
+        label: Text(context.withLocale().category),
+        icon: Icon(iconsForCategories[widget.category]!),
+      ),
     );
   }
 }

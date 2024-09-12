@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
-import 'package:wandrr/contracts/communicators.dart';
-import 'package:wandrr/contracts/data_states.dart';
+import 'package:wandrr/contracts/database_connectors/data_states.dart';
 import 'package:wandrr/contracts/extensions.dart';
-import 'package:wandrr/contracts/plan_data.dart';
+import 'package:wandrr/contracts/trip_entity_facades/plan_data.dart';
+import 'package:wandrr/contracts/ui_element.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/plan_data/opened_plan_data/opened_plan_data.dart';
 import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/text.dart';
@@ -20,7 +19,7 @@ class PlanDataListView extends StatefulWidget {
 }
 
 class _PlanDataListViewState extends State<PlanDataListView> {
-  List<UiElement<PlanDataModelFacade>> _planDataUiElements = [];
+  List<UiElement<PlanDataFacade>> _planDataUiElements = [];
 
   @override
   Widget build(BuildContext context) {
@@ -53,17 +52,16 @@ class _PlanDataListViewState extends State<PlanDataListView> {
   Widget _buildCreatePlanDataListButton(BuildContext context) {
     return FloatingActionButton.extended(
         onPressed: () {
-          var tripManagementBloc = BlocProvider.of<TripManagementBloc>(context);
-          tripManagementBloc
-              .add(UpdateTripEntity<PlanDataModelFacade>.createNewUiEntry());
+          context.addTripManagementEvent(
+              UpdateTripEntity<PlanDataFacade>.createNewUiEntry());
         },
-        label: Text(AppLocalizations.of(context)!.newList),
+        label: Text(context.withLocale().newList),
         icon: Icon(Icons.add_rounded));
   }
 
   bool _shouldBuildPlanDataList(
       TripManagementState previousState, TripManagementState currentState) {
-    if (currentState.isTripEntity<PlanDataModelFacade>()) {
+    if (currentState.isTripEntity<PlanDataFacade>()) {
       var planDataUpdatedState = currentState as UpdatedTripEntity;
       if (planDataUpdatedState.dataState == DataState.Delete ||
           planDataUpdatedState.dataState == DataState.Create ||
@@ -80,7 +78,7 @@ class _PlanDataListViewState extends State<PlanDataListView> {
 
     _planDataUiElements.removeWhere((x) => x.dataState != DataState.NewUiEntry);
 
-    if (state.isTripEntity<PlanDataModelFacade>()) {
+    if (state.isTripEntity<PlanDataFacade>()) {
       var updatedTripEntityState = state as UpdatedTripEntity;
       var updatedTripEntityDataState = updatedTripEntityState.dataState;
       if (updatedTripEntityState.tripEntityModificationData.isFromEvent) {
@@ -120,12 +118,12 @@ class _PlanDataListViewState extends State<PlanDataListView> {
       }
     }
     _planDataUiElements.addAll(activeTrip.planDataList.map((e) =>
-        UiElement<PlanDataModelFacade>(element: e, dataState: DataState.None)));
+        UiElement<PlanDataFacade>(element: e, dataState: DataState.None)));
   }
 }
 
 class _PlanDataListItemViewer extends StatefulWidget {
-  UiElement<PlanDataModelFacade> initialPlanDataUiElement;
+  UiElement<PlanDataFacade> initialPlanDataUiElement;
 
   _PlanDataListItemViewer({super.key, required this.initialPlanDataUiElement});
 
@@ -140,7 +138,7 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
   late TextEditingController _titleEditingController;
   final ValueNotifier<bool> _canUpdatePlanDataNotifier = ValueNotifier(false);
   bool _isCollapsed = false;
-  late UiElement<PlanDataModelFacade> _planDataUiElement;
+  late UiElement<PlanDataFacade> _planDataUiElement;
 
   @override
   void initState() {
@@ -184,7 +182,7 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
       title: PlatformTextElements.createTextField(
         context: context,
         controller: _titleEditingController,
-        hintText: AppLocalizations.of(context)!.addATitle,
+        hintText: context.withLocale().addATitle,
         onTextChanged: (newTitle) {
           _planDataUiElement.element.title = newTitle;
           _tryUpdatePlanData(_planDataUiElement.element);
@@ -199,15 +197,13 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
                 icon: Icons.check_rounded,
                 context: context,
                 callback: () {
-                  var tripManagementBloc =
-                      BlocProvider.of<TripManagementBloc>(context);
                   if (_planDataUiElement.dataState == DataState.NewUiEntry) {
-                    tripManagementBloc.add(
-                        UpdateTripEntity<PlanDataModelFacade>.create(
+                    context.addTripManagementEvent(
+                        UpdateTripEntity<PlanDataFacade>.create(
                             tripEntity: _planDataUiElement.element));
                   } else {
-                    tripManagementBloc.add(
-                        UpdateTripEntity<PlanDataModelFacade>.update(
+                    context.addTripManagementEvent(
+                        UpdateTripEntity<PlanDataFacade>.update(
                             tripEntity: _planDataUiElement.element));
                   }
                 },
@@ -221,10 +217,8 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
               context: context,
               isEnabledInitially: true,
               callback: () {
-                var tripManagementBloc =
-                    BlocProvider.of<TripManagementBloc>(context);
-                tripManagementBloc.add(
-                    UpdateTripEntity<PlanDataModelFacade>.delete(
+                context.addTripManagementEvent(
+                    UpdateTripEntity<PlanDataFacade>.delete(
                         tripEntity: _planDataUiElement.element));
               },
             ),
@@ -239,7 +233,7 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
     );
   }
 
-  void _tryUpdatePlanData(PlanDataModelFacade newPlanData) {
+  void _tryUpdatePlanData(PlanDataFacade newPlanData) {
     var title = _planDataUiElement.element.title;
     _planDataUiElement.element = newPlanData;
     _planDataUiElement.element.title = title;
@@ -250,9 +244,9 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
 
   bool _shouldBuildPlanDataListItem(
       TripManagementState previousState, TripManagementState currentState) {
-    if (currentState.isTripEntity<PlanDataModelFacade>()) {
+    if (currentState.isTripEntity<PlanDataFacade>()) {
       var planDataUpdatedState =
-          currentState as UpdatedTripEntity<PlanDataModelFacade>;
+          currentState as UpdatedTripEntity<PlanDataFacade>;
       if (planDataUpdatedState.dataState == DataState.Update &&
           _planDataUiElement.element.id ==
               planDataUpdatedState

@@ -1,20 +1,19 @@
-import 'model_collection.dart';
-import 'repository_pattern.dart';
+import 'database_connectors/model_collection_facade.dart';
+import 'database_connectors/repository_pattern.dart';
 import 'trip_data.dart';
-import 'trip_metadata.dart';
+import 'trip_entity_facades/trip_metadata.dart';
 
-abstract class TripRepositoryModelFacade {
-  List<TripMetadataModelFacade> get tripMetadatas;
+abstract class TripRepositoryFacade {
+  List<TripMetadataFacade> get tripMetadatas;
 
-  TripDataModelFacade? get activeTrip;
+  TripDataFacade? get activeTrip;
 }
 
-abstract class TripRepositoryEventHandler extends TripRepositoryModelFacade
+abstract class TripRepositoryEventHandler extends TripRepositoryFacade
     implements Dispose {
-  ModelCollectionFacade<TripMetadataModelFacade>
-      get tripMetadataModelCollection;
+  ModelCollectionFacade<TripMetadataFacade> get tripMetadataModelCollection;
 
   TripDataModelEventHandler? get activeTripEventHandler;
 
-  Future loadAndActivateTrip(TripMetadataModelFacade? tripMetadata);
+  Future loadAndActivateTrip(TripMetadataFacade? tripMetadata);
 }

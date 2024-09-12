@@ -1,6 +1,7 @@
 {
   "plan_itinerary": "Plan your Itinerary with ease and elegance",
   "login": "Login",
+  "logout":"LogOut",
   "register": "Register",
   "enter_login_details": "Enter your username and password",
   "userName": "UserName",
@@ -100,5 +101,7 @@
   "carrierName":"Carrier Name",
   "dateTimeSelection" : "Select a date and time",
   "loadingTrip":"Loading Trip...",
-  "searchForCurrency":"Search for a currency"
+  "searchForCurrency":"Search for a currency",
+  "addItem":"Add item",
+  "splitExpensesWithNewTripMateMessage": "All current expenses will be split with the new trip mate. Do you wish to proceed?"
 }

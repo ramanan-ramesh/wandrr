@@ -1,6 +1,6 @@
-import 'package:wandrr/contracts/data_states.dart';
-import 'package:wandrr/contracts/expense.dart';
-import 'package:wandrr/contracts/model_collection.dart';
+import 'package:wandrr/contracts/database_connectors/collection_change_metadata.dart';
+import 'package:wandrr/contracts/database_connectors/data_states.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
 
 abstract class TripManagementState {
   bool isTripEntity<T>() {
@@ -8,7 +8,7 @@ abstract class TripManagementState {
       if (this is UpdatedTripEntity<T>) {
         return true;
       } else if ((this as UpdatedTripEntity).tripEntityModificationData
-          is CollectionModificationData<T>) {
+          is CollectionChangeMetadata<T>) {
         return true;
       }
     }
@@ -21,15 +21,14 @@ class NavigateToHome extends TripManagementState {}
 class ActivatedTrip extends TripManagementState {}
 
 class UpdatedTripEntity<T> extends TripManagementState {
-  final CollectionModificationData<T> tripEntityModificationData;
+  final CollectionChangeMetadata<T> tripEntityModificationData;
   final DataState dataState;
   final bool isOperationSuccess;
 
   UpdatedTripEntity.createdNewUiEntry(
       {required T tripEntity, required this.isOperationSuccess})
       : dataState = DataState.NewUiEntry,
-        tripEntityModificationData =
-            CollectionModificationData(tripEntity, true);
+        tripEntityModificationData = CollectionChangeMetadata(tripEntity, true);
 
   UpdatedTripEntity.created(
       {required this.tripEntityModificationData,
@@ -50,25 +49,24 @@ class UpdatedTripEntity<T> extends TripManagementState {
     required T tripEntity,
   })  : dataState = DataState.Select,
         isOperationSuccess = true,
-        tripEntityModificationData =
-            CollectionModificationData(tripEntity, true);
+        tripEntityModificationData = CollectionChangeMetadata(tripEntity, true);
 }
 
-class UpdatedLinkedExpense<T> extends UpdatedTripEntity<ExpenseModelFacade> {
+class UpdatedLinkedExpense<T> extends UpdatedTripEntity<ExpenseFacade> {
   final T link;
 
   UpdatedLinkedExpense.updated(
-      {required ExpenseModelFacade expense,
+      {required ExpenseFacade expense,
       required this.link,
       required bool isFromEvent,
       required bool isOperationSuccess})
       : super.updated(
             tripEntityModificationData:
-                CollectionModificationData(expense, isFromEvent),
+                CollectionChangeMetadata(expense, isFromEvent),
             isOperationSuccess: isOperationSuccess);
 
   UpdatedLinkedExpense.selected(
-      {required ExpenseModelFacade expense,
+      {required ExpenseFacade expense,
       required this.link,
       required bool isOperationSuccess})
       : super.selected(tripEntity: expense);

@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/contracts/collection_names.dart';
-import 'package:wandrr/contracts/expense.dart';
-import 'package:wandrr/contracts/firestore_helpers.dart';
-import 'package:wandrr/contracts/repository_pattern.dart';
-import 'package:wandrr/contracts/trip_metadata.dart';
+import 'package:wandrr/contracts/database_connectors/firestore_helpers.dart';
+import 'package:wandrr/contracts/database_connectors/repository_pattern.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
+import 'package:wandrr/contracts/trip_entity_facades/trip_metadata.dart';
 
-class TripMetadataModelImplementation extends TripMetadataModelFacade
-    implements RepositoryPattern<TripMetadataModelFacade> {
+class TripMetadataModelImplementation extends TripMetadataFacade
+    implements RepositoryPattern<TripMetadataFacade> {
   static const String _startDateField = 'startDate';
   static const String _endDateField = 'endDate';
   static const String _nameField = 'name';
@@ -24,7 +24,7 @@ class TripMetadataModelImplementation extends TripMetadataModelFacade
 
   //TODO: Id not expected to be valid. This is just to add ModelFacade object to DB.
   TripMetadataModelImplementation.fromModelFacade(
-      {required TripMetadataModelFacade tripMetadataModelFacade})
+      {required TripMetadataFacade tripMetadataModelFacade})
       : super(
             id: tripMetadataModelFacade.id,
             startDate: tripMetadataModelFacade.startDate,
@@ -73,7 +73,7 @@ class TripMetadataModelImplementation extends TripMetadataModelFacade
   }
 
   @override
-  Future<bool> tryUpdate(TripMetadataModelFacade toUpdate) async {
+  Future<bool> tryUpdate(TripMetadataFacade toUpdate) async {
     Map<String, dynamic> json = {};
     FirestoreHelpers.updateJson(endDate, toUpdate.endDate, _endDateField, json);
     FirestoreHelpers.updateJson(
@@ -97,7 +97,7 @@ class TripMetadataModelImplementation extends TripMetadataModelFacade
   }
 
   @override
-  TripMetadataModelFacade get facade => clone();
+  TripMetadataFacade get facade => clone();
 
   TripMetadataModelImplementation._(
       {required super.id,

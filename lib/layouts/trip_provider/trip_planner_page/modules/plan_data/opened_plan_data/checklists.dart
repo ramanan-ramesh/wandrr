@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/contracts/check_list.dart';
 import 'package:wandrr/contracts/check_list_item.dart';
-import 'package:wandrr/platform_elements/button.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/platform_elements/form.dart';
 
 class CheckListsView extends StatefulWidget {
   CheckListsView(
       {super.key, required this.checkLists, required this.onCheckListsChanged});
 
-  final List<CheckListModelFacade> checkLists;
+  final List<CheckListFacade> checkLists;
   final Function() onCheckListsChanged;
 
   @override
@@ -45,7 +45,7 @@ class _CheckListsViewState extends State<CheckListsView> {
 class _CheckList extends StatefulWidget {
   Function() checkListChanged;
   Function() onDeleted;
-  final CheckListModelFacade checkList;
+  final CheckListFacade checkList;
 
   _CheckList(
       {super.key,
@@ -95,15 +95,16 @@ class _CheckListState extends State<_CheckList> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                child: PlatformButtonElements.createTextButtonWithIcon(
-                    text: 'Add item',
-                    iconData: Icons.add,
-                    onPressed: () {
-                      widget.checkList.items
-                          .add(CheckListItem(item: '', isChecked: false));
-                      widget.checkListChanged();
-                      setState(() {});
-                    }),
+                child: TextButton.icon(
+                  onPressed: () {
+                    widget.checkList.items
+                        .add(CheckListItem(item: '', isChecked: false));
+                    widget.checkListChanged();
+                    setState(() {});
+                  },
+                  label: Text(context.withLocale().addItem),
+                  icon: Icon(Icons.add_rounded),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 3.0),
@@ -127,7 +128,7 @@ class _CheckListState extends State<_CheckList> {
 }
 
 class _ReOrderableCheckListItems extends StatefulWidget {
-  CheckListModelFacade checkList;
+  CheckListFacade checkList;
   Function() checkListItemsChanged;
 
   _ReOrderableCheckListItems(

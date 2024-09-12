@@ -7,9 +7,9 @@ import 'package:intl/intl.dart';
 import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
-import 'package:wandrr/contracts/data_states.dart';
+import 'package:wandrr/contracts/database_connectors/data_states.dart';
 import 'package:wandrr/contracts/extensions.dart';
-import 'package:wandrr/contracts/trip_metadata.dart';
+import 'package:wandrr/contracts/trip_entity_facades/trip_metadata.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
 class TripListView extends StatelessWidget {
@@ -27,7 +27,7 @@ class TripListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntity<TripMetadataModelFacade>()) {
+        if (currentState.isTripEntity<TripMetadataFacade>()) {
           var tripMetadataUpdatedState = currentState as UpdatedTripEntity;
           if (tripMetadataUpdatedState.dataState == DataState.Delete ||
               tripMetadataUpdatedState.dataState == DataState.Create) {
@@ -48,7 +48,7 @@ class TripListView extends StatelessWidget {
             alignment: Alignment.center,
             child: PlatformTextElements.createSubHeader(
               context: context,
-              text: AppLocalizations.of(context)!.noTripsCreated,
+              text: context.withLocale().noTripsCreated,
             ),
           );
         }
@@ -57,7 +57,7 @@ class TripListView extends StatelessWidget {
   }
 
   Widget _generateTripMetadataGrid(
-      BuildContext context, List<TripMetadataModelFacade> tripMetadatas) {
+      BuildContext context, List<TripMetadataFacade> tripMetadatas) {
     var imageAssets = _generateRandomImages(tripMetadatas.length);
     var tripMetadataGridItems = <_TripMetadataGridItem>[];
     for (var index = 0; index < tripMetadatas.length; index++) {
@@ -86,8 +86,7 @@ class TripListView extends StatelessWidget {
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 3.0),
-                          child:
-                              Text(AppLocalizations.of(context)!.loadingTrip),
+                          child: Text(context.withLocale().loadingTrip),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 3.0),
@@ -143,7 +142,7 @@ class _TripMetadataGridItem extends StatelessWidget {
       : imageAsset = AssetImage(imageAsset),
         imageAssetLocation = imageAsset;
 
-  TripMetadataModelFacade tripMetaDataFacade;
+  TripMetadataFacade tripMetaDataFacade;
   final String imageAssetLocation;
   final AssetImage imageAsset;
 
@@ -159,10 +158,8 @@ class _TripMetadataGridItem extends StatelessWidget {
             child: InkWell(
               onTap: () {
                 onTripSelected();
-                var tripManagementBloc =
-                    BlocProvider.of<TripManagementBloc>(context);
-                tripManagementBloc
-                    .add(LoadTrip(tripMetadata: tripMetaDataFacade));
+                context.addTripManagementEvent(
+                    LoadTrip(tripMetadata: tripMetaDataFacade));
               },
               child: Column(
                 //TODO: There is empty space below the Column widget. Remove it
@@ -228,7 +225,7 @@ class _TripMetadataGridItem extends StatelessWidget {
       },
       listener: (BuildContext context, TripManagementState state) {},
       buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntity<TripMetadataModelFacade>()) {
+        if (currentState.isTripEntity<TripMetadataFacade>()) {
           var tripMetadataUpdatedState = currentState as UpdatedTripEntity;
           if (tripMetadataUpdatedState
                   .tripEntityModificationData.modifiedCollectionItem.id ==
@@ -262,8 +259,8 @@ class _TripMetadataGridItem extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () {
-                  BlocProvider.of<TripManagementBloc>(context).add(
-                      UpdateTripEntity<TripMetadataModelFacade>.delete(
+                  context.addTripManagementEvent(
+                      UpdateTripEntity<TripMetadataFacade>.delete(
                           tripEntity: tripMetaDataFacade));
                   Navigator.of(dialogContext).pop();
                 },

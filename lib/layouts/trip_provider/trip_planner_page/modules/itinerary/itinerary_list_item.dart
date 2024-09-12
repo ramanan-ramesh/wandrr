@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
-import 'package:wandrr/contracts/communicators.dart';
-import 'package:wandrr/contracts/data_states.dart';
+import 'package:wandrr/contracts/database_connectors/data_states.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/itinerary.dart';
-import 'package:wandrr/contracts/lodging.dart';
-import 'package:wandrr/contracts/plan_data.dart';
-import 'package:wandrr/contracts/transit.dart';
-import 'package:wandrr/contracts/trip_metadata.dart';
+import 'package:wandrr/contracts/trip_entity_facades/lodging.dart';
+import 'package:wandrr/contracts/trip_entity_facades/plan_data.dart';
+import 'package:wandrr/contracts/trip_entity_facades/transit.dart';
+import 'package:wandrr/contracts/trip_entity_facades/trip_metadata.dart';
+import 'package:wandrr/contracts/ui_element.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/plan_data/opened_plan_data/opened_plan_data.dart';
 import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
 class ItineraryListItem extends StatefulWidget {
-  final ItineraryModelFacade itineraryFacade;
+  final ItineraryFacade itineraryFacade;
 
   const ItineraryListItem({super.key, required this.itineraryFacade});
 
@@ -28,9 +28,9 @@ class ItineraryListItem extends StatefulWidget {
 class _ItineraryListItemState extends State<ItineraryListItem>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  late List<TransitModelFacade> _transits;
-  LodgingModelFacade? _lodging;
-  late UiElement<PlanDataModelFacade> _planDataUiElement;
+  late List<TransitFacade> _transits;
+  LodgingFacade? _lodging;
+  late UiElement<PlanDataFacade> _planDataUiElement;
   bool _isCollapsed = true;
   final _canUpdateItineraryDataNotifier = ValueNotifier(false);
 
@@ -39,7 +39,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
     super.initState();
     _animationController =
         AnimationController(vsync: this, duration: Duration(milliseconds: 700));
-    _planDataUiElement = UiElement<PlanDataModelFacade>(
+    _planDataUiElement = UiElement<PlanDataFacade>(
         element: widget.itineraryFacade.planData, dataState: DataState.None);
     _transits = widget.itineraryFacade.transits.toList();
     _transits.sort((transit1, transit2) =>
@@ -89,7 +89,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
                   itemCount: numberOfItems);
             },
             buildWhen: (previousState, currentState) {
-              if (currentState.isTripEntity<TripMetadataModelFacade>() &&
+              if (currentState.isTripEntity<TripMetadataFacade>() &&
                   (currentState as UpdatedTripEntity).dataState ==
                       DataState.Update) {
                 return true;
@@ -128,7 +128,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
     );
   }
 
-  Widget _buildTransit(TransitModelFacade transitFacade) {
+  Widget _buildTransit(TransitFacade transitFacade) {
     String dateTimeDetail = '';
     var dateTimeFormat = DateFormat('h:mm a');
     var departureDateTime = transitFacade.departureDateTime!;
@@ -171,12 +171,12 @@ class _ItineraryListItemState extends State<ItineraryListItem>
     if (_areOnSameDay(dateTime1, dateTime2)) {
       if (_areOnSameDay(dateTime3, dateTime2)) {
         stayDetail =
-            '${AppLocalizations.of(context)!.checkIn} & ${AppLocalizations.of(context)!.checkOut}';
+            '${context.withLocale().checkIn} & ${context.withLocale().checkOut}';
       } else {
-        stayDetail = AppLocalizations.of(context)!.checkIn;
+        stayDetail = context.withLocale().checkIn;
       }
     } else if (_areOnSameDay(dateTime3, dateTime2)) {
-      stayDetail = AppLocalizations.of(context)!.checkOut;
+      stayDetail = context.withLocale().checkOut;
     }
     return Stack(
       children: [
@@ -222,9 +222,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
           context: context,
           valueNotifier: _canUpdateItineraryDataNotifier,
           callback: () {
-            var tripManagementBloc =
-                BlocProvider.of<TripManagementBloc>(context);
-            tripManagementBloc.add(UpdateItineraryPlanData(
+            context.addTripManagementEvent(UpdateItineraryPlanData(
                 planData: _planDataUiElement.element,
                 day: widget.itineraryFacade.day));
           },

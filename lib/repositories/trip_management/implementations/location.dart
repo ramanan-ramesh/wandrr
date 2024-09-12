@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/contracts/collection_names.dart';
-import 'package:wandrr/contracts/location.dart';
-import 'package:wandrr/contracts/repository_pattern.dart';
+import 'package:wandrr/contracts/database_connectors/repository_pattern.dart';
+import 'package:wandrr/contracts/trip_entity_facades/location.dart';
 
-class LocationModelImplementation extends LocationModelFacade
-    implements RepositoryPattern<LocationModelFacade> {
+class LocationModelImplementation extends LocationFacade
+    implements RepositoryPattern<LocationFacade> {
   static const String _contextField = 'context';
   static const String _latitudeLongitudeField = 'latLon';
 
@@ -12,7 +12,7 @@ class LocationModelImplementation extends LocationModelFacade
   final String _parentId;
 
   LocationModelImplementation.fromModelFacade(
-      {required LocationModelFacade locationModelFacade,
+      {required LocationFacade locationModelFacade,
       String? collectionName,
       String? parentId})
       : _parentId = parentId ?? '',
@@ -87,10 +87,10 @@ class LocationModelImplementation extends LocationModelFacade
   }
 
   @override
-  Future<bool> tryUpdate(LocationModelFacade toUpdate) async {
+  Future<bool> tryUpdate(LocationFacade toUpdate) async {
     return true;
   }
 
   @override
-  LocationModelFacade get facade => this;
+  LocationFacade get facade => this;
 }

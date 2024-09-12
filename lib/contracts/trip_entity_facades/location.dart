@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:wandrr/contracts/trip_data.dart';
+import 'package:wandrr/contracts/trip_entity.dart';
 
-class LocationModelFacade extends Equatable implements TripEntity {
+class LocationFacade extends Equatable implements TripEntity {
   String tripId;
   double latitude;
 
@@ -12,22 +12,22 @@ class LocationModelFacade extends Equatable implements TripEntity {
   @override
   String? id;
 
-  LocationModelFacade(
+  LocationFacade(
       {required this.latitude,
       required this.longitude,
       required this.context,
       required this.tripId,
       this.id});
 
-  void copyWith(LocationModelFacade locationModelFacade) {
+  void copyWith(LocationFacade locationModelFacade) {
     latitude = locationModelFacade.latitude;
     longitude = locationModelFacade.longitude;
     context = locationModelFacade.context.clone();
     id = locationModelFacade.id;
   }
 
-  LocationModelFacade clone() {
-    return LocationModelFacade(
+  LocationFacade clone() {
+    return LocationFacade(
         latitude: latitude,
         longitude: longitude,
         context: context,

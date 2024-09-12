@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/contracts/location.dart';
+import 'package:wandrr/contracts/trip_entity_facades/location.dart';
 import 'package:wandrr/platform_elements/button.dart';
 
 class PlacesListView extends StatelessWidget {
   PlacesListView(
       {super.key, required this.places, required this.onPlacesChanged});
 
-  final List<LocationModelFacade> places;
+  final List<LocationFacade> places;
   final Function() onPlacesChanged;
 
   @override
@@ -20,7 +20,7 @@ class PlacesListView extends StatelessWidget {
 }
 
 class _PlacesReOrderableListView extends StatefulWidget {
-  final List<LocationModelFacade> placesList;
+  final List<LocationFacade> placesList;
   Function() onPlacesChanged;
 
   _PlacesReOrderableListView(

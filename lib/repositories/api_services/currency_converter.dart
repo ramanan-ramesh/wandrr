@@ -2,14 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:wandrr/contracts/expense.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
 
 class CurrencyConverter {
   static const _apiSurfaceUrl =
-      // 'https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies';
       'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1';
-
-  //https://api.api-ninjas.com/v1/exchangerate?pair=USD_EUR
 
   final List<_CurrencyExchangeData> _exchangeRates = [];
 

@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:wandrr/contracts/location.dart';
-
-import 'trip_data.dart';
+import 'package:wandrr/contracts/trip_entity.dart';
+import 'package:wandrr/contracts/trip_entity_facades/location.dart';
 
 class CurrencyWithValue extends Equatable {
   String currency;
@@ -25,8 +24,7 @@ class CurrencyWithValue extends Equatable {
   List<Object?> get props => [currency, amount];
 }
 
-//#ui access sorted
-class ExpenseModelFacade implements TripEntity {
+class ExpenseFacade implements TripEntity {
   String tripId;
 
   String title;
@@ -44,11 +42,11 @@ class ExpenseModelFacade implements TripEntity {
 
   List<String> splitBy;
 
-  LocationModelFacade? location;
+  LocationFacade? location;
 
   DateTime? dateTime;
 
-  ExpenseModelFacade(
+  ExpenseFacade(
       {required this.tripId,
       required this.title,
       this.description,
@@ -60,7 +58,7 @@ class ExpenseModelFacade implements TripEntity {
       this.location,
       this.dateTime});
 
-  ExpenseModelFacade.newUiEntry(
+  ExpenseFacade.newUiEntry(
       {required this.tripId,
       required List<String> allTripContributors,
       required String currentUserName,
@@ -72,7 +70,7 @@ class ExpenseModelFacade implements TripEntity {
             allTripContributors, List.filled(allTripContributors.length, 0)),
         splitBy = [currentUserName];
 
-  void copyWith(ExpenseModelFacade expenseModelFacade) {
+  void copyWith(ExpenseFacade expenseModelFacade) {
     tripId = expenseModelFacade.tripId;
     title = expenseModelFacade.title;
     description = expenseModelFacade.description;
@@ -85,8 +83,8 @@ class ExpenseModelFacade implements TripEntity {
     dateTime = expenseModelFacade.dateTime;
   }
 
-  ExpenseModelFacade clone() {
-    return ExpenseModelFacade(
+  ExpenseFacade clone() {
+    return ExpenseFacade(
         tripId: tripId,
         title: title,
         description: description,

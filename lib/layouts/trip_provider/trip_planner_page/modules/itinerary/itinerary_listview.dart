@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
-import 'package:wandrr/contracts/data_states.dart';
+import 'package:wandrr/contracts/database_connectors/data_states.dart';
 import 'package:wandrr/contracts/extensions.dart';
-import 'package:wandrr/contracts/trip_metadata.dart';
+import 'package:wandrr/contracts/trip_entity_facades/trip_metadata.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
 import 'itinerary_list_item.dart';
@@ -18,7 +17,7 @@ class ItineraryListView extends StatefulWidget {
 }
 
 class _ItineraryListViewState extends State<ItineraryListView> {
-  late TripMetadataModelFacade _tripMetadataModelFacade;
+  late TripMetadataFacade _tripMetadataModelFacade;
 
   @override
   Widget build(BuildContext context) {
@@ -32,8 +31,7 @@ class _ItineraryListViewState extends State<ItineraryListView> {
           itemBuilder: (BuildContext context, int index) {
             if (index == 0) {
               return PlatformTextElements.createHeader(
-                  context: context,
-                  text: AppLocalizations.of(context)!.itinerary);
+                  context: context, text: context.withLocale().itinerary);
             } else {
               return ItineraryListItem(
                   itineraryFacade: itineraryModelCollection[index - 1]);
@@ -51,7 +49,7 @@ class _ItineraryListViewState extends State<ItineraryListView> {
 
   bool _shouldBuildItineraries(
       TripManagementState previousState, TripManagementState currentState) {
-    if (currentState is UpdatedTripEntity<TripMetadataModelFacade> &&
+    if (currentState is UpdatedTripEntity<TripMetadataFacade> &&
         currentState.dataState == DataState.Update) {
       var modifiedTripMetadata =
           currentState.tripEntityModificationData.modifiedCollectionItem;

@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wandrr/contracts/database_connectors/repository_pattern.dart';
 import 'package:wandrr/contracts/note.dart';
-import 'package:wandrr/contracts/repository_pattern.dart';
 
-class NoteModelImplementation extends NoteModelFacade
-    implements RepositoryPattern<NoteModelFacade> {
+class NoteModelImplementation extends NoteFacade
+    implements RepositoryPattern<NoteFacade> {
   static const _noteField = 'note';
 
   @override
-  NoteModelFacade get facade => this;
+  NoteFacade get facade => this;
 
   @override
   String? id;
@@ -17,7 +17,7 @@ class NoteModelImplementation extends NoteModelFacade
       throw UnimplementedError();
 
   NoteModelImplementation.fromModelFacade({
-    required NoteModelFacade noteModelFacade,
+    required NoteFacade noteModelFacade,
   }) : super(note: noteModelFacade.note, tripId: noteModelFacade.tripId);
 
   static NoteModelImplementation fromDocumentSnapshot(
@@ -30,7 +30,7 @@ class NoteModelImplementation extends NoteModelFacade
   Map<String, dynamic> toJson() => {_noteField: note};
 
   @override
-  Future<bool> tryUpdate(NoteModelFacade toUpdate) async {
+  Future<bool> tryUpdate(NoteFacade toUpdate) async {
     return true;
   }
 

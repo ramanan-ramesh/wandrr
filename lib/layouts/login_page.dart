@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/blocs/authentication_bloc/auth_bloc.dart';
 import 'package:wandrr/blocs/authentication_bloc/auth_events.dart';
 import 'package:wandrr/blocs/authentication_bloc/auth_states.dart';
-import 'package:wandrr/blocs/master_page_bloc/master_page_bloc.dart';
 import 'package:wandrr/blocs/master_page_bloc/master_page_events.dart';
 import 'package:wandrr/contracts/auth_type.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/form.dart';
 
@@ -115,9 +114,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
             String username = _usernameController.text;
             String password = _passwordController.text;
 
-            var authenticationBloc =
-                BlocProvider.of<AuthenticationBloc>(context);
-            authenticationBloc.add(AuthenticateWithUsernamePassword(
+            context.addAuthenticationEvent(AuthenticateWithUsernamePassword(
                 userName: username,
                 passWord: password,
                 isLogin: _tabController!.index == 0));
@@ -126,8 +123,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
       },
       listener: (BuildContext context, AuthenticationState state) {
         if (state is AuthenticationSuccess) {
-          var masterPageBloc = BlocProvider.of<MasterPageBloc>(context);
-          masterPageBloc.add(ChangeUser.signIn(
+          context.addMasterPageEvent(ChangeUser.signIn(
               authProviderUser: state.authProviderUser,
               authenticationType: state.authenticationType));
         }
@@ -139,7 +135,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
     return Column(
       children: [
         Text(
-          AppLocalizations.of(context)!.alternativeLogin,
+          context.withLocale().alternativeLogin,
           style: Theme.of(context).textTheme.titleMedium,
           textAlign: TextAlign.center,
         ),
@@ -163,8 +159,8 @@ class _LoginPageFormState extends State<_LoginPageForm>
       child: InkWell(
         splashColor: Colors.white30,
         onTap: () {
-          BlocProvider.of<AuthenticationBloc>(context)
-              .add(AuthenticateWithThirdParty(thirdParty));
+          context
+              .addAuthenticationEvent(AuthenticateWithThirdParty(thirdParty));
         },
         child: Ink.image(
           image: AssetImage(thirdPartyLogoAssetName),
@@ -192,8 +188,8 @@ class _LoginPageFormState extends State<_LoginPageForm>
             borderRadius: BorderRadius.circular(_roundedCornerRadius),
           ),
           tabs: [
-            Tab(text: AppLocalizations.of(context)!.login),
-            Tab(text: AppLocalizations.of(context)!.register),
+            Tab(text: context.withLocale().login),
+            Tab(text: context.withLocale().register),
           ],
         ),
       ),
@@ -231,18 +227,18 @@ class _LoginPageFormState extends State<_LoginPageForm>
     String? errorText;
     if (authState is AuthenticationFailure) {
       if (authState.failureReason == AuthenticationFailures.WrongPassword) {
-        errorText = AppLocalizations.of(context)!.wrong_password_entered;
+        errorText = context.withLocale().wrong_password_entered;
       }
     }
     return PlatformPasswordField(
       controller: _passwordController,
       textInputAction: TextInputAction.done,
-      labelText: AppLocalizations.of(context)!.password,
+      labelText: context.withLocale().password,
       errorText: errorText,
       validator: (password) {
         if (password != null) {
           if (password.length <= 6) {
-            return AppLocalizations.of(context)!.password_short;
+            return context.withLocale().password_short;
           }
         }
         return null;
@@ -255,24 +251,24 @@ class _LoginPageFormState extends State<_LoginPageForm>
     if (authState is AuthenticationFailure) {
       if (authState.failureReason ==
           AuthenticationFailures.UsernameAlreadyExists) {
-        errorText = AppLocalizations.of(context)!.userNameAlreadyExists;
+        errorText = context.withLocale().userNameAlreadyExists;
       } else if (authState.failureReason ==
           AuthenticationFailures.NoSuchUsernameExists) {
-        errorText = AppLocalizations.of(context)!.noSuchUserExists;
+        errorText = context.withLocale().noSuchUserExists;
       }
     }
     return PlatformTextField(
       textInputAction: TextInputAction.next,
       controller: _usernameController,
       icon: Icons.person_2_rounded,
-      labelText: AppLocalizations.of(context)!.userName,
+      labelText: context.withLocale().userName,
       errorText: errorText,
       validator: (username) {
         if (username != null) {
           var matches = _emailRegExValidator.firstMatch(username);
           final matchedText = matches?.group(0);
           if (matchedText != username) {
-            return AppLocalizations.of(context)!.enterValidEmail;
+            return context.withLocale().enterValidEmail;
           }
         }
         return null;

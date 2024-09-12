@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:wandrr/contracts/expense.dart';
 import 'package:wandrr/contracts/extensions.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
 import 'package:wandrr/layouts/constants.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/currencies.dart';
+import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/form.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
@@ -19,7 +19,7 @@ class ExpenditureEditTile extends StatefulWidget {
 
   ExpenditureEditTile(
       {super.key,
-      required ExpenseModelFacade expenseUpdator,
+      required ExpenseFacade expenseUpdator,
       this.callback,
       required this.isEditable})
       : paidBy = expenseUpdator.paidBy,
@@ -133,7 +133,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  '${AppLocalizations.of(context)!.splitBy} : ',
+                  '${context.withLocale().splitBy} : ',
                   style: TextStyle(color: Colors.white),
                 ),
                 _buildSplitByIcons(),
@@ -165,8 +165,8 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     return TabBar(
       controller: _tabController,
       tabs: [
-        Tab(text: AppLocalizations.of(context)!.paidBy),
-        Tab(text: AppLocalizations.of(context)!.split),
+        Tab(text: context.withLocale().paidBy),
+        Tab(text: context.withLocale().split),
       ],
     );
   }
@@ -269,7 +269,7 @@ class _PaidByTab extends StatelessWidget {
           }
         },
         prefixText: contributorVsColor.key == currentUserName
-            ? AppLocalizations.of(context)!.you
+            ? context.withLocale().you
             : contributorVsColor.key,
         initialExpense: contribution.toStringAsFixed(2),
         contributorColor: contributorVsColor.value,
@@ -297,14 +297,12 @@ class _ExpenseEditField extends StatefulWidget {
 }
 
 class _ExpenseEditFieldState extends State<_ExpenseEditField> {
-  late TextEditingController _textEditingController;
   late String _currentValue;
 
   @override
   void initState() {
     super.initState();
     _currentValue = widget.initialExpense;
-    _textEditingController = TextEditingController(text: _currentValue);
   }
 
   @override

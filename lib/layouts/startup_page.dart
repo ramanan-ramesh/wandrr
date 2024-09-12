@@ -14,60 +14,67 @@ class StartupPage extends StatefulWidget {
 
 class _StartupPageState extends State<StartupPage> {
   bool _shouldNavigateToLoginScreen = false;
+  static const _cutOffSize = 600.0;
+  static const _smallScreenSize = 550.0;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      return _buildLayout(context, constraints);
-    });
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        BoxConstraints constraintsToApply;
+        Widget pageToRender;
+        double minHeight = constraints.minHeight < _cutOffSize
+            ? _cutOffSize
+            : constraints.minHeight;
+        double maxHeight = constraints.maxHeight < _cutOffSize
+            ? _cutOffSize
+            : constraints.maxHeight;
+        var appLevelData = context.getAppLevelData() as AppLevelDataModifier;
+        if (constraints.minWidth > 1000) {
+          constraintsToApply = BoxConstraints(
+              minWidth: constraints.minWidth,
+              maxWidth: constraints.maxWidth,
+              minHeight: minHeight,
+              maxHeight: maxHeight);
+          appLevelData.updateLayoutType(true);
+          pageToRender = _getPageToRender(true);
+        } else {
+          appLevelData.updateLayoutType(false);
+          pageToRender = _getPageToRender(false);
+          constraintsToApply = BoxConstraints(
+              minWidth: _smallScreenSize,
+              maxWidth: _smallScreenSize,
+              minHeight: minHeight,
+              maxHeight: maxHeight);
+        }
+        return SingleChildScrollView(
+          child:
+              Container(constraints: constraintsToApply, child: pageToRender),
+        );
+      },
+    );
   }
 
-  Widget _buildLayout(BuildContext context, BoxConstraints constraints) {
-    BoxConstraints boxConstraints;
-    Widget pageToRender;
-    double minHeight =
-        constraints.minHeight < 600 ? 600 : constraints.minHeight;
-    double maxHeight =
-        constraints.maxHeight < 600 ? 600 : constraints.maxHeight;
-    var appLevelData = context.getAppLevelData() as AppLevelDataModifier;
-    if (constraints.minWidth > 1000) {
-      boxConstraints = BoxConstraints(
-          minWidth: constraints.minWidth,
-          maxWidth: constraints.maxWidth,
-          minHeight: minHeight,
-          maxHeight: maxHeight);
-      pageToRender = _buildLayoutForBigScreen(context);
-      appLevelData.updateLayoutType(true);
-    } else {
-      pageToRender = _shouldNavigateToLoginScreen
-          ? LoginPage()
-          : OnBoardingPage(
-              loginCallback: () {
-                setState(() {
-                  _shouldNavigateToLoginScreen = true;
-                });
-              },
-            );
-      boxConstraints = BoxConstraints(
-          minWidth: 550,
-          maxWidth: 550,
-          minHeight: minHeight,
-          maxHeight: maxHeight);
-      appLevelData.updateLayoutType(false);
+  Widget _getPageToRender(bool isBigLayout) {
+    if (isBigLayout) {
+      return Row(
+        children: [
+          Expanded(
+            child: OnBoardingPage(),
+          ),
+          const Expanded(child: LoginPage())
+        ],
+      );
     }
-    return SingleChildScrollView(
-      child: Container(constraints: boxConstraints, child: pageToRender),
-    );
-  }
 
-  Widget _buildLayoutForBigScreen(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: OnBoardingPage(),
-        ),
-        const Expanded(child: LoginPage())
-      ],
-    );
+    return _shouldNavigateToLoginScreen
+        ? LoginPage()
+        : OnBoardingPage(
+            loginCallback: () {
+              setState(() {
+                _shouldNavigateToLoginScreen = true;
+              });
+            },
+          );
   }
 }

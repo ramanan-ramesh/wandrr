@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:wandrr/contracts/communicators.dart';
-import 'package:wandrr/contracts/expense.dart';
-import 'package:wandrr/contracts/lodging.dart';
+import 'package:wandrr/contracts/extensions.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
+import 'package:wandrr/contracts/trip_entity_facades/lodging.dart';
+import 'package:wandrr/contracts/ui_element.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/budgeting/expense_list_item_components/expenditure_edit_tile.dart';
 import 'package:wandrr/platform_elements/date_picker.dart';
 import 'package:wandrr/platform_elements/form.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
 class OpenedLodgingListItem extends StatefulWidget {
-  UiElement<LodgingModelFacade> lodgingUiElement;
+  UiElement<LodgingFacade> lodgingUiElement;
   ValueNotifier<bool> validityNotifier;
 
   OpenedLodgingListItem(
@@ -42,7 +42,7 @@ class _OpenedLodgingListItemState extends State<OpenedLodgingListItem> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 3.0),
                   child: _createLodgingElement(
-                    AppLocalizations.of(context)!.stayAddress,
+                    context.withLocale().stayAddress,
                     PlatformGeoLocationAutoComplete(
                       initialText: widget
                           .lodgingUiElement.element.location?.context.name,
@@ -60,8 +60,8 @@ class _OpenedLodgingListItemState extends State<OpenedLodgingListItem> {
                         widget.lodgingUiElement.element.checkinDateTime,
                     initialEndDate:
                         widget.lodgingUiElement.element.checkoutDateTime,
-                    startDateLabelText: AppLocalizations.of(context)!.checkIn,
-                    endDateLabelText: AppLocalizations.of(context)!.checkOut,
+                    startDateLabelText: context.withLocale().checkIn,
+                    endDateLabelText: context.withLocale().checkOut,
                     callback: (newStartDate, newEndDate) {
                       widget.lodgingUiElement.element.checkinDateTime =
                           newStartDate;
@@ -74,7 +74,7 @@ class _OpenedLodgingListItemState extends State<OpenedLodgingListItem> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 3.0),
                   child: _createLodgingElement(
-                    AppLocalizations.of(context)!.notes,
+                    context.withLocale().notes,
                     PlatformTextField(
                       maxLines: null,
                       initialText: widget.lodgingUiElement.element.notes,
@@ -97,7 +97,7 @@ class _OpenedLodgingListItemState extends State<OpenedLodgingListItem> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 3.0),
                 child: _createLodgingElement(
-                  '${AppLocalizations.of(context)!.confirmation} #',
+                  '${context.withLocale().confirmation} #',
                   PlatformTextField(
                     initialText: widget.lodgingUiElement.element.confirmationId,
                     maxLines: null,
@@ -111,7 +111,7 @@ class _OpenedLodgingListItemState extends State<OpenedLodgingListItem> {
               Padding(
                 padding: const EdgeInsets.all(4.0),
                 child: _createLodgingElement(
-                  AppLocalizations.of(context)!.cost,
+                  context.withLocale().cost,
                   ExpenditureEditTile(
                     expenseUpdator: widget.lodgingUiElement.element.expense,
                     isEditable: true,

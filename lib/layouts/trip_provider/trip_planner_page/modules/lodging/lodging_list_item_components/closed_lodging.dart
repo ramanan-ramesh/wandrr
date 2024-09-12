@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
-import 'package:wandrr/contracts/location.dart';
-import 'package:wandrr/contracts/lodging.dart';
+import 'package:wandrr/contracts/extensions.dart';
+import 'package:wandrr/contracts/trip_entity_facades/location.dart';
+import 'package:wandrr/contracts/trip_entity_facades/lodging.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/budgeting/expense_list_item_components/expenditure_edit_tile.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
 class ClosedLodgingListItem extends StatelessWidget {
-  LodgingModelFacade lodgingModelFacade;
+  LodgingFacade lodgingModelFacade;
 
   ClosedLodgingListItem({super.key, required this.lodgingModelFacade});
 
@@ -50,8 +50,7 @@ class ClosedLodgingListItem extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: _createTitleSubText(
-                          AppLocalizations.of(context)!.notes,
-                          lodgingModelFacade.notes,
+                          context.withLocale().notes, lodgingModelFacade.notes,
                           maxLines: null),
                     )
                 ],
@@ -71,7 +70,7 @@ class ClosedLodgingListItem extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: _createTitleSubText(
-                          '${AppLocalizations.of(context)!.confirmation} #',
+                          '${context.withLocale().confirmation} #',
                           lodgingModelFacade.confirmationId!),
                     ),
                   if (isConfirmationIdValid) Divider(),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:wandrr/contracts/communicators.dart';
-import 'package:wandrr/contracts/data_states.dart';
-import 'package:wandrr/contracts/lodging.dart';
+import 'package:wandrr/contracts/database_connectors/data_states.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/trip_data.dart';
+import 'package:wandrr/contracts/trip_entity_facades/lodging.dart';
+import 'package:wandrr/contracts/ui_element.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/trip_entity_list_elements.dart';
 
 import 'lodging_list_item_components/closed_lodging.dart';
@@ -14,29 +14,30 @@ class LodgingListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TripEntityListView<LodgingModelFacade>(
-      emptyListMessage: AppLocalizations.of(context)!.noLodgingCreated,
-      headerTileLabel: AppLocalizations.of(context)!.lodging,
+    return TripEntityListView<LodgingFacade>(
+      emptyListMessage: context.withLocale().noLodgingCreated,
+      headerTileLabel: context.withLocale().lodging,
       uiElementsSorter: _sortLodgings,
-      openedListElementCreator: (UiElement<LodgingModelFacade> uiElement,
+      openedListElementCreator: (UiElement<LodgingFacade> uiElement,
               ValueNotifier<bool> validityNotifier) =>
           OpenedLodgingListItem(
         lodgingUiElement: uiElement,
         validityNotifier: validityNotifier,
       ),
-      closedListElementCreator: (UiElement<LodgingModelFacade> uiElement) =>
+      closedListElementCreator: (UiElement<LodgingFacade> uiElement) =>
           ClosedLodgingListItem(lodgingModelFacade: uiElement.element),
-      uiElementsCreator: (TripDataModelFacade tripDataModelFacade) =>
-          tripDataModelFacade.lodgings
+      uiElementsCreator: (TripDataFacade tripDataModelFacade) =>
+          tripDataModelFacade
+              .lodgings
               .map((lodging) =>
                   UiElement(element: lodging, dataState: DataState.None))
               .toList(),
     );
   }
 
-  void _sortLodgings(List<UiElement<LodgingModelFacade>> lodgingUiElements) {
-    var lodgingsWithValidDateTime = <UiElement<LodgingModelFacade>>[];
-    var lodgingsWithInvalidDateTime = <UiElement<LodgingModelFacade>>[];
+  void _sortLodgings(List<UiElement<LodgingFacade>> lodgingUiElements) {
+    var lodgingsWithValidDateTime = <UiElement<LodgingFacade>>[];
+    var lodgingsWithInvalidDateTime = <UiElement<LodgingFacade>>[];
     for (var lodgingUiElement in lodgingUiElements) {
       var lodging = lodgingUiElement.element;
       if (lodging.checkinDateTime != null) {

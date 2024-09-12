@@ -2,9 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/contracts/extensions.dart';
-import 'package:wandrr/contracts/location.dart';
+import 'package:wandrr/contracts/trip_entity_facades/location.dart';
 import 'package:wandrr/repositories/api_services/geo_locator.dart';
 
 import 'location.dart';
@@ -66,7 +65,7 @@ class PlatformTextElements {
 
 class PlatformGeoLocationAutoComplete extends StatelessWidget {
   final String? initialText;
-  final Function(LocationModelFacade selectedLocation)? onLocationSelected;
+  final Function(LocationFacade selectedLocation)? onLocationSelected;
   final bool shouldShowPrefix;
   final GeoLocator? geoLocator;
 
@@ -81,7 +80,7 @@ class PlatformGeoLocationAutoComplete extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.black12,
-      child: PlatformAutoComplete<LocationModelFacade>(
+      child: PlatformAutoComplete<LocationFacade>(
         text: initialText,
         onSelected: onLocationSelected,
         optionsBuilder: geoLocator?.performQuery ??
@@ -90,8 +89,7 @@ class PlatformGeoLocationAutoComplete extends StatelessWidget {
             ? FittedBox(
                 fit: BoxFit.cover,
                 child: PlatformTextElements.createSubHeader(
-                    context: context,
-                    text: AppLocalizations.of(context)!.destination),
+                    context: context, text: context.withLocale().destination),
               )
             : null,
         listItem: (location) {
@@ -130,7 +128,7 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
   final Widget? suffix;
   final String? hintText;
   final double? maxOptionWidgetWidth;
-  static const _defaultAutoCompleteHintText = 'e.g. Paris, Hawaii, Japan';
+  static const _defaultAutoCompleteHintText = 'e.g. Paris, Hawaii...';
 
   PlatformAutoComplete(
       {Key? key,

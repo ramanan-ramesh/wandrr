@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'data_states.dart';
+import 'database_connectors/data_states.dart';
 
 class UiElement<K> {
   K element;

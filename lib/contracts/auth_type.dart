@@ -1,6 +1,1 @@
-enum AuthenticationType{
-  Google,
-  Facebook,
-  Twitter,
-  EmailPassword
-}
+enum AuthenticationType { Google, Facebook, Twitter, EmailPassword }

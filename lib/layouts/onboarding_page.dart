@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/contracts/extensions.dart';
 
 class OnBoardingPage extends StatelessWidget {
@@ -29,7 +28,7 @@ class OnBoardingPage extends StatelessWidget {
             child: FittedBox(
                 fit: BoxFit.contain,
                 child: Text(
-                  AppLocalizations.of(context)!.plan_itinerary,
+                  context.withLocale().plan_itinerary,
                   style: const TextStyle(
                       color: Colors.black,
                       fontSize: 45,

@@ -1,7 +1,7 @@
-import 'package:wandrr/contracts/data_states.dart';
-import 'package:wandrr/contracts/expense.dart';
-import 'package:wandrr/contracts/plan_data.dart';
-import 'package:wandrr/contracts/trip_metadata.dart';
+import 'package:wandrr/contracts/database_connectors/data_states.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
+import 'package:wandrr/contracts/trip_entity_facades/plan_data.dart';
+import 'package:wandrr/contracts/trip_entity_facades/trip_metadata.dart';
 
 abstract class TripManagementEvent {}
 
@@ -27,29 +27,29 @@ class UpdateTripEntity<T> extends TripManagementEvent {
 }
 
 class LoadTrip extends TripManagementEvent {
-  final TripMetadataModelFacade tripMetadata;
+  final TripMetadataFacade tripMetadata;
 
   LoadTrip({required this.tripMetadata});
 }
 
-class UpdateLinkedExpense<T> extends UpdateTripEntity<ExpenseModelFacade> {
+class UpdateLinkedExpense<T> extends UpdateTripEntity<ExpenseFacade> {
   final T link;
 
   UpdateLinkedExpense.update(
-      {required this.link, required ExpenseModelFacade expense})
+      {required this.link, required ExpenseFacade expense})
       : super.update(tripEntity: expense);
 
   UpdateLinkedExpense.delete(
-      {required this.link, required ExpenseModelFacade expense})
+      {required this.link, required ExpenseFacade expense})
       : super.delete(tripEntity: expense);
 
   UpdateLinkedExpense.select(
-      {required this.link, required ExpenseModelFacade expense})
+      {required this.link, required ExpenseFacade expense})
       : super.select(tripEntity: expense);
 }
 
 class UpdateItineraryPlanData extends TripManagementEvent {
-  final PlanDataModelFacade planData;
+  final PlanDataFacade planData;
   final DateTime day;
 
   UpdateItineraryPlanData({required this.planData, required this.day});

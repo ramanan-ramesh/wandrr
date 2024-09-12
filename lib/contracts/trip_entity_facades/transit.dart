@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:intl/intl.dart';
-import 'package:wandrr/contracts/expense.dart';
-import 'package:wandrr/contracts/location.dart';
-import 'package:wandrr/contracts/trip_data.dart';
+import 'package:wandrr/contracts/trip_entity.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
+import 'package:wandrr/contracts/trip_entity_facades/location.dart';
 
-class TransitModelFacade extends Equatable implements TripEntity {
+class TransitFacade extends Equatable implements TripEntity {
   String tripId;
 
   @override
@@ -12,11 +12,11 @@ class TransitModelFacade extends Equatable implements TripEntity {
 
   TransitOption transitOption;
 
-  LocationModelFacade? departureLocation;
+  LocationFacade? departureLocation;
 
   DateTime? departureDateTime;
 
-  LocationModelFacade? arrivalLocation;
+  LocationFacade? arrivalLocation;
 
   DateTime? arrivalDateTime;
 
@@ -27,9 +27,9 @@ class TransitModelFacade extends Equatable implements TripEntity {
   //TODO: Make this null. Don't want to put in DB if not present
   String notes;
 
-  ExpenseModelFacade expense;
+  ExpenseFacade expense;
 
-  TransitModelFacade(
+  TransitFacade(
       {required this.tripId,
       required this.transitOption,
       required this.departureDateTime,
@@ -43,7 +43,7 @@ class TransitModelFacade extends Equatable implements TripEntity {
       String? notes})
       : notes = notes ?? '';
 
-  TransitModelFacade.newUiEntry(
+  TransitFacade.newUiEntry(
       {required this.tripId,
       required this.transitOption,
       String? notes,
@@ -51,7 +51,7 @@ class TransitModelFacade extends Equatable implements TripEntity {
       required String currentUserName,
       required String defaultCurrency})
       : notes = notes ?? '',
-        expense = ExpenseModelFacade(
+        expense = ExpenseFacade(
             tripId: tripId,
             title: '',
             totalExpense:
@@ -61,7 +61,7 @@ class TransitModelFacade extends Equatable implements TripEntity {
                 List.filled(allTripContributors.length, 0)),
             splitBy: [currentUserName]);
 
-  void copyWith(TransitModelFacade transitModelFacade) {
+  void copyWith(TransitFacade transitModelFacade) {
     tripId = transitModelFacade.tripId;
     id = transitModelFacade.id;
     transitOption = transitModelFacade.transitOption;
@@ -82,8 +82,8 @@ class TransitModelFacade extends Equatable implements TripEntity {
     return '${departureLocation!.toString()} to ${arrivalLocation!.toString()} on $dateTime';
   }
 
-  TransitModelFacade clone() {
-    return TransitModelFacade(
+  TransitFacade clone() {
+    return TransitFacade(
         tripId: tripId,
         transitOption: transitOption,
         departureDateTime: departureDateTime,
