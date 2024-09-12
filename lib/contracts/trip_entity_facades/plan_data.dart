@@ -1,11 +1,11 @@
 import 'package:equatable/equatable.dart';
-import 'package:wandrr/contracts/trip_data.dart';
+import 'package:wandrr/contracts/trip_entity.dart';
 
-import 'check_list.dart';
+import '../check_list.dart';
+import '../note.dart';
 import 'location.dart';
-import 'note.dart';
 
-class PlanDataModelFacade extends Equatable implements TripEntity {
+class PlanDataFacade extends Equatable implements TripEntity {
   String tripId;
 
   @override
@@ -13,19 +13,19 @@ class PlanDataModelFacade extends Equatable implements TripEntity {
 
   String? title;
 
-  List<LocationModelFacade> places;
+  List<LocationFacade> places;
 
-  List<NoteModelFacade> notes;
+  List<NoteFacade> notes;
 
-  List<CheckListModelFacade> checkLists;
+  List<CheckListFacade> checkLists;
 
-  PlanDataModelFacade.newUiEntry(
+  PlanDataFacade.newUiEntry(
       {required this.id, required this.tripId, this.title})
       : places = [],
         notes = [],
         checkLists = [];
 
-  PlanDataModelFacade(
+  PlanDataFacade(
       {required this.tripId,
       this.id,
       this.title,
@@ -33,8 +33,8 @@ class PlanDataModelFacade extends Equatable implements TripEntity {
       required this.notes,
       required this.checkLists});
 
-  PlanDataModelFacade clone() {
-    return PlanDataModelFacade(
+  PlanDataFacade clone() {
+    return PlanDataFacade(
         tripId: tripId,
         id: id,
         title: title,

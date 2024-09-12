@@ -1,12 +1,11 @@
 import 'package:equatable/equatable.dart';
 import 'package:intl/intl.dart';
-import 'package:wandrr/contracts/expense.dart';
-import 'package:wandrr/contracts/location.dart';
-import 'package:wandrr/contracts/trip_data.dart';
+import 'package:wandrr/contracts/trip_entity.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
+import 'package:wandrr/contracts/trip_entity_facades/location.dart';
 
-//#ui access sorted
-class LodgingModelFacade extends Equatable implements TripEntity {
-  LocationModelFacade? location;
+class LodgingFacade extends Equatable implements TripEntity {
+  LocationFacade? location;
 
   DateTime? checkinDateTime;
 
@@ -19,11 +18,11 @@ class LodgingModelFacade extends Equatable implements TripEntity {
 
   String? confirmationId;
 
-  ExpenseModelFacade expense;
+  ExpenseFacade expense;
 
   String notes;
 
-  LodgingModelFacade(
+  LodgingFacade(
       {required this.location,
       required this.checkinDateTime,
       required this.checkoutDateTime,
@@ -35,14 +34,14 @@ class LodgingModelFacade extends Equatable implements TripEntity {
       : id = id ?? '',
         notes = notes ?? '';
 
-  LodgingModelFacade.newUiEntry(
+  LodgingFacade.newUiEntry(
       {required this.tripId,
       String? notes,
       required List<String> allTripContributors,
       required String currentUserName,
       required String defaultCurrency})
       : notes = notes ?? '',
-        expense = ExpenseModelFacade(
+        expense = ExpenseFacade(
             tripId: tripId,
             title: ' ',
             totalExpense:
@@ -52,7 +51,7 @@ class LodgingModelFacade extends Equatable implements TripEntity {
                 List.filled(allTripContributors.length, 0)),
             splitBy: [currentUserName]);
 
-  void copyWith(LodgingModelFacade lodgingModelFacade) {
+  void copyWith(LodgingFacade lodgingModelFacade) {
     tripId = lodgingModelFacade.tripId;
     location = lodgingModelFacade.location;
     checkinDateTime = lodgingModelFacade.checkinDateTime;
@@ -64,8 +63,8 @@ class LodgingModelFacade extends Equatable implements TripEntity {
     notes = lodgingModelFacade.notes;
   }
 
-  LodgingModelFacade clone() {
-    return LodgingModelFacade(
+  LodgingFacade clone() {
+    return LodgingFacade(
         location: location?.clone(),
         checkinDateTime: checkinDateTime,
         checkoutDateTime: checkoutDateTime,

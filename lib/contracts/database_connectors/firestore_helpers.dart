@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:wandrr/contracts/expense.dart';
-import 'package:wandrr/contracts/location.dart';
-import 'package:wandrr/contracts/repository_pattern.dart';
-import 'package:wandrr/contracts/transit.dart';
+import 'package:wandrr/contracts/database_connectors/repository_pattern.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
+import 'package:wandrr/contracts/trip_entity_facades/location.dart';
+import 'package:wandrr/contracts/trip_entity_facades/transit.dart';
 import 'package:wandrr/repositories/trip_management/implementations/expense.dart';
 import 'package:wandrr/repositories/trip_management/implementations/location.dart';
 
@@ -70,11 +70,11 @@ class FirestoreHelpers {
       } else if (valueToSet is List<RepositoryPattern>) {
         json[key] = List.generate(
             valueToSet.length, (index) => valueToSet.elementAt(index).toJson());
-      } else if (valueToSet is LocationModelFacade) {
+      } else if (valueToSet is LocationFacade) {
         json[key] = LocationModelImplementation.fromModelFacade(
                 locationModelFacade: valueToSet, parentId: null)
             .toJson();
-      } else if (valueToSet is ExpenseModelFacade) {
+      } else if (valueToSet is ExpenseFacade) {
         json[key] = ExpenseModelImplementation.fromModelFacade(
                 expenseModelFacade: valueToSet)
             .toJson();

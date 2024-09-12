@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/contracts/app_level_data.dart';
 import 'package:wandrr/contracts/extensions.dart';
-import 'package:wandrr/contracts/trip_metadata.dart';
+import 'package:wandrr/contracts/trip_entity_facades/trip_metadata.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/budgeting/expense_view_adapter.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/itinerary/itinerary_listview.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/lodging/lodging_listview.dart';
@@ -17,7 +14,7 @@ import 'expense_view_type.dart';
 import 'modules/budgeting/header_tile.dart';
 
 class TripPlannerPage extends StatelessWidget {
-  static const _breakOffLayoutWidth = 800;
+  static const _breakOffLayoutWidth = 1000;
   static const _maximumPageWidth = 700.0;
   var _expenseViewTypeNotifier =
       ValueNotifier<ExpenseViewType>(ExpenseViewType.ShowExpenseList);
@@ -33,8 +30,8 @@ class TripPlannerPage extends StatelessWidget {
           appLevelData.updateLayoutType(true);
           return Row(
             children: [
-              _buildPageWithSize(_buildLayout(context, true)),
-              _buildPageWithSize(
+              _buildConstrainedPageForLayout(_buildLayout(context, true)),
+              _buildConstrainedPageForLayout(
                 CustomScrollView(
                   slivers: <Widget>[
                     SliverToBoxAdapter(
@@ -64,7 +61,7 @@ class TripPlannerPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPageWithSize(Widget layout) {
+  Widget _buildConstrainedPageForLayout(Widget layout) {
     return Expanded(
       child: Center(
         child: Container(
@@ -139,8 +136,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: GestureDetector(
         onTap: () {
-          var tripManagementBloc = BlocProvider.of<TripManagementBloc>(context);
-          tripManagementBloc.add(GoToHome());
+          context.addTripManagementEvent(GoToHome());
         },
         child: Row(
           children: [
@@ -168,7 +164,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
             Icons.share_rounded,
           ),
           label: Text(
-            AppLocalizations.of(context)!.share,
+            context.withLocale().share,
           ),
           onPressed: () {},
         ),
@@ -189,17 +185,15 @@ class _TripSettingsMenu extends StatelessWidget {
               children: [
                 Icon(Icons.delete_rounded),
                 SizedBox(width: 8),
-                Text(AppLocalizations.of(context)!.deleteTrip),
+                Text(context.withLocale().deleteTrip),
               ],
             ),
             onTap: () {
               var tripMetadataFacade = context.getActiveTrip().tripMetadata;
-              var tripManagementBloc =
-                  BlocProvider.of<TripManagementBloc>(context);
-              tripManagementBloc.add(
-                  UpdateTripEntity<TripMetadataModelFacade>.delete(
+              context.addTripManagementEvent(
+                  UpdateTripEntity<TripMetadataFacade>.delete(
                       tripEntity: tripMetadataFacade));
-              tripManagementBloc.add(GoToHome());
+              context.addTripManagementEvent(GoToHome());
             },
           ),
         ];

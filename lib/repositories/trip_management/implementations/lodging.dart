@@ -1,14 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/contracts/collection_names.dart';
-import 'package:wandrr/contracts/firestore_helpers.dart';
-import 'package:wandrr/contracts/lodging.dart';
-import 'package:wandrr/contracts/repository_pattern.dart';
+import 'package:wandrr/contracts/database_connectors/firestore_helpers.dart';
+import 'package:wandrr/contracts/database_connectors/repository_pattern.dart';
+import 'package:wandrr/contracts/trip_entity_facades/lodging.dart';
 import 'package:wandrr/repositories/trip_management/implementations/location.dart';
 
 import 'expense.dart';
 
-class LodgingModelImplementation extends LodgingModelFacade
-    implements RepositoryPattern<LodgingModelFacade> {
+class LodgingModelImplementation extends LodgingFacade
+    implements RepositoryPattern<LodgingFacade> {
   static const _locationField = 'location';
   static const _confirmationIdField = 'confirmationId';
   static const _expenseField = 'expense';
@@ -17,7 +17,7 @@ class LodgingModelImplementation extends LodgingModelFacade
   static const _notesField = 'notes';
 
   LodgingModelImplementation.fromModelFacade(
-      {required LodgingModelFacade lodgingModelFacade})
+      {required LodgingFacade lodgingModelFacade})
       : super(
             location: lodgingModelFacade.location == null
                 ? null
@@ -86,7 +86,7 @@ class LodgingModelImplementation extends LodgingModelFacade
   }
 
   @override
-  Future<bool> tryUpdate(LodgingModelFacade toUpdate) async {
+  Future<bool> tryUpdate(LodgingFacade toUpdate) async {
     Map<String, dynamic> json = {};
     FirestoreHelpers.updateJson(
         checkinDateTime, toUpdate.checkinDateTime, _checkinDateTimeField, json);
@@ -110,5 +110,5 @@ class LodgingModelImplementation extends LodgingModelFacade
   }
 
   @override
-  LodgingModelFacade get facade => clone();
+  LodgingFacade get facade => clone();
 }

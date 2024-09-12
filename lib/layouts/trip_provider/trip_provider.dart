@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
-import 'package:wandrr/contracts/data_states.dart';
+import 'package:wandrr/contracts/database_connectors/data_states.dart';
 import 'package:wandrr/contracts/extensions.dart';
-import 'package:wandrr/contracts/trip_metadata.dart';
+import 'package:wandrr/contracts/trip_entity_facades/trip_metadata.dart';
 import 'package:wandrr/contracts/trip_repository.dart';
 import 'package:wandrr/layouts/trip_provider/home_page/home_page.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/trip_planner_page.dart';
@@ -29,7 +29,7 @@ class TripProvider extends StatelessWidget {
             snapshot.connectionState == ConnectionState.done &&
             _tripRepositoryImplementation == null) {
           _tripRepositoryImplementation = snapshot.data!;
-          return RepositoryProvider<TripRepositoryModelFacade>(
+          return RepositoryProvider<TripRepositoryFacade>(
             create: (context) => _tripRepositoryImplementation!,
             child: BlocProvider<TripManagementBloc>(
               create: (context) {
@@ -82,10 +82,10 @@ class _TripProviderContentPage extends StatelessWidget {
         }
       },
       listener: (context, state) {
-        if (state.isTripEntity<TripMetadataModelFacade>()) {
+        if (state.isTripEntity<TripMetadataFacade>()) {
           var tripMetadataUpdatedState = state as UpdatedTripEntity;
           if (tripMetadataUpdatedState.dataState == DataState.Create) {
-            BlocProvider.of<TripManagementBloc>(context).add(LoadTrip(
+            context.addTripManagementEvent(LoadTrip(
                 tripMetadata: tripMetadataUpdatedState
                     .tripEntityModificationData.modifiedCollectionItem));
           }

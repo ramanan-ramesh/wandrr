@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
-import 'package:wandrr/contracts/data_states.dart';
-import 'package:wandrr/contracts/expense.dart';
+import 'package:wandrr/contracts/database_connectors/data_states.dart';
 import 'package:wandrr/contracts/extensions.dart';
-import 'package:wandrr/contracts/trip_metadata.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
+import 'package:wandrr/contracts/trip_entity_facades/trip_metadata.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/currencies.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/expense_view_type.dart';
-import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
 class BudgetingHeaderTile extends StatelessWidget {
@@ -34,8 +32,7 @@ class BudgetingHeaderTile extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               PlatformTextElements.createHeader(
-                  context: context,
-                  text: AppLocalizations.of(context)!.budgeting),
+                  context: context, text: context.withLocale().budgeting),
               _buildCreateExpenseButton(context)
             ],
           ),
@@ -63,12 +60,12 @@ class BudgetingHeaderTile extends StatelessWidget {
                                 _buildExpenseViewButton(
                                     context,
                                     ExpenseViewType.ShowBudgetEditor,
-                                    AppLocalizations.of(context)!.edit_budget,
+                                    context.withLocale().edit_budget,
                                     Icons.check_rounded),
                                 _buildExpenseViewButton(
                                     context,
                                     ExpenseViewType.ShowDebtSummary,
-                                    AppLocalizations.of(context)!.debt_summary,
+                                    context.withLocale().debt_summary,
                                     Icons.feed_rounded)
                               ],
                             ),
@@ -89,7 +86,7 @@ class BudgetingHeaderTile extends StatelessWidget {
                             child: _buildExpenseViewButton(
                                 context,
                                 ExpenseViewType.ShowExpenseList,
-                                AppLocalizations.of(context)!.view_expenses,
+                                context.withLocale().view_expenses,
                                 Icons.list_rounded),
                           ),
                           Padding(
@@ -97,7 +94,7 @@ class BudgetingHeaderTile extends StatelessWidget {
                             child: _buildExpenseViewButton(
                                 context,
                                 ExpenseViewType.ShowBreakdownViewer,
-                                AppLocalizations.of(context)!.view_breakdown,
+                                context.withLocale().view_breakdown,
                                 Icons.bar_chart),
                           ),
                         ],
@@ -121,16 +118,15 @@ class BudgetingHeaderTile extends StatelessWidget {
         var shouldEnableButton =
             _expenseViewTypeNotifier.value != expenseViewType;
         //TODO: Set color to a lighter version, preferably from ThemeData(black12?)
-        return PlatformButtonElements.createTextButtonWithIcon(
-          key: key,
+        return TextButton.icon(
           onPressed: shouldEnableButton
               ? () {
                   _expenseViewTypeNotifier.value = expenseViewType;
                 }
               : null,
-          isEnabled: shouldEnableButton,
-          iconData: icon,
-          text: buttonText,
+          label: Text(buttonText),
+          icon: Icon(icon),
+          key: key,
         );
       },
     );
@@ -152,7 +148,7 @@ class BudgetingHeaderTile extends StatelessWidget {
   Widget _buildBudgetOverview(BuildContext context) {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntity<TripMetadataModelFacade>()) {
+        if (currentState.isTripEntity<TripMetadataFacade>()) {
           return (currentState as UpdatedTripEntity).dataState ==
               DataState.Update;
         }
@@ -167,7 +163,7 @@ class BudgetingHeaderTile extends StatelessWidget {
         var currencyInfo = currencies.firstWhere(
             (element) => element['code'] == tripMetadata.budget.currency);
         var budgetText =
-            '${AppLocalizations.of(context)!.budget}: ${totalBudget.toString()}';
+            '${context.withLocale().budget}: ${totalBudget.toString()}';
         var totalExpenseText =
             '${currencyInfo['symbol']} ${totalExpenditure.toStringAsFixed(2)}';
         return Column(
@@ -204,7 +200,7 @@ class BudgetingHeaderTile extends StatelessWidget {
       builder: (BuildContext context, TripManagementState state) {
         print('builder of createExpense button called for state - ${state}');
         var shouldEnableButton = true;
-        if (state.isTripEntity<ExpenseModelFacade>()) {
+        if (state.isTripEntity<ExpenseFacade>()) {
           var expenseUpdatedState = state as UpdatedTripEntity;
           if (expenseUpdatedState.dataState == DataState.NewUiEntry) {
             shouldEnableButton = false;
@@ -217,18 +213,15 @@ class BudgetingHeaderTile extends StatelessWidget {
         }
         return FloatingActionButton.extended(
           onPressed: () {
-            var tripManagementBloc =
-                BlocProvider.of<TripManagementBloc>(context);
-            var expenseUpdated =
-                UpdateTripEntity<ExpenseModelFacade>.createNewUiEntry();
-            tripManagementBloc.add(expenseUpdated);
+            context.addTripManagementEvent(
+                UpdateTripEntity<ExpenseFacade>.createNewUiEntry());
           },
-          label: Text(AppLocalizations.of(context)!.add_expense),
+          label: Text(context.withLocale().add_expense),
           icon: Icon(Icons.add_circle),
         );
       },
       buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntity<ExpenseModelFacade>()) {
+        if (currentState.isTripEntity<ExpenseFacade>()) {
           var expenseUpdatedState = currentState as UpdatedTripEntity;
           if (expenseUpdatedState.dataState == DataState.Create ||
               expenseUpdatedState.dataState == DataState.Delete ||

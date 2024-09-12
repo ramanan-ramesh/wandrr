@@ -1,50 +1,45 @@
 import 'package:wandrr/contracts/budgeting_module.dart';
+import 'package:wandrr/contracts/database_connectors/repository_pattern.dart';
 import 'package:wandrr/contracts/itinerary.dart';
-import 'package:wandrr/contracts/plan_data.dart';
-import 'package:wandrr/contracts/repository_pattern.dart';
+import 'package:wandrr/contracts/trip_entity_facades/plan_data.dart';
 
-import 'expense.dart';
-import 'lodging.dart';
-import 'model_collection.dart';
-import 'transit.dart';
-import 'trip_metadata.dart';
+import 'database_connectors/model_collection_facade.dart';
+import 'trip_entity_facades/expense.dart';
+import 'trip_entity_facades/lodging.dart';
+import 'trip_entity_facades/transit.dart';
+import 'trip_entity_facades/trip_metadata.dart';
 
-abstract class TripEntity {
-  String? id;
+abstract class TripDataFacade {
+  TripMetadataFacade get tripMetadata;
 
-  TripEntity(this.id);
-}
+  List<TransitFacade> get transits;
 
-abstract class TripDataModelFacade {
-  TripMetadataModelFacade get tripMetadata;
+  List<LodgingFacade> get lodgings;
 
-  List<TransitModelFacade> get transits;
+  List<ExpenseFacade> get expenses;
 
-  List<LodgingModelFacade> get lodgings;
+  List<PlanDataFacade> get planDataList;
 
-  List<ExpenseModelFacade> get expenses;
-
-  List<PlanDataModelFacade> get planDataList;
-
-  ItineraryModelCollectionFacade get itineraryModelCollection;
+  ItineraryFacadeCollection get itineraryModelCollection;
 
   BudgetingModuleFacade get budgetingModuleFacade;
 }
 
-abstract class TripDataModelEventHandler extends TripDataModelFacade
+abstract class TripDataModelEventHandler extends TripDataFacade
     implements Dispose {
-  ItineraryModelCollectionEventHandler get itineraryModelCollectionEventHandler;
+  ItineraryFacadeCollectionEventHandler
+      get itineraryModelCollectionEventHandler;
 
   Future updateTripMetadata(
-      RepositoryPattern<TripMetadataModelFacade> tripMetadataRepositoryPattern);
+      RepositoryPattern<TripMetadataFacade> tripMetadataRepositoryPattern);
 
-  RepositoryPattern<TripMetadataModelFacade> get tripMetadataModelEventHandler;
+  RepositoryPattern<TripMetadataFacade> get tripMetadataModelEventHandler;
 
-  ModelCollectionFacade<TransitModelFacade> get transitsModelCollection;
+  ModelCollectionFacade<TransitFacade> get transitsModelCollection;
 
-  ModelCollectionFacade<LodgingModelFacade> get lodgingModelCollection;
+  ModelCollectionFacade<LodgingFacade> get lodgingModelCollection;
 
-  ModelCollectionFacade<ExpenseModelFacade> get expenseModelCollection;
+  ModelCollectionFacade<ExpenseFacade> get expenseModelCollection;
 
-  ModelCollectionFacade<PlanDataModelFacade> get planDataModelCollection;
+  ModelCollectionFacade<PlanDataFacade> get planDataModelCollection;
 }

@@ -2,18 +2,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wandrr/contracts/check_list.dart';
 import 'package:wandrr/contracts/check_list_item.dart';
-import 'package:wandrr/contracts/communicators.dart';
 import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/note.dart';
-import 'package:wandrr/contracts/plan_data.dart';
+import 'package:wandrr/contracts/trip_entity_facades/plan_data.dart';
+import 'package:wandrr/contracts/ui_element.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
 import 'checklists.dart';
 import 'notes.dart';
 import 'places.dart';
 
-extension PlanDataValidatorExtension on UiElement<PlanDataModelFacade> {
-  bool isValid(PlanDataModelFacade initialPlanData, bool isTitleRequired) {
+extension PlanDataValidatorExtension on UiElement<PlanDataFacade> {
+  bool isValid(PlanDataFacade initialPlanData, bool isTitleRequired) {
     var currentPlanData = element;
     var isAnyNoteEmpty =
         currentPlanData.notes.any((noteFacade) => noteFacade.note.isEmpty);
@@ -49,8 +49,8 @@ extension PlanDataValidatorExtension on UiElement<PlanDataModelFacade> {
 }
 
 class OpenedPlanDataListItem extends StatefulWidget {
-  final UiElement<PlanDataModelFacade> initialPlanDataUiElement;
-  Function(PlanDataModelFacade) planDataUpdated;
+  final UiElement<PlanDataFacade> initialPlanDataUiElement;
+  Function(PlanDataFacade) planDataUpdated;
 
   OpenedPlanDataListItem(
       {super.key,
@@ -62,7 +62,7 @@ class OpenedPlanDataListItem extends StatefulWidget {
 }
 
 class _OpenedPlanDataListItemState extends State<OpenedPlanDataListItem> {
-  late UiElement<PlanDataModelFacade> _planDataUiElement;
+  late UiElement<PlanDataFacade> _planDataUiElement;
 
   @override
   void initState() {
@@ -133,7 +133,7 @@ class _OpenedPlanDataListItemState extends State<OpenedPlanDataListItem> {
     return FloatingActionButton(
         child: Icon(Icons.checklist_rounded),
         onPressed: () {
-          var newCheckListEntry = CheckListModelFacade.newUiEntry(
+          var newCheckListEntry = CheckListFacade.newUiEntry(
               items: [CheckListItem(item: '', isChecked: false)],
               tripId: tripId);
           var isAnyCheckListEmpty = false;
@@ -156,7 +156,7 @@ class _OpenedPlanDataListItemState extends State<OpenedPlanDataListItem> {
   Widget _buildNoteCreator(String tripId) {
     return FloatingActionButton(
       onPressed: () {
-        var newNoteEntry = NoteModelFacade.newUiEntry(note: '', tripId: tripId);
+        var newNoteEntry = NoteFacade.newUiEntry(note: '', tripId: tripId);
         var isAnyNoteEmpty = _planDataUiElement.element.notes
             .any((noteFacade) => noteFacade.note.isEmpty);
         if (!isAnyNoteEmpty) {

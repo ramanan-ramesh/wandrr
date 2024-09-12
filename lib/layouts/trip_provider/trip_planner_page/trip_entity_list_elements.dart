@@ -5,10 +5,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
-import 'package:wandrr/contracts/communicators.dart';
-import 'package:wandrr/contracts/data_states.dart';
+import 'package:wandrr/contracts/database_connectors/data_states.dart';
 import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/trip_data.dart';
+import 'package:wandrr/contracts/trip_entity.dart';
+import 'package:wandrr/contracts/ui_element.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
 import 'trip_entity_list_element.dart';
@@ -29,7 +30,7 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
   String headerTileLabel;
   void Function(BuildContext context, UiElement<T>)? onUiElementPressed;
   FutureOr<void> Function(List<UiElement<T>> uiElements) uiElementsSorter;
-  List<UiElement<T>> Function(TripDataModelFacade tripDataModelFacade)
+  List<UiElement<T>> Function(TripDataFacade tripDataModelFacade)
       uiElementsCreator;
   bool Function(UiElement<T>)? canDelete;
 
@@ -212,10 +213,8 @@ class _TripEntityListViewState<T extends TripEntity>
           onPressed: !shouldEnableButton
               ? null
               : () {
-                  var tripManagementBloc =
-                      BlocProvider.of<TripManagementBloc>(context);
-                  tripManagementBloc
-                      .add(UpdateTripEntity<T>.createNewUiEntry());
+                  context.addTripManagementEvent(
+                      UpdateTripEntity<T>.createNewUiEntry());
                 },
           label: Text(widget.headerTileLabel),
           icon: Icon(Icons.add_rounded),

@@ -4,21 +4,21 @@ import 'dart:collection';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:wandrr/contracts/collection_names.dart';
+import 'package:wandrr/contracts/database_connectors/model_collection_facade.dart';
+import 'package:wandrr/contracts/database_connectors/repository_pattern.dart';
 import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/itinerary.dart';
-import 'package:wandrr/contracts/lodging.dart';
-import 'package:wandrr/contracts/model_collection.dart';
-import 'package:wandrr/contracts/repository_pattern.dart';
-import 'package:wandrr/contracts/transit.dart';
-import 'package:wandrr/contracts/trip_metadata.dart';
+import 'package:wandrr/contracts/trip_entity_facades/lodging.dart';
+import 'package:wandrr/contracts/trip_entity_facades/transit.dart';
+import 'package:wandrr/contracts/trip_entity_facades/trip_metadata.dart';
 import 'package:wandrr/repositories/trip_management/implementations/itinerary.dart';
 import 'package:wandrr/repositories/trip_management/implementations/plan_data_model_implementation.dart';
 
-class ItineraryModelCollection extends ItineraryModelCollectionEventHandler
+class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
     implements Dispose {
   final _subscriptions = <StreamSubscription>[];
-  final ModelCollectionFacade<TransitModelFacade> _transitModelCollection;
-  final ModelCollectionFacade<LodgingModelFacade> _lodgingModelCollection;
+  final ModelCollectionFacade<TransitFacade> _transitModelCollection;
+  final ModelCollectionFacade<LodgingFacade> _lodgingModelCollection;
   final List<ItineraryModelImplementation> _allItineraries;
 
   DateTime _startDate;
@@ -26,8 +26,8 @@ class ItineraryModelCollection extends ItineraryModelCollectionEventHandler
   final String tripId;
 
   ItineraryModelCollection(
-      ModelCollectionFacade<TransitModelFacade> transitModelCollection,
-      ModelCollectionFacade<LodgingModelFacade> lodgingModelCollection,
+      ModelCollectionFacade<TransitFacade> transitModelCollection,
+      ModelCollectionFacade<LodgingFacade> lodgingModelCollection,
       DateTime startDate,
       DateTime endDate,
       this.tripId,
@@ -73,9 +73,9 @@ class ItineraryModelCollection extends ItineraryModelCollectionEventHandler
   }
 
   static Future<ItineraryModelCollection> createItineraryModelCollection(
-      ModelCollectionFacade<TransitModelFacade> transitModelCollection,
-      ModelCollectionFacade<LodgingModelFacade> lodgingModelCollection,
-      TripMetadataModelFacade tripMetadataFacade) async {
+      ModelCollectionFacade<TransitFacade> transitModelCollection,
+      ModelCollectionFacade<LodgingFacade> lodgingModelCollection,
+      TripMetadataFacade tripMetadataFacade) async {
     var itineraries = await _createItineraryList(
         tripMetadataFacade, transitModelCollection, lodgingModelCollection);
 
@@ -89,16 +89,16 @@ class ItineraryModelCollection extends ItineraryModelCollectionEventHandler
   }
 
   static Future<List<ItineraryModelImplementation>> _createItineraryList(
-      TripMetadataModelFacade tripMetadataFacade,
-      ModelCollectionFacade<TransitModelFacade> transitModelCollection,
-      ModelCollectionFacade<LodgingModelFacade> lodgingModelCollection) async {
+      TripMetadataFacade tripMetadataFacade,
+      ModelCollectionFacade<TransitFacade> transitModelCollection,
+      ModelCollectionFacade<LodgingFacade> lodgingModelCollection) async {
     var startDateFromFacade = tripMetadataFacade.startDate!;
     var endDateFromFacade = tripMetadataFacade.endDate!;
     var numberOfDaysOfTrip = startDateFromFacade
         .calculateDaysInBetween(endDateFromFacade, includeExtraDay: true);
     var itineraries = <ItineraryModelImplementation>[];
 
-    var transitsPerDay = <DateTime, List<TransitModelFacade>>{};
+    var transitsPerDay = <DateTime, List<TransitFacade>>{};
     for (var dayCounter = 0; dayCounter < numberOfDaysOfTrip; dayCounter++) {
       var currentTripDay = startDateFromFacade.add(Duration(days: dayCounter));
       transitsPerDay[currentTripDay] = [];
@@ -125,7 +125,7 @@ class ItineraryModelCollection extends ItineraryModelCollectionEventHandler
       }
     }
 
-    var lodgingsPerDay = <DateTime, LodgingModelFacade>{};
+    var lodgingsPerDay = <DateTime, LodgingFacade>{};
     for (var lodgingItem in lodgingModelCollection.collectionItems) {
       var lodging = lodgingItem.facade;
       var totalStayTimeInDays = lodging.checkinDateTime!.calculateDaysInBetween(
@@ -231,7 +231,7 @@ class ItineraryModelCollection extends ItineraryModelCollectionEventHandler
   }
 
   @override
-  void operator []=(int index, ItineraryModelFacade value) {}
+  void operator []=(int index, ItineraryFacade value) {}
 
   @override
   Future dispose() async {
@@ -241,8 +241,7 @@ class ItineraryModelCollection extends ItineraryModelCollectionEventHandler
     }
   }
 
-  void _addOrRemoveTransitToItinerary(
-      TransitModelFacade transit, bool toDelete) {
+  void _addOrRemoveTransitToItinerary(TransitFacade transit, bool toDelete) {
     var departureItinerary = getItineraryForDay(transit.departureDateTime!);
     if (toDelete) {
       departureItinerary.removeTransit(transit);
@@ -257,8 +256,7 @@ class ItineraryModelCollection extends ItineraryModelCollectionEventHandler
     }
   }
 
-  void _addOrRemoveLodgingToItinerary(
-      LodgingModelFacade lodging, bool toDelete) {
+  void _addOrRemoveLodgingToItinerary(LodgingFacade lodging, bool toDelete) {
     var checkInDayItinerary = getItineraryForDay(lodging.checkinDateTime!);
     if (toDelete) {
       checkInDayItinerary.removeLodging(lodging);

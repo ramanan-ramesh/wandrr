@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/contracts/collection_names.dart';
-import 'package:wandrr/contracts/expense.dart';
-import 'package:wandrr/contracts/firestore_helpers.dart';
-import 'package:wandrr/contracts/repository_pattern.dart';
+import 'package:wandrr/contracts/database_connectors/firestore_helpers.dart';
+import 'package:wandrr/contracts/database_connectors/repository_pattern.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
 
 import 'location.dart';
 
-class ExpenseModelImplementation extends ExpenseModelFacade
-    implements RepositoryPattern<ExpenseModelFacade> {
+class ExpenseModelImplementation extends ExpenseFacade
+    implements RepositoryPattern<ExpenseFacade> {
   static const _titleField = 'title';
   static const _descriptionField = 'description';
   static const _categoryField = 'category';
@@ -18,7 +18,7 @@ class ExpenseModelImplementation extends ExpenseModelFacade
   static const _dateTimeField = 'dateTime';
 
   ExpenseModelImplementation.fromModelFacade(
-      {required ExpenseModelFacade expenseModelFacade})
+      {required ExpenseFacade expenseModelFacade})
       : super(
             tripId: expenseModelFacade.tripId,
             title: expenseModelFacade.title,
@@ -72,7 +72,7 @@ class ExpenseModelImplementation extends ExpenseModelFacade
   }
 
   @override
-  Future<bool> tryUpdate(ExpenseModelFacade toUpdate) async {
+  Future<bool> tryUpdate(ExpenseFacade toUpdate) async {
     Map<String, dynamic> json = {};
     FirestoreHelpers.updateJson(
         totalExpense, toUpdate.totalExpense, _totalExpenseField, json);
@@ -186,5 +186,5 @@ class ExpenseModelImplementation extends ExpenseModelFacade
   }
 
   @override
-  ExpenseModelFacade get facade => this;
+  ExpenseFacade get facade => this;
 }

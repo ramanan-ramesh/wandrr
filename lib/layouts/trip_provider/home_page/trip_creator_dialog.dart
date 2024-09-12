@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/contracts/extensions.dart';
-import 'package:wandrr/contracts/trip_metadata.dart';
+import 'package:wandrr/contracts/trip_entity_facades/trip_metadata.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/currencies.dart';
 import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/date_picker.dart';
-import 'package:wandrr/platform_elements/form.dart';
 import 'package:wandrr/platform_elements/text.dart';
 import 'package:wandrr/repositories/api_services/geo_locator.dart';
 
 class TripCreatorDialog extends StatelessWidget {
   final GeoLocator geoLocator;
-  final Function(TripMetadataModelFacade tripCreationMetadata) eventSubmitter;
+  final Function(TripMetadataFacade tripCreationMetadata) eventSubmitter;
   late final ValueNotifier<bool> _tripCreationMetadataValidityNotifier =
       ValueNotifier(false);
-  final TripMetadataModelFacade _currentTripMetadata;
+  final TripMetadataFacade _currentTripMetadata;
   static const String _defaultCurrency = 'INR';
 
   final TextEditingController _tripNameEditingController =
@@ -22,8 +20,8 @@ class TripCreatorDialog extends StatelessWidget {
 
   TripCreatorDialog(
       {super.key, required this.geoLocator, required this.eventSubmitter})
-      : _currentTripMetadata = TripMetadataModelFacade.newUiEntry(
-            defaultCurrency: _defaultCurrency);
+      : _currentTripMetadata =
+            TripMetadataFacade.newUiEntry(defaultCurrency: _defaultCurrency);
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +44,7 @@ class TripCreatorDialog extends StatelessWidget {
           ),
           centerTitle: true,
           title: PlatformTextElements.createHeader(
-              context: context, text: AppLocalizations.of(context)!.planTrip),
+              context: context, text: context.withLocale().planTrip),
         ),
         Padding(
           padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
@@ -75,8 +73,7 @@ class TripCreatorDialog extends StatelessWidget {
                       padding: const EdgeInsets.all(2.0),
                       child: PlatformTextElements.createSubHeader(
                           context: context,
-                          text: AppLocalizations.of(context)!
-                              .chooseDefaultCurrency),
+                          text: context.withLocale().chooseDefaultCurrency),
                     ),
                     Flexible(
                       child: Padding(
@@ -130,7 +127,7 @@ class TripCreatorDialog extends StatelessWidget {
   Widget _buildTripNameField(BuildContext context) {
     return PlatformTextElements.createTextField(
         context: context,
-        labelText: AppLocalizations.of(context)!.tripName,
+        labelText: context.withLocale().tripName,
         onTextChanged: _updateTripName,
         controller: _tripNameEditingController);
   }

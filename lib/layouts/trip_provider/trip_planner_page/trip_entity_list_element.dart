@@ -3,9 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
-import 'package:wandrr/contracts/communicators.dart';
-import 'package:wandrr/contracts/data_states.dart';
-import 'package:wandrr/contracts/trip_data.dart';
+import 'package:wandrr/contracts/database_connectors/data_states.dart';
+import 'package:wandrr/contracts/extensions.dart';
+import 'package:wandrr/contracts/trip_entity.dart';
+import 'package:wandrr/contracts/ui_element.dart';
 import 'package:wandrr/platform_elements/button.dart';
 
 class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
@@ -51,9 +52,7 @@ class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
                 canDelete: canDelete != null ? canDelete!(uiElement) : true,
                 onPressed: () {
                   if (uiElement.dataState != DataState.NewUiEntry) {
-                    var tripManagementBloc =
-                        BlocProvider.of<TripManagementBloc>(context);
-                    tripManagementBloc.add(
+                    context.addTripManagementEvent(
                         UpdateTripEntity.select(tripEntity: uiElement.element));
                   }
                 },
@@ -68,9 +67,7 @@ class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
                     child: closedElementCreator(),
                   ),
                   onTap: () {
-                    var tripManagementBloc =
-                        BlocProvider.of<TripManagementBloc>(context);
-                    tripManagementBloc.add(
+                    context.addTripManagementEvent(
                         UpdateTripEntity.select(tripEntity: uiElement.element));
                   },
                 ),
@@ -171,13 +168,11 @@ class _OpenedTripEntityUiElement<T extends TripEntity> extends StatelessWidget {
                       onUpdatePressed!(uiElement);
                       return;
                     }
-                    var tripManagementBloc =
-                        BlocProvider.of<TripManagementBloc>(context);
                     if (uiElement.dataState == DataState.NewUiEntry) {
-                      tripManagementBloc.add(UpdateTripEntity<T>.create(
+                      context.addTripManagementEvent(UpdateTripEntity<T>.create(
                           tripEntity: uiElement.element));
                     } else {
-                      tripManagementBloc.add(UpdateTripEntity<T>.update(
+                      context.addTripManagementEvent(UpdateTripEntity<T>.update(
                           tripEntity: uiElement.element));
                     }
                   }),
@@ -194,9 +189,7 @@ class _OpenedTripEntityUiElement<T extends TripEntity> extends StatelessWidget {
                       onDeletePressed!(uiElement);
                       return;
                     }
-                    var tripManagementBloc =
-                        BlocProvider.of<TripManagementBloc>(context);
-                    tripManagementBloc.add(UpdateTripEntity<T>.delete(
+                    context.addTripManagementEvent(UpdateTripEntity<T>.delete(
                         tripEntity: uiElement.element));
                   },
                 ),

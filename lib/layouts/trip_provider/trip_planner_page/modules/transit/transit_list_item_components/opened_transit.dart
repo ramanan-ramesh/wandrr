@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:wandrr/contracts/communicators.dart';
-import 'package:wandrr/contracts/expense.dart';
 import 'package:wandrr/contracts/extensions.dart';
-import 'package:wandrr/contracts/location.dart';
-import 'package:wandrr/contracts/transit.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
+import 'package:wandrr/contracts/trip_entity_facades/location.dart';
+import 'package:wandrr/contracts/trip_entity_facades/transit.dart';
+import 'package:wandrr/contracts/ui_element.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/budgeting/expense_list_item_components/expenditure_edit_tile.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/transit/transit_option_metadata.dart';
 import 'package:wandrr/platform_elements/date_picker.dart';
@@ -14,7 +13,7 @@ import 'package:wandrr/platform_elements/location.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
 class OpenedTransitListItem extends StatefulWidget {
-  UiElement<TransitModelFacade> transitUiElement;
+  UiElement<TransitFacade> transitUiElement;
   List<TransitOptionMetadata> transitOptionMetadatas;
   ValueNotifier<bool> validityNotifier;
 
@@ -29,7 +28,7 @@ class OpenedTransitListItem extends StatefulWidget {
 }
 
 class _OpenedTransitListItemState extends State<OpenedTransitListItem> {
-  late UiElement<TransitModelFacade> _transitUiElement;
+  late UiElement<TransitFacade> _transitUiElement;
 
   @override
   void initState() {
@@ -121,7 +120,7 @@ class _OpenedTransitListItemState extends State<OpenedTransitListItem> {
 
   Widget _buildExpenditureEditField(BuildContext context) {
     return _createTitleSubText(
-      AppLocalizations.of(context)!.cost,
+      context.withLocale().cost,
       ExpenditureEditTile(
         expenseUpdator: _transitUiElement.element.expense,
         isEditable: true,
@@ -144,7 +143,7 @@ class _OpenedTransitListItemState extends State<OpenedTransitListItem> {
 
   Widget _buildConfirmationIdField(BuildContext context) {
     return _createTitleSubText(
-      '${AppLocalizations.of(context)!.confirmation} #',
+      '${context.withLocale().confirmation} #',
       PlatformTextField(
         initialText: _transitUiElement.element.confirmationId,
         maxLines: 1,
@@ -157,7 +156,7 @@ class _OpenedTransitListItemState extends State<OpenedTransitListItem> {
 
   Widget _buildNotesField(BuildContext context) {
     return _createTitleSubText(
-      AppLocalizations.of(context)!.notes,
+      context.withLocale().notes,
       PlatformTextField(
         initialText: _transitUiElement.element.notes,
         maxLines: null,
@@ -170,7 +169,7 @@ class _OpenedTransitListItemState extends State<OpenedTransitListItem> {
 
   Widget _buildTransitCarrierPicker(BuildContext context) {
     return _createTitleSubText(
-      AppLocalizations.of(context)!.transitCarrier,
+      context.withLocale().transitCarrier,
       _TransitCarrierPicker(
         transitOption: _transitUiElement.element.transitOption,
         operator: _transitUiElement.element.operator,
@@ -182,8 +181,7 @@ class _OpenedTransitListItemState extends State<OpenedTransitListItem> {
         onTransitOptionChanged: (newTransitOption) {
           _transitUiElement.element.transitOption = newTransitOption;
           var expense = _transitUiElement.element.expense;
-          expense.category =
-              TransitModelFacade.getExpenseCategory(newTransitOption);
+          expense.category = TransitFacade.getExpenseCategory(newTransitOption);
           setState(() {});
           _calculateTransitValidity();
         },
@@ -235,9 +233,7 @@ class _OpenedTransitListItemState extends State<OpenedTransitListItem> {
       },
     );
     return _createTitleSubText(
-      isArrival
-          ? AppLocalizations.of(context)!.arrive
-          : AppLocalizations.of(context)!.depart,
+      isArrival ? context.withLocale().arrive : context.withLocale().depart,
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -290,8 +286,8 @@ class _OpenedTransitListItemState extends State<OpenedTransitListItem> {
 }
 
 class _AirportsDataEditor extends StatefulWidget {
-  final LocationModelFacade? initialLocation;
-  final Function(LocationModelFacade selectedLocation)? onLocationSelected;
+  final LocationFacade? initialLocation;
+  final Function(LocationFacade selectedLocation)? onLocationSelected;
 
   _AirportsDataEditor(
       {super.key, this.initialLocation, this.onLocationSelected});
@@ -301,7 +297,7 @@ class _AirportsDataEditor extends StatefulWidget {
 }
 
 class _AirportsDataEditorState extends State<_AirportsDataEditor> {
-  LocationModelFacade? _location;
+  LocationFacade? _location;
 
   @override
   void initState() {
@@ -313,9 +309,9 @@ class _AirportsDataEditorState extends State<_AirportsDataEditor> {
   Widget build(BuildContext context) {
     var airportCode =
         (_location?.context as AirportLocationContext?)?.airportCode ?? '   ';
-    return PlatformAutoComplete<LocationModelFacade>(
+    return PlatformAutoComplete<LocationFacade>(
       maxOptionWidgetWidth: 250,
-      hintText: AppLocalizations.of(context)!.airport,
+      hintText: context.withLocale().airport,
       text: _location?.toString(),
       customPrefix: Text(airportCode),
       onSelected: (newAirport) {
@@ -423,7 +419,7 @@ class _TransitCarrierPickerState extends State<_TransitCarrierPicker> {
       maxLines: 1,
       minLines: 1,
       decoration: InputDecoration(
-        hintText: AppLocalizations.of(context)!.flightNumber,
+        hintText: context.withLocale().flightNumber,
         prefixText: _airlineData!.airLineCode ?? '',
         floatingLabelBehavior: FloatingLabelBehavior.always,
         contentPadding: EdgeInsets.symmetric(horizontal: 3.0),
@@ -444,7 +440,7 @@ class _TransitCarrierPickerState extends State<_TransitCarrierPicker> {
     if (widget.transitOption == TransitOption.Flight) {
       return PlatformAutoComplete<(String airLineName, String airLineCode)>(
         customPrefix: _buildTransitOptionPicker(),
-        hintText: AppLocalizations.of(context)!.flightCarrierName,
+        hintText: context.withLocale().flightCarrierName,
         text: _airlineData?.airLineName,
         optionsBuilder: context
             .getPlatformDataRepository()
@@ -484,7 +480,7 @@ class _TransitCarrierPickerState extends State<_TransitCarrierPicker> {
         controller: _transitCarrierTextEditingController,
         decoration: InputDecoration(
           prefixIcon: _buildTransitOptionPicker(),
-          hintText: AppLocalizations.of(context)!.carrierName,
+          hintText: context.withLocale().carrierName,
         ),
         onChanged: (newCarrier) {
           widget.operator = newCarrier;

@@ -2,53 +2,52 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:wandrr/contracts/check_list.dart';
 import 'package:wandrr/contracts/collection_names.dart';
-import 'package:wandrr/contracts/firestore_helpers.dart';
-import 'package:wandrr/contracts/location.dart';
+import 'package:wandrr/contracts/database_connectors/firestore_helpers.dart';
+import 'package:wandrr/contracts/database_connectors/repository_pattern.dart';
 import 'package:wandrr/contracts/note.dart';
-import 'package:wandrr/contracts/plan_data.dart';
-import 'package:wandrr/contracts/repository_pattern.dart';
+import 'package:wandrr/contracts/trip_entity_facades/location.dart';
+import 'package:wandrr/contracts/trip_entity_facades/plan_data.dart';
 
 import 'check_list.dart';
 import 'location.dart';
 
-class PlanDataModelImplementation extends PlanDataModelFacade
-    implements RepositoryPattern<PlanDataModelFacade>, Dispose {
+class PlanDataModelImplementation extends PlanDataFacade
+    implements RepositoryPattern<PlanDataFacade>, Dispose {
   static const _titleField = 'title';
 
   final String _collectionName;
 
   @override
-  List<LocationModelFacade> get places =>
+  List<LocationFacade> get places =>
       List.from(_places.map((place) => place.clone()));
   List<LocationModelImplementation> _places;
   static const _placesField = 'places';
 
   @override
-  List<NoteModelFacade> get notes =>
-      List.from(_notes.map((note) => note.clone()));
-  List<NoteModelFacade> _notes;
+  List<NoteFacade> get notes => List.from(_notes.map((note) => note.clone()));
+  List<NoteFacade> _notes;
   static const _notesField = 'notes';
 
   @override
-  List<CheckListModelFacade> get checkLists => List<CheckListModelFacade>.from(
+  List<CheckListFacade> get checkLists => List<CheckListFacade>.from(
       _checkLists.map((checkList) => checkList.clone()));
   List<CheckListModelImplementation> _checkLists;
   static const _checkListsField = 'checkLists';
 
   @override
-  set notes(List<NoteModelFacade> value) {
+  set notes(List<NoteFacade> value) {
     _notes = List.from(value.map((note) => note.clone()));
   }
 
   @override
-  set checkLists(List<CheckListModelFacade> value) {
+  set checkLists(List<CheckListFacade> value) {
     _checkLists = List.from(value.map((checkList) =>
         CheckListModelImplementation.fromModelFacade(
             checkListModelFacade: checkList.clone())));
   }
 
   @override
-  set places(List<LocationModelFacade> placesToSet) {
+  set places(List<LocationFacade> placesToSet) {
     _places = List.from(placesToSet.map((place) =>
         LocationModelImplementation.fromModelFacade(
             locationModelFacade: place,
@@ -57,7 +56,7 @@ class PlanDataModelImplementation extends PlanDataModelFacade
   }
 
   static PlanDataModelImplementation fromModelFacade(
-      {required PlanDataModelFacade planDataFacade,
+      {required PlanDataFacade planDataFacade,
       String collectionName = FirestoreCollections.planDataListCollection}) {
     var planDataId = planDataFacade.id;
     var places = List<LocationModelImplementation>.from(planDataFacade.places
@@ -65,8 +64,8 @@ class PlanDataModelImplementation extends PlanDataModelFacade
             locationModelFacade: place,
             collectionName: collectionName,
             parentId: planDataFacade.id)));
-    var notes = List<NoteModelFacade>.from(
-        planDataFacade.notes.map((note) => note.clone()));
+    var notes =
+        List<NoteFacade>.from(planDataFacade.notes.map((note) => note.clone()));
     var checkLists = List<CheckListModelImplementation>.from(planDataFacade
         .checkLists
         .map((checkList) => CheckListModelImplementation.fromModelFacade(
@@ -99,7 +98,7 @@ class PlanDataModelImplementation extends PlanDataModelFacade
       };
 
   @override
-  Future<bool> tryUpdate(PlanDataModelFacade toUpdate) async {
+  Future<bool> tryUpdate(PlanDataFacade toUpdate) async {
     Map<String, dynamic> json = {};
     var shouldUpdate = false;
     if (title != toUpdate.title) {
@@ -144,7 +143,7 @@ class PlanDataModelImplementation extends PlanDataModelFacade
     var title = documentData[_titleField];
 
     var checkLists = <CheckListModelImplementation>[];
-    var notes = <NoteModelFacade>[];
+    var notes = <NoteFacade>[];
     var places = <LocationModelImplementation>[];
     for (var checkListDocumentData in List<Map<String, dynamic>>.from(
         documentData[_checkListsField] ?? [])) {
@@ -155,7 +154,7 @@ class PlanDataModelImplementation extends PlanDataModelFacade
 
     for (var noteDocumentData
         in List<String>.from(documentData[_notesField] ?? [])) {
-      var note = NoteModelFacade(note: noteDocumentData, tripId: tripId);
+      var note = NoteFacade(note: noteDocumentData, tripId: tripId);
       notes.add(note);
     }
 
@@ -189,7 +188,7 @@ class PlanDataModelImplementation extends PlanDataModelFacade
             notes: []);
 
   @override
-  PlanDataModelFacade get facade => clone();
+  PlanDataFacade get facade => clone();
 
   @override
   Future dispose() async {}
@@ -200,7 +199,7 @@ class PlanDataModelImplementation extends PlanDataModelFacade
       String? title,
       required String collectionName,
       required List<CheckListModelImplementation> checkLists,
-      required List<NoteModelFacade> notes,
+      required List<NoteFacade> notes,
       required List<LocationModelImplementation> places})
       : _checkLists = checkLists,
         _notes = notes,

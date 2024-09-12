@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
-import 'package:wandrr/contracts/expense.dart';
-import 'package:wandrr/contracts/trip_data.dart';
+import 'package:wandrr/contracts/trip_entity.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
 
-class TripMetadataModelFacade extends Equatable implements TripEntity {
+class TripMetadataFacade extends Equatable implements TripEntity {
   @override
   String? id;
 
@@ -18,7 +18,7 @@ class TripMetadataModelFacade extends Equatable implements TripEntity {
 
   CurrencyWithValue budget;
 
-  TripMetadataModelFacade(
+  TripMetadataFacade(
       {required this.id,
       required this.startDate,
       required this.endDate,
@@ -27,13 +27,13 @@ class TripMetadataModelFacade extends Equatable implements TripEntity {
       required this.totalExpenditure,
       required this.budget});
 
-  TripMetadataModelFacade.newUiEntry({required String defaultCurrency})
+  TripMetadataFacade.newUiEntry({required String defaultCurrency})
       : name = '',
         contributors = [],
         totalExpenditure = 0,
         budget = CurrencyWithValue(currency: defaultCurrency, amount: 0);
 
-  void copyWith(TripMetadataModelFacade tripMetadataModel) {
+  void copyWith(TripMetadataFacade tripMetadataModel) {
     id = tripMetadataModel.id;
     startDate = tripMetadataModel.startDate;
     endDate = tripMetadataModel.endDate;
@@ -43,8 +43,8 @@ class TripMetadataModelFacade extends Equatable implements TripEntity {
     budget = tripMetadataModel.budget;
   }
 
-  TripMetadataModelFacade clone() {
-    return TripMetadataModelFacade(
+  TripMetadataFacade clone() {
+    return TripMetadataFacade(
         id: id,
         startDate: startDate,
         endDate: endDate,

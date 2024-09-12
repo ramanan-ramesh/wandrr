@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/contracts/expense.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
 
 const Map<ExpenseCategory, IconData> iconsForCategories = {
   ExpenseCategory.Flights: Icons.flight_rounded,

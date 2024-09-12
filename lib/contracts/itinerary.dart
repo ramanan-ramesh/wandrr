@@ -1,45 +1,44 @@
 import 'dart:collection';
 
-import 'package:wandrr/contracts/plan_data.dart';
-import 'package:wandrr/contracts/repository_pattern.dart';
+import 'package:wandrr/contracts/database_connectors/repository_pattern.dart';
+import 'package:wandrr/contracts/trip_entity_facades/plan_data.dart';
 
-import 'lodging.dart';
-import 'transit.dart';
+import 'trip_entity_facades/lodging.dart';
+import 'trip_entity_facades/transit.dart';
 
-abstract class ItineraryModelFacade {
+abstract class ItineraryFacade {
   final String tripId;
 
   final DateTime day;
 
-  List<TransitModelFacade> get transits;
+  List<TransitFacade> get transits;
 
-  LodgingModelFacade? get lodging;
+  LodgingFacade? get lodging;
 
-  PlanDataModelFacade get planData;
+  PlanDataFacade get planData;
 
-  ItineraryModelFacade(this.tripId, this.day);
+  ItineraryFacade(this.tripId, this.day);
 }
 
-abstract class ItineraryModelEventHandler extends ItineraryModelFacade {
+abstract class ItineraryModelEventHandler extends ItineraryFacade {
   ItineraryModelEventHandler(super.tripId, super.day);
 
-  RepositoryPattern<PlanDataModelFacade> get planDataEventHandler;
+  RepositoryPattern<PlanDataFacade> get planDataEventHandler;
 
-  void addTransit(TransitModelFacade transitToAdd);
+  void addTransit(TransitFacade transitToAdd);
 
-  void addLodging(LodgingModelFacade lodging);
+  void addLodging(LodgingFacade lodging);
 
-  void removeTransit(TransitModelFacade transit);
+  void removeTransit(TransitFacade transit);
 
-  void removeLodging(LodgingModelFacade lodging);
+  void removeLodging(LodgingFacade lodging);
 }
 
-abstract class ItineraryModelCollectionFacade
-    extends ListBase<ItineraryModelFacade> {
+abstract class ItineraryFacadeCollection extends ListBase<ItineraryFacade> {
   ItineraryModelEventHandler getItineraryForDay(DateTime dateTime);
 }
 
-abstract class ItineraryModelCollectionEventHandler
-    extends ItineraryModelCollectionFacade {
+abstract class ItineraryFacadeCollectionEventHandler
+    extends ItineraryFacadeCollection {
   Future updateTripDays(DateTime startDate, DateTime endDate);
 }

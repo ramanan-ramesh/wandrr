@@ -1,15 +1,18 @@
 import 'dart:async';
 
-import 'package:wandrr/contracts/communicators.dart';
-import 'package:wandrr/contracts/lodging.dart';
-import 'package:wandrr/contracts/model_collection.dart';
-import 'package:wandrr/contracts/trip_metadata.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wandrr/contracts/trip_entity_facades/lodging.dart';
+import 'package:wandrr/contracts/trip_entity_facades/trip_metadata.dart';
+import 'package:wandrr/contracts/ui_element.dart';
 import 'package:wandrr/repositories/api_services/currency_converter.dart';
 
-import 'data_states.dart';
-import 'expense.dart';
-import 'repository_pattern.dart';
-import 'transit.dart';
+import 'database_connectors/collection_change_metadata.dart';
+import 'database_connectors/collection_change_set.dart';
+import 'database_connectors/data_states.dart';
+import 'database_connectors/model_collection_facade.dart';
+import 'database_connectors/repository_pattern.dart';
+import 'trip_entity_facades/expense.dart';
+import 'trip_entity_facades/transit.dart';
 
 enum ExpenseSortOption {
   Category,
@@ -27,34 +30,37 @@ abstract class BudgetingModuleFacade {
   Future<Map<DateTime?, double>> retrieveTotalExpensePerDay();
 
   Future<void> sortExpenseElements(
-      List<UiElement<ExpenseModelFacade>> expenseUiElements,
+      List<UiElement<ExpenseFacade>> expenseUiElements,
       ExpenseSortOption expenseSortOption);
+
+  Future<void> tryBalanceExpensesOnContributorsChanged(
+      List<String> contributors);
 }
 
 abstract class BudgetingModuleEventHandler extends BudgetingModuleFacade
     implements Dispose {
   Future recalculateTotalExpenditure(
-      TripMetadataModelFacade newTripMetadata,
-      Iterable<TransitModelFacade> deletedTransits,
-      Iterable<LodgingModelFacade> deletedLodgings);
+      TripMetadataFacade newTripMetadata,
+      Iterable<TransitFacade> deletedTransits,
+      Iterable<LodgingFacade> deletedLodgings);
 
   static BudgetingModuleEventHandler createInstance(
-      ModelCollectionFacade<TransitModelFacade> transitModelCollection,
-      ModelCollectionFacade<LodgingModelFacade> lodgingModelCollection,
-      ModelCollectionFacade<ExpenseModelFacade> expenseModelCollection,
+      ModelCollectionFacade<TransitFacade> transitModelCollection,
+      ModelCollectionFacade<LodgingFacade> lodgingModelCollection,
+      ModelCollectionFacade<ExpenseFacade> expenseModelCollection,
       CurrencyConverter currencyConverter,
-      RepositoryPattern<TripMetadataModelFacade> tripMetadata) {
+      RepositoryPattern<TripMetadataFacade> tripMetadata) {
     return _BudgetingModule(transitModelCollection, lodgingModelCollection,
         expenseModelCollection, currencyConverter, tripMetadata);
   }
 }
 
 class _BudgetingModule implements BudgetingModuleEventHandler {
-  ModelCollectionFacade<TransitModelFacade> _transitModelCollection;
-  ModelCollectionFacade<LodgingModelFacade> _lodgingModelCollection;
-  ModelCollectionFacade<ExpenseModelFacade> _expenseModelCollection;
+  ModelCollectionFacade<TransitFacade> _transitModelCollection;
+  ModelCollectionFacade<LodgingFacade> _lodgingModelCollection;
+  ModelCollectionFacade<ExpenseFacade> _expenseModelCollection;
   final CurrencyConverter currencyConverter;
-  RepositoryPattern<TripMetadataModelFacade> _tripMetadata;
+  RepositoryPattern<TripMetadataFacade> _tripMetadata;
 
   final _subscriptions = <StreamSubscription>[];
 
@@ -134,9 +140,9 @@ class _BudgetingModule implements BudgetingModuleEventHandler {
 
   @override
   Future recalculateTotalExpenditure(
-      TripMetadataModelFacade newTripMetadata,
-      Iterable<TransitModelFacade> deletedTransits,
-      Iterable<LodgingModelFacade> deletedLodgings) async {
+      TripMetadataFacade newTripMetadata,
+      Iterable<TransitFacade> deletedTransits,
+      Iterable<LodgingFacade> deletedLodgings) async {
     var currentTripMetadata = _tripMetadata.clone();
     var totalExpenditure = currentTripMetadata.totalExpenditure;
     for (var transit in deletedTransits) {
@@ -157,7 +163,7 @@ class _BudgetingModule implements BudgetingModuleEventHandler {
 
   @override
   Future<void> sortExpenseElements(
-      List<UiElement<ExpenseModelFacade>> expenseUiElements,
+      List<UiElement<ExpenseFacade>> expenseUiElements,
       ExpenseSortOption expenseSortOption) async {
     var newUiEntries = expenseUiElements
         .where((element) => element.dataState == DataState.NewUiEntry)
@@ -195,10 +201,10 @@ class _BudgetingModule implements BudgetingModuleEventHandler {
     expenseUiElements.addAll(newUiEntries);
   }
 
-  void _sortOnDateTime(List<UiElement<ExpenseModelFacade>> expenseUiElements,
+  void _sortOnDateTime(List<UiElement<ExpenseFacade>> expenseUiElements,
       {bool isAscendingOrder = true}) {
-    var expensesWithDateTime = <UiElement<ExpenseModelFacade>>[];
-    var expensesWithoutDateTime = <UiElement<ExpenseModelFacade>>[];
+    var expensesWithDateTime = <UiElement<ExpenseFacade>>[];
+    var expensesWithoutDateTime = <UiElement<ExpenseFacade>>[];
     for (var expenseUiElement in expenseUiElements) {
       var expense = expenseUiElement.element;
       if (expense.dateTime != null) {
@@ -208,7 +214,7 @@ class _BudgetingModule implements BudgetingModuleEventHandler {
       }
     }
     expenseUiElements =
-        List<UiElement<ExpenseModelFacade>>.from(expensesWithDateTime);
+        List<UiElement<ExpenseFacade>>.from(expensesWithDateTime);
     if (isAscendingOrder) {
       expenseUiElements
           .sort((a, b) => a.element.dateTime!.compareTo(b.element.dateTime!));
@@ -220,7 +226,7 @@ class _BudgetingModule implements BudgetingModuleEventHandler {
     expenseUiElements = List.from(expenseUiElements);
   }
 
-  Future _sortOnCost(List<UiElement<ExpenseModelFacade>> expenseUiElements,
+  Future _sortOnCost(List<UiElement<ExpenseFacade>> expenseUiElements,
       {bool isAscendingOrder = true}) async {
     for (int i = 0; i < expenseUiElements.length - 1; i++) {
       for (int j = 0; j < expenseUiElements.length - i - 1; j++) {
@@ -248,16 +254,17 @@ class _BudgetingModule implements BudgetingModuleEventHandler {
   }
 
   Future<void> _recalculateTotalExpenditureOnUpdate(
-      CollectionModificationData<UpdateData<RepositoryPattern>> eventData,
+      CollectionChangeMetadata<CollectionChangeSet<RepositoryPattern>>
+          eventData,
       {bool isLinkedExpense = false}) async {
     var modifiedItemAfterUpdate =
         eventData.modifiedCollectionItem.afterUpdate.clone();
-    ExpenseModelFacade expenseAfterUpdate = isLinkedExpense
+    ExpenseFacade expenseAfterUpdate = isLinkedExpense
         ? modifiedItemAfterUpdate.expense
         : modifiedItemAfterUpdate;
     var modifiedItemBeforeUpdate =
         eventData.modifiedCollectionItem.beforeUpdate.clone();
-    ExpenseModelFacade expenseBeforeUpdate = isLinkedExpense
+    ExpenseFacade expenseBeforeUpdate = isLinkedExpense
         ? modifiedItemBeforeUpdate.expense
         : modifiedItemBeforeUpdate;
     if (expenseBeforeUpdate != expenseAfterUpdate) {
@@ -281,14 +288,14 @@ class _BudgetingModule implements BudgetingModuleEventHandler {
   }
 
   Future<void> _recalculateTotalExpenditureOnAddOrDelete(
-      CollectionModificationData<RepositoryPattern> eventData,
+      CollectionChangeMetadata<RepositoryPattern> eventData,
       {bool deleted = false,
       bool isLinkedExpense = false}) async {
     var tripMetadata = _tripMetadata.clone();
     var currentExpense = tripMetadata.totalExpenditure;
     var defaultCurrency = tripMetadata.budget.currency;
     var modifiedItem = eventData.modifiedCollectionItem.clone();
-    ExpenseModelFacade addedExpense =
+    ExpenseFacade addedExpense =
         isLinkedExpense ? modifiedItem.expense : modifiedItem;
     if (addedExpense.totalExpense.amount != 0) {
       var convertedCurrencyAmount = await currencyConverter.performQuery(
@@ -302,6 +309,54 @@ class _BudgetingModule implements BudgetingModuleEventHandler {
       }
       tripMetadata.totalExpenditure = updatedTotalExpense;
       await _tripMetadata.tryUpdate(tripMetadata);
+    }
+  }
+
+  @override
+  Future<void> tryBalanceExpensesOnContributorsChanged(
+      List<String> contributors) async {
+    var writeBatch = FirebaseFirestore.instance.batch();
+    _recalculateExpensesOnContributorsChanged(
+        _transitModelCollection, contributors, writeBatch,
+        isLinkedExpense: true);
+    _recalculateExpensesOnContributorsChanged(
+        _lodgingModelCollection, contributors, writeBatch,
+        isLinkedExpense: true);
+    _recalculateExpensesOnContributorsChanged(
+        _expenseModelCollection, contributors, writeBatch,
+        isLinkedExpense: false);
+
+    await writeBatch.commit();
+  }
+
+  void _recalculateExpensesOnContributorsChanged(
+      ModelCollectionFacade modelCollection,
+      List<String> contributors,
+      WriteBatch writeBatch,
+      {bool isLinkedExpense = false}) async {
+    for (var collectionItem in modelCollection.collectionItems) {
+      var collectionItemFacade = collectionItem.facade;
+      ExpenseFacade expenseModelFacade;
+      if (isLinkedExpense) {
+        expenseModelFacade = collectionItemFacade;
+      } else {
+        expenseModelFacade = collectionItemFacade.expense;
+      }
+
+      for (var contributor in contributors) {
+        if (!expenseModelFacade.splitBy.contains(contributor)) {
+          expenseModelFacade.splitBy.add(contributor);
+        }
+      }
+      for (var contributorSplittingExpense in expenseModelFacade.splitBy) {
+        if (!contributors.contains(contributorSplittingExpense)) {
+          expenseModelFacade.splitBy.remove(contributorSplittingExpense);
+        }
+      }
+      var itemToUpdate =
+          modelCollection.repositoryPatternCreator(collectionItemFacade);
+      writeBatch.update(
+          collectionItem.documentReference, itemToUpdate.toJson());
     }
   }
 }

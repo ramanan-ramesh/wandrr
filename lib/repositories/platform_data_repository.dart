@@ -232,7 +232,6 @@ class _UserManagement {
             userID: existingUserDocument.id,
             photoUrl: authProviderUser.photoURL);
       }
-      _activeUser?.attachAuthProviderUser(authProviderUser);
       await _persistUser();
       return true;
     } catch (e) {

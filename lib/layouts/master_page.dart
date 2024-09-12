@@ -152,13 +152,11 @@ class _MasterPageState extends State<MasterPage> {
               ),
               themeMode: currentTheme,
               home: Material(
-                  child: DropdownButtonHideUnderline(
-                child: SafeArea(child: _buildContentPage(state)),
-              )),
+                child: DropdownButtonHideUnderline(
+                  child: SafeArea(child: _buildContentPage(state)),
+                ),
+              ),
             );
-          },
-          buildWhen: (previousState, currentState) {
-            return previousState != currentState;
           },
         ),
       ),

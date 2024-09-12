@@ -1,5 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
-
 import 'auth_type.dart';
 
 class PlatformUser {
@@ -10,8 +8,6 @@ class PlatformUser {
   String userID;
   String? photoUrl;
 
-  User? authProviderUser;
-
   PlatformUser.fromAuth(
       {required this.userName,
       required this.authenticationType,
@@ -19,10 +15,6 @@ class PlatformUser {
       this.displayName,
       this.photoUrl})
       : isLoggedIn = true;
-
-  void attachAuthProviderUser(User authProviderUser) {
-    this.authProviderUser = authProviderUser;
-  }
 
   PlatformUser.fromCache(
       {required this.userName,

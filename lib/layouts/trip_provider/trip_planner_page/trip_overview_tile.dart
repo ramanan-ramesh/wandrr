@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
+import 'package:wandrr/blocs/trip_management/states.dart';
+import 'package:wandrr/contracts/database_connectors/collection_change_metadata.dart';
 import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/trip_data.dart';
-import 'package:wandrr/contracts/trip_metadata.dart';
+import 'package:wandrr/contracts/trip_entity_facades/trip_metadata.dart';
 import 'package:wandrr/layouts/constants.dart';
 import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/date_picker.dart';
@@ -16,16 +17,11 @@ class TripOverviewTile extends StatelessWidget {
   static const _heightOfContributorWidget = 15.0;
   static const _imageHeight = 250.0;
   static const _assetImage = 'assets/images/planning_the_trip.jpg';
-  late TextEditingController _titleEditingController = TextEditingController();
   final _canUpdateTripTitleNotifier = ValueNotifier(false);
-  static final _emailRegExValidator = RegExp('.*@.*.com');
-  final TextEditingController _addTripMateFieldEditingController =
-      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     var activeTrip = context.getActiveTrip();
-    _titleEditingController.text = activeTrip.tripMetadata.name;
     var numberOfContributors = activeTrip.tripMetadata.contributors.length;
     var isBigLayout = context.isBigLayout();
     return Stack(
@@ -62,7 +58,7 @@ class TripOverviewTile extends StatelessWidget {
   }
 
   Padding _buildOverviewTile(
-      BuildContext context, TripDataModelFacade activeTrip, bool isBigLayout) {
+      BuildContext context, TripDataFacade activeTrip, bool isBigLayout) {
     var orientedWidget = !isBigLayout
         ? Column(
             mainAxisSize: MainAxisSize.min,
@@ -106,39 +102,69 @@ class TripOverviewTile extends StatelessWidget {
   }
 
   Widget _buildTitleEditingField(
-      TripDataModelFacade activeTrip, BuildContext context) {
-    return TextField(
-      controller: _titleEditingController,
-      onChanged: (newTitle) {
-        if (newTitle.isNotEmpty && newTitle != activeTrip.tripMetadata.name) {
-          _canUpdateTripTitleNotifier.value = true;
-        } else {
-          _canUpdateTripTitleNotifier.value = false;
+      TripDataFacade activeTrip, BuildContext context) {
+    var activeTripTitle = activeTrip.tripMetadata.name;
+    return BlocConsumer<TripManagementBloc, TripManagementState>(
+      buildWhen: (previousState, currentState) {
+        if (currentState.isTripEntity<TripMetadataFacade>()) {
+          var updatedTripEntity = currentState as UpdatedTripEntity;
+          var tripMetadataModificationData =
+              updatedTripEntity.tripEntityModificationData
+                  as CollectionChangeMetadata<TripMetadataFacade>;
+          if (tripMetadataModificationData.modifiedCollectionItem.name !=
+              activeTripTitle) {
+            return true;
+          }
         }
+        return false;
       },
-      decoration: InputDecoration(
-          suffixIcon: Padding(
-        padding: const EdgeInsets.all(3.0),
-        child: PlatformSubmitterFAB.conditionallyEnabled(
-          valueNotifier: _canUpdateTripTitleNotifier,
-          icon: Icons.check_rounded,
-          context: context,
-          callback: () {
-            var tripManagementBloc =
-                BlocProvider.of<TripManagementBloc>(context);
-            var tripMetadataModelFacade = activeTrip.tripMetadata;
-            tripMetadataModelFacade.name = _titleEditingController.text;
-            tripManagementBloc.add(
-                UpdateTripEntity<TripMetadataModelFacade>.update(
-                    tripEntity: tripMetadataModelFacade));
+      builder: (BuildContext context, TripManagementState state) {
+        _canUpdateTripTitleNotifier.value = false;
+        if (state.isTripEntity<TripMetadataFacade>()) {
+          var updatedTripEntity = state as UpdatedTripEntity;
+          var tripMetadataModificationData =
+              updatedTripEntity.tripEntityModificationData
+                  as CollectionChangeMetadata<TripMetadataFacade>;
+          activeTripTitle =
+              tripMetadataModificationData.modifiedCollectionItem.name;
+        }
+        var titleEditingController =
+            TextEditingController(text: activeTripTitle);
+        return TextField(
+          controller: titleEditingController,
+          onChanged: (newTitle) {
+            if (newTitle.isNotEmpty &&
+                newTitle != activeTrip.tripMetadata.name) {
+              _canUpdateTripTitleNotifier.value = true;
+            } else {
+              _canUpdateTripTitleNotifier.value = false;
+            }
           },
-        ),
-      )),
+          decoration: InputDecoration(
+              suffixIcon: Padding(
+            padding: const EdgeInsets.all(3.0),
+            child: PlatformSubmitterFAB.conditionallyEnabled(
+              valueNotifier: _canUpdateTripTitleNotifier,
+              icon: Icons.check_rounded,
+              isSubmitted: false,
+              context: context,
+              callback: () {
+                var tripMetadataModelFacade = activeTrip.tripMetadata;
+                tripMetadataModelFacade.name = titleEditingController.text;
+                context.addTripManagementEvent(
+                    UpdateTripEntity<TripMetadataFacade>.update(
+                        tripEntity: tripMetadataModelFacade));
+              },
+            ),
+          )),
+        );
+      },
+      listener: (BuildContext context, TripManagementState state) {},
     );
   }
 
   Widget _buildSplitByIcons(
-      BuildContext context, TripMetadataModelFacade tripMetadata) {
+      BuildContext context, TripMetadataFacade tripMetadata) {
     var contributors = tripMetadata.contributors.toList();
     contributors.sort((a, b) => a.compareTo(b));
     var contributorsVsColors = <String, Color>{};
@@ -167,54 +193,13 @@ class TripOverviewTile extends StatelessWidget {
         ..insert(
             0,
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3.0),
-              child: _buildAddTripMateField(context),
-            )),
+                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                child: _AddTripMateField())),
     );
   }
 
-  Widget _buildAddTripMateField(BuildContext context) {
-    var addTripEditingValueNotifier = ValueNotifier<bool>(false);
-    return TextFormField(
-      textInputAction: TextInputAction.done,
-      controller: _addTripMateFieldEditingController,
-      decoration: InputDecoration(
-        hintText: AppLocalizations.of(context)!.add_tripmate,
-        suffixIcon: PlatformSubmitterFAB.conditionallyEnabled(
-          icon: Icons.add,
-          context: context,
-          valueNotifier: addTripEditingValueNotifier,
-          callback: () {
-            var tripManagementBloc =
-                BlocProvider.of<TripManagementBloc>(context);
-            var tripMetadataModelFacade = context.getActiveTrip().tripMetadata;
-            var currentContributors = tripMetadataModelFacade.contributors;
-            var contributorToAdd = _addTripMateFieldEditingController.text;
-            if (!currentContributors.contains(contributorToAdd)) {
-              currentContributors.add(contributorToAdd);
-              tripManagementBloc.add(
-                  UpdateTripEntity<TripMetadataModelFacade>.update(
-                      tripEntity: tripMetadataModelFacade));
-            }
-          },
-        ),
-        labelText: AppLocalizations.of(context)!.userName,
-        icon: Icon(Icons.person_2_rounded),
-      ),
-      onChanged: (username) {
-        var matches = _emailRegExValidator.firstMatch(username);
-        final matchedText = matches?.group(0);
-        if (matchedText != username) {
-          addTripEditingValueNotifier.value = false;
-        } else {
-          addTripEditingValueNotifier.value = true;
-        }
-      },
-    );
-  }
-
-  Widget _buildDateRangeButton(BuildContext context,
-      TripMetadataModelFacade tripMetadata, bool isBigLayout) {
+  Widget _buildDateRangeButton(
+      BuildContext context, TripMetadataFacade tripMetadata, bool isBigLayout) {
     var startDate = tripMetadata.startDate;
     var endDate = tripMetadata.endDate;
     return PlatformFABDateRangePicker(
@@ -224,11 +209,180 @@ class TripOverviewTile extends StatelessWidget {
         if (startDate != null && endDate != null) {
           tripMetadata.startDate = startDate;
           tripMetadata.endDate = endDate;
-          BlocProvider.of<TripManagementBloc>(context).add(
-              UpdateTripEntity<TripMetadataModelFacade>.update(
+          context.addTripManagementEvent(
+              UpdateTripEntity<TripMetadataFacade>.update(
                   tripEntity: tripMetadata));
         }
       },
     );
+  }
+}
+
+class _AddTripMateField extends StatelessWidget {
+  const _AddTripMateField({
+    super.key,
+  });
+
+  static final _emailRegExValidator = RegExp('.*@.*.com');
+
+  @override
+  Widget build(BuildContext context) {
+    var addTripEditingValueNotifier = ValueNotifier<bool>(false);
+    var currentContributors = context.getActiveTrip().tripMetadata.contributors;
+    var tripMateUserNameEditingController = TextEditingController();
+    return TextFormField(
+      textInputAction: TextInputAction.done,
+      controller: tripMateUserNameEditingController,
+      decoration: InputDecoration(
+        hintText: context.withLocale().add_tripmate,
+        suffixIcon: Padding(
+          padding: const EdgeInsets.all(3.0),
+          child: _AddTripMateTextFieldButton(
+              addTripEditingValueNotifier: addTripEditingValueNotifier,
+              tripMateUserNameEditingController:
+                  tripMateUserNameEditingController),
+        ),
+        labelText: context.withLocale().userName,
+        icon: Icon(Icons.person_2_rounded),
+      ),
+      onChanged: (username) {
+        var matches = _emailRegExValidator.firstMatch(username);
+        final matchedText = matches?.group(0);
+        if (matchedText != username || currentContributors.contains(username)) {
+          addTripEditingValueNotifier.value = false;
+        } else {
+          addTripEditingValueNotifier.value = true;
+        }
+      },
+    );
+  }
+}
+
+class _AddTripMateTextFieldButton extends StatefulWidget {
+  const _AddTripMateTextFieldButton(
+      {super.key,
+      required this.addTripEditingValueNotifier,
+      required this.tripMateUserNameEditingController});
+
+  final ValueNotifier<bool> addTripEditingValueNotifier;
+  final TextEditingController tripMateUserNameEditingController;
+
+  @override
+  State<_AddTripMateTextFieldButton> createState() =>
+      _AddTripMateTextFieldButtonState();
+}
+
+class _AddTripMateTextFieldButtonState
+    extends State<_AddTripMateTextFieldButton> {
+  @override
+  Widget build(BuildContext context) {
+    var currentContributors = context.getActiveTrip().tripMetadata.contributors;
+    return BlocConsumer<TripManagementBloc, TripManagementState>(
+      buildWhen: (previousState, currentState) =>
+          _canBuildButton(currentState, currentContributors),
+      builder: (BuildContext context, TripManagementState state) {
+        return PlatformSubmitterFAB.conditionallyEnabled(
+          icon: Icons.add,
+          context: context,
+          valueNotifier: widget.addTripEditingValueNotifier,
+          isSubmitted: false,
+          callback: () async {
+            var didSubmitDialog = false;
+            await showDialog(
+                context: context,
+                builder: (BuildContext dialogContext) {
+                  return Material(
+                    color: Colors.black12,
+                    child: Dialog(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(5.0),
+                            child: Text(
+                              context
+                                  .withLocale()
+                                  .splitExpensesWithNewTripMateMessage,
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(5.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 3.0),
+                                  child: IconButton(
+                                    //TODO: Unable to style splashColor here
+                                    onPressed: () {
+                                      didSubmitDialog = false;
+                                      Navigator.of(dialogContext).pop();
+                                    },
+                                    icon: Icon(
+                                      Icons.close_rounded,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 3.0),
+                                  child: IconButton(
+                                    icon: Icon(Icons.check_rounded),
+                                    onPressed: () {
+                                      _onDialogAccepted(context, dialogContext);
+                                      didSubmitDialog = true;
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                });
+            if (!didSubmitDialog) {
+              setState(() {});
+            }
+          },
+        );
+      },
+      listener: (BuildContext context, TripManagementState state) {},
+    );
+  }
+
+  bool _canBuildButton(
+      TripManagementState currentState, List<String> currentContributors) {
+    if (currentState.isTripEntity<TripMetadataFacade>()) {
+      var updatedTripEntity = currentState as UpdatedTripEntity;
+      var tripMetadataModificationData =
+          updatedTripEntity.tripEntityModificationData
+              as CollectionChangeMetadata<TripMetadataFacade>;
+      if (tripMetadataModificationData.isFromEvent &&
+          currentContributors !=
+              tripMetadataModificationData
+                  .modifiedCollectionItem.contributors) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _onDialogAccepted(
+      BuildContext widgetContext, BuildContext dialogContext) {
+    var tripMetadataModelFacade = widgetContext.getActiveTrip().tripMetadata;
+    var currentContributors = tripMetadataModelFacade.contributors;
+    var contributorToAdd = widget.tripMateUserNameEditingController.text;
+    if (!currentContributors.contains(contributorToAdd)) {
+      currentContributors.add(contributorToAdd);
+      context.addTripManagementEvent(
+          UpdateTripEntity<TripMetadataFacade>.update(
+              tripEntity: tripMetadataModelFacade));
+    }
+    Navigator.of(dialogContext).pop();
   }
 }

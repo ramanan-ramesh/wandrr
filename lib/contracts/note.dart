@@ -1,26 +1,26 @@
 import 'package:equatable/equatable.dart';
 
-class NoteModelFacade extends Equatable {
+class NoteFacade extends Equatable {
   String tripId;
 
   String note;
 
-  NoteModelFacade({
+  NoteFacade({
     required this.note,
     required this.tripId,
   });
 
-  NoteModelFacade.newUiEntry({
+  NoteFacade.newUiEntry({
     required this.note,
     required this.tripId,
   });
 
-  void copyWith(NoteModelFacade noteModelFacade) {
+  void copyWith(NoteFacade noteModelFacade) {
     note = noteModelFacade.note;
   }
 
-  NoteModelFacade clone() {
-    return NoteModelFacade(note: note, tripId: tripId);
+  NoteFacade clone() {
+    return NoteFacade(note: note, tripId: tripId);
   }
 
   @override

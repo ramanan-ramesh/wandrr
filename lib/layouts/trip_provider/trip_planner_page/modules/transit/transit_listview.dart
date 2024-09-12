@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:wandrr/contracts/communicators.dart';
-import 'package:wandrr/contracts/data_states.dart';
-import 'package:wandrr/contracts/transit.dart';
+import 'package:wandrr/contracts/database_connectors/data_states.dart';
+import 'package:wandrr/contracts/extensions.dart';
 import 'package:wandrr/contracts/trip_data.dart';
+import 'package:wandrr/contracts/trip_entity_facades/transit.dart';
+import 'package:wandrr/contracts/ui_element.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/trip_entity_list_elements.dart';
 
 import 'transit_list_item_components/closed_transit.dart';
@@ -16,23 +16,24 @@ class TransitListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var transitOptionMetadataList = _initializeIconsAndTransitOptions(context);
-    return TripEntityListView<TransitModelFacade>(
-      emptyListMessage: AppLocalizations.of(context)!.noTransitsCreated,
-      headerTileLabel: AppLocalizations.of(context)!.transit,
+    return TripEntityListView<TransitFacade>(
+      emptyListMessage: context.withLocale().noTransitsCreated,
+      headerTileLabel: context.withLocale().transit,
       uiElementsSorter: _sortTransits,
-      openedListElementCreator: (UiElement<TransitModelFacade> uiElement,
+      openedListElementCreator: (UiElement<TransitFacade> uiElement,
               ValueNotifier<bool> validityNotifier) =>
           OpenedTransitListItem(
         transitUiElement: uiElement,
         transitOptionMetadatas: transitOptionMetadataList,
         validityNotifier: validityNotifier,
       ),
-      closedListElementCreator: (UiElement<TransitModelFacade> uiElement) =>
+      closedListElementCreator: (UiElement<TransitFacade> uiElement) =>
           ClosedTransitListItem(
               transitModelFacade: uiElement.element,
               transitOptionMetadatas: transitOptionMetadataList),
-      uiElementsCreator: (TripDataModelFacade tripDataModelFacade) =>
-          tripDataModelFacade.transits
+      uiElementsCreator: (TripDataFacade tripDataModelFacade) =>
+          tripDataModelFacade
+              .transits
               .map((transit) =>
                   UiElement(element: transit, dataState: DataState.None))
               .toList(),
@@ -42,7 +43,7 @@ class TransitListView extends StatelessWidget {
   List<TransitOptionMetadata> _initializeIconsAndTransitOptions(
       BuildContext context) {
     var transitOptionMetadataList = <TransitOptionMetadata>[];
-    var appLocalizations = AppLocalizations.of(context)!;
+    var appLocalizations = context.withLocale();
     transitOptionMetadataList.add(TransitOptionMetadata(
         transitOption: TransitOption.PublicTransport,
         icon: Icons.emoji_transportation_rounded,
@@ -82,14 +83,14 @@ class TransitListView extends StatelessWidget {
     return transitOptionMetadataList;
   }
 
-  void _sortTransits(List<UiElement<TransitModelFacade>> transitUiElements) {
+  void _sortTransits(List<UiElement<TransitFacade>> transitUiElements) {
     var newUiEntries = transitUiElements
         .where((element) => element.dataState == DataState.NewUiEntry)
         .toList();
     transitUiElements
         .removeWhere((element) => element.dataState == DataState.NewUiEntry);
-    var transitsWithValidDateTime = <UiElement<TransitModelFacade>>[];
-    var transitsWithInvalidDateTime = <UiElement<TransitModelFacade>>[];
+    var transitsWithValidDateTime = <UiElement<TransitFacade>>[];
+    var transitsWithInvalidDateTime = <UiElement<TransitFacade>>[];
     for (var transitUiElement in transitUiElements) {
       var transit = transitUiElement.element;
       if (transit.departureDateTime != null &&

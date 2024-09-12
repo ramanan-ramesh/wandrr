@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:wandrr/blocs/master_page_bloc/master_page_bloc.dart';
 import 'package:wandrr/blocs/master_page_bloc/master_page_events.dart';
-import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/contracts/app_level_data.dart';
 import 'package:wandrr/contracts/extensions.dart';
-import 'package:wandrr/contracts/trip_metadata.dart';
+import 'package:wandrr/contracts/trip_entity_facades/trip_metadata.dart';
 
 import 'trip_creator_dialog.dart';
 import 'trips_list_view.dart';
@@ -62,7 +59,7 @@ class HomePage extends StatelessWidget {
           Padding(
             padding: EdgeInsets.all(10),
             child: Text(
-              AppLocalizations.of(context)!.viewRecentTrips,
+              context.withLocale().viewRecentTrips,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
           ),
@@ -84,7 +81,6 @@ class HomePage extends StatelessWidget {
           showGeneralDialog(
             context: pageContext,
             barrierDismissible: true,
-            barrierLabel: 'Close',
             pageBuilder: (BuildContext context, Animation<double> animation,
                 Animation<double> secondaryAnimation) {
               return Material(
@@ -113,14 +109,12 @@ class HomePage extends StatelessWidget {
   }
 
   void _submitTripCreationEvent(
-      BuildContext pageContext, TripMetadataModelFacade tripCreationMetadata) {
+      BuildContext pageContext, TripMetadataFacade tripCreationMetadata) {
     var userName = pageContext.getAppLevelData().activeUser!.userName;
-    var tripManagement = BlocProvider.of<TripManagementBloc>(pageContext);
     var tripMetadata = tripCreationMetadata.clone();
     tripMetadata.contributors = [userName];
-    tripManagement.add(
-      UpdateTripEntity<TripMetadataModelFacade>.create(
-          tripEntity: tripMetadata),
+    pageContext.addTripManagementEvent(
+      UpdateTripEntity<TripMetadataFacade>.create(tripEntity: tripMetadata),
     );
   }
 }
@@ -176,26 +170,25 @@ class _UserProfilePopupMenu extends StatelessWidget {
       itemBuilder: (BuildContext context) {
         return [
           PopupMenuItem(
-            child: const Row(
+            child: Row(
               children: [
                 Icon(Icons.settings),
                 SizedBox(width: 8),
-                Text('Settings'),
+                Text(context.withLocale().settings),
               ],
             ),
             onTap: () {},
           ),
           PopupMenuItem(
-            child: const Row(
+            child: Row(
               children: [
                 Icon(Icons.logout),
                 SizedBox(width: 8),
-                Text('Logout'),
+                Text(context.withLocale().logout),
               ],
             ),
             onTap: () {
-              var masterPageBloc = BlocProvider.of<MasterPageBloc>(context);
-              masterPageBloc.add(Logout());
+              context.addMasterPageEvent(Logout());
             },
           ),
         ];
@@ -248,11 +241,16 @@ class _ProfileActionButtonState extends State<_ProfileActionButton> {
     return !_isImageLoaded
         ? const CircleAvatar(
             radius: 30,
-            child: Icon(Icons.account_circle_rounded),
+            child: Icon(
+              Icons.account_circle_rounded,
+              color: Colors.green,
+            ),
+            backgroundColor: Colors.black,
           )
         : CircleAvatar(
             radius: 30,
             backgroundImage: _userProfileNetworkImage,
+            backgroundColor: Colors.black,
           );
   }
 }

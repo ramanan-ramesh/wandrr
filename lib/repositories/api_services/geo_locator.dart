@@ -5,9 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:wandrr/contracts/api_service.dart';
 import 'package:wandrr/contracts/collection_names.dart';
-import 'package:wandrr/contracts/location.dart';
+import 'package:wandrr/contracts/trip_entity_facades/location.dart';
 
-class GeoLocator implements MultiOptionsAPIService<LocationModelFacade> {
+class GeoLocator implements MultiOptionsAPIService<LocationFacade> {
   static const _apiSurfaceUrl = 'https://api.locationiq.com/v1/autocomplete?';
   static const _typeField = 'type';
   static const _apiKeyField = 'key';
@@ -17,7 +17,7 @@ class GeoLocator implements MultiOptionsAPIService<LocationModelFacade> {
   static const _latitudeField = 'lat';
   static const _longitudeField = 'lon';
   String lastQuery = '';
-  List<LocationModelFacade> _lastQueriedLocations = [];
+  List<LocationFacade> _lastQueriedLocations = [];
 
   static Future<GeoLocator> create() async {
     var locationAPIDocumentQueryResult = await FirebaseFirestore.instance
@@ -28,7 +28,7 @@ class GeoLocator implements MultiOptionsAPIService<LocationModelFacade> {
     return GeoLocator._(apiKey: locationAPIDocument[_apiKeyField]);
   }
 
-  Future<List<LocationModelFacade>> performQuery(Object query) async {
+  Future<List<LocationFacade>> performQuery(Object query) async {
     if (query is String && query.length >= 2 && _shouldAllowQuery) {
       var queryUrl = _constructQuery(query);
       try {
@@ -52,14 +52,14 @@ class GeoLocator implements MultiOptionsAPIService<LocationModelFacade> {
   String _constructQuery(String query) =>
       '${_apiSurfaceUrl}key=$_apiKey&q=$query';
 
-  static List<LocationModelFacade> _convertResponse(String response) {
+  static List<LocationFacade> _convertResponse(String response) {
     List decodedResponse = json.decode(response);
     return decodedResponse.map((e) => convertJsonToLocation(e)).toList();
   }
 
-  static LocationModelFacade convertJsonToLocation(
+  static LocationFacade convertJsonToLocation(
       Map<String, dynamic> locationJson) {
-    return LocationModelFacade(
+    return LocationFacade(
         latitude: double.parse(locationJson[_latitudeField].toString()),
         longitude: double.parse(locationJson[_longitudeField].toString()),
         context: GeoLocationApiContext.fromApi(locationJson),

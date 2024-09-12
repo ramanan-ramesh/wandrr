@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/contracts/location.dart';
+import 'package:wandrr/contracts/trip_entity_facades/location.dart';
 
-class PlatformLocationElements{
+class PlatformLocationElements {
   static const Map<LocationType, IconData?> locationTypesAndIcons = {
     LocationType.Place: Icons.place_rounded,
     LocationType.Attraction: Icons.attractions_rounded,
@@ -13,5 +13,3 @@ class PlatformLocationElements{
     LocationType.RailwayStation: Icons.directions_train_rounded,
   };
 }
-
-

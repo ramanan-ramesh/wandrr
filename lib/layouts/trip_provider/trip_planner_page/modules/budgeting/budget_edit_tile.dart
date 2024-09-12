@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/blocs/trip_management/bloc.dart';
 import 'package:wandrr/blocs/trip_management/events.dart';
 import 'package:wandrr/blocs/trip_management/states.dart';
-import 'package:wandrr/contracts/data_states.dart';
-import 'package:wandrr/contracts/expense.dart';
+import 'package:wandrr/contracts/database_connectors/collection_change_metadata.dart';
+import 'package:wandrr/contracts/database_connectors/data_states.dart';
 import 'package:wandrr/contracts/extensions.dart';
-import 'package:wandrr/contracts/model_collection.dart';
-import 'package:wandrr/contracts/trip_metadata.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
+import 'package:wandrr/contracts/trip_entity_facades/trip_metadata.dart';
 import 'package:wandrr/layouts/trip_provider/trip_planner_page/currencies.dart';
 import 'package:wandrr/platform_elements/button.dart';
 import 'package:wandrr/platform_elements/form.dart';
@@ -43,8 +42,7 @@ class BudgetEditTile extends StatelessWidget {
             Padding(
               padding: EdgeInsets.symmetric(vertical: 3.0),
               child: PlatformTextElements.createSubHeader(
-                  context: context,
-                  text: AppLocalizations.of(context)!.edit_budget),
+                  context: context, text: context.withLocale().edit_budget),
             ),
             Container(
               constraints: BoxConstraints(maxWidth: 400),
@@ -79,12 +77,12 @@ class BudgetEditTile extends StatelessWidget {
       _buildUpdateBudgetButton() {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       builder: (BuildContext context, TripManagementState state) {
-        if (state.isTripEntity<TripMetadataModelFacade>()) {
+        if (state.isTripEntity<TripMetadataFacade>()) {
           var updatedTripEntity = state as UpdatedTripEntity;
           if (updatedTripEntity.dataState == DataState.Update) {
             var tripMetadataModelModificationData =
                 updatedTripEntity.tripEntityModificationData
-                    as CollectionModificationData<TripMetadataModelFacade>;
+                    as CollectionChangeMetadata<TripMetadataFacade>;
             if (tripMetadataModelModificationData.isFromEvent) {
               if (tripMetadataModelModificationData
                       .modifiedCollectionItem.budget !=
@@ -101,12 +99,10 @@ class BudgetEditTile extends StatelessWidget {
           valueNotifier: _budgetValidityNotifier,
           isSubmitted: false,
           callback: () {
-            var tripManagementBloc =
-                BlocProvider.of<TripManagementBloc>(context);
             var tripMetadata = context.getActiveTrip().tripMetadata;
             tripMetadata.budget = _currentBudget!;
-            tripManagementBloc.add(
-                UpdateTripEntity<TripMetadataModelFacade>.update(
+            context.addTripManagementEvent(
+                UpdateTripEntity<TripMetadataFacade>.update(
                     tripEntity: tripMetadata));
           },
           icon: Icons.save_rounded,

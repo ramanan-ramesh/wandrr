@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:wandrr/contracts/expense.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
 import '../constants.dart';
 import 'expenditure_edit_tile.dart';
 
 class ClosedExpenseListItem extends StatelessWidget {
-  final ExpenseModelFacade expenseModelFacade;
+  final ExpenseFacade expenseModelFacade;
 
   String get _subTitle {
     var subTitle = '';

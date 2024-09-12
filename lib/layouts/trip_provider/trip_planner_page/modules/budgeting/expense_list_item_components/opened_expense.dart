@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:wandrr/contracts/communicators.dart';
-import 'package:wandrr/contracts/expense.dart';
-import 'package:wandrr/platform_elements/button.dart';
+import 'package:wandrr/contracts/extensions.dart';
+import 'package:wandrr/contracts/trip_entity_facades/expense.dart';
+import 'package:wandrr/contracts/ui_element.dart';
+import 'package:wandrr/layouts/trip_provider/trip_planner_page/modules/budgeting/constants.dart';
 import 'package:wandrr/platform_elements/date_picker.dart';
 import 'package:wandrr/platform_elements/dialog.dart';
 import 'package:wandrr/platform_elements/form.dart';
 import 'package:wandrr/platform_elements/text.dart';
 
-import '../constants.dart';
 import 'expenditure_edit_tile.dart';
 
 class OpenedExpenseListItem extends StatelessWidget {
-  final UiElement<ExpenseModelFacade> expenseUiElement;
+  final UiElement<ExpenseFacade> expenseUiElement;
   final Map<ExpenseCategory, String> categoryNames;
   final TextEditingController _descriptionFieldController =
       TextEditingController();
@@ -79,7 +78,7 @@ class OpenedExpenseListItem extends StatelessWidget {
                         child: PlatformTextField(
                           controller: _descriptionFieldController,
                           maxLines: null,
-                          labelText: AppLocalizations.of(context)!.description,
+                          labelText: context.withLocale().description,
                           onTextChanged: (updatedDescription) {
                             expenseUiElement.element.description =
                                 updatedDescription;
@@ -137,7 +136,7 @@ class OpenedExpenseListItem extends StatelessWidget {
     if (!_isLinkedExpense) {
       return PlatformTextElements.createTextField(
           context: context,
-          labelText: AppLocalizations.of(context)!.title,
+          labelText: context.withLocale().title,
           controller: _titleEditingController,
           onTextChanged: (newTitle) {
             expenseUiElement.element.title = newTitle;
@@ -179,33 +178,34 @@ class _CategoryPickerState extends State<_CategoryPicker> {
 
   @override
   Widget build(BuildContext context) {
-    return PlatformButtonElements.createTextButtonWithIcon(
-        key: _widgetKey,
-        text: AppLocalizations.of(context)!.category,
-        iconData: iconsForCategories[widget.category]!,
-        onPressed: widget.callback == null
-            ? null
-            : () {
-                PlatformDialogElements.showAlignedDialog(
-                    context: context,
-                    widgetBuilder: (context) => Material(
-                          elevation: 5.0,
-                          child: Container(
-                            width: 200,
-                            color: Colors.white24,
-                            child: GridView.extent(
-                              shrinkWrap: true,
-                              maxCrossAxisExtent: 75,
-                              mainAxisSpacing: 5,
-                              crossAxisSpacing: 5,
-                              children: widget.categories.keys
-                                  .map((e) => _createCategory(e, context))
-                                  .toList(),
-                            ),
+    return TextButton.icon(
+      key: _widgetKey,
+      icon: Icon(iconsForCategories[widget.category]!),
+      onPressed: widget.callback == null
+          ? null
+          : () {
+              PlatformDialogElements.showAlignedDialog(
+                  context: context,
+                  widgetBuilder: (context) => Material(
+                        elevation: 5.0,
+                        child: Container(
+                          width: 200,
+                          color: Colors.white24,
+                          child: GridView.extent(
+                            shrinkWrap: true,
+                            maxCrossAxisExtent: 75,
+                            mainAxisSpacing: 5,
+                            crossAxisSpacing: 5,
+                            children: widget.categories.keys
+                                .map((e) => _createCategory(e, context))
+                                .toList(),
                           ),
                         ),
-                    widgetKey: _widgetKey);
-              });
+                      ),
+                  widgetKey: _widgetKey);
+            },
+      label: Text(context.withLocale().category),
+    );
   }
 
   Widget _createCategory(

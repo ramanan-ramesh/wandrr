@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/contracts/transit.dart';
+import 'package:wandrr/contracts/trip_entity_facades/transit.dart';
 
 class TransitOptionMetadata {
   final TransitOption transitOption;

@@ -5,7 +5,7 @@ import 'package:wandrr/platform_elements/form.dart';
 class NotesListView extends StatefulWidget {
   NotesListView({super.key, required this.notes, required this.onNotesChanged});
 
-  final List<NoteModelFacade> notes;
+  final List<NoteFacade> notes;
   final Function() onNotesChanged;
 
   @override
@@ -49,7 +49,7 @@ class NotesListViewState extends State<NotesListView> {
 }
 
 class _NoteListItem extends StatefulWidget {
-  final NoteModelFacade note;
+  final NoteFacade note;
   Function() onNoteChanged;
 
   _NoteListItem({super.key, required this.note, required this.onNoteChanged});

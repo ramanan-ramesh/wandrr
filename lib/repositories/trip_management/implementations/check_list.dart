@@ -1,17 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/contracts/check_list.dart';
 import 'package:wandrr/contracts/check_list_item.dart';
-import 'package:wandrr/contracts/repository_pattern.dart';
+import 'package:wandrr/contracts/database_connectors/repository_pattern.dart';
 
-class CheckListModelImplementation extends CheckListModelFacade
-    implements RepositoryPattern<CheckListModelFacade> {
+class CheckListModelImplementation extends CheckListFacade
+    implements RepositoryPattern<CheckListFacade> {
   static const _itemsField = 'items';
   static const _titleField = 'title';
   static const _itemField = 'item';
   static const _isCheckedField = 'status';
 
   @override
-  CheckListModelFacade get facade => this;
+  CheckListFacade get facade => this;
 
   @override
   String? id;
@@ -21,7 +21,7 @@ class CheckListModelImplementation extends CheckListModelFacade
       throw UnimplementedError();
 
   CheckListModelImplementation.fromModelFacade(
-      {required CheckListModelFacade checkListModelFacade})
+      {required CheckListFacade checkListModelFacade})
       : super(
             items: List.from(checkListModelFacade.items),
             title: checkListModelFacade.title,
@@ -41,7 +41,7 @@ class CheckListModelImplementation extends CheckListModelFacade
   }
 
   @override
-  Future<bool> tryUpdate(CheckListModelFacade toUpdate) async {
+  Future<bool> tryUpdate(CheckListFacade toUpdate) async {
     return true;
   }
 

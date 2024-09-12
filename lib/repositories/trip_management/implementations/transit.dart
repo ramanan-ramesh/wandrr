@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/contracts/collection_names.dart';
-import 'package:wandrr/contracts/firestore_helpers.dart';
-import 'package:wandrr/contracts/repository_pattern.dart';
-import 'package:wandrr/contracts/transit.dart';
+import 'package:wandrr/contracts/database_connectors/firestore_helpers.dart';
+import 'package:wandrr/contracts/database_connectors/repository_pattern.dart';
+import 'package:wandrr/contracts/trip_entity_facades/transit.dart';
 import 'package:wandrr/repositories/trip_management/implementations/expense.dart';
 import 'package:wandrr/repositories/trip_management/implementations/location.dart';
 
-class TransitImplementation extends TransitModelFacade
-    implements RepositoryPattern<TransitModelFacade> {
+class TransitImplementation extends TransitFacade
+    implements RepositoryPattern<TransitFacade> {
   static const _departureLocationField = 'departureLocation';
   static const _departureDateTimeField = 'departureDateTime';
   static const _arrivalLocationField = 'arrivalLocation';
@@ -36,7 +36,7 @@ class TransitImplementation extends TransitModelFacade
             departureLocation: departureLocation);
 
   TransitImplementation.fromModelFacade(
-      {required TransitModelFacade transitModelFacade})
+      {required TransitFacade transitModelFacade})
       : super(
             tripId: transitModelFacade.tripId,
             transitOption: transitModelFacade.transitOption,
@@ -104,7 +104,7 @@ class TransitImplementation extends TransitModelFacade
   }
 
   @override
-  Future<bool> tryUpdate(TransitModelFacade toUpdate) async {
+  Future<bool> tryUpdate(TransitFacade toUpdate) async {
     Map<String, dynamic> json = {};
     FirestoreHelpers.updateJson(departureLocation, toUpdate.departureLocation,
         _departureLocationField, json);
@@ -133,5 +133,5 @@ class TransitImplementation extends TransitModelFacade
   }
 
   @override
-  TransitModelFacade get facade => clone();
+  TransitFacade get facade => clone();
 }
