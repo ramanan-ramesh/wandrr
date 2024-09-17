@@ -1,0 +1,61 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wandrr/app_data/models/repository_pattern.dart';
+import 'package:wandrr/trip_data/models/check_list.dart';
+import 'package:wandrr/trip_data/models/check_list_item.dart';
+
+class CheckListModelImplementation extends CheckListFacade
+    implements RepositoryPattern<CheckListFacade> {
+  static const _itemsField = 'items';
+  static const _titleField = 'title';
+  static const _itemField = 'item';
+  static const _isCheckedField = 'status';
+
+  @override
+  CheckListFacade get facade => this;
+
+  @override
+  String? id;
+
+  @override
+  DocumentReference<Object?> get documentReference =>
+      throw UnimplementedError();
+
+  CheckListModelImplementation.fromModelFacade(
+      {required CheckListFacade checkListModelFacade})
+      : super(
+            items: List.from(checkListModelFacade.items),
+            title: checkListModelFacade.title,
+            tripId: checkListModelFacade.tripId);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      _titleField: title,
+      _itemsField: items
+          .map((checkListItem) => {
+                _itemField: checkListItem.item,
+                _isCheckedField: checkListItem.isChecked
+              })
+          .toList()
+    };
+  }
+
+  @override
+  Future<bool> tryUpdate(CheckListFacade toUpdate) async {
+    return true;
+  }
+
+  static CheckListModelImplementation fromDocumentData(
+      {required Map<String, dynamic> documentData, required String tripId}) {
+    var items = List<Map<String, dynamic>>.from(documentData[_itemsField]).map(
+        (e) =>
+            CheckListItem(item: e[_itemField], isChecked: e[_isCheckedField]));
+    return CheckListModelImplementation._(
+        items: List.from(items),
+        title: documentData[_titleField],
+        tripId: tripId);
+  }
+
+  CheckListModelImplementation._(
+      {required super.items, super.title, required super.tripId});
+}
