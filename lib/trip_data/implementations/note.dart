@@ -1,0 +1,41 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wandrr/app_data/models/repository_pattern.dart';
+import 'package:wandrr/trip_data/models/note.dart';
+
+class NoteModelImplementation extends NoteFacade
+    implements RepositoryPattern<NoteFacade> {
+  static const _noteField = 'note';
+
+  @override
+  NoteFacade get facade => this;
+
+  @override
+  String? id;
+
+  @override
+  DocumentReference<Object?> get documentReference =>
+      throw UnimplementedError();
+
+  NoteModelImplementation.fromModelFacade({
+    required NoteFacade noteModelFacade,
+  }) : super(note: noteModelFacade.note, tripId: noteModelFacade.tripId);
+
+  static NoteModelImplementation fromDocumentSnapshot(
+      {required DocumentSnapshot documentSnapshot, required String tripId}) {
+    return NoteModelImplementation._(
+        note: documentSnapshot[_noteField], tripId: tripId);
+  }
+
+  @override
+  Map<String, dynamic> toJson() => {_noteField: note};
+
+  @override
+  Future<bool> tryUpdate(NoteFacade toUpdate) async {
+    return true;
+  }
+
+  NoteModelImplementation._({
+    required super.note,
+    required super.tripId,
+  });
+}
