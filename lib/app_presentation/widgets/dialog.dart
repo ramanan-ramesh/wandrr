@@ -27,11 +27,11 @@ class PlatformDialogElements {
           .showAlignedDialog(
         context: context,
         builder: (context) {
-          return ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: screenSize.height * 0.8,
-            ),
-            child: SingleChildScrollView(
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: screenSize.height * 0.8,
+              ),
               child: widgetBuilder(context),
             ),
           );

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/app_data/models/app_level_data.dart';
 import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/events.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/trip_data/models/trip_metadata.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
@@ -11,6 +10,7 @@ import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_entity_lis
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_entity_list_views/lodging.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_entity_list_views/transit.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_overview_tile.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
 
 import 'budgeting/header_tile.dart';
 import 'expense_view_type.dart';
@@ -112,13 +112,19 @@ class TripPlannerPage extends StatelessWidget {
           ),
           if (!isBigLayout)
             SliverToBoxAdapter(
-              child: BudgetingHeaderTile(
-                expenseViewTypeNotifier: _expenseViewTypeNotifier,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
+                child: BudgetingHeaderTile(
+                  expenseViewTypeNotifier: _expenseViewTypeNotifier,
+                ),
               ),
             ),
           if (!isBigLayout)
-            ExpenseViewAdapter(
-              expenseViewTypeNotifier: _expenseViewTypeNotifier,
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
+              sliver: ExpenseViewAdapter(
+                expenseViewTypeNotifier: _expenseViewTypeNotifier,
+              ),
             ),
         ],
       ),

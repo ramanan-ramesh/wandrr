@@ -15,12 +15,14 @@ class PlatformTextElements {
   static Text createSubHeader(
       {required BuildContext context,
       required String text,
+      Color? color,
       bool shouldBold = false}) {
     return Text(
       text,
       softWrap: true,
       style: TextStyle(
           // color: Colors.white,
+          color: color,
           fontSize: subHeaderSize,
           fontWeight: shouldBold ? FontWeight.bold : null),
     );

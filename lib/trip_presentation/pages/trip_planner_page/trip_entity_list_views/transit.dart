@@ -5,7 +5,7 @@ import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/trip_data/models/transit.dart';
 import 'package:wandrr/trip_data/models/trip_data.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/editable_list_elements/transit.dart';
-import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_entity_list_elements.dart';
+import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_entity_list_view.dart';
 
 import '../readonly_list_elements/transit.dart';
 import '../transit_option_metadata.dart';

@@ -6,13 +6,13 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:wandrr/app_data/models/data_states.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/bloc.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/events.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/states.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/trip_metadata.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/bloc.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/states.dart';
 
 class TripListView extends StatelessWidget {
   static const _tripPlanningImageAssets = [

@@ -205,8 +205,9 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
           tripMetadataRepositoryPattern) async {
     var updatedTripMetadata = tripMetadataRepositoryPattern.clone();
     var currentContributors = _tripMetadataModelImplementation.contributors;
-    var didContributorsChange =
-        currentContributors != updatedTripMetadata.contributors;
+    var didContributorsChange = !(ListEquality()
+        .equals(currentContributors, updatedTripMetadata.contributors));
+
     var haveTripDatesChanged = !_tripMetadataModelImplementation.startDate!
             .isOnSameDayAs(updatedTripMetadata.startDate!) ||
         !_tripMetadataModelImplementation.endDate!

@@ -4,9 +4,9 @@ import 'package:wandrr/app_data/models/app_level_data.dart';
 import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
 import 'package:wandrr/app_presentation/blocs/master_page/master_page_events.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/events.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/trip_data/models/trip_metadata.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
 
 import 'trip_creator_dialog.dart';
 import 'trips_list_view.dart';
@@ -81,7 +81,7 @@ class HomePage extends StatelessWidget {
           var geoLocator = pageContext.getPlatformDataRepository().geoLocator;
           showGeneralDialog(
             context: pageContext,
-            barrierDismissible: true,
+            barrierDismissible: false,
             pageBuilder: (BuildContext context, Animation<double> animation,
                 Animation<double> secondaryAnimation) {
               return Material(

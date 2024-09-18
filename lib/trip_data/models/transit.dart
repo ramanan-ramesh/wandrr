@@ -127,6 +127,19 @@ class TransitFacade extends Equatable implements TripEntity {
     }
   }
 
+  bool isFlightOperatorValid() {
+    if (transitOption == TransitOption.Flight) {
+      var splitOptions = operator?.split(' ');
+      if (splitOptions != null &&
+          splitOptions.length == 3 &&
+          !splitOptions.any((e) => e.isEmpty)) {
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }
+
   @override
   List<Object?> get props => [
         tripId,

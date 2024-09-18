@@ -3,14 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/app_data/models/data_states.dart';
 import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/bloc.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/events.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/states.dart';
 import 'package:wandrr/trip_data/implementations/trip_repository.dart';
 import 'package:wandrr/trip_data/models/trip_metadata.dart';
 import 'package:wandrr/trip_data/models/trip_repository.dart';
 import 'package:wandrr/trip_presentation/pages/home_page/home_page.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_planner_page.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/bloc.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/states.dart';
 
 class TripProvider extends StatelessWidget {
   TripRepositoryImplementation? _tripRepositoryImplementation;

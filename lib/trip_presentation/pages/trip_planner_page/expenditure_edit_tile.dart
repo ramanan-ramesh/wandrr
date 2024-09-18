@@ -40,24 +40,13 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   late CurrencyData _currentCurrencyInfo;
   final Map<String, Color> _contributorsVsColors = {};
   static const double _heightPerItem = 40;
+  late ValueNotifier<Money> _totalExpenseValueNotifier;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-  }
-
-  void _initializeContributors(BuildContext context) {
-    var contributors = context.getActiveTrip().tripMetadata.contributors;
-    var allContributors = List.from(contributors);
-    allContributors.sort();
-    for (int index = 0; index < allContributors.length; index++) {
-      var contributor = allContributors.elementAt(index);
-      _contributorsVsColors[contributor] = contributorColors[index];
-    }
-    _currentCurrencyInfo = context
-        .getSupportedCurrencies()
-        .firstWhere((element) => element.code == widget.totalExpense.currency);
+    _totalExpenseValueNotifier = ValueNotifier(widget.totalExpense);
   }
 
   @override
@@ -79,10 +68,16 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
                 padding: EdgeInsets.symmetric(vertical: 2.0),
                 child: Row(
                   children: [
-                    PlatformTextElements.createSubHeader(
-                        context: context,
-                        shouldBold: widget.isEditable,
-                        text: widget.totalExpense.amount.toStringAsFixed(2)),
+                    ValueListenableBuilder<Money>(
+                      valueListenable: _totalExpenseValueNotifier,
+                      builder:
+                          (BuildContext context, Money value, Widget? child) {
+                        return PlatformTextElements.createSubHeader(
+                            context: context,
+                            shouldBold: widget.isEditable,
+                            text: value.amount.toStringAsFixed(2));
+                      },
+                    ),
                     Flexible(
                       child: PlatformCurrencyDropDown(
                           selectedCurrencyData: _currentCurrencyInfo,
@@ -91,12 +86,13 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
                             if (currencyInfo.name !=
                                 _currentCurrencyInfo.name) {
                               setState(() {
-                                widget.totalExpense = Money(
+                                _totalExpenseValueNotifier.value = Money(
                                     currency: currencyInfo.code,
-                                    amount: widget.totalExpense.amount);
+                                    amount: _totalExpenseValueNotifier
+                                        .value.amount);
                                 _currentCurrencyInfo = currencyInfo;
-                                widget.callback!(
-                                    widget.paidBy, null, widget.totalExpense);
+                                widget.callback!(widget.paidBy, null,
+                                    _totalExpenseValueNotifier.value);
                               });
                             }
                           }),
@@ -130,7 +126,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
             child: PlatformTextElements.createSubHeader(
                 context: context,
                 shouldBold: widget.isEditable,
-                text: widget.totalExpense.toString()),
+                text: _totalExpenseValueNotifier.value.toString()),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 2.0),
@@ -148,6 +144,18 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
         ],
       );
     }
+  }
+
+  void _initializeContributors(BuildContext context) {
+    var contributors = context.getActiveTrip().tripMetadata.contributors;
+    var allContributors = List.from(contributors);
+    allContributors.sort();
+    for (int index = 0; index < allContributors.length; index++) {
+      var contributor = allContributors.elementAt(index);
+      _contributorsVsColors[contributor] = contributorColors[index];
+    }
+    _currentCurrencyInfo = context.getSupportedCurrencies().firstWhere(
+        (element) => element.code == _totalExpenseValueNotifier.value.currency);
   }
 
   Widget _buildSplitByIcons() {
@@ -170,8 +178,14 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     return TabBar(
       controller: _tabController,
       tabs: [
-        Tab(text: context.withLocale().paidBy),
-        Tab(text: context.withLocale().split),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Tab(text: context.withLocale().paidBy),
+        ),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Tab(text: context.withLocale().split),
+        ),
       ],
     );
   }
@@ -185,15 +199,14 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
         widget.paidBy = Map.from(paidBy);
         var totalExpenseAmount = widget.paidBy.values
             .fold(0.0, (previousValue, element) => previousValue + element);
-        if (totalExpenseAmount != widget.totalExpense.amount) {
-          setState(() {
-            widget.totalExpense = Money(
-                currency: widget.totalExpense.currency,
-                amount: totalExpenseAmount);
-            if (widget.callback != null) {
-              widget.callback!(widget.paidBy, null, widget.totalExpense);
-            }
-          });
+        if (totalExpenseAmount != _totalExpenseValueNotifier.value.amount) {
+          _totalExpenseValueNotifier.value = Money(
+              currency: _totalExpenseValueNotifier.value.currency,
+              amount: totalExpenseAmount);
+          if (widget.callback != null) {
+            widget.callback!(
+                widget.paidBy, null, _totalExpenseValueNotifier.value);
+          }
         }
       },
       defaultCurrencySymbol: _currentCurrencyInfo.symbol,

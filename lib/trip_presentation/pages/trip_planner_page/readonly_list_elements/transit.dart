@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/location.dart';
@@ -33,26 +34,15 @@ class ReadonlyTransitListItem extends StatelessWidget {
               children: [
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: _createTransitOption(context),
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
                   child: _createLocationDetailTitle(context, false),
                 ),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: _createLocationDetailTitle(context, true),
+                  child: _createTransitOption(context),
                 ),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
-                    child: Text(
-                      _getTransitCarrier(),
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                  ),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: _createLocationDetailTitle(context, true),
                 ),
                 if (isNotesValid)
                   Padding(
@@ -101,17 +91,20 @@ class ReadonlyTransitListItem extends StatelessWidget {
     );
   }
 
-  String _getTransitCarrier() {
+  String? _getTransitCarrier() {
     if (transitModelFacade.transitOption == TransitOption.Flight) {
       return transitModelFacade.operator!;
     } else {
+      if (transitModelFacade.operator == null) {
+        return null;
+      }
       var pascalWordsPattern = RegExp(r"(?:[A-Z]+|^)[a-z]*");
       List<String> getPascalWords(String input) =>
           pascalWordsPattern.allMatches(input).map((m) => m[0]!).toList();
       var pascalWords = getPascalWords(transitModelFacade.transitOption.name);
       var transitOption = pascalWords.fold(
           '', (previousValue, element) => '$previousValue $element');
-      return transitModelFacade.operator ?? transitOption;
+      return transitOption;
     }
   }
 
@@ -166,43 +159,78 @@ class ReadonlyTransitListItem extends StatelessWidget {
       }
     }
 
-    return IgnorePointer(
-      child: ListTile(
-        leading: Text(isArrival
-            ? context.withLocale().arrive
-            : context.withLocale().depart),
-        title: Column(
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Text(
+          isArrival ? context.withLocale().arrive : context.withLocale().depart,
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge!
+              .copyWith(color: Colors.green),
+        ),
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
               padding: EdgeInsets.symmetric(vertical: 2.0),
               child: PlatformTextElements.createSubHeader(
-                  context: context, text: locationTitle, shouldBold: true),
+                  color: Colors.green,
+                  context: context,
+                  text: locationTitle,
+                  shouldBold: true),
             ),
             if (transitModelFacade.transitOption == TransitOption.Flight)
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 2.0),
                 child: Text(locationToConsider.context.name),
               ),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 2.0),
+              child: Text(
+                dateTimeText,
+              ),
+            ),
           ],
         ),
-        trailing: PlatformTextElements.createSubHeader(
-            context: context, text: dateTimeText, shouldBold: true),
-      ),
+      ],
     );
   }
 
   Widget _createTransitOption(BuildContext context) {
     var transitOptionMetadata = transitOptionMetadatas.firstWhere(
         (element) => element.transitOption == transitModelFacade.transitOption);
-    return ElevatedButton(
-        onPressed: null,
-        child: Column(
-          children: [
-            IconButton(onPressed: null, icon: Icon(transitOptionMetadata.icon)),
-            Text(transitOptionMetadata.name)
-          ],
-        ));
+    var transitCarrier = _getTransitCarrier();
+    if (transitCarrier != null) {
+      return Row(
+        children: [
+          Column(
+            children: [
+              IgnorePointer(
+                  child: IconButton(
+                      onPressed: null, icon: Icon(transitOptionMetadata.icon))),
+              Text(transitOptionMetadata.name)
+            ],
+          ),
+          Expanded(
+            child: Divider(),
+          ),
+          Text(transitCarrier),
+          if (context.isBigLayout())
+            Expanded(
+              child: Divider(),
+            ),
+        ],
+      );
+    }
+    return Column(
+      children: [
+        IgnorePointer(
+            child: IconButton(
+                onPressed: null, icon: Icon(transitOptionMetadata.icon))),
+        Text(transitOptionMetadata.name)
+      ],
+    );
   }
 }
 

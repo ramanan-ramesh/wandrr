@@ -299,9 +299,9 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       var collectionItemFacade = collectionItem.facade;
       ExpenseFacade expenseModelFacade;
       if (isLinkedExpense) {
-        expenseModelFacade = collectionItemFacade;
-      } else {
         expenseModelFacade = collectionItemFacade.expense;
+      } else {
+        expenseModelFacade = collectionItemFacade;
       }
 
       for (var contributor in contributors) {

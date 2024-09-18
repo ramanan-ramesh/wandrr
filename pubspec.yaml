@@ -45,7 +45,6 @@ dependencies:
   hive_flutter: ^1.1.0
   http: ^1.1.0
   calendar_date_picker2: ^0.5.3
-  scroll_to_index: ^3.0.1
   aligned_dialog: ^0.0.7
   equatable: ^2.0.5
   dropdown_search: ^5.0.6

@@ -29,7 +29,7 @@ class ReadonlyLodgingListItem extends StatelessWidget {
                 children: [
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 4.0),
-                    child: PlatformTextElements.createSubHeader(
+                    child: PlatformTextElements.createHeader(
                         context: context,
                         text: (lodgingModelFacade.location!.context
                                 as GeoLocationApiContext)
@@ -97,7 +97,7 @@ class ReadonlyLodgingListItem extends StatelessWidget {
         '${DateFormat.MMMEd().format(lodgingModelFacade.checkinDateTime!)} - ${DateFormat.MMMEd().format(lodgingModelFacade.checkoutDateTime!)}';
     return Text(
       dateTime,
-      style: TextStyle(color: Colors.white),
+      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
     );
   }
 

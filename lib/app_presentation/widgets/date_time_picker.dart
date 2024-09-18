@@ -47,6 +47,7 @@ class _PlatformDateTimePickerState extends State<PlatformDateTimePicker> {
             .then(
           (selectedDateTime) {
             if (shouldRebuild) {
+              widget.dateTimeUpdated?.call(_dateTime!);
               setState(() {});
             }
           },

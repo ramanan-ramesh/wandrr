@@ -58,13 +58,11 @@ class TripManagementBloc
     var tripMetadataUpdatedSubscription = _tripRepository
         .tripMetadataModelCollection.onDocumentUpdated
         .listen((eventData) {
-      if (!eventData.isFromEvent) {
-        var collectionModificationData = CollectionChangeMetadata(
-            eventData.modifiedCollectionItem.afterUpdate.clone(), false);
-        if (!isClosed) {
-          add(_UpdateTripEntityInternalEvent.updated(
-              collectionModificationData, true));
-        }
+      var collectionModificationData = CollectionChangeMetadata(
+          eventData.modifiedCollectionItem.afterUpdate.clone(), false);
+      if (!isClosed) {
+        add(_UpdateTripEntityInternalEvent.updated(
+            collectionModificationData, true));
       }
     });
     var tripMetadataAddedSubscription = _tripRepository

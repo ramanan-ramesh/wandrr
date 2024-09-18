@@ -3,15 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/app_data/models/collection_change_metadata.dart';
 import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/bloc.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/events.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/states.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/button.dart';
 import 'package:wandrr/app_presentation/widgets/date_range_pickers.dart';
 import 'package:wandrr/trip_data/models/trip_data.dart';
 import 'package:wandrr/trip_data/models/trip_metadata.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/bloc.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/states.dart';
 
 import 'constants.dart';
 
@@ -235,6 +235,7 @@ class _AddTripMateField extends StatelessWidget {
     var currentContributors = context.getActiveTrip().tripMetadata.contributors;
     var tripMateUserNameEditingController = TextEditingController();
     return TextFormField(
+      maxLines: null,
       textInputAction: TextInputAction.done,
       controller: tripMateUserNameEditingController,
       decoration: InputDecoration(
