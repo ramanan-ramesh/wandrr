@@ -109,18 +109,25 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
           .calculateDaysInBetween(transit.arrivalDateTime!,
               includeExtraDay: false);
       if (totalDaysOfTransit == 0) {
-        var matchingTransitEntry = transitsPerDay.entries.firstWhere(
-            (element) => element.key.isOnSameDayAs(transit.arrivalDateTime!));
-        transitsPerDay[matchingTransitEntry.key]!.add(transit);
+        var matchingTransitEntry = transitsPerDay.entries
+            .where((element) =>
+                element.key.isOnSameDayAs(transit.arrivalDateTime!))
+            .firstOrNull;
+        if (matchingTransitEntry != null) {
+          transitsPerDay[matchingTransitEntry.key]!.add(transit);
+        }
       } else {
         for (var dayCounter = 0;
             dayCounter < numberOfDaysOfTrip;
             dayCounter++) {
           var currentTripDay =
               transit.departureDateTime!.add(Duration(days: dayCounter));
-          var matchingTransitEntry = transitsPerDay.entries.firstWhere(
-              (element) => element.key.isOnSameDayAs(currentTripDay));
-          transitsPerDay[matchingTransitEntry.key]!.add(transit);
+          var matchingTransitEntry = transitsPerDay.entries
+              .where((element) => element.key.isOnSameDayAs(currentTripDay))
+              .firstOrNull;
+          if (matchingTransitEntry != null) {
+            transitsPerDay[matchingTransitEntry.key]!.add(transit);
+          }
         }
       }
     }

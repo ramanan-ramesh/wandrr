@@ -223,6 +223,7 @@ class _CheckListItemState extends State<_CheckListItem> {
             padding: const EdgeInsets.symmetric(horizontal: 3.0),
             child: CheckboxListTile(
               title: TextFormField(
+                maxLines: null,
                 controller: _itemEditingController,
                 onChanged: (newValue) {
                   if (newValue != _checkListItem.item) {

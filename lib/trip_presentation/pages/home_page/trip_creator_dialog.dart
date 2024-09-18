@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/api_services/models/currency_data.dart';
 import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/events.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/button.dart';
 import 'package:wandrr/app_presentation/widgets/date_range_pickers.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/trip_metadata.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
 import 'package:wandrr/trip_presentation/widgets/currency_drop_down.dart';
 
 class TripCreatorDialog extends StatelessWidget {

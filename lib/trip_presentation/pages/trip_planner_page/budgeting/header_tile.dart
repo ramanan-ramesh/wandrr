@@ -3,15 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/app_data/models/data_states.dart';
 import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/bloc.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/events.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/states.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/expense.dart';
 import 'package:wandrr/trip_data/models/trip_metadata.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/expense_view_type.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/bloc.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/states.dart';
 
 class BudgetingHeaderTile extends StatelessWidget {
   final ValueNotifier<ExpenseViewType> _expenseViewTypeNotifier;
@@ -58,16 +58,20 @@ class BudgetingHeaderTile extends StatelessWidget {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                _buildExpenseViewButton(
-                                    context,
-                                    ExpenseViewType.ShowBudgetEditor,
-                                    context.withLocale().edit_budget,
-                                    Icons.check_rounded),
-                                _buildExpenseViewButton(
-                                    context,
-                                    ExpenseViewType.ShowDebtSummary,
-                                    context.withLocale().debt_summary,
-                                    Icons.feed_rounded)
+                                Flexible(
+                                  child: _buildExpenseViewButton(
+                                      context,
+                                      ExpenseViewType.ShowBudgetEditor,
+                                      context.withLocale().edit_budget,
+                                      Icons.check_rounded),
+                                ),
+                                Flexible(
+                                  child: _buildExpenseViewButton(
+                                      context,
+                                      ExpenseViewType.ShowDebtSummary,
+                                      context.withLocale().debt_summary,
+                                      Icons.feed_rounded),
+                                )
                               ],
                             ),
                           ),
@@ -125,7 +129,14 @@ class BudgetingHeaderTile extends StatelessWidget {
                   _expenseViewTypeNotifier.value = expenseViewType;
                 }
               : null,
-          label: Text(buttonText),
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.all<Color?>(
+                !shouldEnableButton ? Colors.white12 : null),
+          ),
+          label: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(buttonText),
+          ),
           icon: Icon(icon),
           key: key,
         );

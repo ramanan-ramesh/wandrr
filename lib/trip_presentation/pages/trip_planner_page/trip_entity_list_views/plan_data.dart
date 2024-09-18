@@ -3,15 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/app_data/models/data_states.dart';
 import 'package:wandrr/app_data/models/ui_element.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/bloc.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/events.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/states.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/button.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/plan_data.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/editable_list_elements/plan_data/plan_data.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/bloc.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/states.dart';
 
 class PlanDataListView extends StatefulWidget {
   const PlanDataListView({super.key});

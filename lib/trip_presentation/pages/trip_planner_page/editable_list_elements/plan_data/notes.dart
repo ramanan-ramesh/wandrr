@@ -74,6 +74,7 @@ class _NoteListItemState extends State<_NoteListItem> {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           child: TextFormField(
+            maxLines: null,
             controller: _noteEditingController,
             onChanged: (newValue) {
               if (newValue != widget.note.note) {

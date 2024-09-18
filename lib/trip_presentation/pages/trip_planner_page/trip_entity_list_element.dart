@@ -3,16 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/app_data/models/data_states.dart';
 import 'package:wandrr/app_data/models/ui_element.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/bloc.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/events.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/states.dart';
 import 'package:wandrr/app_presentation/widgets/button.dart';
 import 'package:wandrr/trip_data/models/trip_entity.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/bloc.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/states.dart';
 
 class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
   UiElement<T> uiElement;
   void Function(BuildContext context, UiElement<T>)? onPressed;
-  Widget Function() openedElementCreator;
   Widget Function(UiElement<T> uiElement, ValueNotifier<bool>)
       openedListElementCreator;
   Widget Function() closedElementCreator;
@@ -27,7 +26,6 @@ class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
   TripEntityListElement(
       {super.key,
       required this.uiElement,
-      required this.openedElementCreator,
       required this.openedListElementCreator,
       required this.closedElementCreator,
       required this.canDelete,
@@ -51,6 +49,10 @@ class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
                 onDeletePressed: onDeletePressed,
                 canDelete: canDelete != null ? canDelete!(uiElement) : true,
                 onPressed: () {
+                  if (onPressed != null) {
+                    onPressed?.call(context, uiElement);
+                    return;
+                  }
                   if (uiElement.dataState != DataState.NewUiEntry) {
                     context.addTripManagementEvent(
                         UpdateTripEntity.select(tripEntity: uiElement.element));
@@ -67,6 +69,10 @@ class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
                     child: closedElementCreator(),
                   ),
                   onTap: () {
+                    if (onPressed != null) {
+                      onPressed?.call(context, uiElement);
+                      return;
+                    }
                     context.addTripManagementEvent(
                         UpdateTripEntity.select(tripEntity: uiElement.element));
                   },
@@ -92,7 +98,9 @@ class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
           transitUpdatedState.tripEntityModificationData.modifiedCollectionItem;
       var updatedTransitId = modifiedTransitCollectionItem.id;
       if (operationPerformed == DataState.Select) {
-        if (updatedTransitId == uiElement.element.id) {
+        if (updatedTransitId == uiElement.element.id &&
+            updatedTransitId != null &&
+            updatedTransitId.isNotEmpty) {
           if (uiElement.dataState == DataState.None) {
             uiElement.dataState = DataState.Select;
             return true;
@@ -107,7 +115,9 @@ class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
           }
         }
       } else if (operationPerformed == DataState.Update &&
-          uiElement.element.id == modifiedTransitCollectionItem.id) {
+          uiElement.element.id == updatedTransitId &&
+          updatedTransitId != null &&
+          updatedTransitId.isNotEmpty) {
         uiElement.element = modifiedTransitCollectionItem;
         uiElement.dataState = DataState.None;
         return true;

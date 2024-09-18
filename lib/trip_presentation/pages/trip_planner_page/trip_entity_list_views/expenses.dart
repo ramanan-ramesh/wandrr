@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/app_data/models/data_states.dart';
 import 'package:wandrr/app_data/models/ui_element.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/events.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/states.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/trip_data/models/expense.dart';
 import 'package:wandrr/trip_data/models/expense_sort_options.dart';
@@ -14,7 +12,9 @@ import 'package:wandrr/trip_data/models/trip_entity.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/editable_list_elements/expense.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/readonly_list_elements/expense.dart';
-import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_entity_list_elements.dart';
+import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_entity_list_view.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/states.dart';
 
 class ExpenseListViewNew extends StatefulWidget {
   ExpenseListViewNew({super.key});

@@ -262,7 +262,7 @@ class _EditableTransitListItemState extends State<EditableTransitListItem> {
             0;
     var isTransitCarrierValid =
         transitModelFacade.transitOption == TransitOption.Flight
-            ? transitModelFacade.operator != null
+            ? transitModelFacade.isFlightOperatorValid()
             : true;
     widget.validityNotifier.value =
         areLocationsValid && areDateTimesValid && isTransitCarrierValid;
@@ -310,7 +310,7 @@ class _AirportsDataEditorState extends State<_AirportsDataEditor> {
     var airportCode =
         (_location?.context as AirportLocationContext?)?.airportCode ?? '   ';
     return PlatformAutoComplete<LocationFacade>(
-      maxOptionWidgetWidth: 250,
+      maxOptionWidgetWidth: context.isBigLayout() ? 250 : null,
       hintText: context.withLocale().airport,
       text: _location?.toString(),
       customPrefix: Text(airportCode),

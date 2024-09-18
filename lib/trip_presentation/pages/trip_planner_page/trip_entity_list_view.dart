@@ -5,33 +5,34 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/app_data/models/data_states.dart';
 import 'package:wandrr/app_data/models/ui_element.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/bloc.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/events.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/states.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/trip_data.dart';
 import 'package:wandrr/trip_data/models/trip_entity.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/bloc.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/states.dart';
 
 import 'trip_entity_list_element.dart';
 
 class TripEntityListView<T extends TripEntity> extends StatefulWidget {
-  Widget Function(UiElement<T>, ValueNotifier<bool>) openedListElementCreator;
-  void Function(UiElement<T>)? onUpdatePressed;
-  void Function(UiElement<T>)? onDeletePressed;
-  Widget Function(UiElement<T> uiElement) closedListElementCreator;
-  String emptyListMessage;
+  final Widget Function(UiElement<T>, ValueNotifier<bool>)
+      openedListElementCreator;
+  final void Function(UiElement<T>)? onUpdatePressed;
+  final void Function(UiElement<T>)? onDeletePressed;
+  final Widget Function(UiElement<T> uiElement) closedListElementCreator;
+  final String emptyListMessage;
   Widget? headerTileButton;
-  VoidCallback? headerTileButtonCallback;
+  VoidCallback? headerTileActionButtonCallback;
   BlocBuilderCondition<TripManagementState>? additionalListBuildWhenCondition;
   bool Function(
       TripManagementState previousState,
       TripManagementState currentState,
       UiElement<T> uiElement)? additionalListItemBuildWhenCondition;
-  String headerTileLabel;
+  final String headerTileLabel;
   void Function(BuildContext context, UiElement<T>)? onUiElementPressed;
   FutureOr<void> Function(List<UiElement<T>> uiElements) uiElementsSorter;
-  List<UiElement<T>> Function(TripDataFacade tripDataModelFacade)
+  final List<UiElement<T>> Function(TripDataFacade tripDataModelFacade)
       uiElementsCreator;
   bool Function(UiElement<T>)? canDelete;
 
@@ -58,7 +59,7 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
       required this.headerTileLabel,
       required this.uiElementsSorter,
       required Widget this.headerTileButton,
-      this.headerTileButtonCallback,
+      this.headerTileActionButtonCallback,
       this.additionalListBuildWhenCondition,
       this.onUiElementPressed,
       this.onUpdatePressed,
@@ -105,12 +106,11 @@ class _TripEntityListViewState<T extends TripEntity>
                   return TripEntityListElement<T>(
                       uiElement: uiElement,
                       onPressed: widget.onUiElementPressed,
-                      openedElementCreator: () => Container(
-                            color: Colors.white10,
-                            child: widget.openedListElementCreator(
-                                uiElement, ValueNotifier(false)),
-                          ),
                       canDelete: widget.canDelete,
+                      additionalListItemBuildWhenCondition:
+                          widget.additionalListItemBuildWhenCondition,
+                      onUpdatePressed: widget.onUpdatePressed,
+                      onDeletePressed: widget.onDeletePressed,
                       openedListElementCreator: widget.openedListElementCreator,
                       closedElementCreator: () => Container(
                           color: Colors.black12,
@@ -139,7 +139,8 @@ class _TripEntityListViewState<T extends TripEntity>
         return true;
       }
     } else if (widget.additionalListBuildWhenCondition != null) {
-      widget.additionalListBuildWhenCondition!(previousState, currentState);
+      return widget.additionalListBuildWhenCondition!(
+          previousState, currentState);
     }
     return false;
   }
@@ -184,7 +185,7 @@ class _TripEntityListViewState<T extends TripEntity>
         if (state.isTripEntity<T>() &&
             (state as UpdatedTripEntity).dataState == DataState.NewUiEntry) {
           _isCollapsed = false;
-          widget.headerTileButtonCallback?.call();
+          widget.headerTileActionButtonCallback?.call();
           setState(() {});
         }
       },

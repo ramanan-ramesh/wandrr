@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/bloc.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/states.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/trip_data/models/budgeting_module.dart';
 import 'package:wandrr/trip_data/models/expense.dart';
@@ -10,6 +8,8 @@ import 'package:wandrr/trip_data/models/transit.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/budgeting/budget_breakdown/breakdown_by_category.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/budgeting/budget_breakdown/breakdown_by_day.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/bloc.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/states.dart';
 
 class BudgetBreakdownTile extends StatefulWidget {
   const BudgetBreakdownTile({super.key});

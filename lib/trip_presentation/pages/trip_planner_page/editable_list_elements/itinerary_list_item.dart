@@ -4,9 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:wandrr/app_data/models/data_states.dart';
 import 'package:wandrr/app_data/models/ui_element.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/bloc.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/events.dart';
-import 'package:wandrr/app_presentation/blocs/trip_management/states.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/button.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
@@ -15,19 +12,22 @@ import 'package:wandrr/trip_data/models/lodging.dart';
 import 'package:wandrr/trip_data/models/plan_data.dart';
 import 'package:wandrr/trip_data/models/transit.dart';
 import 'package:wandrr/trip_data/models/trip_metadata.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/bloc.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
+import 'package:wandrr/trip_presentation/trip_management_bloc/states.dart';
 
 import 'plan_data/plan_data.dart';
 
-class ItineraryListItem extends StatefulWidget {
+class Itinerary extends StatefulWidget {
   final ItineraryFacade itineraryFacade;
 
-  const ItineraryListItem({super.key, required this.itineraryFacade});
+  const Itinerary({super.key, required this.itineraryFacade});
 
   @override
-  State<ItineraryListItem> createState() => _ItineraryListItemState();
+  State<Itinerary> createState() => _ItineraryState();
 }
 
-class _ItineraryListItemState extends State<ItineraryListItem>
+class _ItineraryState extends State<Itinerary>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late List<TransitFacade> _transits;
@@ -59,10 +59,16 @@ class _ItineraryListItemState extends State<ItineraryListItem>
                   ? AnimatedIcons.view_list
                   : AnimatedIcons.menu_arrow,
               progress: _animationController),
-          title: PlatformTextElements.createHeader(
-              context: context,
-              text:
-                  DateFormat('EEE, MMM d').format(widget.itineraryFacade.day)),
+          title: Align(
+            alignment: Alignment.centerLeft,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: PlatformTextElements.createHeader(
+                  context: context,
+                  text: DateFormat('EEE, MMM d')
+                      .format(widget.itineraryFacade.day)),
+            ),
+          ),
           trailing: !_isCollapsed ? _buildUpdateItineraryDataButton() : null,
           onTap: () {
             setState(() {
@@ -76,6 +82,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
               var numberOfItems = _transits.length + (_lodging == null ? 0 : 1);
               return ListView.separated(
                   shrinkWrap: true,
+                  padding: EdgeInsets.symmetric(vertical: 3.0),
                   itemBuilder: (BuildContext context, int index) {
                     if (index == numberOfItems - 1) {
                       if (_lodging != null) {
@@ -150,8 +157,18 @@ class _ItineraryListItemState extends State<ItineraryListItem>
             tileColor: Colors.white12,
             title: Padding(
               padding: const EdgeInsets.only(left: 3.0),
-              child: Text(
-                  '${transitFacade.departureLocation!.context.name} - ${transitFacade.arrivalLocation!.context.name}'),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: PlatformTextElements.createSubHeader(
+                      context: context,
+                      text:
+                          '${transitFacade.departureLocation!.context.name} - ${transitFacade.arrivalLocation!.context.name}'),
+                  // child: Text(
+                  //     '${transitFacade.departureLocation!.context.name} - ${transitFacade.arrivalLocation!.context.name}'),
+                ),
+              ),
             ),
             trailing: Text(dateTimeDetail),
           ),
