@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/api_services/models/currency_converter.dart';
 import 'package:wandrr/app_data/implementations/model_collection_implementation.dart';
 import 'package:wandrr/app_data/models/model_collection_facade.dart';
@@ -35,8 +36,10 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
 
   CurrencyConverterService currencyConverter;
 
-  TripRepositoryImplementation._(
-      this._tripMetadataModelCollection, this.currencyConverter) {
+  final AppLocalizations _appLocalizations;
+
+  TripRepositoryImplementation._(this._tripMetadataModelCollection,
+      this.currencyConverter, this._appLocalizations) {
     _tripMetadataUpdatedEventSubscription =
         tripMetadataModelCollection.onDocumentUpdated.listen((eventData) async {
       if (_activeTrip == null) {
@@ -61,7 +64,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
 
   static Future<TripRepositoryImplementation> createInstanceAsync(
       {required String userName,
-      required CurrencyConverterService currencyConverter}) async {
+      required CurrencyConverterService currencyConverter,
+      required AppLocalizations appLocalizations}) async {
     var tripsCollectionReference = FirebaseFirestore.instance
         .collection(FirestoreCollections.tripMetadataCollectionName);
 
@@ -77,7 +81,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
                 arrayContains: userName));
 
     return TripRepositoryImplementation._(
-        tripMetadataModelCollection, currencyConverter);
+        tripMetadataModelCollection, currencyConverter, appLocalizations);
   }
 
   @override
@@ -90,7 +94,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
 
     await _activeTrip?.dispose();
     _activeTrip = await TripDataModelImplementation.createExistingInstanceAsync(
-        tripMetadata, currencyConverter);
+        tripMetadata, currencyConverter, _appLocalizations);
   }
 
   @override

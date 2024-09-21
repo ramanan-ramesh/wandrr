@@ -4,7 +4,7 @@ import 'package:wandrr/app_data/models/repository_pattern.dart';
 import 'package:wandrr/trip_data/implementations/expense.dart';
 import 'package:wandrr/trip_data/implementations/location.dart';
 import 'package:wandrr/trip_data/models/expense.dart';
-import 'package:wandrr/trip_data/models/location.dart';
+import 'package:wandrr/trip_data/models/location/location.dart';
 import 'package:wandrr/trip_data/models/money.dart';
 import 'package:wandrr/trip_data/models/transit.dart';
 

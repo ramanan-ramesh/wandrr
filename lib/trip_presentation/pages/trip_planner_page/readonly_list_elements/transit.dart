@@ -3,14 +3,15 @@ import 'package:intl/intl.dart';
 import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
-import 'package:wandrr/trip_data/models/location.dart';
+import 'package:wandrr/trip_data/models/location/airport_location_context.dart';
+import 'package:wandrr/trip_data/models/location/location.dart';
 import 'package:wandrr/trip_data/models/transit.dart';
-import 'package:wandrr/trip_presentation/pages/trip_planner_page/expenditure_edit_tile.dart';
-import 'package:wandrr/trip_presentation/pages/trip_planner_page/transit_option_metadata.dart';
+import 'package:wandrr/trip_data/models/transit_option_metadata.dart';
+import 'package:wandrr/trip_presentation/pages/trip_planner_page/expenditure_edit_tile/expenditure_edit_tile.dart';
 
 class ReadonlyTransitListItem extends StatelessWidget {
   TransitFacade transitModelFacade;
-  List<TransitOptionMetadata> transitOptionMetadatas;
+  Iterable<TransitOptionMetadata> transitOptionMetadatas;
 
   ReadonlyTransitListItem(
       {super.key,
@@ -22,89 +23,106 @@ class ReadonlyTransitListItem extends StatelessWidget {
     var isConfirmationIdValid =
         transitModelFacade.confirmationId?.isNotEmpty ?? false;
     var isNotesValid = transitModelFacade.notes.isNotEmpty;
-    return Row(
-      // TODO: Is IntrinsicHeight needed here?
-      children: [
-        Expanded(
-          flex: 3,
-          child: Padding(
-            padding: const EdgeInsets.all(4.0),
+    return IntrinsicHeight(
+      child: Row(
+        // TODO: Is IntrinsicHeight needed here?
+        children: [
+          Expanded(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: _createLocationDetailTitle(context, false),
+                Text(
+                  context.withLocale().depart,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge!
+                      .copyWith(color: Colors.green),
                 ),
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: _createTransitOption(context),
+                Text(
+                  context.withLocale().arrive,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge!
+                      .copyWith(color: Colors.green),
                 ),
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: _createLocationDetailTitle(context, true),
-                ),
-                if (isNotesValid)
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: _createTitleSubText(
-                        context.withLocale().notes, transitModelFacade.notes,
-                        maxLines: null),
+                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    child: _createLocationDetailTitle(context, false),
+                  ),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4.0),
+                      child: _createTransitOption(context),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    child: _createLocationDetailTitle(context, true),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          VerticalDivider(),
+          Expanded(
+            flex: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (isNotesValid)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: _createTitleSubText(
+                          context.withLocale().notes, transitModelFacade.notes,
+                          maxLines: null),
+                    ),
+                  if (isConfirmationIdValid)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: _createTitleSubText(
+                          '${context.withLocale().confirmation} #',
+                          transitModelFacade.confirmationId!),
+                    ),
+                  if (isConfirmationIdValid) Divider(),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: ExpenditureEditTile(
+                          expenseUpdator: transitModelFacade.expense,
+                          isEditable: false),
+                    ),
                   )
-              ],
+                ],
+              ),
             ),
-          ),
-        ),
-        VerticalDivider(
-          color: Colors.white,
-        ),
-        Expanded(
-          flex: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (isConfirmationIdValid)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: _createTitleSubText(
-                        '${context.withLocale().confirmation} #',
-                        transitModelFacade.confirmationId!),
-                  ),
-                if (isConfirmationIdValid) Divider(),
-                Align(
-                  alignment: Alignment.center,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: ExpenditureEditTile(
-                        expenseUpdator: transitModelFacade.expense,
-                        isEditable: false),
-                  ),
-                )
-              ],
-            ),
-          ),
-        )
-      ],
+          )
+        ],
+      ),
     );
   }
 
-  String? _getTransitCarrier() {
+  String? _getTransitOperator() {
     if (transitModelFacade.transitOption == TransitOption.Flight) {
       return transitModelFacade.operator!;
     } else {
-      if (transitModelFacade.operator == null) {
-        return null;
-      }
-      var pascalWordsPattern = RegExp(r"(?:[A-Z]+|^)[a-z]*");
-      List<String> getPascalWords(String input) =>
-          pascalWordsPattern.allMatches(input).map((m) => m[0]!).toList();
-      var pascalWords = getPascalWords(transitModelFacade.transitOption.name);
-      var transitOption = pascalWords.fold(
-          '', (previousValue, element) => '$previousValue $element');
-      return transitOption;
+      return transitModelFacade.operator;
     }
   }
 
@@ -155,43 +173,41 @@ class ReadonlyTransitListItem extends StatelessWidget {
           .calculateDaysInBetween(transitModelFacade.arrivalDateTime!,
               includeExtraDay: false);
       if (numberOfDays > 0) {
-        dateTimeText += ' (+${_convertToSuperScript(numberOfDays.toString())})';
+        dateTimeText += _convertToSuperScript('+$numberOfDays');
       }
     }
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    String? subTitle;
+    if (transitModelFacade.transitOption == TransitOption.Flight) {
+      subTitle = locationToConsider.context.name;
+    } else if (locationToConsider.context.locationType != LocationType.City) {
+      subTitle = locationToConsider.context.city;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          isArrival ? context.withLocale().arrive : context.withLocale().depart,
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge!
-              .copyWith(color: Colors.green),
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 2.0),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: PlatformTextElements.createSubHeader(
+                color: Colors.green,
+                context: context,
+                text: locationTitle,
+                shouldBold: true),
+          ),
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 2.0),
-              child: PlatformTextElements.createSubHeader(
-                  color: Colors.green,
-                  context: context,
-                  text: locationTitle,
-                  shouldBold: true),
-            ),
-            if (transitModelFacade.transitOption == TransitOption.Flight)
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 2.0),
-                child: Text(locationToConsider.context.name),
-              ),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 2.0),
-              child: Text(
-                dateTimeText,
-              ),
-            ),
-          ],
+        if (subTitle != null)
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 2.0),
+            child: FittedBox(fit: BoxFit.scaleDown, child: Text(subTitle)),
+          ),
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 2.0),
+          child: Text(
+            dateTimeText,
+          ),
         ),
       ],
     );
@@ -200,10 +216,13 @@ class ReadonlyTransitListItem extends StatelessWidget {
   Widget _createTransitOption(BuildContext context) {
     var transitOptionMetadata = transitOptionMetadatas.firstWhere(
         (element) => element.transitOption == transitModelFacade.transitOption);
-    var transitCarrier = _getTransitCarrier();
-    if (transitCarrier != null) {
+    var transitOperator = _getTransitOperator();
+    if (transitOperator != null) {
+      var isBigLayout = context.isBigLayout();
       return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+          if (isBigLayout) Expanded(child: Container()),
           Column(
             children: [
               IgnorePointer(
@@ -213,13 +232,11 @@ class ReadonlyTransitListItem extends StatelessWidget {
             ],
           ),
           Expanded(
+            flex: 2,
             child: Divider(),
           ),
-          Text(transitCarrier),
-          if (context.isBigLayout())
-            Expanded(
-              child: Divider(),
-            ),
+          Text(transitOperator),
+          if (isBigLayout) Expanded(child: Container()),
         ],
       );
     }
@@ -234,9 +251,9 @@ class ReadonlyTransitListItem extends StatelessWidget {
   }
 }
 
-String _convertToSuperScript(String word) {
+String _convertToSuperScript(String numberOfTravelDaysDenotation) {
   var superScriptText = '';
-  for (var character in word.characters) {
+  for (var character in numberOfTravelDaysDenotation.characters) {
     if (character == ' ') {
       superScriptText += ' ';
     } else {
@@ -257,4 +274,7 @@ final _unicodeMap = {
   '7': ('\u2077'),
   '8': ('\u2078'),
   '9': ('\u2079'),
+  '+': '\u207A',
+  '(': '\u207D',
+  ')': '\u207E',
 };

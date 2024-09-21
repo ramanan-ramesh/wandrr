@@ -31,7 +31,8 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
       UiElement<T> uiElement)? additionalListItemBuildWhenCondition;
   final String headerTileLabel;
   void Function(BuildContext context, UiElement<T>)? onUiElementPressed;
-  FutureOr<void> Function(List<UiElement<T>> uiElements) uiElementsSorter;
+  FutureOr<Iterable<UiElement<T>>> Function(List<UiElement<T>> uiElements)
+      uiElementsSorter;
   final List<UiElement<T>> Function(TripDataFacade tripDataModelFacade)
       uiElementsCreator;
   bool Function(UiElement<T>)? canDelete;
@@ -74,7 +75,7 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
 
 class _TripEntityListViewState<T extends TripEntity>
     extends State<TripEntityListView<T>> with SingleTickerProviderStateMixin {
-  final _uiElements = <UiElement<T>>[];
+  var _uiElements = <UiElement<T>>[];
   bool _isCollapsed = true;
   late AnimationController _animationController;
 
@@ -91,10 +92,15 @@ class _TripEntityListViewState<T extends TripEntity>
       buildWhen: _shouldBuildList,
       builder: (BuildContext context, TripManagementState state) {
         _updateListElementsOnBuild(context, state);
-        return FutureBuilder<void>(
+        return FutureBuilder<Iterable<UiElement<T>>>(
           future:
               _uiElementsSorterWrapper(widget.uiElementsSorter, _uiElements),
-          builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+          builder: (BuildContext context,
+              AsyncSnapshot<Iterable<UiElement<T>>> snapshot) {
+            if (snapshot.connectionState == ConnectionState.done &&
+                snapshot.hasData) {
+              _uiElements = snapshot.data!.toList();
+            }
             return SliverList.builder(
               itemBuilder: (BuildContext context, int index) {
                 if (index == 0) {
@@ -103,18 +109,22 @@ class _TripEntityListViewState<T extends TripEntity>
                   return _createEmptyMessagePane(context);
                 } else if (index > 0) {
                   var uiElement = _uiElements.elementAt(index - 1);
-                  return TripEntityListElement<T>(
-                      uiElement: uiElement,
-                      onPressed: widget.onUiElementPressed,
-                      canDelete: widget.canDelete,
-                      additionalListItemBuildWhenCondition:
-                          widget.additionalListItemBuildWhenCondition,
-                      onUpdatePressed: widget.onUpdatePressed,
-                      onDeletePressed: widget.onDeletePressed,
-                      openedListElementCreator: widget.openedListElementCreator,
-                      closedElementCreator: () => Container(
-                          color: Colors.black12,
-                          child: widget.closedListElementCreator(uiElement)));
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5.0),
+                    child: TripEntityListElement<T>(
+                        uiElement: uiElement,
+                        onPressed: widget.onUiElementPressed,
+                        canDelete: widget.canDelete,
+                        additionalListItemBuildWhenCondition:
+                            widget.additionalListItemBuildWhenCondition,
+                        onUpdatePressed: widget.onUpdatePressed,
+                        onDeletePressed: widget.onDeletePressed,
+                        openedListElementCreator:
+                            widget.openedListElementCreator,
+                        closedElementCreator: () => Container(
+                            color: Colors.black12,
+                            child: widget.closedListElementCreator(uiElement))),
+                  );
                 }
                 return null;
               },
@@ -145,8 +155,8 @@ class _TripEntityListViewState<T extends TripEntity>
     return false;
   }
 
-  Future<void> _uiElementsSorterWrapper(
-      FutureOr<void> Function(List<UiElement<T>>) func,
+  Future<Iterable<UiElement<T>>> _uiElementsSorterWrapper(
+      FutureOr<Iterable<UiElement<T>>> Function(List<UiElement<T>>) func,
       List<UiElement<T>> uiElements) async {
     return Future.value(func(uiElements));
   }

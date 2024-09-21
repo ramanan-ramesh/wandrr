@@ -103,5 +103,10 @@
   "loadingTrip":"Loading Trip...",
   "searchForCurrency":"Search for a currency",
   "addItem":"Add item",
+  "departAt":"Depart At",
+  "arriveAt":"Arrive At",
+  "allDayTravel":"All Day Travel",
+  "allDayStay":"All Day Stay",
+  "noExpensesAssociatedWithDate":"No expenses associated with a date",
   "splitExpensesWithNewTripMateMessage": "All current expenses will be split with the new trip mate. Do you wish to proceed?"
 }

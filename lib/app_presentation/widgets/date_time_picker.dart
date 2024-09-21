@@ -6,9 +6,14 @@ import 'package:wandrr/app_presentation/extensions.dart';
 class PlatformDateTimePicker extends StatefulWidget {
   final DateTime? initialDateTime;
   final Function(DateTime)? dateTimeUpdated;
+  final DateTime startDateTime, endDateTime;
 
   const PlatformDateTimePicker(
-      {super.key, this.initialDateTime, this.dateTimeUpdated});
+      {super.key,
+      this.initialDateTime,
+      this.dateTimeUpdated,
+      required this.startDateTime,
+      required this.endDateTime});
 
   @override
   State<PlatformDateTimePicker> createState() => _PlatformDateTimePickerState();
@@ -32,19 +37,23 @@ class _PlatformDateTimePickerState extends State<PlatformDateTimePicker> {
     return TextButton(
       onPressed: () {
         bool shouldRebuild = false;
-        DatePicker.showDateTimePicker(context, showTitleActions: true,
-                onConfirm: (date) {
-          if (_dateTime == null) {
-            _dateTime = date;
-            shouldRebuild = true;
-          } else {
-            if (!_dateTime!.isAtSameMomentAs(date)) {
+        DatePicker.showDateTimePicker(
+          context,
+          showTitleActions: true,
+          onConfirm: (date) {
+            if (_dateTime == null) {
               _dateTime = date;
               shouldRebuild = true;
+            } else {
+              if (!_dateTime!.isAtSameMomentAs(date)) {
+                _dateTime = date;
+                shouldRebuild = true;
+              }
             }
-          }
-        }, currentTime: _dateTime ?? DateTime.now())
-            .then(
+          },
+          minTime: widget.startDateTime,
+          maxTime: widget.endDateTime,
+        ).then(
           (selectedDateTime) {
             if (shouldRebuild) {
               widget.dateTimeUpdated?.call(_dateTime!);

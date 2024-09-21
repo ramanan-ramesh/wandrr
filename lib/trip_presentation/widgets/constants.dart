@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/trip_data/models/location.dart';
+import 'package:wandrr/trip_data/models/location/location.dart';
 
 class TripPresentationConstants {
   static const Map<LocationType, IconData?> locationTypesAndIcons = {

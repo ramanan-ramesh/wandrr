@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
-import 'package:wandrr/trip_data/models/location.dart';
+import 'package:wandrr/trip_data/models/location/geo_location_api_context.dart';
 import 'package:wandrr/trip_data/models/lodging.dart';
-import 'package:wandrr/trip_presentation/pages/trip_planner_page/expenditure_edit_tile.dart';
+import 'package:wandrr/trip_presentation/pages/trip_planner_page/expenditure_edit_tile/expenditure_edit_tile.dart';
 
 class ReadonlyLodgingListItem extends StatelessWidget {
   LodgingFacade lodgingModelFacade;
@@ -46,13 +46,6 @@ class ReadonlyLodgingListItem extends StatelessWidget {
                     padding: EdgeInsets.symmetric(vertical: 4.0),
                     child: _buildDateTimeDetails(),
                   ),
-                  if (isNotesValid)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: _createTitleSubText(
-                          context.withLocale().notes, lodgingModelFacade.notes,
-                          maxLines: null),
-                    )
                 ],
               ),
             ),
@@ -66,6 +59,13 @@ class ReadonlyLodgingListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  if (isNotesValid)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: _createTitleSubText(
+                          context.withLocale().notes, lodgingModelFacade.notes,
+                          maxLines: null),
+                    ),
                   if (isConfirmationIdValid)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),

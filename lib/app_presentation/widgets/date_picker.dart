@@ -30,7 +30,7 @@ class _PlatformDatePickerState extends State<PlatformDatePicker> {
   @override
   Widget build(BuildContext context) {
     var buttonText =
-        _dateTime != null ? _dateFormat.format(_dateTime!) : '            ';
+        _dateTime != null ? _dateFormat.format(_dateTime!) : 'Date:       ';
     return TextButton.icon(
       onPressed: () {
         var dialogWidth = _calculateDialogWidth();

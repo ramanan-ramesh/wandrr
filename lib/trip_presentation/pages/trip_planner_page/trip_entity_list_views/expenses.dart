@@ -12,9 +12,10 @@ import 'package:wandrr/trip_data/models/trip_entity.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/editable_list_elements/expense.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/readonly_list_elements/expense.dart';
-import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_entity_list_view.dart';
 import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
 import 'package:wandrr/trip_presentation/trip_management_bloc/states.dart';
+
+import 'trip_entity_list_view.dart';
 
 class ExpenseListViewNew extends StatefulWidget {
   ExpenseListViewNew({super.key});

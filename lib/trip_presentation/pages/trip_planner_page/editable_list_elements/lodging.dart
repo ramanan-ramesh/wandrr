@@ -5,16 +5,18 @@ import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/date_range_pickers.dart';
 import 'package:wandrr/trip_data/models/lodging.dart';
 import 'package:wandrr/trip_data/models/money.dart';
-import 'package:wandrr/trip_presentation/pages/trip_planner_page/expenditure_edit_tile.dart';
+import 'package:wandrr/trip_data/trip_repository_extensions.dart';
+import 'package:wandrr/trip_presentation/pages/trip_planner_page/expenditure_edit_tile/expenditure_edit_tile.dart';
 import 'package:wandrr/trip_presentation/widgets/geo_location_auto_complete.dart';
 
 class EditableLodgingListItem extends StatefulWidget {
   UiElement<LodgingFacade> lodgingUiElement;
   ValueNotifier<bool> validityNotifier;
 
-  EditableLodgingListItem({super.key,
-    required this.lodgingUiElement,
-    required this.validityNotifier});
+  EditableLodgingListItem(
+      {super.key,
+      required this.lodgingUiElement,
+      required this.validityNotifier});
 
   @override
   State<EditableLodgingListItem> createState() =>
@@ -31,6 +33,7 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
   @override
   Widget build(BuildContext context) {
     var isBigLayout = context.isBigLayout();
+    var tripMetadata = context.getActiveTrip().tripMetadata;
     if (isBigLayout) {
       return Row(
         children: [
@@ -44,9 +47,7 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 3.0),
                     child: _createLodgingElement(
-                      context
-                          .withLocale()
-                          .stayAddress,
+                      context.withLocale().stayAddress,
                       PlatformGeoLocationAutoComplete(
                         initialText: widget
                             .lodgingUiElement.element.location?.context.name,
@@ -62,7 +63,7 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
                     padding: const EdgeInsets.symmetric(vertical: 3.0),
                     child: PlatformDateRangePicker(
                       startDate:
-                      widget.lodgingUiElement.element.checkinDateTime,
+                          widget.lodgingUiElement.element.checkinDateTime,
                       endDate: widget.lodgingUiElement.element.checkoutDateTime,
                       callback: (newStartDate, newEndDate) {
                         widget.lodgingUiElement.element.checkinDateTime =
@@ -71,14 +72,14 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
                             newEndDate;
                         _calculateLodgingValidity();
                       },
+                      firstDate: tripMetadata.startDate!,
+                      lastDate: tripMetadata.endDate!,
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 3.0),
                     child: _createLodgingElement(
-                      context
-                          .withLocale()
-                          .notes,
+                      context.withLocale().notes,
                       TextFormField(
                         maxLines: null,
                         initialValue: widget.lodgingUiElement.element.notes,
@@ -101,12 +102,10 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 3.0),
                   child: _createLodgingElement(
-                    '${context
-                        .withLocale()
-                        .confirmation} #',
+                    '${context.withLocale().confirmation} #',
                     TextFormField(
                       initialValue:
-                      widget.lodgingUiElement.element.confirmationId,
+                          widget.lodgingUiElement.element.confirmationId,
                       onChanged: (newConfirmationId) {
                         widget.lodgingUiElement.element.confirmationId =
                             newConfirmationId;
@@ -117,27 +116,19 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
                 Padding(
                   padding: const EdgeInsets.all(4.0),
                   child: _createLodgingElement(
-                    context
-                        .withLocale()
-                        .cost,
+                    context.withLocale().cost,
                     ExpenditureEditTile(
                       expenseUpdator: widget.lodgingUiElement.element.expense,
                       isEditable: true,
                       callback: (paidBy, splitBy, totalExpense) {
-                        if (paidBy != null) {
-                          widget.lodgingUiElement.element.expense.paidBy =
-                              Map.from(paidBy);
-                        }
-                        if (splitBy != null) {
-                          widget.lodgingUiElement.element.expense.splitBy =
-                              List.from(splitBy);
-                        }
-                        if (totalExpense != null) {
-                          widget.lodgingUiElement.element.expense.totalExpense =
-                              Money(
-                                  currency: totalExpense.currency,
-                                  amount: totalExpense.amount);
-                        }
+                        widget.lodgingUiElement.element.expense.paidBy =
+                            Map.from(paidBy);
+                        widget.lodgingUiElement.element.expense.splitBy =
+                            List.from(splitBy);
+                        widget.lodgingUiElement.element.expense.totalExpense =
+                            Money(
+                                currency: totalExpense.currency,
+                                amount: totalExpense.amount);
                         _calculateLodgingValidity();
                       },
                     ),
@@ -154,12 +145,10 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
         Padding(
           padding: const EdgeInsets.all(4.0),
           child: _createLodgingElement(
-            context
-                .withLocale()
-                .stayAddress,
+            context.withLocale().stayAddress,
             PlatformGeoLocationAutoComplete(
               initialText:
-              widget.lodgingUiElement.element.location?.context.name,
+                  widget.lodgingUiElement.element.location?.context.name,
               onLocationSelected: (newLocation) {
                 widget.lodgingUiElement.element.location = newLocation;
                 _calculateLodgingValidity();
@@ -177,31 +166,25 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
               widget.lodgingUiElement.element.checkoutDateTime = newEndDate;
               _calculateLodgingValidity();
             },
+            firstDate: tripMetadata.startDate!,
+            lastDate: tripMetadata.endDate!,
           ),
         ),
         Padding(
           padding: const EdgeInsets.all(4.0),
           child: _createLodgingElement(
-            context
-                .withLocale()
-                .cost,
+            context.withLocale().cost,
             ExpenditureEditTile(
               expenseUpdator: widget.lodgingUiElement.element.expense,
               isEditable: true,
               callback: (paidBy, splitBy, totalExpense) {
-                if (paidBy != null) {
-                  widget.lodgingUiElement.element.expense.paidBy =
-                      Map.from(paidBy);
-                }
-                if (splitBy != null) {
-                  widget.lodgingUiElement.element.expense.splitBy =
-                      List.from(splitBy);
-                }
-                if (totalExpense != null) {
-                  widget.lodgingUiElement.element.expense.totalExpense = Money(
-                      currency: totalExpense.currency,
-                      amount: totalExpense.amount);
-                }
+                widget.lodgingUiElement.element.expense.paidBy =
+                    Map.from(paidBy);
+                widget.lodgingUiElement.element.expense.splitBy =
+                    List.from(splitBy);
+                widget.lodgingUiElement.element.expense.totalExpense = Money(
+                    currency: totalExpense.currency,
+                    amount: totalExpense.amount);
                 _calculateLodgingValidity();
               },
             ),
@@ -210,9 +193,7 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
         Padding(
           padding: const EdgeInsets.all(4.0),
           child: _createLodgingElement(
-            '${context
-                .withLocale()
-                .confirmation} #',
+            '${context.withLocale().confirmation} #',
             TextFormField(
               initialValue: widget.lodgingUiElement.element.confirmationId,
               onChanged: (newConfirmationId) {
@@ -225,9 +206,7 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
         Padding(
           padding: const EdgeInsets.all(4.0),
           child: _createLodgingElement(
-            context
-                .withLocale()
-                .notes,
+            context.withLocale().notes,
             TextFormField(
               maxLines: null,
               initialValue: widget.lodgingUiElement.element.notes,
@@ -242,14 +221,7 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
   }
 
   void _calculateLodgingValidity() {
-    var isLocationValid = widget.lodgingUiElement.element.location != null;
-    var areDateTimesValid = widget.lodgingUiElement.element.checkinDateTime !=
-        null &&
-        widget.lodgingUiElement.element.checkoutDateTime != null &&
-        widget.lodgingUiElement.element.checkinDateTime!
-            .compareTo(widget.lodgingUiElement.element.checkoutDateTime!) <
-            0;
-    widget.validityNotifier.value = isLocationValid && areDateTimesValid;
+    widget.validityNotifier.value = widget.lodgingUiElement.element.isValid();
   }
 
   Widget _createLodgingElement(String? title, Widget lodgingElement) {

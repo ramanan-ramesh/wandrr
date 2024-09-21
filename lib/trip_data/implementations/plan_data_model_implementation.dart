@@ -4,7 +4,7 @@ import 'package:wandrr/app_data/models/repository_pattern.dart';
 import 'package:wandrr/trip_data/implementations/collection_names.dart';
 import 'package:wandrr/trip_data/implementations/firestore_helpers.dart';
 import 'package:wandrr/trip_data/models/check_list.dart';
-import 'package:wandrr/trip_data/models/location.dart';
+import 'package:wandrr/trip_data/models/location/location.dart';
 import 'package:wandrr/trip_data/models/note.dart';
 import 'package:wandrr/trip_data/models/plan_data.dart';
 

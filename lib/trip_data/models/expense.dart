@@ -1,4 +1,4 @@
-import 'package:wandrr/trip_data/models/location.dart';
+import 'package:wandrr/trip_data/models/location/location.dart';
 import 'package:wandrr/trip_data/models/trip_entity.dart';
 
 import 'money.dart';
@@ -74,6 +74,10 @@ class ExpenseFacade implements TripEntity {
         splitBy: splitBy,
         location: location?.clone(),
         dateTime: dateTime);
+  }
+
+  bool isValid() {
+    return paidBy.isNotEmpty && splitBy.isNotEmpty;
   }
 }
 

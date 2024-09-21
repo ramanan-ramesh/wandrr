@@ -59,7 +59,7 @@ class TripManagementBloc
         .tripMetadataModelCollection.onDocumentUpdated
         .listen((eventData) {
       var collectionModificationData = CollectionChangeMetadata(
-          eventData.modifiedCollectionItem.afterUpdate.clone(), false);
+          eventData.modifiedCollectionItem.afterUpdate.facade, false);
       if (!isClosed) {
         add(_UpdateTripEntityInternalEvent.updated(
             collectionModificationData, true));
@@ -70,7 +70,7 @@ class TripManagementBloc
         .listen((eventData) {
       if (!eventData.isFromEvent) {
         var collectionModificationData = CollectionChangeMetadata(
-            eventData.modifiedCollectionItem.clone(), false);
+            eventData.modifiedCollectionItem.facade, false);
         if (!isClosed) {
           add(_UpdateTripEntityInternalEvent.created(
               collectionModificationData, true));
@@ -82,7 +82,7 @@ class TripManagementBloc
         .listen((eventData) {
       if (!eventData.isFromEvent) {
         var collectionModificationData = CollectionChangeMetadata(
-            eventData.modifiedCollectionItem.clone(), false);
+            eventData.modifiedCollectionItem.facade, false);
         if (!isClosed) {
           add(_UpdateTripEntityInternalEvent.deleted(
               collectionModificationData, true));
@@ -371,7 +371,7 @@ class TripManagementBloc
         modelCollection.onDocumentAdded.listen((eventData) {
       if (!eventData.isFromEvent) {
         var collectionModificationData = CollectionChangeMetadata(
-            eventData.modifiedCollectionItem.clone(), false);
+            eventData.modifiedCollectionItem.facade, false);
         if (!isClosed) {
           add(_UpdateTripEntityInternalEvent<T>.created(
               collectionModificationData, true));
@@ -382,7 +382,7 @@ class TripManagementBloc
         modelCollection.onDocumentDeleted.listen((eventData) {
       if (!eventData.isFromEvent) {
         var collectionModificationData = CollectionChangeMetadata(
-            eventData.modifiedCollectionItem.clone(), false);
+            eventData.modifiedCollectionItem.facade, false);
         if (!isClosed) {
           add(_UpdateTripEntityInternalEvent<T>.deleted(
               collectionModificationData, true));
@@ -393,7 +393,7 @@ class TripManagementBloc
         modelCollection.onDocumentUpdated.listen((eventData) {
       if (!eventData.isFromEvent) {
         var collectionModificationData = CollectionChangeMetadata(
-            eventData.modifiedCollectionItem.afterUpdate.clone(), false);
+            eventData.modifiedCollectionItem.afterUpdate.facade, false);
         if (!isClosed) {
           add(_UpdateTripEntityInternalEvent<T>.updated(
               collectionModificationData, true));

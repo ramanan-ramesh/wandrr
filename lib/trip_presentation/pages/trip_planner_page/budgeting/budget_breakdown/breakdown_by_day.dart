@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
+import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/budgeting_module.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
 
@@ -33,39 +34,50 @@ class BreakdownByDayChart extends StatefulWidget {
 class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<DateTime?, double>>(
-        future: widget.budgetingModule.retrieveTotalExpensePerDay(),
-        builder: (BuildContext context,
-            AsyncSnapshot<Map<DateTime?, double>> snapshot) {
-          if (snapshot.hasData && snapshot.data != null) {
-            return Container(
-              constraints: BoxConstraints(minHeight: 300, maxHeight: 600),
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: RotatedBox(
-                  quarterTurns: 1,
-                  child: BarChart(
-                    BarChartData(
-                        barTouchData: barTouchData,
-                        titlesData: _createTilesData(snapshot.data!),
-                        borderData: borderData,
-                        barGroups:
-                            _createBarChartGroups(snapshot.data!).toList(),
-                        gridData: const FlGridData(show: false),
-                        alignment: BarChartAlignment.spaceAround,
-                        maxY: snapshot.data!.entries
-                            .map((e) => e.value)
-                            .reduce(max)),
-                    swapAnimationDuration:
-                        Duration(milliseconds: 150), // Optional
-                    swapAnimationCurve: Curves.linear, // Optional
-                  ),
+    var tripMetadata = context.getActiveTrip().tripMetadata;
+    return FutureBuilder<Map<DateTime, double>>(
+      future: widget.budgetingModule.retrieveTotalExpensePerDay(
+          tripMetadata.startDate!, tripMetadata.endDate!),
+      builder: (BuildContext context,
+          AsyncSnapshot<Map<DateTime, double>> snapshot) {
+        if (snapshot.hasData &&
+            snapshot.data != null &&
+            snapshot.connectionState == ConnectionState.done) {
+          var expensesPerDay = snapshot.data ?? <DateTime, double>{};
+          if (expensesPerDay.isEmpty) {
+            return PlatformTextElements.createHeader(
+                context: context,
+                text: context.withLocale().noExpensesAssociatedWithDate);
+          }
+          return Container(
+            constraints: BoxConstraints(minHeight: 300, maxHeight: 600),
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: RotatedBox(
+                quarterTurns: 1,
+                child: BarChart(
+                  BarChartData(
+                      barTouchData: barTouchData,
+                      titlesData: _createTilesData(expensesPerDay),
+                      borderData: borderData,
+                      barGroups: _createBarChartGroups(expensesPerDay).toList(),
+                      gridData: const FlGridData(show: false),
+                      alignment: BarChartAlignment.spaceAround,
+                      maxY: expensesPerDay.entries
+                          .map((e) => e.value)
+                          .reduce(max)),
+                  swapAnimationDuration: Duration(milliseconds: 150),
+                  // Optional
+                  swapAnimationCurve: Curves.linear, // Optional
                 ),
               ),
-            );
-          }
-          return SizedBox.shrink();
-        });
+            ),
+          );
+        }
+
+        return CircularProgressIndicator();
+      },
+    );
   }
 
   BarTouchData get barTouchData => BarTouchData(

@@ -13,7 +13,11 @@ abstract class ItineraryFacade {
 
   List<TransitFacade> get transits;
 
-  LodgingFacade? get lodging;
+  LodgingFacade? get checkinLodging;
+
+  LodgingFacade? get checkoutLodging;
+
+  LodgingFacade? get fullDayLodging;
 
   PlanDataFacade get planData;
 
@@ -27,11 +31,13 @@ abstract class ItineraryModelEventHandler extends ItineraryFacade {
 
   void addTransit(TransitFacade transitToAdd);
 
-  void addLodging(LodgingFacade lodging);
+  void setCheckinLodging(LodgingFacade? lodging);
+
+  void setCheckoutLodging(LodgingFacade? lodging);
+
+  void setFullDayLodging(LodgingFacade? lodging);
 
   void removeTransit(TransitFacade transit);
-
-  void removeLodging(LodgingFacade lodging);
 }
 
 abstract class ItineraryFacadeCollection extends ListBase<ItineraryFacade> {

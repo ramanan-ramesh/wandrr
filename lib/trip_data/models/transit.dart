@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:intl/intl.dart';
 import 'package:wandrr/trip_data/models/expense.dart';
-import 'package:wandrr/trip_data/models/location.dart';
+import 'package:wandrr/trip_data/models/location/location.dart';
 import 'package:wandrr/trip_data/models/trip_entity.dart';
 
 import 'money.dart';
@@ -127,7 +127,7 @@ class TransitFacade extends Equatable implements TripEntity {
     }
   }
 
-  bool isFlightOperatorValid() {
+  bool _isFlightOperatorValid() {
     if (transitOption == TransitOption.Flight) {
       var splitOptions = operator?.split(' ');
       if (splitOptions != null &&
@@ -138,6 +138,20 @@ class TransitFacade extends Equatable implements TripEntity {
       return false;
     }
     return true;
+  }
+
+  bool isValid() {
+    var areLocationsValid =
+        departureLocation != null && arrivalLocation != null;
+    var areDateTimesValid = departureDateTime != null &&
+        arrivalDateTime != null &&
+        departureDateTime!.compareTo(arrivalDateTime!) < 0;
+    var isTransitCarrierValid =
+        transitOption == TransitOption.Flight ? _isFlightOperatorValid() : true;
+    return areLocationsValid &&
+        areDateTimesValid &&
+        isTransitCarrierValid &&
+        expense.isValid();
   }
 
   @override

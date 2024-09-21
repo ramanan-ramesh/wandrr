@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:intl/intl.dart';
 import 'package:wandrr/trip_data/models/expense.dart';
-import 'package:wandrr/trip_data/models/location.dart';
+import 'package:wandrr/trip_data/models/location/location.dart';
 import 'package:wandrr/trip_data/models/trip_entity.dart';
 
 import 'money.dart';
@@ -74,6 +74,13 @@ class LodgingFacade extends Equatable implements TripEntity {
         confirmationId: confirmationId,
         expense: expense.clone(),
         notes: notes);
+  }
+
+  bool isValid() {
+    return location != null &&
+        checkinDateTime != null &&
+        checkoutDateTime != null &&
+        expense.isValid();
   }
 
   @override

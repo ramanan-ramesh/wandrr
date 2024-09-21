@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/app_presentation/widgets/button.dart';
-import 'package:wandrr/trip_data/models/location.dart';
+import 'package:wandrr/trip_data/models/location/location.dart';
 
 class PlacesListView extends StatelessWidget {
   PlacesListView(

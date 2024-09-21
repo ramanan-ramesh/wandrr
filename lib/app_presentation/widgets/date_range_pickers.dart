@@ -9,10 +9,16 @@ import 'dialog.dart';
 
 abstract class DateRangePickerData extends StatefulWidget {
   final dateFormat = intl.DateFormat.MMMEd();
-  DateTime? startDate, endDate;
+  DateTime? startDate, endDate, firstDate, lastDate;
   final Function(DateTime? start, DateTime? end)? callback;
 
-  DateRangePickerData({super.key, this.startDate, this.endDate, this.callback});
+  DateRangePickerData(
+      {super.key,
+      this.startDate,
+      this.endDate,
+      this.callback,
+      this.firstDate,
+      this.lastDate});
 
   void showDateRangePickerDialog(GlobalKey widgetKey, BuildContext context,
       void Function(VoidCallback fn) setState) {
@@ -107,7 +113,12 @@ abstract class DateRangePickerData extends StatefulWidget {
 
 class PlatformDateRangePicker extends DateRangePickerData {
   PlatformDateRangePicker(
-      {super.key, super.startDate, super.endDate, super.callback});
+      {super.key,
+      super.startDate,
+      super.endDate,
+      super.callback,
+      super.firstDate,
+      super.lastDate});
 
   @override
   State<PlatformDateRangePicker> createState() =>
@@ -151,7 +162,12 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
 
 class PlatformFABDateRangePicker extends DateRangePickerData {
   PlatformFABDateRangePicker(
-      {super.key, super.startDate, super.endDate, super.callback});
+      {super.key,
+      super.startDate,
+      super.endDate,
+      super.callback,
+      super.firstDate,
+      super.lastDate});
 
   @override
   State<PlatformFABDateRangePicker> createState() =>

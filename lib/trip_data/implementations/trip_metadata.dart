@@ -13,7 +13,6 @@ class TripMetadataModelImplementation extends TripMetadataFacade
   static const String _endDateField = 'endDate';
   static const String _nameField = 'name';
   static const String _contributorsField = 'contributors';
-  static const _totalExpenditureField = 'totalExpenditure';
   static const _budgetField = 'budget';
   static const _defaultCurrency = 'INR';
 
@@ -31,7 +30,6 @@ class TripMetadataModelImplementation extends TripMetadataFacade
             endDate: tripMetadataModelFacade.endDate,
             name: tripMetadataModelFacade.name,
             contributors: List.from(tripMetadataModelFacade.contributors),
-            totalExpenditure: tripMetadataModelFacade.totalExpenditure,
             budget: tripMetadataModelFacade.budget);
 
   static TripMetadataModelImplementation fromDocumentSnapshot(
@@ -48,14 +46,12 @@ class TripMetadataModelImplementation extends TripMetadataFacade
       budget = Money(currency: _defaultCurrency, amount: 0);
     }
 
-    var totalExpenditureValue = documentData[_totalExpenditureField];
     return TripMetadataModelImplementation._(
         id: documentSnapshot.id,
         startDate: startDateTime,
         endDate: endDateTime,
         name: documentData[_nameField],
         contributors: contributors,
-        totalExpenditure: double.parse(totalExpenditureValue.toString()),
         budget: budget);
   }
 
@@ -67,7 +63,6 @@ class TripMetadataModelImplementation extends TripMetadataFacade
       _endDateField: Timestamp.fromDate(endDate!),
       _contributorsField: contributors,
       _nameField: name,
-      _totalExpenditureField: totalExpenditure,
       _budgetField: budget.toString()
     };
   }
@@ -78,8 +73,6 @@ class TripMetadataModelImplementation extends TripMetadataFacade
     FirestoreHelpers.updateJson(endDate, toUpdate.endDate, _endDateField, json);
     FirestoreHelpers.updateJson(
         startDate, toUpdate.startDate, _startDateField, json);
-    FirestoreHelpers.updateJson(totalExpenditure, toUpdate.totalExpenditure,
-        _totalExpenditureField, json);
     FirestoreHelpers.updateJson(budget, toUpdate.budget, _budgetField, json);
     FirestoreHelpers.updateJson(
         contributors, toUpdate.contributors, _contributorsField, json);
@@ -105,6 +98,5 @@ class TripMetadataModelImplementation extends TripMetadataFacade
       required super.endDate,
       required super.name,
       required super.contributors,
-      required super.totalExpenditure,
       required super.budget});
 }

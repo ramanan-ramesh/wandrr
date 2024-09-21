@@ -116,7 +116,7 @@ class TripListView extends StatelessWidget {
     Random random = Random();
     var gridImages = <String>[];
     for (int i = 0; i < numberOfTripMetadatas; i++) {
-      if (i < 3) {
+      if (i < numberOfTripMetadatas) {
         tempImages.shuffle(random);
         gridImages.add(tempImages[i % 3]);
       } else {

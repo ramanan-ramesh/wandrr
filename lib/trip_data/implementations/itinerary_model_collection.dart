@@ -39,34 +39,34 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
         _endDate = endDate {
     _subscriptions
         .add(_transitModelCollection.onDocumentAdded.listen((eventData) async {
-      var transitAdded = eventData.modifiedCollectionItem.clone();
+      var transitAdded = eventData.modifiedCollectionItem.facade;
       _addOrRemoveTransitToItinerary(transitAdded, false);
     }));
     _subscriptions.add(
         _transitModelCollection.onDocumentDeleted.listen((eventData) async {
-      var transitDeleted = eventData.modifiedCollectionItem.clone();
+      var transitDeleted = eventData.modifiedCollectionItem.facade;
       _addOrRemoveTransitToItinerary(transitDeleted, true);
     }));
     _subscriptions.add(
         _transitModelCollection.onDocumentUpdated.listen((eventData) async {
       var transitBeforeUpdate =
-          eventData.modifiedCollectionItem.beforeUpdate.clone();
+          eventData.modifiedCollectionItem.beforeUpdate.facade;
       var transitAfterUpdate =
-          eventData.modifiedCollectionItem.afterUpdate.clone();
+          eventData.modifiedCollectionItem.afterUpdate.facade;
       _addOrRemoveTransitToItinerary(transitBeforeUpdate, true);
       _addOrRemoveTransitToItinerary(transitAfterUpdate, false);
     }));
     _subscriptions
         .add(_lodgingModelCollection.onDocumentAdded.listen((eventData) async {
-      var lodgingAdded = eventData.modifiedCollectionItem.clone();
+      var lodgingAdded = eventData.modifiedCollectionItem.facade;
       _addOrRemoveLodgingToItinerary(lodgingAdded, false);
     }));
     _subscriptions.add(
         _lodgingModelCollection.onDocumentUpdated.listen((eventData) async {
       var lodgingBeforeUpdate =
-          eventData.modifiedCollectionItem.beforeUpdate.clone();
+          eventData.modifiedCollectionItem.beforeUpdate.facade;
       var lodgingAfterUpdate =
-          eventData.modifiedCollectionItem.afterUpdate.clone();
+          eventData.modifiedCollectionItem.afterUpdate.facade;
       _addOrRemoveLodgingToItinerary(lodgingBeforeUpdate, true);
       _addOrRemoveLodgingToItinerary(lodgingAfterUpdate, false);
     }));
@@ -108,45 +108,37 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
       var totalDaysOfTransit = transit.departureDateTime!
           .calculateDaysInBetween(transit.arrivalDateTime!,
               includeExtraDay: false);
-      if (totalDaysOfTransit == 0) {
+      for (var dayCounter = 0; dayCounter <= totalDaysOfTransit; dayCounter++) {
+        var currentTripDay =
+            transit.departureDateTime!.add(Duration(days: dayCounter));
         var matchingTransitEntry = transitsPerDay.entries
-            .where((element) =>
-                element.key.isOnSameDayAs(transit.arrivalDateTime!))
+            .where((element) => element.key.isOnSameDayAs(currentTripDay))
             .firstOrNull;
         if (matchingTransitEntry != null) {
           transitsPerDay[matchingTransitEntry.key]!.add(transit);
         }
-      } else {
-        for (var dayCounter = 0;
-            dayCounter < numberOfDaysOfTrip;
-            dayCounter++) {
-          var currentTripDay =
-              transit.departureDateTime!.add(Duration(days: dayCounter));
-          var matchingTransitEntry = transitsPerDay.entries
-              .where((element) => element.key.isOnSameDayAs(currentTripDay))
-              .firstOrNull;
-          if (matchingTransitEntry != null) {
-            transitsPerDay[matchingTransitEntry.key]!.add(transit);
-          }
-        }
       }
     }
 
-    var lodgingsPerDay = <DateTime, LodgingFacade>{};
+    var lodgingEventsPerDay = <DateTime, List<LodgingFacade>>{};
     for (var lodgingItem in lodgingModelCollection.collectionItems) {
       var lodging = lodgingItem.facade;
       var totalStayTimeInDays = lodging.checkinDateTime!.calculateDaysInBetween(
           lodging.checkoutDateTime!,
           includeExtraDay: false);
-      if (totalStayTimeInDays == 0) {
-        lodgingsPerDay[lodging.checkinDateTime!] = lodging;
-      } else {
-        for (var dayCounter = 0;
-            dayCounter <= totalStayTimeInDays;
-            dayCounter++) {
-          var currentTripDay =
-              lodging.checkinDateTime!.add(Duration(days: dayCounter));
-          lodgingsPerDay[currentTripDay] = lodging;
+      for (var dayCounter = 0;
+          dayCounter <= totalStayTimeInDays;
+          dayCounter++) {
+        var currentTripDay = DateTime(lodging.checkinDateTime!.year,
+                lodging.checkinDateTime!.month, lodging.checkinDateTime!.day)
+            .add(Duration(days: dayCounter));
+        var lodgingEventOnSameDay = lodgingEventsPerDay.entries
+            .where((mapElement) => mapElement.key.isOnSameDayAs(currentTripDay))
+            .firstOrNull;
+        if (lodgingEventOnSameDay != null) {
+          lodgingEventsPerDay[lodgingEventOnSameDay.key]!.add(lodging);
+        } else {
+          lodgingEventsPerDay[currentTripDay] = [lodging];
         }
       }
     }
@@ -159,17 +151,39 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
           .firstWhere((mapElement) =>
               mapElement.key.isOnSameDayAs(currentItineraryDateTime))
           .value;
-      var lodging = lodgingsPerDay.entries
-          .where((mapElement) =>
-              mapElement.key.isOnSameDayAs(currentItineraryDateTime))
-          .firstOrNull
-          ?.value;
+      var lodgingEventsOnSameDay = (lodgingEventsPerDay.entries
+                  .where((mapElement) =>
+                      mapElement.key.isOnSameDayAs(currentItineraryDateTime))
+                  .firstOrNull
+                  ?.value ??
+              [])
+          .toList();
+      var checkinLodging = lodgingEventsOnSameDay
+          .where((lodgingEvent) => currentItineraryDateTime
+              .isOnSameDayAs(lodgingEvent.checkinDateTime!))
+          .firstOrNull;
+      var checkoutLodging = lodgingEventsOnSameDay
+          .where((lodgingEvent) => currentItineraryDateTime
+              .isOnSameDayAs(lodgingEvent.checkoutDateTime!))
+          .firstOrNull;
+      var fullDayLodging = lodgingEventsOnSameDay
+          .where((lodgingEvent) =>
+              currentItineraryDateTime.isAfter(lodgingEvent.checkinDateTime!) &&
+              currentItineraryDateTime
+                  .isBefore(lodgingEvent.checkoutDateTime!) &&
+              !currentItineraryDateTime
+                  .isOnSameDayAs(lodgingEvent.checkinDateTime!) &&
+              !currentItineraryDateTime
+                  .isOnSameDayAs(lodgingEvent.checkoutDateTime!))
+          .firstOrNull;
       var itineraryModelImplementation =
           await ItineraryModelImplementation.createExistingInstanceAsync(
               tripId: tripMetadataFacade.id!,
               day: currentItineraryDateTime,
               transits: transits,
-              lodging: lodging);
+              checkinLodging: checkinLodging,
+              checkoutLodging: checkoutLodging,
+              fullDayLodging: fullDayLodging);
       itineraries.add(itineraryModelImplementation);
     }
 
@@ -212,7 +226,7 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
           tripId: tripId,
           collectionName: FirestoreCollections.itineraryDataCollectionName);
       var itinerary = ItineraryModelImplementation(
-          tripId, date, planDataModelImplementation, [], null);
+          tripId, date, planDataModelImplementation, []);
       _allItineraries.add(itinerary);
     }
 
@@ -249,32 +263,36 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
   }
 
   void _addOrRemoveTransitToItinerary(TransitFacade transit, bool toDelete) {
-    var departureItinerary = getItineraryForDay(transit.departureDateTime!);
-    if (toDelete) {
-      departureItinerary.removeTransit(transit);
-    } else {
-      departureItinerary.addTransit(transit);
-    }
-    var arrivalItinerary = getItineraryForDay(transit.arrivalDateTime!);
-    if (toDelete) {
-      arrivalItinerary.removeTransit(transit);
-    } else {
-      arrivalItinerary.addTransit(transit);
+    for (var itinerary in _allItineraries) {
+      var isItineraryDayOnOrAfterDeparture =
+          itinerary.day.isAtSameMomentAs(transit.departureDateTime!) ||
+              itinerary.day.isAfter(transit.arrivalDateTime!);
+      var isItineraryDayOnOrBeforeArrival =
+          itinerary.day.isAtSameMomentAs(transit.arrivalDateTime!) ||
+              itinerary.day.isBefore(transit.arrivalDateTime!);
+      if (isItineraryDayOnOrAfterDeparture &&
+          (isItineraryDayOnOrBeforeArrival)) {
+        if (toDelete) {
+          itinerary.removeTransit(transit);
+        } else {
+          itinerary.addTransit(transit);
+        }
+      }
     }
   }
 
   void _addOrRemoveLodgingToItinerary(LodgingFacade lodging, bool toDelete) {
-    var checkInDayItinerary = getItineraryForDay(lodging.checkinDateTime!);
-    if (toDelete) {
-      checkInDayItinerary.removeLodging(lodging);
-    } else {
-      checkInDayItinerary.addLodging(lodging);
-    }
-    var checkOutDayItinerary = getItineraryForDay(lodging.checkoutDateTime!);
-    if (toDelete) {
-      checkOutDayItinerary.removeLodging(lodging);
-    } else {
-      checkOutDayItinerary.addLodging(lodging);
+    for (var itinerary in _allItineraries) {
+      if (itinerary.day.isOnSameDayAs(lodging.checkinDateTime!)) {
+        itinerary.setCheckinLodging(toDelete ? null : lodging);
+      }
+      if (itinerary.day.isOnSameDayAs(lodging.checkoutDateTime!)) {
+        itinerary.setCheckoutLodging(toDelete ? null : lodging);
+      }
+      if (itinerary.day.isAfter(lodging.checkinDateTime!) &&
+          itinerary.day.isBefore(lodging.checkoutDateTime!)) {
+        itinerary.setFullDayLodging(toDelete ? null : lodging);
+      }
     }
   }
 

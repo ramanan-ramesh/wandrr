@@ -227,7 +227,7 @@ class _CheckListItemState extends State<_CheckListItem> {
                 controller: _itemEditingController,
                 onChanged: (newValue) {
                   if (newValue != _checkListItem.item) {
-                    _checkListItem.item = newValue!;
+                    _checkListItem.item = newValue;
                     widget.callback(_checkListItem);
                   }
                 },

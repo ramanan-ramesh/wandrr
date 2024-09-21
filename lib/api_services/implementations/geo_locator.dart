@@ -4,7 +4,8 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:wandrr/api_services/models/geo_locator.dart';
-import 'package:wandrr/trip_data/models/location.dart';
+import 'package:wandrr/trip_data/models/location/geo_location_api_context.dart';
+import 'package:wandrr/trip_data/models/location/location.dart';
 
 import 'constants.dart';
 

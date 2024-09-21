@@ -20,7 +20,6 @@ class BudgetEditTile extends StatelessWidget {
 
   Money? _currentBudget;
   final _amountEditingController = TextEditingController();
-  final _budgetValidityNotifier = ValueNotifier<bool>(false);
 
   @override
   Widget build(BuildContext context) {
@@ -57,11 +56,9 @@ class BudgetEditTile extends StatelessWidget {
                   amount: _currentBudget?.amount,
                   onAmountUpdatedCallback: (updatedAmount) {
                     _currentBudget!.amount = updatedAmount;
-                    _budgetValidityNotifier.value = true;
                   },
                   currencySelectedCallback: (selectedCurrency) {
                     _currentBudget!.currency = selectedCurrency.code;
-                    _budgetValidityNotifier.value = true;
                   },
                   isAmountEditable: true,
                 ),
@@ -81,27 +78,27 @@ class BudgetEditTile extends StatelessWidget {
   BlocConsumer<TripManagementBloc, TripManagementState>
       _buildUpdateBudgetButton() {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
-      builder: (BuildContext context, TripManagementState state) {
-        if (state.isTripEntity<TripMetadataFacade>()) {
-          var updatedTripEntity = state as UpdatedTripEntity;
+      buildWhen: (previousState, currentState) {
+        if (currentState.isTripEntity<TripMetadataFacade>()) {
+          var updatedTripEntity = currentState as UpdatedTripEntity;
           if (updatedTripEntity.dataState == DataState.Update) {
             var tripMetadataModelModificationData =
                 updatedTripEntity.tripEntityModificationData
                     as CollectionChangeMetadata<TripMetadataFacade>;
-            if (tripMetadataModelModificationData.isFromEvent) {
-              if (tripMetadataModelModificationData
-                      .modifiedCollectionItem.budget !=
-                  _currentBudget) {
-                _currentBudget = tripMetadataModelModificationData
-                    .modifiedCollectionItem.budget;
-                _amountEditingController.text =
-                    _currentBudget!.amount.toString();
-              }
+            if (tripMetadataModelModificationData
+                    .modifiedCollectionItem.budget !=
+                _currentBudget) {
+              _currentBudget = tripMetadataModelModificationData
+                  .modifiedCollectionItem.budget;
+              return true;
             }
           }
         }
-        return PlatformSubmitterFAB.conditionallyEnabled(
-          valueNotifier: _budgetValidityNotifier,
+        return false;
+      },
+      builder: (BuildContext context, TripManagementState state) {
+        _amountEditingController.text = _currentBudget!.amount.toString();
+        return PlatformSubmitterFAB(
           isSubmitted: false,
           callback: () {
             var tripMetadata = context.getActiveTrip().tripMetadata;

@@ -4,7 +4,8 @@ import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/auto_complete.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
-import 'package:wandrr/trip_data/models/location.dart';
+import 'package:wandrr/trip_data/models/location/geo_location_api_context.dart';
+import 'package:wandrr/trip_data/models/location/location.dart';
 import 'package:wandrr/trip_presentation/widgets/constants.dart';
 
 class PlatformGeoLocationAutoComplete extends StatelessWidget {
