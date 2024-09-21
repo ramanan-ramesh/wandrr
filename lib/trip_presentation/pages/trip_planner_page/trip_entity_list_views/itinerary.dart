@@ -5,7 +5,7 @@ import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/trip_metadata.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
-import 'package:wandrr/trip_presentation/pages/trip_planner_page/editable_list_elements/itinerary_list_item.dart';
+import 'package:wandrr/trip_presentation/pages/trip_planner_page/editable_list_elements/itinerary/itinerary.dart';
 import 'package:wandrr/trip_presentation/trip_management_bloc/bloc.dart';
 import 'package:wandrr/trip_presentation/trip_management_bloc/states.dart';
 
@@ -33,7 +33,7 @@ class _ItineraryListViewState extends State<ItineraryListView> {
               return PlatformTextElements.createHeader(
                   context: context, text: context.withLocale().itinerary);
             } else {
-              return Itinerary(
+              return ItineraryListItem(
                   itineraryFacade: itineraryModelCollection[index - 1]);
             }
           },

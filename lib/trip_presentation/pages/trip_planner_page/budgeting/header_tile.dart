@@ -6,7 +6,6 @@ import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/expense.dart';
-import 'package:wandrr/trip_data/models/trip_metadata.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/expense_view_type.dart';
 import 'package:wandrr/trip_presentation/trip_management_bloc/bloc.dart';
@@ -158,26 +157,23 @@ class BudgetingHeaderTile extends StatelessWidget {
   }
 
   Widget _buildBudgetOverview(BuildContext context) {
-    return BlocConsumer<TripManagementBloc, TripManagementState>(
-      buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntity<TripMetadataFacade>()) {
-          return (currentState as UpdatedTripEntity).dataState ==
-              DataState.Update;
-        }
-        return false;
-      },
-      builder: (BuildContext context, TripManagementState state) {
-        var tripMetadata = context.getActiveTrip().tripMetadata;
-        var totalExpenditure = tripMetadata.totalExpenditure;
+    var activeTrip = context.getActiveTrip();
+    return StreamBuilder(
+      stream: activeTrip.budgetingModuleFacade.totalExpenditureStream,
+      builder: (BuildContext context, AsyncSnapshot<double> snapshot) {
+        var tripMetadata = activeTrip.tripMetadata;
+        var currentTotalExpenditure =
+            activeTrip.budgetingModuleFacade.totalExpenditure;
+        var totalExpense = snapshot.data ?? currentTotalExpenditure;
         var totalBudget = tripMetadata.budget;
         double expenseRatio =
-            _calculateExpenseRatio(totalExpenditure, totalBudget.amount);
+            _calculateExpenseRatio(totalExpense, totalBudget.amount);
         var currencyInfo = context.getSupportedCurrencies().firstWhere(
             (element) => element.code == tripMetadata.budget.currency);
         var budgetText =
             '${context.withLocale().budget}: ${totalBudget.toString()}';
         var totalExpenseText =
-            '${currencyInfo.symbol} ${totalExpenditure.toStringAsFixed(2)}';
+            '${currencyInfo.symbol} ${totalExpense.toStringAsFixed(2)}';
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -192,7 +188,7 @@ class BudgetingHeaderTile extends StatelessWidget {
                 style: TextStyle(color: Colors.white),
               ),
             ),
-            if (totalExpenditure > 0)
+            if (totalExpense > 0)
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 3.0),
                 child: LinearProgressIndicator(
@@ -203,7 +199,7 @@ class BudgetingHeaderTile extends StatelessWidget {
           ],
         );
       },
-      listener: (BuildContext context, TripManagementState state) {},
+      initialData: activeTrip.budgetingModuleFacade.totalExpenditure,
     );
   }
 

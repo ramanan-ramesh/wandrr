@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:wandrr/trip_data/models/trip_entity.dart';
 
 import 'check_list.dart';
-import 'location.dart';
+import 'location/location.dart';
 import 'note.dart';
 
 class PlanDataFacade extends Equatable implements TripEntity {
@@ -42,6 +42,25 @@ class PlanDataFacade extends Equatable implements TripEntity {
         notes: List.from(notes.map((note) => note.clone())),
         checkLists:
             List.from(checkLists.map((checkList) => checkList.clone())));
+  }
+
+  bool isValid(bool isTitleRequired) {
+    var isAnyNoteEmpty = notes.any((noteFacade) => noteFacade.note.isEmpty);
+    var isAnyCheckListEmpty = false;
+    for (var checkList in checkLists) {
+      if (checkList.items.isEmpty ||
+          checkList.items.any((checkListItem) => checkListItem.item.isEmpty)) {
+        isAnyCheckListEmpty = true;
+      }
+    }
+    var isTitleEmpty = title?.isEmpty ?? true;
+
+    var areThereAnyNotesOrCheckListsOrPlaces =
+        notes.isNotEmpty || checkLists.isNotEmpty || places.isNotEmpty;
+    return !isAnyNoteEmpty &&
+        (isTitleRequired ? !isTitleEmpty : true) &&
+        !isAnyCheckListEmpty &&
+        areThereAnyNotesOrCheckListsOrPlaces;
   }
 
   @override

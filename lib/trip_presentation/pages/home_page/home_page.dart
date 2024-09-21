@@ -5,8 +5,6 @@ import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
 import 'package:wandrr/app_presentation/blocs/master_page/master_page_events.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
-import 'package:wandrr/trip_data/models/trip_metadata.dart';
-import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
 
 import 'trip_creator_dialog.dart';
 import 'trips_list_view.dart';
@@ -78,7 +76,6 @@ class HomePage extends StatelessWidget {
       visible: !keyboardIsOpened,
       child: FloatingActionButton.extended(
         onPressed: () {
-          var geoLocator = pageContext.getPlatformDataRepository().geoLocator;
           showGeneralDialog(
             context: pageContext,
             barrierDismissible: false,
@@ -102,16 +99,6 @@ class HomePage extends StatelessWidget {
         label: Text(AppLocalizations.of(pageContext)!.planTrip),
         icon: Icon(Icons.add_location_alt_rounded),
       ),
-    );
-  }
-
-  void _submitTripCreationEvent(
-      BuildContext pageContext, TripMetadataFacade tripCreationMetadata) {
-    var userName = pageContext.getAppLevelData().activeUser!.userName;
-    var tripMetadata = tripCreationMetadata.clone();
-    tripMetadata.contributors = [userName];
-    pageContext.addTripManagementEvent(
-      UpdateTripEntity<TripMetadataFacade>.create(tripEntity: tripMetadata),
     );
   }
 }
@@ -140,7 +127,7 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                 Padding(
                   padding: const EdgeInsets.only(right: 8.0),
                   child: Image.asset(
-                    _appLogoAsset, //
+                    _appLogoAsset,
                     width: 40,
                     height: 40,
                   ),
@@ -169,7 +156,10 @@ class _UserProfilePopupMenu extends StatelessWidget {
           PopupMenuItem(
             child: Row(
               children: [
-                Icon(Icons.settings),
+                Icon(
+                  Icons.settings,
+                  color: Theme.of(context).iconTheme.color,
+                ),
                 SizedBox(width: 8),
                 Text(context.withLocale().settings),
               ],
@@ -179,7 +169,10 @@ class _UserProfilePopupMenu extends StatelessWidget {
           PopupMenuItem(
             child: Row(
               children: [
-                Icon(Icons.logout),
+                Icon(
+                  Icons.logout,
+                  color: Theme.of(context).iconTheme.color,
+                ),
                 SizedBox(width: 8),
                 Text(context.withLocale().logout),
               ],
@@ -233,6 +226,7 @@ class _ProfileActionButtonState extends State<_ProfileActionButton> {
     }
   }
 
+  //TODO: Clip the CircleAvatar to a circle, and splash too
   @override
   Widget build(BuildContext context) {
     return !_isImageLoaded

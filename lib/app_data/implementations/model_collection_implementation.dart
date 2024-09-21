@@ -165,7 +165,7 @@ class ModelCollectionImplementation<Model>
       if (indexInCurrentCollectionItems >= 0) {
         var collectionItemToUpdate =
             _collectionItems[indexInCurrentCollectionItems];
-        if (collectionItemToUpdate.clone() != newItem) {
+        if (collectionItemToUpdate.facade != newItem) {
           writeBatch.set(collectionItemToUpdate.documentReference,
               newItemRepositoryPattern.toJson());
           _collectionItems[indexInCurrentCollectionItems] =

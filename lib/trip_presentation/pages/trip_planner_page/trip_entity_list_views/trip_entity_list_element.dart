@@ -129,7 +129,7 @@ class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
 
 class _OpenedTripEntityUiElement<T extends TripEntity> extends StatelessWidget {
   UiElement<T> uiElement;
-  final _validityNotifier = ValueNotifier(false);
+  final ValueNotifier<bool> _validityNotifier;
   Widget Function(UiElement<T> uiElement, ValueNotifier<bool>)
       openedListElementCreator;
   void Function(UiElement<T>)? onUpdatePressed;
@@ -145,7 +145,9 @@ class _OpenedTripEntityUiElement<T extends TripEntity> extends StatelessWidget {
       required this.canDelete,
       required this.onPressed,
       required this.openedListElementCreator})
-      : uiElement = uiElement.clone();
+      : uiElement = uiElement.clone(),
+        _validityNotifier = ValueNotifier(
+            uiElement.dataState == DataState.NewUiEntry ? false : true);
 
   @override
   Widget build(BuildContext context) {

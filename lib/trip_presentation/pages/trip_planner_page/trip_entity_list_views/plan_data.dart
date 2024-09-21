@@ -152,6 +152,8 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
         widget.initialPlanDataUiElement.element.clone();
     _titleEditingController =
         TextEditingController(text: _planDataUiElement.element.title);
+    _canUpdatePlanDataNotifier.value =
+        _planDataUiElement.dataState == DataState.NewUiEntry ? false : true;
   }
 
   @override
@@ -239,8 +241,7 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
     var title = _planDataUiElement.element.title;
     _planDataUiElement.element = newPlanData;
     _planDataUiElement.element.title = title;
-    var isValid = _planDataUiElement.isValid(
-        widget.initialPlanDataUiElement.element, true);
+    var isValid = _planDataUiElement.element.isValid(true);
     _canUpdatePlanDataNotifier.value = isValid;
   }
 

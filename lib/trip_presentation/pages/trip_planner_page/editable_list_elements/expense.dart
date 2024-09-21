@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/app_data/models/ui_element.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/date_picker.dart';
-import 'package:wandrr/app_presentation/widgets/dialog.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/expense.dart';
 import 'package:wandrr/trip_data/models/money.dart';
-import 'package:wandrr/trip_presentation/pages/trip_planner_page/budgeting/constants.dart';
+import 'package:wandrr/trip_presentation/pages/trip_planner_page/constants.dart';
 import 'package:wandrr/trip_presentation/widgets/geo_location_auto_complete.dart';
 
-import '../expenditure_edit_tile.dart';
+import '../expenditure_edit_tile/expenditure_edit_tile.dart';
 
 class EditableExpenseListItem extends StatelessWidget {
   final UiElement<ExpenseFacade> expenseUiElement;
@@ -51,6 +50,7 @@ class EditableExpenseListItem extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 5.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
                         padding: EdgeInsets.all(5.0),
@@ -108,17 +108,11 @@ class EditableExpenseListItem extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 5.0),
                   child: ExpenditureEditTile(
                     callback: (paidBy, splitBy, totalExpense) {
-                      if (paidBy != null) {
-                        expenseUiElement.element.paidBy = Map.from(paidBy);
-                      }
-                      if (splitBy != null) {
-                        expenseUiElement.element.splitBy = List.from(splitBy);
-                      }
-                      if (totalExpense != null) {
-                        expenseUiElement.element.totalExpense = Money(
-                            currency: totalExpense.currency,
-                            amount: totalExpense.amount);
-                      }
+                      expenseUiElement.element.paidBy = Map.from(paidBy);
+                      expenseUiElement.element.splitBy = List.from(splitBy);
+                      expenseUiElement.element.totalExpense = Money(
+                          currency: totalExpense.currency,
+                          amount: totalExpense.amount);
                       _calculateExpenseUpdatePossibility();
                     },
                     expenseUpdator: expenseUiElement.element,
@@ -152,9 +146,7 @@ class EditableExpenseListItem extends StatelessWidget {
 
   void _calculateExpenseUpdatePossibility() {
     var isTitleValid = expenseUiElement.element.title.isNotEmpty;
-    var isPaidByValid = expenseUiElement.element.paidBy.isNotEmpty;
-    var isSplitByValid = expenseUiElement.element.splitBy.isNotEmpty;
-    var isExpenseValid = isTitleValid && isPaidByValid && isSplitByValid;
+    var isExpenseValid = isTitleValid && expenseUiElement.element.isValid();
     validityNotifier.value = isExpenseValid;
   }
 }
@@ -175,71 +167,62 @@ class _CategoryPicker extends StatefulWidget {
 }
 
 class _CategoryPickerState extends State<_CategoryPicker> {
-  final _widgetKey = GlobalKey();
-
   @override
   Widget build(BuildContext context) {
-    return TextButton.icon(
-      key: _widgetKey,
-      icon: Icon(iconsForCategories[widget.category]!),
-      onPressed: widget.callback == null
-          ? null
-          : () {
-              PlatformDialogElements.showAlignedDialog(
-                  context: context,
-                  widgetBuilder: (context) => Material(
-                        elevation: 5.0,
-                        child: Container(
-                          width: 200,
-                          color: Colors.white24,
-                          child: GridView.extent(
-                            shrinkWrap: true,
-                            maxCrossAxisExtent: 75,
-                            mainAxisSpacing: 5,
-                            crossAxisSpacing: 5,
-                            children: widget.categories.keys
-                                .map((e) => _createCategory(e, context))
-                                .toList(),
-                          ),
-                        ),
+    return DropdownButton<ExpenseCategory>(
+        value: widget.category,
+        selectedItemBuilder: (context) => widget.categories.keys
+            .map(
+              (expenseCategory) => DropdownMenuItem<ExpenseCategory>(
+                value: expenseCategory,
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        child: Icon(iconsForCategories[expenseCategory]!),
                       ),
-                  widgetKey: _widgetKey);
-            },
-      label: Text(context.withLocale().category),
-    );
-  }
-
-  Widget _createCategory(
-      ExpenseCategory expenseCategory, BuildContext dialogContext) {
-    return InkWell(
-      splashColor: Colors.white,
-      onTap: () {
-        setState(() {
-          widget.category = expenseCategory;
-          if (widget.callback != null) {
-            widget.callback!(expenseCategory);
-            Navigator.of(dialogContext).pop();
-          }
-        });
-      },
-      child: Container(
-        decoration: BoxDecoration(border: Border.all(color: Colors.black)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Icon(
-                iconsForCategories[expenseCategory],
-                color: Colors.black,
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        child: Text(widget.categories[expenseCategory]!),
+                      )
+                    ],
+                  ),
+                ),
               ),
-            ),
-            Text(
-              widget.categories[expenseCategory]!,
-              style: TextStyle(color: Colors.black),
             )
-          ],
-        ),
-      ),
-    );
+            .toList(),
+        items: widget.categories.keys
+            .map(
+              (expenseCategory) => DropdownMenuItem<ExpenseCategory>(
+                value: expenseCategory,
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        child: Icon(iconsForCategories[expenseCategory]!),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        child: Text(widget.categories[expenseCategory]!),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            )
+            .toList(),
+        onChanged: widget.callback == null
+            ? null
+            : (selectedExpenseCategory) {
+                if (selectedExpenseCategory != null) {
+                  widget.category = selectedExpenseCategory;
+                  setState(() {});
+                  widget.callback!(selectedExpenseCategory);
+                }
+              });
   }
 }

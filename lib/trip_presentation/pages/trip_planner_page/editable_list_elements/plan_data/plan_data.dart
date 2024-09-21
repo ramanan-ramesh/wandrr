@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wandrr/app_data/models/ui_element.dart';
 import 'package:wandrr/trip_data/models/check_list.dart';
@@ -11,42 +10,6 @@ import 'package:wandrr/trip_presentation/widgets/geo_location_auto_complete.dart
 import 'checklists.dart';
 import 'notes.dart';
 import 'places.dart';
-
-extension PlanDataValidatorExtension on UiElement<PlanDataFacade> {
-  bool isValid(PlanDataFacade initialPlanData, bool isTitleRequired) {
-    var currentPlanData = element;
-    var isAnyNoteEmpty =
-        currentPlanData.notes.any((noteFacade) => noteFacade.note.isEmpty);
-    var isAnyCheckListEmpty = false;
-    for (var checkList in currentPlanData.checkLists) {
-      if (checkList.items.isEmpty ||
-          checkList.items.any((checkListItem) => checkListItem.item.isEmpty)) {
-        isAnyCheckListEmpty = true;
-      }
-    }
-    var isTitleEmpty = currentPlanData.title?.isEmpty ?? true;
-
-    var areNotesEqual =
-        listEquals(initialPlanData.notes, currentPlanData.notes);
-    var areCheckListsEqual =
-        listEquals(initialPlanData.checkLists, currentPlanData.checkLists);
-    var arePlacesEqual =
-        listEquals(initialPlanData.places, currentPlanData.places);
-    var areTitlesEqual = initialPlanData.title == currentPlanData.title;
-    var areThereAnyNotesOrCheckListsOrPlaces =
-        currentPlanData.notes.isNotEmpty ||
-            currentPlanData.checkLists.isNotEmpty ||
-            currentPlanData.places.isNotEmpty;
-    return (!arePlacesEqual ||
-            !areCheckListsEqual ||
-            !areNotesEqual ||
-            !areTitlesEqual) &&
-        !isAnyNoteEmpty &&
-        (isTitleRequired ? !isTitleEmpty : true) &&
-        !isAnyCheckListEmpty &&
-        areThereAnyNotesOrCheckListsOrPlaces;
-  }
-}
 
 class PlanDataListItem extends StatefulWidget {
   final UiElement<PlanDataFacade> initialPlanDataUiElement;

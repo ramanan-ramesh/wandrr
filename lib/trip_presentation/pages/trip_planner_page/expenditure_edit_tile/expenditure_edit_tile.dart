@@ -7,9 +7,10 @@ import 'package:wandrr/trip_data/models/expense.dart';
 import 'package:wandrr/trip_data/models/money.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
 import 'package:wandrr/trip_presentation/widgets/currency_drop_down.dart';
-import 'package:wandrr/trip_presentation/widgets/expense_amount_edit_field.dart';
 
-import 'constants.dart';
+import '../constants.dart';
+import 'paid_by_tab.dart';
+import 'split_by_tab.dart';
 
 class ExpenditureEditTile extends StatefulWidget {
   Map<String, double> paidBy;
@@ -18,8 +19,9 @@ class ExpenditureEditTile extends StatefulWidget {
   bool isEditable;
 
   //TODO: Don't invoke this callback with nullables
-  void Function(Map<String, double>? paidBy, List<String>? splitBy,
-      Money? totalExpense)? callback;
+  void Function(
+          Map<String, double> paidBy, List<String> splitBy, Money totalExpense)?
+      callback;
 
   ExpenditureEditTile(
       {super.key,
@@ -91,8 +93,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
                                     amount: _totalExpenseValueNotifier
                                         .value.amount);
                                 _currentCurrencyInfo = currencyInfo;
-                                widget.callback!(widget.paidBy, null,
-                                    _totalExpenseValueNotifier.value);
+                                _invokeUpdatedCallback();
                               });
                             }
                           }),
@@ -146,6 +147,13 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     }
   }
 
+  void _invokeUpdatedCallback() {
+    if (widget.callback != null) {
+      widget.callback!(
+          widget.paidBy, widget.splitBy, _totalExpenseValueNotifier.value);
+    }
+  }
+
   void _initializeContributors(BuildContext context) {
     var contributors = context.getActiveTrip().tripMetadata.contributors;
     var allContributors = List.from(contributors);
@@ -191,7 +199,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   }
 
   Widget _buildPaidByTab() {
-    return _PaidByTab(
+    return PaidByTab(
       heightPerItem: _heightPerItem,
       contributorsVsColors: _contributorsVsColors,
       paidBy: widget.paidBy,
@@ -203,10 +211,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
           _totalExpenseValueNotifier.value = Money(
               currency: _totalExpenseValueNotifier.value.currency,
               amount: totalExpenseAmount);
-          if (widget.callback != null) {
-            widget.callback!(
-                widget.paidBy, null, _totalExpenseValueNotifier.value);
-          }
+          _invokeUpdatedCallback();
         }
       },
       defaultCurrencySymbol: _currentCurrencyInfo.symbol,
@@ -214,207 +219,12 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   }
 
   Widget _buildSplitByPage() {
-    return _SplitByTab(
+    return SplitByTab(
         callback: (splitBy) {
           widget.splitBy = List.from(splitBy);
+          _invokeUpdatedCallback();
         },
         splitBy: widget.splitBy,
         contributorsVsColors: _contributorsVsColors);
-  }
-}
-
-class _PaidByTab extends StatelessWidget {
-  final Map<String, double> paidBy;
-  final void Function(Map<String, double> paidBy) callback;
-  final Map<String, Color> contributorsVsColors;
-  final double heightPerItem;
-  final String defaultCurrencySymbol;
-
-  _PaidByTab(
-      {super.key,
-      required this.heightPerItem,
-      required this.callback,
-      required this.contributorsVsColors,
-      required this.defaultCurrencySymbol,
-      required this.paidBy});
-
-  @override
-  Widget build(BuildContext context) {
-    var currentUserName = context.getAppLevelData().activeUser!.userName;
-    var allContributions = _createContributions(context, currentUserName);
-    var widgets = allContributions
-        .map((contributorVsColor) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3.0),
-              child: SizedBox(
-                height: heightPerItem,
-                child: _buildPaidByContributor(
-                    contributorVsColor, context, currentUserName),
-              ),
-            ))
-        .toList();
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: widgets,
-    );
-  }
-
-  List<MapEntry<String, Color>> _createContributions(
-      BuildContext context, String currentUserName) {
-    var allContributions = contributorsVsColors.entries.toList();
-    var personalContribution = allContributions
-        .firstWhere((element) => element.key == currentUserName);
-    allContributions.removeWhere((element) => element.key == currentUserName);
-    allContributions.insert(0, personalContribution);
-    return allContributions;
-  }
-
-  Widget _buildPaidByContributor(MapEntry<String, Color> contributorVsColor,
-      BuildContext context, String currentUserName) {
-    double contribution;
-    if (paidBy.containsKey(contributorVsColor.key)) {
-      contribution = paidBy[contributorVsColor.key]!;
-    } else {
-      contribution = 0;
-    }
-    return _ExpenseEditField(
-        onChanged: (amountValue) {
-          if (amountValue.isEmpty) {
-            paidBy[contributorVsColor.key] = 0;
-            callback(paidBy);
-          } else {
-            paidBy[contributorVsColor.key] = double.parse(amountValue);
-            callback(paidBy);
-          }
-        },
-        prefixText: contributorVsColor.key == currentUserName
-            ? context.withLocale().you
-            : contributorVsColor.key,
-        initialExpense: contribution.toStringAsFixed(2),
-        contributorColor: contributorVsColor.value,
-        currencySymbol: defaultCurrencySymbol);
-  }
-}
-
-class _ExpenseEditField extends StatefulWidget {
-  final Function(String) onChanged;
-  final String prefixText;
-  final Color contributorColor;
-  final String currencySymbol;
-  final String initialExpense;
-
-  _ExpenseEditField(
-      {super.key,
-      required this.onChanged,
-      required this.prefixText,
-      required this.initialExpense,
-      required this.contributorColor,
-      required this.currencySymbol});
-
-  @override
-  State<_ExpenseEditField> createState() => _ExpenseEditFieldState();
-}
-
-class _ExpenseEditFieldState extends State<_ExpenseEditField> {
-  @override
-  Widget build(BuildContext context) {
-    return PlatformExpenseAmountEditField(
-      amount: widget.initialExpense,
-      textColor: Colors.white,
-      onExpenseAmountChanged: (newValue) {
-        var newExpenseStringValue = newValue.toStringAsFixed(2);
-        widget.onChanged(newExpenseStringValue);
-      },
-      inputDecoration: InputDecoration(
-        fillColor: Colors.white24,
-        border: OutlineInputBorder(),
-        prefix: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 3.0),
-          child: Text(widget.prefixText),
-        ),
-        icon: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2.0),
-          child: Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              color: widget.contributorColor,
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-        suffix: CircleAvatar(
-          radius: 17,
-          child: Text(
-            widget.currencySymbol,
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SplitByTab extends StatefulWidget {
-  final void Function(List<String>) callback;
-  final Map<String, Color> contributorsVsColors;
-  List<String> splitBy;
-
-  _SplitByTab(
-      {required this.callback,
-      required this.splitBy,
-      required this.contributorsVsColors});
-
-  @override
-  State<_SplitByTab> createState() => _SplitByTabState();
-}
-
-class _SplitByTabState extends State<_SplitByTab> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: widget.contributorsVsColors.entries
-          .map(
-            (contributorVsColor) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3.0),
-              child: SizedBox(
-                height: 45,
-                child: Material(
-                  color: widget.splitBy.contains(contributorVsColor.key)
-                      ? Colors.white24
-                      : null,
-                  child: ListTile(
-                    onTap: () {
-                      setState(() {
-                        if (!widget.splitBy.contains(contributorVsColor.key)) {
-                          widget.splitBy.add(contributorVsColor.key);
-                        }
-                      });
-                    },
-                    title: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        contributorVsColor.key,
-                        style: TextStyle(
-                            color: widget
-                                .contributorsVsColors[contributorVsColor]),
-                      ),
-                    ),
-                    leading: Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color:
-                            widget.contributorsVsColors[contributorVsColor.key],
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          )
-          .toList(),
-    );
   }
 }

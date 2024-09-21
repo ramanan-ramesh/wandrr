@@ -41,7 +41,6 @@ class _BudgetBreakdownTileState extends State<BudgetBreakdownTile>
   Widget build(BuildContext context) {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       builder: (BuildContext context, TripManagementState state) {
-        var shouldDisplayTotalExpensePerCategory = _tabController.index == 0;
         return SliverToBoxAdapter(
           child: Card(
             shape: RoundedRectangleBorder(
@@ -53,14 +52,22 @@ class _BudgetBreakdownTileState extends State<BudgetBreakdownTile>
               children: [
                 _createTabBar(),
                 const SizedBox(height: 16.0),
-                if (shouldDisplayTotalExpensePerCategory)
-                  BreakdownByCategoryChart(
-                    budgetingModule: _budgetingModule,
-                  )
-                else
-                  BreakdownByDayChart(
-                    budgetingModule: _budgetingModule,
-                  )
+                Container(
+                  constraints: BoxConstraints(maxHeight: 500),
+                  child: Center(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        BreakdownByCategoryChart(
+                          budgetingModule: _budgetingModule,
+                        ),
+                        BreakdownByDayChart(
+                          budgetingModule: _budgetingModule,
+                        )
+                      ],
+                    ),
+                  ),
+                )
               ],
             ),
           ),
@@ -78,17 +85,15 @@ class _BudgetBreakdownTileState extends State<BudgetBreakdownTile>
   TabBar _createTabBar() {
     return TabBar(
       controller: _tabController,
-      labelStyle: const TextStyle(fontSize: 22),
-      onTap: (selectedTabIndex) {
-        setState(() {
-          _tabController.index = selectedTabIndex;
-        });
-      },
-      labelColor: Colors.white,
-      unselectedLabelColor: Colors.black,
       tabs: [
-        Tab(text: context.withLocale().category),
-        Tab(text: context.withLocale().dayByDay),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Tab(text: context.withLocale().category),
+        ),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Tab(text: context.withLocale().dayByDay),
+        ),
       ],
     );
   }

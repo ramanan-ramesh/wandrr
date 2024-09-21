@@ -8,70 +8,59 @@ import 'package:wandrr/app_data/models/data_states.dart';
 import 'package:wandrr/app_data/models/model_collection_facade.dart';
 import 'package:wandrr/app_data/models/repository_pattern.dart';
 import 'package:wandrr/app_data/models/ui_element.dart';
+import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/trip_data/models/budgeting_module.dart';
 import 'package:wandrr/trip_data/models/debt_data.dart';
 import 'package:wandrr/trip_data/models/expense.dart';
 import 'package:wandrr/trip_data/models/expense_sort_options.dart';
 import 'package:wandrr/trip_data/models/lodging.dart';
+import 'package:wandrr/trip_data/models/money.dart';
 import 'package:wandrr/trip_data/models/transit.dart';
-import 'package:wandrr/trip_data/models/trip_metadata.dart';
 
 class BudgetingModule implements BudgetingModuleEventHandler {
   final ModelCollectionFacade<TransitFacade> _transitModelCollection;
   final ModelCollectionFacade<LodgingFacade> _lodgingModelCollection;
   final ModelCollectionFacade<ExpenseFacade> _expenseModelCollection;
   final CurrencyConverterService currencyConverter;
-  final RepositoryPattern<TripMetadataFacade> _tripMetadata;
+  String defaultCurrency;
+  Iterable<String> _contributors;
 
   final _subscriptions = <StreamSubscription>[];
 
-  BudgetingModule(
+  static Future<BudgetingModuleEventHandler> createInstance(
+      ModelCollectionFacade<TransitFacade> transitModelCollection,
+      ModelCollectionFacade<LodgingFacade> lodgingModelCollection,
+      ModelCollectionFacade<ExpenseFacade> expenseModelCollection,
+      CurrencyConverterService currencyConverter,
+      String defaultCurrency,
+      Iterable<String> contributors) async {
+    double totalExpenditure = await _calculateTotalExpenseAmount(
+        transitModelCollection,
+        currencyConverter,
+        defaultCurrency,
+        lodgingModelCollection,
+        expenseModelCollection);
+    return BudgetingModule._(
+        transitModelCollection,
+        lodgingModelCollection,
+        expenseModelCollection,
+        currencyConverter,
+        defaultCurrency,
+        contributors,
+        totalExpenditure);
+  }
+
+  BudgetingModule._(
       this._transitModelCollection,
       this._lodgingModelCollection,
       this._expenseModelCollection,
       this.currencyConverter,
-      this._tripMetadata) {
-    _subscriptions
-        .add(_transitModelCollection.onDocumentAdded.listen((eventData) async {
-      await _recalculateTotalExpenditureOnAddOrDelete(eventData,
-          isLinkedExpense: true);
-    }));
-    _subscriptions.add(
-        _transitModelCollection.onDocumentDeleted.listen((eventData) async {
-      await _recalculateTotalExpenditureOnAddOrDelete(eventData,
-          deleted: true, isLinkedExpense: true);
-    }));
-    _subscriptions.add(
-        _transitModelCollection.onDocumentUpdated.listen((eventData) async {
-      await _recalculateTotalExpenditureOnUpdate(eventData,
-          isLinkedExpense: true);
-    }));
-    _subscriptions
-        .add(_lodgingModelCollection.onDocumentAdded.listen((eventData) async {
-      await _recalculateTotalExpenditureOnAddOrDelete(eventData,
-          isLinkedExpense: true);
-    }));
-    _subscriptions.add(
-        _lodgingModelCollection.onDocumentDeleted.listen((eventData) async {
-      await _recalculateTotalExpenditureOnAddOrDelete(eventData,
-          deleted: true, isLinkedExpense: true);
-    }));
-    _subscriptions.add(
-        _lodgingModelCollection.onDocumentUpdated.listen((eventData) async {
-      await _recalculateTotalExpenditureOnUpdate(eventData);
-    }));
-    _subscriptions
-        .add(_expenseModelCollection.onDocumentAdded.listen((eventData) async {
-      await _recalculateTotalExpenditureOnAddOrDelete(eventData);
-    }));
-    _subscriptions.add(
-        _expenseModelCollection.onDocumentDeleted.listen((eventData) async {
-      await _recalculateTotalExpenditureOnAddOrDelete(eventData, deleted: true);
-    }));
-    _subscriptions.add(
-        _expenseModelCollection.onDocumentUpdated.listen((eventData) async {
-      await _recalculateTotalExpenditureOnUpdate(eventData);
-    }));
+      this.defaultCurrency,
+      Iterable<String> contributors,
+      double totalExpenditure)
+      : _totalExpenditure = totalExpenditure,
+        _contributors = contributors {
+    _subscribeToTotalExpenseReCalculatorEvents();
   }
 
   @override
@@ -82,53 +71,161 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   }
 
   @override
-  Future<List<DebtData>> retrieveDebtDataList() {
-    // TODO: implement retrieveDebtDataList
-    throw UnimplementedError();
+  Future<List<DebtData>> retrieveDebtDataList() async {
+    var allExpenses = _getAllExpenses();
+    var allDebtDataList = <DebtData>[];
+    if (_contributors.length == 1 || allExpenses.isEmpty) {
+      return allDebtDataList;
+    }
+
+    var netBalances = <String, double>{};
+
+    // Calculate net balance for each contributor
+    for (var expense in allExpenses) {
+      var splitBy = expense.splitBy;
+      if (splitBy.length <= 1) {
+        continue;
+      }
+
+      var totalExpense = (await currencyConverter.performQuery(
+          currencyAmount: expense.totalExpense,
+          currencyToConvertTo: defaultCurrency))!;
+
+      var averageExpense = totalExpense / splitBy.length;
+      var paidBy = expense.paidBy;
+
+      for (var contributor in splitBy) {
+        var paidAmount = paidBy[contributor] ?? 0.0;
+        var balance = paidAmount - averageExpense;
+
+        netBalances[contributor] = (netBalances[contributor] ?? 0) + balance;
+      }
+    }
+
+    // Separate contributors into those who owe money and those who are owed money
+    var contributorsOwing = <String, double>{};
+    var contributorsOwed = <String, double>{};
+
+    netBalances.forEach((contributor, balance) {
+      if (balance < 0) {
+        contributorsOwing[contributor] = -balance;
+      } else if (balance > 0) {
+        contributorsOwed[contributor] = balance;
+      }
+    });
+
+    // Settle debts using a greedy algorithm
+    for (var owing in contributorsOwing.entries) {
+      var amountOwed = owing.value;
+      for (var owed in contributorsOwed.entries) {
+        if (amountOwed == 0) break;
+
+        var amountToSettle = amountOwed < owed.value ? amountOwed : owed.value;
+        allDebtDataList.add(DebtData(
+            owedBy: owing.key,
+            owedTo: owed.key,
+            money: Money(currency: defaultCurrency, amount: amountToSettle)));
+
+        contributorsOwed[owed.key] =
+            contributorsOwed[owed.key]! - amountToSettle;
+        amountOwed -= amountToSettle;
+      }
+    }
+
+    return allDebtDataList;
   }
 
   @override
-  Future<Map<ExpenseCategory, double>> retrieveTotalExpensePerCategory() {
-    // TODO: implement retrieveTotalExpensePerCategory
-    throw UnimplementedError();
+  Future<Map<ExpenseCategory, double>> retrieveTotalExpensePerCategory() async {
+    var categorizedExpenses = <ExpenseCategory, double>{};
+    var allExpenses = _getAllExpenses();
+
+    for (var expense in allExpenses) {
+      var totalExpense = (await currencyConverter.performQuery(
+          currencyAmount: expense.totalExpense,
+          currencyToConvertTo: defaultCurrency))!;
+
+      if (categorizedExpenses.containsKey(expense.category)) {
+        categorizedExpenses[expense.category] =
+            categorizedExpenses[expense.category]! + totalExpense;
+      } else {
+        categorizedExpenses[expense.category] = totalExpense;
+      }
+    }
+
+    return categorizedExpenses;
   }
 
   @override
-  Future<Map<DateTime?, double>> retrieveTotalExpensePerDay() {
-    // TODO: implement retrieveTotalExpensePerDay
-    throw UnimplementedError();
+  Future<Map<DateTime, double>> retrieveTotalExpensePerDay(
+      DateTime startDay, DateTime endDay) async {
+    var totalExpensesPerDay = <DateTime, double>{};
+    var allExpenses = _getAllExpenses();
+
+    for (var expense in allExpenses) {
+      if (expense.dateTime != null) {
+        var expenseDateTime = expense.dateTime!;
+        var expenseDate = DateTime(
+            expenseDateTime.year, expenseDateTime.month, expenseDateTime.day);
+        var isExpenseOnOrAfterStartDay = expenseDate.isAfter(startDay) ||
+            expenseDate.isOnSameDayAs(startDay);
+        var isExpenseOnOrBeforeEndDay =
+            expenseDate.isBefore(endDay) || expenseDate.isOnSameDayAs(endDay);
+        if (isExpenseOnOrAfterStartDay && isExpenseOnOrBeforeEndDay) {
+          var totalExpense = (await currencyConverter.performQuery(
+              currencyAmount: expense.totalExpense,
+              currencyToConvertTo: defaultCurrency))!;
+          totalExpensesPerDay.update(
+              expenseDate, (value) => value + totalExpense,
+              ifAbsent: () => totalExpense);
+        }
+      }
+    }
+    for (var date = startDay;
+        date.isBefore(endDay) || date.isOnSameDayAs(endDay);
+        date = date.add(Duration(days: 1))) {
+      totalExpensesPerDay.putIfAbsent(date, () => 0.0);
+    }
+    return Map.fromEntries(totalExpensesPerDay.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key)));
   }
+
+  @override
+  double get totalExpenditure => _totalExpenditure;
+  double _totalExpenditure;
+
+  @override
+  Stream<double> get totalExpenditureStream =>
+      _totalExpenditureStreamController.stream;
+  final StreamController<double> _totalExpenditureStreamController =
+      StreamController<double>.broadcast();
 
   @override
   Future recalculateTotalExpenditure(
-      TripMetadataFacade newTripMetadata,
-      Iterable<TransitFacade> deletedTransits,
-      Iterable<LodgingFacade> deletedLodgings) async {
-    var currentTripMetadata = _tripMetadata.clone();
-    var totalExpenditure = currentTripMetadata.totalExpenditure;
-    for (var transit in deletedTransits) {
-      var expenseInCurrentCurrency = await currencyConverter.performQuery(
-          currencyAmount: transit.expense.totalExpense,
-          currencyToConvertTo: currentTripMetadata.budget.currency);
-      totalExpenditure -= expenseInCurrentCurrency!;
+      {Iterable<TransitFacade> deletedTransits = const [],
+      Iterable<LodgingFacade> deletedLodgings = const []}) async {
+    var updatedTotalExpenditure =
+        await BudgetingModule._calculateTotalExpenseAmount(
+            _transitModelCollection,
+            currencyConverter,
+            defaultCurrency,
+            _lodgingModelCollection,
+            _expenseModelCollection,
+            transitsToExclude: deletedTransits,
+            lodgingsToExclude: deletedLodgings);
+    if (_totalExpenditure != updatedTotalExpenditure) {
+      _totalExpenditure = updatedTotalExpenditure;
+      _totalExpenditureStreamController.add(_totalExpenditure);
     }
-    for (var lodging in deletedLodgings) {
-      var expenseInCurrentCurrency = await currencyConverter.performQuery(
-          currencyAmount: lodging.expense.totalExpense,
-          currencyToConvertTo: currentTripMetadata.budget.currency);
-      totalExpenditure -= expenseInCurrentCurrency!;
-    }
-    currentTripMetadata.totalExpenditure = totalExpenditure;
-    await _tripMetadata.tryUpdate(currentTripMetadata);
   }
 
   @override
-  Future<void> sortExpenseElements(
+  Future<Iterable<UiElement<ExpenseFacade>>> sortExpenseElements(
       List<UiElement<ExpenseFacade>> expenseUiElements,
       ExpenseSortOption expenseSortOption) async {
-    var newUiEntries = expenseUiElements
+    var newUiEntry = expenseUiElements
         .where((element) => element.dataState == DataState.NewUiEntry)
-        .toList();
+        .firstOrNull;
     expenseUiElements
         .removeWhere((element) => element.dataState == DataState.NewUiEntry);
     switch (expenseSortOption) {
@@ -159,7 +256,106 @@ class BudgetingModule implements BudgetingModuleEventHandler {
           break;
         }
     }
-    expenseUiElements.addAll(newUiEntries);
+    if (newUiEntry != null) {
+      expenseUiElements.insert(0, newUiEntry);
+    }
+    return expenseUiElements;
+  }
+
+  static Future<double> _calculateTotalExpenseAmount(
+      ModelCollectionFacade<TransitFacade> transitModelCollection,
+      CurrencyConverterService currencyConverter,
+      String defaultCurrency,
+      ModelCollectionFacade<LodgingFacade> lodgingModelCollection,
+      ModelCollectionFacade<ExpenseFacade> expenseModelCollection,
+      {Iterable<TransitFacade> transitsToExclude = const [],
+      Iterable<LodgingFacade> lodgingsToExclude = const []}) async {
+    double totalExpenditure = 0.0;
+    for (var transit in transitModelCollection.collectionItems) {
+      if (!transitsToExclude.any((e) => e.id == transit.id)) {
+        var totalExpense = await currencyConverter.performQuery(
+            currencyAmount: transit.facade.expense.totalExpense,
+            currencyToConvertTo: defaultCurrency);
+        totalExpenditure += totalExpense!;
+      }
+    }
+    for (var lodging in lodgingModelCollection.collectionItems) {
+      if (!lodgingsToExclude.any((e) => e.id == lodging.id)) {
+        var totalExpense = await currencyConverter.performQuery(
+            currencyAmount: lodging.facade.expense.totalExpense,
+            currencyToConvertTo: defaultCurrency);
+        totalExpenditure += totalExpense!;
+      }
+    }
+    for (var expense in expenseModelCollection.collectionItems) {
+      var totalExpense = await currencyConverter.performQuery(
+          currencyAmount: expense.facade.totalExpense,
+          currencyToConvertTo: defaultCurrency);
+      totalExpenditure += totalExpense!;
+    }
+    return totalExpenditure;
+  }
+
+  void _subscribeToTotalExpenseReCalculatorEvents() {
+    _subscriptions
+        .add(_transitModelCollection.onDocumentAdded.listen((eventData) async {
+      await recalculateTotalExpenditure();
+      // await _recalculateTotalExpenditureOnAddOrDelete(eventData,
+      //     isLinkedExpense: true);
+    }));
+    _subscriptions.add(
+        _transitModelCollection.onDocumentDeleted.listen((eventData) async {
+      await recalculateTotalExpenditure();
+      // await _recalculateTotalExpenditureOnAddOrDelete(eventData,
+      //     deleted: true, isLinkedExpense: true);
+    }));
+    _subscriptions.add(
+        _transitModelCollection.onDocumentUpdated.listen((eventData) async {
+      await recalculateTotalExpenditure();
+      // await _recalculateTotalExpenditureOnUpdate(eventData,
+      //     isLinkedExpense: true);
+    }));
+    _subscriptions
+        .add(_lodgingModelCollection.onDocumentAdded.listen((eventData) async {
+      await recalculateTotalExpenditure();
+      // await _recalculateTotalExpenditureOnAddOrDelete(eventData,
+      //     isLinkedExpense: true);
+    }));
+    _subscriptions.add(
+        _lodgingModelCollection.onDocumentDeleted.listen((eventData) async {
+      await recalculateTotalExpenditure();
+      // await _recalculateTotalExpenditureOnAddOrDelete(eventData,
+      //     deleted: true, isLinkedExpense: true);
+    }));
+    _subscriptions.add(
+        _lodgingModelCollection.onDocumentUpdated.listen((eventData) async {
+      await recalculateTotalExpenditure();
+      // await _recalculateTotalExpenditureOnUpdate(eventData);
+    }));
+    _subscriptions
+        .add(_expenseModelCollection.onDocumentAdded.listen((eventData) async {
+      await recalculateTotalExpenditure();
+      // await _recalculateTotalExpenditureOnAddOrDelete(eventData);
+    }));
+    _subscriptions.add(
+        _expenseModelCollection.onDocumentDeleted.listen((eventData) async {
+      await recalculateTotalExpenditure();
+      // await _recalculateTotalExpenditureOnAddOrDelete(eventData, deleted: true);
+    }));
+    _subscriptions.add(
+        _expenseModelCollection.onDocumentUpdated.listen((eventData) async {
+      await recalculateTotalExpenditure();
+      // await _recalculateTotalExpenditureOnUpdate(eventData);
+    }));
+  }
+
+  Iterable<ExpenseFacade> _getAllExpenses() {
+    return _transitModelCollection.collectionItems
+        .map((e) => e.facade.expense)
+        .followedBy(_lodgingModelCollection.collectionItems
+            .map((e) => e.facade.expense))
+        .followedBy(
+            _expenseModelCollection.collectionItems.map((e) => e.facade));
   }
 
   void _sortOnDateTime(List<UiElement<ExpenseFacade>> expenseUiElements,
@@ -191,15 +387,14 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       {bool isAscendingOrder = true}) async {
     for (int i = 0; i < expenseUiElements.length - 1; i++) {
       for (int j = 0; j < expenseUiElements.length - i - 1; j++) {
-        var tripCurrency = _tripMetadata.facade.budget.currency;
         var firstElement = expenseUiElements[j];
         var firstExpenseValue = await currencyConverter.performQuery(
             currencyAmount: firstElement.element.totalExpense,
-            currencyToConvertTo: tripCurrency);
+            currencyToConvertTo: defaultCurrency);
         var secondElement = expenseUiElements[j + 1];
         var secondExpenseValue = await currencyConverter.performQuery(
             currencyAmount: secondElement.element.totalExpense,
-            currencyToConvertTo: tripCurrency);
+            currencyToConvertTo: defaultCurrency);
 
         int comparisonResult =
             firstExpenseValue!.compareTo(secondExpenseValue!);
@@ -219,19 +414,16 @@ class BudgetingModule implements BudgetingModuleEventHandler {
           eventData,
       {bool isLinkedExpense = false}) async {
     var modifiedItemAfterUpdate =
-        eventData.modifiedCollectionItem.afterUpdate.clone();
+        eventData.modifiedCollectionItem.afterUpdate.facade;
     ExpenseFacade expenseAfterUpdate = isLinkedExpense
         ? modifiedItemAfterUpdate.expense
         : modifiedItemAfterUpdate;
     var modifiedItemBeforeUpdate =
-        eventData.modifiedCollectionItem.beforeUpdate.clone();
+        eventData.modifiedCollectionItem.beforeUpdate.facade;
     ExpenseFacade expenseBeforeUpdate = isLinkedExpense
         ? modifiedItemBeforeUpdate.expense
         : modifiedItemBeforeUpdate;
     if (expenseBeforeUpdate != expenseAfterUpdate) {
-      var currentTripMetadata = _tripMetadata.clone();
-      var currentExpense = currentTripMetadata.totalExpenditure;
-      var defaultCurrency = currentTripMetadata.budget.currency;
       var postUpdatedExpenseInDefaultCurrency =
           await currencyConverter.performQuery(
               currencyAmount: expenseAfterUpdate.totalExpense,
@@ -240,11 +432,10 @@ class BudgetingModule implements BudgetingModuleEventHandler {
           await currencyConverter.performQuery(
               currencyAmount: expenseBeforeUpdate.totalExpense,
               currencyToConvertTo: defaultCurrency);
-      var updatedTotalExpense = currentExpense -
+      var updatedTotalExpense = _totalExpenditure -
           preUpdatedExpenseInDefaultCurrency! +
           postUpdatedExpenseInDefaultCurrency!;
-      currentTripMetadata.totalExpenditure = updatedTotalExpense;
-      await _tripMetadata.tryUpdate(currentTripMetadata);
+      _totalExpenditure = updatedTotalExpense;
     }
   }
 
@@ -252,24 +443,18 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       CollectionChangeMetadata<RepositoryPattern> eventData,
       {bool deleted = false,
       bool isLinkedExpense = false}) async {
-    var tripMetadata = _tripMetadata.clone();
-    var currentExpense = tripMetadata.totalExpenditure;
-    var defaultCurrency = tripMetadata.budget.currency;
-    var modifiedItem = eventData.modifiedCollectionItem.clone();
+    var modifiedItem = eventData.modifiedCollectionItem.facade;
     ExpenseFacade addedExpense =
         isLinkedExpense ? modifiedItem.expense : modifiedItem;
     if (addedExpense.totalExpense.amount != 0) {
       var convertedCurrencyAmount = await currencyConverter.performQuery(
           currencyAmount: addedExpense.totalExpense,
           currencyToConvertTo: defaultCurrency);
-      double updatedTotalExpense = currentExpense;
       if (deleted) {
-        updatedTotalExpense -= convertedCurrencyAmount!;
+        _totalExpenditure -= convertedCurrencyAmount!;
       } else {
-        updatedTotalExpense += convertedCurrencyAmount!;
+        _totalExpenditure += convertedCurrencyAmount!;
       }
-      tripMetadata.totalExpenditure = updatedTotalExpense;
-      await _tripMetadata.tryUpdate(tripMetadata);
     }
   }
 
@@ -290,11 +475,17 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     await writeBatch.commit();
   }
 
+  @override
+  void updateCurrency(String defaultCurrency) {
+    this.defaultCurrency = defaultCurrency;
+  }
+
   void _recalculateExpensesOnContributorsChanged(
       ModelCollectionFacade modelCollection,
-      List<String> contributors,
+      Iterable<String> contributors,
       WriteBatch writeBatch,
       {bool isLinkedExpense = false}) async {
+    _contributors = contributors;
     for (var collectionItem in modelCollection.collectionItems) {
       var collectionItemFacade = collectionItem.facade;
       ExpenseFacade expenseModelFacade;
@@ -314,6 +505,11 @@ class BudgetingModule implements BudgetingModuleEventHandler {
           expenseModelFacade.splitBy.remove(contributorSplittingExpense);
         }
       }
+      for (var contributorThatPayed in expenseModelFacade.paidBy.keys) {
+        if (!contributors.contains(contributorThatPayed)) {
+          expenseModelFacade.paidBy.remove(contributorThatPayed);
+        }
+      }
       var itemToUpdate =
           modelCollection.repositoryPatternCreator(collectionItemFacade);
       writeBatch.update(
@@ -321,347 +517,3 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     }
   }
 }
-
-// class BudgetingModule
-//     implements BudgetingModuleFacade, BudgetingModuleModifier {
-//   final List<ExpenseModelFacade> _allExpenses;
-//   final List<TransitModelFacade> _allTransits;
-//   final List<LodgingModelFacade> _allLodgings;
-//   final CurrencyConverter _currencyConverter;
-//   final TripMetadataModelFacade _tripMetaData;
-//   final String _currency;
-//
-//   BudgetingModule(
-//       {required List<TransitModelFacade> transits,
-//       required List<LodgingModelFacade> lodgings,
-//       required List<ExpenseModelFacade> expenses,
-//       required CurrencyConverter currencyConverter,
-//       required TripMetadataModelFacade tripMetaData})
-//       : _allTransits = transits,
-//         _tripMetaData = tripMetaData,
-//         _allLodgings = lodgings,
-//         _allExpenses = expenses,
-//         _currencyConverter = currencyConverter,
-//         _currency = tripMetaData.budget.currency;
-//
-//   @override
-//   Future<Map<ExpenseCategory, double>> retrieveTotalExpensePerCategory() async {
-//     Map<ExpenseCategory, double> categorizedExpenses = {};
-//     for (var expense in _retrieveAllExpenses()) {
-//       if (categorizedExpenses.containsKey(expense.category)) {
-//         if (expense.totalExpense.currency != _currency) {
-//           var totalExpenseInCurrentCurrency =
-//               await _currencyConverter.performQuery(
-//                   currencyAmount: expense.totalExpense,
-//                   currencyToConvertTo: _currency);
-//           if (totalExpenseInCurrentCurrency != null) {
-//             categorizedExpenses[expense.category] =
-//                 categorizedExpenses[expense.category]! +
-//                     totalExpenseInCurrentCurrency;
-//           }
-//         } else {
-//           categorizedExpenses[expense.category] =
-//               categorizedExpenses[expense.category]! +
-//                   expense.totalExpense.amount;
-//         }
-//       } else {
-//         if (expense.totalExpense.currency != _currency) {
-//           var totalExpenseInCurrentCurrency =
-//               await _currencyConverter.performQuery(
-//                   currencyAmount: expense.totalExpense,
-//                   currencyToConvertTo: _currency);
-//           if (totalExpenseInCurrentCurrency != null) {
-//             categorizedExpenses[expense.category] =
-//                 totalExpenseInCurrentCurrency;
-//           }
-//         } else {
-//           categorizedExpenses[expense.category] = expense.totalExpense.amount;
-//         }
-//       }
-//     }
-//
-//     return categorizedExpenses;
-//   }
-//
-//   @override
-//   Future<List<DebtData>> retrieveDebtDataList() async {
-//     List<DebtData> allDebtDataList = [];
-//
-//     for (var expense in _retrieveAllExpenses()) {
-//       var splitBy = expense.splitBy;
-//       if (splitBy.length <= 1) {
-//         continue;
-//       }
-//       var currency = expense.totalExpense.currency;
-//       var paidBy = expense.paidBy;
-//       var amountsPaidToConsider =
-//           paidBy.entries.where((element) => splitBy.contains(element.key));
-//       var totalAmountToSplitBy = amountsPaidToConsider.fold(
-//           0.0, (previousValue, element) => previousValue + element.value);
-//       var averageAmountSpent = totalAmountToSplitBy / splitBy.length;
-//
-//       Map<String, double> usersVsAmountSpentAboveAverage = {},
-//           usersVsAmountSpentLessThanAverage = {};
-//       for (var amountPaid in amountsPaidToConsider) {
-//         var differenceFromAverage = averageAmountSpent - amountPaid.value;
-//         if (differenceFromAverage < 0) {
-//           usersVsAmountSpentLessThanAverage[amountPaid.key] =
-//               -1 * differenceFromAverage;
-//         } else if (differenceFromAverage > 0) {
-//           usersVsAmountSpentAboveAverage[amountPaid.key] =
-//               differenceFromAverage;
-//         }
-//       }
-//
-//       for (var userVsAmountSpentLessThanAverage
-//           in usersVsAmountSpentLessThanAverage.entries) {
-//         double carriedAmount = 0;
-//         var userWhoOwesMoney = userVsAmountSpentLessThanAverage.key;
-//         for (var userVsAmountSpentAboveAverage in usersVsAmountSpentAboveAverage
-//             .entries
-//             .where((element) => element.value > 0)) {
-//           if (carriedAmount > 0) {
-//             var differenceInAmounts =
-//                 userVsAmountSpentAboveAverage.value - carriedAmount;
-//             if (differenceInAmounts > 0) {
-//               carriedAmount = 0;
-//               usersVsAmountSpentAboveAverage[
-//                   userVsAmountSpentAboveAverage.key] = differenceInAmounts;
-//               allDebtDataList.add(DebtData(
-//                   owedBy: userWhoOwesMoney,
-//                   owedTo: userVsAmountSpentAboveAverage.key,
-//                   currencyWithValue: CurrencyWithValue(
-//                       currency: currency, amount: carriedAmount)));
-//               break;
-//             } else if (differenceInAmounts < 0) {
-//               usersVsAmountSpentAboveAverage[
-//                   userVsAmountSpentAboveAverage.key] = 0;
-//               carriedAmount = differenceInAmounts * -1;
-//               allDebtDataList.add(DebtData(
-//                   owedBy: userWhoOwesMoney,
-//                   owedTo: userVsAmountSpentAboveAverage.key,
-//                   currencyWithValue: CurrencyWithValue(
-//                       currency: currency, amount: carriedAmount)));
-//             } else if (differenceInAmounts == 0) {
-//               carriedAmount = 0;
-//               usersVsAmountSpentAboveAverage[
-//                   userVsAmountSpentAboveAverage.key] = 0;
-//               allDebtDataList.add(DebtData(
-//                   owedBy: userWhoOwesMoney,
-//                   owedTo: userVsAmountSpentAboveAverage.key,
-//                   currencyWithValue: CurrencyWithValue(
-//                       currency: currency, amount: carriedAmount)));
-//               break;
-//             }
-//             continue;
-//           }
-//           var differenceInAmounts = userVsAmountSpentAboveAverage.value -
-//               userVsAmountSpentLessThanAverage.value;
-//           if (differenceInAmounts == 0) {
-//             usersVsAmountSpentAboveAverage[userVsAmountSpentAboveAverage.key] =
-//                 0;
-//             allDebtDataList.add(DebtData(
-//                 owedBy: userWhoOwesMoney,
-//                 owedTo: userVsAmountSpentAboveAverage.key,
-//                 currencyWithValue: CurrencyWithValue(
-//                     currency: currency,
-//                     amount: userVsAmountSpentLessThanAverage.value)));
-//             break;
-//           } else if (differenceInAmounts < 0) {
-//             usersVsAmountSpentAboveAverage[userVsAmountSpentAboveAverage.key] =
-//                 0;
-//             carriedAmount = -1 * differenceInAmounts;
-//             allDebtDataList.add(DebtData(
-//                 owedBy: userWhoOwesMoney,
-//                 owedTo: userVsAmountSpentAboveAverage.key,
-//                 currencyWithValue: CurrencyWithValue(
-//                     currency: currency,
-//                     amount: userVsAmountSpentAboveAverage.value)));
-//           } else if (differenceInAmounts > 0) {
-//             usersVsAmountSpentAboveAverage[userVsAmountSpentAboveAverage.key] =
-//                 differenceInAmounts;
-//             allDebtDataList.add(DebtData(
-//                 owedBy: userWhoOwesMoney,
-//                 owedTo: userVsAmountSpentAboveAverage.key,
-//                 currencyWithValue: CurrencyWithValue(
-//                     currency: currency,
-//                     amount: userVsAmountSpentLessThanAverage.value)));
-//           }
-//         }
-//       }
-//     }
-//
-//     return allDebtDataList;
-//   }
-//
-//   @override
-//   Future<Map<DateTime?, double>> retrieveTotalExpensePerDay() async {
-//     Map<DateTime?, double> totalExpensesPerDay = {};
-//     for (var expense in _retrieveAllExpenses()) {
-//       if (totalExpensesPerDay.containsKey(expense.dateTime)) {
-//         if (expense.totalExpense.currency != _currency) {
-//           var totalExpenseInCurrentCurrency =
-//               await _currencyConverter.performQuery(
-//                   currencyAmount: expense.totalExpense,
-//                   currencyToConvertTo: _currency);
-//           if (totalExpenseInCurrentCurrency != null) {
-//             totalExpensesPerDay[expense.dateTime] =
-//                 totalExpensesPerDay[expense.dateTime]! +
-//                     totalExpenseInCurrentCurrency;
-//           }
-//         } else {
-//           totalExpensesPerDay[expense.dateTime] =
-//               totalExpensesPerDay[expense.dateTime]! +
-//                   expense.totalExpense.amount;
-//         }
-//       } else {
-//         if (expense.totalExpense.currency != _currency) {
-//           var totalExpenseInCurrentCurrency =
-//               await _currencyConverter.performQuery(
-//                   currencyAmount: expense.totalExpense,
-//                   currencyToConvertTo: _currency);
-//           if (totalExpenseInCurrentCurrency != null) {
-//             totalExpensesPerDay[expense.dateTime] =
-//                 totalExpenseInCurrentCurrency;
-//           }
-//         } else {
-//           totalExpensesPerDay[expense.dateTime] = expense.totalExpense.amount;
-//         }
-//       }
-//     }
-//
-//     var currentDate = _tripMetaData.startDate!;
-//     do {
-//       var expenseForCurrentDate = totalExpensesPerDay.entries
-//           .where((element) =>
-//               element.key != null && isOnSameDayAs(element.key!, currentDate))
-//           .firstOrNull;
-//       if (expenseForCurrentDate == null) {
-//         totalExpensesPerDay[currentDate] = 0;
-//       }
-//       currentDate = currentDate.add(Duration(days: 1));
-//     } while (!(currentDate.day == _tripMetaData.endDate!.day &&
-//         currentDate.year == _tripMetaData.endDate!.year &&
-//         currentDate.month == _tripMetaData.endDate!.month));
-//     return totalExpensesPerDay;
-//   }
-//
-//   bool isOnSameDayAs(DateTime dateTime1, DateTime dateTime2) {
-//     return dateTime1.day == dateTime2.day &&
-//         dateTime1.month == dateTime2.month &&
-//         dateTime1.year == dateTime2.year;
-//   }
-//
-//   @override
-//   Future<CurrencyWithValue> get totalExpenditure async {
-//     var allExpenses = _retrieveAllExpenses().map((e) => e.totalExpense);
-//     double totalExpense = 0;
-//
-//     if (allExpenses.isNotEmpty) {
-//       for (var expense in allExpenses) {
-//         if (expense.currency == _currency) {
-//           totalExpense += expense.amount;
-//         } else {
-//           var convertedAmount = await _currencyConverter.performQuery(
-//               currencyAmount: expense, currencyToConvertTo: _currency);
-//           if (convertedAmount != null) {
-//             totalExpense += convertedAmount;
-//           }
-//         }
-//       }
-//     }
-//
-//     return CurrencyWithValue(currency: _currency, amount: totalExpense);
-//   }
-//
-//   @override
-//   Future tryUpdateTotalExpenseOnExpenseCreatedOrDeleted(
-//       ExpenseModelFacade expense, DataState requestedDataState) async {
-//     if (requestedDataState == DataState.RequestedCreation) {
-//       var totalExpenditureAmountBeforeUpdate = _tripMetaData.totalExpenditure;
-//
-//       var addedExpenseAmountInCurrentCurrency =
-//           await _currencyConverter.performQuery(
-//               currencyAmount: CurrencyWithValue(
-//                   currency: expense.totalExpense.currency,
-//                   amount: expense.totalExpense.amount),
-//               currencyToConvertTo: _tripMetaData.budget.currency);
-//       if (addedExpenseAmountInCurrentCurrency != null) {
-//         var totalExpenditureAmountAfterUpdate =
-//             totalExpenditureAmountBeforeUpdate +
-//                 addedExpenseAmountInCurrentCurrency;
-//         await _tryUpdateTotalExpenditure(totalExpenditureAmountBeforeUpdate,
-//             totalExpenditureAmountAfterUpdate);
-//       }
-//     } else if (requestedDataState == DataState.RequestedDeletion) {
-//       var totalExpenditureAmountBeforeUpdate = _tripMetaData.totalExpenditure;
-//
-//       var updatedExpenseAmountInCurrentCurrency =
-//           await _currencyConverter.performQuery(
-//               currencyAmount: CurrencyWithValue(
-//                   currency: expense.totalExpense.currency,
-//                   amount: expense.totalExpense.amount),
-//               currencyToConvertTo: _tripMetaData.budget.currency);
-//       if (updatedExpenseAmountInCurrentCurrency != null) {
-//         var totalExpenditureAmountAfterUpdate =
-//             totalExpenditureAmountBeforeUpdate -
-//                 updatedExpenseAmountInCurrentCurrency;
-//         await _tryUpdateTotalExpenditure(totalExpenditureAmountBeforeUpdate,
-//             totalExpenditureAmountAfterUpdate);
-//       }
-//     }
-//   }
-//
-//   @override
-//   Future tryUpdateTotalExpenseOnExpenseUpdated(
-//       CurrencyWithValue expenseBeforeUpdate,
-//       ExpenseModelFacade updatedExpense) async {
-//     var expenseAmountBeforeUpdateInCurrentCurrency =
-//         await _currencyConverter.performQuery(
-//             currencyAmount: expenseBeforeUpdate,
-//             currencyToConvertTo: _tripMetaData.budget.currency);
-//     if (expenseAmountBeforeUpdateInCurrentCurrency == null) {
-//       return;
-//     }
-//     var totalExpenditureAmountBeforeUpdate = _tripMetaData.totalExpenditure;
-//
-//     var updatedExpenseAmountInCurrentCurrency =
-//         await _currencyConverter.performQuery(
-//             currencyAmount: CurrencyWithValue(
-//                 currency: updatedExpense.totalExpense.currency,
-//                 amount: updatedExpense.totalExpense.amount),
-//             currencyToConvertTo: _tripMetaData.budget.currency);
-//     if (updatedExpenseAmountInCurrentCurrency != null) {
-//       var totalExpenditureAmountAfterUpdate =
-//           totalExpenditureAmountBeforeUpdate -
-//               expenseAmountBeforeUpdateInCurrentCurrency +
-//               updatedExpenseAmountInCurrentCurrency;
-//       await _tryUpdateTotalExpenditure(totalExpenditureAmountBeforeUpdate,
-//           totalExpenditureAmountAfterUpdate);
-//     }
-//   }
-//
-//   Future _tryUpdateTotalExpenditure(double currentTotalExpenditureAmount,
-//       double updatedTotalExpenditureAmount) async {
-//     if (currentTotalExpenditureAmount != updatedTotalExpenditureAmount) {
-//       await _tripMetaData.updateTotalExpenditure(updatedTotalExpenditureAmount);
-//     }
-//   }
-//
-//   List<ExpenseModelFacade> _retrieveAllExpenses() {
-//     List<ExpenseModelFacade> allExpenses = [];
-//
-//     for (var transit in _allTransits) {
-//       var expense = transit.expense;
-//       allExpenses.add(expense);
-//     }
-//     for (var lodging in _allLodgings) {
-//       var expense = lodging.expense;
-//       allExpenses.add(expense);
-//     }
-//     for (var expense in _allExpenses) {
-//       allExpenses.add(expense);
-//     }
-//     return allExpenses;
-//   }
-// }

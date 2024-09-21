@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/app_data/models/repository_pattern.dart';
 import 'package:wandrr/trip_data/implementations/collection_names.dart';
-import 'package:wandrr/trip_data/models/location.dart';
+import 'package:wandrr/trip_data/models/location/location.dart';
 
 class LocationModelImplementation extends LocationFacade
     implements RepositoryPattern<LocationFacade> {

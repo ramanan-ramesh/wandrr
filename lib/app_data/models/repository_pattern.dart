@@ -12,8 +12,6 @@ abstract interface class RepositoryPattern<T> {
   FutureOr<bool> tryUpdate(T toUpdate);
 
   T get facade;
-
-  T clone();
 }
 
 abstract interface class Dispose {

@@ -1,171 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:wandrr/trip_data/models/trip_entity.dart';
 
-class LocationFacade extends Equatable implements TripEntity {
-  String tripId;
-  double latitude;
-
-  double longitude;
-
-  LocationContext context;
-
-  @override
-  String? id;
-
-  LocationFacade(
-      {required this.latitude,
-      required this.longitude,
-      required this.context,
-      required this.tripId,
-      this.id});
-
-  void copyWith(LocationFacade locationModelFacade) {
-    latitude = locationModelFacade.latitude;
-    longitude = locationModelFacade.longitude;
-    context = locationModelFacade.context.clone();
-    id = locationModelFacade.id;
-  }
-
-  LocationFacade clone() {
-    return LocationFacade(
-        latitude: latitude,
-        longitude: longitude,
-        context: context,
-        tripId: tripId,
-        id: id);
-  }
-
-  @override
-  String toString() {
-    if (context is AirportLocationContext) {
-      return context.city!;
-    }
-    return context.name;
-  }
-
-  @override
-  List<Object?> get props => [tripId, id, latitude, longitude, context, id];
-}
-
-class BoundingBox extends Equatable {
-  static const _maxLatField = 'maxLat';
-  static const _minLatField = 'minLat';
-  static const _maxLonField = 'maxLon';
-  static const _minLonField = 'minLon';
-  final double maxLat, minLat;
-  final double maxLon, minLon;
-
-  BoundingBox(
-      {required this.maxLat,
-      required this.minLat,
-      required this.maxLon,
-      required this.minLon});
-
-  BoundingBox clone() {
-    return BoundingBox(
-        maxLat: maxLat, minLat: minLat, maxLon: maxLon, minLon: minLon);
-  }
-
-  static BoundingBox fromDocument(Map<String, dynamic> json) {
-    return BoundingBox(
-        maxLat: double.parse(json[_maxLatField].toString()),
-        minLat: double.parse(json[_minLatField].toString()),
-        maxLon: double.parse(json[_maxLonField].toString()),
-        minLon: double.parse(json[_minLonField].toString()));
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      _maxLatField: maxLat,
-      _maxLonField: maxLon,
-      _minLonField: minLon,
-      _minLatField: minLat
-    };
-  }
-
-  @override
-  List<Object?> get props => [maxLat, minLat, maxLon, minLon];
-}
-
-abstract class LocationContext {
-  LocationType get locationType;
-
-  String? get city;
-
-  String get name;
-
-  Map<String, dynamic> toJson();
-
-  LocationContext clone();
-
-  static LocationContext createInstance({required Map<String, dynamic> json}) {
-    if (json['type'] == 'Airport') {
-      return AirportLocationContext.fromDocument(json);
-    }
-
-    return GeoLocationApiContext.fromDocument(json);
-  }
-}
-
-class AirportLocationContext with EquatableMixin implements LocationContext {
-  @override
-  final LocationType locationType = LocationType.Airport;
-  static const _locationTypeField = 'type';
-
-  @override
-  final String city;
-  static const _cityField = 'city';
-
-  @override
-  final String name;
-  static const _nameField = 'name';
-
-  final String airportCode;
-  static const _iataAirportCodeField = 'iata';
-  static const _icaoAirportCodeField = 'icao';
-  static const _airportCodeField = 'code';
-
-  AirportLocationContext._(
-      {required this.city,
-      required this.airportCode,
-      required String airportName})
-      : name = airportName;
-
-  AirportLocationContext.fromApi(Map<String, dynamic> json)
-      : this._(
-            city: json[_cityField],
-            airportCode: json[_iataAirportCodeField] != null
-                ? ((json[_iataAirportCodeField] as String).isNotEmpty
-                    ? json[_iataAirportCodeField]
-                    : json[_icaoAirportCodeField])
-                : json[_icaoAirportCodeField],
-            airportName: json[_nameField]);
-
-  AirportLocationContext.fromDocument(Map<String, dynamic> json)
-      : this._(
-            city: json[_cityField],
-            airportCode: json[_airportCodeField],
-            airportName: json[_nameField]);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return {
-      _nameField: name,
-      _cityField: city,
-      _airportCodeField: airportCode,
-      _locationTypeField: locationType.name
-    };
-  }
-
-  @override
-  LocationContext clone() {
-    return AirportLocationContext._(
-        city: city, airportCode: airportCode, airportName: name);
-  }
-
-  @override
-  List<Object?> get props => [locationType, city, name, airportCode];
-}
+import 'bounding_box.dart';
+import 'location.dart';
 
 class GeoLocationApiContext with EquatableMixin implements LocationContext {
   static const classField = 'class';
@@ -201,17 +37,17 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
   final String _nodeType;
 
   @override
-  final LocationType locationType; // This
+  final LocationType locationType;
 
   final String? country;
 
   @override
-  final String? city; // This
+  final String? city;
 
   final String? state;
 
   @override
-  final String name; // This
+  final String name;
 
   final String? address;
 
@@ -414,30 +250,15 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
 
   @override
   List<Object?> get props => [
-        _city,
-        _name,
-        _country,
-        _state,
         _nodeClass,
         _nodeType,
         locationType,
-        boundingBox,
-        placeId
+        country,
+        city,
+        state,
+        name,
+        address,
+        placeId,
+        boundingBox
       ];
-}
-
-enum LocationType {
-  Continent,
-  Country,
-  State,
-  City,
-  Place,
-  Region,
-  RailwayStation,
-  Airport,
-  BusStation,
-  Restaurant,
-  Attraction,
-  Lodging,
-  BusStop
 }

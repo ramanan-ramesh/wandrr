@@ -11,8 +11,16 @@ import 'plan_data_model_implementation.dart';
 
 class ItineraryModelImplementation extends ItineraryModelEventHandler {
   @override
-  LodgingFacade? get lodging => _lodging;
-  LodgingFacade? _lodging;
+  LodgingFacade? get checkoutLodging => _checkoutLodging?.clone();
+  LodgingFacade? _checkoutLodging;
+
+  @override
+  LodgingFacade? get checkinLodging => _checkinLodging?.clone();
+  LodgingFacade? _checkinLodging;
+
+  @override
+  LodgingFacade? get fullDayLodging => _fullDayLodging?.clone();
+  LodgingFacade? _fullDayLodging;
 
   @override
   RepositoryPattern<PlanDataFacade> get planDataEventHandler =>
@@ -33,15 +41,29 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
       DateTime day,
       PlanDataModelImplementation planDataModelImplementation,
       List<TransitFacade> transits,
-      LodgingFacade? lodging)
+      {LodgingFacade? checkinLodging,
+      LodgingFacade? checkoutLodging,
+      LodgingFacade? fullDayLodging})
       : _planDataModelImplementation = planDataModelImplementation,
         _transits = transits,
-        _lodging = lodging,
+        _checkinLodging = checkinLodging,
+        _checkoutLodging = checkoutLodging,
+        _fullDayLodging = fullDayLodging,
         super(tripId, day);
 
   @override
-  void addLodging(LodgingFacade lodging) {
-    _lodging = lodging;
+  void setCheckinLodging(LodgingFacade? lodging) {
+    _checkinLodging = lodging;
+  }
+
+  @override
+  void setCheckoutLodging(LodgingFacade? lodging) {
+    _checkoutLodging = lodging;
+  }
+
+  @override
+  void setFullDayLodging(LodgingFacade? lodging) {
+    _fullDayLodging = lodging;
   }
 
   @override
@@ -49,11 +71,6 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
     if (!_transits.any((transit) => transit.id == transitToAdd.id)) {
       _transits.add(transitToAdd);
     }
-  }
-
-  @override
-  void removeLodging(LodgingFacade lodging) {
-    _lodging = null;
   }
 
   @override
@@ -65,7 +82,9 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
       {required String tripId,
       required DateTime day,
       required List<TransitFacade> transits,
-      LodgingFacade? lodging}) async {
+      LodgingFacade? checkinLodging,
+      LodgingFacade? checkoutLodging,
+      LodgingFacade? fullDayLodging}) async {
     var itineraryDataDocumentId = _dateFormat.format(day);
     var itineraryDataCollection = FirebaseFirestore.instance
         .collection(FirestoreCollections.tripCollectionName)
@@ -82,7 +101,10 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
             collectionName: FirestoreCollections.itineraryDataCollectionName);
 
     var itineraryModelImplementation = ItineraryModelImplementation(
-        tripId, day, planDataModelImplementation, transits, lodging);
+        tripId, day, planDataModelImplementation, transits,
+        checkinLodging: checkinLodging,
+        checkoutLodging: checkoutLodging,
+        fullDayLodging: fullDayLodging);
 
     return itineraryModelImplementation;
   }

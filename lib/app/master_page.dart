@@ -105,6 +105,7 @@ class _MasterPageState extends State<MasterPage> {
                   indent: 20,
                   endIndent: 20,
                 ),
+                popupMenuTheme: PopupMenuThemeData(),
                 iconButtonTheme: IconButtonThemeData(
                   style: ButtonStyle(
                     iconColor: WidgetStatePropertyAll(Colors.green),

@@ -7,6 +7,7 @@ import 'budgeting_module.dart';
 import 'expense.dart';
 import 'lodging.dart';
 import 'transit.dart';
+import 'transit_option_metadata.dart';
 import 'trip_metadata.dart';
 
 abstract class TripDataFacade {
@@ -23,6 +24,8 @@ abstract class TripDataFacade {
   ItineraryFacadeCollection get itineraryModelCollection;
 
   BudgetingModuleFacade get budgetingModuleFacade;
+
+  Iterable<TransitOptionMetadata> get transitOptionMetadatas;
 }
 
 abstract class TripDataModelEventHandler extends TripDataFacade

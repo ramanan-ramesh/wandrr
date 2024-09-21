@@ -6,7 +6,7 @@ import 'package:wandrr/trip_data/models/lodging.dart';
 import 'package:wandrr/trip_data/models/trip_data.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/editable_list_elements/lodging.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/readonly_list_elements/lodging.dart';
-import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_entity_list_view.dart';
+import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_entity_list_views/trip_entity_list_view.dart';
 
 class LodgingListView extends StatelessWidget {
   const LodgingListView({super.key});
@@ -34,7 +34,8 @@ class LodgingListView extends StatelessWidget {
     );
   }
 
-  void _sortLodgings(List<UiElement<LodgingFacade>> lodgingUiElements) {
+  Iterable<UiElement<LodgingFacade>> _sortLodgings(
+      List<UiElement<LodgingFacade>> lodgingUiElements) {
     var lodgingsWithValidDateTime = <UiElement<LodgingFacade>>[];
     var lodgingsWithInvalidDateTime = <UiElement<LodgingFacade>>[];
     for (var lodgingUiElement in lodgingUiElements) {
@@ -47,7 +48,6 @@ class LodgingListView extends StatelessWidget {
     }
     lodgingsWithValidDateTime.sort((a, b) =>
         a.element.checkinDateTime!.compareTo(b.element.checkinDateTime!));
-    lodgingUiElements = lodgingsWithValidDateTime
-      ..addAll(lodgingsWithInvalidDateTime);
+    return lodgingsWithInvalidDateTime..addAll(lodgingsWithValidDateTime);
   }
 }

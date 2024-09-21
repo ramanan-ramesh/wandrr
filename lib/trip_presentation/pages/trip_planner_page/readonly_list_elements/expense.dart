@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/expense.dart';
+import 'package:wandrr/trip_presentation/pages/trip_planner_page/constants.dart';
 
-import '../budgeting/constants.dart';
-import '../expenditure_edit_tile.dart';
+import '../expenditure_edit_tile/expenditure_edit_tile.dart';
 
 class ReadonlyExpenseListItem extends StatelessWidget {
   final ExpenseFacade expenseModelFacade;

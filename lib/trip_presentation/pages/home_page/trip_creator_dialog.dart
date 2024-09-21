@@ -58,7 +58,7 @@ class TripCreatorDialog extends StatelessWidget {
                     _currentTripMetadata.startDate = startDate;
                     _currentTripMetadata.endDate = endDate;
                     _tripCreationMetadataValidityNotifier.value =
-                        _isTripCreateRequestValid();
+                        _currentTripMetadata.isValid();
                   },
                 ),
               ),
@@ -87,7 +87,7 @@ class TripCreatorDialog extends StatelessWidget {
                             _currentTripMetadata.budget.currency =
                                 selectedCurrencyInfo.code;
                             _tripCreationMetadataValidityNotifier.value =
-                                _isTripCreateRequestValid();
+                                _currentTripMetadata.isValid();
                           },
                         ),
                       ),
@@ -117,21 +117,8 @@ class TripCreatorDialog extends StatelessWidget {
 
   void _updateTripName(String newTripName) {
     _currentTripMetadata.name = newTripName;
-    _tripCreationMetadataValidityNotifier.value = _isTripCreateRequestValid();
-  }
-
-  bool _isTripCreateRequestValid() {
-    var hasValidName = _currentTripMetadata.name.isNotEmpty;
-    var hasValidDateRange = _currentTripMetadata.endDate != null &&
-        _currentTripMetadata.startDate != null &&
-        _currentTripMetadata.endDate!
-                .compareTo(_currentTripMetadata.startDate!) >
-            0 &&
-        _currentTripMetadata.endDate!
-                .calculateDaysInBetween(_currentTripMetadata.startDate!) >=
-            1;
-
-    return hasValidName && hasValidDateRange;
+    _tripCreationMetadataValidityNotifier.value =
+        _currentTripMetadata.isValid();
   }
 
   Widget _buildTripNameField(BuildContext context) {
@@ -147,7 +134,7 @@ class TripCreatorDialog extends StatelessWidget {
       icon: Icons.done_rounded,
       context: context,
       callback: () {
-        if (_isTripCreateRequestValid()) {
+        if (_currentTripMetadata.isValid()) {
           _submitTripCreationEvent();
           Navigator.of(context)
               .pop(); //TODO: Animate the button to show 'Done' text, and then after a second, close the dialog

@@ -9,7 +9,7 @@ import 'package:wandrr/trip_presentation/pages/trip_planner_page/expense_view_ad
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_entity_list_views/itinerary.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_entity_list_views/lodging.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_entity_list_views/transit.dart';
-import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_overview_tile.dart';
+import 'package:wandrr/trip_presentation/pages/trip_planner_page/trip_overview_tile/trip_overview_tile.dart';
 import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
 
 import 'budgeting/header_tile.dart';
@@ -150,15 +150,18 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
         child: Row(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0.5),
-              child: Image.asset(
-                _appLogoAsset,
-                width: 40,
-                height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Image.asset(
+                  _appLogoAsset,
+                  width: 40,
+                  height: 40,
+                ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0.5),
+              padding: const EdgeInsets.symmetric(horizontal: 5),
               child: const Text(
                 'wandrr',
                 style: TextStyle(fontSize: 20),

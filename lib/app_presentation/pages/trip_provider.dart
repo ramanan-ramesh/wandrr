@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/app_data/models/data_states.dart';
 import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
+import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/trip_data/implementations/trip_repository.dart';
 import 'package:wandrr/trip_data/models/trip_metadata.dart';
 import 'package:wandrr/trip_data/models/trip_repository.dart';
@@ -23,7 +24,8 @@ class TripProvider extends StatelessWidget {
     return FutureBuilder(
       future: TripRepositoryImplementation.createInstanceAsync(
           userName: platformUser.userName,
-          currencyConverter: platformDataRepository.currencyConverter),
+          currencyConverter: platformDataRepository.currencyConverter,
+          appLocalizations: context.withLocale()),
       builder: (context, snapshot) {
         if (snapshot.hasData &&
             snapshot.connectionState == ConnectionState.done &&

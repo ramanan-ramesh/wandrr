@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/trip_data/models/trip_entity.dart';
 
 import 'money.dart';
@@ -15,8 +16,6 @@ class TripMetadataFacade extends Equatable implements TripEntity {
 
   List<String> contributors;
 
-  double totalExpenditure;
-
   Money budget;
 
   TripMetadataFacade(
@@ -25,13 +24,11 @@ class TripMetadataFacade extends Equatable implements TripEntity {
       required this.endDate,
       required this.name,
       required this.contributors,
-      required this.totalExpenditure,
       required this.budget});
 
   TripMetadataFacade.newUiEntry({required String defaultCurrency})
       : name = '',
         contributors = [],
-        totalExpenditure = 0,
         budget = Money(currency: defaultCurrency, amount: 0);
 
   void copyWith(TripMetadataFacade tripMetadataModel) {
@@ -40,7 +37,6 @@ class TripMetadataFacade extends Equatable implements TripEntity {
     endDate = tripMetadataModel.endDate;
     name = tripMetadataModel.name;
     contributors = List.from(tripMetadataModel.contributors);
-    totalExpenditure = tripMetadataModel.totalExpenditure;
     budget = tripMetadataModel.budget;
   }
 
@@ -51,11 +47,20 @@ class TripMetadataFacade extends Equatable implements TripEntity {
         endDate: endDate,
         name: name,
         contributors: contributors,
-        totalExpenditure: totalExpenditure,
         budget: budget);
+  }
+
+  bool isValid() {
+    var hasValidName = name.isNotEmpty;
+    var hasValidDateRange = endDate != null &&
+        startDate != null &&
+        endDate!.compareTo(startDate!) > 0 &&
+        endDate!.calculateDaysInBetween(startDate!) >= 1;
+
+    return hasValidName && hasValidDateRange;
   }
 
   @override
   List<Object?> get props =>
-      [id, startDate, endDate, name, contributors, totalExpenditure, budget];
+      [id, startDate, endDate, name, contributors, budget];
 }

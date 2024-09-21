@@ -5,7 +5,8 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:wandrr/api_services/models/flight_operations.dart';
-import 'package:wandrr/trip_data/models/location.dart';
+import 'package:wandrr/trip_data/models/location/airport_location_context.dart';
+import 'package:wandrr/trip_data/models/location/location.dart';
 
 import 'constants.dart';
 
