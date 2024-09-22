@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/api_services/models/currency_data.dart';
 import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
+import 'package:wandrr/app_presentation/widgets/button.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/expense.dart';
 import 'package:wandrr/trip_data/models/money.dart';
@@ -55,13 +56,10 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   Widget build(BuildContext context) {
     _initializeContributors(context);
     if (widget.isEditable) {
-      return Container(
-        decoration: BoxDecoration(
-            border: Border.all(
-              color: Colors.black,
-              width: 2.5,
-            ),
-            borderRadius: const BorderRadius.all(Radius.circular(20))),
+      return Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(4.0),
           child: Column(
@@ -101,19 +99,15 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
                   ],
                 ),
               ),
-              _createTabBar(),
-              SizedBox(
-                height: (_contributorsVsColors.length + 1) * _heightPerItem,
-                child: Container(
-                  color: Colors.black12,
-                  child: Center(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [_buildPaidByTab(), _buildSplitByPage()],
-                    ),
-                  ),
-                ),
-              )
+              PlatformTabBar(
+                tabBarItems: <String, Widget>{
+                  context.withLocale().paidBy: _buildPaidByTab(),
+                  context.withLocale().split: _buildSplitByPage(),
+                },
+                tabController: _tabController,
+                maxTabViewHeight:
+                    (_contributorsVsColors.length + 1) * _heightPerItem,
+              ),
             ],
           ),
         ),
@@ -169,32 +163,17 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   Widget _buildSplitByIcons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: _contributorsVsColors.values
+      children: _contributorsVsColors.entries
+          .where((element) => widget.splitBy.contains(element.key))
           .map((e) => Container(
                 width: 22,
                 height: 22,
                 decoration: BoxDecoration(
-                  color: e,
+                  color: e.value,
                   shape: BoxShape.circle,
                 ),
               ))
           .toList(),
-    );
-  }
-
-  TabBar _createTabBar() {
-    return TabBar(
-      controller: _tabController,
-      tabs: [
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Tab(text: context.withLocale().paidBy),
-        ),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Tab(text: context.withLocale().split),
-        ),
-      ],
     );
   }
 

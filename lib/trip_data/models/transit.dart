@@ -60,7 +60,7 @@ class TransitFacade extends Equatable implements TripEntity {
             category: getExpenseCategory(transitOption),
             paidBy: Map.fromIterables(allTripContributors,
                 List.filled(allTripContributors.length, 0)),
-            splitBy: [currentUserName]);
+            splitBy: allTripContributors.toList());
 
   void copyWith(TransitFacade transitModelFacade) {
     tripId = transitModelFacade.tripId;

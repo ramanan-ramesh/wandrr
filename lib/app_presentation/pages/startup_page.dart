@@ -62,7 +62,7 @@ class _StartupPageState extends State<StartupPage> {
           Expanded(
             child: OnBoardingPage(),
           ),
-          const Expanded(child: LoginPage())
+          Expanded(child: LoginPage())
         ],
       );
     }

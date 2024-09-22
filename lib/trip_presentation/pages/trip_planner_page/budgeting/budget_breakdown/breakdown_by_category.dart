@@ -1,13 +1,11 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:wandrr/trip_data/models/budgeting_module.dart';
 import 'package:wandrr/trip_data/models/expense.dart';
+import 'package:wandrr/trip_data/trip_repository_extensions.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/constants.dart';
 
 class BreakdownByCategoryChart extends StatefulWidget {
-  final BudgetingModuleFacade budgetingModule;
-
-  const BreakdownByCategoryChart({super.key, required this.budgetingModule});
+  BreakdownByCategoryChart({super.key});
 
   @override
   State<BreakdownByCategoryChart> createState() =>
@@ -19,8 +17,9 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
 
   @override
   Widget build(BuildContext context) {
+    var budgetingModule = context.getActiveTrip().budgetingModuleFacade;
     return FutureBuilder<Map<ExpenseCategory, double>>(
-        future: widget.budgetingModule.retrieveTotalExpensePerCategory(),
+        future: budgetingModule.retrieveTotalExpensePerCategory(),
         builder: (BuildContext context,
             AsyncSnapshot<Map<ExpenseCategory, double>> snapshot) {
           if (snapshot.hasData && snapshot.data != null) {
@@ -46,7 +45,7 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
                     show: false,
                   ),
                   sectionsSpace: 0,
-                  centerSpaceRadius: 0,
+                  centerSpaceRadius: 35,
                   sections: _createExpenseCategorySections(snapshot.data!),
                 ),
               ),

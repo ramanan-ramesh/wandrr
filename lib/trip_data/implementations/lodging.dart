@@ -30,7 +30,9 @@ class LodgingModelImplementation extends LodgingFacade
                 expenseModelFacade: lodgingModelFacade.expense),
             confirmationId: lodgingModelFacade.confirmationId,
             id: lodgingModelFacade.id,
-            notes: lodgingModelFacade.notes);
+            notes: lodgingModelFacade.notes) {
+    expense.dateTime = checkinDateTime;
+  }
 
   static LodgingModelImplementation fromDocumentSnapshot(
       {required String tripId, required DocumentSnapshot documentSnapshot}) {
@@ -64,7 +66,9 @@ class LodgingModelImplementation extends LodgingFacade
       super.confirmationId,
       super.id,
       super.notes})
-      : super(location: location, expense: expense);
+      : super(location: location, expense: expense) {
+    expense.dateTime = checkinDateTime;
+  }
 
   @override
   DocumentReference<Object?> get documentReference => FirebaseFirestore.instance

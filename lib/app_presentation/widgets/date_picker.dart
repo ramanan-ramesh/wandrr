@@ -2,6 +2,7 @@ import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
+import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/dialog.dart';
 
 class PlatformDatePicker extends StatefulWidget {
@@ -72,6 +73,29 @@ class _PlatformDatePickerState extends State<PlatformDatePicker> {
                     calendarType: CalendarDatePicker2Type.single,
                     firstDayOfWeek: 1,
                     centerAlignModePicker: true,
+                    controlsTextStyle: TextStyle(color: Colors.white),
+                    dayTextStyle: TextStyle(color: Colors.white),
+                    selectedDayHighlightColor: Colors.green,
+                    selectedDayTextStyle: TextStyle(color: Colors.black),
+                    selectedRangeHighlightColor: Colors.green,
+                    selectedRangeDayTextStyle: TextStyle(color: Colors.black),
+                    todayTextStyle: TextStyle(color: Colors.white),
+                    okButtonTextStyle: TextStyle(color: Colors.black),
+                    cancelButtonTextStyle: TextStyle(color: Colors.black),
+                    cancelButton: IgnorePointer(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                        },
+                        child: Text(context.withLocale().cancel),
+                      ),
+                    ),
+                    okButton: IgnorePointer(
+                      child: TextButton(
+                        onPressed: () {},
+                        child: Text('OK'),
+                      ),
+                    ),
                   ),
                   value: [DateTime.now()],
                   onValueChanged: (dateTimes) {

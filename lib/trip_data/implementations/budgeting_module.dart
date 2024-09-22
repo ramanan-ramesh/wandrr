@@ -2,11 +2,8 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/api_services/models/currency_converter.dart';
-import 'package:wandrr/app_data/models/collection_change_metadata.dart';
-import 'package:wandrr/app_data/models/collection_change_set.dart';
 import 'package:wandrr/app_data/models/data_states.dart';
 import 'package:wandrr/app_data/models/model_collection_facade.dart';
-import 'package:wandrr/app_data/models/repository_pattern.dart';
 import 'package:wandrr/app_data/models/ui_element.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/trip_data/models/budgeting_module.dart';
@@ -223,43 +220,51 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   Future<Iterable<UiElement<ExpenseFacade>>> sortExpenseElements(
       List<UiElement<ExpenseFacade>> expenseUiElements,
       ExpenseSortOption expenseSortOption) async {
-    var newUiEntry = expenseUiElements
+    var expenseUiElementsToSort =
+        List<UiElement<ExpenseFacade>>.from(expenseUiElements);
+    var newUiEntry = expenseUiElementsToSort
         .where((element) => element.dataState == DataState.NewUiEntry)
         .firstOrNull;
-    expenseUiElements
+    expenseUiElementsToSort
         .removeWhere((element) => element.dataState == DataState.NewUiEntry);
     switch (expenseSortOption) {
       case ExpenseSortOption.OldToNew:
         {
-          _sortOnDateTime(expenseUiElements);
+          expenseUiElementsToSort =
+              _sortOnDateTime(expenseUiElementsToSort).toList();
           break;
         }
       case ExpenseSortOption.NewToOld:
         {
-          _sortOnDateTime(expenseUiElements, isAscendingOrder: false);
+          expenseUiElementsToSort =
+              _sortOnDateTime(expenseUiElementsToSort, isAscendingOrder: false)
+                  .toList();
           break;
         }
       case ExpenseSortOption.Category:
         {
-          expenseUiElements.sort((a, b) =>
+          expenseUiElementsToSort.sort((a, b) =>
               a.element.category.name.compareTo(b.element.category.name));
           break;
         }
       case ExpenseSortOption.LowToHighCost:
         {
-          await _sortOnCost(expenseUiElements);
+          expenseUiElementsToSort =
+              (await _sortOnCost(expenseUiElementsToSort)).toList();
           break;
         }
       case ExpenseSortOption.HighToLowCost:
         {
-          await _sortOnCost(expenseUiElements, isAscendingOrder: false);
+          expenseUiElementsToSort = (await _sortOnCost(expenseUiElementsToSort,
+                  isAscendingOrder: false))
+              .toList();
           break;
         }
     }
     if (newUiEntry != null) {
-      expenseUiElements.insert(0, newUiEntry);
+      expenseUiElementsToSort.insert(0, newUiEntry);
     }
-    return expenseUiElements;
+    return expenseUiElementsToSort;
   }
 
   static Future<double> _calculateTotalExpenseAmount(
@@ -300,52 +305,38 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     _subscriptions
         .add(_transitModelCollection.onDocumentAdded.listen((eventData) async {
       await recalculateTotalExpenditure();
-      // await _recalculateTotalExpenditureOnAddOrDelete(eventData,
-      //     isLinkedExpense: true);
     }));
     _subscriptions.add(
         _transitModelCollection.onDocumentDeleted.listen((eventData) async {
       await recalculateTotalExpenditure();
-      // await _recalculateTotalExpenditureOnAddOrDelete(eventData,
-      //     deleted: true, isLinkedExpense: true);
     }));
     _subscriptions.add(
         _transitModelCollection.onDocumentUpdated.listen((eventData) async {
       await recalculateTotalExpenditure();
-      // await _recalculateTotalExpenditureOnUpdate(eventData,
-      //     isLinkedExpense: true);
     }));
     _subscriptions
         .add(_lodgingModelCollection.onDocumentAdded.listen((eventData) async {
       await recalculateTotalExpenditure();
-      // await _recalculateTotalExpenditureOnAddOrDelete(eventData,
-      //     isLinkedExpense: true);
     }));
     _subscriptions.add(
         _lodgingModelCollection.onDocumentDeleted.listen((eventData) async {
       await recalculateTotalExpenditure();
-      // await _recalculateTotalExpenditureOnAddOrDelete(eventData,
-      //     deleted: true, isLinkedExpense: true);
     }));
     _subscriptions.add(
         _lodgingModelCollection.onDocumentUpdated.listen((eventData) async {
       await recalculateTotalExpenditure();
-      // await _recalculateTotalExpenditureOnUpdate(eventData);
     }));
     _subscriptions
         .add(_expenseModelCollection.onDocumentAdded.listen((eventData) async {
       await recalculateTotalExpenditure();
-      // await _recalculateTotalExpenditureOnAddOrDelete(eventData);
     }));
     _subscriptions.add(
         _expenseModelCollection.onDocumentDeleted.listen((eventData) async {
       await recalculateTotalExpenditure();
-      // await _recalculateTotalExpenditureOnAddOrDelete(eventData, deleted: true);
     }));
     _subscriptions.add(
         _expenseModelCollection.onDocumentUpdated.listen((eventData) async {
       await recalculateTotalExpenditure();
-      // await _recalculateTotalExpenditureOnUpdate(eventData);
     }));
   }
 
@@ -358,7 +349,8 @@ class BudgetingModule implements BudgetingModuleEventHandler {
             _expenseModelCollection.collectionItems.map((e) => e.facade));
   }
 
-  void _sortOnDateTime(List<UiElement<ExpenseFacade>> expenseUiElements,
+  Iterable<UiElement<ExpenseFacade>> _sortOnDateTime(
+      List<UiElement<ExpenseFacade>> expenseUiElements,
       {bool isAscendingOrder = true}) {
     var expensesWithDateTime = <UiElement<ExpenseFacade>>[];
     var expensesWithoutDateTime = <UiElement<ExpenseFacade>>[];
@@ -379,11 +371,12 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       expenseUiElements
           .sort((a, b) => b.element.dateTime!.compareTo(a.element.dateTime!));
     }
-    expenseUiElements.addAll(expensesWithoutDateTime);
-    expenseUiElements = List.from(expenseUiElements);
+    expenseUiElements.insertAll(0, expensesWithoutDateTime);
+    return expenseUiElements;
   }
 
-  Future _sortOnCost(List<UiElement<ExpenseFacade>> expenseUiElements,
+  Future<Iterable<UiElement<ExpenseFacade>>> _sortOnCost(
+      List<UiElement<ExpenseFacade>> expenseUiElements,
       {bool isAscendingOrder = true}) async {
     for (int i = 0; i < expenseUiElements.length - 1; i++) {
       for (int j = 0; j < expenseUiElements.length - i - 1; j++) {
@@ -407,68 +400,21 @@ class BudgetingModule implements BudgetingModuleEventHandler {
         }
       }
     }
-  }
-
-  Future<void> _recalculateTotalExpenditureOnUpdate(
-      CollectionChangeMetadata<CollectionChangeSet<RepositoryPattern>>
-          eventData,
-      {bool isLinkedExpense = false}) async {
-    var modifiedItemAfterUpdate =
-        eventData.modifiedCollectionItem.afterUpdate.facade;
-    ExpenseFacade expenseAfterUpdate = isLinkedExpense
-        ? modifiedItemAfterUpdate.expense
-        : modifiedItemAfterUpdate;
-    var modifiedItemBeforeUpdate =
-        eventData.modifiedCollectionItem.beforeUpdate.facade;
-    ExpenseFacade expenseBeforeUpdate = isLinkedExpense
-        ? modifiedItemBeforeUpdate.expense
-        : modifiedItemBeforeUpdate;
-    if (expenseBeforeUpdate != expenseAfterUpdate) {
-      var postUpdatedExpenseInDefaultCurrency =
-          await currencyConverter.performQuery(
-              currencyAmount: expenseAfterUpdate.totalExpense,
-              currencyToConvertTo: defaultCurrency);
-      var preUpdatedExpenseInDefaultCurrency =
-          await currencyConverter.performQuery(
-              currencyAmount: expenseBeforeUpdate.totalExpense,
-              currencyToConvertTo: defaultCurrency);
-      var updatedTotalExpense = _totalExpenditure -
-          preUpdatedExpenseInDefaultCurrency! +
-          postUpdatedExpenseInDefaultCurrency!;
-      _totalExpenditure = updatedTotalExpense;
-    }
-  }
-
-  Future<void> _recalculateTotalExpenditureOnAddOrDelete(
-      CollectionChangeMetadata<RepositoryPattern> eventData,
-      {bool deleted = false,
-      bool isLinkedExpense = false}) async {
-    var modifiedItem = eventData.modifiedCollectionItem.facade;
-    ExpenseFacade addedExpense =
-        isLinkedExpense ? modifiedItem.expense : modifiedItem;
-    if (addedExpense.totalExpense.amount != 0) {
-      var convertedCurrencyAmount = await currencyConverter.performQuery(
-          currencyAmount: addedExpense.totalExpense,
-          currencyToConvertTo: defaultCurrency);
-      if (deleted) {
-        _totalExpenditure -= convertedCurrencyAmount!;
-      } else {
-        _totalExpenditure += convertedCurrencyAmount!;
-      }
-    }
+    return expenseUiElements;
   }
 
   @override
   Future<void> tryBalanceExpensesOnContributorsChanged(
       List<String> contributors) async {
     var writeBatch = FirebaseFirestore.instance.batch();
-    _recalculateExpensesOnContributorsChanged(
+    _contributors = contributors;
+    _recalculateExpensesOnContributorsChanged<TransitFacade>(
         _transitModelCollection, contributors, writeBatch,
         isLinkedExpense: true);
-    _recalculateExpensesOnContributorsChanged(
+    _recalculateExpensesOnContributorsChanged<LodgingFacade>(
         _lodgingModelCollection, contributors, writeBatch,
         isLinkedExpense: true);
-    _recalculateExpensesOnContributorsChanged(
+    _recalculateExpensesOnContributorsChanged<ExpenseFacade>(
         _expenseModelCollection, contributors, writeBatch,
         isLinkedExpense: false);
 
@@ -480,14 +426,13 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     this.defaultCurrency = defaultCurrency;
   }
 
-  void _recalculateExpensesOnContributorsChanged(
-      ModelCollectionFacade modelCollection,
+  void _recalculateExpensesOnContributorsChanged<T>(
+      ModelCollectionFacade<T> modelCollection,
       Iterable<String> contributors,
       WriteBatch writeBatch,
       {bool isLinkedExpense = false}) async {
-    _contributors = contributors;
     for (var collectionItem in modelCollection.collectionItems) {
-      var collectionItemFacade = collectionItem.facade;
+      dynamic collectionItemFacade = collectionItem.facade;
       ExpenseFacade expenseModelFacade;
       if (isLinkedExpense) {
         expenseModelFacade = collectionItemFacade.expense;
@@ -511,7 +456,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
         }
       }
       var itemToUpdate =
-          modelCollection.repositoryPatternCreator(collectionItemFacade);
+          modelCollection.repositoryPatternCreator(collectionItemFacade as T);
       writeBatch.update(
           collectionItem.documentReference, itemToUpdate.toJson());
     }

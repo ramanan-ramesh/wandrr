@@ -6,6 +6,7 @@ import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/expense.dart';
+import 'package:wandrr/trip_data/models/trip_metadata.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/expense_view_type.dart';
 import 'package:wandrr/trip_presentation/trip_management_bloc/bloc.dart';
@@ -60,14 +61,14 @@ class BudgetingHeaderTile extends StatelessWidget {
                                 Flexible(
                                   child: _buildExpenseViewButton(
                                       context,
-                                      ExpenseViewType.ShowBudgetEditor,
+                                      ExpenseViewType.BudgetEditor,
                                       context.withLocale().edit_budget,
                                       Icons.check_rounded),
                                 ),
                                 Flexible(
                                   child: _buildExpenseViewButton(
                                       context,
-                                      ExpenseViewType.ShowDebtSummary,
+                                      ExpenseViewType.DebtSummary,
                                       context.withLocale().debt_summary,
                                       Icons.feed_rounded),
                                 )
@@ -89,7 +90,7 @@ class BudgetingHeaderTile extends StatelessWidget {
                             padding: EdgeInsets.symmetric(vertical: 3.0),
                             child: _buildExpenseViewButton(
                                 context,
-                                ExpenseViewType.ShowExpenseList,
+                                ExpenseViewType.ExpenseList,
                                 context.withLocale().view_expenses,
                                 Icons.list_rounded),
                           ),
@@ -97,7 +98,7 @@ class BudgetingHeaderTile extends StatelessWidget {
                             padding: EdgeInsets.symmetric(vertical: 3.0),
                             child: _buildExpenseViewButton(
                                 context,
-                                ExpenseViewType.ShowBreakdownViewer,
+                                ExpenseViewType.BreakdownViewer,
                                 context.withLocale().view_breakdown,
                                 Icons.bar_chart),
                           ),
@@ -158,67 +159,106 @@ class BudgetingHeaderTile extends StatelessWidget {
 
   Widget _buildBudgetOverview(BuildContext context) {
     var activeTrip = context.getActiveTrip();
-    return StreamBuilder(
-      stream: activeTrip.budgetingModuleFacade.totalExpenditureStream,
-      builder: (BuildContext context, AsyncSnapshot<double> snapshot) {
-        var tripMetadata = activeTrip.tripMetadata;
-        var currentTotalExpenditure =
-            activeTrip.budgetingModuleFacade.totalExpenditure;
-        var totalExpense = snapshot.data ?? currentTotalExpenditure;
-        var totalBudget = tripMetadata.budget;
-        double expenseRatio =
-            _calculateExpenseRatio(totalExpense, totalBudget.amount);
-        var currencyInfo = context.getSupportedCurrencies().firstWhere(
-            (element) => element.code == tripMetadata.budget.currency);
-        var budgetText =
-            '${context.withLocale().budget}: ${totalBudget.toString()}';
-        var totalExpenseText =
-            '${currencyInfo.symbol} ${totalExpense.toStringAsFixed(2)}';
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            PlatformTextElements.createHeader(
-              context: context,
-              text: totalExpenseText,
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                budgetText,
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-            if (totalExpense > 0)
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 3.0),
-                child: LinearProgressIndicator(
-                  value: expenseRatio,
-                  color: Colors.green,
+    var budget = activeTrip.tripMetadata.budget;
+    return BlocConsumer<TripManagementBloc, TripManagementState>(
+      buildWhen: (previousState, currentState) {
+        if (currentState.isTripEntity<TripMetadataFacade>()) {
+          var updatedTripEntity = currentState as UpdatedTripEntity;
+          if (updatedTripEntity.dataState == DataState.Update) {
+            var updatedTripMetadata = updatedTripEntity
+                .tripEntityModificationData
+                .modifiedCollectionItem as TripMetadataFacade;
+            if (updatedTripMetadata.budget != budget) {
+              budget = updatedTripMetadata.budget;
+              return true;
+            }
+          }
+        }
+        return false;
+      },
+      builder: (BuildContext context, TripManagementState state) {
+        return StreamBuilder(
+          stream: activeTrip.budgetingModuleFacade.totalExpenditureStream,
+          builder: (BuildContext context, AsyncSnapshot<double> snapshot) {
+            var tripMetadata = activeTrip.tripMetadata;
+            double currentTotalExpenditure;
+            if (snapshot.data == null) {
+              currentTotalExpenditure =
+                  activeTrip.budgetingModuleFacade.totalExpenditure;
+            } else {
+              currentTotalExpenditure = snapshot.data!;
+            }
+            var totalExpense = snapshot.data ?? currentTotalExpenditure;
+            var expenseRatio =
+                _calculateExpenseRatio(totalExpense, budget.amount);
+            var currencyInfo = context.getSupportedCurrencies().firstWhere(
+                (element) => element.code == tripMetadata.budget.currency);
+            var budgetText =
+                '${context.withLocale().budget}: ${budget.toString()}';
+            var totalExpenseText =
+                '${currencyInfo.symbol} ${totalExpense.toStringAsFixed(2)}';
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                PlatformTextElements.createHeader(
+                  context: context,
+                  text: totalExpenseText,
                 ),
-              )
-          ],
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    budgetText,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                if (totalExpense > 0)
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 3.0),
+                    child: LinearProgressIndicator(
+                      value: expenseRatio,
+                      color: Colors.green,
+                      backgroundColor:
+                          totalExpense > budget.amount ? Colors.red : null,
+                    ),
+                  )
+              ],
+            );
+          },
+          initialData: activeTrip.budgetingModuleFacade.totalExpenditure,
         );
       },
-      initialData: activeTrip.budgetingModuleFacade.totalExpenditure,
+      listener: (BuildContext context, TripManagementState state) {},
     );
   }
 
   Widget _buildCreateExpenseButton(BuildContext context) {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       builder: (BuildContext context, TripManagementState state) {
+        var isEnabled = true;
         if (state.isTripEntity<ExpenseFacade>()) {
           var expenseUpdatedState = state as UpdatedTripEntity;
+          var tripEntityModificationData =
+              expenseUpdatedState.tripEntityModificationData;
+          var modifiedCollectionItem = tripEntityModificationData
+              .modifiedCollectionItem as ExpenseFacade;
           if (expenseUpdatedState.dataState == DataState.NewUiEntry) {
+            isEnabled = false;
+          } else if (expenseUpdatedState.dataState == DataState.Create &&
+              tripEntityModificationData.isFromEvent) {
+            isEnabled = true;
           } else if (expenseUpdatedState.dataState == DataState.Delete &&
-              expenseUpdatedState
-                      .tripEntityModificationData.modifiedCollectionItem.id ==
-                  null) {}
+                  modifiedCollectionItem.id == null ||
+              modifiedCollectionItem.id!.isEmpty) {
+            isEnabled = true;
+          }
         }
         return FloatingActionButton.extended(
-          onPressed: () {
-            context.addTripManagementEvent(
-                UpdateTripEntity<ExpenseFacade>.createNewUiEntry());
-          },
+          onPressed: !isEnabled
+              ? null
+              : () {
+                  context.addTripManagementEvent(
+                      UpdateTripEntity<ExpenseFacade>.createNewUiEntry());
+                },
           label: Text(context.withLocale().add_expense),
           icon: Icon(Icons.add_circle),
         );

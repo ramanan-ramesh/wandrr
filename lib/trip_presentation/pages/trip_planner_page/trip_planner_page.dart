@@ -20,7 +20,7 @@ class TripPlannerPage extends StatelessWidget {
   static const _breakOffLayoutWidth = 1000;
   static const _maximumPageWidth = 700.0;
   final _expenseViewTypeNotifier =
-      ValueNotifier<ExpenseViewType>(ExpenseViewType.ShowExpenseList);
+      ValueNotifier<ExpenseViewType>(ExpenseViewType.ExpenseList);
 
   TripPlannerPage({Key? key}) : super(key: key);
 

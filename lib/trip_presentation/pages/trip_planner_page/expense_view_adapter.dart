@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/budgeting/budget_breakdown/budget_breakdown_tile.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/budgeting/budget_edit_tile.dart';
+import 'package:wandrr/trip_presentation/pages/trip_planner_page/budgeting/debt_dummary.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/expense_view_type.dart';
 
 import 'trip_entity_list_views/expenses.dart';
@@ -22,17 +23,21 @@ class ExpenseViewAdapter extends StatelessWidget {
       valueListenable: _expenseViewTypeNotifier,
       builder: (BuildContext context, ExpenseViewType value, Widget? child) {
         switch (_expenseViewTypeNotifier.value) {
-          case ExpenseViewType.ShowExpenseList:
+          case ExpenseViewType.ExpenseList:
             {
               return ExpenseListViewNew();
             }
-          case ExpenseViewType.ShowBudgetEditor:
+          case ExpenseViewType.BudgetEditor:
             {
               return BudgetEditTile();
             }
-          case ExpenseViewType.ShowBreakdownViewer:
+          case ExpenseViewType.BreakdownViewer:
             {
               return const BudgetBreakdownTile();
+            }
+          case ExpenseViewType.DebtSummary:
+            {
+              return const DebtSummaryTile();
             }
           default:
             {

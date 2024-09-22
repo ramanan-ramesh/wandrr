@@ -7,7 +7,7 @@ class NoteModelImplementation extends NoteFacade
   static const _noteField = 'note';
 
   @override
-  NoteFacade get facade => this;
+  NoteFacade get facade => clone();
 
   @override
   String? id;

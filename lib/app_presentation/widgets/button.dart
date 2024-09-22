@@ -1,5 +1,88 @@
 import 'package:flutter/material.dart';
 
+class PlatformTabBar extends StatefulWidget {
+  final Map<String, Widget> tabBarItems;
+  static const double _roundedCornerRadius = 25.0;
+  TabController? tabController;
+  double? maxTabViewHeight;
+
+  PlatformTabBar(
+      {super.key,
+      required this.tabBarItems,
+      this.tabController,
+      this.maxTabViewHeight});
+
+  @override
+  State<PlatformTabBar> createState() => _PlatformTabBarState();
+}
+
+class _PlatformTabBarState extends State<PlatformTabBar>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = widget.tabController ??
+        TabController(length: widget.tabBarItems.length, vsync: this);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _createTabBar(context),
+          const SizedBox(height: 16.0),
+          Flexible(
+            child: Container(
+              constraints: widget.maxTabViewHeight == null
+                  ? null
+                  : BoxConstraints(maxHeight: widget.maxTabViewHeight!),
+              child: Center(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: widget.tabBarItems.values.toList(),
+                ),
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _createTabBar(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(PlatformTabBar._roundedCornerRadius),
+      clipBehavior: Clip.hardEdge,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius:
+              BorderRadius.circular(PlatformTabBar._roundedCornerRadius),
+          border: Border.all(color: Colors.green),
+        ),
+        child: TabBar(
+          controller: _tabController,
+          indicator: BoxDecoration(
+            color: Theme.of(context).tabBarTheme.indicatorColor,
+            borderRadius:
+                BorderRadius.circular(PlatformTabBar._roundedCornerRadius),
+          ),
+          tabs: widget.tabBarItems.keys
+              .map((tabTitle) => Tab(text: tabTitle))
+              .toList(),
+        ),
+      ),
+    );
+  }
+}
+
 class HoverableDeleteButton extends StatefulWidget {
   VoidCallback callBack;
 

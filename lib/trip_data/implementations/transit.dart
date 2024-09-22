@@ -33,7 +33,9 @@ class TransitImplementation extends TransitFacade
       : super(
             arrivalLocation: arrivalLocation,
             expense: expense,
-            departureLocation: departureLocation);
+            departureLocation: departureLocation) {
+    expense.dateTime = departureDateTime;
+  }
 
   TransitImplementation.fromModelFacade(
       {required TransitFacade transitModelFacade})
@@ -55,7 +57,9 @@ class TransitImplementation extends TransitFacade
             confirmationId: transitModelFacade.confirmationId,
             id: transitModelFacade.id,
             operator: transitModelFacade.operator,
-            notes: transitModelFacade.notes);
+            notes: transitModelFacade.notes) {
+    expense.dateTime = departureDateTime;
+  }
 
   @override
   DocumentReference<Object?> get documentReference => FirebaseFirestore.instance

@@ -30,70 +30,75 @@ class ReadonlyExpenseListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: 70,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3.0, vertical: 2.0),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
+    return IntrinsicHeight(
+      child: Row(
+        children: [
+          SizedBox(
+            width: 70,
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 3.0, vertical: 2.0),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2.0),
+                      child:
+                          Icon(iconsForCategories[expenseModelFacade.category]),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2.0),
+                      child: Text(
+                        categoryNames[expenseModelFacade.category]!,
+                        maxLines: null,
+                        style: TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          VerticalDivider(),
+          Expanded(
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 3.0, vertical: 2.0),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2.0),
-                    child:
-                        Icon(iconsForCategories[expenseModelFacade.category]),
+                    padding: const EdgeInsets.all(2.0),
+                    child: _createExpenseTitle(context),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2.0),
-                    child: Text(
-                      categoryNames[expenseModelFacade.category]!,
-                      maxLines: null,
-                      style: TextStyle(color: Colors.white, fontSize: 13),
+                  if (_subTitle.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: Text(_subTitle),
                     ),
-                  ),
+                  if (expenseModelFacade.description != null &&
+                      expenseModelFacade.description!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: Text(
+                        "Description\n${expenseModelFacade.description!}",
+                        maxLines: null,
+                      ),
+                    )
                 ],
               ),
             ),
           ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3.0, vertical: 2.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(2.0),
-                  child: _createExpenseTitle(context),
-                ),
-                if (_subTitle.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(2.0),
-                    child: Text(_subTitle),
-                  ),
-                if (expenseModelFacade.description != null &&
-                    expenseModelFacade.description!.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(2.0),
-                    child: Text(
-                      "Description\n${expenseModelFacade.description!}",
-                      maxLines: null,
-                    ),
-                  )
-              ],
-            ),
+          VerticalDivider(),
+          ExpenditureEditTile(
+            expenseUpdator: expenseModelFacade,
+            isEditable: false,
+            callback: null,
           ),
-        ),
-        ExpenditureEditTile(
-          expenseUpdator: expenseModelFacade,
-          isEditable: false,
-          callback: null,
-        ),
-      ],
+        ],
+      ),
     );
   }
 

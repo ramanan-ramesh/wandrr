@@ -1,6 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/app_data/models/collection_change_metadata.dart';
+import 'package:wandrr/app_data/models/data_states.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/button.dart';
@@ -31,9 +32,11 @@ class AddTripMateField extends StatelessWidget {
         suffixIcon: Padding(
           padding: const EdgeInsets.all(3.0),
           child: _AddTripMateTextFieldButton(
-              addTripEditingValueNotifier: addTripEditingValueNotifier,
-              tripMateUserNameEditingController:
-                  tripMateUserNameEditingController),
+            addTripEditingValueNotifier: addTripEditingValueNotifier,
+            tripMateUserNameEditingController:
+                tripMateUserNameEditingController,
+            contributors: currentContributors,
+          ),
         ),
         floatingLabelBehavior: FloatingLabelBehavior.always,
         labelText: context.withLocale().userName,
@@ -53,11 +56,13 @@ class AddTripMateField extends StatelessWidget {
 }
 
 class _AddTripMateTextFieldButton extends StatefulWidget {
-  const _AddTripMateTextFieldButton(
+  _AddTripMateTextFieldButton(
       {super.key,
       required this.addTripEditingValueNotifier,
-      required this.tripMateUserNameEditingController});
+      required this.tripMateUserNameEditingController,
+      required this.contributors});
 
+  Iterable<String> contributors;
   final ValueNotifier<bool> addTripEditingValueNotifier;
   final TextEditingController tripMateUserNameEditingController;
 
@@ -70,10 +75,8 @@ class _AddTripMateTextFieldButtonState
     extends State<_AddTripMateTextFieldButton> {
   @override
   Widget build(BuildContext context) {
-    var currentContributors = context.getActiveTrip().tripMetadata.contributors;
     return BlocConsumer<TripManagementBloc, TripManagementState>(
-      buildWhen: (previousState, currentState) =>
-          _canBuildButton(currentState, currentContributors),
+      buildWhen: _shouldBuildAddTripMateButton,
       builder: (BuildContext context, TripManagementState state) {
         return PlatformSubmitterFAB.conditionallyEnabled(
           icon: Icons.add,
@@ -92,6 +95,17 @@ class _AddTripMateTextFieldButtonState
                         mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          AppBar(
+                            leading: IconButton(
+                              //TODO: Unable to style splashColor here
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              icon: Icon(
+                                Icons.close_rounded,
+                              ),
+                            ),
+                          ),
                           Padding(
                             padding: const EdgeInsets.all(5.0),
                             child: Text(
@@ -112,8 +126,8 @@ class _AddTripMateTextFieldButtonState
                                   child: IconButton(
                                     //TODO: Unable to style splashColor here
                                     onPressed: () {
-                                      didSubmitDialog = false;
-                                      Navigator.of(dialogContext).pop();
+                                      _onDialogAccepted(context, dialogContext);
+                                      didSubmitDialog = true;
                                     },
                                     icon: Icon(
                                       Icons.close_rounded,
@@ -149,18 +163,18 @@ class _AddTripMateTextFieldButtonState
     );
   }
 
-  bool _canBuildButton(
-      TripManagementState currentState, List<String> currentContributors) {
+  bool _shouldBuildAddTripMateButton(
+      TripManagementState previousState, TripManagementState currentState) {
     if (currentState.isTripEntity<TripMetadataFacade>()) {
       var updatedTripEntity = currentState as UpdatedTripEntity;
-      var tripMetadataModificationData =
-          updatedTripEntity.tripEntityModificationData
-              as CollectionChangeMetadata<TripMetadataFacade>;
-      if (tripMetadataModificationData.isFromEvent &&
-          currentContributors !=
-              tripMetadataModificationData
-                  .modifiedCollectionItem.contributors) {
-        return true;
+      if (updatedTripEntity.dataState == DataState.Update) {
+        var updatedTripMetadata = updatedTripEntity.tripEntityModificationData
+            .modifiedCollectionItem as TripMetadataFacade;
+        if (!listEquals(
+            updatedTripMetadata.contributors, widget.contributors.toList())) {
+          widget.contributors = updatedTripMetadata.contributors;
+          return true;
+        }
       }
     }
     return false;
@@ -168,12 +182,14 @@ class _AddTripMateTextFieldButtonState
 
   void _onDialogAccepted(
       BuildContext widgetContext, BuildContext dialogContext) {
-    var tripMetadataModelFacade = widgetContext.getActiveTrip().tripMetadata;
-    var currentContributors = tripMetadataModelFacade.contributors;
+    var tripMetadataModelFacade =
+        widgetContext.getActiveTrip().tripMetadata.clone();
+    var currentContributors = tripMetadataModelFacade.contributors.toList();
     var contributorToAdd = widget.tripMateUserNameEditingController.text;
     if (!currentContributors.contains(contributorToAdd)) {
       currentContributors.add(contributorToAdd);
-      context.addTripManagementEvent(
+      tripMetadataModelFacade.contributors = currentContributors;
+      widgetContext.addTripManagementEvent(
           UpdateTripEntity<TripMetadataFacade>.update(
               tripEntity: tripMetadataModelFacade));
     }

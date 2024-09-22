@@ -36,6 +36,7 @@ abstract class CurrencyDropDownField extends StatefulWidget {
                     setState(() {
                       selectedCurrencyData = currency;
                       currencySelectedCallback(currency);
+                      toggleDropdown(context, setState);
                     });
                   }
                 }

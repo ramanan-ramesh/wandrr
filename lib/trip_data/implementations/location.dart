@@ -92,5 +92,5 @@ class LocationModelImplementation extends LocationFacade
   }
 
   @override
-  LocationFacade get facade => this;
+  LocationFacade get facade => clone();
 }

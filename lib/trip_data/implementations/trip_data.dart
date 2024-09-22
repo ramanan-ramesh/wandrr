@@ -29,7 +29,6 @@ import 'trip_metadata.dart';
 
 class TripDataModelImplementation extends TripDataModelEventHandler {
   final _subscriptions = <StreamSubscription>[];
-  final AppLocalizations _appLocalizations;
 
   TripDataModelImplementation(
       TripMetadataModelImplementation tripMetadata,
@@ -43,7 +42,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       AppLocalizations appLocalisations)
       : _transitModelCollection = transitModelCollection,
         _lodgingModelCollection = lodgingModelCollection,
-        _appLocalizations = appLocalisations,
         _expenseModelCollection = expenseModelCollection,
         _planDataModelCollection = planDataModelCollection,
         _tripMetadataModelImplementation = tripMetadata,

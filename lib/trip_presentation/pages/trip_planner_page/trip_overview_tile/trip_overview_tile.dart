@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/app_data/models/collection_change_metadata.dart';
+import 'package:wandrr/app_data/models/data_states.dart';
 import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
 import 'package:wandrr/app_presentation/widgets/button.dart';
@@ -15,11 +17,12 @@ import 'package:wandrr/trip_presentation/trip_management_bloc/states.dart';
 
 import 'add_tripmate_button.dart';
 
+const double _heightOfContributorWidget = 20.0;
+const double _maxOverviewElementHeight = 50.0;
+
 class TripOverviewTile extends StatelessWidget {
   TripOverviewTile({Key? key}) : super(key: key);
 
-  static const double _heightOfContributorWidget = 20.0;
-  static const double _maxOverviewElementHeight = 50.0;
   static const _imageHeight = 250.0;
   static const _assetImage = 'assets/images/planning_the_trip.jpg';
 
@@ -80,7 +83,10 @@ class TripOverviewTile extends StatelessWidget {
                       context, activeTrip.tripMetadata, isBigLayout),
                 ),
               ),
-              Flexible(child: _buildSplitByIcons(activeTrip.tripMetadata))
+              Flexible(
+                child: _ContributorDetails(
+                    contributors: activeTrip.tripMetadata.contributors),
+              ),
             ],
           )
         : Row(
@@ -90,7 +96,10 @@ class TripOverviewTile extends StatelessWidget {
                 child: _buildDateRangeButton(
                     context, activeTrip.tripMetadata, isBigLayout),
               ),
-              Flexible(child: _buildSplitByIcons(activeTrip.tripMetadata))
+              Flexible(
+                child: _ContributorDetails(
+                    contributors: activeTrip.tripMetadata.contributors),
+              ),
             ],
           );
     return Padding(
@@ -167,45 +176,6 @@ class TripOverviewTile extends StatelessWidget {
     );
   }
 
-  Widget _buildSplitByIcons(TripMetadataFacade tripMetadata) {
-    var contributors = tripMetadata.contributors.toList();
-    contributors.sort((a, b) => a.compareTo(b));
-    var contributorsVsColors = <String, Color>{};
-    for (var index = 0; index < contributors.length; index++) {
-      var contributor = contributors.elementAt(index);
-      contributorsVsColors[contributor] = contributorColors.elementAt(index);
-    }
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: contributorsVsColors.entries
-          .map((e) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3.0),
-                child: TextButton.icon(
-                    onPressed: null,
-                    icon: Container(
-                      width: 20,
-                      height: _heightOfContributorWidget,
-                      decoration: BoxDecoration(
-                        color: e.value,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    label: FittedBox(child: Text(e.key))) as Widget,
-              ))
-          .toList()
-        ..insert(
-          0,
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 3.0),
-            child: SizedBox(
-              height: _maxOverviewElementHeight,
-              child: AddTripMateField(),
-            ),
-          ),
-        ),
-    );
-  }
-
   Widget _buildDateRangeButton(
       BuildContext context, TripMetadataFacade tripMetadata, bool isBigLayout) {
     var startDate = tripMetadata.startDate;
@@ -222,6 +192,77 @@ class TripOverviewTile extends StatelessWidget {
                   tripEntity: tripMetadata));
         }
       },
+    );
+  }
+}
+
+class _ContributorDetails extends StatelessWidget {
+  List<String> contributors;
+  static const double _heightOfContributorWidget = 20.0;
+  static const double _maxOverviewElementHeight = 50.0;
+
+  _ContributorDetails({super.key, required Iterable<String> contributors})
+      : contributors = contributors.toList();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<TripManagementBloc, TripManagementState>(
+      buildWhen: (previousState, currentState) {
+        if (currentState.isTripEntity<TripMetadataFacade>()) {
+          var updatedTripEntity = currentState as UpdatedTripEntity;
+          if (updatedTripEntity.dataState == DataState.Update) {
+            var tripMetadataModificationData =
+                updatedTripEntity.tripEntityModificationData
+                    as CollectionChangeMetadata<TripMetadataFacade>;
+            var latestContributors = tripMetadataModificationData
+                .modifiedCollectionItem.contributors;
+            if (!listEquals(latestContributors, contributors)) {
+              contributors = latestContributors;
+              return true;
+            }
+          }
+        }
+        return false;
+      },
+      builder: (BuildContext context, TripManagementState state) {
+        contributors.sort((a, b) => a.compareTo(b));
+        var contributorsVsColors = <String, Color>{};
+        for (var index = 0; index < contributors.length; index++) {
+          var contributor = contributors.elementAt(index);
+          contributorsVsColors[contributor] =
+              contributorColors.elementAt(index);
+        }
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: contributorsVsColors.entries
+              .map((e) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 3.0),
+                    child: TextButton.icon(
+                        onPressed: null,
+                        icon: Container(
+                          width: 20,
+                          height: _heightOfContributorWidget,
+                          decoration: BoxDecoration(
+                            color: e.value,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        label: FittedBox(child: Text(e.key))) as Widget,
+                  ))
+              .toList()
+            ..insert(
+              0,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                child: SizedBox(
+                  height: _maxOverviewElementHeight,
+                  child: AddTripMateField(),
+                ),
+              ),
+            ),
+        );
+      },
+      listener: (BuildContext context, TripManagementState state) {},
     );
   }
 }
