@@ -47,7 +47,7 @@ class ExpenseFacade implements TripEntity {
         category = ExpenseCategory.Other,
         paidBy = Map.fromIterables(
             allTripContributors, List.filled(allTripContributors.length, 0)),
-        splitBy = [currentUserName];
+        splitBy = allTripContributors.toList();
 
   void copyWith(ExpenseFacade expenseModelFacade) {
     tripId = expenseModelFacade.tripId;

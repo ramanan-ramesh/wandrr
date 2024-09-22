@@ -50,7 +50,7 @@ class LodgingFacade extends Equatable implements TripEntity {
             category: ExpenseCategory.Lodging,
             paidBy: Map.fromIterables(allTripContributors,
                 List.filled(allTripContributors.length, 0)),
-            splitBy: [currentUserName]);
+            splitBy: allTripContributors.toList());
 
   void copyWith(LodgingFacade lodgingModelFacade) {
     tripId = lodgingModelFacade.tripId;

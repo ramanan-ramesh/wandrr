@@ -1,6 +1,6 @@
 enum ExpenseViewType {
-  ShowExpenseList,
-  ShowBreakdownViewer,
-  ShowBudgetEditor,
-  ShowDebtSummary,
+  ExpenseList,
+  BreakdownViewer,
+  BudgetEditor,
+  DebtSummary,
 }

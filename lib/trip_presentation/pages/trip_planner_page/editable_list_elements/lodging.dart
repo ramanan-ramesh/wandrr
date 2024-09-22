@@ -5,6 +5,7 @@ import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/date_range_pickers.dart';
 import 'package:wandrr/trip_data/models/lodging.dart';
 import 'package:wandrr/trip_data/models/money.dart';
+import 'package:wandrr/trip_data/models/trip_metadata.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/expenditure_edit_tile/expenditure_edit_tile.dart';
 import 'package:wandrr/trip_presentation/widgets/geo_location_auto_complete.dart';
@@ -46,48 +47,15 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 3.0),
-                    child: _createLodgingElement(
-                      context.withLocale().stayAddress,
-                      PlatformGeoLocationAutoComplete(
-                        initialText: widget
-                            .lodgingUiElement.element.location?.context.name,
-                        onLocationSelected: (newLocation) {
-                          widget.lodgingUiElement.element.location =
-                              newLocation;
-                          _calculateLodgingValidity();
-                        },
-                      ),
-                    ),
+                    child: _buildStayLocationAutoComplete(context),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 3.0),
-                    child: PlatformDateRangePicker(
-                      startDate:
-                          widget.lodgingUiElement.element.checkinDateTime,
-                      endDate: widget.lodgingUiElement.element.checkoutDateTime,
-                      callback: (newStartDate, newEndDate) {
-                        widget.lodgingUiElement.element.checkinDateTime =
-                            newStartDate;
-                        widget.lodgingUiElement.element.checkoutDateTime =
-                            newEndDate;
-                        _calculateLodgingValidity();
-                      },
-                      firstDate: tripMetadata.startDate!,
-                      lastDate: tripMetadata.endDate!,
-                    ),
+                    child: _buildDateRangePicker(tripMetadata),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 3.0),
-                    child: _createLodgingElement(
-                      context.withLocale().notes,
-                      TextFormField(
-                        maxLines: null,
-                        initialValue: widget.lodgingUiElement.element.notes,
-                        onChanged: (newNotes) {
-                          widget.lodgingUiElement.element.notes = newNotes;
-                        },
-                      ),
-                    ),
+                    child: _buildNotesEditor(context),
                   )
                 ],
               ),
@@ -101,38 +69,11 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 3.0),
-                  child: _createLodgingElement(
-                    '${context.withLocale().confirmation} #',
-                    TextFormField(
-                      initialValue:
-                          widget.lodgingUiElement.element.confirmationId,
-                      onChanged: (newConfirmationId) {
-                        widget.lodgingUiElement.element.confirmationId =
-                            newConfirmationId;
-                      },
-                    ),
-                  ),
+                  child: _buildConfirmationIdEditor(context),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(4.0),
-                  child: _createLodgingElement(
-                    context.withLocale().cost,
-                    ExpenditureEditTile(
-                      expenseUpdator: widget.lodgingUiElement.element.expense,
-                      isEditable: true,
-                      callback: (paidBy, splitBy, totalExpense) {
-                        widget.lodgingUiElement.element.expense.paidBy =
-                            Map.from(paidBy);
-                        widget.lodgingUiElement.element.expense.splitBy =
-                            List.from(splitBy);
-                        widget.lodgingUiElement.element.expense.totalExpense =
-                            Money(
-                                currency: totalExpense.currency,
-                                amount: totalExpense.amount);
-                        _calculateLodgingValidity();
-                      },
-                    ),
-                  ),
+                  child: _buildExpenseEditTile(context),
                 ),
               ],
             ),
@@ -144,79 +85,95 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
       children: [
         Padding(
           padding: const EdgeInsets.all(4.0),
-          child: _createLodgingElement(
-            context.withLocale().stayAddress,
-            PlatformGeoLocationAutoComplete(
-              initialText:
-                  widget.lodgingUiElement.element.location?.context.name,
-              onLocationSelected: (newLocation) {
-                widget.lodgingUiElement.element.location = newLocation;
-                _calculateLodgingValidity();
-              },
-            ),
-          ),
+          child: _buildStayLocationAutoComplete(context),
         ),
         Padding(
           padding: const EdgeInsets.all(4.0),
-          child: PlatformDateRangePicker(
-            startDate: widget.lodgingUiElement.element.checkinDateTime,
-            endDate: widget.lodgingUiElement.element.checkoutDateTime,
-            callback: (newStartDate, newEndDate) {
-              widget.lodgingUiElement.element.checkinDateTime = newStartDate;
-              widget.lodgingUiElement.element.checkoutDateTime = newEndDate;
-              _calculateLodgingValidity();
-            },
-            firstDate: tripMetadata.startDate!,
-            lastDate: tripMetadata.endDate!,
-          ),
+          child: _buildDateRangePicker(tripMetadata),
         ),
         Padding(
           padding: const EdgeInsets.all(4.0),
-          child: _createLodgingElement(
-            context.withLocale().cost,
-            ExpenditureEditTile(
-              expenseUpdator: widget.lodgingUiElement.element.expense,
-              isEditable: true,
-              callback: (paidBy, splitBy, totalExpense) {
-                widget.lodgingUiElement.element.expense.paidBy =
-                    Map.from(paidBy);
-                widget.lodgingUiElement.element.expense.splitBy =
-                    List.from(splitBy);
-                widget.lodgingUiElement.element.expense.totalExpense = Money(
-                    currency: totalExpense.currency,
-                    amount: totalExpense.amount);
-                _calculateLodgingValidity();
-              },
-            ),
-          ),
+          child: _buildExpenseEditTile(context),
         ),
         Padding(
           padding: const EdgeInsets.all(4.0),
-          child: _createLodgingElement(
-            '${context.withLocale().confirmation} #',
-            TextFormField(
-              initialValue: widget.lodgingUiElement.element.confirmationId,
-              onChanged: (newConfirmationId) {
-                widget.lodgingUiElement.element.confirmationId =
-                    newConfirmationId;
-              },
-            ),
-          ),
+          child: _buildConfirmationIdEditor(context),
         ),
         Padding(
           padding: const EdgeInsets.all(4.0),
-          child: _createLodgingElement(
-            context.withLocale().notes,
-            TextFormField(
-              maxLines: null,
-              initialValue: widget.lodgingUiElement.element.notes,
-              onChanged: (newNotes) {
-                widget.lodgingUiElement.element.notes = newNotes;
-              },
-            ),
-          ),
+          child: _buildNotesEditor(context),
         )
       ],
+    );
+  }
+
+  Widget _buildExpenseEditTile(BuildContext context) {
+    return _createLodgingElement(
+      context.withLocale().cost,
+      ExpenditureEditTile(
+        expenseUpdator: widget.lodgingUiElement.element.expense,
+        isEditable: true,
+        callback: (paidBy, splitBy, totalExpense) {
+          widget.lodgingUiElement.element.expense.paidBy = Map.from(paidBy);
+          widget.lodgingUiElement.element.expense.splitBy = List.from(splitBy);
+          widget.lodgingUiElement.element.expense.totalExpense = Money(
+              currency: totalExpense.currency, amount: totalExpense.amount);
+          _calculateLodgingValidity();
+        },
+      ),
+    );
+  }
+
+  Widget _buildConfirmationIdEditor(BuildContext context) {
+    return _createLodgingElement(
+      '${context.withLocale().confirmation} #',
+      TextFormField(
+        initialValue: widget.lodgingUiElement.element.confirmationId,
+        onChanged: (newConfirmationId) {
+          widget.lodgingUiElement.element.confirmationId = newConfirmationId;
+        },
+      ),
+    );
+  }
+
+  Widget _buildNotesEditor(BuildContext context) {
+    return _createLodgingElement(
+      context.withLocale().notes,
+      TextFormField(
+        maxLines: null,
+        initialValue: widget.lodgingUiElement.element.notes,
+        onChanged: (newNotes) {
+          widget.lodgingUiElement.element.notes = newNotes;
+        },
+      ),
+    );
+  }
+
+  PlatformDateRangePicker _buildDateRangePicker(
+      TripMetadataFacade tripMetadata) {
+    return PlatformDateRangePicker(
+      startDate: widget.lodgingUiElement.element.checkinDateTime,
+      endDate: widget.lodgingUiElement.element.checkoutDateTime,
+      callback: (newStartDate, newEndDate) {
+        widget.lodgingUiElement.element.checkinDateTime = newStartDate;
+        widget.lodgingUiElement.element.checkoutDateTime = newEndDate;
+        _calculateLodgingValidity();
+      },
+      firstDate: tripMetadata.startDate!,
+      lastDate: tripMetadata.endDate!,
+    );
+  }
+
+  Widget _buildStayLocationAutoComplete(BuildContext context) {
+    return _createLodgingElement(
+      context.withLocale().stayAddress,
+      PlatformGeoLocationAutoComplete(
+        initialText: widget.lodgingUiElement.element.location?.context.name,
+        onLocationSelected: (newLocation) {
+          widget.lodgingUiElement.element.location = newLocation;
+          _calculateLodgingValidity();
+        },
+      ),
     );
   }
 

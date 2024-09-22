@@ -11,7 +11,7 @@ class CheckListModelImplementation extends CheckListFacade
   static const _isCheckedField = 'status';
 
   @override
-  CheckListFacade get facade => this;
+  CheckListFacade get facade => clone();
 
   @override
   String? id;

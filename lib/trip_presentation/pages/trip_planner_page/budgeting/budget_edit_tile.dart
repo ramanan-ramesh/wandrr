@@ -15,10 +15,16 @@ import 'package:wandrr/trip_presentation/trip_management_bloc/events.dart';
 import 'package:wandrr/trip_presentation/trip_management_bloc/states.dart';
 import 'package:wandrr/trip_presentation/widgets/money_edit_field.dart';
 
-class BudgetEditTile extends StatelessWidget {
+class BudgetEditTile extends StatefulWidget {
   BudgetEditTile({super.key});
 
+  @override
+  State<BudgetEditTile> createState() => _BudgetEditTileState();
+}
+
+class _BudgetEditTileState extends State<BudgetEditTile> {
   Money? _currentBudget;
+
   final _amountEditingController = TextEditingController();
 
   @override
@@ -58,7 +64,9 @@ class BudgetEditTile extends StatelessWidget {
                     _currentBudget!.amount = updatedAmount;
                   },
                   currencySelectedCallback: (selectedCurrency) {
-                    _currentBudget!.currency = selectedCurrency.code;
+                    setState(() {
+                      _currentBudget!.currency = selectedCurrency.code;
+                    });
                   },
                   isAmountEditable: true,
                 ),

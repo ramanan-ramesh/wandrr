@@ -6,12 +6,118 @@ import 'package:wandrr/app_presentation/widgets/date_time_picker.dart';
 import 'package:wandrr/trip_data/models/money.dart';
 import 'package:wandrr/trip_data/models/transit.dart';
 import 'package:wandrr/trip_data/models/transit_option_metadata.dart';
+import 'package:wandrr/trip_data/models/trip_metadata.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/expenditure_edit_tile/expenditure_edit_tile.dart';
 import 'package:wandrr/trip_presentation/widgets/geo_location_auto_complete.dart';
 
 import 'airport_data_editor.dart';
 import 'transit_carrier_picker.dart';
+
+class _LocationDetails extends StatefulWidget {
+  TransitFacade transitFacade;
+  Function(TransitFacade) onUpdated;
+
+  _LocationDetails(
+      {super.key, required this.transitFacade, required this.onUpdated});
+
+  @override
+  State<_LocationDetails> createState() => _LocationDetailsState();
+}
+
+class _LocationDetailsState extends State<_LocationDetails> {
+  @override
+  Widget build(BuildContext context) {
+    var isBigLayout = context.isBigLayout();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLocationDetails(context, false, isBigLayout),
+        _buildLocationDetails(context, true, isBigLayout)
+      ],
+    );
+  }
+
+  Widget _buildLocationDetails(
+      BuildContext context, bool isArrival, bool isBigLayout) {
+    var locationEditorWidget = _buildLocationEditor(isArrival);
+    var tripMetadata = context.getActiveTrip().tripMetadata;
+    var dateTimeEditorWidget = _buildDateTimePicker(isArrival, tripMetadata);
+    return _createTitleSubText(
+      isArrival ? context.withLocale().arrive : context.withLocale().depart,
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          if (isBigLayout)
+            Expanded(
+              child: locationEditorWidget,
+            )
+          else
+            Flexible(
+              child: locationEditorWidget,
+            ),
+          dateTimeEditorWidget
+        ],
+      ),
+    );
+  }
+
+  PlatformDateTimePicker _buildDateTimePicker(
+      bool isArrival, TripMetadataFacade tripMetadata) {
+    return PlatformDateTimePicker(
+      //TODO: While choosing arrival date, initial date in DatePicker should be departure date
+      initialDateTime: isArrival
+          ? widget.transitFacade.arrivalDateTime
+          : widget.transitFacade.departureDateTime,
+      dateTimeUpdated: (updatedDateTime) {
+        if (isArrival) {
+          widget.transitFacade.arrivalDateTime = updatedDateTime;
+        } else {
+          widget.transitFacade.departureDateTime = updatedDateTime;
+        }
+        setState(() {});
+        widget.onUpdated(widget.transitFacade);
+      },
+      startDateTime: isArrival
+          ? widget.transitFacade.departureDateTime ?? tripMetadata.startDate!
+          : tripMetadata.startDate!,
+      currentDateTime: (isArrival
+          ? widget.transitFacade.departureDateTime ?? tripMetadata.startDate!
+          : tripMetadata.startDate!)
+        ..add(Duration(minutes: 1)),
+      endDateTime: tripMetadata.endDate!,
+    );
+  }
+
+  Widget _buildLocationEditor(bool isArrival) {
+    var locationToConsider = isArrival
+        ? widget.transitFacade.arrivalLocation
+        : widget.transitFacade.departureLocation;
+    return widget.transitFacade.transitOption == TransitOption.Flight
+        ? AirportsDataEditor(
+            initialLocation: locationToConsider,
+            onLocationSelected: (newLocation) {
+              if (isArrival) {
+                widget.transitFacade.arrivalLocation = newLocation;
+              } else {
+                widget.transitFacade.departureLocation = newLocation;
+              }
+              widget.onUpdated(widget.transitFacade);
+            },
+          )
+        : PlatformGeoLocationAutoComplete(
+            onLocationSelected: (newLocation) {
+              if (isArrival) {
+                widget.transitFacade.arrivalLocation = newLocation;
+              } else {
+                widget.transitFacade.departureLocation = newLocation;
+              }
+              widget.onUpdated(widget.transitFacade);
+            },
+            initialText: locationToConsider?.toString(),
+          );
+  }
+}
 
 class EditableTransitListItem extends StatefulWidget {
   UiElement<TransitFacade> transitUiElement;
@@ -52,8 +158,19 @@ class _EditableTransitListItemState extends State<EditableTransitListItem> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildLocationDetails(context, false, isBigLayout),
-                  _buildLocationDetails(context, true, isBigLayout),
+                  _LocationDetails(
+                      transitFacade: _transitUiElement.element,
+                      onUpdated: (transitFacade) {
+                        _transitUiElement.element.departureDateTime =
+                            transitFacade.departureDateTime;
+                        _transitUiElement.element.arrivalDateTime =
+                            transitFacade.arrivalDateTime;
+                        _transitUiElement.element.departureLocation =
+                            transitFacade.departureLocation;
+                        _transitUiElement.element.arrivalLocation =
+                            transitFacade.arrivalLocation;
+                        _calculateTransitValidity();
+                      }),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: _buildTransitCarrierPicker(context),
@@ -254,20 +371,20 @@ class _EditableTransitListItemState extends State<EditableTransitListItem> {
   void _calculateTransitValidity() {
     widget.validityNotifier.value = _transitUiElement.element.isValid();
   }
+}
 
-  Widget _createTitleSubText(String title, Widget subtitle) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        Padding(
-          padding: EdgeInsets.only(top: 2.0),
-          child: subtitle,
-        ),
-      ],
-    );
-  }
+Widget _createTitleSubText(String title, Widget subtitle) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        title,
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      Padding(
+        padding: EdgeInsets.only(top: 2.0),
+        child: subtitle,
+      ),
+    ],
+  );
 }

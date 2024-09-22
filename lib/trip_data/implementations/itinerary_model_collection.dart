@@ -265,10 +265,10 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
   void _addOrRemoveTransitToItinerary(TransitFacade transit, bool toDelete) {
     for (var itinerary in _allItineraries) {
       var isItineraryDayOnOrAfterDeparture =
-          itinerary.day.isAtSameMomentAs(transit.departureDateTime!) ||
+          itinerary.day.isOnSameDayAs(transit.departureDateTime!) ||
               itinerary.day.isAfter(transit.arrivalDateTime!);
       var isItineraryDayOnOrBeforeArrival =
-          itinerary.day.isAtSameMomentAs(transit.arrivalDateTime!) ||
+          itinerary.day.isOnSameDayAs(transit.arrivalDateTime!) ||
               itinerary.day.isBefore(transit.arrivalDateTime!);
       if (isItineraryDayOnOrAfterDeparture &&
           (isItineraryDayOnOrBeforeArrival)) {

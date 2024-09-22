@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
-import 'package:wandrr/trip_data/models/budgeting_module.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
 
 extension ColorExtension on Color {
@@ -23,9 +22,7 @@ extension ColorExtension on Color {
 }
 
 class BreakdownByDayChart extends StatefulWidget {
-  final BudgetingModuleFacade budgetingModule;
-
-  const BreakdownByDayChart({super.key, required this.budgetingModule});
+  BreakdownByDayChart({super.key});
 
   @override
   State<BreakdownByDayChart> createState() => _BreakdownByDayChartState();
@@ -34,9 +31,11 @@ class BreakdownByDayChart extends StatefulWidget {
 class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
   @override
   Widget build(BuildContext context) {
-    var tripMetadata = context.getActiveTrip().tripMetadata;
+    var activeTrip = context.getActiveTrip();
+    var budgetingModule = activeTrip.budgetingModuleFacade;
+    var tripMetadata = activeTrip.tripMetadata;
     return FutureBuilder<Map<DateTime, double>>(
-      future: widget.budgetingModule.retrieveTotalExpensePerDay(
+      future: budgetingModule.retrieveTotalExpensePerDay(
           tripMetadata.startDate!, tripMetadata.endDate!),
       builder: (BuildContext context,
           AsyncSnapshot<Map<DateTime, double>> snapshot) {
@@ -136,8 +135,8 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
 
   LinearGradient get _barsGradient => LinearGradient(
         colors: [
-          Color(0xFF2196F3).darken(20),
-          Color(0xFF50E4FF),
+          Colors.green.darken(40),
+          Colors.green,
         ],
         begin: Alignment.bottomCenter,
         end: Alignment.topCenter,
@@ -149,22 +148,25 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
     var numberOfDaysOfTrip =
         tripMetadata.startDate!.calculateDaysInBetween(tripMetadata.endDate!);
     var index = value.toInt() % numberOfDaysOfTrip;
-    final style = TextStyle(
-      color: Color(0xFF2196F3).darken(20),
-      fontWeight: FontWeight.bold,
-      fontSize: 14,
-    );
     var currentDay = tripMetadata.startDate!.add(Duration(days: index));
     String text = DateFormat('EEE, MMM d').format(currentDay);
     text = text.substring(text.indexOf(',') + 1);
-    return RotatedBox(
-      quarterTurns: 3,
-      child: SideTitleWidget(
-        axisSide: meta.axisSide,
-        space: 4,
-        child: Text(
-          text,
-          style: style,
+    return Padding(
+      padding: const EdgeInsets.all(3.0),
+      child: RotatedBox(
+        quarterTurns: 3,
+        child: SideTitleWidget(
+          axisSide: meta.axisSide,
+          space: 4,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              text,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -177,22 +179,20 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
         tripMetadata.startDate!.calculateDaysInBetween(tripMetadata.endDate!);
 
     var index = value.toInt() % numberOfDaysOfTrip;
-    final style = TextStyle(
-      color: Color(0xFF2196F3).darken(20),
-      fontWeight: FontWeight.bold,
-      fontSize: 14,
-    );
+    var expenseAmount = totalExpensesPerDay.entries.elementAt(index).value;
     String text =
-        totalExpensesPerDay.entries.elementAt(index).value.toStringAsFixed(2);
-    return RotatedBox(
-      quarterTurns: 3,
-      child: SideTitleWidget(
-        axisSide: meta.axisSide,
-        space: 4,
-        child: Text(
-          text,
-          style: style,
-          overflow: TextOverflow.visible,
+        expenseAmount == 0 ? '     ' : expenseAmount.toStringAsFixed(2);
+    return Padding(
+      padding: const EdgeInsets.all(3.0),
+      child: RotatedBox(
+        quarterTurns: 3,
+        child: SideTitleWidget(
+          axisSide: meta.axisSide,
+          space: 4,
+          child: Text(
+            text,
+            overflow: TextOverflow.visible,
+          ),
         ),
       ),
     );

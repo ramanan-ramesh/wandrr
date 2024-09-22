@@ -4,7 +4,7 @@ import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 
 class PlatformDateTimePicker extends StatefulWidget {
-  final DateTime? initialDateTime;
+  final DateTime? initialDateTime, currentDateTime;
   final Function(DateTime)? dateTimeUpdated;
   final DateTime startDateTime, endDateTime;
 
@@ -12,6 +12,7 @@ class PlatformDateTimePicker extends StatefulWidget {
       {super.key,
       this.initialDateTime,
       this.dateTimeUpdated,
+      this.currentDateTime,
       required this.startDateTime,
       required this.endDateTime});
 
@@ -38,6 +39,7 @@ class _PlatformDateTimePickerState extends State<PlatformDateTimePicker> {
       onPressed: () {
         bool shouldRebuild = false;
         DatePicker.showDateTimePicker(
+          currentTime: widget.currentDateTime,
           context,
           showTitleActions: true,
           onConfirm: (date) {

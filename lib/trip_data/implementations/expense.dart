@@ -187,5 +187,5 @@ class ExpenseModelImplementation extends ExpenseFacade
   }
 
   @override
-  ExpenseFacade get facade => this;
+  ExpenseFacade get facade => clone();
 }
