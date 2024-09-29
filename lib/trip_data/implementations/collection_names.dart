@@ -1,4 +1,5 @@
 class FirestoreCollections {
+  static const appConfig = 'appConfig';
   static const tripCollectionName = 'tripData';
   static const tripMetadataCollectionName = 'tripMetadata';
   static const transitCollectionName = 'transit';

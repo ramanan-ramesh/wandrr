@@ -219,6 +219,8 @@ class _ProfileActionButtonState extends State<_ProfileActionButton> {
             _isImageLoaded = true;
           });
         }
+      }, onError: (error, stackTrace) {
+        print('Error loading image: $error');
       });
       _userProfileNetworkImage!
           .resolve(const ImageConfiguration(size: Size(40, 40)))

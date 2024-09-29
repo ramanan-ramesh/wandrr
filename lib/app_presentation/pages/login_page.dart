@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/app_data/models/auth_type.dart';
+import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/blocs/authentication/auth_bloc.dart';
 import 'package:wandrr/app_presentation/blocs/authentication/auth_events.dart';
 import 'package:wandrr/app_presentation/blocs/authentication/auth_states.dart';
@@ -15,7 +16,7 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<AuthenticationBloc>(
-      create: (context) => AuthenticationBloc(),
+      create: (context) => AuthenticationBloc(context.getAppLevelData()),
       child: Center(
         child: SingleChildScrollView(
           child: Padding(

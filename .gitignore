@@ -1,1 +1,6 @@
 /.idea/
+/.run/
+/.dart_tool/
+/android/.gradle/
+/android/.idea/
+/build/

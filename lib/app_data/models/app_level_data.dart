@@ -19,7 +19,8 @@ class AppLevelData implements AppLevelDataModifier {
   AppLevelData(
       {PlatformUser? initialUser,
       required String initialLanguage,
-      required ThemeMode initialThemeMode})
+      required ThemeMode initialThemeMode,
+      required this.googleWebClientId})
       : _activeUser = initialUser,
         _activeThemeMode = initialThemeMode,
         _activeLanguage = initialLanguage,
@@ -47,6 +48,9 @@ class AppLevelData implements AppLevelDataModifier {
   bool isBigLayout;
 
   @override
+  String googleWebClientId;
+
+  @override
   void updateLayoutType(bool isBigLayout) {
     this.isBigLayout = isBigLayout;
   }
@@ -62,6 +66,8 @@ abstract class AppLevelDataFacade {
   String get defaultCurrency;
 
   bool get isBigLayout;
+
+  String get googleWebClientId;
 }
 
 abstract class AppLevelDataModifier extends AppLevelDataFacade {
