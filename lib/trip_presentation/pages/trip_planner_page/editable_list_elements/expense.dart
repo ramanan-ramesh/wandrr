@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/app_data/models/ui_element.dart';
+import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/date_picker.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
@@ -35,6 +36,100 @@ class EditableExpenseListItem extends StatelessWidget {
     _descriptionFieldController.text =
         expenseUiElement.element.description ?? '';
     _titleEditingController.text = expenseUiElement.element.title;
+    var isBigLayout = context.isBigLayout();
+    if (isBigLayout) {
+      return Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(5.0),
+            child: _createExpenseTitle(context),
+          ),
+          Padding(
+            padding: EdgeInsets.all(5.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 5.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.all(5.0),
+                          child: _CategoryPicker(
+                            callback: _isLinkedExpense
+                                ? null
+                                : (category) {
+                                    expenseUiElement.element.category =
+                                        category;
+                                    _calculateExpenseUpdatePossibility();
+                                  },
+                            category: expenseUiElement.element.category,
+                            categories: categoryNames,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: PlatformDatePicker(
+                            callBack: (dateTime) {
+                              expenseUiElement.element.dateTime = dateTime;
+                            },
+                            initialDateTime: expenseUiElement.element.dateTime,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: TextFormField(
+                            controller: _descriptionFieldController,
+                            maxLines: null,
+                            decoration: InputDecoration(
+                                labelText: context.withLocale().description),
+                            onChanged: (updatedDescription) {
+                              expenseUiElement.element.description =
+                                  updatedDescription;
+                            },
+                          ),
+                        ),
+                        if (expenseUiElement is! UiElementWithMetadata)
+                          Padding(
+                            padding: const EdgeInsets.all(5.0),
+                            child: PlatformGeoLocationAutoComplete(
+                              initialText:
+                                  expenseUiElement.element.location?.toString(),
+                              onLocationSelected: (location) {
+                                expenseUiElement.element.location = location;
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                VerticalDivider(),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 5.0),
+                    child: ExpenditureEditTile(
+                      callback: (paidBy, splitBy, totalExpense) {
+                        expenseUiElement.element.paidBy = Map.from(paidBy);
+                        expenseUiElement.element.splitBy = List.from(splitBy);
+                        expenseUiElement.element.totalExpense = Money(
+                            currency: totalExpense.currency,
+                            amount: totalExpense.amount);
+                        _calculateExpenseUpdatePossibility();
+                      },
+                      expenseUpdator: expenseUiElement.element,
+                      isEditable: true,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        ],
+      );
+    }
     return Column(
       children: [
         Padding(
@@ -42,87 +137,68 @@ class EditableExpenseListItem extends StatelessWidget {
           child: _createExpenseTitle(context),
         ),
         Padding(
-          padding: EdgeInsets.all(5.0),
+          padding: const EdgeInsets.all(5.0),
           child: Row(
             children: [
               Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 5.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.all(5.0),
-                        child: _CategoryPicker(
-                          callback: _isLinkedExpense
-                              ? null
-                              : (category) {
-                                  expenseUiElement.element.category = category;
-                                  _calculateExpenseUpdatePossibility();
-                                },
-                          category: expenseUiElement.element.category,
-                          categories: categoryNames,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(5.0),
-                        child: PlatformDatePicker(
-                          callBack: (dateTime) {
-                            expenseUiElement.element.dateTime = dateTime;
-                          },
-                          initialDateTime: expenseUiElement.element.dateTime,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(5.0),
-                        child: TextFormField(
-                          controller: _descriptionFieldController,
-                          maxLines: null,
-                          decoration: InputDecoration(
-                              labelText: context.withLocale().description),
-                          onChanged: (updatedDescription) {
-                            expenseUiElement.element.description =
-                                updatedDescription;
-                          },
-                        ),
-                      ),
-                      if (expenseUiElement is! UiElementWithMetadata)
-                        Padding(
-                          padding: const EdgeInsets.all(5.0),
-                          child: PlatformGeoLocationAutoComplete(
-                            initialText:
-                                expenseUiElement.element.location?.toString(),
-                            onLocationSelected: (location) {
-                              expenseUiElement.element.location = location;
-                            },
-                          ),
-                        ),
-                    ],
-                  ),
+                child: _CategoryPicker(
+                  callback: _isLinkedExpense
+                      ? null
+                      : (category) {
+                          expenseUiElement.element.category = category;
+                          _calculateExpenseUpdatePossibility();
+                        },
+                  category: expenseUiElement.element.category,
+                  categories: categoryNames,
                 ),
               ),
-              VerticalDivider(),
               Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 5.0),
-                  child: ExpenditureEditTile(
-                    callback: (paidBy, splitBy, totalExpense) {
-                      expenseUiElement.element.paidBy = Map.from(paidBy);
-                      expenseUiElement.element.splitBy = List.from(splitBy);
-                      expenseUiElement.element.totalExpense = Money(
-                          currency: totalExpense.currency,
-                          amount: totalExpense.amount);
-                      _calculateExpenseUpdatePossibility();
-                    },
-                    expenseUpdator: expenseUiElement.element,
-                    isEditable: true,
-                  ),
+                child: PlatformDatePicker(
+                  callBack: (dateTime) {
+                    expenseUiElement.element.dateTime = dateTime;
+                  },
+                  initialDateTime: expenseUiElement.element.dateTime,
                 ),
               ),
             ],
           ),
-        )
+        ),
+        if (expenseUiElement is! UiElementWithMetadata)
+          Padding(
+            padding: const EdgeInsets.all(5.0),
+            child: PlatformGeoLocationAutoComplete(
+              initialText: expenseUiElement.element.location?.toString(),
+              onLocationSelected: (location) {
+                expenseUiElement.element.location = location;
+              },
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: TextFormField(
+            controller: _descriptionFieldController,
+            maxLines: null,
+            decoration:
+                InputDecoration(labelText: context.withLocale().description),
+            onChanged: (updatedDescription) {
+              expenseUiElement.element.description = updatedDescription;
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: ExpenditureEditTile(
+            callback: (paidBy, splitBy, totalExpense) {
+              expenseUiElement.element.paidBy = Map.from(paidBy);
+              expenseUiElement.element.splitBy = List.from(splitBy);
+              expenseUiElement.element.totalExpense = Money(
+                  currency: totalExpense.currency, amount: totalExpense.amount);
+              _calculateExpenseUpdatePossibility();
+            },
+            expenseUpdator: expenseUiElement.element,
+            isEditable: true,
+          ),
+        ),
       ],
     );
   }

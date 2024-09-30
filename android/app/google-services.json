@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "778106737436",
+    "project_id": "wandrr-15f70",
+    "storage_bucket": "wandrr-15f70.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:778106737436:android:71325538910a5e411c20d9",
+        "android_client_info": {
+          "package_name": "com.wandrr.wandrr"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "778106737436-109jf8kjin81flvm7vf8t4382o2i7lf4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wandrr.wandrr",
+            "certificate_hash": "89c3a957e02fbb9aa97050ea3684bb7d81846f4b"
+          }
+        },
+        {
+          "client_id": "778106737436-977kajgalvvot82ntm464hf2c58cmq43.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYsx5jESm-3PJJFeisEuxCmrNg9ke5YYs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "778106737436-977kajgalvvot82ntm464hf2c58cmq43.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "778106737436-9v09jfbegq275q6r8s88tpc9017c795l.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.wandrr.wandrr.RunnerTests"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

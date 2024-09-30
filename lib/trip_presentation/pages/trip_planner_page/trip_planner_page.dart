@@ -180,46 +180,16 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           onPressed: () {},
         ),
-        _TripSettingsMenu()
-      ],
-    );
-  }
-}
-
-class _TripSettingsMenu extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<Widget>(
-      itemBuilder: (BuildContext context) {
-        return [
-          PopupMenuItem(
-            child: Row(
-              children: [
-                Icon(Icons.delete_rounded),
-                SizedBox(width: 8),
-                Text(context.withLocale().deleteTrip),
-              ],
-            ),
-            onTap: () {
-              var tripMetadataFacade = context.getActiveTrip().tripMetadata;
-              context.addTripManagementEvent(
-                  UpdateTripEntity<TripMetadataFacade>.delete(
-                      tripEntity: tripMetadataFacade));
-              context.addTripManagementEvent(GoToHome());
-            },
-          ),
-        ];
-      },
-      offset: const Offset(0, kToolbarHeight + 5),
-      child: Padding(
-        padding: EdgeInsets.all(2.0),
-        child: CircleAvatar(
-          radius: 30,
-          child: Icon(
-            Icons.settings_rounded,
-          ),
+        IconButton(
+          onPressed: () {
+            var tripMetadataFacade = context.getActiveTrip().tripMetadata;
+            context.addTripManagementEvent(
+                UpdateTripEntity<TripMetadataFacade>.delete(
+                    tripEntity: tripMetadataFacade));
+          },
+          icon: Icon(Icons.delete_rounded),
         ),
-      ),
+      ],
     );
   }
 }

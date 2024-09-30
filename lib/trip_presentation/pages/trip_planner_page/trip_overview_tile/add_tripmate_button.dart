@@ -5,6 +5,7 @@ import 'package:wandrr/app_data/models/data_states.dart';
 import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/button.dart';
+import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/trip_metadata.dart';
 import 'package:wandrr/trip_data/trip_repository_extensions.dart';
 import 'package:wandrr/trip_presentation/trip_management_bloc/bloc.dart';
@@ -16,18 +17,22 @@ class AddTripMateField extends StatelessWidget {
     super.key,
   });
 
-  static final _emailRegExValidator = RegExp('.*@.*.com');
-
   @override
   Widget build(BuildContext context) {
     var addTripEditingValueNotifier = ValueNotifier<bool>(false);
     var currentContributors = context.getActiveTrip().tripMetadata.contributors;
     var tripMateUserNameEditingController = TextEditingController();
-    return TextFormField(
-      maxLines: null,
-      textInputAction: TextInputAction.done,
+    return PlatformTextElements.createUsernameFormField(
+      context: context,
       controller: tripMateUserNameEditingController,
-      decoration: InputDecoration(
+      onTextChanged: (username, isValid) {
+        if (currentContributors.contains(username)) {
+          addTripEditingValueNotifier.value = false;
+        } else {
+          addTripEditingValueNotifier.value = isValid;
+        }
+      },
+      inputDecoration: InputDecoration(
         hintText: context.withLocale().add_tripmate,
         suffixIcon: Padding(
           padding: const EdgeInsets.all(3.0),
@@ -42,15 +47,7 @@ class AddTripMateField extends StatelessWidget {
         labelText: context.withLocale().userName,
         icon: Icon(Icons.person_2_rounded),
       ),
-      onChanged: (username) {
-        var matches = _emailRegExValidator.firstMatch(username);
-        final matchedText = matches?.group(0);
-        if (matchedText != username || currentContributors.contains(username)) {
-          addTripEditingValueNotifier.value = false;
-        } else {
-          addTripEditingValueNotifier.value = true;
-        }
-      },
+      textInputAction: TextInputAction.done,
     );
   }
 }

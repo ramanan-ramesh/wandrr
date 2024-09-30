@@ -1,6 +1,5 @@
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:wandrr/app_data/platform_data_repository_extensions.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
@@ -51,6 +50,7 @@ abstract class DateRangePickerData extends StatefulWidget {
                   Navigator.of(context).pop();
                 },
                 config: CalendarDatePicker2WithActionButtonsConfig(
+                  firstDate: firstDate ?? DateTime.now(),
                   closeDialogOnCancelTapped: true,
                   closeDialogOnOkTapped: true,
                   firstDayOfWeek: 1,
@@ -66,15 +66,15 @@ abstract class DateRangePickerData extends StatefulWidget {
                   okButtonTextStyle: TextStyle(color: Colors.black),
                   cancelButtonTextStyle: TextStyle(color: Colors.black),
                   cancelButton: IgnorePointer(
-                    child: TextButton(
-                      onPressed: () {},
-                      child: Text(AppLocalizations.of(context)!.cancel),
+                    child: IconButton(
+                      onPressed: null,
+                      icon: Icon(Icons.cancel_rounded),
                     ),
                   ),
                   okButton: IgnorePointer(
-                    child: TextButton(
-                      onPressed: () {},
-                      child: Text('OK'),
+                    child: IconButton(
+                      onPressed: null,
+                      icon: Icon(Icons.done_rounded),
                     ),
                   ),
                 ),
@@ -180,18 +180,13 @@ class _PlatformFABDateRangePickerState
 
   @override
   Widget build(BuildContext context) {
-    //TODO: Track focus and then decide whether to overlay the date range picker
     String startDateTime = '';
     if (widget.startDate == null) {
-      // var dateTimeValue = _dateFormat.format(DateTime.now());
-      // dateTime = dateTimeValue.repl aceAll(from, replace)
     } else {
       startDateTime = widget.dateFormat.format(widget.startDate!);
     }
     String endDateTime = '';
     if (widget.endDate == null) {
-      // var dateTimeValue = _dateFormat.format(DateTime.now());
-      // dateTime = dateTimeValue.repl aceAll(from, replace)
     } else {
       endDateTime = widget.dateFormat.format(widget.endDate!);
     }

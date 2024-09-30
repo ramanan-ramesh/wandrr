@@ -315,7 +315,11 @@ class ModelCollectionImplementation<Model>
 
   FutureOr<bool> _tryDeleteCollectionItem(RepositoryPattern toDelete) async {
     var didDelete = false;
-    toDelete.documentReference.delete().then((value) => didDelete = true);
+    await toDelete.documentReference.delete().onError((error, stackTrace) {
+      didDelete = false;
+    }).then((value) {
+      didDelete = true;
+    });
 
     return didDelete;
   }

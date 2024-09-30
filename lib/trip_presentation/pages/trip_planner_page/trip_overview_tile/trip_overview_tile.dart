@@ -65,7 +65,7 @@ class TripOverviewTile extends StatelessWidget {
         numberOfContributors * (_heightOfContributorWidget + 10) +
         50;
     if (!isBigLayout) {
-      overviewTileSize += _maxOverviewElementHeight;
+      overviewTileSize += _maxOverviewElementHeight + 30;
     }
     return overviewTileSize;
   }
@@ -77,30 +77,45 @@ class TripOverviewTile extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Flexible(
-                child: SizedBox(
-                  height: _maxOverviewElementHeight,
-                  child: _buildDateRangeButton(
-                      context, activeTrip.tripMetadata, isBigLayout),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3.0),
+                  child: SizedBox(
+                    height: _maxOverviewElementHeight,
+                    child: _buildDateRangeButton(
+                        context, activeTrip.tripMetadata, isBigLayout),
+                  ),
                 ),
               ),
               Flexible(
-                child: _ContributorDetails(
-                    contributors: activeTrip.tripMetadata.contributors),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3.0),
+                  child: _ContributorDetails(
+                      contributors: activeTrip.tripMetadata.contributors),
+                ),
               ),
             ],
           )
-        : Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: _buildDateRangeButton(
-                    context, activeTrip.tripMetadata, isBigLayout),
-              ),
-              Flexible(
-                child: _ContributorDetails(
-                    contributors: activeTrip.tripMetadata.contributors),
-              ),
-            ],
+        : Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                    child: _buildDateRangeButton(
+                        context, activeTrip.tripMetadata, isBigLayout),
+                  ),
+                ),
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                    child: _ContributorDetails(
+                        contributors: activeTrip.tripMetadata.contributors),
+                  ),
+                ),
+              ],
+            ),
           );
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 10),
@@ -155,21 +170,22 @@ class TripOverviewTile extends StatelessWidget {
         return TextField(
           controller: titleEditingController,
           decoration: InputDecoration(
-              suffixIcon: Padding(
-            padding: const EdgeInsets.all(3.0),
-            child: PlatformSubmitterFAB(
-              icon: Icons.check_rounded,
-              isSubmitted: false,
-              context: context,
-              callback: () {
-                var tripMetadataModelFacade = activeTrip.tripMetadata;
-                tripMetadataModelFacade.name = titleEditingController.text;
-                context.addTripManagementEvent(
-                    UpdateTripEntity<TripMetadataFacade>.update(
-                        tripEntity: tripMetadataModelFacade));
-              },
+            suffixIcon: Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: PlatformSubmitterFAB(
+                icon: Icons.check_rounded,
+                isSubmitted: false,
+                context: context,
+                callback: () {
+                  var tripMetadataModelFacade = activeTrip.tripMetadata;
+                  tripMetadataModelFacade.name = titleEditingController.text;
+                  context.addTripManagementEvent(
+                      UpdateTripEntity<TripMetadataFacade>.update(
+                          tripEntity: tripMetadataModelFacade));
+                },
+              ),
             ),
-          )),
+          ),
         );
       },
       listener: (BuildContext context, TripManagementState state) {},

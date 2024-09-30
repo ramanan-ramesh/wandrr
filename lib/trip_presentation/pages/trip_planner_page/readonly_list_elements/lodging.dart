@@ -17,7 +17,6 @@ class ReadonlyLodgingListItem extends StatelessWidget {
         lodgingModelFacade.confirmationId!.isNotEmpty;
     var isNotesValid = lodgingModelFacade.notes.isNotEmpty;
     return IntrinsicHeight(
-      //TODO: Is IntrinsicHeight really required?
       child: Row(
         children: [
           Expanded(
@@ -31,6 +30,7 @@ class ReadonlyLodgingListItem extends StatelessWidget {
                     padding: EdgeInsets.symmetric(vertical: 4.0),
                     child: PlatformTextElements.createHeader(
                         context: context,
+                        color: Colors.green,
                         text: (lodgingModelFacade.location!.context
                                 as GeoLocationApiContext)
                             .name),

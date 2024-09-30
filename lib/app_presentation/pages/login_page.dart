@@ -9,6 +9,7 @@ import 'package:wandrr/app_presentation/blocs/bloc_extensions.dart';
 import 'package:wandrr/app_presentation/blocs/master_page/master_page_events.dart';
 import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/button.dart';
+import 'package:wandrr/app_presentation/widgets/text.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -208,7 +209,8 @@ class _LoginPageFormState extends State<_LoginPageForm>
               children: [
                 FocusTraversalOrder(
                   order: NumericFocusOrder(1),
-                  child: _createUserNameField(state),
+                  child: _createUserNameField(
+                      state), //TODO: Create this method in platform layer
                 ),
                 const SizedBox(height: 16.0),
                 FocusTraversalOrder(
@@ -258,24 +260,15 @@ class _LoginPageFormState extends State<_LoginPageForm>
         errorText = context.withLocale().noSuchUserExists;
       }
     }
-    return TextFormField(
+    return PlatformTextElements.createUsernameFormField(
+      context: context,
       textInputAction: TextInputAction.next,
       controller: _usernameController,
-      decoration: InputDecoration(
+      inputDecoration: InputDecoration(
         icon: const Icon(Icons.person_2_rounded),
         labelText: context.withLocale().userName,
         errorText: errorText,
       ),
-      validator: (username) {
-        if (username != null) {
-          var matches = _emailRegExValidator.firstMatch(username);
-          final matchedText = matches?.group(0);
-          if (matchedText != username) {
-            return context.withLocale().enterValidEmail;
-          }
-        }
-        return null;
-      },
     );
   }
 }

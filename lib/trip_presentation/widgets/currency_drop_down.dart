@@ -32,13 +32,11 @@ abstract class CurrencyDropDownField extends StatefulWidget {
         child: InkWell(
           onTap: !isDropDownButton
               ? () {
-                  if (currency != selectedCurrencyData) {
-                    setState(() {
-                      selectedCurrencyData = currency;
-                      currencySelectedCallback(currency);
-                      toggleDropdown(context, setState);
-                    });
-                  }
+                  setState(() {
+                    selectedCurrencyData = currency;
+                    currencySelectedCallback(currency);
+                    toggleDropdown(context, setState);
+                  });
                 }
               : null,
           child: Row(
@@ -140,14 +138,6 @@ abstract class CurrencyDropDownField extends StatefulWidget {
                       child: _SearchableCurrencyDropDown(
                         allCurrencies: allCurrencies,
                         currencyInfo: selectedCurrencyData,
-                        callBack: (CurrencyData selectedCurrencyInfo) {
-                          if (selectedCurrencyInfo != selectedCurrencyInfo) {
-                            setState(() {
-                              selectedCurrencyInfo = selectedCurrencyInfo;
-                              currencySelectedCallback(selectedCurrencyInfo);
-                            });
-                          }
-                        },
                         currencyListTileBuilder: (CurrencyData currency) {
                           return buildCurrencyListTile(
                               currency, false, context, setState);
@@ -203,14 +193,12 @@ class _PlatformCurrencyDropDownState extends State<PlatformCurrencyDropDown> {
 class _SearchableCurrencyDropDown extends StatefulWidget {
   final Iterable<CurrencyData> allCurrencies;
   CurrencyData currencyInfo;
-  final Function(CurrencyData selectedCurrencyInfo) callBack;
   Widget Function(CurrencyData currency) currencyListTileBuilder;
 
   _SearchableCurrencyDropDown(
       {super.key,
       required this.allCurrencies,
       required this.currencyInfo,
-      required this.callBack,
       required this.currencyListTileBuilder});
 
   @override

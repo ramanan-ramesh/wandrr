@@ -127,10 +127,16 @@ class ExpenseModelImplementation extends ExpenseFacade
       }
     }
 
+    Map<String, double> paidBy = {};
+    for (var paidByEntry in documentSnapshot[_paidByField].entries) {
+      var amount = paidByEntry.value;
+      paidBy[paidByEntry.key] = double.parse(amount.toString());
+    }
+
     return ExpenseModelImplementation(
         totalExpense: Money(currency: currency, amount: cost),
         tripId: tripId,
-        paidBy: Map.from(documentSnapshot[_paidByField]),
+        paidBy: paidBy,
         dateTime: dateTimeValue?.toDate(),
         category: category,
         splitBy: splitBy,

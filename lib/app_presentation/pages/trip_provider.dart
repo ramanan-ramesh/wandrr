@@ -90,6 +90,12 @@ class _TripProviderContentPage extends StatelessWidget {
                 tripMetadata: tripMetadataUpdatedState
                     .tripEntityModificationData.modifiedCollectionItem));
           }
+          if (tripMetadataUpdatedState.dataState == DataState.Delete) {
+            if (state.tripEntityModificationData.isFromEvent &&
+                state.isOperationSuccess) {
+              context.addTripManagementEvent(GoToHome());
+            }
+          }
         }
       },
     );

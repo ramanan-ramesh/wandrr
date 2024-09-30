@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:wandrr/app_presentation/extensions.dart';
 import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/expense.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/constants.dart';
@@ -83,7 +84,7 @@ class ReadonlyExpenseListItem extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.all(2.0),
                       child: Text(
-                        "Description\n${expenseModelFacade.description!}",
+                        "${context.withLocale().description}\n${expenseModelFacade.description!}",
                         maxLines: null,
                       ),
                     )

@@ -6,17 +6,13 @@ import 'package:wandrr/app_presentation/widgets/text.dart';
 import 'package:wandrr/trip_data/models/location/airport_location_context.dart';
 import 'package:wandrr/trip_data/models/location/location.dart';
 import 'package:wandrr/trip_data/models/transit.dart';
-import 'package:wandrr/trip_data/models/transit_option_metadata.dart';
+import 'package:wandrr/trip_data/trip_repository_extensions.dart';
 import 'package:wandrr/trip_presentation/pages/trip_planner_page/expenditure_edit_tile/expenditure_edit_tile.dart';
 
 class ReadonlyTransitListItem extends StatelessWidget {
   TransitFacade transitModelFacade;
-  Iterable<TransitOptionMetadata> transitOptionMetadatas;
 
-  ReadonlyTransitListItem(
-      {super.key,
-      required this.transitModelFacade,
-      required this.transitOptionMetadatas});
+  ReadonlyTransitListItem({super.key, required this.transitModelFacade});
 
   @override
   Widget build(BuildContext context) {
@@ -25,55 +21,27 @@ class ReadonlyTransitListItem extends StatelessWidget {
     var isNotesValid = transitModelFacade.notes.isNotEmpty;
     return IntrinsicHeight(
       child: Row(
-        // TODO: Is IntrinsicHeight needed here?
         children: [
           Expanded(
+            flex: 3,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Text(
-                  context.withLocale().depart,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge!
-                      .copyWith(color: Colors.green),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3.0),
+                  child: _TransitEvent(
+                      isArrival: false, transitFacade: transitModelFacade),
                 ),
-                Text(
-                  context.withLocale().arrive,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge!
-                      .copyWith(color: Colors.green),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3.0),
+                  child: _createTransitOption(context),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3.0),
+                  child: _TransitEvent(
+                      isArrival: true, transitFacade: transitModelFacade),
                 ),
               ],
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
-                    child: _createLocationDetailTitle(context, false),
-                  ),
-                  Align(
-                    alignment: Alignment.center,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4.0),
-                      child: _createTransitOption(context),
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
-                    child: _createLocationDetailTitle(context, true),
-                  ),
-                ],
-              ),
             ),
           ),
           VerticalDivider(),
@@ -149,73 +117,12 @@ class ReadonlyTransitListItem extends StatelessWidget {
     );
   }
 
-  Widget _createLocationDetailTitle(BuildContext context, bool isArrival) {
-    String locationTitle;
-    var locationToConsider = isArrival
-        ? transitModelFacade.arrivalLocation!
-        : transitModelFacade.departureLocation!;
-    var dateTimeToConsider = isArrival
-        ? transitModelFacade.arrivalDateTime!
-        : transitModelFacade.departureDateTime!;
-    if (transitModelFacade.transitOption == TransitOption.Flight) {
-      locationTitle =
-          (locationToConsider.context as AirportLocationContext).airportCode;
-    } else {
-      locationTitle = locationToConsider.toString();
-    }
-
-    var dayText = DateFormat('dd MMMM').format(dateTimeToConsider);
-    var timeText =
-        "${dateTimeToConsider.hour.toString().padLeft(2, '0')} : ${dateTimeToConsider.minute.toString().padLeft(2, '0')}";
-    var dateTimeText = 'on $dayText @ $timeText';
-    if (isArrival) {
-      var numberOfDays = transitModelFacade.departureDateTime!
-          .calculateDaysInBetween(transitModelFacade.arrivalDateTime!,
-              includeExtraDay: false);
-      if (numberOfDays > 0) {
-        dateTimeText += _convertToSuperScript('+$numberOfDays');
-      }
-    }
-
-    String? subTitle;
-    if (transitModelFacade.transitOption == TransitOption.Flight) {
-      subTitle = locationToConsider.context.name;
-    } else if (locationToConsider.context.locationType != LocationType.City) {
-      subTitle = locationToConsider.context.city;
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 2.0),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: PlatformTextElements.createSubHeader(
-                color: Colors.green,
-                context: context,
-                text: locationTitle,
-                shouldBold: true),
-          ),
-        ),
-        if (subTitle != null)
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 2.0),
-            child: FittedBox(fit: BoxFit.scaleDown, child: Text(subTitle)),
-          ),
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 2.0),
-          child: Text(
-            dateTimeText,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _createTransitOption(BuildContext context) {
-    var transitOptionMetadata = transitOptionMetadatas.firstWhere(
-        (element) => element.transitOption == transitModelFacade.transitOption);
+    var transitOptionMetadata = context
+        .getActiveTrip()
+        .transitOptionMetadatas
+        .firstWhere((element) =>
+            element.transitOption == transitModelFacade.transitOption);
     var transitOperator = _getTransitOperator();
     if (transitOperator != null) {
       var isBigLayout = context.isBigLayout();
@@ -235,7 +142,12 @@ class ReadonlyTransitListItem extends StatelessWidget {
             flex: 2,
             child: Divider(),
           ),
-          Text(transitOperator),
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(transitOperator),
+            ),
+          ),
           if (isBigLayout) Expanded(child: Container()),
         ],
       );
@@ -248,6 +160,120 @@ class ReadonlyTransitListItem extends StatelessWidget {
         Text(transitOptionMetadata.name)
       ],
     );
+  }
+}
+
+class _TransitEvent extends StatelessWidget {
+  final bool isArrival;
+  final TransitFacade transitFacade;
+
+  _TransitEvent(
+      {super.key, required this.isArrival, required this.transitFacade});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            isArrival
+                ? context.withLocale().arrive
+                : context.withLocale().depart,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge!
+                .copyWith(color: Colors.green),
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3.0),
+            child: _createLocationDetailTitle(context),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _createLocationTitle() {
+    var locationToConsider = isArrival
+        ? transitFacade.arrivalLocation!
+        : transitFacade.departureLocation!;
+    if (transitFacade.transitOption == TransitOption.Flight) {
+      return (locationToConsider.context as AirportLocationContext).airportCode;
+    } else {
+      return locationToConsider.toString();
+    }
+  }
+
+  Widget _createLocationDetailTitle(BuildContext context) {
+    var subTitle = _createLocationSubtitle();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 2.0),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: PlatformTextElements.createSubHeader(
+                color: Colors.green,
+                context: context,
+                text: _createLocationTitle(),
+                shouldBold: true),
+          ),
+        ),
+        if (subTitle != null)
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 2.0),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(subTitle),
+            ),
+          ),
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 2.0),
+          child: Text(
+            _createDateTimeDetail(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _createDateTimeDetail() {
+    var dateTimeToConsider = isArrival
+        ? transitFacade.arrivalDateTime!
+        : transitFacade.departureDateTime!;
+
+    var dayText = DateFormat('dd MMMM').format(dateTimeToConsider);
+    var timeText =
+        "${dateTimeToConsider.hour.toString().padLeft(2, '0')} : ${dateTimeToConsider.minute.toString().padLeft(2, '0')}";
+    var dateTimeText = 'on $dayText @ $timeText';
+    if (isArrival) {
+      var numberOfDays = transitFacade.departureDateTime!
+          .calculateDaysInBetween(transitFacade.arrivalDateTime!,
+              includeExtraDay: false);
+      if (numberOfDays > 0) {
+        dateTimeText += _convertToSuperScript('+$numberOfDays');
+      }
+    }
+    return dateTimeText;
+  }
+
+  String? _createLocationSubtitle() {
+    String? subTitle;
+    var locationToConsider = isArrival
+        ? transitFacade.arrivalLocation!
+        : transitFacade.departureLocation!;
+    if (transitFacade.transitOption == TransitOption.Flight) {
+      subTitle = locationToConsider.context.name;
+    } else if (locationToConsider.context.locationType != LocationType.City) {
+      subTitle = locationToConsider.context.city;
+    }
+    return subTitle;
   }
 }
 

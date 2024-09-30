@@ -29,9 +29,7 @@ class TransitListView extends StatelessWidget {
         validityNotifier: validityNotifier,
       ),
       closedListElementCreator: (UiElement<TransitFacade> uiElement) =>
-          ReadonlyTransitListItem(
-              transitModelFacade: uiElement.element,
-              transitOptionMetadatas: transitOptionMetadataList),
+          ReadonlyTransitListItem(transitModelFacade: uiElement.element),
       uiElementsCreator: (TripDataFacade tripDataModelFacade) =>
           tripDataModelFacade
               .transits
