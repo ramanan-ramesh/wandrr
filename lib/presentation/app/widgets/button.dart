@@ -79,7 +79,7 @@ class _PlatformTabBarState extends State<PlatformTabBar>
                 BorderRadius.circular(PlatformTabBar._roundedCornerRadius),
           ),
           tabs: widget.tabBarItems.keys
-              .map((tabTitle) => Tab(text: tabTitle))
+              .map((tabTitle) => FittedBox(child: Tab(text: tabTitle)))
               .toList(),
         ),
       ),
@@ -139,6 +139,7 @@ class PlatformSubmitterFAB extends StatefulWidget {
   ValueNotifier<bool>? valueNotifier;
   bool isConditionallyVisible;
   bool isEnabledInitially;
+  VoidCallback? callbackOnClickWhileDisabled;
 
   PlatformSubmitterFAB(
       {super.key,
@@ -175,6 +176,7 @@ class PlatformSubmitterFAB extends StatefulWidget {
       required ValueNotifier<bool> this.valueNotifier,
       this.isSubmitted = false,
       this.isConditionallyVisible = false,
+      this.callbackOnClickWhileDisabled,
       this.isEnabledInitially = false});
 
   @override
@@ -208,7 +210,13 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
 
   FloatingActionButton _buildFloatingActionButton(bool canEnable) {
     return FloatingActionButton(
-      onPressed: widget.isSubmitted || !canEnable ? () {} : _onPressed,
+      onPressed: widget.isSubmitted || !canEnable
+          ? () {
+              if (widget.callbackOnClickWhileDisabled != null) {
+                widget.callbackOnClickWhileDisabled!();
+              }
+            }
+          : _onPressed,
       splashColor: !canEnable ? Colors.white30 : null,
       backgroundColor: !canEnable ? Colors.white10 : null,
       child:
@@ -257,7 +265,10 @@ class _LanguageSwitcherState extends State<LanguageSwitcher> {
 
   List<Widget> _buildLanguageButtons() {
     return context.appDataRepository.languageMetadatas
-        .map((e) => _LanguageButton(languageMetadata: e, visible: _isExpanded))
+        .map((e) => _LanguageButton(
+            languageMetadata: e,
+            visible: _isExpanded,
+            onLanguageSelected: _toggleExpand))
         .toList();
   }
 
@@ -284,8 +295,12 @@ class _LanguageSwitcherState extends State<LanguageSwitcher> {
 }
 
 class _LanguageButton extends StatelessWidget {
+  final VoidCallback onLanguageSelected;
+
   const _LanguageButton(
-      {required LanguageMetadata languageMetadata, required bool visible})
+      {required LanguageMetadata languageMetadata,
+      required bool visible,
+      required this.onLanguageSelected})
       : _languageMetadata = languageMetadata,
         _visible = visible;
 
@@ -305,6 +320,7 @@ class _LanguageButton extends StatelessWidget {
             opacity: _visible ? 1 : 0,
             child: FloatingActionButton.extended(
               onPressed: () {
+                onLanguageSelected();
                 context.addMasterPageEvent(ChangeLanguage(
                     languageToChangeTo: _languageMetadata.locale));
               },

@@ -95,5 +95,16 @@
     "noExpensesAssociatedWithDate":"किसी तिथि से संबंधित कोई व्यय नहीं",
     "splitExpensesWithNewTripMateMessage": "सभी मौजूदा खर्च नए ट्रिप मेट के साथ बांटे जाएंगे। क्या आप आगे बढ़ना चाहते हैं?",
     "addNew":"नया जोड़ो",
-    "add_expense" : "व्यय जोड़ें"
+    "add_expense" : "व्यय जोड़ें",
+    "departureArrivalDateTimeCannotBeEmpty" : "प्रस्थान और आगमन तिथि समय खाली नहीं हो सकता",
+    "departureArrivalLocationCannotBeEmpty" : "प्रस्थान और आगमन स्थान खाली नहीं हो सकता",
+    "departureAndArrivalLocationsCannotBeSame" : "प्रस्थान और आगमन स्थान एक समान नहीं हो सकते",
+    "lodgingAddressCannotBeEmpty" : "आवास का पता खाली नहीं हो सकता",
+    "checkInAndCheckoutDatesCannotBeEmpty" : "चेक-इन और चेक-आउट तिथियाँ खाली नहीं हो सकतीं",
+    "expenseTitleMustBeAtleast3Characters": "व्यय शीर्षक कम से कम 3 अक्षर होना चाहिए",
+    "titleCannotBeEmpty": "शीर्षक खाली नहीं हो सकता",
+     "noteCannotBeEmpty": "टिप्पणी खाली नहीं हो सकती",
+     "checkListTitleMustBeAtleast3Characters": "चेकलिस्ट शीर्षक कम से कम 3 अक्षर होना चाहिए",
+     "checkListItemCannotBeEmpty": "चेकलिस्ट आइटम खाली नहीं हो सकता",
+     "noNotesOrCheckListsOrPlaces": "अभी तक कोई नोट, चेकलिस्ट या स्थान नहीं जोड़ा गया है"
 }

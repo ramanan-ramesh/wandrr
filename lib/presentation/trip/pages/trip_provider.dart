@@ -20,15 +20,14 @@ class TripProvider extends StatelessWidget {
     var currentUserName = context.activeUser!.userName;
     var appLocalisations = context.localizations;
     return BlocProvider<TripManagementBloc>(
-      create: (BuildContext context) {
-        return TripManagementBloc(currentUserName, appLocalisations);
-      },
+      create: (BuildContext context) =>
+          TripManagementBloc(currentUserName, appLocalisations),
       child: BlocConsumer<TripManagementBloc, TripManagementState>(
         builder: (BuildContext context, TripManagementState state) {
           if (state is LoadedRepository) {
             _tripRepository = state.tripRepository;
             return RepositoryProvider(
-              create: (context) => state.tripRepository,
+              create: (context) => _tripRepository!,
               child: HomePage(),
             );
           } else if (state is NavigateToHome) {
@@ -58,8 +57,7 @@ class TripProvider extends StatelessWidget {
                       .tripEntityModificationData.modifiedCollectionItem));
             }
             if (tripMetadataUpdatedState.dataState == DataState.Delete) {
-              if (state.tripEntityModificationData.isFromEvent &&
-                  state.isOperationSuccess) {
+              if (state.tripEntityModificationData.isFromEvent) {
                 context.addTripManagementEvent(GoToHome());
               }
             }

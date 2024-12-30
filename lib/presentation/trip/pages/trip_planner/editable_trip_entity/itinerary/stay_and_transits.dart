@@ -9,7 +9,6 @@ import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
 import 'package:wandrr/data/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
-import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
 
@@ -152,38 +151,50 @@ class ItineraryStayAndTransits extends StatelessWidget {
       BuildContext context, IconData icon, String title, String trailing) {
     return Stack(
       children: [
-        IconButton.filledTonal(
-          onPressed: null,
-          iconSize: 30,
-          icon: Icon(icon),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  IconButton.filledTonal(
+                    onPressed: null,
+                    iconSize: 30,
+                    icon: Icon(icon),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(3.0),
+                      child: Wrap(
+                        children: [
+                          Text(title),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(trailing),
+              ),
+            )
+          ],
         ),
         Positioned.fill(
           left: 30,
           child: ListTile(
-            tileColor: Colors.white12,
             shape: StadiumBorder(
               side: BorderSide(
-                width: 2.0,
                 color: Colors.green,
+                width: 2.0,
               ),
-            ),
-            title: Padding(
-              padding: const EdgeInsets.only(left: 3.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: PlatformTextElements.createSubHeader(
-                      context: context, text: title),
-                ),
-              ),
-            ),
-            trailing: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(trailing),
             ),
           ),
-        ),
+        )
       ],
     );
   }

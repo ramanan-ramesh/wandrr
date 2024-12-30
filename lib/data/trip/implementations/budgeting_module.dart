@@ -164,18 +164,11 @@ class BudgetingModule implements BudgetingModuleEventHandler {
         var expenseDateTime = expense.dateTime!;
         var expenseDate = DateTime(
             expenseDateTime.year, expenseDateTime.month, expenseDateTime.day);
-        var isExpenseOnOrAfterStartDay = expenseDate.isAfter(startDay) ||
-            expenseDate.isOnSameDayAs(startDay);
-        var isExpenseOnOrBeforeEndDay =
-            expenseDate.isBefore(endDay) || expenseDate.isOnSameDayAs(endDay);
-        if (isExpenseOnOrAfterStartDay && isExpenseOnOrBeforeEndDay) {
-          var totalExpense = (await currencyConverter.performQuery(
-              currencyAmount: expense.totalExpense,
-              currencyToConvertTo: defaultCurrency))!;
-          totalExpensesPerDay.update(
-              expenseDate, (value) => value + totalExpense,
-              ifAbsent: () => totalExpense);
-        }
+        var totalExpense = (await currencyConverter.performQuery(
+            currencyAmount: expense.totalExpense,
+            currencyToConvertTo: defaultCurrency))!;
+        totalExpensesPerDay.update(expenseDate, (value) => value + totalExpense,
+            ifAbsent: () => totalExpense);
       }
     }
     for (var date = startDay;

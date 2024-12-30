@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -42,33 +40,70 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
         if (snapshot.hasData &&
             snapshot.data != null &&
             snapshot.connectionState == ConnectionState.done) {
-          var expensesPerDay = snapshot.data ?? <DateTime, double>{};
+          var expensesPerDay = snapshot.data!;
           if (expensesPerDay.isEmpty) {
             return PlatformTextElements.createHeader(
                 context: context,
                 text: context.localizations.noExpensesAssociatedWithDate);
           }
-          return Container(
-            constraints: BoxConstraints(minHeight: 300, maxHeight: 600),
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: RotatedBox(
-                quarterTurns: 1,
-                child: BarChart(
-                  BarChartData(
-                      barTouchData: barTouchData,
-                      titlesData: _createTilesData(expensesPerDay),
-                      borderData: borderData,
-                      barGroups: _createBarChartGroups(expensesPerDay).toList(),
-                      gridData: const FlGridData(show: false),
-                      alignment: BarChartAlignment.spaceAround,
-                      maxY: expensesPerDay.entries
-                          .map((e) => e.value)
-                          .reduce(max)),
-                  swapAnimationDuration: Duration(milliseconds: 150),
-                  // Optional
-                  swapAnimationCurve: Curves.linear, // Optional
+          var dailyExpenseIndicators = <Widget>[];
+          var totalExpense = expensesPerDay.values.reduce((a, b) => a + b);
+          for (var dailyExpense in expensesPerDay.entries) {
+            var percentageOfTotalExpense =
+                totalExpense == 0 ? 0.0 : dailyExpense.value / totalExpense;
+            String date = DateFormat('EEE, MMM d').format(dailyExpense.key);
+            date = date.substring(date.indexOf(',') + 1);
+            if (percentageOfTotalExpense == 0.0) {
+              continue;
+            }
+            Widget dailyExpenseIndicator = Card(
+              elevation: 4,
+              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            date,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '${dailyExpense.value.toStringAsFixed(2)} ${tripMetadata.budget.currency.toUpperCase()}',
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: LinearProgressIndicator(
+                        value: percentageOfTotalExpense,
+                        backgroundColor: Colors.grey[300],
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+            );
+            dailyExpenseIndicators.add(dailyExpenseIndicator);
+          }
+          return SingleChildScrollView(
+            child: Container(
+              constraints: BoxConstraints(minHeight: 300, maxHeight: 500),
+              child: ListView(
+                children: dailyExpenseIndicators,
               ),
             ),
           );
@@ -142,11 +177,35 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
         end: Alignment.topCenter,
       );
 
+  Widget _getLeftTitles(DateTime dateTime, TitleMeta meta) {
+    String text = DateFormat('EEE, MMM d').format(dateTime);
+    text = text.substring(text.indexOf(',') + 1);
+    return Padding(
+      padding: const EdgeInsets.all(3.0),
+      child: RotatedBox(
+        quarterTurns: 3,
+        child: SideTitleWidget(
+          axisSide: meta.axisSide,
+          space: 4,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              text,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget getLeftTitles(double value, TitleMeta meta) {
     var tripMetadata = context.activeTrip.tripMetadata;
 
-    var numberOfDaysOfTrip =
-        tripMetadata.startDate!.calculateDaysInBetween(tripMetadata.endDate!);
+    var numberOfDaysOfTrip = tripMetadata.startDate!
+        .calculateDaysInBetween(tripMetadata.endDate!, includeExtraDay: true);
     var index = value.toInt() % numberOfDaysOfTrip;
     var currentDay = tripMetadata.startDate!.add(Duration(days: index));
     String text = DateFormat('EEE, MMM d').format(currentDay);

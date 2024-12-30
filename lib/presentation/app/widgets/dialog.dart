@@ -17,48 +17,54 @@ class PlatformDialogElements {
 
     var widgetSize = renderBox.size;
     Size screenSize = MediaQuery.of(context).size;
-    double distanceFromTop = widgetPosition.dy;
-    double distanceFromBottom = screenSize.height - widgetPosition.dy;
-
-    var widgetToScreenBottomDistance =
-        (distanceFromBottom - widgetSize.height).abs();
-    if (widgetToScreenBottomDistance >= distanceFromTop) {
-      alignedDialog
-          .showAlignedDialog(
-        context: context,
-        builder: (context) {
-          return SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: screenSize.height * 0.8,
-              ),
-              child: widgetBuilder(context),
-            ),
-          );
-        },
-        followerAnchor: Alignment.topLeft,
-        targetAnchor: Alignment.bottomLeft,
-        barrierColor: Colors.transparent,
-      )
-          .then((value) {
-        if (onDialogResult != null) {
-          onDialogResult(value);
-        }
-      });
+    double distanceOfWidgetTopFromScreenTop = widgetPosition.dy;
+    double distanceOfWidgetBottomFromScreenBottom =
+        screenSize.height - widgetPosition.dy;
+    double distanceOfWidgetEndFromScreenEnd =
+        screenSize.width - (widgetPosition.dx + widgetSize.width);
+    double distanceOfWidgetStartFromScreenStart = widgetPosition.dx;
+    Alignment targetAnchor, followerAnchor;
+    if (distanceOfWidgetTopFromScreenTop >
+        distanceOfWidgetBottomFromScreenBottom) {
+      if (distanceOfWidgetStartFromScreenStart >
+          distanceOfWidgetEndFromScreenEnd) {
+        targetAnchor = Alignment.topRight;
+        followerAnchor = Alignment.bottomRight;
+      } else {
+        targetAnchor = Alignment.topLeft;
+        followerAnchor = Alignment.bottomLeft;
+      }
     } else {
-      alignedDialog
-          .showAlignedDialog(
-        context: context,
-        builder: widgetBuilder,
-        followerAnchor: Alignment.bottomLeft,
-        targetAnchor: Alignment.topLeft,
-        barrierColor: Colors.transparent,
-      )
-          .then((value) {
-        if (onDialogResult != null) {
-          onDialogResult(value);
-        }
-      });
+      if (distanceOfWidgetStartFromScreenStart >
+          distanceOfWidgetEndFromScreenEnd) {
+        targetAnchor = Alignment.bottomRight;
+        followerAnchor = Alignment.topRight;
+      } else {
+        targetAnchor = Alignment.bottomLeft;
+        followerAnchor = Alignment.topLeft;
+      }
     }
+    alignedDialog
+        .showAlignedDialog(
+      context: context,
+      builder: (context) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: screenSize.height * 0.8,
+            ),
+            child: widgetBuilder(context),
+          ),
+        );
+      },
+      followerAnchor: followerAnchor,
+      targetAnchor: targetAnchor,
+      barrierColor: Colors.transparent,
+    )
+        .then((value) {
+      if (onDialogResult != null) {
+        onDialogResult(value);
+      }
+    });
   }
 }

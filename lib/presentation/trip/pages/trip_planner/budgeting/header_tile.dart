@@ -31,9 +31,22 @@ class BudgetingHeaderTile extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              PlatformTextElements.createHeader(
-                  context: context, text: context.localizations.budgeting),
-              _buildCreateExpenseButton(context)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: FittedBox(
+                    child: PlatformTextElements.createHeader(
+                        context: context,
+                        text: context.localizations.budgeting),
+                  ),
+                ),
+              ),
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: _buildCreateExpenseButton(context),
+                ),
+              )
             ],
           ),
         ),
@@ -44,68 +57,67 @@ class BudgetingHeaderTile extends StatelessWidget {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             child: Padding(
               padding: const EdgeInsets.all(3.0),
-              child: IntrinsicHeight(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: _buildBudgetOverview(context),
+                  ),
+                  Column(
+                    children: [
+                      Row(
                         children: [
-                          _buildBudgetOverview(context),
-                          Padding(
-                            padding: EdgeInsets.symmetric(vertical: 5.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Flexible(
-                                  child: _buildExpenseViewButton(
-                                      context,
-                                      ExpenseViewType.BudgetEditor,
-                                      context.localizations.edit_budget,
-                                      Icons.check_rounded),
-                                ),
-                                Flexible(
-                                  child: _buildExpenseViewButton(
-                                      context,
-                                      ExpenseViewType.DebtSummary,
-                                      context.localizations.debt_summary,
-                                      Icons.feed_rounded),
-                                )
-                              ],
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: _buildExpenseViewButton(
+                                  context,
+                                  ExpenseViewType.ExpenseList,
+                                  context.localizations.view_expenses,
+                                  Icons.list_rounded),
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: _buildExpenseViewButton(
+                                  context,
+                                  ExpenseViewType.BudgetEditor,
+                                  context.localizations.edit_budget,
+                                  Icons.edit_rounded),
+                              // ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    VerticalDivider(
-                      thickness: 2,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      Row(
                         children: [
-                          Padding(
-                            padding: EdgeInsets.symmetric(vertical: 3.0),
-                            child: _buildExpenseViewButton(
-                                context,
-                                ExpenseViewType.ExpenseList,
-                                context.localizations.view_expenses,
-                                Icons.list_rounded),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: _buildExpenseViewButton(
+                                  context,
+                                  ExpenseViewType.DebtSummary,
+                                  context.localizations.debt_summary,
+                                  Icons.money_rounded),
+                              // ),
+                            ),
                           ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(vertical: 3.0),
-                            child: _buildExpenseViewButton(
-                                context,
-                                ExpenseViewType.BreakdownViewer,
-                                context.localizations.view_breakdown,
-                                Icons.bar_chart),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: _buildExpenseViewButton(
+                                  context,
+                                  ExpenseViewType.BreakdownViewer,
+                                  context.localizations.view_breakdown,
+                                  Icons.bar_chart_rounded),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
@@ -121,7 +133,6 @@ class BudgetingHeaderTile extends StatelessWidget {
       builder: (BuildContext context, ExpenseViewType value, Widget? child) {
         var shouldEnableButton =
             _expenseViewTypeNotifier.value != expenseViewType;
-        //TODO: Set color to a lighter version, preferably from ThemeData(black12?)
         return TextButton.icon(
           onPressed: shouldEnableButton
               ? () {
@@ -132,12 +143,10 @@ class BudgetingHeaderTile extends StatelessWidget {
             backgroundColor: WidgetStateProperty.all<Color?>(
                 !shouldEnableButton ? Colors.white12 : null),
           ),
-          label: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(buttonText),
+          label: Text(
+            buttonText,
           ),
           icon: Icon(icon),
-          key: key,
         );
       },
     );
@@ -199,9 +208,11 @@ class BudgetingHeaderTile extends StatelessWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                PlatformTextElements.createHeader(
-                  context: context,
-                  text: totalExpenseText,
+                FittedBox(
+                  child: PlatformTextElements.createHeader(
+                    context: context,
+                    text: totalExpenseText,
+                  ),
                 ),
                 Align(
                   alignment: Alignment.centerRight,

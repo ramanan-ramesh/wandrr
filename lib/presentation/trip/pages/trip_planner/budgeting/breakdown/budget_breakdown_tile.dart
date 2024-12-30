@@ -51,7 +51,6 @@ class _BudgetBreakdownTileState extends State<BudgetBreakdownTile>
                   context.localizations.category: BreakdownByCategoryChart(),
                   context.localizations.dayByDay: BreakdownByDayChart(),
                 },
-                // tabController: _tabController,
               ),
             ),
           ),

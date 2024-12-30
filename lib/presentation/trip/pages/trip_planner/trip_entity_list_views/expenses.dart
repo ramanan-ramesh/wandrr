@@ -65,6 +65,13 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
         return budgetingModuleFacade.sortExpenseElements(
             uiElements, _selectedSortOption);
       },
+      errorMessageCreator: (expenseUiElement) {
+        var expense = expenseUiElement.element;
+        if (expense.title.length <= 3) {
+          return context.localizations.expenseTitleMustBeAtleast3Characters;
+        }
+        return null;
+      },
     );
   }
 
@@ -208,12 +215,13 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
     return false;
   }
 
-  DropdownButton<ExpenseSortOption> _createSortOptionsDropDown() {
+  Widget _createSortOptionsDropDown() {
     return DropdownButton<ExpenseSortOption>(
       items: _availableSortOptions.keys
           .map((sortOption) => DropdownMenuItem(
                 value: sortOption,
-                child: Text(_availableSortOptions[sortOption]!),
+                child:
+                    Wrap(children: [Text(_availableSortOptions[sortOption]!)]),
               ))
           .toList(),
       value: _selectedSortOption,

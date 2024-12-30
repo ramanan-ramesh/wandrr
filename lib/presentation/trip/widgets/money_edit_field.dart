@@ -53,14 +53,12 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
           decoration: BoxDecoration(
             color: Colors.white10,
             borderRadius: BorderRadius.circular(50.0),
+            border: Border.all(color: Colors.green),
           ),
           child: Row(
             children: [
               Material(
                 color: Colors.transparent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(50.0),
-                ),
                 child: IconButton(
                   onPressed: () => widget.toggleDropdown(context, setState),
                   icon: Text(
@@ -78,11 +76,6 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
                     widget.amount = newValue.toStringAsFixed(2);
                     widget.onAmountUpdatedCallback(newValue);
                   },
-                  inputDecoration: InputDecoration(
-                    border: InputBorder.none,
-                    enabledBorder: _inputBorder,
-                    focusedBorder: _inputBorder,
-                  ),
                 ),
               ),
             ],

@@ -80,7 +80,8 @@ class _ContentPage extends StatelessWidget {
           home: Material(
             child: DropdownButtonHideUnderline(
               child: SafeArea(
-                child: _buildContentPage(context),
+                child:
+                    context.activeUser == null ? StartupPage() : TripProvider(),
               ),
             ),
           ),
@@ -167,14 +168,5 @@ class _ContentPage extends StatelessWidget {
         iconColor: Colors.green,
       ),
     );
-  }
-
-  Widget _buildContentPage(BuildContext context) {
-    var activeUser = context.activeUser;
-    if (activeUser == null) {
-      return StartupPage();
-    } else {
-      return TripProvider();
-    }
   }
 }

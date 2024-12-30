@@ -216,7 +216,8 @@ class EditableExpenseListItem extends StatelessWidget {
     } else {
       var title =
           (expenseUiElement as UiElementWithMetadata).metadata.toString();
-      return PlatformTextElements.createHeader(context: context, text: title);
+      return PlatformTextElements.createSubHeader(
+          context: context, text: title);
     }
   }
 

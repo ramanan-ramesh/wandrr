@@ -30,18 +30,50 @@ class ItineraryListItem extends StatefulWidget {
 
 class _ItineraryListItemState extends State<ItineraryListItem>
     with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
   late UiElement<PlanDataFacade> _planDataUiElement;
   bool _isCollapsed = true;
   final _canUpdateItineraryDataNotifier = ValueNotifier(false);
 
+  String? _errorMessage;
+  bool _showErrorMessage = false;
+
+  late AnimationController _animationController;
+  late Animation<Offset> _animation;
+
   @override
   void initState() {
     super.initState();
-    _animationController =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 700));
     _planDataUiElement = UiElement<PlanDataFacade>(
         element: widget.itineraryFacade.planData, dataState: DataState.None);
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    );
+
+    _animation = TweenSequence<Offset>([
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(0, 0), end: const Offset(0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(-0.1, 0), end: const Offset(0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(-0.1, 0), end: const Offset(0, 0)),
+          weight: 1),
+    ]).animate(CurvedAnimation(
+        parent: _animationController, curve: Curves.easeInOutCirc));
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -49,11 +81,8 @@ class _ItineraryListItemState extends State<ItineraryListItem>
     return Column(
       children: [
         ListTile(
-          leading: AnimatedIcon(
-              icon: _isCollapsed
-                  ? AnimatedIcons.view_list
-                  : AnimatedIcons.menu_arrow,
-              progress: _animationController),
+          leading:
+              Icon(_isCollapsed ? Icons.menu_open_rounded : Icons.list_rounded),
           title: Align(
             alignment: Alignment.centerLeft,
             child: FittedBox(
@@ -70,10 +99,40 @@ class _ItineraryListItemState extends State<ItineraryListItem>
             });
           },
         ),
+        if (_showErrorMessage && _errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.all(3.0),
+            child: Visibility(
+              visible: _showErrorMessage,
+              child: SlideTransition(
+                position: _animation,
+                child: Text(
+                  _errorMessage!,
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ),
+          ),
         if (!_isCollapsed) ItineraryStayAndTransits(itineraryDay: widget.day),
         if (!_isCollapsed) _buildPlanData()
       ],
     );
+  }
+
+  void _showError(String message) {
+    Future.delayed(Duration(seconds: 3), () {
+      _animationController.stop();
+    });
+    Future.delayed(Duration(seconds: 5), () {
+      setState(() {
+        _showErrorMessage = false;
+      });
+    });
+    setState(() {
+      _errorMessage = message;
+      _showErrorMessage = true;
+    });
+    _animationController.repeat(reverse: true);
   }
 
   Widget _buildPlanData() {
@@ -95,13 +154,59 @@ class _ItineraryListItemState extends State<ItineraryListItem>
           initialPlanDataUiElement: _planDataUiElement,
           planDataUpdated: (newPlanData) {
             _planDataUiElement.element = newPlanData;
-            var isValid = _planDataUiElement.element.isValid(false);
-            _canUpdateItineraryDataNotifier.value = isValid;
+            var planValidationResult =
+                _planDataUiElement.element.getValidationResult(false);
+            if (planValidationResult == PlanDataValidationResult.Valid) {
+              _canUpdateItineraryDataNotifier.value = true;
+            } else {
+              _canUpdateItineraryDataNotifier.value = false;
+            }
           },
         );
       },
       listener: (BuildContext context, TripManagementState state) {},
     );
+  }
+
+  void _tryShowError() {
+    var planDataValidationResult =
+        _planDataUiElement.element.getValidationResult(false);
+    switch (planDataValidationResult) {
+      case PlanDataValidationResult.CheckListItemEmpty:
+        {
+          _showError(context.localizations.checkListItemCannotBeEmpty);
+          _canUpdateItineraryDataNotifier.value = false;
+          break;
+        }
+      case PlanDataValidationResult.CheckListTitleNotValid:
+        {
+          _showError(
+              context.localizations.checkListTitleMustBeAtleast3Characters);
+          _canUpdateItineraryDataNotifier.value = false;
+          break;
+        }
+      case PlanDataValidationResult.NoNotesOrCheckListsOrPlaces:
+        {
+          _showError(context.localizations.noNotesOrCheckListsOrPlaces);
+          _canUpdateItineraryDataNotifier.value = false;
+          break;
+        }
+      case PlanDataValidationResult.NoteEmpty:
+        {
+          _showError(context.localizations.noteCannotBeEmpty);
+          _canUpdateItineraryDataNotifier.value = false;
+          break;
+        }
+      case PlanDataValidationResult.TitleEmpty:
+        {
+          _showError(context.localizations.titleCannotBeEmpty);
+          _canUpdateItineraryDataNotifier.value = false;
+          break;
+        }
+      default:
+        _canUpdateItineraryDataNotifier.value = true;
+        break;
+    }
   }
 
   Widget _buildUpdateItineraryDataButton() {
@@ -123,6 +228,9 @@ class _ItineraryListItemState extends State<ItineraryListItem>
           callback: () {
             context.addTripManagementEvent(UpdateItineraryPlanData(
                 planData: _planDataUiElement.element, day: widget.day));
+          },
+          callbackOnClickWhileDisabled: () {
+            _tryShowError();
           },
         );
       },

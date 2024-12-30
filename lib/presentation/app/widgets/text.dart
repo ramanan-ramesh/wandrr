@@ -18,10 +18,12 @@ class PlatformTextElements {
       {required BuildContext context,
       required String text,
       Color? color,
+      TextAlign? textAlign,
       bool shouldBold = false}) {
     return Text(
       text,
       softWrap: true,
+      textAlign: textAlign,
       style: TextStyle(
           color: color,
           fontSize: subHeaderSize,

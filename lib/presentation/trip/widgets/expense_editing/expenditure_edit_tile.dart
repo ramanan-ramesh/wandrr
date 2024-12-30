@@ -124,17 +124,15 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 2.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '${context.localizations.splitBy} : ',
-                  style: TextStyle(color: Colors.white),
-                ),
-                _buildSplitByIcons(),
-              ],
+            child: Text(
+              '${context.localizations.splitBy} : ',
+              style: TextStyle(color: Colors.white),
             ),
-          )
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2.0),
+            child: _buildSplitByIcons(),
+          ),
         ],
       );
     }
@@ -160,16 +158,18 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   }
 
   Widget _buildSplitByIcons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Wrap(
       children: _contributorsVsColors.entries
           .where((element) => widget.splitBy.contains(element.key))
-          .map((e) => Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  color: e.value,
-                  shape: BoxShape.circle,
+          .map((e) => Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: e.value,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ))
           .toList(),

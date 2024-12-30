@@ -28,7 +28,7 @@ class ReadonlyLodgingListItem extends StatelessWidget {
                 children: [
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 4.0),
-                    child: PlatformTextElements.createHeader(
+                    child: PlatformTextElements.createSubHeader(
                         context: context,
                         color: Colors.green,
                         text: (lodgingModelFacade.location!.context
