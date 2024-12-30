@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:wandrr/data/app/models/auth_type.dart';
 import 'package:wandrr/data/app/models/platform_user.dart';
 
@@ -20,12 +20,17 @@ class UserManagement {
     return _activeUser;
   }
 
-  static Future<UserManagement> create() async {
-    var userFromCache = await _getUserFromCache();
-    return UserManagement(initialUser: userFromCache);
+  FlutterSecureStorage localStorage;
+
+  static Future<UserManagement> create(
+      FlutterSecureStorage localStorage) async {
+    var userFromCache = await _getUserFromCache(localStorage);
+    return UserManagement(
+        initialUser: userFromCache, localStorage: localStorage);
   }
 
-  UserManagement({PlatformUser? initialUser}) : _activeUser = initialUser;
+  UserManagement({PlatformUser? initialUser, required this.localStorage})
+      : _activeUser = initialUser;
 
   Future<bool> tryUpdateActiveUser(
       {required User authProviderUser,
@@ -70,50 +75,40 @@ class UserManagement {
   }
 
   //TODO: Should ideally attach AuthProviderUser here(if it persists)?
-  static Future<PlatformUser?> _getUserFromCache() async {
-    var usersBox = await Hive.openBox(_usersCollectionInDB);
-    var isLoggedInValue = usersBox.get(_isLoggedIn) ?? '';
+  static Future<PlatformUser?> _getUserFromCache(
+      FlutterSecureStorage localStorage) async {
+    var isLoggedInValue = await localStorage.read(key: _isLoggedIn) ?? '';
     if (bool.tryParse(isLoggedInValue) == true) {
-      var userID = await usersBox.get(_userID) as String;
-      var authType = await usersBox.get(_authenticationType) as String;
-      var userName = await usersBox.get(_userName) as String;
+      var userID = await localStorage.read(key: _userID) as String;
+      var authType =
+          await localStorage.read(key: _authenticationType) as String;
+      var userName = await localStorage.read(key: _userName) as String;
       return PlatformUser.fromCache(
           userName: userName,
           authenticationTypedValue: authType,
           userID: userID);
     }
-    await usersBox.close();
 
     return null;
   }
 
   Future _persistUser() async {
-    var usersBox = await Hive.openBox(_usersCollectionInDB);
     if (activeUser != null) {
-      await _writeRecordToLocalStorage(usersBox, _userID, activeUser!.userID);
-      await _writeRecordToLocalStorage(
-          usersBox, _userName, activeUser!.userName);
-      await _writeRecordToLocalStorage(
-          usersBox, _authenticationType, activeUser!.authenticationType.name);
+      await localStorage.write(key: _userID, value: activeUser!.userID);
+      await localStorage.write(key: _userName, value: activeUser!.userName);
+      await localStorage.write(
+          key: _authenticationType, value: activeUser!.authenticationType.name);
       var displayName = activeUser!.displayName;
       if (displayName != null && displayName.isNotEmpty) {
-        await _writeRecordToLocalStorage(usersBox, _displayName, displayName);
+        await localStorage.write(key: _displayName, value: displayName);
       }
-      await _writeRecordToLocalStorage(usersBox, _isLoggedIn, true.toString());
+      await localStorage.write(key: _isLoggedIn, value: true.toString());
       if (_activeUser!.photoUrl != null) {
-        await _writeRecordToLocalStorage(
-            usersBox, _photoUrl, _activeUser!.photoUrl!);
+        await localStorage.write(key: _photoUrl, value: _activeUser!.photoUrl!);
       }
     } else {
-      await usersBox.clear();
-      await _writeRecordToLocalStorage(usersBox, _isLoggedIn, false.toString());
+      await localStorage.write(key: _isLoggedIn, value: false.toString());
     }
-    await usersBox.close();
-  }
-
-  Future _writeRecordToLocalStorage(
-      Box hiveBox, String recordKey, String recordValue) async {
-    await hiveBox.put(recordKey, recordValue);
   }
 
   static Map<String, dynamic> _userToJsonDocument(

@@ -27,8 +27,9 @@ class _CheckListsViewState extends State<CheckListsView> {
             widget.onCheckListsChanged();
           },
           onDeleted: () {
-            widget.checkLists.removeAt(index);
-            setState(() {});
+            setState(() {
+              widget.checkLists.removeAt(index);
+            });
             widget.onCheckListsChanged();
           },
         );
@@ -159,8 +160,10 @@ class _ReOrderableCheckListItemsState
               widget.checkListItemsChanged();
             },
             onDeleted: () {
-              widget.checkList.items.removeAt(index);
-              setState(() {});
+              setState(() {
+                widget.checkList.items.removeAt(index);
+              });
+              widget.checkListItemsChanged();
             },
           );
         },

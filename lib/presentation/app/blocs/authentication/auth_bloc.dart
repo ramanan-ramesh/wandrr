@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/app/models/auth_type.dart';
 import 'package:wandrr/presentation/app/blocs/authentication/auth_events.dart';
 import 'package:wandrr/presentation/app/blocs/authentication/auth_states.dart';
@@ -18,11 +17,9 @@ class AuthenticationBloc
     'email-already-in-use': AuthenticationFailures.UsernameAlreadyExists
   };
 
-  AppDataFacade _appLevelData;
+  String googleWebClientId;
 
-  AuthenticationBloc(AppDataFacade appLevelData)
-      : _appLevelData = appLevelData,
-        super(AuthInitialState()) {
+  AuthenticationBloc(this.googleWebClientId) : super(AuthInitialState()) {
     on<AuthenticateWithUsernamePassword>(_onAuthWithUsernamePassword);
     on<AuthenticateWithThirdParty>(_onAuthWithThirdParty);
   }
@@ -77,7 +74,7 @@ class AuthenticationBloc
     }
 
     // Trigger the authentication flow
-    var googleSignIn = GoogleSignIn(clientId: _appLevelData.googleWebClientId);
+    var googleSignIn = GoogleSignIn(clientId: googleWebClientId);
     // var googleSignIn = GoogleSignIn();
     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 

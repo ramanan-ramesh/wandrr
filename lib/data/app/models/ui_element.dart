@@ -21,8 +21,8 @@ class UiElementWithMetadata<K, V> extends UiElement<K> {
       {required K element,
       required DataState dataState,
       required this.metadata,
-      GlobalKey? key})
-      : super(element: element, dataState: dataState, key: key);
+      super.key})
+      : super(element: element, dataState: dataState);
 
   @override
   UiElementWithMetadata<K, V> clone() {

@@ -44,25 +44,43 @@ class PlanDataFacade extends Equatable implements TripEntity {
             List.from(checkLists.map((checkList) => checkList.clone())));
   }
 
-  bool isValid(bool isTitleRequired) {
-    var isAnyNoteEmpty = notes.any((noteFacade) => noteFacade.note.isEmpty);
-    var isAnyCheckListEmpty = false;
-    for (var checkList in checkLists) {
-      if (checkList.items.isEmpty ||
-          checkList.items.any((checkListItem) => checkListItem.item.isEmpty)) {
-        isAnyCheckListEmpty = true;
+  PlanDataValidationResult getValidationResult(bool isTitleRequired) {
+    if (isTitleRequired) {
+      if (title == null || title!.isEmpty) {
+        return PlanDataValidationResult.TitleEmpty;
       }
     }
-    var isTitleEmpty = title?.isEmpty ?? true;
-
-    var areThereAnyNotesOrCheckListsOrPlaces =
-        notes.isNotEmpty || checkLists.isNotEmpty || places.isNotEmpty;
-    return !isAnyNoteEmpty &&
-        (isTitleRequired ? !isTitleEmpty : true) &&
-        !isAnyCheckListEmpty &&
-        areThereAnyNotesOrCheckListsOrPlaces;
+    if (notes.isEmpty && checkLists.isEmpty && places.isEmpty) {
+      return PlanDataValidationResult.NoNotesOrCheckListsOrPlaces;
+    }
+    if (notes.isNotEmpty) {
+      if (notes.any((noteFacade) => noteFacade.note.isEmpty)) {
+        return PlanDataValidationResult.NoteEmpty;
+      }
+    }
+    if (checkLists.isNotEmpty) {
+      if (checkLists.any((checkList) =>
+          checkList.title == null || checkList.title!.length < 3)) {
+        return PlanDataValidationResult.CheckListTitleNotValid;
+      }
+      if (checkLists.any((checkList) =>
+          checkList.items.isEmpty ||
+          checkList.items.any((checkListItem) => checkListItem.item.isEmpty))) {
+        return PlanDataValidationResult.CheckListItemEmpty;
+      }
+    }
+    return PlanDataValidationResult.Valid;
   }
 
   @override
   List<Object?> get props => [tripId, id, title, places, notes, checkLists];
+}
+
+enum PlanDataValidationResult {
+  Valid,
+  TitleEmpty,
+  NoteEmpty,
+  CheckListTitleNotValid,
+  CheckListItemEmpty,
+  NoNotesOrCheckListsOrPlaces
 }

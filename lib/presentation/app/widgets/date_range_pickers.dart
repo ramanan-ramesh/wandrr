@@ -50,7 +50,8 @@ abstract class DateRangePickerData extends StatefulWidget {
                   Navigator.of(context).pop();
                 },
                 config: CalendarDatePicker2WithActionButtonsConfig(
-                  firstDate: firstDate ?? DateTime.now(),
+                  firstDate: firstDate,
+                  lastDate: lastDate,
                   closeDialogOnCancelTapped: true,
                   closeDialogOnOkTapped: true,
                   firstDayOfWeek: 1,

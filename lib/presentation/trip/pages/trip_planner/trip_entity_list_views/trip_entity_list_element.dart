@@ -9,7 +9,7 @@ import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
 
-class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
+class TripEntityListElement<T extends TripEntity> extends StatefulWidget {
   UiElement<T> uiElement;
   void Function(BuildContext context, UiElement<T>)? onPressed;
   Widget Function(UiElement<T> uiElement, ValueNotifier<bool>)
@@ -22,6 +22,7 @@ class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
       UiElement<T> uiElement)? additionalListItemBuildWhenCondition;
   void Function(UiElement<T>)? onUpdatePressed;
   void Function(UiElement<T>)? onDeletePressed;
+  String? Function(UiElement<T>)? errorMessageCreator;
 
   TripEntityListElement(
       {super.key,
@@ -32,32 +33,45 @@ class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
       this.additionalListItemBuildWhenCondition,
       this.onUpdatePressed,
       this.onDeletePressed,
+      this.errorMessageCreator,
       this.onPressed});
 
+  @override
+  State<TripEntityListElement<T>> createState() =>
+      _TripEntityListElementState<T>();
+}
+
+class _TripEntityListElementState<T extends TripEntity>
+    extends State<TripEntityListElement<T>>
+    with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       buildWhen: _shouldBuildListElement,
       builder: (BuildContext context, TripManagementState state) {
-        var shouldOpenForEditing = uiElement.dataState == DataState.Select ||
-            uiElement.dataState == DataState.NewUiEntry;
+        var shouldOpenForEditing =
+            widget.uiElement.dataState == DataState.Select ||
+                widget.uiElement.dataState == DataState.NewUiEntry;
         return shouldOpenForEditing
             ? _OpenedTripEntityUiElement(
-                uiElement: uiElement,
-                openedListElementCreator: openedListElementCreator,
-                onUpdatePressed: onUpdatePressed,
-                onDeletePressed: onDeletePressed,
-                canDelete: canDelete != null ? canDelete!(uiElement) : true,
+                uiElement: widget.uiElement,
+                openedListElementCreator: widget.openedListElementCreator,
+                onUpdatePressed: widget.onUpdatePressed,
+                onDeletePressed: widget.onDeletePressed,
+                canDelete: widget.canDelete != null
+                    ? widget.canDelete!(widget.uiElement)
+                    : true,
                 onPressed: () {
-                  if (onPressed != null) {
-                    onPressed?.call(context, uiElement);
+                  if (widget.onPressed != null) {
+                    widget.onPressed?.call(context, widget.uiElement);
                     return;
                   }
-                  if (uiElement.dataState != DataState.NewUiEntry) {
-                    context.addTripManagementEvent(
-                        UpdateTripEntity.select(tripEntity: uiElement.element));
+                  if (widget.uiElement.dataState != DataState.NewUiEntry) {
+                    context.addTripManagementEvent(UpdateTripEntity.select(
+                        tripEntity: widget.uiElement.element));
                   }
                 },
+                errorMessageCreator: widget.errorMessageCreator,
               )
             : Material(
                 child: InkWell(
@@ -66,15 +80,15 @@ class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
                       borderRadius: BorderRadius.circular(15),
                     ),
                     color: Colors.grey.shade900,
-                    child: closedElementCreator(),
+                    child: widget.closedElementCreator(),
                   ),
                   onTap: () {
-                    if (onPressed != null) {
-                      onPressed?.call(context, uiElement);
+                    if (widget.onPressed != null) {
+                      widget.onPressed?.call(context, widget.uiElement);
                       return;
                     }
-                    context.addTripManagementEvent(
-                        UpdateTripEntity.select(tripEntity: uiElement.element));
+                    context.addTripManagementEvent(UpdateTripEntity.select(
+                        tripEntity: widget.uiElement.element));
                   },
                 ),
               );
@@ -85,9 +99,9 @@ class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
 
   bool _shouldBuildListElement(
       TripManagementState previousState, TripManagementState currentState) {
-    if (additionalListItemBuildWhenCondition != null) {
-      if (additionalListItemBuildWhenCondition!(
-          previousState, currentState, uiElement)) {
+    if (widget.additionalListItemBuildWhenCondition != null) {
+      if (widget.additionalListItemBuildWhenCondition!(
+          previousState, currentState, widget.uiElement)) {
         return true;
       }
     }
@@ -98,28 +112,28 @@ class TripEntityListElement<T extends TripEntity> extends StatelessWidget {
           transitUpdatedState.tripEntityModificationData.modifiedCollectionItem;
       var updatedTransitId = modifiedTransitCollectionItem.id;
       if (operationPerformed == DataState.Select) {
-        if (updatedTransitId == uiElement.element.id &&
+        if (updatedTransitId == widget.uiElement.element.id &&
             updatedTransitId != null &&
             updatedTransitId.isNotEmpty) {
-          if (uiElement.dataState == DataState.None) {
-            uiElement.dataState = DataState.Select;
+          if (widget.uiElement.dataState == DataState.None) {
+            widget.uiElement.dataState = DataState.Select;
             return true;
-          } else if (uiElement.dataState == DataState.Select) {
-            uiElement.dataState = DataState.None;
+          } else if (widget.uiElement.dataState == DataState.Select) {
+            widget.uiElement.dataState = DataState.None;
             return true;
           }
         } else {
-          if (uiElement.dataState == DataState.Select) {
-            uiElement.dataState = DataState.None;
+          if (widget.uiElement.dataState == DataState.Select) {
+            widget.uiElement.dataState = DataState.None;
             return true;
           }
         }
       } else if (operationPerformed == DataState.Update &&
-          uiElement.element.id == updatedTransitId &&
+          widget.uiElement.element.id == updatedTransitId &&
           updatedTransitId != null &&
           updatedTransitId.isNotEmpty) {
-        uiElement.element = modifiedTransitCollectionItem;
-        uiElement.dataState = DataState.None;
+        widget.uiElement.element = modifiedTransitCollectionItem;
+        widget.uiElement.dataState = DataState.None;
         return true;
       }
     }
@@ -136,6 +150,7 @@ class _OpenedTripEntityUiElement<T extends TripEntity> extends StatelessWidget {
   void Function(UiElement<T>)? onDeletePressed;
   bool canDelete;
   VoidCallback onPressed;
+  String? Function(UiElement<T>)? errorMessageCreator;
 
   _OpenedTripEntityUiElement(
       {super.key,
@@ -144,7 +159,8 @@ class _OpenedTripEntityUiElement<T extends TripEntity> extends StatelessWidget {
       this.onUpdatePressed,
       required this.canDelete,
       required this.onPressed,
-      required this.openedListElementCreator})
+      required this.openedListElementCreator,
+      this.errorMessageCreator})
       : uiElement = uiElement.clone(),
         _validityNotifier = ValueNotifier(
             uiElement.dataState == DataState.NewUiEntry ? false : true);
@@ -166,49 +182,169 @@ class _OpenedTripEntityUiElement<T extends TripEntity> extends StatelessWidget {
             ),
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(3.0),
-              child: PlatformSubmitterFAB.conditionallyEnabled(
-                  valueNotifier: _validityNotifier,
-                  icon: Icons.check_rounded,
-                  context: context,
-                  callback: () {
-                    if (onUpdatePressed != null) {
-                      onUpdatePressed!(uiElement);
-                      return;
-                    }
-                    if (uiElement.dataState == DataState.NewUiEntry) {
-                      context.addTripManagementEvent(UpdateTripEntity<T>.create(
-                          tripEntity: uiElement.element));
-                    } else {
-                      context.addTripManagementEvent(UpdateTripEntity<T>.update(
-                          tripEntity: uiElement.element));
-                    }
-                  }),
-            ),
-            if (canDelete)
-              Padding(
-                padding: const EdgeInsets.all(3.0),
-                child: PlatformSubmitterFAB(
-                  icon: Icons.delete_rounded,
-                  isEnabledInitially: true,
-                  context: context,
-                  callback: () {
-                    if (onDeletePressed != null) {
-                      onDeletePressed!(uiElement);
-                      return;
-                    }
-                    context.addTripManagementEvent(UpdateTripEntity<T>.delete(
-                        tripEntity: uiElement.element));
-                  },
-                ),
-              )
-          ],
-        )
+        _EditableTripEntityButtonBar(
+            validityNotifier: _validityNotifier,
+            onUpdatePressed: onUpdatePressed,
+            uiElement: uiElement,
+            canDelete: canDelete,
+            onDeletePressed: onDeletePressed,
+            errorMessageCreator: errorMessageCreator),
       ],
     );
+  }
+}
+
+class _EditableTripEntityButtonBar<T extends TripEntity>
+    extends StatefulWidget {
+  _EditableTripEntityButtonBar({
+    super.key,
+    required ValueNotifier<bool> validityNotifier,
+    required this.onUpdatePressed,
+    required this.uiElement,
+    required this.canDelete,
+    required this.onDeletePressed,
+    this.errorMessageCreator,
+  }) : _validityNotifier = validityNotifier;
+
+  final ValueNotifier<bool> _validityNotifier;
+  final void Function(UiElement<T> p1)? onUpdatePressed;
+  final UiElement<T> uiElement;
+  final bool canDelete;
+  final void Function(UiElement<T> p1)? onDeletePressed;
+  String? Function(UiElement<T>)? errorMessageCreator;
+
+  @override
+  State<_EditableTripEntityButtonBar<T>> createState() =>
+      _EditableTripEntityButtonBarState<T>();
+}
+
+class _EditableTripEntityButtonBarState<T extends TripEntity>
+    extends State<_EditableTripEntityButtonBar<T>>
+    with SingleTickerProviderStateMixin {
+  String? _errorMessage;
+  bool _showErrorMessage = false;
+
+  late AnimationController _animationController;
+  late Animation<Offset> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    );
+
+    _animation = TweenSequence<Offset>([
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(0, 0), end: const Offset(0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(-0.1, 0), end: const Offset(0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(-0.1, 0), end: const Offset(0, 0)),
+          weight: 1),
+    ]).animate(CurvedAnimation(
+        parent: _animationController, curve: Curves.easeInOutCirc));
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        if (_showErrorMessage && _errorMessage != null)
+          Flexible(
+            child: Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: Visibility(
+                visible: _showErrorMessage,
+                child: SlideTransition(
+                  position: _animation,
+                  child: Text(
+                    _errorMessage!,
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.all(3.0),
+          child: PlatformSubmitterFAB.conditionallyEnabled(
+            valueNotifier: widget._validityNotifier,
+            icon: Icons.check_rounded,
+            context: context,
+            callback: () {
+              if (widget.onUpdatePressed != null) {
+                widget.onUpdatePressed!(widget.uiElement);
+                return;
+              }
+              if (widget.uiElement.dataState == DataState.NewUiEntry) {
+                context.addTripManagementEvent(UpdateTripEntity<T>.create(
+                    tripEntity: widget.uiElement.element));
+              } else {
+                context.addTripManagementEvent(UpdateTripEntity<T>.update(
+                    tripEntity: widget.uiElement.element));
+              }
+            },
+            callbackOnClickWhileDisabled: widget.errorMessageCreator == null
+                ? null
+                : () {
+                    var errorMessage =
+                        widget.errorMessageCreator!(widget.uiElement);
+                    if (errorMessage != null) {
+                      _showError(errorMessage);
+                    }
+                  },
+          ),
+        ),
+        if (widget.canDelete)
+          Padding(
+            padding: const EdgeInsets.all(3.0),
+            child: PlatformSubmitterFAB(
+              icon: Icons.delete_rounded,
+              isEnabledInitially: true,
+              context: context,
+              callback: () {
+                if (widget.onDeletePressed != null) {
+                  widget.onDeletePressed!(widget.uiElement);
+                  return;
+                }
+                context.addTripManagementEvent(UpdateTripEntity<T>.delete(
+                    tripEntity: widget.uiElement.element));
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
+  void _showError(String message) {
+    setState(() {
+      _errorMessage = message;
+      _showErrorMessage = true;
+    });
+    _animationController.repeat(reverse: true);
+    Future.delayed(Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _showErrorMessage = false;
+        });
+      }
+    });
   }
 }

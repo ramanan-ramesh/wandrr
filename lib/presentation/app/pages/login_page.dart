@@ -17,7 +17,8 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<AuthenticationBloc>(
-      create: (context) => AuthenticationBloc(context.appDataRepository),
+      create: (context) =>
+          AuthenticationBloc(context.appDataRepository.googleWebClientId),
       child: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -42,9 +43,8 @@ class _LoginPageFormState extends State<_LoginPageForm>
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  TabController? _tabController;
+  late TabController _tabController;
   static const String googleLogoAsset = 'assets/images/google_logo.png';
-  static final _emailRegExValidator = RegExp('.*@.*.com');
   static const double _roundedCornerRadius = 25.0;
 
   @override
@@ -57,7 +57,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
-    _tabController!.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -97,7 +97,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
     );
   }
 
-  StatefulWidget _buildSubmitButton(BuildContext context) {
+  Widget _buildSubmitButton(BuildContext context) {
     return BlocConsumer<AuthenticationBloc, AuthenticationState>(
       builder: (BuildContext context, AuthenticationState state) {
         var isSubmitted = false;
@@ -113,13 +113,13 @@ class _LoginPageFormState extends State<_LoginPageForm>
           formState: _formKey,
           isEnabledInitially: true,
           validationSuccessCallback: () {
-            String username = _usernameController.text;
-            String password = _passwordController.text;
+            var username = _usernameController.text;
+            var password = _passwordController.text;
 
             context.addAuthenticationEvent(AuthenticateWithUsernamePassword(
                 userName: username,
                 passWord: password,
-                isLogin: _tabController!.index == 0));
+                isLogin: _tabController.index == 0));
           },
         );
       },
@@ -135,20 +135,16 @@ class _LoginPageFormState extends State<_LoginPageForm>
 
   Column _buildAlternateLoginMethods(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           context.localizations.alternativeLogin,
           style: Theme.of(context).textTheme.titleMedium,
-          textAlign: TextAlign.center,
+          // textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16.0),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildAlternateLoginProviderButton(
-                AuthenticationType.Google, googleLogoAsset, context),
-          ],
-        ),
+        _buildAlternateLoginProviderButton(
+            AuthenticationType.Google, googleLogoAsset, context),
       ],
     );
   }
@@ -209,8 +205,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
               children: [
                 FocusTraversalOrder(
                   order: NumericFocusOrder(1),
-                  child: _createUserNameField(
-                      state), //TODO: Create this method in platform layer
+                  child: _createUserNameField(state),
                 ),
                 const SizedBox(height: 16.0),
                 FocusTraversalOrder(

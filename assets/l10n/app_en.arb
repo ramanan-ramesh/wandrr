@@ -95,5 +95,16 @@
   "allDayStay":"All Day Stay",
   "noExpensesAssociatedWithDate":"No expenses associated with a date",
   "splitExpensesWithNewTripMateMessage": "All current expenses will be split with the new trip mate. Do you wish to proceed?",
-  "addNew":"Add New"
+  "addNew":"Add New",
+  "departureArrivalDateTimeCannotBeEmpty":"Departure and Arrival date time cannot be empty",
+  "departureArrivalLocationCannotBeEmpty":"Departure and Arrival location cannot be empty",
+  "departureAndArrivalLocationsCannotBeSame":"Departure and Arrival locations cannot be the same",
+  "lodgingAddressCannotBeEmpty":"Lodging address cannot be empty",
+  "checkInAndCheckoutDatesCannotBeEmpty":"Check-In and Check-Out dates cannot be empty",
+  "expenseTitleMustBeAtleast3Characters":"Expense title must be at least 3 characters",
+  "titleCannotBeEmpty":"Title cannot be empty",
+  "noteCannotBeEmpty":"Note cannot be empty",
+  "checkListTitleMustBeAtleast3Characters": "Checklist title must be at least 3 characters",
+  "checkListItemCannotBeEmpty": "Checklist item cannot be empty",
+  "noNotesOrCheckListsOrPlaces": "No notes, checklists or places added yet"
 }

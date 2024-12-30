@@ -36,6 +36,19 @@ class TransitListView extends StatelessWidget {
               .map((transit) =>
                   UiElement(element: transit, dataState: DataState.None))
               .toList(),
+      errorMessageCreator: (transitUiElement) {
+        var transit = transitUiElement.element;
+        if (transit.arrivalLocation == null ||
+            transit.departureLocation == null) {
+          return context.localizations.departureArrivalLocationCannotBeEmpty;
+        } else if (transit.departureLocation == transit.arrivalLocation) {
+          return context.localizations.departureAndArrivalLocationsCannotBeSame;
+        } else if (transit.departureDateTime == null ||
+            transit.arrivalDateTime == null) {
+          return context.localizations.departureArrivalDateTimeCannotBeEmpty;
+        }
+        return null;
+      },
     );
   }
 

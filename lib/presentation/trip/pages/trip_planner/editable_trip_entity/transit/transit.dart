@@ -66,9 +66,6 @@ class _LocationDetailsState extends State<_LocationDetails> {
       bool isArrival, TripMetadataFacade tripMetadata) {
     return PlatformDateTimePicker(
       //TODO: While choosing arrival date, initial date in DatePicker should be departure date
-      initialDateTime: isArrival
-          ? widget.transitFacade.arrivalDateTime
-          : widget.transitFacade.departureDateTime,
       dateTimeUpdated: (updatedDateTime) {
         if (isArrival) {
           widget.transitFacade.arrivalDateTime = updatedDateTime;
@@ -333,19 +330,22 @@ class _EditableTransitListItemState extends State<EditableTransitListItem> {
     var tripMetadata = context.activeTrip.tripMetadata;
     var dateTimeEditorWidget = PlatformDateTimePicker(
       //TODO: While choosing arrival date, initial date in DatePicker should be departure date
-      initialDateTime: isArrival
+      currentDateTime: isArrival
           ? transitModelFacade.arrivalDateTime
           : transitModelFacade.departureDateTime,
       dateTimeUpdated: (updatedDateTime) {
-        if (isArrival) {
-          transitModelFacade.arrivalDateTime = updatedDateTime;
-        } else {
-          transitModelFacade.departureDateTime = updatedDateTime;
-        }
-        _calculateTransitValidity();
+        setState(() {
+          if (isArrival) {
+            transitModelFacade.arrivalDateTime = updatedDateTime;
+          } else {
+            transitModelFacade.departureDateTime = updatedDateTime;
+          }
+          _calculateTransitValidity();
+        });
       },
       startDateTime: isArrival
-          ? transitModelFacade.departureDateTime ?? tripMetadata.startDate!
+          ? transitModelFacade.departureDateTime?.add(Duration(minutes: 1)) ??
+              tripMetadata.startDate!
           : tripMetadata.startDate!,
       endDateTime: tripMetadata.endDate!,
     );

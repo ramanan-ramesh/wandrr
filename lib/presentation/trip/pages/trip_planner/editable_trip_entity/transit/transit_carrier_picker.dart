@@ -132,10 +132,12 @@ class _TransitCarrierPickerState extends State<TransitCarrierPicker> {
       return TextField(
         minLines: 1,
         maxLines: 1,
-        controller: _transitCarrierTextEditingController,
+        controller: _transitCarrierTextEditingController
+          ..text = widget.operator ?? '',
         decoration: InputDecoration(
           prefixIcon: _buildTransitOptionPicker(),
-          hintText: context.localizations.carrierName,
+          hintText: context
+              .localizations.carrierName, //TODO: This gets cut off for Tamil
         ),
         onChanged: (newCarrier) {
           widget.operator = newCarrier;

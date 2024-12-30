@@ -27,7 +27,7 @@ class TripCreatorDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var currencyInfo = context.supportedCurrencies.firstWhere((element) {
+    var currencyInfo = widgetContext.supportedCurrencies.firstWhere((element) {
       return element.code == _currentTripMetadata.budget.currency;
     });
     return Column(
@@ -45,8 +45,10 @@ class TripCreatorDialog extends StatelessWidget {
             ),
           ),
           centerTitle: true,
-          title: PlatformTextElements.createHeader(
-              context: context, text: context.localizations.planTrip),
+          title: FittedBox(
+            child: PlatformTextElements.createHeader(
+                context: context, text: widgetContext.localizations.planTrip),
+          ),
         ),
         Padding(
           padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
@@ -55,6 +57,7 @@ class TripCreatorDialog extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: PlatformDateRangePicker(
+                  firstDate: DateTime.now(),
                   callback: (startDate, endDate) {
                     _currentTripMetadata.startDate = startDate;
                     _currentTripMetadata.endDate = endDate;
@@ -71,11 +74,14 @@ class TripCreatorDialog extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Row(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: PlatformTextElements.createSubHeader(
-                          context: context,
-                          text: context.localizations.chooseDefaultCurrency),
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsets.all(2.0),
+                        child: PlatformTextElements.createSubHeader(
+                            context: context,
+                            text: widgetContext
+                                .localizations.chooseDefaultCurrency),
+                      ),
                     ),
                     Flexible(
                       child: Padding(

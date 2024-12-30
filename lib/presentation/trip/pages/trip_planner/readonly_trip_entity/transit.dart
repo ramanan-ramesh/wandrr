@@ -23,7 +23,7 @@ class ReadonlyTransitListItem extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            flex: 3,
+            flex: 5,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -128,22 +128,29 @@ class ReadonlyTransitListItem extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           if (isBigLayout) Expanded(child: Container()),
-          Column(
-            children: [
-              IgnorePointer(
-                  child: IconButton(
-                      onPressed: null, icon: Icon(transitOptionMetadata.icon))),
-              Text(transitOptionMetadata.name)
-            ],
+          Flexible(
+            child: Column(
+              children: [
+                IgnorePointer(
+                    child: IconButton(
+                        onPressed: null,
+                        icon: Icon(transitOptionMetadata.icon))),
+                Text(
+                  transitOptionMetadata.name,
+                  textAlign: TextAlign.center,
+                )
+              ],
+            ),
           ),
           Expanded(
             flex: 2,
             child: Divider(),
           ),
           Flexible(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(transitOperator),
+            child: Wrap(
+              children: [
+                Text(transitOperator),
+              ],
             ),
           ),
           if (isBigLayout) Expanded(child: Container()),
@@ -171,10 +178,10 @@ class _TransitEvent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        FittedBox(
-          fit: BoxFit.scaleDown,
+        Padding(
+          padding: const EdgeInsets.all(3.0),
           child: Text(
             isArrival
                 ? context.localizations.arrive
@@ -187,7 +194,7 @@ class _TransitEvent extends StatelessWidget {
         ),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3.0),
+            padding: const EdgeInsets.all(3.0),
             child: _createLocationDetailTitle(context),
           ),
         ),
@@ -214,13 +221,14 @@ class _TransitEvent extends StatelessWidget {
       children: [
         Padding(
           padding: EdgeInsets.symmetric(vertical: 2.0),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: PlatformTextElements.createSubHeader(
-                color: Colors.green,
-                context: context,
-                text: _createLocationTitle(),
-                shouldBold: true),
+          child: Wrap(
+            children: [
+              PlatformTextElements.createSubHeader(
+                  color: Colors.green,
+                  context: context,
+                  text: _createLocationTitle(),
+                  shouldBold: true),
+            ],
           ),
         ),
         if (subTitle != null)

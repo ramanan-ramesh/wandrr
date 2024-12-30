@@ -42,7 +42,6 @@ dependencies:
   firebase_core: ^2.15.1
   firebase_auth: ^4.7.3
   cloud_firestore: ^4.8.5
-  hive_flutter: ^1.1.0
   http: ^1.1.0
   calendar_date_picker2: ^0.5.3
   aligned_dialog: ^0.0.7
@@ -51,6 +50,7 @@ dependencies:
   fl_chart: ^0.66.0
   google_sign_in: ^6.2.1
   flutter_datetime_picker_plus: ^2.2.0
+  flutter_secure_storage: ^9.2.2
 
 dev_dependencies:
   flutter_test:

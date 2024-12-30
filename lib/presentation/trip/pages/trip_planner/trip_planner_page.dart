@@ -3,7 +3,6 @@ import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/expense_view_adapter.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/itinerary.dart';
@@ -32,19 +31,23 @@ class TripPlannerPage extends StatelessWidget {
           appLevelData.isBigLayout = true;
           return Row(
             children: [
-              _buildConstrainedPageForLayout(_buildLayout(context, true)),
-              _buildConstrainedPageForLayout(
-                CustomScrollView(
-                  slivers: <Widget>[
-                    SliverToBoxAdapter(
-                      child: BudgetingHeaderTile(
+              Expanded(
+                child: _buildConstrainedPageForLayout(_buildLayout(context)),
+              ),
+              Expanded(
+                child: _buildConstrainedPageForLayout(
+                  CustomScrollView(
+                    slivers: <Widget>[
+                      SliverToBoxAdapter(
+                        child: BudgetingHeaderTile(
+                          expenseViewTypeNotifier: _expenseViewTypeNotifier,
+                        ),
+                      ),
+                      ExpenseViewAdapter(
                         expenseViewTypeNotifier: _expenseViewTypeNotifier,
                       ),
-                    ),
-                    ExpenseViewAdapter(
-                      expenseViewTypeNotifier: _expenseViewTypeNotifier,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -55,7 +58,7 @@ class TripPlannerPage extends StatelessWidget {
             child: Container(
               constraints:
                   BoxConstraints(minWidth: 500, maxWidth: _maximumPageWidth),
-              child: _buildLayout(context, false),
+              child: _buildLayout(context),
             ),
           );
         }
@@ -64,18 +67,17 @@ class TripPlannerPage extends StatelessWidget {
   }
 
   Widget _buildConstrainedPageForLayout(Widget layout) {
-    return Expanded(
-      child: Center(
-        child: Container(
-          constraints: BoxConstraints(
-              maxWidth: _maximumPageWidth, minWidth: _breakOffLayoutWidth / 2),
-          child: layout,
-        ),
+    return Center(
+      child: Container(
+        constraints: BoxConstraints(
+            maxWidth: _maximumPageWidth, minWidth: _breakOffLayoutWidth / 2),
+        child: layout,
       ),
     );
   }
 
-  Widget _buildLayout(BuildContext context, bool isBigLayout) {
+  Widget _buildLayout(BuildContext context) {
+    var isBigLayout = context.isBigLayout;
     return Scaffold(
       appBar: _AppBar(),
       body: CustomScrollView(
@@ -170,14 +172,9 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
-        FloatingActionButton.extended(
-          icon: Icon(
-            Icons.share_rounded,
-          ),
-          label: Text(
-            context.localizations.share,
-          ),
+        IconButton(
           onPressed: () {},
+          icon: Icon(Icons.share_rounded),
         ),
         IconButton(
           onPressed: () {

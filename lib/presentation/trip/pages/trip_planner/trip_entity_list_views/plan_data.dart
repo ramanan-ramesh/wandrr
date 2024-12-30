@@ -136,17 +136,20 @@ class _PlanDataListItemViewer extends StatefulWidget {
 
 class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
     with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
   late TextEditingController _titleEditingController;
   final ValueNotifier<bool> _canUpdatePlanDataNotifier = ValueNotifier(false);
   bool _isCollapsed = false;
   late UiElement<PlanDataFacade> _planDataUiElement;
 
+  String? _errorMessage;
+  bool _showErrorMessage = false;
+
+  late AnimationController _animationController;
+  late Animation<Offset> _animation;
+
   @override
   void initState() {
     super.initState();
-    _animationController =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 700));
     _planDataUiElement = widget.initialPlanDataUiElement.clone();
     _planDataUiElement.element =
         widget.initialPlanDataUiElement.element.clone();
@@ -154,6 +157,36 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
         TextEditingController(text: _planDataUiElement.element.title);
     _canUpdatePlanDataNotifier.value =
         _planDataUiElement.dataState == DataState.NewUiEntry ? false : true;
+
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    );
+
+    _animation = TweenSequence<Offset>([
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(0, 0), end: const Offset(0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(-0.1, 0), end: const Offset(0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(-0.1, 0), end: const Offset(0, 0)),
+          weight: 1),
+    ]).animate(CurvedAnimation(
+        parent: _animationController, curve: Curves.easeInOutCirc));
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -164,6 +197,20 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
           child: Column(
             children: [
               _buildPlanDataHeaderTile(),
+              if (_showErrorMessage && _errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.all(3.0),
+                  child: Visibility(
+                    visible: _showErrorMessage,
+                    child: SlideTransition(
+                      position: _animation,
+                      child: Text(
+                        _errorMessage!,
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ),
+                ),
               if (!_isCollapsed)
                 PlanDataListItem(
                     initialPlanDataUiElement: _planDataUiElement,
@@ -179,10 +226,8 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
 
   ListTile _buildPlanDataHeaderTile() {
     return ListTile(
-      leading: AnimatedIcon(
-          icon:
-              _isCollapsed ? AnimatedIcons.view_list : AnimatedIcons.menu_arrow,
-          progress: _animationController),
+      leading:
+          Icon(_isCollapsed ? Icons.menu_open_rounded : Icons.list_rounded),
       title: PlatformTextElements.createTextField(
         context: context,
         controller: _titleEditingController,
@@ -198,21 +243,24 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 3.0),
             child: PlatformSubmitterFAB.conditionallyEnabled(
-                icon: Icons.check_rounded,
-                context: context,
-                callback: () {
-                  if (_planDataUiElement.dataState == DataState.NewUiEntry) {
-                    context.addTripManagementEvent(
-                        UpdateTripEntity<PlanDataFacade>.create(
-                            tripEntity: _planDataUiElement.element));
-                  } else {
-                    context.addTripManagementEvent(
-                        UpdateTripEntity<PlanDataFacade>.update(
-                            tripEntity: _planDataUiElement.element));
-                  }
-                },
-                valueNotifier: _canUpdatePlanDataNotifier,
-                isConditionallyVisible: true),
+              icon: Icons.check_rounded,
+              context: context,
+              callback: () {
+                if (_planDataUiElement.dataState == DataState.NewUiEntry) {
+                  context.addTripManagementEvent(
+                      UpdateTripEntity<PlanDataFacade>.create(
+                          tripEntity: _planDataUiElement.element));
+                } else {
+                  context.addTripManagementEvent(
+                      UpdateTripEntity<PlanDataFacade>.update(
+                          tripEntity: _planDataUiElement.element));
+                }
+              },
+              valueNotifier: _canUpdatePlanDataNotifier,
+              callbackOnClickWhileDisabled: () {
+                _tryShowError();
+              },
+            ),
           ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 3.0),
@@ -237,12 +285,79 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
     );
   }
 
+  void _tryShowError() {
+    var planDataValidationResult =
+        _planDataUiElement.element.getValidationResult(true);
+    switch (planDataValidationResult) {
+      case PlanDataValidationResult.CheckListItemEmpty:
+        {
+          _showError(context.localizations.checkListItemCannotBeEmpty);
+          _canUpdatePlanDataNotifier.value = false;
+          break;
+        }
+      case PlanDataValidationResult.CheckListTitleNotValid:
+        {
+          _showError(
+              context.localizations.checkListTitleMustBeAtleast3Characters);
+          _canUpdatePlanDataNotifier.value = false;
+          break;
+        }
+      case PlanDataValidationResult.NoNotesOrCheckListsOrPlaces:
+        {
+          _showError(context.localizations.noNotesOrCheckListsOrPlaces);
+          _canUpdatePlanDataNotifier.value = false;
+          break;
+        }
+      case PlanDataValidationResult.NoteEmpty:
+        {
+          _showError(context.localizations.noteCannotBeEmpty);
+          _canUpdatePlanDataNotifier.value = false;
+          break;
+        }
+      case PlanDataValidationResult.TitleEmpty:
+        {
+          _showError(context.localizations.titleCannotBeEmpty);
+          _canUpdatePlanDataNotifier.value = false;
+          break;
+        }
+      default:
+        _canUpdatePlanDataNotifier.value = true;
+        break;
+    }
+  }
+
+  void _showError(String message) {
+    Future.delayed(Duration(seconds: 3), () {
+      if (_animationController.isAnimating && mounted) {
+        _animationController.stop();
+      }
+    });
+    Future.delayed(Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _showErrorMessage = false;
+        });
+      }
+    });
+    setState(() {
+      _errorMessage = message;
+      _showErrorMessage = true;
+    });
+    _animationController.repeat(reverse: true);
+  }
+
   void _tryUpdatePlanData(PlanDataFacade newPlanData) {
     var title = _planDataUiElement.element.title;
     _planDataUiElement.element = newPlanData;
     _planDataUiElement.element.title = title;
-    var isValid = _planDataUiElement.element.isValid(true);
-    _canUpdatePlanDataNotifier.value = isValid;
+
+    var planValidationResult =
+        _planDataUiElement.element.getValidationResult(false);
+    if (planValidationResult == PlanDataValidationResult.Valid) {
+      _canUpdatePlanDataNotifier.value = true;
+    } else {
+      _canUpdatePlanDataNotifier.value = false;
+    }
   }
 
   bool _shouldBuildPlanDataListItem(

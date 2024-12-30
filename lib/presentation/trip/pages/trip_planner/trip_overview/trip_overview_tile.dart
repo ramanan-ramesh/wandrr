@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,7 +33,8 @@ class TripOverviewTile extends StatelessWidget {
     var activeTrip = context.activeTrip;
     var numberOfContributors = activeTrip.tripMetadata.contributors.length;
     var isBigLayout = context.isBigLayout;
-
+    var heightOfOverViewTile =
+        _calculateOverViewTileSize(isBigLayout, numberOfContributors);
     return Stack(
       fit: StackFit.passthrough,
       clipBehavior: Clip.none,
@@ -44,8 +47,7 @@ class TripOverviewTile extends StatelessWidget {
               height: _imageHeight,
             ),
             SizedBox(
-              height:
-                  _calculateOverViewTileSize(isBigLayout, numberOfContributors),
+              height: heightOfOverViewTile,
             ),
           ],
         ),
@@ -53,7 +55,7 @@ class TripOverviewTile extends StatelessWidget {
           left: 10,
           right: 10,
           top: isBigLayout ? 230 : 220,
-          child: _buildOverviewTile(context, activeTrip, isBigLayout),
+          child: _TripOverviewTile(),
         )
       ],
     );
@@ -69,10 +71,108 @@ class TripOverviewTile extends StatelessWidget {
     }
     return overviewTileSize;
   }
+}
 
-  Padding _buildOverviewTile(
-      BuildContext context, TripDataFacade activeTrip, bool isBigLayout) {
-    var orientedWidget = !isBigLayout
+class _TripOverviewTile extends StatefulWidget {
+  const _TripOverviewTile({super.key});
+
+  @override
+  State<_TripOverviewTile> createState() => _TripOverviewTileState();
+}
+
+class _TripOverviewTileState extends State<_TripOverviewTile>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _swayAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    );
+
+    _swayAnimation = TweenSequence([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0, end: -pi / 8)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 1.0,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: -pi / 8, end: pi / 8)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 1.0,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: pi / 8, end: -pi / 8)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 1.0,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: -pi / 8, end: 0)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 1.0,
+      ),
+    ]).animate(_controller);
+
+    _controller.forward();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var activeTrip = context.activeTrip;
+    _controller.forward();
+    return AnimatedBuilder(
+      animation: _swayAnimation,
+      builder: (context, child) {
+        final double angle = _swayAnimation.value;
+        final double scale = 1 / cos(angle); // Adjust scale to maintain size
+
+        return Transform(
+          transform: Matrix4.identity()
+            ..setEntry(3, 2, 0.001) // Perspective
+            ..rotateY(angle), // Rotate around vertical axis
+          alignment: Alignment.center,
+          child: Transform.scale(
+            scale: scale, // Scale the card appropriately
+            child: child,
+          ),
+        );
+      },
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: _maxOverviewElementHeight,
+                  child: _buildTitleEditingField(activeTrip, context),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: _buildOverviewTile(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Widget _buildOverviewTile() {
+    var activeTrip = context.activeTrip;
+    var isBigLayout = context.isBigLayout;
+    return !isBigLayout
         ? Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -117,26 +217,6 @@ class TripOverviewTile extends StatelessWidget {
               ],
             ),
           );
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 10),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              SizedBox(
-                height: _maxOverviewElementHeight,
-                child: _buildTitleEditingField(activeTrip, context),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: orientedWidget,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildTitleEditingField(
@@ -151,28 +231,30 @@ class TripOverviewTile extends StatelessWidget {
                   as CollectionChangeMetadata<TripMetadataFacade>;
           if (tripMetadataModificationData.modifiedCollectionItem.name !=
               activeTripTitle) {
+            activeTripTitle =
+                tripMetadataModificationData.modifiedCollectionItem.name;
             return true;
           }
         }
         return false;
       },
       builder: (BuildContext context, TripManagementState state) {
-        if (state.isTripEntityUpdated<TripMetadataFacade>()) {
-          var updatedTripEntity = state as UpdatedTripEntity;
-          var tripMetadataModificationData =
-              updatedTripEntity.tripEntityModificationData
-                  as CollectionChangeMetadata<TripMetadataFacade>;
-          activeTripTitle =
-              tripMetadataModificationData.modifiedCollectionItem.name;
-        }
         var titleEditingController =
             TextEditingController(text: activeTripTitle);
+        var titleValidityNotifier = ValueNotifier<bool>(false);
         return TextField(
           controller: titleEditingController,
+          onChanged: (newTitle) {
+            var shouldDisableButton = false;
+            if (newTitle.length <= 5 || newTitle == activeTripTitle) {
+              shouldDisableButton = true;
+            }
+            titleValidityNotifier.value = !shouldDisableButton;
+          },
           decoration: InputDecoration(
             suffixIcon: Padding(
               padding: const EdgeInsets.all(3.0),
-              child: PlatformSubmitterFAB(
+              child: PlatformSubmitterFAB.conditionallyEnabled(
                 icon: Icons.check_rounded,
                 isSubmitted: false,
                 context: context,
@@ -183,6 +265,7 @@ class TripOverviewTile extends StatelessWidget {
                       UpdateTripEntity<TripMetadataFacade>.update(
                           tripEntity: tripMetadataModelFacade));
                 },
+                valueNotifier: titleValidityNotifier,
               ),
             ),
           ),

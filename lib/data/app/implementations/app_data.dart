@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/app/models/auth_type.dart';
 import 'package:wandrr/data/app/models/language_metadata.dart';
@@ -13,7 +13,6 @@ import 'firebase_options.dart';
 import 'user_management.dart';
 
 class AppDataRepository extends AppDataModifier {
-  static const String _platformDataBox = 'platformData';
   static const String _language = "language";
   static const String _defaultLanguage = "en";
 
@@ -21,6 +20,7 @@ class AppDataRepository extends AppDataModifier {
   static const String _googleWebClientIdField = 'webClientId';
 
   static const _hindiLanguage = 'हिंदी';
+  static const _tamilLanguage = 'தமிழ்';
   static const _englishLanguage = 'English';
   static const _imageAssetsLocation = 'assets/images/flags';
 
@@ -35,8 +35,7 @@ class AppDataRepository extends AppDataModifier {
   ThemeMode activeThemeMode;
 
   @override
-  PlatformUser? get activeUser => _activeUser;
-  PlatformUser? _activeUser;
+  PlatformUser? get activeUser => _userManagement.activeUser;
 
   @override
   bool isBigLayout;
@@ -46,6 +45,8 @@ class AppDataRepository extends AppDataModifier {
 
   @override
   final String googleWebClientId;
+
+  final FlutterSecureStorage localStorage;
 
   @override
   final List<LanguageMetadata> languageMetadatas;
@@ -61,13 +62,12 @@ class AppDataRepository extends AppDataModifier {
         .collection(FirestoreCollections.appConfig)
         .doc('google')
         .get();
-    await Hive.initFlutter();
     String googleWebClientId = googleConfigDocument[_googleWebClientIdField];
-    var userManagement = await UserManagement.create();
-    var platformDataBox = await Hive.openBox(_platformDataBox);
-    String language = await platformDataBox.get(_language) ?? _defaultLanguage;
-    var themeModeValue = await platformDataBox.get(_themeMode);
-    await platformDataBox.close();
+    var localStorage = FlutterSecureStorage();
+    var userManagement = await UserManagement.create(localStorage);
+    String language =
+        await localStorage.read(key: _language) ?? _defaultLanguage;
+    var themeModeValue = await localStorage.read(key: _themeMode);
     ThemeMode themeMode = themeModeValue is String
         ? (ThemeMode.values
             .firstWhere((element) => element.name == themeModeValue))
@@ -77,24 +77,20 @@ class AppDataRepository extends AppDataModifier {
         userManagement: userManagement,
         initialLanguage: language,
         initialThemeMode: themeMode,
-        googleWebClientId: googleWebClientId);
+        googleWebClientId: googleWebClientId,
+        localStorage: localStorage);
     return _singleTonInstance!;
   }
 
   @override
   Future setActiveLanguage(String language) async {
-    var platformLocalBox = await Hive.openBox(_platformDataBox);
-    await _writeRecordToLocalStorage(platformLocalBox, _language, language);
-    await platformLocalBox.close();
+    await localStorage.write(key: _language, value: language);
     activeLanguage = language;
   }
 
   @override
   Future setActiveThemeMode(ThemeMode themeMode) async {
-    var platformLocalBox = await Hive.openBox(_platformDataBox);
-    await _writeRecordToLocalStorage(
-        platformLocalBox, _themeMode, themeMode.name);
-    await platformLocalBox.close();
+    await localStorage.write(key: _themeMode, value: themeMode.name);
     activeThemeMode = themeMode;
   }
 
@@ -102,13 +98,9 @@ class AppDataRepository extends AppDataModifier {
   Future<bool> trySignIn(
       {required User authProviderUser,
       required AuthenticationType authenticationType}) async {
-    var didUpdateActiveUser = await _userManagement.tryUpdateActiveUser(
+    return await _userManagement.tryUpdateActiveUser(
         authProviderUser: authProviderUser,
         authenticationType: authenticationType);
-    if (didUpdateActiveUser) {
-      _activeUser = _userManagement.activeUser;
-    }
-    return didUpdateActiveUser;
   }
 
   @override
@@ -120,31 +112,26 @@ class AppDataRepository extends AppDataModifier {
         .then((value) => didSignOut = true);
     if (didSignOut) {
       await _userManagement.trySignOut();
-      _activeUser = null;
     }
     return didSignOut;
   }
 
-  Future _writeRecordToLocalStorage(
-      Box hiveBox, String recordKey, String recordValue) async {
-    await hiveBox.put(recordKey, recordValue);
-  }
-
   AppDataRepository._(
-      {PlatformUser? initialUser,
-      required String initialLanguage,
+      {required String initialLanguage,
       required ThemeMode initialThemeMode,
       required this.googleWebClientId,
-      required UserManagement userManagement})
+      required UserManagement userManagement,
+      required this.localStorage})
       : _userManagement = userManagement,
-        _activeUser = initialUser,
         activeThemeMode = initialThemeMode,
         activeLanguage = initialLanguage,
         isBigLayout = false,
         languageMetadatas = [
           const LanguageMetadata(
+              '$_imageAssetsLocation/india.png', 'ta', _tamilLanguage),
+          const LanguageMetadata(
               '$_imageAssetsLocation/india.png', 'hi', _hindiLanguage),
           const LanguageMetadata(
-              '$_imageAssetsLocation/britain.png', 'en', _englishLanguage)
+              '$_imageAssetsLocation/britain.png', 'en', _englishLanguage),
         ];
 }

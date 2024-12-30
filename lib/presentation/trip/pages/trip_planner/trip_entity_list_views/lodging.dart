@@ -31,6 +31,16 @@ class LodgingListView extends StatelessWidget {
               .map((lodging) =>
                   UiElement(element: lodging, dataState: DataState.None))
               .toList(),
+      errorMessageCreator: (lodgingUiElement) {
+        var lodging = lodgingUiElement.element;
+        if (lodging.location == null) {
+          return context.localizations.lodgingAddressCannotBeEmpty;
+        } else if (lodging.checkinDateTime == null ||
+            lodging.checkoutDateTime == null) {
+          return context.localizations.checkInAndCheckoutDatesCannotBeEmpty;
+        }
+        return null;
+      },
     );
   }
 

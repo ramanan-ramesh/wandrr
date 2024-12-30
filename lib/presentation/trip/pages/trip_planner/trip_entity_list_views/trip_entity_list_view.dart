@@ -37,6 +37,7 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
   final List<UiElement<T>> Function(TripDataFacade tripDataModelFacade)
       uiElementsCreator;
   bool Function(UiElement<T>)? canDelete;
+  String? Function(UiElement<T>)? errorMessageCreator;
 
   TripEntityListView(
       {super.key,
@@ -51,6 +52,7 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
       this.onUpdatePressed,
       this.onDeletePressed,
       this.canDelete,
+      this.errorMessageCreator,
       this.additionalListItemBuildWhenCondition});
 
   TripEntityListView.customHeaderTileButton(
@@ -68,6 +70,7 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
       this.onDeletePressed,
       this.canDelete,
       required this.uiElementsCreator,
+      this.errorMessageCreator,
       this.additionalListItemBuildWhenCondition});
 
   @override
@@ -75,17 +78,9 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
 }
 
 class _TripEntityListViewState<T extends TripEntity>
-    extends State<TripEntityListView<T>> with SingleTickerProviderStateMixin {
+    extends State<TripEntityListView<T>> {
   var _uiElements = <UiElement<T>>[];
   bool _isCollapsed = true;
-  late AnimationController _animationController;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 700));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,21 +105,25 @@ class _TripEntityListViewState<T extends TripEntity>
                   return _createEmptyMessagePane(context);
                 } else if (index > 0) {
                   var uiElement = _uiElements.elementAt(index - 1);
+                  if (uiElement.dataState == DataState.NewUiEntry &&
+                      state is UpdatedTripEntity &&
+                      state.dataState == DataState.NewUiEntry) {}
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 5.0),
                     child: TripEntityListElement<T>(
-                        uiElement: uiElement,
-                        onPressed: widget.onUiElementPressed,
-                        canDelete: widget.canDelete,
-                        additionalListItemBuildWhenCondition:
-                            widget.additionalListItemBuildWhenCondition,
-                        onUpdatePressed: widget.onUpdatePressed,
-                        onDeletePressed: widget.onDeletePressed,
-                        openedListElementCreator:
-                            widget.openedListElementCreator,
-                        closedElementCreator: () => Container(
-                            color: Colors.black12,
-                            child: widget.closedListElementCreator(uiElement))),
+                      uiElement: uiElement,
+                      onPressed: widget.onUiElementPressed,
+                      canDelete: widget.canDelete,
+                      additionalListItemBuildWhenCondition:
+                          widget.additionalListItemBuildWhenCondition,
+                      onUpdatePressed: widget.onUpdatePressed,
+                      onDeletePressed: widget.onDeletePressed,
+                      openedListElementCreator: widget.openedListElementCreator,
+                      closedElementCreator: () => Container(
+                          color: Colors.black12,
+                          child: widget.closedListElementCreator(uiElement)),
+                      errorMessageCreator: widget.errorMessageCreator,
+                    ),
                   );
                 }
                 return null;
@@ -168,7 +167,9 @@ class _TripEntityListViewState<T extends TripEntity>
       color: Colors.transparent,
       child: Center(
         child: PlatformTextElements.createSubHeader(
-            context: context, text: widget.emptyListMessage),
+            context: context,
+            text: widget.emptyListMessage,
+            textAlign: TextAlign.center),
       ),
     );
   }
@@ -177,19 +178,26 @@ class _TripEntityListViewState<T extends TripEntity>
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       builder: (BuildContext context, TripManagementState state) {
         return ListTile(
-          leading: AnimatedIcon(
-              icon: _isCollapsed
-                  ? AnimatedIcons.view_list
-                  : AnimatedIcons.menu_arrow,
-              progress: _animationController),
-          title: Text(widget.headerTileLabel),
+          //TODO: Fix this for tamil, the trailing widget consumes entire space in case of expenses
+          leading:
+              Icon(_isCollapsed ? Icons.menu_open_rounded : Icons.list_rounded),
+          title: Text(
+            widget.headerTileLabel,
+          ),
           onTap: () {
             _isCollapsed = !_isCollapsed;
             setState(() {});
           },
-          trailing: widget.headerTileButton != null
-              ? widget.headerTileButton!
-              : _buildCreateTripEntityButton(context),
+          trailing: Container(
+            constraints: BoxConstraints(
+              maxWidth: 200,
+            ),
+            child: FittedBox(
+              child: widget.headerTileButton != null
+                  ? widget.headerTileButton!
+                  : _buildCreateTripEntityButton(context),
+            ),
+          ),
         );
       },
       listener: (BuildContext context, TripManagementState state) {

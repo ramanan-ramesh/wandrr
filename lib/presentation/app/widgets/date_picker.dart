@@ -82,13 +82,11 @@ class _PlatformDatePickerState extends State<PlatformDatePicker> {
                     todayTextStyle: TextStyle(color: Colors.white),
                     okButtonTextStyle: TextStyle(color: Colors.black),
                     cancelButtonTextStyle: TextStyle(color: Colors.black),
-                    cancelButton: IgnorePointer(
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.of(dialogContext).pop();
-                        },
-                        child: Text(context.localizations.cancel),
-                      ),
+                    cancelButton: TextButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop();
+                      },
+                      child: Text(context.localizations.cancel),
                     ),
                     okButton: IgnorePointer(
                       child: TextButton(
