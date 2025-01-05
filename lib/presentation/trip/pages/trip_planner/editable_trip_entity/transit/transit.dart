@@ -168,10 +168,12 @@ class _EditableTransitListItemState extends State<EditableTransitListItem> {
                             transitFacade.arrivalLocation;
                         _calculateTransitValidity();
                       }),
+                  Divider(),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: _buildTransitCarrierPicker(context),
                   ),
+                  Divider(),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: _buildNotesField(context),
@@ -214,10 +216,12 @@ class _EditableTransitListItemState extends State<EditableTransitListItem> {
           padding: const EdgeInsets.all(3.0),
           child: _buildLocationDetails(context, true, isBigLayout),
         ),
+        Divider(),
         Padding(
           padding: const EdgeInsets.all(3.0),
           child: _buildTransitCarrierPicker(context),
         ),
+        Divider(),
         Padding(
           padding: const EdgeInsets.all(3.0),
           child: _buildExpenditureEditField(context),

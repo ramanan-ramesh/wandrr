@@ -103,7 +103,7 @@ class TripListView extends StatelessWidget {
       ));
     }
     return GridView.extent(
-      maxCrossAxisExtent: 350,
+      maxCrossAxisExtent: 300,
       mainAxisSpacing: 7,
       crossAxisSpacing: 7,
       childAspectRatio: 0.7,

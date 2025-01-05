@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
@@ -36,15 +38,16 @@ class HomePage extends StatelessWidget {
       appBar: _HomeAppBar(
         contentWidth: contentWidth,
       ),
-      floatingActionButton: Stack(
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: _buildCreateTripButton(context),
-          ),
-          Align(
-            alignment: Alignment.bottomRight,
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 5.0),
             child: LanguageSwitcher(),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 5.0),
+            child: _buildCreateTripButton(context),
           ),
         ],
       ),
@@ -105,6 +108,14 @@ class HomePage extends StatelessWidget {
                 ),
               );
             },
+            transitionBuilder: (ctx, anim1, anim2, child) => BackdropFilter(
+              filter: ImageFilter.blur(
+                  sigmaX: 4 * anim1.value, sigmaY: 4 * anim1.value),
+              child: FadeTransition(
+                opacity: anim1,
+                child: child,
+              ),
+            ),
           );
         },
         label: Text(AppLocalizations.of(pageContext)!.planTrip),

@@ -97,6 +97,7 @@ class _TransitCarrierPickerState extends State<TransitCarrierPicker> {
     if (widget.transitOption == TransitOption.Flight) {
       return PlatformAutoComplete<(String airLineName, String airLineCode)>(
         customPrefix: _buildTransitOptionPicker(),
+        //TODO: This takes up entire space
         hintText: context.localizations.flightCarrierName,
         text: _airlineData?.airLineName,
         optionsBuilder:
