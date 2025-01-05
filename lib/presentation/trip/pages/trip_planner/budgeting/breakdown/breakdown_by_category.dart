@@ -23,6 +23,9 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
         builder: (BuildContext context,
             AsyncSnapshot<Map<ExpenseCategory, double>> snapshot) {
           if (snapshot.hasData && snapshot.data != null) {
+            if (snapshot.data!.isEmpty) {
+              return SizedBox.expand();
+            }
             return Container(
               constraints: BoxConstraints(minHeight: 300, maxHeight: 600),
               child: PieChart(

@@ -87,7 +87,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
             alignment: Alignment.centerLeft,
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: PlatformTextElements.createHeader(
+              child: PlatformTextElements.createSubHeader(
                   context: context,
                   text: DateFormat('EEE, MMM d').format(widget.day)),
             ),

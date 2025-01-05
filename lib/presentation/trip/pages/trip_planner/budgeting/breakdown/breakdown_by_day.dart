@@ -41,10 +41,13 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
             snapshot.data != null &&
             snapshot.connectionState == ConnectionState.done) {
           var expensesPerDay = snapshot.data!;
-          if (expensesPerDay.isEmpty) {
-            return PlatformTextElements.createHeader(
-                context: context,
-                text: context.localizations.noExpensesAssociatedWithDate);
+          if (budgetingModule.totalExpenditure == 0) {
+            return Center(
+              child: PlatformTextElements.createSubHeader(
+                  context: context,
+                  textAlign: TextAlign.center,
+                  text: context.localizations.noExpensesAssociatedWithDate),
+            );
           }
           var dailyExpenseIndicators = <Widget>[];
           var totalExpense = expensesPerDay.values.reduce((a, b) => a + b);
