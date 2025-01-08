@@ -42,10 +42,6 @@ class _BudgetBreakdownTileState extends State<BudgetBreakdownTile>
           child: Container(
             constraints: BoxConstraints(maxHeight: 600),
             child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              color: Colors.white12,
               child: PlatformTabBar(
                 tabBarItems: <String, Widget>{
                   context.localizations.category: BreakdownByCategoryChart(),

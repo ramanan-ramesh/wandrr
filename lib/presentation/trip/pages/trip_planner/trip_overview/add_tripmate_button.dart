@@ -86,7 +86,6 @@ class _AddTripMateTextFieldButtonState
                 context: context,
                 builder: (BuildContext dialogContext) {
                   return Material(
-                    color: Colors.black12,
                     child: Dialog(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,

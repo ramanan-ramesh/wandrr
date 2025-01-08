@@ -96,7 +96,6 @@ class HomePage extends StatelessWidget {
             pageBuilder: (BuildContext context, Animation<double> animation,
                 Animation<double> secondaryAnimation) {
               return Material(
-                color: Colors.black12,
                 //TODO: Is this the right way to set dialog color?
                 child: Dialog(
                   child: Container(
@@ -148,10 +147,11 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(right: 8.0),
-                  child: Image.asset(
-                    _appLogoAsset,
+                  child: Ink.image(
+                    colorFilter: ColorFilter.srgbToLinearGamma(),
                     width: 40,
                     height: 40,
+                    image: AssetImage(_appLogoAsset),
                   ),
                 ),
                 const Text(
@@ -160,15 +160,47 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ],
             ),
-            IconButton(
-              onPressed: () {
-                context.addMasterPageEvent(Logout());
-              },
-              icon: Icon(Icons.logout_rounded),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: _createThemeModeSwitcher(context),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: IconButton(
+                    onPressed: () {
+                      context.addMasterPageEvent(Logout());
+                    },
+                    icon: Icon(Icons.logout_rounded),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _createThemeModeSwitcher(BuildContext context) {
+    var isDarkThemeSelected =
+        context.appDataRepository.activeThemeMode == ThemeMode.dark;
+    return Row(
+      children: [
+        Icon(
+          Icons.light_mode_rounded,
+          color: Colors.green,
+        ),
+        Switch(
+          value: isDarkThemeSelected,
+          onChanged: (bool value) {
+            context.addMasterPageEvent(ChangeTheme(
+                themeModeToChangeTo: value ? ThemeMode.dark : ThemeMode.light));
+          },
+        ),
+        Icon(Icons.mode_night_rounded),
+      ],
     );
   }
 }

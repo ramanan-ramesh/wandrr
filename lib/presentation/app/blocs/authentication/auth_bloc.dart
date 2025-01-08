@@ -74,8 +74,13 @@ class AuthenticationBloc
     }
 
     // Trigger the authentication flow
+    // GoogleSignIn googleSignIn;
+    // if (kIsWeb) {
+    //   googleSignIn = GoogleSignIn(clientId: googleWebClientId);
+    // } else {
+    //   googleSignIn = GoogleSignIn();
+    // }
     var googleSignIn = GoogleSignIn(clientId: googleWebClientId);
-    // var googleSignIn = GoogleSignIn();
     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
     // Obtain the auth details from the request

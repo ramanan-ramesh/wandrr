@@ -165,7 +165,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
               padding: const EdgeInsets.symmetric(horizontal: 5),
               child: const Text(
                 'wandrr',
-                style: TextStyle(fontSize: 20),
+                style: TextStyle(fontSize: 20), //ThemingRequired
               ),
             ),
           ],

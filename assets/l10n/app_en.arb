@@ -69,7 +69,7 @@
   "walk": "Walk",
   "splitBy": "Split By",
   "flightNumber": "Flight Number",
-  "flightCarrierName": "Flight Carrier Name",
+  "flightCarrierName": "Airline Name",
   "airport": "Airport",
   "noLodgingCreated": "You haven't added any lodging yet.",
   "checkIn": "Check-In",

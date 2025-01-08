@@ -39,10 +39,6 @@ class ExpenseViewAdapter extends StatelessWidget {
             {
               return const DebtSummaryTile();
             }
-          default:
-            {
-              return emptyWidget;
-            }
         }
       },
     );

@@ -182,9 +182,6 @@ class _EditableTransitListItemState extends State<EditableTransitListItem> {
               ),
             ),
           ),
-          VerticalDivider(
-            color: Colors.black,
-          ),
           Expanded(
             flex: 2,
             child: Padding(

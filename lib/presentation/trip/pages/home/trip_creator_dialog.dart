@@ -36,7 +36,7 @@ class TripCreatorDialog extends StatelessWidget {
       children: [
         AppBar(
           leading: IconButton(
-            //TODO: Unable to style splashColor here
+            //TODO: Unable to style splashColor here for dark mode
             onPressed: () {
               Navigator.of(context).pop();
             },

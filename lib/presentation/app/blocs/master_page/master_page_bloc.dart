@@ -27,7 +27,8 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
   }
 
   FutureOr<void> _onThemeChange(
-      ChangeTheme event, Emitter<MasterPageState> emit) {
+      ChangeTheme event, Emitter<MasterPageState> emit) async {
+    await _appDataRepository!.setActiveThemeMode(event.themeModeToChangeTo);
     emit(ActiveThemeModeChanged(themeMode: event.themeModeToChangeTo));
   }
 

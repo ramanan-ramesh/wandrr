@@ -18,17 +18,17 @@ abstract class CurrencyDropDownField extends StatefulWidget {
 
   Widget buildCurrencyListTile(CurrencyData currency, bool isDropDownButton,
       BuildContext context, void Function(VoidCallback) setState) {
-    Color textColor = Colors.white;
+    var textColor = Theme.of(context).listTileTheme.textColor;
     var isEqualToCurrentlySelectedItem = currency == selectedCurrencyData;
     if (isDropDownButton || isEqualToCurrentlySelectedItem) {
-      textColor = Colors.green;
+      textColor = Theme.of(context).listTileTheme.selectedColor;
     }
     return SizedBox(
       height: 60,
       child: Container(
         color: isEqualToCurrentlySelectedItem
-            ? Colors.white10
-            : Colors.transparent,
+            ? Theme.of(context).listTileTheme.selectedTileColor
+            : Theme.of(context).listTileTheme.tileColor,
         child: InkWell(
           onTap: !isDropDownButton
               ? () {
@@ -48,8 +48,12 @@ abstract class CurrencyDropDownField extends StatefulWidget {
                   fit: BoxFit.scaleDown,
                   child: Text(
                     currency.symbol,
-                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                        fontWeight: FontWeight.bold, color: textColor),
+                    style: TextStyle(
+                      fontSize:
+                          Theme.of(context).textTheme.titleLarge!.fontSize,
+                      fontWeight: FontWeight.bold,
+                      // color: textColor,
+                    ),
                   ),
                 ),
               ),

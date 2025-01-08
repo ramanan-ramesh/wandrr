@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,6 +14,7 @@ import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
+import 'package:wandrr/presentation/trip/widgets/flip_card/flip_card.dart';
 
 import 'add_tripmate_button.dart';
 
@@ -73,103 +72,60 @@ class TripOverviewTile extends StatelessWidget {
   }
 }
 
-class _TripOverviewTile extends StatefulWidget {
+class _TripOverviewTile extends StatelessWidget {
   const _TripOverviewTile({super.key});
-
-  @override
-  State<_TripOverviewTile> createState() => _TripOverviewTileState();
-}
-
-class _TripOverviewTileState extends State<_TripOverviewTile>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _swayAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(seconds: 3),
-      vsync: this,
-    );
-
-    _swayAnimation = TweenSequence([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0, end: -pi / 8)
-            .chain(CurveTween(curve: Curves.easeOut)),
-        weight: 1.0,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: -pi / 8, end: pi / 8)
-            .chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 1.0,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: pi / 8, end: -pi / 8)
-            .chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 1.0,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: -pi / 8, end: 0)
-            .chain(CurveTween(curve: Curves.easeOut)),
-        weight: 1.0,
-      ),
-    ]).animate(_controller);
-
-    _controller.forward();
-  }
 
   @override
   Widget build(BuildContext context) {
     var activeTrip = context.activeTrip;
-    _controller.forward();
-    return AnimatedBuilder(
-      animation: _swayAnimation,
-      builder: (context, child) {
-        final double angle = _swayAnimation.value;
-        final double scale = 1 / cos(angle); // Adjust scale to maintain size
-
-        return Transform(
-          transform: Matrix4.identity()
-            ..setEntry(3, 2, 0.001) // Perspective
-            ..rotateY(angle), // Rotate around vertical axis
-          alignment: Alignment.center,
-          child: Transform.scale(
-            scale: scale, // Scale the card appropriately
-            child: child,
-          ),
-        );
-      },
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 10),
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                SizedBox(
-                  height: _maxOverviewElementHeight,
-                  child: _buildTitleEditingField(activeTrip, context),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: _buildOverviewTile(),
-                ),
-              ],
+    return FlipCard(
+        fill: Fill.back,
+        direction: Axis.vertical,
+        duration: Duration(milliseconds: 750),
+        autoFlipDuration: Duration(seconds: 0),
+        front: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: _maxOverviewElementHeight,
+                    child: _buildTitleEditingField(activeTrip, context),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: _buildOverviewTile(context),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
+        back: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: _maxOverviewElementHeight,
+                    child: _buildTitleEditingField(activeTrip, context),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: _buildOverviewTile(context),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ));
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Widget _buildOverviewTile() {
+  Widget _buildOverviewTile(BuildContext context) {
     var activeTrip = context.activeTrip;
     var isBigLayout = context.isBigLayout;
     return !isBigLayout

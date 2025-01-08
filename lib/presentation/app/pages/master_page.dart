@@ -55,6 +55,8 @@ class _MasterPageState extends State<MasterPage> {
 
 class _ContentPage extends StatelessWidget {
   static const String _appTitle = 'Wandrr';
+  static const _tabIndicatorRadius = 25.0;
+  static const _cardBorderRadius = 25.0;
 
   const _ContentPage({super.key});
 
@@ -77,6 +79,7 @@ class _ContentPage extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           darkTheme: _createDarkThemeData(context),
           themeMode: currentTheme,
+          theme: _createLightThemeData(context),
           home: Material(
             child: DropdownButtonHideUnderline(
               child: SafeArea(
@@ -114,7 +117,7 @@ class _ContentPage extends StatelessWidget {
         tileColor: Colors.grey.shade900,
         textColor: Colors.green,
         iconColor: Colors.green,
-        selectedTileColor: Colors.white10,
+        selectedTileColor: Colors.black,
         selectedColor: Colors.green,
       ),
       cardTheme: CardTheme(color: Colors.grey.shade900),
@@ -144,9 +147,13 @@ class _ContentPage extends StatelessWidget {
         indicatorColor: Colors.white10,
         labelColor: Colors.white,
         unselectedLabelColor: Colors.grey,
+        indicator: BoxDecoration(
+          borderRadius: BorderRadius.circular(_tabIndicatorRadius),
+          border: Border.all(color: Colors.green),
+        ),
       ),
       appBarTheme: AppBarTheme(
-        color: Colors.grey.shade900,
+        color: Colors.grey.shade800,
         iconTheme: IconThemeData(
           color: Colors.black,
         ),
@@ -166,6 +173,109 @@ class _ContentPage extends StatelessWidget {
           borderSide: BorderSide(color: Colors.red),
         ),
         iconColor: Colors.green,
+      ),
+      switchTheme: SwitchThemeData(
+        trackColor: WidgetStatePropertyAll(Colors.black),
+        thumbColor: WidgetStatePropertyAll(Colors.green),
+      ),
+    );
+  }
+
+  ThemeData _createLightThemeData(BuildContext context) {
+    return ThemeData(
+      brightness: Brightness.light,
+      colorScheme: ColorScheme(
+          brightness: Brightness.light,
+          primary: Colors.teal.shade400,
+          onPrimary: Colors.black,
+          secondary: Colors.green,
+          onSecondary: Colors.black,
+          error: Colors.red,
+          onError: Colors.white,
+          surface: Colors.teal.shade200, //Scaffold background color
+          onSurface: Colors.black),
+      scrollbarTheme: ScrollbarThemeData(
+        thumbColor: WidgetStateProperty.all(Colors.green),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: WidgetStatePropertyAll(Colors.green),
+          foregroundColor: WidgetStatePropertyAll(Colors
+              .black), //TODO: Is this the right way to set text color? Note: TextStyle(color: Colors.black) doesn't work, so how else to theme the color?
+          iconColor: WidgetStatePropertyAll(Colors.black),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: Colors.teal.shade300,
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(color: Colors.black),
+      listTileTheme: ListTileThemeData(
+        tileColor: Colors.teal.shade300,
+        textColor: Colors.black,
+        iconColor: Colors.black,
+        selectedTileColor: Colors.teal,
+        selectedColor: Colors.black,
+      ),
+      cardTheme: CardTheme(
+        color: Colors.teal.shade400,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_cardBorderRadius),
+        ),
+      ),
+      dividerTheme: DividerThemeData(
+        color: Colors.black,
+        indent: 20,
+        endIndent: 20,
+      ),
+      popupMenuTheme: PopupMenuThemeData(),
+      iconButtonTheme: IconButtonThemeData(
+        style: ButtonStyle(
+          iconColor: WidgetStatePropertyAll(Colors.black),
+          backgroundColor: WidgetStatePropertyAll(Colors.green),
+          foregroundColor: WidgetStatePropertyAll(Colors.white),
+        ),
+      ),
+      iconTheme: IconThemeData(color: Colors.black),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        splashColor: Colors.grey,
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.black,
+      ),
+      tabBarTheme: TabBarTheme(
+        indicator: BoxDecoration(
+          borderRadius: BorderRadius.circular(25.0),
+          border: Border.all(color: Colors.teal), //TODO: Does not render border
+        ),
+        indicatorSize: TabBarIndicatorSize.tab,
+        labelStyle: Theme.of(context).textTheme.headlineMedium,
+        unselectedLabelStyle: Theme.of(context).textTheme.headlineMedium,
+        indicatorColor: Colors.teal,
+        labelColor: Colors.black,
+        unselectedLabelColor: Colors.white,
+      ),
+      appBarTheme: AppBarTheme(
+        color: Colors.teal,
+        foregroundColor: Colors.black,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        floatingLabelStyle: TextStyle(
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+        ),
+        border: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.black),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.black),
+        ),
+        errorBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.red),
+        ),
+        iconColor: Colors.black,
+      ),
+      switchTheme: SwitchThemeData(
+        trackColor: WidgetStatePropertyAll(Colors.green),
+        thumbColor: WidgetStatePropertyAll(Colors.black),
       ),
     );
   }

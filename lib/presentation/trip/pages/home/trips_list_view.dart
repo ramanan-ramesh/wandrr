@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
+import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/trip_repository_extensions.dart';
@@ -154,73 +155,85 @@ class _TripMetadataGridItem extends StatelessWidget {
       builder: (BuildContext context, TripManagementState state) {
         var subTitle =
             '${_dateFormat.format(tripMetaDataFacade.startDate!)} to ${_dateFormat.format(tripMetaDataFacade.endDate!)}';
+        var isLightTheme =
+            context.appDataRepository.activeThemeMode == ThemeMode.light;
         return ClipRRect(
           borderRadius: BorderRadius.circular(10),
-          child: Material(
-            child: InkWell(
-              onTap: () {
-                onTripSelected();
-                context.addTripManagementEvent(
-                    LoadTrip(tripMetadata: tripMetaDataFacade));
-              },
-              child: Column(
-                //TODO: There is empty space below the Column widget. Remove it
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Stack(
-                    children: [
-                      Image.asset(imageAssetLocation, fit: BoxFit.cover),
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 3),
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Colors.black, Colors.black38],
-                              stops: [0, 1],
-                            ),
+          child: InkWell(
+            onTap: () {
+              onTripSelected();
+              context.addTripManagementEvent(
+                  LoadTrip(tripMetadata: tripMetaDataFacade));
+            },
+            child: Column(
+              //TODO: There is empty space below the Column widget. Remove it
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  children: [
+                    Image.asset(imageAssetLocation, fit: BoxFit.cover),
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 3),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: isLightTheme
+                                ? [Colors.teal.shade50, Colors.teal.shade500]
+                                : [Colors.black, Colors.black38],
+                            stops: [0, 1],
                           ),
-                          child: FittedBox(
-                            child: Text(
-                              subTitle,
-                              style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                        child: FittedBox(
+                          child: Text(
+                            subTitle,
+                            style: TextStyle(
+                              fontSize: Theme.of(context)
+                                  .textTheme
+                                  .labelMedium!
+                                  .fontSize,
                             ),
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                  Card(
-                    shape: StadiumBorder(),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              tripMetaDataFacade.name,
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 3.0),
-                            child: IconButton(
-                              onPressed: () {
-                                _buildDeleteTripConfirmationDialog(context);
-                              },
-                              icon: Icon(Icons.delete_rounded),
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
-                  )
-                ],
-              ),
+                  ],
+                ),
+                Card(
+                  shape: StadiumBorder(),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            tripMetaDataFacade.name,
+                            style: TextStyle(
+                                fontSize: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall!
+                                    .fontSize,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 3.0),
+                          child: IconButton(
+                            onPressed: () {
+                              _buildDeleteTripConfirmationDialog(context);
+                            },
+                            icon: Icon(Icons.delete_rounded),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              ],
             ),
           ),
         );

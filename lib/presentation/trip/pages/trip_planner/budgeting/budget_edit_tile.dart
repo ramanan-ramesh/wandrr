@@ -34,9 +34,6 @@ class _BudgetEditTileState extends State<BudgetEditTile> {
     _amountEditingController.text = _currentBudget!.amount.toString();
     return SliverToBoxAdapter(
       child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

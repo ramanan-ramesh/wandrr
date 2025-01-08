@@ -117,11 +117,11 @@ class _TransitCarrierPickerState extends State<TransitCarrierPicker> {
           return ListTile(
             leading: Text(
               airlineData.$2,
-              style: TextStyle(color: Colors.white),
+              // style: TextStyle(color: Colors.white),
             ),
             title: Text(
               airlineData.$1,
-              style: TextStyle(color: Colors.white),
+              // style: TextStyle(color: Colors.white),
             ),
           );
         },

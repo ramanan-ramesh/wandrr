@@ -53,8 +53,6 @@ class BudgetingHeaderTile extends StatelessWidget {
         Padding(
           padding: EdgeInsets.symmetric(vertical: 5.0),
           child: Card(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             child: Padding(
               padding: const EdgeInsets.all(3.0),
               child: Column(

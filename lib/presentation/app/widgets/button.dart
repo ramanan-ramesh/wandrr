@@ -34,9 +34,6 @@ class _PlatformTabBarState extends State<PlatformTabBar>
   @override
   Widget build(BuildContext context) {
     return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
@@ -65,23 +62,11 @@ class _PlatformTabBarState extends State<PlatformTabBar>
     return ClipRRect(
       borderRadius: BorderRadius.circular(PlatformTabBar._roundedCornerRadius),
       clipBehavior: Clip.hardEdge,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius:
-              BorderRadius.circular(PlatformTabBar._roundedCornerRadius),
-          border: Border.all(color: Colors.green),
-        ),
-        child: TabBar(
-          controller: _tabController,
-          indicator: BoxDecoration(
-            color: Theme.of(context).tabBarTheme.indicatorColor,
-            borderRadius:
-                BorderRadius.circular(PlatformTabBar._roundedCornerRadius),
-          ),
-          tabs: widget.tabBarItems.keys
-              .map((tabTitle) => FittedBox(child: Tab(text: tabTitle)))
-              .toList(),
-        ),
+      child: TabBar(
+        controller: _tabController,
+        tabs: widget.tabBarItems.keys
+            .map((tabTitle) => FittedBox(child: Tab(text: tabTitle)))
+            .toList(),
       ),
     );
   }
@@ -209,6 +194,8 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
   }
 
   FloatingActionButton _buildFloatingActionButton(bool canEnable) {
+    var isLightTheme =
+        context.appDataRepository.activeThemeMode == ThemeMode.light;
     return FloatingActionButton(
       onPressed: widget.isSubmitted || !canEnable
           ? () {
@@ -217,8 +204,11 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
               }
             }
           : _onPressed,
-      splashColor: !canEnable ? Colors.white30 : null,
-      backgroundColor: !canEnable ? Colors.white10 : null,
+      splashColor: !canEnable
+          ? (isLightTheme ? Colors.grey.shade400 : Colors.white30)
+          : null,
+      backgroundColor:
+          !canEnable ? (isLightTheme ? Colors.grey : Colors.white10) : null,
       child:
           widget.isSubmitted ? CircularProgressIndicator() : Icon(widget.icon),
     );

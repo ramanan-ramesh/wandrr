@@ -35,53 +35,51 @@ class DebtSummaryTile extends StatelessWidget {
             var personsOwingMoney = debtDataList.map((e) => e.owedBy);
             var personsOwedMoney = debtDataList.map((e) => e.owedTo);
             var allMoneyOwed = debtDataList.map((e) => e.money);
+            Widget childWidget;
+            if (budgetingModule.totalExpenditure == 0 || debtDataList.isEmpty) {
+              childWidget = Center(
+                child: Text('There are no expenses to split.'),
+              );
+            } else {
+              childWidget = Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      children: personsOwingMoney
+                          .map((e) => _buildContributorName(e, currentUserName,
+                              contributorsVsColors[e]!, appLocalizations))
+                          .toList(),
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: personsOwingMoney
+                          .map((e) =>
+                              Text(e == currentUserName ? 'Owe' : 'Owes'))
+                          .toList(),
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: personsOwedMoney
+                          .map((e) => _buildContributorName(e, currentUserName,
+                              contributorsVsColors[e]!, appLocalizations))
+                          .toList(),
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      children:
+                          allMoneyOwed.map((e) => Text(e.toString())).toList(),
+                    ),
+                  ),
+                ],
+              );
+            }
             return Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 5.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        children: personsOwingMoney
-                            .map((e) => _buildContributorName(
-                                e,
-                                currentUserName,
-                                contributorsVsColors[e]!,
-                                appLocalizations))
-                            .toList(),
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        children: personsOwingMoney
-                            .map((e) =>
-                                Text(e == currentUserName ? 'Owe' : 'Owes'))
-                            .toList(),
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        children: personsOwedMoney
-                            .map((e) => _buildContributorName(
-                                e,
-                                currentUserName,
-                                contributorsVsColors[e]!,
-                                appLocalizations))
-                            .toList(),
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        children: allMoneyOwed
-                            .map((e) => Text(e.toString()))
-                            .toList(),
-                      ),
-                    ),
-                  ],
-                ),
+                child: childWidget,
               ),
             );
           }

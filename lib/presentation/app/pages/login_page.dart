@@ -64,9 +64,6 @@ class _LoginPageFormState extends State<_LoginPageForm>
   @override
   Widget build(BuildContext context) {
     return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(_roundedCornerRadius)),
-      ),
       child: FocusTraversalGroup(
         policy: OrderedTraversalPolicy(),
         child: Column(
@@ -174,22 +171,12 @@ class _LoginPageFormState extends State<_LoginPageForm>
     return ClipRRect(
       borderRadius: BorderRadius.circular(_roundedCornerRadius),
       clipBehavior: Clip.hardEdge,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(_roundedCornerRadius),
-          border: Border.all(color: Colors.green),
-        ),
-        child: TabBar(
-          controller: _tabController,
-          indicator: BoxDecoration(
-            color: Theme.of(context).tabBarTheme.indicatorColor,
-            borderRadius: BorderRadius.circular(_roundedCornerRadius),
-          ),
-          tabs: [
-            Tab(text: context.localizations.login),
-            Tab(text: context.localizations.register),
-          ],
-        ),
+      child: TabBar(
+        controller: _tabController,
+        tabs: [
+          Tab(text: context.localizations.login),
+          Tab(text: context.localizations.register),
+        ],
       ),
     );
   }
