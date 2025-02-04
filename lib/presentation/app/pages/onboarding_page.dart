@@ -4,11 +4,10 @@ import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 
 class OnBoardingPage extends StatelessWidget {
-  VoidCallback? onNavigateToNextPage;
-
-  OnBoardingPage({super.key, this.onNavigateToNextPage});
-
+  final VoidCallback? onNavigateToNextPage;
   static const _onBoardingImageAsset = 'assets/images/plan_itinerary.jpg';
+
+  const OnBoardingPage({super.key, this.onNavigateToNextPage});
 
   @override
   Widget build(BuildContext context) {
@@ -28,16 +27,15 @@ class OnBoardingPage extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(8.0),
             child: FittedBox(
-                fit: BoxFit.contain,
                 child: Text(
-                  context.localizations.plan_itinerary,
-                  style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 45,
-                      fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.visible,
-                )),
+              context.localizations.plan_itinerary,
+              style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 45,
+                  fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.visible,
+            )),
           ),
         ),
         Align(

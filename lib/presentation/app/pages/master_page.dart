@@ -102,15 +102,28 @@ class _ContentPage extends StatelessWidget {
   ThemeData _createDarkThemeData(BuildContext context) {
     return ThemeData(
       brightness: Brightness.dark,
+      colorScheme: ColorScheme(
+          brightness: Brightness.dark,
+          primary: Colors.grey.shade900,
+          onPrimary: Colors.white,
+          secondary: Colors.black,
+          onSecondary: Colors.green,
+          error: Colors.red,
+          onError: Colors.white,
+          surface: Colors.white10,
+          onSurface: Colors.white),
       scrollbarTheme: ScrollbarThemeData(
         thumbColor: WidgetStateProperty.all(Colors.green),
       ),
       textButtonTheme: TextButtonThemeData(
         style: ButtonStyle(
           backgroundColor: WidgetStatePropertyAll(Colors.black),
-          foregroundColor: WidgetStatePropertyAll(Colors
-              .green), //TODO: Is this the right way to set text color? Note: TextStyle(color: Colors.black) doesn't work, so how else to theme the color?
+          foregroundColor: WidgetStatePropertyAll(Colors.green),
+          iconColor: WidgetStatePropertyAll(Colors.black),
         ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: Colors.grey.shade800,
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(color: Colors.green),
       listTileTheme: ListTileThemeData(
@@ -120,18 +133,24 @@ class _ContentPage extends StatelessWidget {
         selectedTileColor: Colors.black,
         selectedColor: Colors.green,
       ),
-      cardTheme: CardTheme(color: Colors.grey.shade900),
+      cardTheme: CardTheme(
+        data: CardThemeData(
+          color: Colors.grey.shade900,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(_cardBorderRadius),
+          ),
+        ),
+      ),
       dividerTheme: DividerThemeData(
-        color: Colors.green,
+        color: Colors.white,
         indent: 20,
         endIndent: 20,
       ),
-      popupMenuTheme: PopupMenuThemeData(),
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
-          iconColor: WidgetStatePropertyAll(Colors.green),
-          backgroundColor: WidgetStatePropertyAll(Colors.black),
-          foregroundColor: WidgetStatePropertyAll(Colors.green),
+          iconColor: WidgetStatePropertyAll(Colors.black),
+          backgroundColor: WidgetStatePropertyAll(Colors.green),
+          foregroundColor: WidgetStatePropertyAll(Colors.white),
         ),
       ),
       iconTheme: IconThemeData(color: Colors.green),
@@ -141,33 +160,44 @@ class _ContentPage extends StatelessWidget {
         foregroundColor: Colors.green,
       ),
       tabBarTheme: TabBarTheme(
-        indicatorSize: TabBarIndicatorSize.tab,
-        labelStyle: Theme.of(context).textTheme.headlineMedium,
-        unselectedLabelStyle: Theme.of(context).textTheme.headlineMedium,
-        indicatorColor: Colors.white10,
-        labelColor: Colors.white,
-        unselectedLabelColor: Colors.grey,
         indicator: BoxDecoration(
           borderRadius: BorderRadius.circular(_tabIndicatorRadius),
           border: Border.all(color: Colors.green),
         ),
+        indicatorSize: TabBarIndicatorSize.tab,
+        labelStyle: Theme.of(context).textTheme.headlineMedium,
+        unselectedLabelStyle: Theme.of(context).textTheme.headlineMedium,
+        indicatorColor: Colors.green,
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.grey,
       ),
       appBarTheme: AppBarTheme(
-        color: Colors.grey.shade800,
-        iconTheme: IconThemeData(
-          color: Colors.black,
+        color: Colors.teal,
+        foregroundColor: Colors.black,
+      ),
+      textSelectionTheme: TextSelectionThemeData(cursorColor: Colors.black),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        menuStyle: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll(
+              Colors.grey.shade800), //TODO: Not working in TransitOptionPicker
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
+        hintStyle: TextStyle(
+          fontStyle: FontStyle.italic,
+        ),
+        filled: true,
+        fillColor: Colors.grey.shade700,
         floatingLabelStyle: TextStyle(
           color: Colors.green,
           fontWeight: FontWeight.bold,
         ),
         border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(_cardBorderRadius)),
           borderSide: BorderSide(color: Colors.white),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.green),
+          borderSide: BorderSide(color: Colors.transparent),
         ),
         errorBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Colors.red),
@@ -175,8 +205,38 @@ class _ContentPage extends StatelessWidget {
         iconColor: Colors.green,
       ),
       switchTheme: SwitchThemeData(
-        trackColor: WidgetStatePropertyAll(Colors.black),
-        thumbColor: WidgetStatePropertyAll(Colors.green),
+        trackColor: WidgetStatePropertyAll(Colors.green),
+        thumbColor: WidgetStatePropertyAll(Colors.black),
+      ),
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: Colors.grey.shade800,
+        /*
+        dayTextStyle: TextStyle(
+                      color: isLightTheme ? Colors.black : Colors.white),
+                  selectedDayHighlightColor: Colors.green,
+                  selectedDayTextStyle: TextStyle(color: Colors.black),
+                  selectedRangeHighlightColor: Colors.green,
+                  selectedRangeDayTextStyle: TextStyle(color: Colors.black),
+                  todayTextStyle: TextStyle(color: Colors.white),
+                  okButtonTextStyle: TextStyle(color: Colors.black),
+                  cancelButtonTextStyle: TextStyle(color: Colors.black),
+                  cancelButton: IgnorePointer(
+                    child: IconButton(
+                      onPressed: null,
+                      icon: Icon(Icons.cancel_rounded),
+                    ),
+                  ),
+                  okButton: IgnorePointer(
+                    child: IconButton(
+                      onPressed: null,
+                      icon: Icon(Icons.done_rounded),
+                    ),
+                  ),
+         */
+        //Convert these to suit DatePickerTheme's needs
+        dayStyle: TextStyle(
+          color: Colors.white,
+        ),
       ),
     );
   }
@@ -192,7 +252,8 @@ class _ContentPage extends StatelessWidget {
           onSecondary: Colors.black,
           error: Colors.red,
           onError: Colors.white,
-          surface: Colors.teal.shade200, //Scaffold background color
+          surface: Colors.teal.shade200,
+          //Scaffold background color
           onSurface: Colors.black),
       scrollbarTheme: ScrollbarThemeData(
         thumbColor: WidgetStateProperty.all(Colors.green),
@@ -200,8 +261,8 @@ class _ContentPage extends StatelessWidget {
       textButtonTheme: TextButtonThemeData(
         style: ButtonStyle(
           backgroundColor: WidgetStatePropertyAll(Colors.green),
-          foregroundColor: WidgetStatePropertyAll(Colors
-              .black), //TODO: Is this the right way to set text color? Note: TextStyle(color: Colors.black) doesn't work, so how else to theme the color?
+          foregroundColor: WidgetStatePropertyAll(Colors.black),
+          //TODO: Is this the right way to set text color? Note: TextStyle(color: Colors.black) doesn't work, so how else to theme the color?
           iconColor: WidgetStatePropertyAll(Colors.black),
         ),
       ),
@@ -217,9 +278,11 @@ class _ContentPage extends StatelessWidget {
         selectedColor: Colors.black,
       ),
       cardTheme: CardTheme(
-        color: Colors.teal.shade400,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(_cardBorderRadius),
+        data: CardThemeData(
+          color: Colors.teal.shade400,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(_cardBorderRadius),
+          ),
         ),
       ),
       dividerTheme: DividerThemeData(
@@ -243,8 +306,8 @@ class _ContentPage extends StatelessWidget {
       ),
       tabBarTheme: TabBarTheme(
         indicator: BoxDecoration(
-          borderRadius: BorderRadius.circular(25.0),
-          border: Border.all(color: Colors.teal), //TODO: Does not render border
+          borderRadius: BorderRadius.circular(_tabIndicatorRadius),
+          border: Border.all(color: Colors.black),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
         labelStyle: Theme.of(context).textTheme.headlineMedium,
@@ -257,16 +320,28 @@ class _ContentPage extends StatelessWidget {
         color: Colors.teal,
         foregroundColor: Colors.black,
       ),
+      textSelectionTheme: TextSelectionThemeData(cursorColor: Colors.black),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        menuStyle: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll(Colors.teal.shade300),
+        ),
+      ),
       inputDecorationTheme: InputDecorationTheme(
+        hintStyle: TextStyle(
+          fontStyle: FontStyle.italic,
+        ),
+        filled: true,
+        fillColor: Colors.teal.shade200,
         floatingLabelStyle: TextStyle(
           color: Colors.black,
           fontWeight: FontWeight.bold,
         ),
         border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(_cardBorderRadius)),
           borderSide: BorderSide(color: Colors.black),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.black),
+          borderSide: BorderSide(color: Colors.transparent),
         ),
         errorBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Colors.red),

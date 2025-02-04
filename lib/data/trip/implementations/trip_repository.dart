@@ -21,7 +21,7 @@ import 'trip_data.dart';
 class TripRepositoryImplementation implements TripRepositoryEventHandler {
   static const _contributorsField = 'contributors';
 
-  final AppLocalizations _appLocalizations;
+  AppLocalizations _appLocalizations;
 
   late StreamSubscription _tripMetadataUpdatedEventSubscription;
   late StreamSubscription _tripMetadataDeletedEventSubscription;
@@ -53,6 +53,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   @override
   final CurrencyConverterService currencyConverter;
 
+  final String currentUserName;
+
   static Future<TripRepositoryImplementation> createInstanceAsync(
       {required String userName,
       required AppLocalizations appLocalizations}) async {
@@ -77,7 +79,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
         appLocalizations,
         currencyConverter,
         geoLocator,
-        flightOperationsService);
+        flightOperationsService,
+        userName);
   }
 
   @override
@@ -90,7 +93,12 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
 
     await _activeTrip?.dispose();
     _activeTrip = await TripDataModelImplementation.createExistingInstanceAsync(
-        tripMetadata, currencyConverter, _appLocalizations);
+        tripMetadata, currencyConverter, _appLocalizations, currentUserName);
+  }
+
+  @override
+  void updateLocalizations(AppLocalizations appLocalizations) {
+    _appLocalizations = appLocalizations;
   }
 
   @override
@@ -104,7 +112,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
       this._appLocalizations,
       this.currencyConverter,
       this.geoLocator,
-      this.flightOperationsService) {
+      this.flightOperationsService,
+      this.currentUserName) {
     _tripMetadataUpdatedEventSubscription =
         tripMetadataModelCollection.onDocumentUpdated.listen((eventData) async {
       if (_activeTrip == null) {

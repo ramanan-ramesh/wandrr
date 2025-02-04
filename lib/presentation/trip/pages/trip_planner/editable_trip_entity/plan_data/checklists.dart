@@ -75,7 +75,7 @@ class _CheckListState extends State<_CheckList> {
             children: [
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                  padding: const EdgeInsets.all(8.0),
                   child: TextField(
                     minLines: 1,
                     maxLines: 1,

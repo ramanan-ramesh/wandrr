@@ -7,10 +7,10 @@ import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 class ItineraryStayAndTransits extends StatelessWidget {
   final DateTime itineraryDay;

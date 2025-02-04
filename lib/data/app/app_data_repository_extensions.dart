@@ -12,5 +12,7 @@ extension RepositoryExt on BuildContext {
 
   bool get isBigLayout => appDataRepository.isBigLayout;
 
+  bool get isLightTheme => appDataRepository.activeThemeMode == ThemeMode.light;
+
   PlatformUser? get activeUser => appDataRepository.activeUser;
 }

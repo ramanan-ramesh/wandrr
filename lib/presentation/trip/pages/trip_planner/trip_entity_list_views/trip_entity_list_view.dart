@@ -6,13 +6,13 @@ import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 import 'trip_entity_list_element.dart';
 
@@ -239,6 +239,7 @@ class _TripEntityListViewState<T extends TripEntity>
                 },
           label: Text(context.localizations.addNew),
           icon: Icon(Icons.add_rounded),
+          elevation: 0,
         );
       },
       buildWhen: (previousState, currentState) {

@@ -1,19 +1,14 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
-import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
-import 'package:wandrr/presentation/trip/bloc/states.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 class AddTripMateField extends StatelessWidget {
-  const AddTripMateField({
+  AddTripMateField({
     super.key,
   });
 
@@ -26,7 +21,8 @@ class AddTripMateField extends StatelessWidget {
       context: context,
       controller: tripMateUserNameEditingController,
       onTextChanged: (username, isValid) {
-        if (currentContributors.contains(username)) {
+        if (currentContributors
+            .any((e) => e.toLowerCase() == username.toLowerCase())) {
           addTripEditingValueNotifier.value = false;
         } else {
           addTripEditingValueNotifier.value = isValid;
@@ -41,10 +37,12 @@ class AddTripMateField extends StatelessWidget {
             tripMateUserNameEditingController:
                 tripMateUserNameEditingController,
             contributors: currentContributors,
+            onContributorAdded: () {
+              addTripEditingValueNotifier.value = false;
+              tripMateUserNameEditingController.clear();
+            },
           ),
         ),
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-        labelText: context.localizations.userName,
         icon: Icon(Icons.person_2_rounded),
       ),
       textInputAction: TextInputAction.done,
@@ -57,11 +55,13 @@ class _AddTripMateTextFieldButton extends StatefulWidget {
       {super.key,
       required this.addTripEditingValueNotifier,
       required this.tripMateUserNameEditingController,
-      required this.contributors});
+      required this.contributors,
+      required this.onContributorAdded});
 
   Iterable<String> contributors;
   final ValueNotifier<bool> addTripEditingValueNotifier;
   final TextEditingController tripMateUserNameEditingController;
+  final VoidCallback onContributorAdded;
 
   @override
   State<_AddTripMateTextFieldButton> createState() =>
@@ -72,107 +72,81 @@ class _AddTripMateTextFieldButtonState
     extends State<_AddTripMateTextFieldButton> {
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<TripManagementBloc, TripManagementState>(
-      buildWhen: _shouldBuildAddTripMateButton,
-      builder: (BuildContext context, TripManagementState state) {
-        return PlatformSubmitterFAB.conditionallyEnabled(
-          icon: Icons.add,
-          context: context,
-          valueNotifier: widget.addTripEditingValueNotifier,
-          isSubmitted: false,
-          callback: () async {
-            var didSubmitDialog = false;
-            await showDialog(
-                context: context,
-                builder: (BuildContext dialogContext) {
-                  return Material(
-                    child: Dialog(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          AppBar(
-                            leading: IconButton(
-                              //TODO: Unable to style splashColor here
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              icon: Icon(
-                                Icons.close_rounded,
+    return PlatformSubmitterFAB.conditionallyEnabled(
+      icon: Icons.add,
+      context: context,
+      valueNotifier: widget.addTripEditingValueNotifier,
+      isSubmitted: false,
+      isElevationRequired: false,
+      callback: () async {
+        var didAcceptDialog = false;
+        await showDialog(
+            context: context,
+            builder: (BuildContext dialogContext) {
+              return Material(
+                child: Dialog(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AppBar(
+                        leading: IconButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          icon: Icon(
+                            Icons.close_rounded,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(5.0),
+                        child: Text(
+                          context.localizations
+                              .splitExpensesWithNewTripMateMessage,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(5.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 3.0),
+                              child: TextButton(
+                                onPressed: () {
+                                  _onDialogAccepted(context, dialogContext);
+                                  didAcceptDialog = false;
+                                },
+                                child: Text(context.localizations.no),
                               ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(5.0),
-                            child: Text(
-                              context.localizations
-                                  .splitExpensesWithNewTripMateMessage,
-                              style: Theme.of(context).textTheme.bodyLarge,
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 3.0),
+                              child: TextButton(
+                                onPressed: () {
+                                  _onDialogAccepted(context, dialogContext);
+                                  didAcceptDialog = true;
+                                },
+                                child: Text(context.localizations.yes),
+                              ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(5.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 3.0),
-                                  child: IconButton(
-                                    //TODO: Unable to style splashColor here
-                                    onPressed: () {
-                                      _onDialogAccepted(context, dialogContext);
-                                      didSubmitDialog = true;
-                                    },
-                                    icon: Icon(
-                                      Icons.close_rounded,
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 3.0),
-                                  child: IconButton(
-                                    icon: Icon(Icons.check_rounded),
-                                    onPressed: () {
-                                      _onDialogAccepted(context, dialogContext);
-                                      didSubmitDialog = true;
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                });
-            if (!didSubmitDialog) {
-              setState(() {});
-            }
-          },
-        );
-      },
-      listener: (BuildContext context, TripManagementState state) {},
-    );
-  }
-
-  bool _shouldBuildAddTripMateButton(
-      TripManagementState previousState, TripManagementState currentState) {
-    if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
-      var updatedTripEntity = currentState as UpdatedTripEntity;
-      if (updatedTripEntity.dataState == DataState.Update) {
-        var updatedTripMetadata = updatedTripEntity.tripEntityModificationData
-            .modifiedCollectionItem as TripMetadataFacade;
-        if (!listEquals(
-            updatedTripMetadata.contributors, widget.contributors.toList())) {
-          widget.contributors = updatedTripMetadata.contributors;
-          return true;
+                    ],
+                  ),
+                ),
+              );
+            });
+        if (!didAcceptDialog) {
+          setState(() {});
         }
-      }
-    }
-    return false;
+      },
+    );
   }
 
   void _onDialogAccepted(

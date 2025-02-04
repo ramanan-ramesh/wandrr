@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
@@ -11,6 +10,8 @@ import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/expense_view_type.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/flip_card/flip_card.dart';
 
 class BudgetingHeaderTile extends StatelessWidget {
   final ValueNotifier<ExpenseViewType> _expenseViewTypeNotifier;
@@ -22,104 +23,121 @@ class BudgetingHeaderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return FlipCard(
+        fill: Fill.back,
+        direction: Axis.horizontal,
+        duration: const Duration(milliseconds: 750),
+        autoFlipDuration: const Duration(seconds: 0),
+        front: _createBudgetingHeaderTile(context),
+        back: _createBudgetingHeaderTile(context));
+  }
+
+  Column _createBudgetingHeaderTile(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: EdgeInsets.symmetric(vertical: 5.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: FittedBox(
-                    child: PlatformTextElements.createHeader(
-                        context: context,
-                        text: context.localizations.budgeting),
-                  ),
-                ),
-              ),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: _buildCreateExpenseButton(context),
-                ),
-              )
-            ],
-          ),
+          child: _createHeader(context),
         ),
         Padding(
           padding: EdgeInsets.symmetric(vertical: 5.0),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(3.0),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: _buildBudgetOverview(context),
-                  ),
-                  Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: _buildExpenseViewButton(
-                                  context,
-                                  ExpenseViewType.ExpenseList,
-                                  context.localizations.view_expenses,
-                                  Icons.list_rounded),
-                            ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: _buildExpenseViewButton(
-                                  context,
-                                  ExpenseViewType.BudgetEditor,
-                                  context.localizations.edit_budget,
-                                  Icons.edit_rounded),
-                              // ),
-                            ),
-                          ),
-                        ],
+          child: _createOverviewTile(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _createOverviewTile(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(3.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: _buildBudgetOverview(context),
+            ),
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: _buildExpenseViewButton(
+                            context,
+                            ExpenseViewType.ExpenseList,
+                            context.localizations.view_expenses,
+                            Icons.list_rounded),
                       ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: _buildExpenseViewButton(
-                                  context,
-                                  ExpenseViewType.DebtSummary,
-                                  context.localizations.debt_summary,
-                                  Icons.money_rounded),
-                              // ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: _buildExpenseViewButton(
-                                  context,
-                                  ExpenseViewType.BreakdownViewer,
-                                  context.localizations.view_breakdown,
-                                  Icons.bar_chart_rounded),
-                            ),
-                          ),
-                        ],
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: _buildExpenseViewButton(
+                            context,
+                            ExpenseViewType.BudgetEditor,
+                            context.localizations.edit_budget,
+                            Icons.edit_rounded),
+                        // ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: _buildExpenseViewButton(
+                            context,
+                            ExpenseViewType.DebtSummary,
+                            context.localizations.debt_summary,
+                            Icons.money_rounded),
+                        // ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: _buildExpenseViewButton(
+                            context,
+                            ExpenseViewType.BreakdownViewer,
+                            context.localizations.view_breakdown,
+                            Icons.bar_chart_rounded),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _createHeader(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: FittedBox(
+              child: PlatformTextElements.createHeader(
+                  context: context, text: context.localizations.budgeting),
             ),
           ),
         ),
+        Flexible(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: _buildCreateExpenseButton(context),
+          ),
+        )
       ],
     );
   }
@@ -216,7 +234,6 @@ class BudgetingHeaderTile extends StatelessWidget {
                   alignment: Alignment.centerRight,
                   child: Text(
                     budgetText,
-                    style: TextStyle(color: Colors.white),
                   ),
                 ),
                 if (totalExpense > 0)

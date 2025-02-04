@@ -30,7 +30,6 @@ class ReadonlyLodgingListItem extends StatelessWidget {
                     padding: EdgeInsets.symmetric(vertical: 4.0),
                     child: PlatformTextElements.createSubHeader(
                         context: context,
-                        color: Colors.green,
                         text: (lodgingModelFacade.location!.context
                                 as GeoLocationApiContext)
                             .name,

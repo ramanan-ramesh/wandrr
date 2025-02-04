@@ -3,15 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/plan_data.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
-import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/editable_trip_entity/plan_data/plan_data.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 class PlanDataListView extends StatefulWidget {
   const PlanDataListView({super.key});
@@ -31,7 +30,7 @@ class _PlanDataListViewState extends State<PlanDataListView> {
         return SliverList.separated(
           itemBuilder: (BuildContext context, int index) {
             if (index == _planDataUiElements.length) {
-              return _buildCreatePlanDataListButton(context);
+              return _buildPlanDataCreatorButton(context);
             }
             return _PlanDataListItemViewer(
                 initialPlanDataUiElement: _planDataUiElements.elementAt(index));
@@ -51,7 +50,7 @@ class _PlanDataListViewState extends State<PlanDataListView> {
     );
   }
 
-  Widget _buildCreatePlanDataListButton(BuildContext context) {
+  Widget _buildPlanDataCreatorButton(BuildContext context) {
     return FloatingActionButton.extended(
         onPressed: () {
           context.addTripManagementEvent(
@@ -150,14 +149,6 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
   @override
   void initState() {
     super.initState();
-    _planDataUiElement = widget.initialPlanDataUiElement.clone();
-    _planDataUiElement.element =
-        widget.initialPlanDataUiElement.element.clone();
-    _titleEditingController =
-        TextEditingController(text: _planDataUiElement.element.title);
-    _canUpdatePlanDataNotifier.value =
-        _planDataUiElement.dataState == DataState.NewUiEntry ? false : true;
-
     _animationController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
@@ -191,32 +182,31 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
 
   @override
   Widget build(BuildContext context) {
+    _initializePlanData();
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       builder: (BuildContext context, TripManagementState state) {
-        return Material(
-          child: Column(
-            children: [
-              _buildPlanDataHeaderTile(),
-              if (_showErrorMessage && _errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.all(3.0),
-                  child: Visibility(
-                    visible: _showErrorMessage,
-                    child: SlideTransition(
-                      position: _animation,
-                      child: Text(
-                        _errorMessage!,
-                        style: TextStyle(color: Colors.red),
-                      ),
+        return Column(
+          children: [
+            _buildPlanDataHeaderTile(),
+            if (_showErrorMessage && _errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.all(3.0),
+                child: Visibility(
+                  visible: _showErrorMessage,
+                  child: SlideTransition(
+                    position: _animation,
+                    child: Text(
+                      _errorMessage!,
+                      style: TextStyle(color: Colors.red),
                     ),
                   ),
                 ),
-              if (!_isCollapsed)
-                PlanDataListItem(
-                    initialPlanDataUiElement: _planDataUiElement,
-                    planDataUpdated: _tryUpdatePlanData)
-            ],
-          ),
+              ),
+            if (!_isCollapsed)
+              PlanDataListItem(
+                  initialPlanDataUiElement: _planDataUiElement,
+                  planDataUpdated: _tryUpdatePlanData)
+          ],
         );
       },
       buildWhen: _shouldBuildPlanDataListItem,
@@ -224,18 +214,34 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
     );
   }
 
+  void _initializePlanData() {
+    _planDataUiElement = widget.initialPlanDataUiElement.clone();
+    _planDataUiElement.element =
+        widget.initialPlanDataUiElement.element.clone();
+    _titleEditingController =
+        TextEditingController(text: _planDataUiElement.element.title);
+  }
+
   ListTile _buildPlanDataHeaderTile() {
     return ListTile(
       leading:
           Icon(_isCollapsed ? Icons.menu_open_rounded : Icons.list_rounded),
-      title: PlatformTextElements.createTextField(
-        context: context,
+      title: TextField(
         controller: _titleEditingController,
-        hintText: context.localizations.addATitle,
-        onTextChanged: (newTitle) {
+        decoration: InputDecoration(
+          hintText: context.localizations.addATitle,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(30.0)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(30.0)),
+          ),
+        ),
+        onChanged: (newTitle) {
           _planDataUiElement.element.title = newTitle;
           _tryUpdatePlanData(_planDataUiElement.element);
         },
+        textInputAction: TextInputAction.done,
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -245,6 +251,7 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
             child: PlatformSubmitterFAB.conditionallyEnabled(
               icon: Icons.check_rounded,
               context: context,
+              isEnabledInitially: false,
               callback: () {
                 if (_planDataUiElement.dataState == DataState.NewUiEntry) {
                   context.addTripManagementEvent(
@@ -352,7 +359,7 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
     _planDataUiElement.element.title = title;
 
     var planValidationResult =
-        _planDataUiElement.element.getValidationResult(false);
+        _planDataUiElement.element.getValidationResult(true);
     if (planValidationResult == PlanDataValidationResult.Valid) {
       _canUpdatePlanDataNotifier.value = true;
     } else {
@@ -363,8 +370,7 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
   bool _shouldBuildPlanDataListItem(
       TripManagementState previousState, TripManagementState currentState) {
     if (currentState.isTripEntityUpdated<PlanDataFacade>()) {
-      var planDataUpdatedState =
-          currentState as UpdatedTripEntity<PlanDataFacade>;
+      var planDataUpdatedState = currentState as UpdatedTripEntity;
       if (planDataUpdatedState.dataState == DataState.Update &&
           _planDataUiElement.element.id ==
               planDataUpdatedState

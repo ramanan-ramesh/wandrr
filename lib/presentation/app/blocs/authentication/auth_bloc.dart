@@ -9,12 +9,12 @@ import 'package:wandrr/presentation/app/blocs/authentication/auth_states.dart';
 
 class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
-  static final Map<String, AuthenticationFailures>
+  static final Map<String, AuthenticationFailureCode>
       _authenticationFailuresAndMessages = {
-    'invalid-email': AuthenticationFailures.InvalidEmail,
-    'wrong-password': AuthenticationFailures.WrongPassword,
-    'user-not-found': AuthenticationFailures.NoSuchUsernameExists,
-    'email-already-in-use': AuthenticationFailures.UsernameAlreadyExists
+    'invalid-email': AuthenticationFailureCode.InvalidEmail,
+    'wrong-password': AuthenticationFailureCode.WrongPassword,
+    'user-not-found': AuthenticationFailureCode.NoSuchUsernameExists,
+    'email-already-in-use': AuthenticationFailureCode.UsernameAlreadyExists
   };
 
   String googleWebClientId;
@@ -24,9 +24,10 @@ class AuthenticationBloc
     on<AuthenticateWithThirdParty>(_onAuthWithThirdParty);
   }
 
-  static AuthenticationFailures _getAuthFailureReason(
+  static AuthenticationFailureCode _getAuthFailureReason(
       String errorCode, String? errorMessage) {
-    AuthenticationFailures authFailureReason = AuthenticationFailures.Undefined;
+    AuthenticationFailureCode authFailureReason =
+        AuthenticationFailureCode.Undefined;
     if (errorMessage == null) {
       var matches = _authenticationFailuresAndMessages.keys
           .where((element) => errorCode.contains(element));

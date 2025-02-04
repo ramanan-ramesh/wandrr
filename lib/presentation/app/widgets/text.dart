@@ -31,44 +31,16 @@ class PlatformTextElements {
     );
   }
 
-  //TODO: Use PlatformTextField instead of this. Replace all usages
-  static TextField createTextField(
-      {required BuildContext context,
-      String? labelText,
-      InputBorder? border,
-      TextEditingController? controller,
-      Function(String)? onTextChanged,
-      String? hintText,
-      Widget? suffix,
-      TextInputAction? textInputAction,
-      int? maxLines = 10}) {
-    InputDecoration? inputDecoration;
-    if (labelText != null || border != null || suffix != null) {
-      inputDecoration = InputDecoration(
-          labelText: labelText,
-          border: border,
-          suffix: suffix,
-          hintText: hintText);
-    }
-    return TextField(
-      style: TextStyle(fontSize: PlatformTextElements.formElementSize),
-      minLines: 1,
-      maxLines: maxLines,
-      onChanged: onTextChanged,
-      textInputAction: textInputAction,
-      controller: controller,
-      decoration: inputDecoration,
-    );
-  }
-
   static TextFormField createUsernameFormField(
       {required BuildContext context,
       InputDecoration? inputDecoration,
       TextEditingController? controller,
       Function(String, bool)? onTextChanged,
       TextInputAction? textInputAction,
-      String? Function(String? value)? validator}) {
+      String? Function(String? value)? validator,
+      bool readonly = false}) {
     return TextFormField(
+      readOnly: readonly,
       style: TextStyle(fontSize: PlatformTextElements.formElementSize),
       minLines: 1,
       textInputAction: textInputAction,

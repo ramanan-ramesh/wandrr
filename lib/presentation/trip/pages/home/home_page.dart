@@ -7,6 +7,7 @@ import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/blocs/master_page/master_page_events.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 import 'trip_creator_dialog.dart';
 import 'trips_list_view.dart';
@@ -18,6 +19,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.updateLocalizations();
     return LayoutBuilder(
       builder: (context, constraints) {
         var appLevelData = context.appDataModifier;
@@ -96,7 +98,6 @@ class HomePage extends StatelessWidget {
             pageBuilder: (BuildContext context, Animation<double> animation,
                 Animation<double> secondaryAnimation) {
               return Material(
-                //TODO: Is this the right way to set dialog color?
                 child: Dialog(
                   child: Container(
                     constraints: BoxConstraints(maxWidth: 450),
@@ -110,8 +111,10 @@ class HomePage extends StatelessWidget {
             transitionBuilder: (ctx, anim1, anim2, child) => BackdropFilter(
               filter: ImageFilter.blur(
                   sigmaX: 4 * anim1.value, sigmaY: 4 * anim1.value),
-              child: FadeTransition(
-                opacity: anim1,
+              child: AnimatedOpacity(
+                opacity: anim1.value,
+                curve: Curves.fastEaseInToSlowEaseOut,
+                duration: Duration(milliseconds: 750),
                 child: child,
               ),
             ),
@@ -184,8 +187,6 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _createThemeModeSwitcher(BuildContext context) {
-    var isDarkThemeSelected =
-        context.appDataRepository.activeThemeMode == ThemeMode.dark;
     return Row(
       children: [
         Icon(
@@ -193,7 +194,7 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           color: Colors.green,
         ),
         Switch(
-          value: isDarkThemeSelected,
+          value: !context.isLightTheme,
           onChanged: (bool value) {
             context.addMasterPageEvent(ChangeTheme(
                 themeModeToChangeTo: value ? ThemeMode.dark : ThemeMode.light));

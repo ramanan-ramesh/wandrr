@@ -133,6 +133,7 @@ abstract class CurrencyDropDownField extends StatefulWidget {
                 offset: Offset(0.0, 5.0),
                 child: Material(
                   elevation: 4.0,
+                  color: Theme.of(context).dialogTheme.backgroundColor,
                   child: ScrollConfiguration(
                     behavior: ScrollConfiguration.of(context),
                     child: Container(

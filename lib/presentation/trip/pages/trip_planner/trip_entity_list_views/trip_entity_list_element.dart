@@ -80,10 +80,9 @@ class _TripEntityListElementState<T extends TripEntity>
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    color: context.appDataRepository.activeThemeMode ==
-                            ThemeMode.dark
-                        ? Colors.grey.shade900
-                        : null, //ThemingRequired
+                    color: context.isLightTheme
+                        ? null
+                        : Colors.grey.shade900, //ThemingRequired
                     child: widget.closedElementCreator(),
                   ),
                   onTap: () {
@@ -120,15 +119,19 @@ class _TripEntityListElementState<T extends TripEntity>
             updatedTransitId != null &&
             updatedTransitId.isNotEmpty) {
           if (widget.uiElement.dataState == DataState.None) {
-            widget.uiElement.dataState = DataState.Select;
+            widget.uiElement.dataState =
+                DataState.Select; //Select a de-selected item
             return true;
           } else if (widget.uiElement.dataState == DataState.Select) {
-            widget.uiElement.dataState = DataState.None;
+            widget.uiElement.element = modifiedTransitCollectionItem;
+            widget.uiElement.dataState =
+                DataState.None; // De-select a selected item
             return true;
           }
         } else {
           if (widget.uiElement.dataState == DataState.Select) {
-            widget.uiElement.dataState = DataState.None;
+            widget.uiElement.dataState = DataState
+                .None; // Don't do anything if selected item is not yet added to DB
             return true;
           }
         }
@@ -180,9 +183,8 @@ class _OpenedTripEntityUiElement<T extends TripEntity> extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
-              color: context.appDataRepository.activeThemeMode == ThemeMode.dark
-                  ? Colors.white10
-                  : Colors.teal.shade300,
+              color:
+                  context.isLightTheme ? Colors.teal.shade300 : Colors.white10,
               child: openedListElementCreator(
                   uiElement.clone(), _validityNotifier),
             ),

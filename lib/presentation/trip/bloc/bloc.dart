@@ -109,7 +109,6 @@ class TripManagementBloc
       _tripRepositorySubscriptions.add(tripMetadataAddedSubscription);
     }
     emit(LoadedRepository(tripRepository: _tripRepository!));
-    // emit(NavigateToHome());
   }
 
   FutureOr<void> _onGoToHome(
@@ -373,7 +372,12 @@ class TripManagementBloc
         }
       case DataState.Select:
         {
-          emit(UpdatedTripEntity<E>.selected(tripEntity: tripEntity));
+          var originalTripEntity = modelCollection.collectionItems
+              .where((e) => e.id == tripEntityId)
+              .firstOrNull
+              ?.facade;
+          emit(UpdatedTripEntity<E>.selected(
+              tripEntity: originalTripEntity ?? tripEntity));
         }
       default:
         {

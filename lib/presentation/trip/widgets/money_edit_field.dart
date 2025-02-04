@@ -24,16 +24,6 @@ class PlatformMoneyEditField extends CurrencyDropDownField {
 }
 
 class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
-  static const _inputBorder = UnderlineInputBorder(
-    borderSide: BorderSide(color: Colors.green, width: 2.0),
-    borderRadius: BorderRadius.only(
-      topLeft: Radius.circular(0),
-      topRight: Radius.circular(0),
-      bottomLeft: Radius.circular(0),
-      bottomRight: Radius.circular(0),
-    ),
-  );
-
   final _amountEditingController = TextEditingController();
 
   @override
@@ -64,7 +54,8 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
                   icon: Text(
                     widget.selectedCurrencyData.symbol,
                     style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.green),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),

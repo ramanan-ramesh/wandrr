@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 class PlatformExpenseAmountEditField extends StatelessWidget {
   bool isReadonly;
   Function(double)? onExpenseAmountChanged;
-  String amount;
+  String? amount;
   final TextEditingController _amountEditingController;
   InputDecoration? inputDecoration;
   Color? textColor;
@@ -17,7 +17,7 @@ class PlatformExpenseAmountEditField extends StatelessWidget {
       this.onExpenseAmountChanged,
       this.inputDecoration,
       this.textColor,
-      required this.amount})
+      this.amount})
       : _amountEditingController = TextEditingController(text: amount);
 
   @override

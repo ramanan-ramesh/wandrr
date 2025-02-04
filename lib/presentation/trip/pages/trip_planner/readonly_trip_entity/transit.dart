@@ -4,9 +4,9 @@ import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 
 class ReadonlyTransitListItem extends StatelessWidget {
@@ -18,7 +18,7 @@ class ReadonlyTransitListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     var isConfirmationIdValid =
         transitModelFacade.confirmationId?.isNotEmpty ?? false;
-    var isNotesValid = transitModelFacade.notes.isNotEmpty;
+    var isNotesValid = transitModelFacade.notes?.isNotEmpty ?? false;
     return IntrinsicHeight(
       child: Row(
         children: [
@@ -56,8 +56,8 @@ class ReadonlyTransitListItem extends StatelessWidget {
                   if (isNotesValid)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: _createTitleSubText(
-                          context.localizations.notes, transitModelFacade.notes,
+                      child: _createTitleSubText(context.localizations.notes,
+                          transitModelFacade.notes!,
                           maxLines: null),
                     ),
                   if (isConfirmationIdValid)
@@ -101,9 +101,11 @@ class ReadonlyTransitListItem extends StatelessWidget {
       children: [
         Padding(
           padding: EdgeInsets.all(2.0),
-          child: Text(
-            title,
-            style: TextStyle(fontWeight: FontWeight.bold),
+          child: FittedBox(
+            child: Text(
+              title,
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ),
         Padding(
@@ -179,6 +181,7 @@ class _TransitEvent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Padding(
           padding: const EdgeInsets.all(3.0),
@@ -186,13 +189,10 @@ class _TransitEvent extends StatelessWidget {
             isArrival
                 ? context.localizations.arrive
                 : context.localizations.depart,
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge!
-                .copyWith(color: Colors.green),
+            style: Theme.of(context).textTheme.titleLarge!,
           ),
         ),
-        Expanded(
+        Flexible(
           child: Padding(
             padding: const EdgeInsets.all(3.0),
             child: _createLocationDetailTitle(context),
@@ -224,7 +224,6 @@ class _TransitEvent extends StatelessWidget {
           child: Wrap(
             children: [
               PlatformTextElements.createSubHeader(
-                  color: Colors.green,
                   context: context,
                   text: _createLocationTitle(),
                   shouldBold: true),

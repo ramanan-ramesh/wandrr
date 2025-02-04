@@ -5,9 +5,9 @@ class AirlineData {
 
   AirlineData(String transitCarrier) {
     var splitOptions = transitCarrier.split(' ');
-    airLineName = splitOptions.first;
-    airLineCode = splitOptions[1];
-    airLineNumber = splitOptions[2];
+    airLineNumber = splitOptions.last;
+    airLineCode = splitOptions[splitOptions.length - 2];
+    airLineName = splitOptions.sublist(0, splitOptions.length - 2).join(' ');
   }
 
   @override

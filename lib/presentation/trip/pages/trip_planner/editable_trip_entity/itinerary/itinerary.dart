@@ -5,7 +5,6 @@ import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/itinerary.dart';
 import 'package:wandrr/data/trip/models/plan_data.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
@@ -14,6 +13,7 @@ import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/editable_trip_entity/itinerary/stay_and_transits.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 import '../plan_data/plan_data.dart';
 
@@ -232,6 +232,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
           callbackOnClickWhileDisabled: () {
             _tryShowError();
           },
+          isElevationRequired: false,
         );
       },
       listener: (BuildContext context, TripManagementState state) {},

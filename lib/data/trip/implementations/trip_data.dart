@@ -50,48 +50,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         _transitOptionMetadatas =
             _initializeIconsAndTransitOptions(appLocalisations);
 
-  static Iterable<TransitOptionMetadata> _initializeIconsAndTransitOptions(
-      AppLocalizations appLocalizations) {
-    var transitOptionMetadataList = <TransitOptionMetadata>[];
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.PublicTransport,
-        icon: Icons.emoji_transportation_rounded,
-        name: appLocalizations.publicTransit));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.Flight,
-        icon: Icons.flight_rounded,
-        name: appLocalizations.flight));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.Bus,
-        icon: Icons.directions_bus_rounded,
-        name: appLocalizations.bus));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.Cruise,
-        icon: Icons.kayaking_rounded,
-        name: appLocalizations.cruise));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.Ferry,
-        icon: Icons.directions_ferry_outlined,
-        name: appLocalizations.ferry));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.RentedVehicle,
-        icon: Icons.car_rental_rounded,
-        name: appLocalizations.carRental));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.Train,
-        icon: Icons.train_rounded,
-        name: appLocalizations.train));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.Vehicle,
-        icon: Icons.bike_scooter_rounded,
-        name: appLocalizations.personalVehicle));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.Walk,
-        icon: Icons.directions_walk_rounded,
-        name: appLocalizations.walk));
-    return transitOptionMetadataList;
-  }
-
   @override
   List<TransitFacade> get transits =>
       List.from(_transitModelCollection.collectionItems
@@ -164,7 +122,8 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   static Future<TripDataModelImplementation> createExistingInstanceAsync(
       TripMetadataFacade tripMetadata,
       CurrencyConverterService currencyConverter,
-      AppLocalizations appLocalizations) async {
+      AppLocalizations appLocalizations,
+      String currentUserName) async {
     var tripMetadataModelImplementation =
         TripMetadataModelImplementation.fromModelFacade(
             tripMetadataModelFacade: tripMetadata);
@@ -224,7 +183,8 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         expenseModelCollection,
         currencyConverter,
         tripMetadataModelImplementation.budget.currency,
-        tripMetadataModelImplementation.contributors);
+        tripMetadataModelImplementation.contributors,
+        currentUserName);
 
     return TripDataModelImplementation(
         tripMetadataModelImplementation,
@@ -320,7 +280,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   @override
   Iterable<TransitOptionMetadata> get transitOptionMetadatas =>
       _transitOptionMetadatas;
-  final Iterable<TransitOptionMetadata> _transitOptionMetadatas;
+  Iterable<TransitOptionMetadata> _transitOptionMetadatas;
 
   Iterable<T> _updateTripEntityListOnDatesChanged<T>(
       Set<DateTime> removedDates,
@@ -338,7 +298,49 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         yield item;
       }
     }
-    modelCollection.tryUpdateList(writeBatch, updatedItems);
+    // modelCollection.tryUpdateList(writeBatch, updatedItems);
+  }
+
+  static Iterable<TransitOptionMetadata> _initializeIconsAndTransitOptions(
+      AppLocalizations appLocalizations) {
+    var transitOptionMetadataList = <TransitOptionMetadata>[];
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.PublicTransport,
+        icon: Icons.emoji_transportation_rounded,
+        name: appLocalizations.publicTransit));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.Flight,
+        icon: Icons.flight_rounded,
+        name: appLocalizations.flight));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.Bus,
+        icon: Icons.directions_bus_rounded,
+        name: appLocalizations.bus));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.Cruise,
+        icon: Icons.kayaking_rounded,
+        name: appLocalizations.cruise));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.Ferry,
+        icon: Icons.directions_ferry_outlined,
+        name: appLocalizations.ferry));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.RentedVehicle,
+        icon: Icons.car_rental_rounded,
+        name: appLocalizations.carRental));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.Train,
+        icon: Icons.train_rounded,
+        name: appLocalizations.train));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.Vehicle,
+        icon: Icons.bike_scooter_rounded,
+        name: appLocalizations.personalVehicle));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.Walk,
+        icon: Icons.directions_walk_rounded,
+        name: appLocalizations.walk));
+    return transitOptionMetadataList;
   }
 
   Set<DateTime> _createDateRange(DateTime startDate, DateTime endDate) {

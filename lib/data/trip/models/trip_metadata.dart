@@ -33,8 +33,16 @@ class TripMetadataFacade extends Equatable implements TripEntity {
 
   void copyWith(TripMetadataFacade tripMetadataModel) {
     id = tripMetadataModel.id;
-    startDate = tripMetadataModel.startDate;
-    endDate = tripMetadataModel.endDate;
+    startDate = tripMetadataModel.startDate != null
+        ? DateTime(
+            tripMetadataModel.startDate!.year,
+            tripMetadataModel.startDate!.month,
+            tripMetadataModel.startDate!.day)
+        : null;
+    endDate = tripMetadataModel.endDate != null
+        ? DateTime(tripMetadataModel.endDate!.year,
+            tripMetadataModel.endDate!.month, tripMetadataModel.endDate!.day)
+        : null;
     name = tripMetadataModel.name;
     contributors = List.from(tripMetadataModel.contributors);
     budget = tripMetadataModel.budget;
@@ -43,8 +51,12 @@ class TripMetadataFacade extends Equatable implements TripEntity {
   TripMetadataFacade clone() {
     return TripMetadataFacade(
         id: id,
-        startDate: startDate,
-        endDate: endDate,
+        startDate: startDate != null
+            ? DateTime(startDate!.year, startDate!.month, startDate!.day)
+            : null,
+        endDate: endDate != null
+            ? DateTime(endDate!.year, endDate!.month, endDate!.day)
+            : null,
         name: name,
         contributors: contributors,
         budget: budget);

@@ -38,7 +38,7 @@ class _PlatformTabBarState extends State<PlatformTabBar>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          _createTabBar(context),
+          _createTabBar(),
           const SizedBox(height: 16.0),
           Flexible(
             child: Container(
@@ -58,56 +58,14 @@ class _PlatformTabBarState extends State<PlatformTabBar>
     );
   }
 
-  Widget _createTabBar(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(PlatformTabBar._roundedCornerRadius),
-      clipBehavior: Clip.hardEdge,
-      child: TabBar(
-        controller: _tabController,
-        tabs: widget.tabBarItems.keys
-            .map((tabTitle) => FittedBox(child: Tab(text: tabTitle)))
-            .toList(),
-      ),
-    );
-  }
-}
-
-class HoverableDeleteButton extends StatefulWidget {
-  VoidCallback callBack;
-
-  HoverableDeleteButton({super.key, required this.callBack});
-
-  @override
-  State<HoverableDeleteButton> createState() => HoverableDeleteButtonState();
-}
-
-class HoverableDeleteButtonState extends State<HoverableDeleteButton> {
-  var _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) {
-        setState(() {
-          _isHovered = true;
-        });
-      },
-      onExit: (_) {
-        setState(() {
-          _isHovered = false;
-        });
-      },
-      child: InkWell(
-        onTap: null,
-        splashFactory: NoSplash.splashFactory,
-        child: IconButton(
-          icon: Icon(Icons.delete_rounded),
-          color: _isHovered ? Colors.black : Colors.white,
-          onPressed: () {
-            widget.callBack();
-          },
-        ),
-      ),
+  Widget _createTabBar() {
+    return TabBar(
+      tabs: widget.tabBarItems.keys.map((tabTitle) {
+        return Tab(
+          text: tabTitle,
+        );
+      }).toList(),
+      controller: _tabController,
     );
   }
 }
@@ -118,19 +76,19 @@ class PlatformSubmitterFAB extends StatefulWidget {
   final VoidCallback? callback;
   VoidCallback? validationFailureCallback;
   VoidCallback? validationSuccessCallback;
-  final Color? iconColor;
   GlobalKey<FormState>? formState;
   bool isSubmitted;
   ValueNotifier<bool>? valueNotifier;
   bool isConditionallyVisible;
   bool isEnabledInitially;
   VoidCallback? callbackOnClickWhileDisabled;
+  bool isElevationRequired;
 
   PlatformSubmitterFAB(
       {super.key,
       required this.icon,
       required this.context,
-      this.iconColor,
+      this.isElevationRequired = true,
       this.callback,
       this.isSubmitted = false,
       this.isEnabledInitially = false})
@@ -140,7 +98,7 @@ class PlatformSubmitterFAB extends StatefulWidget {
       {super.key,
       required this.icon,
       required this.context,
-      this.iconColor,
+      this.isElevationRequired = true,
       this.callback,
       this.formState,
       this.validationFailureCallback,
@@ -153,7 +111,7 @@ class PlatformSubmitterFAB extends StatefulWidget {
       {super.key,
       required this.icon,
       required this.context,
-      this.iconColor,
+      this.isElevationRequired = true,
       this.callback,
       this.formState,
       this.validationFailureCallback,
@@ -194,8 +152,7 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
   }
 
   FloatingActionButton _buildFloatingActionButton(bool canEnable) {
-    var isLightTheme =
-        context.appDataRepository.activeThemeMode == ThemeMode.light;
+    var isLightTheme = context.isLightTheme;
     return FloatingActionButton(
       onPressed: widget.isSubmitted || !canEnable
           ? () {
@@ -204,6 +161,9 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
               }
             }
           : _onPressed,
+      elevation: widget.isElevationRequired
+          ? Theme.of(context).floatingActionButtonTheme.elevation
+          : 0,
       splashColor: !canEnable
           ? (isLightTheme ? Colors.grey.shade400 : Colors.white30)
           : null,

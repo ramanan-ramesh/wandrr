@@ -63,8 +63,7 @@ class CurrencyConverter implements CurrencyConverterService {
     try {
       var response = await http.get(Uri.parse(queryUrl));
       if (response.statusCode == 200) {
-        var decodedJsonResponse = json.decode(response
-            .body); // TODO: Why does inbuilt function jsonDecode not work?
+        var decodedJsonResponse = json.decode(response.body);
         var responseValue = Map.from(decodedJsonResponse);
         var exchangeRates =
             Map.from(responseValue[currencyToConvertTo.toLowerCase()]);

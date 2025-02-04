@@ -132,7 +132,23 @@ class PlanDataModelImplementation extends PlanDataFacade
     }
 
     return await FirestoreHelpers.tryUpdateDocumentField(
-        documentReference: documentReference, json: json);
+        documentReference: documentReference,
+        json: json,
+        onSuccess: () {
+          var planData = toUpdate.clone();
+          title = planData.title;
+          _notes = toUpdate.notes.map((e) => e.clone()).toList();
+          _checkLists = toUpdate.checkLists
+              .map((e) => CheckListModelImplementation.fromModelFacade(
+                  checkListModelFacade: e))
+              .toList();
+          _places = toUpdate.places
+              .map((e) => LocationModelImplementation.fromModelFacade(
+                  locationModelFacade: e,
+                  collectionName: _collectionName,
+                  parentId: id))
+              .toList();
+        });
   }
 
   static PlanDataModelImplementation fromDocumentSnapshot(

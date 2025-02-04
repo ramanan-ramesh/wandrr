@@ -1,8 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 class BreakdownByCategoryChart extends StatefulWidget {
   BreakdownByCategoryChart({super.key});
@@ -22,38 +22,50 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
         future: budgetingModule.retrieveTotalExpensePerCategory(),
         builder: (BuildContext context,
             AsyncSnapshot<Map<ExpenseCategory, double>> snapshot) {
-          if (snapshot.hasData && snapshot.data != null) {
-            if (snapshot.data!.isEmpty) {
-              return SizedBox.expand();
-            }
-            return Container(
-              constraints: BoxConstraints(minHeight: 300, maxHeight: 600),
-              child: PieChart(
-                PieChartData(
-                  pieTouchData: PieTouchData(
-                    touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                      setState(() {
-                        if (!event.isInterestedForInteractions ||
-                            pieTouchResponse == null ||
-                            pieTouchResponse.touchedSection == null) {
-                          touchedIndex = -1;
-                          return;
-                        }
-                        touchedIndex = pieTouchResponse
-                            .touchedSection!.touchedSectionIndex;
-                      });
-                    },
-                  ),
-                  borderData: FlBorderData(
-                    show: false,
-                  ),
-                  sectionsSpace: 0,
-                  centerSpaceRadius: 35,
-                  sections: _createExpenseCategorySections(snapshot.data!),
-                ),
-              ),
-            );
-          }
+          var isLoadingData =
+              snapshot.connectionState == ConnectionState.waiting ||
+                  snapshot.connectionState == ConnectionState.active;
+          var isSnapshotDataValid = snapshot.hasData &&
+              snapshot.data != null &&
+              snapshot.data!.isNotEmpty;
+          return Container(
+            constraints: BoxConstraints(minHeight: 300, maxHeight: 600),
+            child: isLoadingData
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : (isSnapshotDataValid
+                    ? PieChart(
+                        PieChartData(
+                          pieTouchData: PieTouchData(
+                            touchCallback:
+                                (FlTouchEvent event, pieTouchResponse) {
+                              setState(() {
+                                if (!event.isInterestedForInteractions ||
+                                    pieTouchResponse == null ||
+                                    pieTouchResponse.touchedSection == null) {
+                                  touchedIndex = -1;
+                                  return;
+                                }
+                                touchedIndex = pieTouchResponse
+                                    .touchedSection!.touchedSectionIndex;
+                              });
+                            },
+                          ),
+                          borderData: FlBorderData(
+                            show: false,
+                          ),
+                          sectionsSpace: 0,
+                          centerSpaceRadius: 35,
+                          sections:
+                              _createExpenseCategorySections(snapshot.data!),
+                        ),
+                      )
+                    : Center(
+                        child: Text('No expenses created yet.'),
+                      )),
+          );
+          if (isSnapshotDataValid) {}
           return SizedBox.shrink();
         });
   }

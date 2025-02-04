@@ -59,7 +59,8 @@ class ExpenseFacade implements TripEntity {
     paidBy = expenseModelFacade.paidBy;
     splitBy = expenseModelFacade.splitBy;
     location = expenseModelFacade.location;
-    dateTime = expenseModelFacade.dateTime;
+    dateTime = DateTime(expenseModelFacade.dateTime!.year,
+        expenseModelFacade.dateTime!.month, expenseModelFacade.dateTime!.day);
   }
 
   ExpenseFacade clone() {
@@ -73,7 +74,9 @@ class ExpenseFacade implements TripEntity {
         paidBy: paidBy,
         splitBy: splitBy,
         location: location?.clone(),
-        dateTime: dateTime);
+        dateTime: dateTime != null
+            ? DateTime(dateTime!.year, dateTime!.month, dateTime!.day)
+            : null);
   }
 
   bool isValid() {

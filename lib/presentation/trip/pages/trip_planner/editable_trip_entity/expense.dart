@@ -95,8 +95,8 @@ class EditableExpenseListItem extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.all(5.0),
                             child: PlatformGeoLocationAutoComplete(
-                              initialText:
-                                  expenseUiElement.element.location?.toString(),
+                              selectedLocation:
+                                  expenseUiElement.element.location,
                               onLocationSelected: (location) {
                                 expenseUiElement.element.location = location;
                               },
@@ -167,7 +167,7 @@ class EditableExpenseListItem extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(5.0),
             child: PlatformGeoLocationAutoComplete(
-              initialText: expenseUiElement.element.location?.toString(),
+              selectedLocation: expenseUiElement.element.location,
               onLocationSelected: (location) {
                 expenseUiElement.element.location = location;
               },
@@ -205,14 +205,14 @@ class EditableExpenseListItem extends StatelessWidget {
 
   Widget _createExpenseTitle(BuildContext context) {
     if (!_isLinkedExpense) {
-      return PlatformTextElements.createTextField(
-          context: context,
-          labelText: context.localizations.title,
-          controller: _titleEditingController,
-          onTextChanged: (newTitle) {
-            expenseUiElement.element.title = newTitle;
-            _calculateExpenseUpdatePossibility();
-          });
+      return TextField(
+        controller: _titleEditingController,
+        onChanged: (newTitle) {
+          expenseUiElement.element.title = newTitle;
+          _calculateExpenseUpdatePossibility();
+        },
+        decoration: InputDecoration(labelText: context.localizations.title),
+      );
     } else {
       var title =
           (expenseUiElement as UiElementWithMetadata).metadata.toString();

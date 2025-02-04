@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
-import 'package:wandrr/presentation/app/widgets/button.dart';
 
 class PlacesListView extends StatelessWidget {
   PlacesListView(
@@ -56,14 +55,14 @@ class _PlacesReOrderableListViewState
                   ),
                 ),
               ),
-              HoverableDeleteButton(
-                callBack: () {
+              IconButton(
+                icon: Icon(Icons.delete_rounded),
+                onPressed: () {
                   setState(() {
                     widget.placesList.removeAt(index);
                   });
-                  widget.onPlacesChanged();
                 },
-              )
+              ),
             ],
           );
         },

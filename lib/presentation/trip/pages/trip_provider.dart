@@ -16,12 +16,11 @@ class TripProvider extends StatelessWidget {
   TripRepositoryFacade? _tripRepository;
 
   @override
-  Widget build(BuildContext context) {
-    var currentUserName = context.activeUser!.userName;
-    var appLocalisations = context.localizations;
+  Widget build(BuildContext pageContext) {
+    var currentUserName = pageContext.activeUser!.userName;
     return BlocProvider<TripManagementBloc>(
       create: (BuildContext context) =>
-          TripManagementBloc(currentUserName, appLocalisations),
+          TripManagementBloc(currentUserName, pageContext.localizations),
       child: BlocConsumer<TripManagementBloc, TripManagementState>(
         builder: (BuildContext context, TripManagementState state) {
           if (state is LoadedRepository) {

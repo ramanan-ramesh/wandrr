@@ -21,8 +21,10 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
   final CollectionModelFacade<LodgingFacade> _lodgingModelCollection;
   final List<ItineraryModelImplementation> _allItineraries;
 
-  final DateTime _startDate;
-  final DateTime _endDate;
+  static final _dateFormat = DateFormat('ddMMyyyy');
+
+  DateTime _startDate;
+  DateTime _endDate;
   final String tripId;
 
   ItineraryModelCollection(
@@ -212,9 +214,8 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
     if (datesToRemove.isNotEmpty) {
       await writeBatch.commit().then((value) {
         for (var date in datesToRemove) {
-          var itineraryIndex = _allItineraries
-              .indexWhere((itinerary) => itinerary.day.isOnSameDayAs(date));
-          _allItineraries.removeAt(itineraryIndex);
+          _allItineraries
+              .removeWhere((itinerary) => itinerary.day.isOnSameDayAs(date));
         }
       });
     }
@@ -232,6 +233,9 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
 
     // Sort the updated list of itineraries
     _allItineraries.sort((a, b) => a.day.compareTo(b.day));
+
+    _startDate = DateTime(startDate.year, startDate.month, startDate.day);
+    _endDate = DateTime(endDate.year, endDate.month, endDate.day);
   }
 
   @override
@@ -295,8 +299,6 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
       }
     }
   }
-
-  static final _dateFormat = DateFormat('ddMMyyyy');
 
   Set<DateTime> _getDateRange(DateTime startDate, DateTime endDate) {
     Set<DateTime> dateSet = {};

@@ -3,10 +3,12 @@ import 'package:wandrr/data/trip/models/expense.dart';
 
 const List<Color> contributorColors = [
   Colors.white,
-  Colors.green,
+  Colors.pink,
   Colors.blue,
   Colors.yellow,
-  Colors.pink
+  Colors.redAccent,
+  Colors.deepPurple,
+  Colors.cyanAccent
 ];
 
 const Map<ExpenseCategory, IconData> iconsForCategories = {

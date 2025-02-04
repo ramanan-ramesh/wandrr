@@ -1,28 +1,25 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/collection_change_metadata.dart';
-import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
-import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/flip_card/flip_card.dart';
 
-import 'add_tripmate_button.dart';
+import 'trip_contributor_details.dart';
 
 const double _heightOfContributorWidget = 20.0;
 const double _maxOverviewElementHeight = 50.0;
 
 class TripOverviewTile extends StatelessWidget {
-  TripOverviewTile({Key? key}) : super(key: key);
+  const TripOverviewTile({Key? key}) : super(key: key);
 
   static const _imageHeight = 250.0;
   static const _assetImage = 'assets/images/planning_the_trip.jpg';
@@ -53,8 +50,8 @@ class TripOverviewTile extends StatelessWidget {
         Positioned(
           left: 10,
           right: 10,
-          top: isBigLayout ? 230 : 220,
-          child: _TripOverviewTile(),
+          top: 200,
+          child: const _OverviewTile(),
         )
       ],
     );
@@ -62,9 +59,9 @@ class TripOverviewTile extends StatelessWidget {
 
   double _calculateOverViewTileSize(
       bool isBigLayout, int numberOfContributors) {
-    var overviewTileSize = 2 * _maxOverviewElementHeight +
+    var overviewTileSize = 3 * _maxOverviewElementHeight +
         numberOfContributors * (_heightOfContributorWidget + 10) +
-        50;
+        _maxOverviewElementHeight;
     if (!isBigLayout) {
       overviewTileSize += _maxOverviewElementHeight + 30;
     }
@@ -72,57 +69,43 @@ class TripOverviewTile extends StatelessWidget {
   }
 }
 
-class _TripOverviewTile extends StatelessWidget {
-  const _TripOverviewTile({super.key});
+class _OverviewTile extends StatelessWidget {
+  const _OverviewTile({super.key});
 
   @override
   Widget build(BuildContext context) {
     var activeTrip = context.activeTrip;
-    return FlipCard(
-        fill: Fill.back,
-        direction: Axis.vertical,
-        duration: Duration(milliseconds: 750),
-        autoFlipDuration: Duration(seconds: 0),
-        front: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: _maxOverviewElementHeight,
-                    child: _buildTitleEditingField(activeTrip, context),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: _buildOverviewTile(context),
-                  ),
-                ],
-              ),
+    var overViewTile = Card(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            SizedBox(
+              height: _maxOverviewElementHeight,
+              child: _buildTitleEditingField(activeTrip, context),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: _buildOverviewTile(context),
+            ),
+          ],
         ),
-        back: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: _maxOverviewElementHeight,
-                    child: _buildTitleEditingField(activeTrip, context),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: _buildOverviewTile(context),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ));
+      ),
+    );
+    return FlipCard(
+      fill: Fill.back,
+      direction: Axis.vertical,
+      duration: const Duration(milliseconds: 750),
+      autoFlipDuration: const Duration(seconds: 0),
+      front: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: overViewTile,
+      ),
+      back: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: overViewTile,
+      ),
+    );
   }
 
   Widget _buildOverviewTile(BuildContext context) {
@@ -132,46 +115,43 @@ class _TripOverviewTile extends StatelessWidget {
         ? Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3.0),
-                  child: SizedBox(
-                    height: _maxOverviewElementHeight,
-                    child: _buildDateRangeButton(
-                        context, activeTrip.tripMetadata, isBigLayout),
-                  ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                child: SizedBox(
+                  height: _maxOverviewElementHeight,
+                  child: _buildDateRangeButton(
+                      context, activeTrip.tripMetadata, isBigLayout),
                 ),
               ),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3.0),
-                  child: _ContributorDetails(
-                      contributors: activeTrip.tripMetadata.contributors),
-                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5.0),
+                child: ContributorDetails(
+                    contributors: activeTrip.tripMetadata.contributors,
+                    heightOfContributorWidget: _heightOfContributorWidget,
+                    maxOverviewElementHeight: _maxOverviewElementHeight),
               ),
             ],
           )
-        : Padding(
-            padding: const EdgeInsets.symmetric(vertical: 3.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                    child: _buildDateRangeButton(
-                        context, activeTrip.tripMetadata, isBigLayout),
-                  ),
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                  child: _buildDateRangeButton(
+                      context, activeTrip.tripMetadata, isBigLayout),
                 ),
-                Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                    child: _ContributorDetails(
-                        contributors: activeTrip.tripMetadata.contributors),
-                  ),
+              ),
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                  child: ContributorDetails(
+                      contributors: activeTrip.tripMetadata.contributors,
+                      heightOfContributorWidget: _heightOfContributorWidget,
+                      maxOverviewElementHeight: _maxOverviewElementHeight),
                 ),
-              ],
-            ),
+              ),
+            ],
           );
   }
 
@@ -214,6 +194,7 @@ class _TripOverviewTile extends StatelessWidget {
                 icon: Icons.check_rounded,
                 isSubmitted: false,
                 context: context,
+                isElevationRequired: false,
                 callback: () {
                   var tripMetadataModelFacade = activeTrip.tripMetadata;
                   tripMetadataModelFacade.name = titleEditingController.text;
@@ -238,6 +219,7 @@ class _TripOverviewTile extends StatelessWidget {
     return PlatformFABDateRangePicker(
       startDate: startDate,
       endDate: endDate,
+      firstDate: DateTime.now(),
       callback: (startDate, endDate) {
         if (startDate != null && endDate != null) {
           tripMetadata.startDate = startDate;
@@ -247,77 +229,6 @@ class _TripOverviewTile extends StatelessWidget {
                   tripEntity: tripMetadata));
         }
       },
-    );
-  }
-}
-
-class _ContributorDetails extends StatelessWidget {
-  List<String> contributors;
-  static const double _heightOfContributorWidget = 20.0;
-  static const double _maxOverviewElementHeight = 50.0;
-
-  _ContributorDetails({super.key, required Iterable<String> contributors})
-      : contributors = contributors.toList();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<TripManagementBloc, TripManagementState>(
-      buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
-          var updatedTripEntity = currentState as UpdatedTripEntity;
-          if (updatedTripEntity.dataState == DataState.Update) {
-            var tripMetadataModificationData =
-                updatedTripEntity.tripEntityModificationData
-                    as CollectionChangeMetadata<TripMetadataFacade>;
-            var latestContributors = tripMetadataModificationData
-                .modifiedCollectionItem.contributors;
-            if (!listEquals(latestContributors, contributors)) {
-              contributors = latestContributors;
-              return true;
-            }
-          }
-        }
-        return false;
-      },
-      builder: (BuildContext context, TripManagementState state) {
-        contributors.sort((a, b) => a.compareTo(b));
-        var contributorsVsColors = <String, Color>{};
-        for (var index = 0; index < contributors.length; index++) {
-          var contributor = contributors.elementAt(index);
-          contributorsVsColors[contributor] =
-              contributorColors.elementAt(index);
-        }
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: contributorsVsColors.entries
-              .map((e) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 3.0),
-                    child: TextButton.icon(
-                        onPressed: null,
-                        icon: Container(
-                          width: 20,
-                          height: _heightOfContributorWidget,
-                          decoration: BoxDecoration(
-                            color: e.value,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        label: FittedBox(child: Text(e.key))) as Widget,
-                  ))
-              .toList()
-            ..insert(
-              0,
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3.0),
-                child: SizedBox(
-                  height: _maxOverviewElementHeight,
-                  child: AddTripMateField(),
-                ),
-              ),
-            ),
-        );
-      },
-      listener: (BuildContext context, TripManagementState state) {},
     );
   }
 }

@@ -26,8 +26,7 @@ class TransitFacade extends Equatable implements TripEntity {
 
   String? confirmationId;
 
-  //TODO: Make this null. Don't want to put in DB if not present
-  String notes;
+  String? notes;
 
   ExpenseFacade expense;
 
@@ -131,7 +130,7 @@ class TransitFacade extends Equatable implements TripEntity {
     if (transitOption == TransitOption.Flight) {
       var splitOptions = operator?.split(' ');
       if (splitOptions != null &&
-          splitOptions.length == 3 &&
+          splitOptions.length >= 3 &&
           !splitOptions.any((e) => e.isEmpty)) {
         return true;
       }

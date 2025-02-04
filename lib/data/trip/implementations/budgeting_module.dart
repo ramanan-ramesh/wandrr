@@ -20,6 +20,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   final CollectionModelFacade<ExpenseFacade> _expenseModelCollection;
   final CurrencyConverterService currencyConverter;
   String defaultCurrency;
+  final String currentUserName;
   Iterable<String> _contributors;
 
   final _subscriptions = <StreamSubscription>[];
@@ -30,13 +31,15 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       CollectionModelFacade<ExpenseFacade> expenseModelCollection,
       CurrencyConverterService currencyConverter,
       String defaultCurrency,
-      Iterable<String> contributors) async {
+      Iterable<String> contributors,
+      String currentUserName) async {
     double totalExpenditure = await _calculateTotalExpenseAmount(
         transitModelCollection,
         currencyConverter,
         defaultCurrency,
         lodgingModelCollection,
-        expenseModelCollection);
+        expenseModelCollection,
+        currentUserName);
     return BudgetingModule._(
         transitModelCollection,
         lodgingModelCollection,
@@ -44,7 +47,8 @@ class BudgetingModule implements BudgetingModuleEventHandler {
         currencyConverter,
         defaultCurrency,
         contributors,
-        totalExpenditure);
+        totalExpenditure,
+        currentUserName);
   }
 
   BudgetingModule._(
@@ -54,7 +58,8 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       this.currencyConverter,
       this.defaultCurrency,
       Iterable<String> contributors,
-      double totalExpenditure)
+      double totalExpenditure,
+      this.currentUserName)
       : _totalExpenditure = totalExpenditure,
         _contributors = contributors {
     _subscribeToTotalExpenseReCalculatorEvents();
@@ -194,15 +199,15 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   Future recalculateTotalExpenditure(
       {Iterable<TransitFacade> deletedTransits = const [],
       Iterable<LodgingFacade> deletedLodgings = const []}) async {
-    var updatedTotalExpenditure =
-        await BudgetingModule._calculateTotalExpenseAmount(
-            _transitModelCollection,
-            currencyConverter,
-            defaultCurrency,
-            _lodgingModelCollection,
-            _expenseModelCollection,
-            transitsToExclude: deletedTransits,
-            lodgingsToExclude: deletedLodgings);
+    var updatedTotalExpenditure = await _calculateTotalExpenseAmount(
+        _transitModelCollection,
+        currencyConverter,
+        defaultCurrency,
+        _lodgingModelCollection,
+        _expenseModelCollection,
+        transitsToExclude: deletedTransits,
+        lodgingsToExclude: deletedLodgings,
+        currentUserName);
     if (_totalExpenditure != updatedTotalExpenditure) {
       _totalExpenditure = updatedTotalExpenditure;
       _totalExpenditureStreamController.add(_totalExpenditure);
@@ -266,30 +271,41 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       String defaultCurrency,
       CollectionModelFacade<LodgingFacade> lodgingModelCollection,
       CollectionModelFacade<ExpenseFacade> expenseModelCollection,
+      String currentUserName,
       {Iterable<TransitFacade> transitsToExclude = const [],
       Iterable<LodgingFacade> lodgingsToExclude = const []}) async {
     double totalExpenditure = 0.0;
+    var expensesToConsider = <ExpenseFacade>[];
     for (var transit in transitModelCollection.collectionItems) {
       if (!transitsToExclude.any((e) => e.id == transit.id)) {
-        var totalExpense = await currencyConverter.performQuery(
-            currencyAmount: transit.facade.expense.totalExpense,
-            currencyToConvertTo: defaultCurrency);
-        totalExpenditure += totalExpense!;
+        var expense = transit.facade.expense;
+        if (expense.splitBy.contains(currentUserName)) {
+          expensesToConsider.add(expense);
+        }
       }
     }
     for (var lodging in lodgingModelCollection.collectionItems) {
       if (!lodgingsToExclude.any((e) => e.id == lodging.id)) {
-        var totalExpense = await currencyConverter.performQuery(
-            currencyAmount: lodging.facade.expense.totalExpense,
-            currencyToConvertTo: defaultCurrency);
-        totalExpenditure += totalExpense!;
+        var expense = lodging.facade.expense;
+        if (expense.splitBy.contains(currentUserName)) {
+          expensesToConsider.add(expense);
+        }
       }
     }
     for (var expense in expenseModelCollection.collectionItems) {
-      var totalExpense = await currencyConverter.performQuery(
-          currencyAmount: expense.facade.totalExpense,
-          currencyToConvertTo: defaultCurrency);
-      totalExpenditure += totalExpense!;
+      var expenseFacade = expense.facade;
+      if (expenseFacade.splitBy.contains(currentUserName)) {
+        expensesToConsider.add(expenseFacade);
+      }
+    }
+    if (expensesToConsider.isNotEmpty) {
+      totalExpenditure = 0.0;
+      for (var expense in expensesToConsider) {
+        var totalExpense = await currencyConverter.performQuery(
+            currencyAmount: expense.totalExpense,
+            currencyToConvertTo: defaultCurrency);
+        totalExpenditure += totalExpense!;
+      }
     }
     return totalExpenditure;
   }

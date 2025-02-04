@@ -55,8 +55,14 @@ class LodgingFacade extends Equatable implements TripEntity {
   void copyWith(LodgingFacade lodgingModelFacade) {
     tripId = lodgingModelFacade.tripId;
     location = lodgingModelFacade.location;
-    checkinDateTime = lodgingModelFacade.checkinDateTime;
-    checkoutDateTime = lodgingModelFacade.checkoutDateTime;
+    checkinDateTime = DateTime(
+        lodgingModelFacade.checkinDateTime!.year,
+        lodgingModelFacade.checkinDateTime!.month,
+        lodgingModelFacade.checkinDateTime!.day);
+    checkoutDateTime = DateTime(
+        lodgingModelFacade.checkoutDateTime!.year,
+        lodgingModelFacade.checkoutDateTime!.month,
+        lodgingModelFacade.checkoutDateTime!.day);
     id = lodgingModelFacade.id;
     tripId = lodgingModelFacade.tripId;
     confirmationId = lodgingModelFacade.confirmationId;
@@ -67,8 +73,10 @@ class LodgingFacade extends Equatable implements TripEntity {
   LodgingFacade clone() {
     return LodgingFacade(
         location: location?.clone(),
-        checkinDateTime: checkinDateTime,
-        checkoutDateTime: checkoutDateTime,
+        checkinDateTime: DateTime(checkinDateTime!.year, checkinDateTime!.month,
+            checkinDateTime!.day),
+        checkoutDateTime: DateTime(checkoutDateTime!.year,
+            checkoutDateTime!.month, checkoutDateTime!.day),
         id: id,
         tripId: tripId,
         confirmationId: confirmationId,

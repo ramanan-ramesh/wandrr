@@ -16,12 +16,12 @@ class AuthenticationSuccess extends AuthenticationState {
 }
 
 class AuthenticationFailure extends AuthenticationState {
-  final AuthenticationFailures failureReason;
+  final AuthenticationFailureCode failureReason;
 
   AuthenticationFailure({required this.failureReason});
 }
 
-enum AuthenticationFailures {
+enum AuthenticationFailureCode {
   UsernameAlreadyExists,
   WrongPassword,
   NoSuchUsernameExists,

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:aligned_dialog/aligned_dialog.dart' as alignedDialog;
 import 'package:flutter/material.dart';
 
@@ -46,6 +48,16 @@ class PlatformDialogElements {
     }
     alignedDialog
         .showAlignedDialog(
+      transitionsBuilder: (ctx, anim1, anim2, child) => BackdropFilter(
+        filter:
+            ImageFilter.blur(sigmaX: 4 * anim1.value, sigmaY: 4 * anim1.value),
+        child: AnimatedOpacity(
+          opacity: anim1.value,
+          curve: Curves.fastEaseInToSlowEaseOut,
+          duration: Duration(milliseconds: 750),
+          child: child,
+        ),
+      ),
       context: context,
       builder: (context) {
         return SingleChildScrollView(

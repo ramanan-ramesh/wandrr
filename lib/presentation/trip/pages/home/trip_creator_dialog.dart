@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/trip/models/api_services/currency_data.dart';
+import 'package:wandrr/data/trip/models/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/currency_drop_down.dart';
+import 'package:wandrr/presentation/trip/widgets/expense_amount_edit_field.dart';
 
 class TripCreatorDialog extends StatelessWidget {
   late final ValueNotifier<bool> _tripCreationMetadataValidityNotifier =
@@ -36,7 +38,6 @@ class TripCreatorDialog extends StatelessWidget {
       children: [
         AppBar(
           leading: IconButton(
-            //TODO: Unable to style splashColor here for dark mode
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -68,7 +69,12 @@ class TripCreatorDialog extends StatelessWidget {
               ),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
-                child: _buildTripNameField(context),
+                child: TextField(
+                    onChanged: _updateTripName,
+                    decoration: InputDecoration(
+                      labelText: context.localizations.tripName,
+                    ),
+                    controller: _tripNameEditingController),
               ),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
@@ -102,6 +108,16 @@ class TripCreatorDialog extends StatelessWidget {
                   ],
                 ),
               ),
+              PlatformExpenseAmountEditField(
+                onExpenseAmountChanged: (newValue) {
+                  _currentTripMetadata.budget = Money(
+                      currency: _currentTripMetadata.budget.currency,
+                      amount: newValue);
+                },
+                inputDecoration: InputDecoration(
+                  hintText: context.localizations.budgetAmount,
+                ),
+              ),
             ],
           ),
         ),
@@ -128,14 +144,6 @@ class TripCreatorDialog extends StatelessWidget {
         _currentTripMetadata.isValid();
   }
 
-  Widget _buildTripNameField(BuildContext context) {
-    return PlatformTextElements.createTextField(
-        context: context,
-        labelText: context.localizations.tripName,
-        onTextChanged: _updateTripName,
-        controller: _tripNameEditingController);
-  }
-
   Widget _buildCreateTripButton(BuildContext context) {
     return PlatformSubmitterFAB.conditionallyEnabled(
       icon: Icons.done_rounded,
@@ -143,8 +151,7 @@ class TripCreatorDialog extends StatelessWidget {
       callback: () {
         if (_currentTripMetadata.isValid()) {
           _submitTripCreationEvent();
-          Navigator.of(context)
-              .pop(); //TODO: Animate the button to show 'Done' text, and then after a second, close the dialog
+          Navigator.of(context).pop();
         }
       },
       valueNotifier: _tripCreationMetadataValidityNotifier,

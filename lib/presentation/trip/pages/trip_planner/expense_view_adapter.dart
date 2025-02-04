@@ -16,9 +16,6 @@ class ExpenseViewAdapter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var emptyWidget = const SliverToBoxAdapter(
-      child: SizedBox.shrink(),
-    );
     return ValueListenableBuilder(
       valueListenable: _expenseViewTypeNotifier,
       builder: (BuildContext context, ExpenseViewType value, Widget? child) {

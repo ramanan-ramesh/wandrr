@@ -75,7 +75,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
               order: NumericFocusOrder(1),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: _buildUserNamePasswordForm(),
+                child: _createUserNamePasswordForm(),
               ),
             ),
             const SizedBox(height: 24.0),
@@ -83,18 +83,18 @@ class _LoginPageFormState extends State<_LoginPageForm>
               order: NumericFocusOrder(2),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 200, minWidth: 150),
-                child: _buildSubmitButton(context),
+                child: _createSubmitButton(context),
               ),
             ),
             const SizedBox(height: 24.0),
-            _buildAlternateLoginMethods(context),
+            _createAlternateLoginMethods(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSubmitButton(BuildContext context) {
+  Widget _createSubmitButton(BuildContext context) {
     return BlocConsumer<AuthenticationBloc, AuthenticationState>(
       builder: (BuildContext context, AuthenticationState state) {
         var isSubmitted = false;
@@ -130,27 +130,26 @@ class _LoginPageFormState extends State<_LoginPageForm>
     );
   }
 
-  Column _buildAlternateLoginMethods(BuildContext context) {
+  Widget _createAlternateLoginMethods(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           context.localizations.alternativeLogin,
           style: Theme.of(context).textTheme.titleMedium,
-          // textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16.0),
-        _buildAlternateLoginProviderButton(
+        _createAlternateAuthProviderButton(
             AuthenticationType.Google, googleLogoAsset, context),
       ],
     );
   }
 
-  Widget _buildAlternateLoginProviderButton(AuthenticationType thirdParty,
+  Widget _createAlternateAuthProviderButton(AuthenticationType thirdParty,
       String thirdPartyLogoAssetName, BuildContext context) {
     return Material(
       shape: const CircleBorder(),
-      clipBehavior: Clip.antiAliasWithSaveLayer,
+      clipBehavior: Clip.hardEdge,
       child: InkWell(
         splashColor: Colors.white30,
         onTap: () {
@@ -181,7 +180,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
     );
   }
 
-  Widget _buildUserNamePasswordForm() {
+  Widget _createUserNamePasswordForm() {
     return Form(
       key: _formKey,
       child: BlocConsumer<AuthenticationBloc, AuthenticationState>(
@@ -204,6 +203,11 @@ class _LoginPageFormState extends State<_LoginPageForm>
           );
         },
         listener: (BuildContext context, AuthenticationState state) {},
+        buildWhen: (previousState, currentState) {
+          return currentState is Authenticating ||
+              currentState is AuthenticationFailure ||
+              currentState is AuthenticationSuccess;
+        },
       ),
     );
   }
@@ -211,7 +215,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
   Widget _createPasswordField(AuthenticationState authState) {
     String? errorText;
     if (authState is AuthenticationFailure) {
-      if (authState.failureReason == AuthenticationFailures.WrongPassword) {
+      if (authState.failureReason == AuthenticationFailureCode.WrongPassword) {
         errorText = context.localizations.wrong_password_entered;
       }
     }
@@ -235,10 +239,10 @@ class _LoginPageFormState extends State<_LoginPageForm>
     String? errorText;
     if (authState is AuthenticationFailure) {
       if (authState.failureReason ==
-          AuthenticationFailures.UsernameAlreadyExists) {
+          AuthenticationFailureCode.UsernameAlreadyExists) {
         errorText = context.localizations.userNameAlreadyExists;
       } else if (authState.failureReason ==
-          AuthenticationFailures.NoSuchUsernameExists) {
+          AuthenticationFailureCode.NoSuchUsernameExists) {
         errorText = context.localizations.noSuchUserExists;
       }
     }
@@ -246,6 +250,8 @@ class _LoginPageFormState extends State<_LoginPageForm>
       context: context,
       textInputAction: TextInputAction.next,
       controller: _usernameController,
+      readonly:
+          authState is Authenticating || authState is AuthenticationSuccess,
       inputDecoration: InputDecoration(
         icon: const Icon(Icons.person_2_rounded),
         labelText: context.localizations.userName,

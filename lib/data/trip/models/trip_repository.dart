@@ -1,3 +1,5 @@
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 import '../../app/models/collection_model_facade.dart';
 import '../../app/models/leaf_repository_item.dart';
 import 'api_services/currency_converter.dart';
@@ -25,4 +27,6 @@ abstract class TripRepositoryEventHandler extends TripRepositoryFacade
   TripDataModelEventHandler? get activeTripEventHandler;
 
   Future loadAndActivateTrip(TripMetadataFacade? tripMetadata);
+
+  void updateLocalizations(AppLocalizations appLocalizations);
 }

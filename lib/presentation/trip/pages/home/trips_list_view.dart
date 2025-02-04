@@ -7,13 +7,13 @@ import 'package:intl/intl.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 class TripListView extends StatelessWidget {
   static const _tripPlanningImageAssets = [
@@ -155,8 +155,6 @@ class _TripMetadataGridItem extends StatelessWidget {
       builder: (BuildContext context, TripManagementState state) {
         var subTitle =
             '${_dateFormat.format(tripMetaDataFacade.startDate!)} to ${_dateFormat.format(tripMetaDataFacade.endDate!)}';
-        var isLightTheme =
-            context.appDataRepository.activeThemeMode == ThemeMode.light;
         return ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: InkWell(
@@ -166,7 +164,6 @@ class _TripMetadataGridItem extends StatelessWidget {
                   LoadTrip(tripMetadata: tripMetaDataFacade));
             },
             child: Column(
-              //TODO: There is empty space below the Column widget. Remove it
               mainAxisSize: MainAxisSize.min,
               children: [
                 Stack(
@@ -181,7 +178,7 @@ class _TripMetadataGridItem extends StatelessWidget {
                             horizontal: 16.0, vertical: 3),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: isLightTheme
+                            colors: context.isLightTheme
                                 ? [Colors.teal.shade50, Colors.teal.shade500]
                                 : [Colors.black, Colors.black38],
                             stops: [0, 1],
