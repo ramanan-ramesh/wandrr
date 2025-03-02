@@ -1,4 +1,4 @@
-package com.wandrr.wandrr
+package com.rareapps.wandrr
 
 import io.flutter.embedding.android.FlutterActivity
 

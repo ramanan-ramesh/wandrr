@@ -2,18 +2,19 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/delete_trip_dialog.dart';
 
 class TripListView extends StatelessWidget {
   static const _tripPlanningImageAssets = [
@@ -84,6 +85,7 @@ class TripListView extends StatelessWidget {
                     if (state is ActivatedTrip) {
                       Navigator.of(dialogContext).pop();
                     }
+
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -221,7 +223,7 @@ class _TripMetadataGridItem extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 3.0),
                           child: IconButton(
                             onPressed: () {
-                              _buildDeleteTripConfirmationDialog(context);
+                              _showDeleteTripConfirmationDialog(context);
                             },
                             icon: Icon(Icons.delete_rounded),
                           ),
@@ -252,34 +254,10 @@ class _TripMetadataGridItem extends StatelessWidget {
     );
   }
 
-  Future<Object?> _buildDeleteTripConfirmationDialog(BuildContext context) {
-    return showGeneralDialog(
-        context: context,
-        pageBuilder: (BuildContext dialogContext, Animation<double> animation,
-            Animation<double> secondaryAnimation) {
-          return AlertDialog(
-            title: Center(
-              child: Text(
-                  AppLocalizations.of(dialogContext)!.deleteTripConfirmation),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                },
-                child: Text(AppLocalizations.of(dialogContext)!.no),
-              ),
-              TextButton(
-                onPressed: () {
-                  context.addTripManagementEvent(
-                      UpdateTripEntity<TripMetadataFacade>.delete(
-                          tripEntity: tripMetaDataFacade));
-                  Navigator.of(dialogContext).pop();
-                },
-                child: Text(AppLocalizations.of(dialogContext)!.yes),
-              ),
-            ],
-          );
-        });
+  void _showDeleteTripConfirmationDialog(BuildContext pageContext) {
+    PlatformDialogElements.showAlertDialog(pageContext, (context) {
+      return DeleteTripDialog(
+          widgetContext: pageContext, tripMetadataFacade: tripMetaDataFacade);
+    });
   }
 }

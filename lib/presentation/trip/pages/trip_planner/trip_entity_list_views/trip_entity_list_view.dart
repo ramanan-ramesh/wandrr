@@ -97,40 +97,44 @@ class _TripEntityListViewState<T extends TripEntity>
                 snapshot.hasData) {
               _uiElements = snapshot.data!.toList();
             }
-            return SliverList.builder(
-              itemBuilder: (BuildContext context, int index) {
-                if (index == 0) {
-                  return _createHeaderTile(context);
-                } else if (index == 1 && _uiElements.isEmpty) {
-                  return _createEmptyMessagePane(context);
-                } else if (index > 0) {
-                  var uiElement = _uiElements.elementAt(index - 1);
-                  if (uiElement.dataState == DataState.NewUiEntry &&
-                      state is UpdatedTripEntity &&
-                      state.dataState == DataState.NewUiEntry) {}
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5.0),
-                    child: TripEntityListElement<T>(
-                      uiElement: uiElement,
-                      onPressed: widget.onUiElementPressed,
-                      canDelete: widget.canDelete,
-                      additionalListItemBuildWhenCondition:
-                          widget.additionalListItemBuildWhenCondition,
-                      onUpdatePressed: widget.onUpdatePressed,
-                      onDeletePressed: widget.onDeletePressed,
-                      openedListElementCreator: widget.openedListElementCreator,
-                      closedElementCreator: () => Container(
-                          color: Colors.black12,
-                          child: widget.closedListElementCreator(uiElement)),
-                      errorMessageCreator: widget.errorMessageCreator,
-                    ),
-                  );
-                }
-                return null;
-              },
-              itemCount: _isCollapsed
-                  ? 1
-                  : (_uiElements.isEmpty ? 2 : _uiElements.length + 1),
+
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  if (index == 0) {
+                    return _createHeaderTile(context);
+                  } else if (index == 1 && _uiElements.isEmpty) {
+                    return _createEmptyMessagePane(context);
+                  } else if (index > 0) {
+                    var uiElement = _uiElements.elementAt(index - 1);
+                    if (uiElement.dataState == DataState.NewUiEntry &&
+                        state is UpdatedTripEntity &&
+                        state.dataState == DataState.NewUiEntry) {}
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5.0),
+                      child: TripEntityListElement<T>(
+                        uiElement: uiElement,
+                        onPressed: widget.onUiElementPressed,
+                        canDelete: widget.canDelete,
+                        additionalListItemBuildWhenCondition:
+                            widget.additionalListItemBuildWhenCondition,
+                        onUpdatePressed: widget.onUpdatePressed,
+                        onDeletePressed: widget.onDeletePressed,
+                        openedListElementCreator:
+                            widget.openedListElementCreator,
+                        closedElementCreator: () => Container(
+                            color: Colors.black12,
+                            child: widget.closedListElementCreator(uiElement)),
+                        errorMessageCreator: widget.errorMessageCreator,
+                      ),
+                    );
+                  }
+                  return null;
+                },
+                childCount: _isCollapsed
+                    ? 1
+                    : (_uiElements.isEmpty ? 2 : _uiElements.length + 1),
+              ),
             );
           },
         );

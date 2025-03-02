@@ -1,12 +1,10 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/blocs/master_page/master_page_events.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
+import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 import 'trip_creator_dialog.dart';
@@ -92,35 +90,17 @@ class HomePage extends StatelessWidget {
       visible: !keyboardIsOpened,
       child: FloatingActionButton.extended(
         onPressed: () {
-          showGeneralDialog(
-            context: pageContext,
-            barrierDismissible: false,
-            pageBuilder: (BuildContext context, Animation<double> animation,
-                Animation<double> secondaryAnimation) {
-              return Material(
-                child: Dialog(
-                  child: Container(
-                    constraints: BoxConstraints(maxWidth: 450),
-                    child: TripCreatorDialog(
-                      widgetContext: pageContext,
-                    ),
-                  ),
-                ),
-              );
-            },
-            transitionBuilder: (ctx, anim1, anim2, child) => BackdropFilter(
-              filter: ImageFilter.blur(
-                  sigmaX: 4 * anim1.value, sigmaY: 4 * anim1.value),
-              child: AnimatedOpacity(
-                opacity: anim1.value,
-                curve: Curves.fastEaseInToSlowEaseOut,
-                duration: Duration(milliseconds: 750),
-                child: child,
+          PlatformDialogElements.showGeneralDialog(
+            pageContext,
+            Container(
+              constraints: BoxConstraints(maxWidth: 450),
+              child: TripCreatorDialog(
+                widgetContext: pageContext,
               ),
             ),
           );
         },
-        label: Text(AppLocalizations.of(pageContext)!.planTrip),
+        label: Text(pageContext.localizations.planTrip),
         icon: Icon(Icons.add_location_alt_rounded),
       ),
     );

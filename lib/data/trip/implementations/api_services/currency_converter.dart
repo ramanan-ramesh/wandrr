@@ -3,10 +3,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:wandrr/data/trip/models/api_services/currency_converter.dart';
-import 'package:wandrr/data/trip/models/api_services/currency_data.dart';
 import 'package:wandrr/data/trip/models/money.dart';
-
-import 'constants.dart';
 
 class CurrencyConverter implements CurrencyConverterService {
   static const _apiSurfaceUrl =
@@ -15,10 +12,7 @@ class CurrencyConverter implements CurrencyConverterService {
   final List<_CurrencyExchangeData> _exchangeRates = [];
 
   static CurrencyConverter create() {
-    var currencyDataList = Constants.currencies
-        .map((currencyJson) => CurrencyData.fromJson(currencyJson))
-        .toList();
-    return CurrencyConverter._(currencyDataList);
+    return CurrencyConverter();
   }
 
   @override
@@ -87,15 +81,10 @@ class CurrencyConverter implements CurrencyConverterService {
         : null;
   }
 
-  @override
-  List<CurrencyData> supportedCurrencies;
-
   String _constructQuery(String currencyToConvertTo) {
     return '$_apiSurfaceUrl/currencies/${currencyToConvertTo.toLowerCase()}.json';
     // return '$_apiSurfaceUrl/${currencyToConvertTo.toLowerCase()}.json';
   }
-
-  CurrencyConverter._(this.supportedCurrencies);
 }
 
 class _CurrencyExchangeData {

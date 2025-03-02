@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/api_services/currency_data.dart';
+import 'package:wandrr/data/trip/models/currency_data.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
 import 'package:wandrr/data/trip/models/money.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
-import 'package:wandrr/presentation/app/widgets/button.dart';
+import 'package:wandrr/presentation/app/widgets/tab_bar.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/currency_drop_down.dart';
 
-import '../../pages/trip_planner/constants.dart';
 import 'paid_by_tab.dart';
 import 'split_by_tab.dart';
 

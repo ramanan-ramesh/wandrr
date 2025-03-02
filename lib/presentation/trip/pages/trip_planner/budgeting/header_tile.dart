@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
@@ -23,16 +24,6 @@ class BudgetingHeaderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FlipCard(
-        fill: Fill.back,
-        direction: Axis.horizontal,
-        duration: const Duration(milliseconds: 750),
-        autoFlipDuration: const Duration(seconds: 0),
-        front: _createBudgetingHeaderTile(context),
-        back: _createBudgetingHeaderTile(context));
-  }
-
-  Column _createBudgetingHeaderTile(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,7 +34,15 @@ class BudgetingHeaderTile extends StatelessWidget {
         ),
         Padding(
           padding: EdgeInsets.symmetric(vertical: 5.0),
-          child: _createOverviewTile(context),
+          child: FlipCard(
+            fill: Fill.back,
+            direction: Axis.horizontal,
+            duration: const Duration(milliseconds: 750),
+            autoFlipDuration:
+                context.isBigLayout ? null : const Duration(seconds: 0),
+            front: _createOverviewTile(context),
+            back: _createOverviewTile(context),
+          ),
         ),
       ],
     );

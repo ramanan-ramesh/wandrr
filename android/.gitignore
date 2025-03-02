@@ -1,8 +1,11 @@
 gradle-wrapper.jar
 /.gradle
+/.idea
+/.kotlin
 /captures/
 /gradlew
 /gradlew.bat
+/app/.cxx
 /local.properties
 GeneratedPluginRegistrant.java
 

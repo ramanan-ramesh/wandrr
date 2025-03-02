@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:aligned_dialog/aligned_dialog.dart' as alignedDialog;
 import 'package:flutter/material.dart';
+import 'package:flutter/src/widgets/routes.dart' as routes;
 
 class PlatformDialogElements {
   static void showAlignedDialog(
@@ -53,8 +54,8 @@ class PlatformDialogElements {
             ImageFilter.blur(sigmaX: 4 * anim1.value, sigmaY: 4 * anim1.value),
         child: AnimatedOpacity(
           opacity: anim1.value,
-          curve: Curves.fastEaseInToSlowEaseOut,
-          duration: Duration(milliseconds: 750),
+          curve: Curves.easeOutBack,
+          duration: Duration(milliseconds: 1000),
           child: child,
         ),
       ),
@@ -78,5 +79,56 @@ class PlatformDialogElements {
         onDialogResult(value);
       }
     });
+  }
+
+  static void showGeneralDialog(
+      BuildContext scaffoldContext, Widget dialogContent,
+      {bool isDismissible = false}) {
+    routes.showGeneralDialog(
+      context: scaffoldContext,
+      barrierDismissible: isDismissible,
+      pageBuilder: (BuildContext context, Animation<double> animation,
+          Animation<double> secondaryAnimation) {
+        return Material(
+          child: Dialog(
+            child: dialogContent,
+          ),
+        );
+      },
+      transitionBuilder: (ctx, anim1, anim2, child) => BackdropFilter(
+        filter:
+            ImageFilter.blur(sigmaX: 4 * anim1.value, sigmaY: 4 * anim1.value),
+        child: AnimatedOpacity(
+          opacity: anim1.value,
+          curve: Curves.easeInOutBack,
+          duration: Duration(milliseconds: 500),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  static void showAlertDialog(
+      BuildContext scaffoldContext, WidgetBuilder dialogContentCreator,
+      {bool isDismissible = false}) {
+    routes.showGeneralDialog(
+      context: scaffoldContext,
+      barrierDismissible: isDismissible,
+      pageBuilder: (BuildContext context, Animation<double> animation,
+          Animation<double> secondaryAnimation) {
+        return Material(
+          child: dialogContentCreator(context),
+        );
+      },
+      transitionBuilder: (context, a1, a2, widget) {
+        return Opacity(
+          opacity: a1.value,
+          child: Transform.scale(
+            scale: a1.value,
+            child: widget,
+          ),
+        );
+      },
+    );
   }
 }

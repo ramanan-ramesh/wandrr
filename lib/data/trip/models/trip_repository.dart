@@ -5,6 +5,7 @@ import '../../app/models/leaf_repository_item.dart';
 import 'api_services/currency_converter.dart';
 import 'api_services/flight_operations.dart';
 import 'api_services/geo_locator.dart';
+import 'currency_data.dart';
 import 'trip_data.dart';
 import 'trip_metadata.dart';
 
@@ -18,6 +19,8 @@ abstract class TripRepositoryFacade {
   FlightOperationsService get flightOperationsService;
 
   GeoLocatorService get geoLocator;
+
+  Iterable<CurrencyData> get supportedCurrencies;
 }
 
 abstract class TripRepositoryEventHandler extends TripRepositoryFacade

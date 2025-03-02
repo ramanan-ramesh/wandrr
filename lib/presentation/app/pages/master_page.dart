@@ -110,7 +110,7 @@ class _ContentPage extends StatelessWidget {
           onSecondary: Colors.green,
           error: Colors.red,
           onError: Colors.white,
-          surface: Colors.white10,
+          surface: Colors.grey.shade800,
           onSurface: Colors.white),
       scrollbarTheme: ScrollbarThemeData(
         thumbColor: WidgetStateProperty.all(Colors.green),
@@ -123,7 +123,7 @@ class _ContentPage extends StatelessWidget {
         ),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: Colors.grey.shade800,
+        backgroundColor: Colors.grey.shade700,
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(color: Colors.green),
       listTileTheme: ListTileThemeData(
@@ -164,10 +164,10 @@ class _ContentPage extends StatelessWidget {
           borderRadius: BorderRadius.circular(_tabIndicatorRadius),
           border: Border.all(color: Colors.green),
         ),
+        indicatorColor: Colors.green,
         indicatorSize: TabBarIndicatorSize.tab,
         labelStyle: Theme.of(context).textTheme.headlineMedium,
         unselectedLabelStyle: Theme.of(context).textTheme.headlineMedium,
-        indicatorColor: Colors.green,
         labelColor: Colors.white,
         unselectedLabelColor: Colors.grey,
       ),
@@ -187,9 +187,9 @@ class _ContentPage extends StatelessWidget {
           fontStyle: FontStyle.italic,
         ),
         filled: true,
-        fillColor: Colors.grey.shade700,
+        fillColor: Colors.grey.shade600,
         floatingLabelStyle: TextStyle(
-          color: Colors.green,
+          color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
         border: OutlineInputBorder(
@@ -267,7 +267,7 @@ class _ContentPage extends StatelessWidget {
         ),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: Colors.teal.shade300,
+        backgroundColor: Colors.teal.shade400,
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(color: Colors.black),
       listTileTheme: ListTileThemeData(
@@ -313,8 +313,8 @@ class _ContentPage extends StatelessWidget {
         labelStyle: Theme.of(context).textTheme.headlineMedium,
         unselectedLabelStyle: Theme.of(context).textTheme.headlineMedium,
         indicatorColor: Colors.teal,
-        labelColor: Colors.black,
-        unselectedLabelColor: Colors.white,
+        unselectedLabelColor: Colors.black,
+        labelColor: Colors.white,
       ),
       appBarTheme: AppBarTheme(
         color: Colors.teal,

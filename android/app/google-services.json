@@ -2,39 +2,31 @@
   "project_info": {
     "project_number": "778106737436",
     "project_id": "wandrr-15f70",
-    "storage_bucket": "wandrr-15f70.appspot.com"
+    "storage_bucket": "wandrr-15f70.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:778106737436:android:71325538910a5e411c20d9",
+        "mobilesdk_app_id": "1:778106737436:android:8b27ad2ddf5162891c20d9",
         "android_client_info": {
-          "package_name": "com.wandrr.wandrr"
+          "package_name": "com.rareapps.wandrr"
         }
       },
       "oauth_client": [
         {
-          "client_id": "778106737436-109jf8kjin81flvm7vf8t4382o2i7lf4.apps.googleusercontent.com",
+          "client_id": "778106737436-9loj9l71vhdjqckplkb4doe2p0njadls.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.wandrr.wandrr",
-            "certificate_hash": "89c3a957e02fbb9aa97050ea3684bb7d81846f4b"
-          }
-        },
-        {
-          "client_id": "778106737436-3rpq5ciag472ohngd4vtgf6tk381og4i.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.wandrr.wandrr",
+            "package_name": "com.rareapps.wandrr",
             "certificate_hash": "ff0ee0416b5b41fa51aa555a6e62ad5ceabe4855"
           }
         },
         {
-          "client_id": "778106737436-dk972mr4ujfkkj4htjoffehvgrfgvm4u.apps.googleusercontent.com",
+          "client_id": "778106737436-uo3dbm1gkt98gd8p7673ugad66l6k56i.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.wandrr.wandrr",
-            "certificate_hash": "3085733381cc30ba7e5e24304f2596e8c822602b"
+            "package_name": "com.rareapps.wandrr",
+            "certificate_hash": "89c3a957e02fbb9aa97050ea3684bb7d81846f4b"
           }
         },
         {

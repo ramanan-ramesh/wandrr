@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/api_services/currency_data.dart';
+import 'package:wandrr/data/trip/models/currency_data.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 
 abstract class CurrencyDropDownField extends StatefulWidget {

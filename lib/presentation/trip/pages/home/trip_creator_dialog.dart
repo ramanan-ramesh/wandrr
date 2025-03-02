@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/data/trip/models/api_services/currency_data.dart';
 import 'package:wandrr/data/trip/models/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
@@ -10,8 +9,7 @@ import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
-import 'package:wandrr/presentation/trip/widgets/currency_drop_down.dart';
-import 'package:wandrr/presentation/trip/widgets/expense_amount_edit_field.dart';
+import 'package:wandrr/presentation/trip/widgets/money_edit_field.dart';
 
 class TripCreatorDialog extends StatelessWidget {
   late final ValueNotifier<bool> _tripCreationMetadataValidityNotifier =
@@ -78,44 +76,26 @@ class TripCreatorDialog extends StatelessWidget {
               ),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
-                child: Row(
+                child: Column(
                   children: [
-                    Flexible(
-                      child: Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: PlatformTextElements.createSubHeader(
-                            context: context,
-                            text: widgetContext
-                                .localizations.chooseDefaultCurrency),
-                      ),
-                    ),
-                    Flexible(
-                      child: Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: PlatformCurrencyDropDown(
-                          selectedCurrencyData: currencyInfo,
-                          allCurrencies: widgetContext.supportedCurrencies,
-                          currencySelectedCallback:
-                              (CurrencyData selectedCurrencyInfo) {
-                            _currentTripMetadata.budget.currency =
-                                selectedCurrencyInfo.code;
-                            _tripCreationMetadataValidityNotifier.value =
-                                _currentTripMetadata.isValid();
-                          },
-                        ),
-                      ),
+                    Text(context.localizations.setBudgetAndCurrency),
+                    PlatformMoneyEditField(
+                      allCurrencies: widgetContext.supportedCurrencies,
+                      selectedCurrencyData: currencyInfo,
+                      onAmountUpdatedCallback: (updatedAmount) {
+                        _currentTripMetadata.budget = Money(
+                            currency: _currentTripMetadata.budget.currency,
+                            amount: updatedAmount);
+                      },
+                      currencySelectedCallback: (selectedCurrency) {
+                        _currentTripMetadata.budget.currency =
+                            selectedCurrency.code;
+                        _tripCreationMetadataValidityNotifier.value =
+                            _currentTripMetadata.isValid();
+                      },
+                      isAmountEditable: true,
                     ),
                   ],
-                ),
-              ),
-              PlatformExpenseAmountEditField(
-                onExpenseAmountChanged: (newValue) {
-                  _currentTripMetadata.budget = Money(
-                      currency: _currentTripMetadata.budget.currency,
-                      amount: newValue);
-                },
-                inputDecoration: InputDecoration(
-                  hintText: context.localizations.budgetAmount,
                 ),
               ),
             ],

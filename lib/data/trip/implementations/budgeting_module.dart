@@ -387,28 +387,22 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   Future<Iterable<UiElement<ExpenseFacade>>> _sortOnCost(
       List<UiElement<ExpenseFacade>> expenseUiElements,
       {bool isAscendingOrder = true}) async {
-    for (int i = 0; i < expenseUiElements.length - 1; i++) {
-      for (int j = 0; j < expenseUiElements.length - i - 1; j++) {
-        var firstElement = expenseUiElements[j];
-        var firstExpenseValue = await currencyConverter.performQuery(
-            currencyAmount: firstElement.element.totalExpense,
-            currencyToConvertTo: defaultCurrency);
-        var secondElement = expenseUiElements[j + 1];
-        var secondExpenseValue = await currencyConverter.performQuery(
-            currencyAmount: secondElement.element.totalExpense,
-            currencyToConvertTo: defaultCurrency);
+    var expenseElementsWithConvertedCurrency =
+        <UiElement<ExpenseFacade>, double>{};
 
-        int comparisonResult =
-            firstExpenseValue!.compareTo(secondExpenseValue!);
-        var shouldSwapElements =
-            isAscendingOrder ? comparisonResult > 0 : comparisonResult < 0;
-        if (shouldSwapElements) {
-          var temp = expenseUiElements[j];
-          expenseUiElements[j] = expenseUiElements[j + 1];
-          expenseUiElements[j + 1] = temp;
-        }
-      }
+    for (var expenseUiElement in expenseUiElements) {
+      var expenseValue = await currencyConverter.performQuery(
+          currencyAmount: expenseUiElement.element.totalExpense,
+          currencyToConvertTo: defaultCurrency);
+      expenseElementsWithConvertedCurrency[expenseUiElement] = expenseValue!;
     }
+
+    expenseUiElements.sort((a, b) {
+      var comparisonResult = expenseElementsWithConvertedCurrency[a]!
+          .compareTo(expenseElementsWithConvertedCurrency[b]!);
+      return isAscendingOrder ? comparisonResult : -comparisonResult;
+    });
+
     return expenseUiElements;
   }
 

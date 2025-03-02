@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
+import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/expense_view_adapter.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/itinerary.dart';
@@ -9,6 +9,7 @@ import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_vie
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/transit.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_overview/trip_overview_tile.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/delete_trip_dialog.dart';
 
 import 'budgeting/header_tile.dart';
 import 'expense_view_type.dart';
@@ -195,19 +196,20 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
-          onPressed: () {},
-          icon: Icon(Icons.share_rounded),
-        ),
-        IconButton(
           onPressed: () {
-            var tripMetadataFacade = context.activeTrip.tripMetadata;
-            context.addTripManagementEvent(
-                UpdateTripEntity<TripMetadataFacade>.delete(
-                    tripEntity: tripMetadataFacade));
+            _showDeleteTripConfirmationDialog(context);
           },
           icon: Icon(Icons.delete_rounded),
         ),
       ],
     );
+  }
+
+  void _showDeleteTripConfirmationDialog(BuildContext pageContext) {
+    var tripMetadataToDelete = pageContext.activeTrip.tripMetadata;
+    PlatformDialogElements.showAlertDialog(pageContext, (context) {
+      return DeleteTripDialog(
+          widgetContext: pageContext, tripMetadataFacade: tripMetadataToDelete);
+    });
   }
 }

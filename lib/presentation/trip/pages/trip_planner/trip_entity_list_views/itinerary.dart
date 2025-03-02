@@ -34,8 +34,11 @@ class _ItineraryListViewState extends State<ItineraryListView> {
                 return PlatformTextElements.createHeader(
                     context: context, text: context.localizations.itinerary);
               } else {
-                return ItineraryListItem(
-                    itineraryFacade: itineraryModelCollection[index - 1]);
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3.0),
+                  child: ItineraryListItem(
+                      itineraryFacade: itineraryModelCollection[index - 1]),
+                );
               }
             },
             childCount: itineraryModelCollection.length + 1,
