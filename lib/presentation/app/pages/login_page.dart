@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/auth_type.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/blocs/authentication/auth_bloc.dart';
 import 'package:wandrr/presentation/app/blocs/authentication/auth_events.dart';
 import 'package:wandrr/presentation/app/blocs/authentication/auth_states.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/blocs/master_page/master_page_events.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 

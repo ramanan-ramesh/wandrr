@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart'
     as appDataPicker;
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 
 class PlatformDateTimePicker extends StatefulWidget {
   final DateTime? currentDateTime;

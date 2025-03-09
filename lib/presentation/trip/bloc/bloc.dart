@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/data/app/models/collection_change_metadata.dart';
 import 'package:wandrr/data/app/models/collection_model_facade.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
@@ -13,6 +12,7 @@ import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
+import 'package:wandrr/l10n/app_localizations.dart';
 
 import 'events.dart';
 import 'states.dart';
@@ -36,7 +36,7 @@ class _UpdateTripEntityInternalEvent<T extends TripEntity>
       : dateState = DataState.Delete;
 }
 
-class _LoadTripRepositoryEvent extends TripManagementEvent {}
+class _OnStartup extends TripManagementEvent {}
 
 class TripManagementBloc
     extends Bloc<TripManagementEvent, TripManagementState> {
@@ -46,9 +46,17 @@ class TripManagementBloc
   final AppLocalizations appLocalizations;
   final String currentUserName;
 
+  @override
+  Future<void> close() async {
+    await super.close();
+    for (var subscription in _tripRepositorySubscriptions) {
+      await subscription.cancel();
+    }
+  }
+
   TripManagementBloc(this.currentUserName, this.appLocalizations)
-      : super(Loading()) {
-    on<_LoadTripRepositoryEvent>(_onLoadTripRepository);
+      : super(LoadingTripManagement()) {
+    on<_OnStartup>(_onStartup);
     on<LoadTrip>(_onLoadTrip);
     on<UpdateTripEntity<TransitFacade>>(_onUpdateTransit);
     on<UpdateTripEntity<LodgingFacade>>(_onUpdateLodging);
@@ -61,11 +69,11 @@ class TripManagementBloc
     on<UpdateItineraryPlanData>(_onItineraryDataUpdated);
     on<_UpdateTripEntityInternalEvent>(_onTripEntityUpdateInternal);
 
-    add(_LoadTripRepositoryEvent());
+    add(_OnStartup());
   }
 
-  FutureOr<void> _onLoadTripRepository(
-      _LoadTripRepositoryEvent event, Emitter<TripManagementState> emit) async {
+  FutureOr<void> _onStartup(
+      _OnStartup event, Emitter<TripManagementState> emit) async {
     if (_tripRepository == null) {
       _tripRepository = await TripRepositoryImplementation.createInstanceAsync(
           userName: currentUserName, appLocalizations: appLocalizations);
@@ -114,14 +122,7 @@ class TripManagementBloc
   FutureOr<void> _onGoToHome(
       GoToHome event, Emitter<TripManagementState> emit) async {
     await _tripRepository!.loadAndActivateTrip(null);
-    for (var subscription in _tripStreamSubscriptions) {
-      await subscription.cancel();
-    }
-    _tripStreamSubscriptions.clear();
-    for (var subscription in _tripRepositorySubscriptions) {
-      await subscription.cancel();
-    }
-    _tripRepositorySubscriptions.clear();
+    await _clearTripSubscriptions();
 
     emit(NavigateToHome());
   }
@@ -132,6 +133,10 @@ class TripManagementBloc
         .where((element) => element.id == event.tripMetadata.id)
         .firstOrNull;
     if (tripMetadata != null) {
+      emit(LoadingTrip(tripMetadata));
+      if (_tripRepository!.activeTripEventHandler != null) {
+        await _clearTripSubscriptions();
+      }
       await _tripRepository!.loadAndActivateTrip(event.tripMetadata);
       var activeTrip = _tripRepository!.activeTripEventHandler!;
       _subscribeToCollectionUpdatesForTripEntity<TransitFacade>(
@@ -425,6 +430,13 @@ class TripManagementBloc
     _tripStreamSubscriptions.add(tripEntityAddedSubscription);
     _tripStreamSubscriptions.add(tripEntityDeletedSubscription);
     _tripStreamSubscriptions.add(tripEntityUpdatedSubscription);
+  }
+
+  Future<void> _clearTripSubscriptions() async {
+    for (var subscription in _tripStreamSubscriptions) {
+      await subscription.cancel();
+    }
+    _tripStreamSubscriptions.clear();
   }
 
   FutureOr<void> _onTripEntityUpdateInternal<T extends TripEntity>(

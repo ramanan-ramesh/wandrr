@@ -35,7 +35,6 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var color = Theme.of(context).dialogBackgroundColor;
     return LayoutBuilder(
       builder: (context, constraints) {
         return SizedBox(

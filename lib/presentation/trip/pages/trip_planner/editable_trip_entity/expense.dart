@@ -3,7 +3,7 @@ import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
 import 'package:wandrr/data/trip/models/money.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/date_picker.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';

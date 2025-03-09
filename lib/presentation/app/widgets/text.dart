@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 
 class PlatformTextElements {
   static const double subHeaderSize = 20;

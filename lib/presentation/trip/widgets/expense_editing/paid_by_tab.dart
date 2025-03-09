@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_amount_edit_field.dart';
 
 class PaidByTab extends StatelessWidget {

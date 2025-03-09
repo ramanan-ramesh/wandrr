@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';

@@ -4,7 +4,7 @@ import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';

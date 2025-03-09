@@ -5,6 +5,7 @@ import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/itinerary.dart';
 import 'package:wandrr/data/trip/models/plan_data.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';

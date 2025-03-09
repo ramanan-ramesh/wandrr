@@ -52,8 +52,10 @@ android {
     buildTypes {
         debug {
             // fix Failed to transform firebase-auth-22.3.1.aar
+            debuggable true
             minifyEnabled true
             signingConfig = signingConfigs.debug
+            jniDebuggable true
         }
         release {
             // TODO: Add your own signing config for the release build.

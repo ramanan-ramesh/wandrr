@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/currency_data.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
 import 'package:wandrr/data/trip/models/money.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/tab_bar.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';

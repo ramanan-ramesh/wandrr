@@ -34,46 +34,64 @@ class _TripPlannerPageState extends State<TripPlannerPage>
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        var appLevelData = context.appDataModifier;
-        if (constraints.maxWidth > _breakOffLayoutWidth) {
-          appLevelData.isBigLayout = true;
-          return _createForBigLayout(context);
-        } else {
-          appLevelData.isBigLayout = false;
-          return Center(
-            child: Container(
-              constraints:
-                  BoxConstraints(minWidth: 500, maxWidth: _maximumPageWidth),
-              child: _buildLayout(context),
-            ),
-          );
-        }
-      },
-    );
+    if (context.isBigLayout) {
+      return _createForBigLayout(context);
+    } else {
+      return _createForSmallLayout(true);
+    }
   }
 
   Widget _createForBigLayout(BuildContext context) {
     return Row(
       children: [
         Expanded(
-          child: _buildConstrainedPageForLayout(_buildLayout(context)),
+          child: CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              SliverToBoxAdapter(
+                child: TripOverviewTile(),
+              ),
+              SliverPadding(
+                sliver: TransitListView(),
+                padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
+              ),
+              SliverToBoxAdapter(
+                child: Divider(
+                  height: 25,
+                ),
+              ),
+              SliverPadding(
+                sliver: LodgingListView(),
+                padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
+              ),
+              SliverToBoxAdapter(
+                child: Divider(
+                  height: 25,
+                ),
+              ),
+              SliverPadding(
+                padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
+                sliver: PlanDataListView(),
+              ),
+              SliverPadding(
+                padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
+                sliver: ItineraryListView(),
+              ),
+            ],
+          ),
         ),
         Expanded(
-          child: _buildConstrainedPageForLayout(
-            CustomScrollView(
-              slivers: <Widget>[
-                SliverToBoxAdapter(
-                  child: BudgetingHeaderTile(
-                    expenseViewTypeNotifier: _expenseViewTypeNotifier,
-                  ),
-                ),
-                ExpenseViewAdapter(
+          child: CustomScrollView(
+            slivers: <Widget>[
+              SliverToBoxAdapter(
+                child: BudgetingHeaderTile(
                   expenseViewTypeNotifier: _expenseViewTypeNotifier,
                 ),
-              ],
-            ),
+              ),
+              ExpenseViewAdapter(
+                expenseViewTypeNotifier: _expenseViewTypeNotifier,
+              ),
+            ],
           ),
         ),
       ],
@@ -90,19 +108,7 @@ class _TripPlannerPageState extends State<TripPlannerPage>
     );
   }
 
-  Widget _buildLayout(BuildContext context) {
-    var isBigLayout = context.isBigLayout;
-    return Stack(
-      children: [
-        Scaffold(
-          appBar: _AppBar(),
-          body: _createNestedScrollableView(isBigLayout),
-        ),
-      ],
-    );
-  }
-
-  CustomScrollView _createNestedScrollableView(bool isBigLayout) {
+  CustomScrollView _createForSmallLayout(bool isBigLayout) {
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
@@ -135,22 +141,20 @@ class _TripPlannerPageState extends State<TripPlannerPage>
           padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
           sliver: ItineraryListView(),
         ),
-        if (!isBigLayout)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
-              child: BudgetingHeaderTile(
-                expenseViewTypeNotifier: _expenseViewTypeNotifier,
-              ),
-            ),
-          ),
-        if (!isBigLayout)
-          SliverPadding(
+        SliverToBoxAdapter(
+          child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
-            sliver: ExpenseViewAdapter(
+            child: BudgetingHeaderTile(
               expenseViewTypeNotifier: _expenseViewTypeNotifier,
             ),
           ),
+        ),
+        SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
+          sliver: ExpenseViewAdapter(
+            expenseViewTypeNotifier: _expenseViewTypeNotifier,
+          ),
+        ),
       ],
     );
   }

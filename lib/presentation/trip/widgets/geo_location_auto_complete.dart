@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/implementations/api_services/geo_locator.dart';
 import 'package:wandrr/data/trip/models/location/geo_location_api_context.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/auto_complete.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';

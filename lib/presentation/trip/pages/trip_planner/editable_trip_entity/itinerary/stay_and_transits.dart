@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
+import 'package:wandrr/l10n/app_localizations.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';

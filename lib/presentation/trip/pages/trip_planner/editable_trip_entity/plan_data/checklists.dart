@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/check_list.dart';
 import 'package:wandrr/data/trip/models/check_list_item.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 
 class CheckListsView extends StatefulWidget {
   CheckListsView(

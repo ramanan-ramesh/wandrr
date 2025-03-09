@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
-import 'package:wandrr/presentation/app/blocs/master_page/master_page_events.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
@@ -18,26 +15,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     context.updateLocalizations();
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        var appLevelData = context.appDataModifier;
-        if (constraints.maxWidth > _cutOffPageWidth) {
-          appLevelData.isBigLayout = true;
-          return _buildLayout(
-              contentWidth: constraints.maxWidth / 2, context: context);
-        } else {
-          appLevelData.isBigLayout = false;
-          return _buildLayout(context: context);
-        }
-      },
-    );
-  }
-
-  Widget _buildLayout({double? contentWidth, required BuildContext context}) {
     return Scaffold(
-      appBar: _HomeAppBar(
-        contentWidth: contentWidth,
-      ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -52,14 +30,7 @@ class HomePage extends StatelessWidget {
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      body: contentWidth != null
-          ? Center(
-              child: SizedBox(
-                width: contentWidth,
-                child: _buildLayoutContent(context),
-              ),
-            )
-          : _buildLayoutContent(context),
+      body: _buildLayoutContent(context),
     );
   }
 
@@ -103,85 +74,6 @@ class HomePage extends StatelessWidget {
         label: Text(pageContext.localizations.planTrip),
         icon: Icon(Icons.add_location_alt_rounded),
       ),
-    );
-  }
-}
-
-class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
-  static const String _appLogoAsset = 'assets/images/logo.jpg';
-  final double? contentWidth;
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  const _HomeAppBar({Key? key, this.contentWidth}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      centerTitle: contentWidth != null,
-      title: SizedBox(
-        width: contentWidth,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: Ink.image(
-                    colorFilter: ColorFilter.srgbToLinearGamma(),
-                    width: 40,
-                    height: 40,
-                    image: AssetImage(_appLogoAsset),
-                  ),
-                ),
-                const Text(
-                  'wandrr',
-                  style: TextStyle(fontSize: 20),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: _createThemeModeSwitcher(context),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: IconButton(
-                    onPressed: () {
-                      context.addMasterPageEvent(Logout());
-                    },
-                    icon: Icon(Icons.logout_rounded),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _createThemeModeSwitcher(BuildContext context) {
-    return Row(
-      children: [
-        Icon(
-          Icons.light_mode_rounded,
-          color: Colors.green,
-        ),
-        Switch(
-          value: !context.isLightTheme,
-          onChanged: (bool value) {
-            context.addMasterPageEvent(ChangeTheme(
-                themeModeToChangeTo: value ? ThemeMode.dark : ThemeMode.light));
-          },
-        ),
-        Icon(Icons.mode_night_rounded),
-      ],
     );
   }
 }

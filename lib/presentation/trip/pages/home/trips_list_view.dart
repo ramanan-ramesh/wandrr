@@ -6,8 +6,8 @@ import 'package:intl/intl.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
@@ -70,39 +70,6 @@ class TripListView extends StatelessWidget {
       tripMetadataGridItems.add(_TripMetadataGridItem(
         tripMetaDataFacade: tripMetadataFacade,
         imageAsset: imageAsset,
-        onTripSelected: () {
-          showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (BuildContext dialogContext) {
-                return BlocConsumer<TripManagementBloc, TripManagementState>(
-                  bloc: BlocProvider.of<TripManagementBloc>(context),
-                  listener: (context, state) {},
-                  buildWhen: (previousState, currentState) {
-                    return currentState is ActivatedTrip;
-                  },
-                  builder: (BuildContext context, TripManagementState state) {
-                    if (state is ActivatedTrip) {
-                      Navigator.of(dialogContext).pop();
-                    }
-
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 3.0),
-                          child: Text(context.localizations.loadingTrip),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 3.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              });
-        },
       ));
     }
     return GridView.extent(
@@ -137,13 +104,9 @@ class TripListView extends StatelessWidget {
 
 class _TripMetadataGridItem extends StatelessWidget {
   final _dateFormat = DateFormat.MMMEd();
-  VoidCallback onTripSelected;
 
   _TripMetadataGridItem(
-      {super.key,
-      required this.tripMetaDataFacade,
-      required String imageAsset,
-      required this.onTripSelected})
+      {super.key, required this.tripMetaDataFacade, required String imageAsset})
       : imageAsset = AssetImage(imageAsset),
         imageAssetLocation = imageAsset;
 
@@ -161,7 +124,6 @@ class _TripMetadataGridItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           child: InkWell(
             onTap: () {
-              onTripSelected();
               context.addTripManagementEvent(
                   LoadTrip(tripMetadata: tripMetaDataFacade));
             },

@@ -101,8 +101,9 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
       splashColor: !canEnable
           ? (isLightTheme ? Colors.grey.shade400 : Colors.white30)
           : null,
-      backgroundColor:
-          !canEnable ? (isLightTheme ? Colors.grey : Colors.white10) : null,
+      backgroundColor: !canEnable
+          ? (isLightTheme ? Colors.grey : Colors.grey.shade700)
+          : null,
       child:
           widget.isSubmitted ? CircularProgressIndicator() : Icon(widget.icon),
     );

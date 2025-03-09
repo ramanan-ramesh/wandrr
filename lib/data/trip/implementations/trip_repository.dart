@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/data/app/implementations/collection_model_implementation.dart';
 import 'package:wandrr/data/app/models/collection_model_facade.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
@@ -15,6 +14,7 @@ import 'package:wandrr/data/trip/models/currency_data.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
+import 'package:wandrr/l10n/app_localizations.dart';
 
 import 'api_services/currency_converter.dart';
 import 'api_services/flight_operations_service.dart';

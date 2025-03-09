@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
+import 'package:wandrr/presentation/app/widgets/onboarding_image.dart';
 
 class OnBoardingPage extends StatelessWidget {
   final VoidCallback? onNavigateToNextPage;
-  static const _onBoardingImageAsset = 'assets/images/plan_itinerary.jpg';
 
   const OnBoardingPage({super.key, this.onNavigateToNextPage});
 
@@ -17,26 +16,7 @@ class OnBoardingPage extends StatelessWidget {
       alignment: Alignment.center,
       children: [
         const Positioned.fill(
-          child: Image(
-            image: AssetImage(_onBoardingImageAsset),
-            fit: BoxFit.fitHeight,
-          ),
-        ),
-        Align(
-          alignment: Alignment.topCenter,
-          child: Container(
-            padding: const EdgeInsets.all(8.0),
-            child: FittedBox(
-                child: Text(
-              context.localizations.plan_itinerary,
-              style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 45,
-                  fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.visible,
-            )),
-          ),
+          child: OnBoardingImage(),
         ),
         Align(
           alignment: Alignment.centerRight,

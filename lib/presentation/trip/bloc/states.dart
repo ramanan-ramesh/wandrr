@@ -1,6 +1,7 @@
 import 'package:wandrr/data/app/models/collection_change_metadata.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 
 abstract class TripManagementState {
@@ -19,7 +20,13 @@ abstract class TripManagementState {
   }
 }
 
-class Loading extends TripManagementState {}
+class LoadingTripManagement extends TripManagementState {}
+
+class LoadingTrip extends TripManagementState {
+  TripMetadataFacade tripMetadataFacade;
+
+  LoadingTrip(this.tripMetadataFacade);
+}
 
 class LoadedRepository extends TripManagementState {
   final TripRepositoryFacade tripRepository;
