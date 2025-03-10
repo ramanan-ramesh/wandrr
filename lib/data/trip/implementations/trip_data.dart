@@ -280,7 +280,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   @override
   Iterable<TransitOptionMetadata> get transitOptionMetadatas =>
       _transitOptionMetadatas;
-  Iterable<TransitOptionMetadata> _transitOptionMetadatas;
+  final Iterable<TransitOptionMetadata> _transitOptionMetadatas;
 
   Iterable<T> _updateTripEntityListOnDatesChanged<T>(
       Set<DateTime> removedDates,
@@ -298,7 +298,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         yield item;
       }
     }
-    // modelCollection.tryUpdateList(writeBatch, updatedItems);
   }
 
   static Iterable<TransitOptionMetadata> _initializeIconsAndTransitOptions(

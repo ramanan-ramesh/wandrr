@@ -13,10 +13,10 @@ class PlatformSubmitterFAB extends StatefulWidget {
   GlobalKey<FormState>? formState;
   bool isSubmitted;
   ValueNotifier<bool>? valueNotifier;
-  bool isConditionallyVisible;
-  bool isEnabledInitially;
+  final bool isConditionallyVisible;
+  final bool isEnabledInitially;
   VoidCallback? callbackOnClickWhileDisabled;
-  bool isElevationRequired;
+  final bool isElevationRequired;
 
   PlatformSubmitterFAB(
       {super.key,

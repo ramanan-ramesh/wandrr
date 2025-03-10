@@ -13,7 +13,7 @@ import 'places.dart';
 
 class PlanDataListItem extends StatefulWidget {
   final UiElement<PlanDataFacade> initialPlanDataUiElement;
-  Function(PlanDataFacade) planDataUpdated;
+  final Function(PlanDataFacade) planDataUpdated;
 
   PlanDataListItem(
       {super.key,

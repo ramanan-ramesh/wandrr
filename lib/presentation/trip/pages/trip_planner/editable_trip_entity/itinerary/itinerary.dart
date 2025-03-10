@@ -19,7 +19,7 @@ import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 import '../plan_data/plan_data.dart';
 
 class ItineraryListItem extends StatefulWidget {
-  ItineraryFacade itineraryFacade;
+  final ItineraryFacade itineraryFacade;
 
   ItineraryListItem({super.key, required this.itineraryFacade});
 

@@ -43,8 +43,8 @@ class _CheckListsViewState extends State<CheckListsView> {
 }
 
 class _CheckList extends StatefulWidget {
-  Function() checkListChanged;
-  Function() onDeleted;
+  final Function() checkListChanged;
+  final Function() onDeleted;
   final CheckListFacade checkList;
 
   _CheckList(
@@ -128,8 +128,8 @@ class _CheckListState extends State<_CheckList> {
 }
 
 class _ReOrderableCheckListItems extends StatefulWidget {
-  CheckListFacade checkList;
-  Function() checkListItemsChanged;
+  final CheckListFacade checkList;
+  final Function() checkListItemsChanged;
 
   _ReOrderableCheckListItems(
       {super.key,
@@ -184,8 +184,8 @@ class _ReOrderableCheckListItemsState
 
 class _CheckListItem extends StatefulWidget {
   final CheckListItem checkListItem;
-  Function(CheckListItem) callback;
-  Function() onDeleted;
+  final Function(CheckListItem) callback;
+  final Function() onDeleted;
 
   _CheckListItem(
       {super.key,
@@ -218,7 +218,7 @@ class _CheckListItemState extends State<_CheckListItem> {
           padding: const EdgeInsets.symmetric(horizontal: 3.0),
           child: IconButton(
             onPressed: widget.onDeleted,
-            icon: Icon(Icons.dangerous_outlined),
+            icon: Icon(Icons.remove_rounded),
           ),
         ),
         Expanded(

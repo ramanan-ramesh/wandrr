@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
-import 'package:wandrr/presentation/app/widgets/dialog.dart';
-import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/expense_view_adapter.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/itinerary.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/lodging.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/transit.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_overview/trip_overview_tile.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
-import 'package:wandrr/presentation/trip/widgets/delete_trip_dialog.dart';
 
 import 'budgeting/header_tile.dart';
 import 'expense_view_type.dart';
@@ -98,16 +93,6 @@ class _TripPlannerPageState extends State<TripPlannerPage>
     );
   }
 
-  Widget _buildConstrainedPageForLayout(Widget layout) {
-    return Center(
-      child: Container(
-        constraints: BoxConstraints(
-            maxWidth: _maximumPageWidth, minWidth: _breakOffLayoutWidth / 2),
-        child: layout,
-      ),
-    );
-  }
-
   CustomScrollView _createForSmallLayout(bool isBigLayout) {
     return CustomScrollView(
       controller: _scrollController,
@@ -157,63 +142,5 @@ class _TripPlannerPageState extends State<TripPlannerPage>
         ),
       ],
     );
-  }
-}
-
-class _AppBar extends StatelessWidget implements PreferredSizeWidget {
-  static const String _appLogoAsset = 'assets/images/logo.jpg';
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  const _AppBar({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      title: GestureDetector(
-        onTap: () {
-          context.addTripManagementEvent(GoToHome());
-        },
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Image.asset(
-                  _appLogoAsset,
-                  width: 40,
-                  height: 40,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              child: const Text(
-                'wandrr',
-                style: TextStyle(fontSize: 20), //ThemingRequired
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        IconButton(
-          onPressed: () {
-            _showDeleteTripConfirmationDialog(context);
-          },
-          icon: Icon(Icons.delete_rounded),
-        ),
-      ],
-    );
-  }
-
-  void _showDeleteTripConfirmationDialog(BuildContext pageContext) {
-    var tripMetadataToDelete = pageContext.activeTrip.tripMetadata;
-    PlatformDialogElements.showAlertDialog(pageContext, (context) {
-      return DeleteTripDialog(
-          widgetContext: pageContext, tripMetadataFacade: tripMetadataToDelete);
-    });
   }
 }

@@ -22,7 +22,7 @@ ThemeData createDarkThemeData(BuildContext context) {
       style: ButtonStyle(
         backgroundColor: WidgetStatePropertyAll(Colors.black),
         foregroundColor: WidgetStatePropertyAll(Colors.green),
-        iconColor: WidgetStatePropertyAll(Colors.black),
+        iconColor: WidgetStatePropertyAll(Colors.green),
       ),
     ),
     dialogTheme: DialogThemeData(

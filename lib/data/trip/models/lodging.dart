@@ -16,7 +16,7 @@ class LodgingFacade extends Equatable implements TripEntity {
   @override
   String? id;
 
-  String tripId;
+  final String tripId;
 
   String? confirmationId;
 
@@ -53,7 +53,6 @@ class LodgingFacade extends Equatable implements TripEntity {
             splitBy: allTripContributors.toList());
 
   void copyWith(LodgingFacade lodgingModelFacade) {
-    tripId = lodgingModelFacade.tripId;
     location = lodgingModelFacade.location;
     checkinDateTime = DateTime(
         lodgingModelFacade.checkinDateTime!.year,
@@ -63,8 +62,6 @@ class LodgingFacade extends Equatable implements TripEntity {
         lodgingModelFacade.checkoutDateTime!.year,
         lodgingModelFacade.checkoutDateTime!.month,
         lodgingModelFacade.checkoutDateTime!.day);
-    id = lodgingModelFacade.id;
-    tripId = lodgingModelFacade.tripId;
     confirmationId = lodgingModelFacade.confirmationId;
     expense = lodgingModelFacade.expense;
     notes = lodgingModelFacade.notes;

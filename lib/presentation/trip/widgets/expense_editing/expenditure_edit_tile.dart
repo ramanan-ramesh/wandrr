@@ -17,7 +17,7 @@ class ExpenditureEditTile extends StatefulWidget {
   List<String> splitBy;
   final Money totalExpense;
   final bool isEditable;
-  void Function(
+  final void Function(
           Map<String, double> paidBy, List<String> splitBy, Money totalExpense)?
       callback;
 

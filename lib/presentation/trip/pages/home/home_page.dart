@@ -8,8 +8,6 @@ import 'trip_creator_dialog.dart';
 import 'trips_list_view.dart';
 
 class HomePage extends StatelessWidget {
-  static const _cutOffPageWidth = 1000.0;
-
   const HomePage({super.key});
 
   @override

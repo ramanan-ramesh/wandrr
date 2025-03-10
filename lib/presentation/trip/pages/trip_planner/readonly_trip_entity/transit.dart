@@ -11,7 +11,7 @@ import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 
 class ReadonlyTransitListItem extends StatelessWidget {
-  TransitFacade transitModelFacade;
+  final TransitFacade transitModelFacade;
 
   ReadonlyTransitListItem({super.key, required this.transitModelFacade});
 

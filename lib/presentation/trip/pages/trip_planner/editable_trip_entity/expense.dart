@@ -16,7 +16,7 @@ class EditableExpenseListItem extends StatelessWidget {
   final Map<ExpenseCategory, String> categoryNames;
   final TextEditingController _descriptionFieldController =
       TextEditingController();
-  ValueNotifier<bool> validityNotifier;
+  final ValueNotifier<bool> validityNotifier;
   final TextEditingController _titleEditingController = TextEditingController();
 
   bool get _isLinkedExpense {
@@ -231,7 +231,7 @@ class EditableExpenseListItem extends StatelessWidget {
 class _CategoryPicker extends StatefulWidget {
   final Function(ExpenseCategory expenseCategory)? callback;
   final Map<ExpenseCategory, String> categories;
-  ExpenseCategory category;
+  final ExpenseCategory category;
 
   _CategoryPicker(
       {super.key,
@@ -244,10 +244,18 @@ class _CategoryPicker extends StatefulWidget {
 }
 
 class _CategoryPickerState extends State<_CategoryPicker> {
+  late ExpenseCategory _category;
+
+  @override
+  void initState() {
+    super.initState();
+    _category = widget.category;
+  }
+
   @override
   Widget build(BuildContext context) {
     return DropdownButton<ExpenseCategory>(
-        value: widget.category,
+        value: _category,
         selectedItemBuilder: (context) => widget.categories.keys
             .map(
               (expenseCategory) => DropdownMenuItem<ExpenseCategory>(
@@ -296,7 +304,7 @@ class _CategoryPickerState extends State<_CategoryPicker> {
             ? null
             : (selectedExpenseCategory) {
                 if (selectedExpenseCategory != null) {
-                  widget.category = selectedExpenseCategory;
+                  _category = selectedExpenseCategory;
                   setState(() {});
                   widget.callback!(selectedExpenseCategory);
                 }

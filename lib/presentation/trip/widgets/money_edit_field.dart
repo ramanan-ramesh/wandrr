@@ -5,8 +5,8 @@ import 'expense_amount_edit_field.dart';
 
 class PlatformMoneyEditField extends CurrencyDropDownField {
   String amount;
-  bool isAmountEditable;
-  Function(double updatedAmount) onAmountUpdatedCallback;
+  final bool isAmountEditable;
+  final Function(double updatedAmount) onAmountUpdatedCallback;
 
   PlatformMoneyEditField(
       {required super.selectedCurrencyData,

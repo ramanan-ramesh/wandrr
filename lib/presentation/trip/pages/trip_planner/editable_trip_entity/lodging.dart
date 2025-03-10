@@ -11,8 +11,8 @@ import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edi
 import 'package:wandrr/presentation/trip/widgets/geo_location_auto_complete.dart';
 
 class EditableLodgingListItem extends StatefulWidget {
-  UiElement<LodgingFacade> lodgingUiElement;
-  ValueNotifier<bool> validityNotifier;
+  final UiElement<LodgingFacade> lodgingUiElement;
+  final ValueNotifier<bool> validityNotifier;
 
   EditableLodgingListItem(
       {super.key,

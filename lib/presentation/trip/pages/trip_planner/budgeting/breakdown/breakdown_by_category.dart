@@ -65,8 +65,6 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
                         child: Text('No expenses created yet.'),
                       )),
           );
-          if (isSnapshotDataValid) {}
-          return SizedBox.shrink();
         });
   }
 
@@ -139,7 +137,7 @@ class _Badge extends StatelessWidget {
         ),
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: Colors.black.withOpacity(.5),
+            color: Colors.black.withValues(alpha: 0.5),
             offset: const Offset(3, 3),
             blurRadius: 3,
           ),

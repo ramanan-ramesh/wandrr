@@ -6,7 +6,7 @@ import 'location/location.dart';
 import 'note.dart';
 
 class PlanDataFacade extends Equatable implements TripEntity {
-  String tripId;
+  final String tripId;
 
   @override
   String? id;

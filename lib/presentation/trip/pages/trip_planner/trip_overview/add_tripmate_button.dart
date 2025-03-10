@@ -58,7 +58,7 @@ class _AddTripMateTextFieldButton extends StatefulWidget {
       required this.contributors,
       required this.onContributorAdded});
 
-  Iterable<String> contributors;
+  final Iterable<String> contributors;
   final ValueNotifier<bool> addTripEditingValueNotifier;
   final TextEditingController tripMateUserNameEditingController;
   final VoidCallback onContributorAdded;

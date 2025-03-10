@@ -10,8 +10,8 @@ import 'transit_carrier_picker.dart';
 import 'transit_event.dart';
 
 class EditableTransitListItem extends StatefulWidget {
-  UiElement<TransitFacade> transitUiElement;
-  ValueNotifier<bool> validityNotifier;
+  final UiElement<TransitFacade> transitUiElement;
+  final ValueNotifier<bool> validityNotifier;
 
   EditableTransitListItem(
       {super.key,
@@ -186,8 +186,8 @@ class _EditableTransitListItemState extends State<EditableTransitListItem> {
     return createTitleSubText(
       context.localizations.transitCarrier,
       TransitCarrierPicker(
-        transitOption: _transitUiElement.element.transitOption,
-        operator: _transitUiElement.element.operator,
+        initialTransitOption: _transitUiElement.element.transitOption,
+        initialOperator: _transitUiElement.element.operator,
         onOperatorChanged: (String? newOperator) {
           _transitUiElement.element.operator = newOperator;
           _calculateTransitValidity();

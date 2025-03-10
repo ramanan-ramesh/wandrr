@@ -124,7 +124,7 @@ class _PlanDataListViewState extends State<PlanDataListView> {
 }
 
 class _PlanDataListItemViewer extends StatefulWidget {
-  UiElement<PlanDataFacade> initialPlanDataUiElement;
+  final UiElement<PlanDataFacade> initialPlanDataUiElement;
 
   _PlanDataListItemViewer({super.key, required this.initialPlanDataUiElement});
 

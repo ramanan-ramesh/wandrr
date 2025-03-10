@@ -25,19 +25,20 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
   final String emptyListMessage;
   Widget? headerTileButton;
   VoidCallback? headerTileActionButtonCallback;
-  BlocBuilderCondition<TripManagementState>? additionalListBuildWhenCondition;
-  bool Function(
+  final BlocBuilderCondition<TripManagementState>?
+      additionalListBuildWhenCondition;
+  final bool Function(
       TripManagementState previousState,
       TripManagementState currentState,
       UiElement<T> uiElement)? additionalListItemBuildWhenCondition;
   final String headerTileLabel;
-  void Function(BuildContext context, UiElement<T>)? onUiElementPressed;
-  FutureOr<Iterable<UiElement<T>>> Function(List<UiElement<T>> uiElements)
+  final void Function(BuildContext context, UiElement<T>)? onUiElementPressed;
+  final FutureOr<Iterable<UiElement<T>>> Function(List<UiElement<T>> uiElements)
       uiElementsSorter;
   final List<UiElement<T>> Function(TripDataFacade tripDataModelFacade)
       uiElementsCreator;
-  bool Function(UiElement<T>)? canDelete;
-  String? Function(UiElement<T>)? errorMessageCreator;
+  final bool Function(UiElement<T>)? canDelete;
+  final String? Function(UiElement<T>)? errorMessageCreator;
 
   TripEntityListView(
       {super.key,

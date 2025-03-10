@@ -4,20 +4,13 @@ import 'check_list_item.dart';
 
 class CheckListFacade extends Equatable {
   String? title;
-  List<CheckListItem> items;
-  String tripId;
+  final List<CheckListItem> items;
+  final String tripId;
 
   CheckListFacade({this.title, required this.items, required this.tripId});
 
   CheckListFacade.newUiEntry(
       {this.title, required this.items, required this.tripId});
-
-  void copyWith(CheckListFacade checkListModelFacade) {
-    title = checkListModelFacade.title;
-    items = List.from(
-        checkListModelFacade.items.map((checkList) => checkList.clone()));
-    tripId = checkListModelFacade.tripId;
-  }
 
   CheckListFacade clone() {
     return CheckListFacade(

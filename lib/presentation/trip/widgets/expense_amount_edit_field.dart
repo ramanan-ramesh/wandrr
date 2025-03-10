@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class PlatformExpenseAmountEditField extends StatelessWidget {
-  bool isReadonly;
-  Function(double)? onExpenseAmountChanged;
+  final bool isReadonly;
+  final Function(double)? onExpenseAmountChanged;
   String? amount;
   final TextEditingController _amountEditingController;
-  InputDecoration? inputDecoration;
-  Color? textColor;
+  final InputDecoration? inputDecoration;
+  final Color? textColor;
 
   PlatformExpenseAmountEditField(
       {super.key,

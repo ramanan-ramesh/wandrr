@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 class PlatformTabBar extends StatefulWidget {
   final Map<String, Widget> tabBarItems;
-  TabController? tabController;
-  double? maxTabViewHeight;
+  final TabController? tabController;
+  final double? maxTabViewHeight;
 
   PlatformTabBar(
       {super.key,
@@ -57,7 +57,6 @@ class _PlatformTabBarState extends State<PlatformTabBar>
     return TabBar(
       tabs: widget.tabBarItems.keys.map((tabTitle) {
         return Tab(
-          // text: tabTitle,
           icon: FittedBox(
             child: Text(tabTitle),
           ),

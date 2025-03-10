@@ -32,7 +32,6 @@ class TripMetadataFacade extends Equatable implements TripEntity {
         budget = Money(currency: defaultCurrency, amount: 0);
 
   void copyWith(TripMetadataFacade tripMetadataModel) {
-    id = tripMetadataModel.id;
     startDate = tripMetadataModel.startDate != null
         ? DateTime(
             tripMetadataModel.startDate!.year,

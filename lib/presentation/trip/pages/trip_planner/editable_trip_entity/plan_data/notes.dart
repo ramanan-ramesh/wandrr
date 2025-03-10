@@ -49,7 +49,7 @@ class NotesListViewState extends State<NotesListView> {
 
 class _NoteListItem extends StatefulWidget {
   final NoteFacade note;
-  Function() onNoteChanged;
+  final Function() onNoteChanged;
 
   _NoteListItem({super.key, required this.note, required this.onNoteChanged});
 

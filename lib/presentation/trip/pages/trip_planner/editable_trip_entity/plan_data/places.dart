@@ -20,7 +20,7 @@ class PlacesListView extends StatelessWidget {
 
 class _PlacesReOrderableListView extends StatefulWidget {
   final List<LocationFacade> placesList;
-  Function() onPlacesChanged;
+  final Function() onPlacesChanged;
 
   _PlacesReOrderableListView(
       {super.key, required this.placesList, required this.onPlacesChanged});

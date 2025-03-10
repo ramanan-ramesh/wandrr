@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:aligned_dialog/aligned_dialog.dart' as alignedDialog;
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/routes.dart' as routes;
+import 'package:flutter/widgets.dart' as routes show showGeneralDialog;
 
 class PlatformDialogElements {
   static void showAlignedDialog(

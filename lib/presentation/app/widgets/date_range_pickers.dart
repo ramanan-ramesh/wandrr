@@ -8,7 +8,8 @@ import 'dialog.dart';
 
 abstract class DateRangePickerBase extends StatefulWidget {
   final dateFormat = intl.DateFormat.MMMEd();
-  DateTime? startDate, endDate, firstDate, lastDate;
+  DateTime? startDate, endDate;
+  final DateTime? firstDate, lastDate;
   final Function(DateTime? start, DateTime? end)? callback;
 
   DateRangePickerBase(

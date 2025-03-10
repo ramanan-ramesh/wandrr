@@ -11,19 +11,19 @@ import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
 
 class TripEntityListElement<T extends TripEntity> extends StatefulWidget {
-  UiElement<T> uiElement;
-  void Function(BuildContext context, UiElement<T>)? onPressed;
-  Widget Function(UiElement<T> uiElement, ValueNotifier<bool>)
+  final UiElement<T> uiElement;
+  final void Function(BuildContext context, UiElement<T>)? onPressed;
+  final Widget Function(UiElement<T> uiElement, ValueNotifier<bool>)
       openedListElementCreator;
-  Widget Function() closedElementCreator;
-  bool Function(UiElement<T>)? canDelete;
-  bool Function(
+  final Widget Function() closedElementCreator;
+  final bool Function(UiElement<T>)? canDelete;
+  final bool Function(
       TripManagementState previousState,
       TripManagementState currentState,
       UiElement<T> uiElement)? additionalListItemBuildWhenCondition;
-  void Function(UiElement<T>)? onUpdatePressed;
-  void Function(UiElement<T>)? onDeletePressed;
-  String? Function(UiElement<T>)? errorMessageCreator;
+  final void Function(UiElement<T>)? onUpdatePressed;
+  final void Function(UiElement<T>)? onDeletePressed;
+  final String? Function(UiElement<T>)? errorMessageCreator;
 
   TripEntityListElement(
       {super.key,
@@ -149,15 +149,15 @@ class _TripEntityListElementState<T extends TripEntity>
 }
 
 class _OpenedTripEntityUiElement<T extends TripEntity> extends StatelessWidget {
-  UiElement<T> uiElement;
+  final UiElement<T> uiElement;
   final ValueNotifier<bool> _validityNotifier;
-  Widget Function(UiElement<T> uiElement, ValueNotifier<bool>)
+  final Widget Function(UiElement<T> uiElement, ValueNotifier<bool>)
       openedListElementCreator;
-  void Function(UiElement<T>)? onUpdatePressed;
-  void Function(UiElement<T>)? onDeletePressed;
-  bool canDelete;
-  VoidCallback onPressed;
-  String? Function(UiElement<T>)? errorMessageCreator;
+  final void Function(UiElement<T>)? onUpdatePressed;
+  final void Function(UiElement<T>)? onDeletePressed;
+  final bool canDelete;
+  final VoidCallback onPressed;
+  final String? Function(UiElement<T>)? errorMessageCreator;
 
   _OpenedTripEntityUiElement(
       {super.key,
@@ -219,7 +219,7 @@ class _EditableTripEntityButtonBar<T extends TripEntity>
   final UiElement<T> uiElement;
   final bool canDelete;
   final void Function(UiElement<T> p1)? onDeletePressed;
-  String? Function(UiElement<T>)? errorMessageCreator;
+  final String? Function(UiElement<T>)? errorMessageCreator;
 
   @override
   State<_EditableTripEntityButtonBar<T>> createState() =>

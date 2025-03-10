@@ -7,7 +7,7 @@ import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 
 class ReadonlyLodgingListItem extends StatelessWidget {
-  LodgingFacade lodgingModelFacade;
+  final LodgingFacade lodgingModelFacade;
 
   ReadonlyLodgingListItem({super.key, required this.lodgingModelFacade});
 

@@ -11,8 +11,8 @@ import 'airport_data_editor.dart';
 import 'transit.dart';
 
 class TransitEvent extends StatefulWidget {
-  TransitFacade transitFacade;
-  Function(TransitFacade) onUpdated;
+  final TransitFacade transitFacade;
+  final Function(TransitFacade) onUpdated;
 
   TransitEvent(
       {super.key, required this.transitFacade, required this.onUpdated});

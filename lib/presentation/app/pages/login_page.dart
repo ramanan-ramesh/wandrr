@@ -267,14 +267,13 @@ class _PasswordField extends StatefulWidget {
       TextEditingController? controller,
       this.labelText,
       this.errorText,
-      this.helperText,
       this.textInputAction,
       this.validator})
       : controller = controller ?? TextEditingController();
 
   final TextInputAction? textInputAction;
   final TextEditingController? controller;
-  final String? labelText, errorText, helperText;
+  final String? labelText, errorText;
   final FormFieldValidator<String>? validator;
 
   @override

@@ -197,8 +197,8 @@ class _PlatformCurrencyDropDownState extends State<PlatformCurrencyDropDown> {
 
 class _SearchableCurrencyDropDown extends StatefulWidget {
   final Iterable<CurrencyData> allCurrencies;
-  CurrencyData currencyInfo;
-  Widget Function(CurrencyData currency) currencyListTileBuilder;
+  final CurrencyData currencyInfo;
+  final Widget Function(CurrencyData currency) currencyListTileBuilder;
 
   _SearchableCurrencyDropDown(
       {super.key,

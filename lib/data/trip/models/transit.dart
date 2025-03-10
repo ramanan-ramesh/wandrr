@@ -7,7 +7,7 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'money.dart';
 
 class TransitFacade extends Equatable implements TripEntity {
-  String tripId;
+  final String tripId;
 
   @override
   String? id;
@@ -62,8 +62,6 @@ class TransitFacade extends Equatable implements TripEntity {
             splitBy: allTripContributors.toList());
 
   void copyWith(TransitFacade transitModelFacade) {
-    tripId = transitModelFacade.tripId;
-    id = transitModelFacade.id;
     transitOption = transitModelFacade.transitOption;
     departureDateTime = transitModelFacade.departureDateTime;
     arrivalDateTime = transitModelFacade.arrivalDateTime;

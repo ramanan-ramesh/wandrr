@@ -115,7 +115,10 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                 themeModeToChangeTo: value ? ThemeMode.dark : ThemeMode.light));
           },
         ),
-        Icon(Icons.mode_night_rounded),
+        Icon(
+          Icons.mode_night_rounded,
+          color: Colors.black,
+        ),
       ],
     );
   }
