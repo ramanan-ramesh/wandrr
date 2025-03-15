@@ -5,8 +5,9 @@ class SplitByTab extends StatefulWidget {
   final Map<String, Color> contributorsVsColors;
   final List<String> splitBy;
 
-  SplitByTab(
-      {required this.callback,
+  const SplitByTab(
+      {super.key,
+      required this.callback,
       required this.splitBy,
       required this.contributorsVsColors});
 

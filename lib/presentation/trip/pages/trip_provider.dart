@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rive/rive.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
-import 'package:wandrr/presentation/app/widgets/shimmer.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
@@ -16,19 +16,21 @@ import 'package:wandrr/presentation/trip/pages/home/home_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_planner_page.dart';
 
 class TripProvider extends StatelessWidget {
+  const TripProvider({super.key});
+
   @override
   Widget build(BuildContext pageContext) {
     var currentUserName = pageContext.activeUser!.userName;
     return BlocProvider<TripManagementBloc>(
       create: (BuildContext context) =>
           TripManagementBloc(currentUserName, pageContext.localizations),
-      child: _TripProviderContentPage(),
+      child: const _TripProviderContentPage(),
     );
   }
 }
 
 class _TripProviderContentPage extends StatefulWidget {
-  const _TripProviderContentPage({super.key});
+  const _TripProviderContentPage();
 
   @override
   State<_TripProviderContentPage> createState() =>
@@ -37,33 +39,42 @@ class _TripProviderContentPage extends StatefulWidget {
 
 class _TripProviderContentPageState extends State<_TripProviderContentPage> {
   TripRepositoryFacade? _tripRepository;
-  static const _assetImage = 'assets/images/plan_itinerary.jpg';
-  static const _minimumShimmerTime = Duration(seconds: 2);
-  var _hasMinimumShimmerTimePassed = false;
+  static const _minimumAnimationTime = Duration(seconds: 2);
+  final _minimumWalkTimeCompletionNotifier = ValueNotifier(false);
+  static final _walkAnimation = SimpleAnimation('Walk');
+  final _waveAnimation = SimpleAnimation('Wave');
 
   @override
   Widget build(BuildContext context) {
     if (BlocProvider.of<TripManagementBloc>(context).state
         is LoadingTripManagement) {
-      if (!_hasMinimumShimmerTimePassed) {
-        _tryTriggerStartAnimation();
+      if (!_minimumWalkTimeCompletionNotifier.value) {
+        _tryStartWalkAnimation();
       }
     }
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       builder: (BuildContext context, TripManagementState state) {
-        if ((state is LoadedRepository) && _hasMinimumShimmerTimePassed) {
-          _tripRepository = state.tripRepository;
-          return _createTripContentPage(HomePage());
-        } else if (state is NavigateToHome && _hasMinimumShimmerTimePassed) {
-          return _createTripContentPage(HomePage());
-        } else if (state is ActivatedTrip && _hasMinimumShimmerTimePassed) {
-          return _createTripContentPage(TripPlannerPage());
+        if ((state is LoadedRepository) &&
+            !_walkAnimation.isActive &&
+            !_waveAnimation.isActive) {
+          return _createTripContentPage(const HomePage());
+        } else if (state is NavigateToHome &&
+            !_walkAnimation.isActive &&
+            !_waveAnimation.isActive) {
+          return _createTripContentPage(const HomePage());
+        } else if (state is ActivatedTrip &&
+            !_walkAnimation.isActive &&
+            !_waveAnimation.isActive) {
+          return _createTripContentPage(const TripPlannerPage());
         }
-        return Shimmer(
-          child: Image.asset(
-            _assetImage,
-            fit: BoxFit.fitHeight,
-          ),
+        return RiveAnimation.asset(
+          'assets/walk_animation.riv',
+          fit: BoxFit.fitHeight,
+          controllers: [
+            _minimumWalkTimeCompletionNotifier.value
+                ? _waveAnimation
+                : _walkAnimation
+          ],
         );
       },
       buildWhen: (previousState, currentState) {
@@ -72,25 +83,32 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
             currentState is LoadingTripManagement ||
             currentState is NavigateToHome ||
             currentState is ActivatedTrip ||
-            currentState is LoadingTrip;
+            currentState is LoadingTrip &&
+                !_walkAnimation.isActive &&
+                !_waveAnimation.isActive;
       },
       listener: (context, state) {
         if (state.isTripEntityUpdated<TripMetadataFacade>()) {
           var tripMetadataUpdatedState = state as UpdatedTripEntity;
-          if (tripMetadataUpdatedState.dataState == DataState.Create) {
+          if (tripMetadataUpdatedState.dataState == DataState.create) {
             context.addTripManagementEvent(LoadTrip(
                 tripMetadata: tripMetadataUpdatedState
                     .tripEntityModificationData.modifiedCollectionItem));
           }
-          if (tripMetadataUpdatedState.dataState == DataState.Delete) {
+          if (tripMetadataUpdatedState.dataState == DataState.delete) {
             if (state.tripEntityModificationData.isFromEvent) {
               context.addTripManagementEvent(GoToHome());
             }
           }
         } else if (state is LoadingTripManagement) {
-          _tryTriggerStartAnimation();
+          _tryStartWalkAnimation();
         } else if (state is LoadingTrip) {
-          _tryTriggerStartAnimation();
+          _tryStartWalkAnimation();
+        } else if (state is LoadedRepository) {
+          _tripRepository = state.tripRepository;
+          _tryStopWalkStartWaveAnimation();
+        } else if (state is ActivatedTrip) {
+          _tryStopWalkStartWaveAnimation();
         }
       },
     );
@@ -106,7 +124,7 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
           appLevelData.isBigLayout = true;
         } else {
           appLevelData.isBigLayout = false;
-          contentPageLayoutConstraints = BoxConstraints(
+          contentPageLayoutConstraints = const BoxConstraints(
               minWidth: 500,
               maxWidth: TripProviderPageConstants.maximumPageWidth);
         }
@@ -127,12 +145,36 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
     );
   }
 
-  void _tryTriggerStartAnimation() {
-    _hasMinimumShimmerTimePassed = false;
-    Future.delayed(_minimumShimmerTime, () {
-      setState(() {
-        _hasMinimumShimmerTimePassed = true;
+  void _tryStartWalkAnimation() {
+    _walkAnimation.isActive = true;
+    _waveAnimation.isActive = false;
+    _minimumWalkTimeCompletionNotifier.value = false;
+    setState(() {
+      Future.delayed(_minimumAnimationTime, () {
+        _minimumWalkTimeCompletionNotifier.value = true;
       });
     });
+  }
+
+  void _tryStopWalkStartWaveAnimation() {
+    if (_minimumWalkTimeCompletionNotifier.value) {
+      _onWalkAnimationComplete();
+    } else {
+      _minimumWalkTimeCompletionNotifier.addListener(_onWalkAnimationComplete);
+    }
+  }
+
+  void _onWalkAnimationComplete() {
+    _minimumWalkTimeCompletionNotifier.removeListener(_onWalkAnimationComplete);
+    if (_minimumWalkTimeCompletionNotifier.value) {
+      setState(() {
+        _walkAnimation.isActive = false;
+        _waveAnimation.isActive = true;
+        Future.delayed(_minimumAnimationTime, () {
+          _waveAnimation.isActive = false;
+          setState(() {});
+        });
+      });
+    }
   }
 }

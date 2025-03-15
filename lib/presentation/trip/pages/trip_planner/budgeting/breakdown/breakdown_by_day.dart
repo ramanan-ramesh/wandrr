@@ -5,7 +5,7 @@ import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 class BreakdownByDayChart extends StatefulWidget {
-  BreakdownByDayChart({super.key});
+  const BreakdownByDayChart({super.key});
 
   @override
   State<BreakdownByDayChart> createState() => _BreakdownByDayChartState();
@@ -59,14 +59,14 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
                         children: [
                           Text(
                             date,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           Text(
                             '${dailyExpense.value.toStringAsFixed(2)} ${tripMetadata.budget.currency.toUpperCase()}',
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.white,
                             ),
                           )
@@ -89,7 +89,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
           }
           return SingleChildScrollView(
             child: Container(
-              constraints: BoxConstraints(minHeight: 300, maxHeight: 500),
+              constraints: const BoxConstraints(minHeight: 300, maxHeight: 500),
               child: ListView(
                 children: dailyExpenseIndicators,
               ),
@@ -97,7 +97,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
           );
         }
 
-        return CircularProgressIndicator();
+        return const CircularProgressIndicator();
       },
     );
   }

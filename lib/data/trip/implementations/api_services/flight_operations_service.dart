@@ -74,7 +74,7 @@ class FlightOperations implements FlightOperationsService {
       }
     } finally {
       _shouldAllowAirlineQuery = false;
-      Timer(Duration(seconds: 1), () {
+      Timer(const Duration(seconds: 1), () {
         _shouldAllowAirlineQuery = true;
       });
     }
@@ -122,7 +122,7 @@ class FlightOperations implements FlightOperationsService {
       }
     } finally {
       _shouldAllowAirportQuery = false;
-      Timer(Duration(seconds: 1), () {
+      Timer(const Duration(seconds: 1), () {
         _shouldAllowAirportQuery = true;
       });
     }

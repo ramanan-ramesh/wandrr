@@ -4,7 +4,7 @@ import 'package:wandrr/data/trip/models/check_list_item.dart';
 import 'package:wandrr/l10n/extension.dart';
 
 class CheckListsView extends StatefulWidget {
-  CheckListsView(
+  const CheckListsView(
       {super.key, required this.checkLists, required this.onCheckListsChanged});
 
   final List<CheckListFacade> checkLists;
@@ -35,7 +35,7 @@ class _CheckListsViewState extends State<CheckListsView> {
         );
       },
       separatorBuilder: (BuildContext context, int index) {
-        return Padding(padding: EdgeInsets.symmetric(vertical: 3.0));
+        return const Padding(padding: EdgeInsets.symmetric(vertical: 3.0));
       },
       itemCount: widget.checkLists.length,
     );
@@ -47,9 +47,8 @@ class _CheckList extends StatefulWidget {
   final Function() onDeleted;
   final CheckListFacade checkList;
 
-  _CheckList(
-      {super.key,
-      required this.checkList,
+  const _CheckList(
+      {required this.checkList,
       required this.checkListChanged,
       required this.onDeleted});
 
@@ -86,7 +85,7 @@ class _CheckListState extends State<_CheckList> {
                       }
                     },
                     controller: _titleEditingController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       focusedBorder: InputBorder.none,
                       border: InputBorder.none,
                     ),
@@ -103,14 +102,14 @@ class _CheckListState extends State<_CheckList> {
                     setState(() {});
                   },
                   label: Text(context.localizations.addItem),
-                  icon: Icon(Icons.add_rounded),
+                  icon: const Icon(Icons.add_rounded),
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 3.0),
                 child: IconButton(
                   onPressed: widget.onDeleted,
-                  icon: Icon(Icons.delete),
+                  icon: const Icon(Icons.delete),
                 ),
               ),
             ],
@@ -131,9 +130,8 @@ class _ReOrderableCheckListItems extends StatefulWidget {
   final CheckListFacade checkList;
   final Function() checkListItemsChanged;
 
-  _ReOrderableCheckListItems(
-      {super.key,
-      required this.checkList,
+  const _ReOrderableCheckListItems(
+      {required this.checkList,
       required this.checkListItemsChanged});
 
   @override
@@ -187,7 +185,7 @@ class _CheckListItem extends StatefulWidget {
   final Function(CheckListItem) callback;
   final Function() onDeleted;
 
-  _CheckListItem(
+  const _CheckListItem(
       {super.key,
       required this.checkListItem,
       required this.callback,
@@ -218,7 +216,7 @@ class _CheckListItemState extends State<_CheckListItem> {
           padding: const EdgeInsets.symmetric(horizontal: 3.0),
           child: IconButton(
             onPressed: widget.onDeleted,
-            icon: Icon(Icons.remove_rounded),
+            icon: const Icon(Icons.remove_rounded),
           ),
         ),
         Expanded(

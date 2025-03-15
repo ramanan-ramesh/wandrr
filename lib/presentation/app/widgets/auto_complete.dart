@@ -12,7 +12,7 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
   final void Function(T)? onSelected;
   final Widget? suffix;
   final String? hintText;
-  final double? maxOptionWidgetWidth;
+  final double? optionsViewWidth;
   final String Function(T)? displayTextCreator;
   T? selectedItem;
 
@@ -29,7 +29,7 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
       this.displayTextCreator,
       this.hintText,
       this.suffix,
-      this.maxOptionWidgetWidth,
+      this.optionsViewWidth,
       this.customPrefix,
       this.prefixIcon});
 
@@ -107,29 +107,32 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
             },
             optionsViewBuilder: (BuildContext context,
                 AutocompleteOnSelected<T> onSelected, Iterable<T> options) {
-              return SizedBox(
-                width: maxOptionWidgetWidth ?? constraints.maxWidth,
-                child: Container(
-                  constraints: BoxConstraints(maxHeight: 200, maxWidth: 300),
-                  color: Theme.of(context).dialogTheme.backgroundColor,
-                  child: ListView.separated(
-                      padding: EdgeInsets.zero,
-                      shrinkWrap: true,
-                      itemBuilder: (BuildContext context, int index) {
-                        final T option = options.elementAt(index);
-                        return InkWell(
-                          onTap: () {
-                            onSelected(option);
-                          },
-                          child: Builder(builder: (BuildContext context) {
-                            return listItem(option);
-                          }),
-                        );
-                      },
-                      separatorBuilder: (context, index) {
-                        return Divider();
-                      },
-                      itemCount: options.length),
+              return Align(
+                alignment: Alignment.topLeft,
+                child: Material(
+                  elevation: 4.0,
+                  child: Container(
+                    color: Theme.of(context).dialogTheme.backgroundColor,
+                    width: optionsViewWidth ?? constraints.maxWidth,
+                    child: ListView.separated(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemBuilder: (BuildContext context, int index) {
+                          final T option = options.elementAt(index);
+                          return InkWell(
+                            onTap: () {
+                              onSelected(option);
+                            },
+                            child: Builder(builder: (BuildContext context) {
+                              return listItem(option);
+                            }),
+                          );
+                        },
+                        separatorBuilder: (context, index) {
+                          return const Divider();
+                        },
+                        itemCount: options.length),
+                  ),
                 ),
               );
             },

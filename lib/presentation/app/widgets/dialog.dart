@@ -55,7 +55,7 @@ class PlatformDialogElements {
         child: AnimatedOpacity(
           opacity: anim1.value,
           curve: Curves.easeOutBack,
-          duration: Duration(milliseconds: 1000),
+          duration: const Duration(milliseconds: 1000),
           child: child,
         ),
       ),
@@ -101,7 +101,7 @@ class PlatformDialogElements {
         child: AnimatedOpacity(
           opacity: anim1.value,
           curve: Curves.easeInOutBack,
-          duration: Duration(milliseconds: 500),
+          duration: const Duration(milliseconds: 500),
           child: child,
         ),
       ),

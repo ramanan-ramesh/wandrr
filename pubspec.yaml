@@ -50,7 +50,8 @@ dependencies:
   fl_chart: ^0.66.0
   google_sign_in: ^6.2.1
   flutter_datetime_picker_plus: ^2.2.0
-  flutter_secure_storage: ^9.2.2
+  rive: ^0.13.20
+  shared_preferences: ^2.5.2
 
 dev_dependencies:
   flutter_test:
@@ -88,6 +89,7 @@ flutter:
     - assets/images/trip_planning_2.jpg
     - assets/images/trip_planning_3.jpg
     - assets/supported_currencies.json
+    - assets/walk_animation.riv
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

@@ -66,7 +66,7 @@ class ItineraryStayAndTransits extends StatelessWidget {
     var numberOfItems = transits.length + lodgingAndEventDescriptions.length;
     return ListView.separated(
         shrinkWrap: true,
-        padding: EdgeInsets.symmetric(vertical: 3.0),
+        padding: const EdgeInsets.symmetric(vertical: 3.0),
         itemBuilder: (BuildContext context, int index) {
           if (lodgingAndEventDescriptions.isNotEmpty) {
             var relativeIndex = numberOfItems - index;
@@ -84,7 +84,7 @@ class ItineraryStayAndTransits extends StatelessWidget {
               appLocalizations, context);
         },
         separatorBuilder: (BuildContext context, int index) {
-          return Padding(padding: EdgeInsets.symmetric(vertical: 3.0));
+          return const Padding(padding: EdgeInsets.symmetric(vertical: 3.0));
         },
         itemCount: numberOfItems);
   }
@@ -95,9 +95,9 @@ class ItineraryStayAndTransits extends StatelessWidget {
       var currentLodgingState = currentState as UpdatedTripEntity;
       var updatedLodging = currentLodgingState
           .tripEntityModificationData.modifiedCollectionItem as LodgingFacade;
-      if (currentLodgingState.dataState == DataState.Create ||
-          currentLodgingState.dataState == DataState.Delete ||
-          currentLodgingState.dataState == DataState.Update) {
+      if (currentLodgingState.dataState == DataState.create ||
+          currentLodgingState.dataState == DataState.delete ||
+          currentLodgingState.dataState == DataState.update) {
         var isLodgingEventOnSameDay =
             updatedLodging.checkinDateTime!.isOnSameDayAs(itineraryDay) ||
                 updatedLodging.checkoutDateTime!.isOnSameDayAs(itineraryDay);
@@ -108,9 +108,9 @@ class ItineraryStayAndTransits extends StatelessWidget {
       var currentTransitState = currentState as UpdatedTripEntity;
       var updatedTransit = currentTransitState
           .tripEntityModificationData.modifiedCollectionItem as TransitFacade;
-      if (currentTransitState.dataState == DataState.Create ||
-          currentTransitState.dataState == DataState.Delete ||
-          currentTransitState.dataState == DataState.Update) {
+      if (currentTransitState.dataState == DataState.create ||
+          currentTransitState.dataState == DataState.delete ||
+          currentTransitState.dataState == DataState.update) {
         var isItineraryDayOnOrAfterDeparture =
             itineraryDay.isAtSameMomentAs(updatedTransit.departureDateTime!) ||
                 itineraryDay.isAfter(updatedTransit.departureDateTime!);
@@ -185,7 +185,7 @@ class ItineraryStayAndTransits extends StatelessWidget {
             )
           ],
         ),
-        Positioned.fill(
+        const Positioned.fill(
           left: 30,
           child: ListTile(
             shape: StadiumBorder(
@@ -202,7 +202,7 @@ class ItineraryStayAndTransits extends StatelessWidget {
 
   String _getTransitLocationDetail(TransitFacade transitFacade) {
     String departureLocationTitle, arrivalLocationTitle;
-    if (transitFacade.transitOption == TransitOption.Flight) {
+    if (transitFacade.transitOption == TransitOption.flight) {
       departureLocationTitle =
           (transitFacade.departureLocation!.context as AirportLocationContext)
               .city;

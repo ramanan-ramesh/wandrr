@@ -78,7 +78,7 @@ class DebtSummaryTile extends StatelessWidget {
               ),
             );
           }
-          return CircularProgressIndicator();
+          return const CircularProgressIndicator();
         },
       ),
     );

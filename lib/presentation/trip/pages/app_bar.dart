@@ -40,7 +40,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                           onPressed: () {
                             _showDeleteTripConfirmationDialog(context);
                           },
-                          icon: Icon(Icons.delete_rounded)),
+                          icon: const Icon(Icons.delete_rounded)),
                     _createRightActionButtons(context),
                   ],
                 );
@@ -75,7 +75,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             onPressed: () {
               context.addMasterPageEvent(Logout());
             },
-            icon: Icon(Icons.logout_rounded),
+            icon: const Icon(Icons.logout_rounded),
           ),
         ),
       ],
@@ -84,6 +84,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   Widget _createAppLogo(BuildContext context) {
     return FloatingActionButton.extended(
+      elevation: 0,
       onPressed: () {
         context.addTripManagementEvent(GoToHome());
       },
@@ -104,7 +105,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget _createThemeModeSwitcher(BuildContext context) {
     return Row(
       children: [
-        Icon(
+        const Icon(
           Icons.light_mode_rounded,
           color: Colors.green,
         ),
@@ -115,7 +116,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                 themeModeToChangeTo: value ? ThemeMode.dark : ThemeMode.light));
           },
         ),
-        Icon(
+        const Icon(
           Icons.mode_night_rounded,
           color: Colors.black,
         ),

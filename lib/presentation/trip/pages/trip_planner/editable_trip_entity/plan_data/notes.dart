@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/note.dart';
 
 class NotesListView extends StatefulWidget {
-  NotesListView({super.key, required this.notes, required this.onNotesChanged});
+  const NotesListView({super.key, required this.notes, required this.onNotesChanged});
 
   final List<NoteFacade> notes;
   final Function() onNotesChanged;
@@ -34,13 +34,13 @@ class NotesListViewState extends State<NotesListView> {
                 widget.onNotesChanged();
                 setState(() {});
               },
-              icon: Icon(Icons.delete),
+              icon: const Icon(Icons.delete),
             ),
           ],
         );
       },
       separatorBuilder: (BuildContext context, int index) {
-        return Padding(padding: EdgeInsets.symmetric(vertical: 3.0));
+        return const Padding(padding: EdgeInsets.symmetric(vertical: 3.0));
       },
       itemCount: widget.notes.length,
     );
@@ -51,7 +51,7 @@ class _NoteListItem extends StatefulWidget {
   final NoteFacade note;
   final Function() onNoteChanged;
 
-  _NoteListItem({super.key, required this.note, required this.onNoteChanged});
+  const _NoteListItem({required this.note, required this.onNoteChanged});
 
   @override
   State<_NoteListItem> createState() => _NoteListItemState();
@@ -87,8 +87,8 @@ class _NoteListItemState extends State<_NoteListItem> {
         ),
         AnimatedOpacity(
           opacity: widget.note.note != widget.note.note ? 1.0 : 0.0,
-          duration: Duration(seconds: 1),
-          child: Align(
+          duration: const Duration(seconds: 1),
+          child: const Align(
             alignment: Alignment.bottomRight,
             child: FloatingActionButton(
               onPressed: null,

@@ -11,7 +11,7 @@ import 'expense_view_type.dart';
 import 'trip_entity_list_views/plan_data.dart';
 
 class TripPlannerPage extends StatefulWidget {
-  TripPlannerPage({Key? key}) : super(key: key);
+  const TripPlannerPage({Key? key}) : super(key: key);
 
   @override
   State<TripPlannerPage> createState() => _TripPlannerPageState();
@@ -19,11 +19,8 @@ class TripPlannerPage extends StatefulWidget {
 
 class _TripPlannerPageState extends State<TripPlannerPage>
     with SingleTickerProviderStateMixin {
-  static const _breakOffLayoutWidth = 1000;
-  static const _maximumPageWidth = 700.0;
-
   final _expenseViewTypeNotifier =
-      ValueNotifier<ExpenseViewType>(ExpenseViewType.ExpenseList);
+      ValueNotifier<ExpenseViewType>(ExpenseViewType.expenseList);
 
   final ScrollController _scrollController = ScrollController();
 
@@ -42,7 +39,7 @@ class _TripPlannerPageState extends State<TripPlannerPage>
         Expanded(
           child: CustomScrollView(
             controller: _scrollController,
-            slivers: [
+            slivers: const [
               SliverToBoxAdapter(
                 child: TripOverviewTile(),
               ),
@@ -97,45 +94,46 @@ class _TripPlannerPageState extends State<TripPlannerPage>
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
-        SliverToBoxAdapter(
+        const SliverToBoxAdapter(
           child: TripOverviewTile(),
         ),
-        SliverPadding(
+        const SliverPadding(
           sliver: TransitListView(),
           padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
         ),
-        SliverToBoxAdapter(
+        const SliverToBoxAdapter(
           child: Divider(
             height: 25,
           ),
         ),
-        SliverPadding(
+        const SliverPadding(
           sliver: LodgingListView(),
           padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
         ),
-        SliverToBoxAdapter(
+        const SliverToBoxAdapter(
           child: Divider(
             height: 25,
           ),
         ),
-        SliverPadding(
+        const SliverPadding(
           padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
           sliver: PlanDataListView(),
         ),
-        SliverPadding(
+        const SliverPadding(
           padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
           sliver: ItineraryListView(),
         ),
         SliverToBoxAdapter(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
             child: BudgetingHeaderTile(
               expenseViewTypeNotifier: _expenseViewTypeNotifier,
             ),
           ),
         ),
         SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
+          padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
           sliver: ExpenseViewAdapter(
             expenseViewTypeNotifier: _expenseViewTypeNotifier,
           ),

@@ -21,17 +21,17 @@ class OnBoardingPage extends StatelessWidget {
         Align(
           alignment: Alignment.centerRight,
           child: Container(
-            padding: EdgeInsets.only(right: 4),
+            padding: const EdgeInsets.only(right: 4),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                LanguageSwitcher(),
+                const LanguageSwitcher(),
                 if (!isBigLayout)
                   FloatingActionButton.large(
                     onPressed: onNavigateToNextPage,
-                    shape: CircleBorder(),
-                    child: Icon(
+                    shape: const CircleBorder(),
+                    child: const Icon(
                       Icons.navigate_next_rounded,
                       size: 75,
                     ),

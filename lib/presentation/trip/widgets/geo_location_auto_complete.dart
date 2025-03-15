@@ -12,6 +12,7 @@ class PlatformGeoLocationAutoComplete extends StatelessWidget {
   final Function(LocationFacade selectedLocation)? onLocationSelected;
   final bool shouldShowPrefix;
   final GeoLocator? geoLocator;
+  final double? locationOptionsViewWidth;
   LocationFacade? selectedLocation;
 
   PlatformGeoLocationAutoComplete(
@@ -19,11 +20,13 @@ class PlatformGeoLocationAutoComplete extends StatelessWidget {
       this.selectedLocation,
       this.geoLocator,
       this.onLocationSelected,
+      this.locationOptionsViewWidth,
       this.shouldShowPrefix = false});
 
   @override
   Widget build(BuildContext context) {
     return PlatformAutoComplete<LocationFacade>(
+      optionsViewWidth: locationOptionsViewWidth,
       selectedItem: selectedLocation,
       onSelected: (location) {
         selectedLocation = location;

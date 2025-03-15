@@ -6,19 +6,20 @@ ThemeData createDarkThemeData(BuildContext context) {
   return ThemeData(
     brightness: Brightness.dark,
     colorScheme: ColorScheme(
-        brightness: Brightness.dark,
-        primary: Colors.grey.shade900,
-        onPrimary: Colors.white,
-        secondary: Colors.black,
-        onSecondary: Colors.green,
-        error: Colors.red,
-        onError: Colors.white,
-        surface: Colors.grey.shade800,
-        onSurface: Colors.white),
+      brightness: Brightness.dark,
+      primary: Colors.grey.shade900,
+      onPrimary: Colors.white,
+      secondary: Colors.black,
+      onSecondary: Colors.green,
+      error: Colors.red,
+      onError: Colors.white,
+      surface: Colors.grey.shade800,
+      onSurface: Colors.white,
+    ),
     scrollbarTheme: ScrollbarThemeData(
       thumbColor: WidgetStateProperty.all(Colors.green),
     ),
-    textButtonTheme: TextButtonThemeData(
+    textButtonTheme: const TextButtonThemeData(
       style: ButtonStyle(
         backgroundColor: WidgetStatePropertyAll(Colors.black),
         foregroundColor: WidgetStatePropertyAll(Colors.green),
@@ -28,7 +29,8 @@ ThemeData createDarkThemeData(BuildContext context) {
     dialogTheme: DialogThemeData(
       backgroundColor: Colors.grey.shade700,
     ),
-    progressIndicatorTheme: ProgressIndicatorThemeData(color: Colors.green),
+    progressIndicatorTheme:
+        const ProgressIndicatorThemeData(color: Colors.green),
     listTileTheme: ListTileThemeData(
       tileColor: Colors.grey.shade900,
       textColor: Colors.green,
@@ -44,20 +46,20 @@ ThemeData createDarkThemeData(BuildContext context) {
         ),
       ),
     ),
-    dividerTheme: DividerThemeData(
+    dividerTheme: const DividerThemeData(
       color: Colors.white,
       indent: 20,
       endIndent: 20,
     ),
-    iconButtonTheme: IconButtonThemeData(
+    iconButtonTheme: const IconButtonThemeData(
       style: ButtonStyle(
         iconColor: WidgetStatePropertyAll(Colors.black),
         backgroundColor: WidgetStatePropertyAll(Colors.green),
         foregroundColor: WidgetStatePropertyAll(Colors.white),
       ),
     ),
-    iconTheme: IconThemeData(color: Colors.green),
-    floatingActionButtonTheme: FloatingActionButtonThemeData(
+    iconTheme: const IconThemeData(color: Colors.green),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
       splashColor: Colors.grey,
       backgroundColor: Colors.black,
       foregroundColor: Colors.green,
@@ -74,11 +76,11 @@ ThemeData createDarkThemeData(BuildContext context) {
       labelColor: Colors.white,
       unselectedLabelColor: Colors.grey,
     ),
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       color: Colors.teal,
       foregroundColor: Colors.black,
     ),
-    textSelectionTheme: TextSelectionThemeData(cursorColor: Colors.black),
+    textSelectionTheme: const TextSelectionThemeData(cursorColor: Colors.black),
     dropdownMenuTheme: DropdownMenuThemeData(
       menuStyle: MenuStyle(
         backgroundColor: WidgetStatePropertyAll(
@@ -86,21 +88,21 @@ ThemeData createDarkThemeData(BuildContext context) {
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
-      hintStyle: TextStyle(
+      hintStyle: const TextStyle(
         fontStyle: FontStyle.italic,
       ),
       filled: true,
       fillColor: Colors.grey.shade600,
-      floatingLabelStyle: TextStyle(
+      floatingLabelStyle: const TextStyle(
         color: Colors.white,
         fontWeight: FontWeight.bold,
       ),
-      border: OutlineInputBorder(
+      border: const OutlineInputBorder(
         borderRadius:
             BorderRadius.all(Radius.circular(Constants.cardBorderRadius)),
         borderSide: BorderSide(color: Colors.white),
       ),
-      focusedBorder: OutlineInputBorder(
+      focusedBorder: const OutlineInputBorder(
         borderSide: BorderSide(color: Colors.transparent),
       ),
       errorBorder: const OutlineInputBorder(
@@ -108,39 +110,9 @@ ThemeData createDarkThemeData(BuildContext context) {
       ),
       iconColor: Colors.green,
     ),
-    switchTheme: SwitchThemeData(
+    switchTheme: const SwitchThemeData(
       trackColor: WidgetStatePropertyAll(Colors.green),
       thumbColor: WidgetStatePropertyAll(Colors.black),
-    ),
-    datePickerTheme: DatePickerThemeData(
-      backgroundColor: Colors.grey.shade800,
-      /*
-        dayTextStyle: TextStyle(
-                      color: isLightTheme ? Colors.black : Colors.white),
-                  selectedDayHighlightColor: Colors.green,
-                  selectedDayTextStyle: TextStyle(color: Colors.black),
-                  selectedRangeHighlightColor: Colors.green,
-                  selectedRangeDayTextStyle: TextStyle(color: Colors.black),
-                  todayTextStyle: TextStyle(color: Colors.white),
-                  okButtonTextStyle: TextStyle(color: Colors.black),
-                  cancelButtonTextStyle: TextStyle(color: Colors.black),
-                  cancelButton: IgnorePointer(
-                    child: IconButton(
-                      onPressed: null,
-                      icon: Icon(Icons.cancel_rounded),
-                    ),
-                  ),
-                  okButton: IgnorePointer(
-                    child: IconButton(
-                      onPressed: null,
-                      icon: Icon(Icons.done_rounded),
-                    ),
-                  ),
-         */
-      //TODO: Convert these to suit DatePickerTheme's needs
-      dayStyle: TextStyle(
-        color: Colors.white,
-      ),
     ),
   );
 }

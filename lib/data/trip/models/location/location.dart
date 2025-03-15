@@ -64,17 +64,17 @@ abstract class LocationContext {
 }
 
 enum LocationType {
-  Continent,
-  Country,
-  State,
-  City,
-  Place,
-  Region,
-  RailwayStation,
-  Airport,
-  BusStation,
-  Restaurant,
-  Attraction,
-  Lodging,
-  BusStop
+  continent,
+  country,
+  state,
+  city,
+  place,
+  region,
+  railwayStation,
+  airport,
+  busStation,
+  restaurant,
+  attraction,
+  lodging,
+  busStop
 }

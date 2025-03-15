@@ -14,7 +14,7 @@ class EditableLodgingListItem extends StatefulWidget {
   final UiElement<LodgingFacade> lodgingUiElement;
   final ValueNotifier<bool> validityNotifier;
 
-  EditableLodgingListItem(
+  const EditableLodgingListItem(
       {super.key,
       required this.lodgingUiElement,
       required this.validityNotifier});
@@ -96,7 +96,7 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
             ),
           ),
         ),
-        VerticalDivider(),
+        const VerticalDivider(),
         Expanded(
           flex: 2,
           child: Column(
@@ -194,7 +194,7 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
           FittedBox(
             child: Text(
               title.toUpperCase(),
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
             ),
           ),
         Padding(

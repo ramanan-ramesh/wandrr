@@ -306,7 +306,7 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
     var newEndDate = DateTime(endDate.year, endDate.month, endDate.day);
     for (DateTime date = newStartDate;
         date.isBefore(newEndDate) || date.isAtSameMomentAs(newEndDate);
-        date = date.add(Duration(days: 1))) {
+        date = date.add(const Duration(days: 1))) {
       dateSet.add(date);
     }
     return dateSet;

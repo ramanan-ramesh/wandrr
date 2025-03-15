@@ -17,12 +17,12 @@ class HomePage extends StatelessWidget {
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Padding(
+          const Padding(
             padding: EdgeInsets.symmetric(vertical: 5.0),
             child: LanguageSwitcher(),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 5.0),
+            padding: const EdgeInsets.symmetric(vertical: 5.0),
             child: _buildCreateTripButton(context),
           ),
         ],
@@ -39,13 +39,13 @@ class HomePage extends StatelessWidget {
         mainAxisSize: MainAxisSize.max,
         children: [
           Padding(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             child: Text(
               context.localizations.viewRecentTrips,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
           ),
-          Expanded(
+          const Expanded(
             child: TripListView(),
           ),
         ],
@@ -62,7 +62,7 @@ class HomePage extends StatelessWidget {
           PlatformDialogElements.showGeneralDialog(
             pageContext,
             Container(
-              constraints: BoxConstraints(maxWidth: 450),
+              constraints: const BoxConstraints(maxWidth: 450),
               child: TripCreatorDialog(
                 widgetContext: pageContext,
               ),
@@ -70,7 +70,7 @@ class HomePage extends StatelessWidget {
           );
         },
         label: Text(pageContext.localizations.planTrip),
-        icon: Icon(Icons.add_location_alt_rounded),
+        icon: const Icon(Icons.add_location_alt_rounded),
       ),
     );
   }

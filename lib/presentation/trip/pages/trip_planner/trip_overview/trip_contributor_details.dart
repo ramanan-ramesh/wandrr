@@ -36,7 +36,7 @@ class ContributorDetails extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 3.0),
               child: SizedBox(
                 height: maxOverviewElementHeight,
-                child: AddTripMateField(),
+                child: const AddTripMateField(),
               ),
             ),
             ...contributorWidgets
@@ -50,7 +50,7 @@ class ContributorDetails extends StatelessWidget {
   bool _shouldBuildContributorDetails(previousState, currentState) {
     if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
       var updatedTripEntity = currentState as UpdatedTripEntity;
-      if (updatedTripEntity.dataState == DataState.Update) {
+      if (updatedTripEntity.dataState == DataState.update) {
         var tripMetadataModificationData =
             updatedTripEntity.tripEntityModificationData
                 as CollectionChangeMetadata<TripMetadataFacade>;

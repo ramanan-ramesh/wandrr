@@ -25,15 +25,15 @@ class _UpdateTripEntityInternalEvent<T extends TripEntity>
 
   _UpdateTripEntityInternalEvent.updated(
       this.updateData, this.isOperationSuccess)
-      : dateState = DataState.Update;
+      : dateState = DataState.update;
 
   _UpdateTripEntityInternalEvent.created(
       this.updateData, this.isOperationSuccess)
-      : dateState = DataState.Create;
+      : dateState = DataState.create;
 
   _UpdateTripEntityInternalEvent.deleted(
       this.updateData, this.isOperationSuccess)
-      : dateState = DataState.Delete;
+      : dateState = DataState.delete;
 }
 
 class _OnStartup extends TripManagementEvent {}
@@ -153,11 +153,11 @@ class TripManagementBloc
 
   FutureOr<void> _onUpdateTransit(UpdateTripEntity<TransitFacade> event,
       Emitter<TripManagementState> emit) async {
-    if (event.dataState == DataState.NewUiEntry) {
+    if (event.dataState == DataState.newUiEntry) {
       var activeTrip = _tripRepository!.activeTripEventHandler!;
       var transit = TransitFacade.newUiEntry(
           tripId: activeTrip.tripMetadata.id!,
-          transitOption: TransitOption.PublicTransport,
+          transitOption: TransitOption.publicTransport,
           allTripContributors: activeTrip.tripMetadata.contributors,
           currentUserName: currentUserName,
           defaultCurrency: activeTrip.tripMetadata.budget.currency);
@@ -175,7 +175,7 @@ class TripManagementBloc
 
   FutureOr<void> _onUpdateLodging(UpdateTripEntity<LodgingFacade> event,
       Emitter<TripManagementState> emit) async {
-    if (event.dataState == DataState.NewUiEntry) {
+    if (event.dataState == DataState.newUiEntry) {
       var activeTrip = _tripRepository!.activeTripEventHandler!;
       var lodgingModelFacade = LodgingFacade.newUiEntry(
           tripId: activeTrip.tripMetadata.id!,
@@ -199,7 +199,7 @@ class TripManagementBloc
     if (event is UpdateLinkedExpense) {
       return;
     }
-    if (event.dataState == DataState.NewUiEntry) {
+    if (event.dataState == DataState.newUiEntry) {
       var activeTrip = _tripRepository!.activeTripEventHandler!;
       var newExpense = ExpenseFacade.newUiEntry(
           tripId: activeTrip.tripMetadata.id!,
@@ -220,7 +220,7 @@ class TripManagementBloc
 
   FutureOr<void> _onUpdatePlanData(UpdateTripEntity<PlanDataFacade> event,
       Emitter<TripManagementState> emit) async {
-    if (event.dataState == DataState.NewUiEntry) {
+    if (event.dataState == DataState.newUiEntry) {
       var activeTrip = _tripRepository!.activeTripEventHandler!;
       var planDataModelFacade = PlanDataFacade.newUiEntry(
           id: null, tripId: activeTrip.tripMetadata.id!);
@@ -261,7 +261,7 @@ class TripManagementBloc
       UpdateLinkedExpense<TransitFacade> event,
       Emitter<TripManagementState> emit) async {
     switch (event.dataState) {
-      case DataState.Select:
+      case DataState.select:
         {
           emit(UpdatedLinkedExpense.selected(
               link: event.link,
@@ -269,7 +269,7 @@ class TripManagementBloc
               isOperationSuccess: true));
           break;
         }
-      case DataState.Update:
+      case DataState.update:
         {
           event.link.expense = event.tripEntity!;
           add(UpdateTripEntity<TransitFacade>.update(tripEntity: event.link));
@@ -286,7 +286,7 @@ class TripManagementBloc
       UpdateLinkedExpense<LodgingFacade> event,
       Emitter<TripManagementState> emit) async {
     switch (event.dataState) {
-      case DataState.Select:
+      case DataState.select:
         {
           emit(UpdatedLinkedExpense.selected(
               link: event.link,
@@ -294,7 +294,7 @@ class TripManagementBloc
               isOperationSuccess: true));
           break;
         }
-      case DataState.Update:
+      case DataState.update:
         {
           event.link.expense = event.tripEntity!;
           add(UpdateTripEntity<LodgingFacade>.update(tripEntity: event.link));
@@ -314,12 +314,12 @@ class TripManagementBloc
       String? tripEntityId,
       Emitter<TripManagementState> emit) async {
     switch (requestedDataState) {
-      case DataState.NewUiEntry:
+      case DataState.newUiEntry:
         {
           emit(UpdatedTripEntity<E>.createdNewUiEntry(
               tripEntity: tripEntity, isOperationSuccess: true));
         }
-      case DataState.Create:
+      case DataState.create:
         {
           if (tripEntityId == null) {
             var addedEntity = await modelCollection.tryAdd(tripEntity);
@@ -337,7 +337,7 @@ class TripManagementBloc
           }
           break;
         }
-      case DataState.Delete:
+      case DataState.delete:
         {
           if (tripEntityId != null && tripEntityId.isNotEmpty) {
             if (modelCollection.collectionItems.any(
@@ -356,7 +356,7 @@ class TripManagementBloc
           }
           break;
         }
-      case DataState.Update:
+      case DataState.update:
         {
           if (tripEntityId != null && tripEntityId.isNotEmpty) {
             var collectionItem = modelCollection.collectionItems
@@ -375,7 +375,7 @@ class TripManagementBloc
           }
           break;
         }
-      case DataState.Select:
+      case DataState.select:
         {
           var originalTripEntity = modelCollection.collectionItems
               .where((e) => e.id == tripEntityId)
@@ -443,21 +443,21 @@ class TripManagementBloc
       _UpdateTripEntityInternalEvent<T> event,
       Emitter<TripManagementState> emit) {
     switch (event.dateState) {
-      case DataState.Create:
+      case DataState.create:
         {
           emit(UpdatedTripEntity<T>.created(
               tripEntityModificationData: event.updateData,
               isOperationSuccess: event.isOperationSuccess));
           break;
         }
-      case DataState.Delete:
+      case DataState.delete:
         {
           emit(UpdatedTripEntity<T>.deleted(
               tripEntityModificationData: event.updateData,
               isOperationSuccess: event.isOperationSuccess));
           break;
         }
-      case DataState.Update:
+      case DataState.update:
         {
           var updateState = UpdatedTripEntity<T>.updated(
               tripEntityModificationData: event.updateData,

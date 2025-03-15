@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:rive/rive.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
@@ -9,7 +10,6 @@ import 'package:wandrr/presentation/app/blocs/master_page/master_page_states.dar
 import 'package:wandrr/presentation/app/pages/startup_page.dart';
 import 'package:wandrr/presentation/app/theming/dark_theme_data.dart';
 import 'package:wandrr/presentation/app/theming/light_theme_data.dart';
-import 'package:wandrr/presentation/app/widgets/shimmer.dart';
 import 'package:wandrr/presentation/trip/pages/trip_provider.dart';
 
 class MasterPage extends StatelessWidget {
@@ -19,45 +19,43 @@ class MasterPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<MasterPageBloc>(
       create: (context) => MasterPageBloc(),
-      child: _MasterContentPageRouter(),
+      child: const _MasterContentPageRouter(),
     );
   }
 }
 
 class _MasterContentPageRouter extends StatefulWidget {
-  const _MasterContentPageRouter({super.key});
+  const _MasterContentPageRouter();
 
   @override
   State<_MasterContentPageRouter> createState() => _MasterContentPageLoader();
 }
 
 class _MasterContentPageLoader extends State<_MasterContentPageRouter> {
-  var _hasMinimumShimmerTimePassed = false;
-  static const _onBoardingImageAsset = 'assets/images/plan_itinerary.jpg';
-  static const _minimumShimmerTime = Duration(seconds: 2);
+  var _hasMinimumWalkAnimationTimePassed = false;
+  static const _minimumWalkAnimationTime = Duration(seconds: 2);
 
   @override
   Widget build(BuildContext context) {
     if (BlocProvider.of<MasterPageBloc>(context).state is Loading) {
-      if (!_hasMinimumShimmerTimePassed) {
-        _tryTriggerStartAnimation();
+      if (!_hasMinimumWalkAnimationTimePassed) {
+        _tryStartWalkAnimation();
       }
     }
     return BlocConsumer<MasterPageBloc, MasterPageState>(
       builder: (BuildContext context, MasterPageState state) {
-        if (state is LoadedRepository && _hasMinimumShimmerTimePassed) {
+        if (state is LoadedRepository && _hasMinimumWalkAnimationTimePassed) {
           return RepositoryProvider<AppDataFacade>(
             create: (BuildContext context) => state.appData,
-            child: _ContentPage(),
+            child: const _ContentPage(),
           );
         }
-        return Center(
-          child: Shimmer(
-            child: Image(
-              image: AssetImage(_onBoardingImageAsset),
-              fit: BoxFit.fitHeight,
-            ),
-          ),
+        return RiveAnimation.asset(
+          'assets/walk_animation.riv',
+          fit: BoxFit.fitHeight,
+          controllers: [
+            SimpleAnimation('Walk'),
+          ],
         );
       },
       buildWhen: (previousState, currentState) {
@@ -67,17 +65,17 @@ class _MasterContentPageLoader extends State<_MasterContentPageRouter> {
       },
       listener: (BuildContext context, MasterPageState state) {
         if (state is Loading) {
-          _tryTriggerStartAnimation();
+          _tryStartWalkAnimation();
         }
       },
     );
   }
 
-  void _tryTriggerStartAnimation() {
-    _hasMinimumShimmerTimePassed = false;
-    Future.delayed(_minimumShimmerTime, () {
+  void _tryStartWalkAnimation() {
+    _hasMinimumWalkAnimationTimePassed = false;
+    Future.delayed(_minimumWalkAnimationTime, () {
       setState(() {
-        _hasMinimumShimmerTimePassed = true;
+        _hasMinimumWalkAnimationTimePassed = true;
       });
     });
   }
@@ -86,7 +84,7 @@ class _MasterContentPageLoader extends State<_MasterContentPageRouter> {
 class _ContentPage extends StatelessWidget {
   static const String _appTitle = 'Wandrr';
 
-  const _ContentPage({super.key});
+  const _ContentPage();
 
   @override
   Widget build(BuildContext context) {
@@ -111,8 +109,9 @@ class _ContentPage extends StatelessWidget {
           home: Material(
             child: DropdownButtonHideUnderline(
               child: SafeArea(
-                child:
-                    context.activeUser == null ? StartupPage() : TripProvider(),
+                child: context.activeUser == null
+                    ? const StartupPage()
+                    : const TripProvider(),
               ),
             ),
           ),

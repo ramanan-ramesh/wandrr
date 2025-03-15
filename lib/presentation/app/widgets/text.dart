@@ -41,7 +41,7 @@ class PlatformTextElements {
       bool readonly = false}) {
     return TextFormField(
       readOnly: readonly,
-      style: TextStyle(fontSize: PlatformTextElements.formElementSize),
+      style: const TextStyle(fontSize: PlatformTextElements.formElementSize),
       minLines: 1,
       textInputAction: textInputAction,
       onChanged: (username) {

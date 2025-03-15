@@ -30,7 +30,7 @@ class TransitListView extends StatelessWidget {
           tripDataModelFacade
               .transits
               .map((transit) =>
-                  UiElement(element: transit, dataState: DataState.None))
+                  UiElement(element: transit, dataState: DataState.none))
               .toList(),
       errorMessageCreator: (transitUiElement) {
         var transit = transitUiElement.element;
@@ -54,10 +54,10 @@ class TransitListView extends StatelessWidget {
   Iterable<UiElement<TransitFacade>> _sortTransits(
       List<UiElement<TransitFacade>> transitUiElements) {
     var newUiEntries = transitUiElements
-        .where((element) => element.dataState == DataState.NewUiEntry)
+        .where((element) => element.dataState == DataState.newUiEntry)
         .toList();
     transitUiElements
-        .removeWhere((element) => element.dataState == DataState.NewUiEntry);
+        .removeWhere((element) => element.dataState == DataState.newUiEntry);
     var transitsWithValidDateTime = <UiElement<TransitFacade>>[];
     var transitsWithInvalidDateTime = <UiElement<TransitFacade>>[];
     for (var transitUiElement in transitUiElements) {

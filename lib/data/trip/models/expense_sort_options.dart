@@ -1,7 +1,7 @@
 enum ExpenseSortOption {
-  Category,
-  LowToHighCost,
-  HighToLowCost,
-  OldToNew,
-  NewToOld
+  category,
+  lowToHighCost,
+  highToLowCost,
+  oldToNew,
+  newToOld
 }

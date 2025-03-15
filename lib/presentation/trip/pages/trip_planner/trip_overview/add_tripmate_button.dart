@@ -8,7 +8,7 @@ import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 class AddTripMateField extends StatelessWidget {
-  AddTripMateField({
+  const AddTripMateField({
     super.key,
   });
 
@@ -43,7 +43,7 @@ class AddTripMateField extends StatelessWidget {
             },
           ),
         ),
-        icon: Icon(Icons.person_2_rounded),
+        icon: const Icon(Icons.person_2_rounded),
       ),
       textInputAction: TextInputAction.done,
     );
@@ -51,9 +51,8 @@ class AddTripMateField extends StatelessWidget {
 }
 
 class _AddTripMateTextFieldButton extends StatefulWidget {
-  _AddTripMateTextFieldButton(
-      {super.key,
-      required this.addTripEditingValueNotifier,
+  const _AddTripMateTextFieldButton(
+      {required this.addTripEditingValueNotifier,
       required this.tripMateUserNameEditingController,
       required this.contributors,
       required this.onContributorAdded});
@@ -94,7 +93,7 @@ class _AddTripMateTextFieldButtonState
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.close_rounded,
                           ),
                         ),

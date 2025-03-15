@@ -47,11 +47,11 @@ class TripOverviewTile extends StatelessWidget {
             ),
           ],
         ),
-        Positioned(
+        const Positioned(
           left: 10,
           right: 10,
           top: 200,
-          child: const _OverviewTile(),
+          child: _OverviewTile(),
         )
       ],
     );
@@ -70,7 +70,7 @@ class TripOverviewTile extends StatelessWidget {
 }
 
 class _OverviewTile extends StatelessWidget {
-  const _OverviewTile({super.key});
+  const _OverviewTile();
 
   @override
   Widget build(BuildContext context) {

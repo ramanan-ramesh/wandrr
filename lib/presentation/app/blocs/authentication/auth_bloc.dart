@@ -11,10 +11,10 @@ class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
   static final Map<String, AuthenticationFailureCode>
       _authenticationFailuresAndMessages = {
-    'invalid-email': AuthenticationFailureCode.InvalidEmail,
-    'wrong-password': AuthenticationFailureCode.WrongPassword,
-    'user-not-found': AuthenticationFailureCode.NoSuchUsernameExists,
-    'email-already-in-use': AuthenticationFailureCode.UsernameAlreadyExists
+    'invalid-email': AuthenticationFailureCode.invalidEmail,
+    'wrong-password': AuthenticationFailureCode.wrongPassword,
+    'user-not-found': AuthenticationFailureCode.noSuchUsernameExists,
+    'email-already-in-use': AuthenticationFailureCode.usernameAlreadyExists
   };
 
   String googleWebClientId;
@@ -27,7 +27,7 @@ class AuthenticationBloc
   static AuthenticationFailureCode _getAuthFailureReason(
       String errorCode, String? errorMessage) {
     AuthenticationFailureCode authFailureReason =
-        AuthenticationFailureCode.Undefined;
+        AuthenticationFailureCode.undefined;
     if (errorMessage == null) {
       var matches = _authenticationFailuresAndMessages.keys
           .where((element) => errorCode.contains(element));
@@ -60,7 +60,7 @@ class AuthenticationBloc
       }
       emit(AuthenticationSuccess(
           authProviderUser: userCredential.user!,
-          authenticationType: AuthenticationType.EmailPassword));
+          authenticationType: AuthenticationType.emailPassword));
     } on FirebaseAuthException catch (exception) {
       emit(AuthenticationFailure(
           failureReason:
@@ -70,7 +70,7 @@ class AuthenticationBloc
 
   FutureOr<void> _onAuthWithThirdParty(AuthenticateWithThirdParty event,
       Emitter<AuthenticationState> emit) async {
-    if (event.authenticationType != AuthenticationType.Google) {
+    if (event.authenticationType != AuthenticationType.google) {
       return;
     }
 
@@ -100,7 +100,7 @@ class AuthenticationBloc
     if (userCredential.user != null) {
       emit(AuthenticationSuccess(
           authProviderUser: userCredential.user!,
-          authenticationType: AuthenticationType.Google));
+          authenticationType: AuthenticationType.google));
     }
   }
 }

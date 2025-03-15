@@ -29,7 +29,7 @@ class LodgingListView extends StatelessWidget {
           tripDataModelFacade
               .lodgings
               .map((lodging) =>
-                  UiElement(element: lodging, dataState: DataState.None))
+                  UiElement(element: lodging, dataState: DataState.none))
               .toList(),
       errorMessageCreator: (lodgingUiElement) {
         var lodging = lodgingUiElement.element;

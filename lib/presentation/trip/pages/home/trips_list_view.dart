@@ -33,8 +33,8 @@ class TripListView extends StatelessWidget {
       buildWhen: (previousState, currentState) {
         if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
           var tripMetadataUpdatedState = currentState as UpdatedTripEntity;
-          if (tripMetadataUpdatedState.dataState == DataState.Delete ||
-              tripMetadataUpdatedState.dataState == DataState.Create) {
+          if (tripMetadataUpdatedState.dataState == DataState.delete ||
+              tripMetadataUpdatedState.dataState == DataState.create) {
             return true;
           }
         }
@@ -106,7 +106,7 @@ class _TripMetadataGridItem extends StatelessWidget {
   final _dateFormat = DateFormat.MMMEd();
 
   _TripMetadataGridItem(
-      {super.key, required this.tripMetaDataFacade, required String imageAsset})
+      {required this.tripMetaDataFacade, required String imageAsset})
       : imageAsset = AssetImage(imageAsset),
         imageAssetLocation = imageAsset;
 
@@ -144,8 +144,8 @@ class _TripMetadataGridItem extends StatelessWidget {
                           gradient: LinearGradient(
                             colors: context.isLightTheme
                                 ? [Colors.teal.shade50, Colors.teal.shade500]
-                                : [Colors.black, Colors.black38],
-                            stops: [0, 1],
+                                : [Colors.white70, Colors.black],
+                            stops: const [0, 1],
                           ),
                         ),
                         child: FittedBox(
@@ -164,7 +164,7 @@ class _TripMetadataGridItem extends StatelessWidget {
                   ],
                 ),
                 Card(
-                  shape: StadiumBorder(),
+                  shape: const StadiumBorder(),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Row(
@@ -187,7 +187,7 @@ class _TripMetadataGridItem extends StatelessWidget {
                             onPressed: () {
                               _showDeleteTripConfirmationDialog(context);
                             },
-                            icon: Icon(Icons.delete_rounded),
+                            icon: const Icon(Icons.delete_rounded),
                           ),
                         ),
                       ],

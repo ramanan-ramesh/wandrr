@@ -9,7 +9,7 @@ import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/money_edit_field.dart';
 
 class BudgetEditTile extends StatefulWidget {
-  BudgetEditTile({super.key});
+  const BudgetEditTile({super.key});
 
   @override
   State<BudgetEditTile> createState() => _BudgetEditTileState();
@@ -38,18 +38,18 @@ class _BudgetEditTileState extends State<BudgetEditTile> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 3.0),
+              padding: const EdgeInsets.symmetric(vertical: 3.0),
               child: PlatformTextElements.createSubHeader(
                   context: context, text: context.localizations.edit_budget),
             ),
             Container(
-              constraints: BoxConstraints(maxWidth: 400),
+              constraints: const BoxConstraints(maxWidth: 400),
               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 3.0),
+                padding: const EdgeInsets.symmetric(vertical: 3.0),
                 child: PlatformMoneyEditField(
                   allCurrencies: context.supportedCurrencies,
                   selectedCurrencyData: currencyInfo,
-                  amount: _currentBudget?.amount,
+                  initialAmount: _currentBudget?.amount,
                   onAmountUpdatedCallback: (updatedAmount) {
                     _currentBudget!.amount = updatedAmount;
                   },
@@ -64,7 +64,7 @@ class _BudgetEditTileState extends State<BudgetEditTile> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 3.0),
+              padding: const EdgeInsets.symmetric(vertical: 3.0),
               child: _buildUpdateBudgetButton(),
             ),
           ],
@@ -83,7 +83,7 @@ class _BudgetEditTileState extends State<BudgetEditTile> {
             UpdateTripEntity<TripMetadataFacade>.update(
                 tripEntity: tripMetadata));
       },
-      child: Icon(Icons.save_rounded),
+      child: const Icon(Icons.save_rounded),
     );
   }
 }

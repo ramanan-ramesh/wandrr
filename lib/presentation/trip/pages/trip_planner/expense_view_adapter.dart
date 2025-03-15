@@ -20,19 +20,19 @@ class ExpenseViewAdapter extends StatelessWidget {
       valueListenable: _expenseViewTypeNotifier,
       builder: (BuildContext context, ExpenseViewType value, Widget? child) {
         switch (_expenseViewTypeNotifier.value) {
-          case ExpenseViewType.ExpenseList:
+          case ExpenseViewType.expenseList:
             {
-              return ExpenseListViewNew();
+              return const ExpenseListViewNew();
             }
-          case ExpenseViewType.BudgetEditor:
+          case ExpenseViewType.budgetEditor:
             {
-              return BudgetEditTile();
+              return const BudgetEditTile();
             }
-          case ExpenseViewType.BreakdownViewer:
+          case ExpenseViewType.breakdownViewer:
             {
               return const BudgetBreakdownTile();
             }
-          case ExpenseViewType.DebtSummary:
+          case ExpenseViewType.debtSummary:
             {
               return const DebtSummaryTile();
             }

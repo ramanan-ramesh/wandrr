@@ -13,7 +13,7 @@ class EditableTransitListItem extends StatefulWidget {
   final UiElement<TransitFacade> transitUiElement;
   final ValueNotifier<bool> validityNotifier;
 
-  EditableTransitListItem(
+  const EditableTransitListItem(
       {super.key,
       required this.transitUiElement,
       required this.validityNotifier});
@@ -103,12 +103,12 @@ class _EditableTransitListItemState extends State<EditableTransitListItem> {
                           transitFacade.arrivalLocation;
                       _calculateTransitValidity();
                     }),
-                Divider(),
+                const Divider(),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: _buildTransitCarrierPicker(context),
                 ),
-                Divider(),
+                const Divider(),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: _buildNotesField(context),
@@ -217,11 +217,11 @@ Widget createTitleSubText(String title, Widget subtitle) {
       FittedBox(
         child: Text(
           title.toUpperCase(),
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       Padding(
-        padding: EdgeInsets.only(top: 2.0),
+        padding: const EdgeInsets.only(top: 2.0),
         child: subtitle,
       ),
     ],

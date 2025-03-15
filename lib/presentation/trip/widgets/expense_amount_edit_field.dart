@@ -10,6 +10,7 @@ class PlatformExpenseAmountEditField extends StatelessWidget {
   final TextEditingController _amountEditingController;
   final InputDecoration? inputDecoration;
   final Color? textColor;
+  TextInputAction textInputAction;
 
   PlatformExpenseAmountEditField(
       {super.key,
@@ -17,6 +18,7 @@ class PlatformExpenseAmountEditField extends StatelessWidget {
       this.onExpenseAmountChanged,
       this.inputDecoration,
       this.textColor,
+      this.textInputAction = TextInputAction.next,
       this.amount})
       : _amountEditingController = TextEditingController(text: amount);
 
@@ -25,6 +27,7 @@ class PlatformExpenseAmountEditField extends StatelessWidget {
     return TextField(
       readOnly: isReadonly,
       style: TextStyle(color: textColor),
+      textInputAction: textInputAction,
       onChanged: (newValue) {
         if (newValue != amount) {
           amount = newValue;
@@ -34,7 +37,7 @@ class PlatformExpenseAmountEditField extends StatelessWidget {
           }
         }
       },
-      keyboardType: TextInputType.numberWithOptions(decimal: true),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
       controller: _amountEditingController,
       inputFormatters: [_DecimalTextInputFormatter()],
       decoration: inputDecoration,

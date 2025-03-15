@@ -18,14 +18,14 @@ import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 import 'trip_entity_list_view.dart';
 
 class ExpenseListViewNew extends StatefulWidget {
-  ExpenseListViewNew({super.key});
+  const ExpenseListViewNew({super.key});
 
   @override
   State<ExpenseListViewNew> createState() => _ExpenseListViewNewState();
 }
 
 class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
-  var _selectedSortOption = ExpenseSortOption.OldToNew;
+  var _selectedSortOption = ExpenseSortOption.oldToNew;
   static late Map<ExpenseCategory, String> _categoryNames;
   static late Map<ExpenseSortOption, String> _availableSortOptions;
 
@@ -77,7 +77,7 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
 
   void _onUpdatePressed(UiElement<ExpenseFacade> expenseUiElement) {
     TripManagementEvent eventToAdd;
-    if (expenseUiElement.dataState == DataState.NewUiEntry) {
+    if (expenseUiElement.dataState == DataState.newUiEntry) {
       eventToAdd = UpdateTripEntity<ExpenseFacade>.create(
           tripEntity: expenseUiElement.element);
     } else {
@@ -108,25 +108,25 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
       var operationPerformed = currentState.dataState;
       if (expenseUiElement is UiElementWithMetadata<ExpenseFacade, T>) {
         var updatedId = currentState.link.id;
-        if (operationPerformed == DataState.Select) {
+        if (operationPerformed == DataState.select) {
           if (updatedId == expenseUiElement.metadata.id) {
-            if (expenseUiElement.dataState == DataState.None) {
-              expenseUiElement.dataState = DataState.Select;
+            if (expenseUiElement.dataState == DataState.none) {
+              expenseUiElement.dataState = DataState.select;
               return true;
-            } else if (expenseUiElement.dataState == DataState.Select) {
-              expenseUiElement.dataState = DataState.None;
+            } else if (expenseUiElement.dataState == DataState.select) {
+              expenseUiElement.dataState = DataState.none;
               return true;
             }
           } else {
-            if (expenseUiElement.dataState == DataState.Select) {
-              expenseUiElement.dataState = DataState.None;
+            if (expenseUiElement.dataState == DataState.select) {
+              expenseUiElement.dataState = DataState.none;
               return true;
             }
           }
         }
       } else {
-        if (currentState.dataState == DataState.Select) {
-          expenseUiElement.dataState = DataState.None;
+        if (currentState.dataState == DataState.select) {
+          expenseUiElement.dataState = DataState.none;
           return true;
         }
       }
@@ -138,7 +138,7 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
       TripManagementState currentState,
       UiElement<ExpenseFacade> expenseUiElement) {
     if (currentState.isTripEntityUpdated<T>() &&
-        (currentState as UpdatedTripEntity).dataState == DataState.Update) {
+        (currentState as UpdatedTripEntity).dataState == DataState.update) {
       if (expenseUiElement is UiElementWithMetadata<ExpenseFacade, T>) {
         var updatedTripEntity =
             currentState.tripEntityModificationData.modifiedCollectionItem;
@@ -146,7 +146,7 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
         if (expenseUiElement.metadata.id == updatedId) {
           expenseUiElement.metadata = updatedTripEntity;
           expenseUiElement.element = updatedTripEntity.expense;
-          expenseUiElement.dataState = DataState.None;
+          expenseUiElement.dataState = DataState.none;
           return true;
         }
       }
@@ -201,14 +201,14 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
   bool _additionalBuildWhenCondition(previousState, currentState) {
     if (currentState.isTripEntityUpdated<TransitFacade>()) {
       var transitUpdatedState = currentState as UpdatedTripEntity;
-      if (transitUpdatedState.dataState == DataState.Create ||
-          transitUpdatedState.dataState == DataState.Delete) {
+      if (transitUpdatedState.dataState == DataState.create ||
+          transitUpdatedState.dataState == DataState.delete) {
         return true;
       }
     } else if (currentState.isTripEntityUpdated<LodgingFacade>()) {
       var lodgingUpdatedState = currentState as UpdatedTripEntity;
-      if (lodgingUpdatedState.dataState == DataState.Create ||
-          lodgingUpdatedState.dataState == DataState.Delete) {
+      if (lodgingUpdatedState.dataState == DataState.create ||
+          lodgingUpdatedState.dataState == DataState.delete) {
         return true;
       }
     }
@@ -238,56 +238,56 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
       TripDataFacade tripDataModelFacade) {
     var expenseUiElements = <UiElement<ExpenseFacade>>[];
     expenseUiElements.addAll(tripDataModelFacade.expenses.map((element) =>
-        UiElement<ExpenseFacade>(element: element, dataState: DataState.None)));
+        UiElement<ExpenseFacade>(element: element, dataState: DataState.none)));
     expenseUiElements.addAll(tripDataModelFacade.transits.map((element) =>
         UiElementWithMetadata<ExpenseFacade, TransitFacade>(
             element: element.expense,
-            dataState: DataState.None,
+            dataState: DataState.none,
             metadata: element)));
     expenseUiElements.addAll(tripDataModelFacade.lodgings.map((element) =>
         UiElementWithMetadata<ExpenseFacade, LodgingFacade>(
             element: element.expense,
-            dataState: DataState.None,
+            dataState: DataState.none,
             metadata: element)));
     return expenseUiElements;
   }
 
   void _initializeUIComponentNames(BuildContext context) {
     _categoryNames = {
-      ExpenseCategory.Flights: context.localizations.flights,
-      ExpenseCategory.Lodging: context.localizations.lodging,
-      ExpenseCategory.CarRental: context.localizations.carRental,
-      ExpenseCategory.PublicTransit: context.localizations.publicTransit,
-      ExpenseCategory.Food: context.localizations.food,
-      ExpenseCategory.Drinks: context.localizations.drinks,
-      ExpenseCategory.Sightseeing: context.localizations.sightseeing,
-      ExpenseCategory.Activities: context.localizations.activities,
-      ExpenseCategory.Shopping: context.localizations.shopping,
-      ExpenseCategory.Fuel: context.localizations.fuel,
-      ExpenseCategory.Groceries: context.localizations.groceries,
-      ExpenseCategory.Other: context.localizations.other
+      ExpenseCategory.flights: context.localizations.flights,
+      ExpenseCategory.lodging: context.localizations.lodging,
+      ExpenseCategory.carRental: context.localizations.carRental,
+      ExpenseCategory.publicTransit: context.localizations.publicTransit,
+      ExpenseCategory.food: context.localizations.food,
+      ExpenseCategory.drinks: context.localizations.drinks,
+      ExpenseCategory.sightseeing: context.localizations.sightseeing,
+      ExpenseCategory.activities: context.localizations.activities,
+      ExpenseCategory.shopping: context.localizations.shopping,
+      ExpenseCategory.fuel: context.localizations.fuel,
+      ExpenseCategory.groceries: context.localizations.groceries,
+      ExpenseCategory.other: context.localizations.other
     };
     _availableSortOptions = {
-      ExpenseSortOption.OldToNew: context.localizations.oldToNew,
-      ExpenseSortOption.NewToOld: context.localizations.newToOld,
-      ExpenseSortOption.LowToHighCost: context.localizations.lowToHighCost,
-      ExpenseSortOption.HighToLowCost: context.localizations.highToLowCost,
-      ExpenseSortOption.Category: context.localizations.category
+      ExpenseSortOption.oldToNew: context.localizations.oldToNew,
+      ExpenseSortOption.newToOld: context.localizations.newToOld,
+      ExpenseSortOption.lowToHighCost: context.localizations.lowToHighCost,
+      ExpenseSortOption.highToLowCost: context.localizations.highToLowCost,
+      ExpenseSortOption.category: context.localizations.category
     };
   }
 }
 
 const Map<ExpenseCategory, IconData> iconsForCategories = {
-  ExpenseCategory.Flights: Icons.flight_rounded,
-  ExpenseCategory.Lodging: Icons.hotel_rounded,
-  ExpenseCategory.CarRental: Icons.car_rental_outlined,
-  ExpenseCategory.PublicTransit: Icons.emoji_transportation_rounded,
-  ExpenseCategory.Food: Icons.fastfood_rounded,
-  ExpenseCategory.Drinks: Icons.local_drink_rounded,
-  ExpenseCategory.Sightseeing: Icons.attractions_rounded,
-  ExpenseCategory.Activities: Icons.confirmation_num_rounded,
-  ExpenseCategory.Shopping: Icons.shopping_bag_rounded,
-  ExpenseCategory.Fuel: Icons.local_gas_station_rounded,
-  ExpenseCategory.Groceries: Icons.local_grocery_store_rounded,
-  ExpenseCategory.Other: Icons.feed_rounded
+  ExpenseCategory.flights: Icons.flight_rounded,
+  ExpenseCategory.lodging: Icons.hotel_rounded,
+  ExpenseCategory.carRental: Icons.car_rental_outlined,
+  ExpenseCategory.publicTransit: Icons.emoji_transportation_rounded,
+  ExpenseCategory.food: Icons.fastfood_rounded,
+  ExpenseCategory.drinks: Icons.local_drink_rounded,
+  ExpenseCategory.sightseeing: Icons.attractions_rounded,
+  ExpenseCategory.activities: Icons.confirmation_num_rounded,
+  ExpenseCategory.shopping: Icons.shopping_bag_rounded,
+  ExpenseCategory.fuel: Icons.local_gas_station_rounded,
+  ExpenseCategory.groceries: Icons.local_grocery_store_rounded,
+  ExpenseCategory.other: Icons.feed_rounded
 };

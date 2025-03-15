@@ -13,8 +13,8 @@ import 'paid_by_tab.dart';
 import 'split_by_tab.dart';
 
 class ExpenditureEditTile extends StatefulWidget {
-  Map<String, double> paidBy;
-  List<String> splitBy;
+  final Map<String, double> paidBy;
+  final List<String> splitBy;
   final Money totalExpense;
   final bool isEditable;
   final void Function(
@@ -41,12 +41,16 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   final Map<String, Color> _contributorsVsColors = {};
   static const double _heightPerItem = 40;
   late ValueNotifier<Money> _totalExpenseValueNotifier;
+  late Map<String, double> _currentPaidBy;
+  late List<String> _currentSplitBy;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _totalExpenseValueNotifier = ValueNotifier(widget.totalExpense);
+    _currentPaidBy = Map.from(_currentPaidBy);
+    _currentSplitBy = List.from(_currentSplitBy);
   }
 
   @override
@@ -147,7 +151,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   void _invokeUpdatedCallback() {
     if (widget.callback != null) {
       widget.callback!(
-          widget.paidBy, widget.splitBy, _totalExpenseValueNotifier.value);
+          _currentPaidBy, _currentSplitBy, _totalExpenseValueNotifier.value);
     }
   }
 
@@ -166,7 +170,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   Widget _buildSplitByIcons() {
     return Wrap(
       children: _contributorsVsColors.entries
-          .where((element) => widget.splitBy.contains(element.key))
+          .where((element) => _currentSplitBy.contains(element.key))
           .map((e) => Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Container(
@@ -186,10 +190,10 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     return PaidByTab(
       heightPerItem: _heightPerItem,
       contributorsVsColors: _contributorsVsColors,
-      paidBy: widget.paidBy,
+      paidBy: _currentPaidBy,
       callback: (paidBy) {
-        widget.paidBy = Map.from(paidBy);
-        var totalExpenseAmount = widget.paidBy.values
+        _currentPaidBy = Map.from(paidBy);
+        var totalExpenseAmount = _currentPaidBy.values
             .fold(0.0, (previousValue, element) => previousValue + element);
         if (totalExpenseAmount != _totalExpenseValueNotifier.value.amount) {
           _totalExpenseValueNotifier.value = Money(
@@ -205,10 +209,10 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   Widget _buildSplitByPage() {
     return SplitByTab(
         callback: (splitBy) {
-          widget.splitBy = List.from(splitBy);
+          _currentSplitBy = List.from(splitBy);
           _invokeUpdatedCallback();
         },
-        splitBy: widget.splitBy,
+        splitBy: _currentSplitBy,
         contributorsVsColors: _contributorsVsColors);
   }
 }

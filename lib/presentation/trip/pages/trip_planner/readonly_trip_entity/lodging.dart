@@ -9,7 +9,7 @@ import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edi
 class ReadonlyLodgingListItem extends StatelessWidget {
   final LodgingFacade lodgingModelFacade;
 
-  ReadonlyLodgingListItem({super.key, required this.lodgingModelFacade});
+  const ReadonlyLodgingListItem({super.key, required this.lodgingModelFacade});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class ReadonlyLodgingListItem extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Padding(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: PlatformTextElements.createSubHeader(
                         context: context,
                         text: (lodgingModelFacade.location!.context
@@ -36,21 +36,21 @@ class ReadonlyLodgingListItem extends StatelessWidget {
                         shouldBold: true),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: Text((lodgingModelFacade.location!.context
                                 as GeoLocationApiContext)
                             .address ??
                         ''),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: _buildDateTimeDetails(),
                   ),
                 ],
               ),
             ),
           ),
-          VerticalDivider(),
+          const VerticalDivider(),
           Expanded(
             flex: 2,
             child: Padding(
@@ -73,7 +73,7 @@ class ReadonlyLodgingListItem extends StatelessWidget {
                           '${context.localizations.confirmation} #',
                           lodgingModelFacade.confirmationId!),
                     ),
-                  if (isConfirmationIdValid) Divider(),
+                  if (isConfirmationIdValid) const Divider(),
                   Align(
                     alignment: Alignment.center,
                     child: Padding(
@@ -97,7 +97,7 @@ class ReadonlyLodgingListItem extends StatelessWidget {
         '${DateFormat.MMMEd().format(lodgingModelFacade.checkinDateTime!)} - ${DateFormat.MMMEd().format(lodgingModelFacade.checkoutDateTime!)}';
     return Text(
       dateTime,
-      style: TextStyle(fontWeight: FontWeight.bold),
+      style: const TextStyle(fontWeight: FontWeight.bold),
     );
   }
 
@@ -107,14 +107,14 @@ class ReadonlyLodgingListItem extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.all(2.0),
+          padding: const EdgeInsets.all(2.0),
           child: Text(
             title,
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
         Padding(
-          padding: EdgeInsets.all(2.0),
+          padding: const EdgeInsets.all(2.0),
           child: Text(
             subtitle,
             maxLines: maxLines,

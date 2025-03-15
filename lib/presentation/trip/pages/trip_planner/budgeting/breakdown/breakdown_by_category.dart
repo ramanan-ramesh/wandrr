@@ -5,7 +5,7 @@ import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 class BreakdownByCategoryChart extends StatefulWidget {
-  BreakdownByCategoryChart({super.key});
+  const BreakdownByCategoryChart({super.key});
 
   @override
   State<BreakdownByCategoryChart> createState() =>
@@ -29,9 +29,9 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
               snapshot.data != null &&
               snapshot.data!.isNotEmpty;
           return Container(
-            constraints: BoxConstraints(minHeight: 300, maxHeight: 600),
+            constraints: const BoxConstraints(minHeight: 300, maxHeight: 600),
             child: isLoadingData
-                ? Center(
+                ? const Center(
                     child: CircularProgressIndicator(),
                   )
                 : (isSnapshotDataValid
@@ -61,7 +61,7 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
                               _createExpenseCategorySections(snapshot.data!),
                         ),
                       )
-                    : Center(
+                    : const Center(
                         child: Text('No expenses created yet.'),
                       )),
           );

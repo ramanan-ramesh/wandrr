@@ -19,10 +19,10 @@ class LoginPage extends StatelessWidget {
     return BlocProvider<AuthenticationBloc>(
       create: (context) =>
           AuthenticationBloc(context.appDataRepository.googleWebClientId),
-      child: Center(
+      child: const Center(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.0),
             child: _LoginPageForm(),
           ),
         ),
@@ -32,7 +32,7 @@ class LoginPage extends StatelessWidget {
 }
 
 class _LoginPageForm extends StatefulWidget {
-  const _LoginPageForm({super.key});
+  const _LoginPageForm();
 
   @override
   State<_LoginPageForm> createState() => _LoginPageFormState();
@@ -72,7 +72,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
             _createTabBar(),
             const SizedBox(height: 16.0),
             FocusTraversalOrder(
-              order: NumericFocusOrder(1),
+              order: const NumericFocusOrder(1),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: _createUserNamePasswordForm(),
@@ -80,7 +80,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
             ),
             const SizedBox(height: 24.0),
             FocusTraversalOrder(
-              order: NumericFocusOrder(2),
+              order: const NumericFocusOrder(2),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 200, minWidth: 150),
                 child: _createSubmitButton(context),
@@ -140,7 +140,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
         ),
         const SizedBox(height: 16.0),
         _createAlternateAuthProviderButton(
-            AuthenticationType.Google, googleLogoAsset, context),
+            AuthenticationType.google, googleLogoAsset, context),
       ],
     );
   }
@@ -190,12 +190,12 @@ class _LoginPageFormState extends State<_LoginPageForm>
             child: Column(
               children: [
                 FocusTraversalOrder(
-                  order: NumericFocusOrder(1),
+                  order: const NumericFocusOrder(1),
                   child: _createUserNameField(state),
                 ),
                 const SizedBox(height: 16.0),
                 FocusTraversalOrder(
-                  order: NumericFocusOrder(2),
+                  order: const NumericFocusOrder(2),
                   child: _createPasswordField(state),
                 )
               ],
@@ -215,7 +215,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
   Widget _createPasswordField(AuthenticationState authState) {
     String? errorText;
     if (authState is AuthenticationFailure) {
-      if (authState.failureReason == AuthenticationFailureCode.WrongPassword) {
+      if (authState.failureReason == AuthenticationFailureCode.wrongPassword) {
         errorText = context.localizations.wrong_password_entered;
       }
     }
@@ -239,10 +239,10 @@ class _LoginPageFormState extends State<_LoginPageForm>
     String? errorText;
     if (authState is AuthenticationFailure) {
       if (authState.failureReason ==
-          AuthenticationFailureCode.UsernameAlreadyExists) {
+          AuthenticationFailureCode.usernameAlreadyExists) {
         errorText = context.localizations.userNameAlreadyExists;
       } else if (authState.failureReason ==
-          AuthenticationFailureCode.NoSuchUsernameExists) {
+          AuthenticationFailureCode.noSuchUsernameExists) {
         errorText = context.localizations.noSuchUserExists;
       }
     }
@@ -263,8 +263,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
 
 class _PasswordField extends StatefulWidget {
   _PasswordField(
-      {super.key,
-      TextEditingController? controller,
+      {TextEditingController? controller,
       this.labelText,
       this.errorText,
       this.textInputAction,
@@ -310,7 +309,7 @@ class _PasswordFieldState extends State<_PasswordField> {
       obscureText: _obscurePassword,
       textInputAction: widget.textInputAction,
       decoration: InputDecoration(
-        icon: Icon(Icons.password_rounded),
+        icon: const Icon(Icons.password_rounded),
         labelText: widget.labelText,
         suffixIcon: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 3.0),

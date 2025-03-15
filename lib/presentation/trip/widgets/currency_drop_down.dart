@@ -82,8 +82,8 @@ abstract class CurrencyDropDownField extends StatefulWidget {
                 ),
               ),
               if (isDropDownButton)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 3.0),
                   child: Icon(Icons.arrow_drop_down),
                 )
             ],
@@ -130,14 +130,14 @@ abstract class CurrencyDropDownField extends StatefulWidget {
               child: CompositedTransformFollower(
                 link: layerLink,
                 showWhenUnlinked: false,
-                offset: Offset(0.0, 5.0),
+                offset: const Offset(0.0, 5.0),
                 child: Material(
                   elevation: 4.0,
                   color: Theme.of(context).dialogTheme.backgroundColor,
                   child: ScrollConfiguration(
                     behavior: ScrollConfiguration.of(context),
                     child: Container(
-                      constraints: BoxConstraints(
+                      constraints: const BoxConstraints(
                         maxHeight: 300,
                       ),
                       child: _SearchableCurrencyDropDown(
@@ -200,9 +200,8 @@ class _SearchableCurrencyDropDown extends StatefulWidget {
   final CurrencyData currencyInfo;
   final Widget Function(CurrencyData currency) currencyListTileBuilder;
 
-  _SearchableCurrencyDropDown(
-      {super.key,
-      required this.allCurrencies,
+  const _SearchableCurrencyDropDown(
+      {required this.allCurrencies,
       required this.currencyInfo,
       required this.currencyListTileBuilder});
 
@@ -251,8 +250,8 @@ class _SearchableCurrencyDropDownState
       height: 60,
       child: Row(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3.0),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 3.0),
             child: Icon(Icons.search_rounded),
           ),
           Expanded(

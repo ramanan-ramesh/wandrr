@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/l10n/extension.dart';
@@ -8,10 +7,14 @@ import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 class AirportsDataEditor extends StatefulWidget {
   final LocationFacade? initialLocation;
+  final double? locationOptionsViewWidth;
   final Function(LocationFacade selectedLocation)? onLocationSelected;
 
-  AirportsDataEditor(
-      {super.key, this.initialLocation, this.onLocationSelected});
+  const AirportsDataEditor(
+      {super.key,
+      this.initialLocation,
+      this.onLocationSelected,
+      this.locationOptionsViewWidth});
 
   @override
   State<AirportsDataEditor> createState() => _AirportsDataEditorState();
@@ -31,7 +34,7 @@ class _AirportsDataEditorState extends State<AirportsDataEditor> {
     var airportCode =
         (_location?.context as AirportLocationContext?)?.airportCode ?? '   ';
     return PlatformAutoComplete<LocationFacade>(
-      maxOptionWidgetWidth: context.isBigLayout ? 250 : null,
+      optionsViewWidth: widget.locationOptionsViewWidth,
       hintText: context.localizations.airport,
       selectedItem: _location,
       customPrefix: Text(

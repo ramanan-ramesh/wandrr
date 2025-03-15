@@ -41,22 +41,22 @@ class EditableExpenseListItem extends StatelessWidget {
       return Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(5.0),
+            padding: const EdgeInsets.all(5.0),
             child: _createExpenseTitle(context),
           ),
           Padding(
-            padding: EdgeInsets.all(5.0),
+            padding: const EdgeInsets.all(5.0),
             child: Row(
               children: [
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 5.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: EdgeInsets.all(5.0),
+                          padding: const EdgeInsets.all(5.0),
                           child: _CategoryPicker(
                             callback: _isLinkedExpense
                                 ? null
@@ -106,10 +106,10 @@ class EditableExpenseListItem extends StatelessWidget {
                     ),
                   ),
                 ),
-                VerticalDivider(),
+                const VerticalDivider(),
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 5.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
                     child: ExpenditureEditTile(
                       callback: (paidBy, splitBy, totalExpense) {
                         expenseUiElement.element.paidBy = Map.from(paidBy);
@@ -133,7 +133,7 @@ class EditableExpenseListItem extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: EdgeInsets.all(5.0),
+          padding: const EdgeInsets.all(5.0),
           child: _createExpenseTitle(context),
         ),
         Padding(
@@ -233,9 +233,8 @@ class _CategoryPicker extends StatefulWidget {
   final Map<ExpenseCategory, String> categories;
   final ExpenseCategory category;
 
-  _CategoryPicker(
-      {super.key,
-      required this.callback,
+  const _CategoryPicker(
+      {required this.callback,
       required this.category,
       required this.categories});
 
@@ -265,11 +264,11 @@ class _CategoryPickerState extends State<_CategoryPicker> {
                   child: Row(
                     children: [
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: Icon(iconsForCategories[expenseCategory]!),
                       ),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: Text(widget.categories[expenseCategory]!),
                       )
                     ],
@@ -287,11 +286,11 @@ class _CategoryPickerState extends State<_CategoryPicker> {
                   child: Row(
                     children: [
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: Icon(iconsForCategories[expenseCategory]!),
                       ),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: Text(widget.categories[expenseCategory]!),
                       )
                     ],

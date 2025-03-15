@@ -15,7 +15,7 @@ class PlanDataListItem extends StatefulWidget {
   final UiElement<PlanDataFacade> initialPlanDataUiElement;
   final Function(PlanDataFacade) planDataUpdated;
 
-  PlanDataListItem(
+  const PlanDataListItem(
       {super.key,
       required this.initialPlanDataUiElement,
       required this.planDataUpdated});
@@ -94,7 +94,7 @@ class _PlanDataListItemState extends State<PlanDataListItem> {
 
   Widget _buildCheckListCreator(String tripId) {
     return FloatingActionButton(
-        child: Icon(Icons.checklist_rounded),
+        child: const Icon(Icons.checklist_rounded),
         onPressed: () {
           var newCheckListEntry = CheckListFacade.newUiEntry(
               items: [CheckListItem(item: '', isChecked: false)],
@@ -128,7 +128,7 @@ class _PlanDataListItemState extends State<PlanDataListItem> {
           widget.planDataUpdated(_planDataUiElement.element);
         }
       },
-      child: Icon(Icons.note_rounded),
+      child: const Icon(Icons.note_rounded),
     );
   }
 

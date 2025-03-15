@@ -105,7 +105,7 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
           ? (isLightTheme ? Colors.grey : Colors.grey.shade700)
           : null,
       child:
-          widget.isSubmitted ? CircularProgressIndicator() : Icon(widget.icon),
+          widget.isSubmitted ? const CircularProgressIndicator() : Icon(widget.icon),
     );
   }
 
@@ -133,7 +133,7 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
 }
 
 class LanguageSwitcher extends StatefulWidget {
-  LanguageSwitcher({super.key});
+  const LanguageSwitcher({super.key});
 
   @override
   State<LanguageSwitcher> createState() => _LanguageSwitcherState();
@@ -169,7 +169,7 @@ class _LanguageSwitcherState extends State<LanguageSwitcher> {
             )),
         FloatingActionButton.large(
           onPressed: _toggleExpand,
-          child: Icon(
+          child: const Icon(
             Icons.translate,
             size: 75,
           ),

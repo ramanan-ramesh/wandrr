@@ -5,7 +5,7 @@ class PlatformTabBar extends StatefulWidget {
   final TabController? tabController;
   final double? maxTabViewHeight;
 
-  PlatformTabBar(
+  const PlatformTabBar(
       {super.key,
       required this.tabBarItems,
       this.tabController,

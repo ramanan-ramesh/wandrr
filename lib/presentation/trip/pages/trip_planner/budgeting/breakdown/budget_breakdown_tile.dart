@@ -40,12 +40,12 @@ class _BudgetBreakdownTileState extends State<BudgetBreakdownTile>
       builder: (BuildContext context, TripManagementState state) {
         return SliverToBoxAdapter(
           child: Container(
-            constraints: BoxConstraints(maxHeight: 600),
+            constraints: const BoxConstraints(maxHeight: 600),
             child: Card(
               child: PlatformTabBar(
                 tabBarItems: <String, Widget>{
-                  context.localizations.category: BreakdownByCategoryChart(),
-                  context.localizations.dayByDay: BreakdownByDayChart(),
+                  context.localizations.category: const BreakdownByCategoryChart(),
+                  context.localizations.dayByDay: const BreakdownByDayChart(),
                 },
               ),
             ),

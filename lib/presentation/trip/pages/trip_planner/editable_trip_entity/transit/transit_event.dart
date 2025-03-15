@@ -14,7 +14,7 @@ class TransitEvent extends StatefulWidget {
   final TransitFacade transitFacade;
   final Function(TransitFacade) onUpdated;
 
-  TransitEvent(
+  const TransitEvent(
       {super.key, required this.transitFacade, required this.onUpdated});
 
   @override
@@ -25,24 +25,29 @@ class _TransitEventState extends State<TransitEvent> {
   @override
   Widget build(BuildContext context) {
     var isBigLayout = context.isBigLayout;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3.0),
-          child: _buildLocationDetails(context, false, isBigLayout),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3.0),
-          child: _buildLocationDetails(context, true, isBigLayout),
-        )
-      ],
-    );
+    return LayoutBuilder(builder: (context, constraints) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3.0),
+            child: _buildLocationDetails(
+                context, false, isBigLayout, constraints.maxWidth),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3.0),
+            child: _buildLocationDetails(
+                context, true, isBigLayout, constraints.maxWidth),
+          )
+        ],
+      );
+    });
   }
 
-  Widget _buildLocationDetails(
-      BuildContext context, bool isArrival, bool isBigLayout) {
-    var locationEditorWidget = _buildLocationEditor(isArrival);
+  Widget _buildLocationDetails(BuildContext context, bool isArrival,
+      bool isBigLayout, double locationOptionsViewWidth) {
+    var locationEditorWidget =
+        _buildLocationEditor(isArrival, locationOptionsViewWidth);
     var tripMetadata = context.activeTrip.tripMetadata;
     var dateTimeEditorWidget = _buildDateTimePicker(isArrival, tripMetadata);
     return createTitleSubText(
@@ -77,7 +82,7 @@ class _TransitEventState extends State<TransitEvent> {
       },
       startDateTime: isArrival
           ? (widget.transitFacade.departureDateTime
-                ?..add(Duration(minutes: 1))) ??
+                ?..add(const Duration(minutes: 1))) ??
               tripMetadata.startDate!
           : tripMetadata.startDate!,
       endDateTime: tripMetadata.endDate!,
@@ -87,12 +92,13 @@ class _TransitEventState extends State<TransitEvent> {
     );
   }
 
-  Widget _buildLocationEditor(bool isArrival) {
+  Widget _buildLocationEditor(bool isArrival, double locationOptionsViewWidth) {
     var locationToConsider = isArrival
         ? widget.transitFacade.arrivalLocation
         : widget.transitFacade.departureLocation;
-    return widget.transitFacade.transitOption == TransitOption.Flight
+    return widget.transitFacade.transitOption == TransitOption.flight
         ? AirportsDataEditor(
+            locationOptionsViewWidth: locationOptionsViewWidth,
             initialLocation: locationToConsider,
             onLocationSelected: (newLocation) {
               if (isArrival) {
@@ -104,6 +110,7 @@ class _TransitEventState extends State<TransitEvent> {
             },
           )
         : PlatformGeoLocationAutoComplete(
+            locationOptionsViewWidth: locationOptionsViewWidth,
             onLocationSelected: (newLocation) {
               if (isArrival) {
                 widget.transitFacade.arrivalLocation = newLocation;

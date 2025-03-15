@@ -47,7 +47,7 @@ class LodgingFacade extends Equatable implements TripEntity {
             tripId: tripId,
             title: ' ',
             totalExpense: Money(currency: defaultCurrency, amount: 0),
-            category: ExpenseCategory.Lodging,
+            category: ExpenseCategory.lodging,
             paidBy: Map.fromIterables(allTripContributors,
                 List.filled(allTripContributors.length, 0)),
             splitBy: allTripContributors.toList());

@@ -23,7 +23,7 @@ class ReadonlyExpenseListItem extends StatelessWidget {
 
   final Map<ExpenseCategory, String> categoryNames;
 
-  ReadonlyExpenseListItem(
+  const ReadonlyExpenseListItem(
       {super.key,
       required this.expenseModelFacade,
       required this.categoryNames});
@@ -101,7 +101,7 @@ class ReadonlyExpenseListItem extends StatelessWidget {
           child: Text(
             categoryNames[expenseModelFacade.category]!,
             maxLines: null,
-            style: TextStyle(fontSize: 13),
+            style: const TextStyle(fontSize: 13),
           ),
         ),
       ],

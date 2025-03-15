@@ -14,7 +14,7 @@ class TransitCarrierPicker extends StatefulWidget {
   final Function(String?) onOperatorChanged;
   final Function(TransitOption) onTransitOptionChanged;
 
-  TransitCarrierPicker(
+  const TransitCarrierPicker(
       {super.key,
       required this.initialTransitOption,
       required this.initialOperator,
@@ -39,7 +39,7 @@ class _TransitCarrierPickerState extends State<TransitCarrierPicker> {
     super.initState();
     _transitOption = widget.initialTransitOption;
     _operator = widget.initialOperator;
-    if (_transitOption == TransitOption.Flight) {
+    if (_transitOption == TransitOption.flight) {
       if (_operator == null) {
         _airlineData = AirlineData.empty();
       } else {
@@ -61,7 +61,7 @@ class _TransitCarrierPickerState extends State<TransitCarrierPicker> {
           padding: const EdgeInsets.symmetric(vertical: 3.0),
           child: _buildTransitCarrierField(transitOptionMetadatas),
         ),
-        if (_transitOption == TransitOption.Flight)
+        if (_transitOption == TransitOption.flight)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 3.0),
             child: _buildAirlineNumberField(context),
@@ -83,7 +83,7 @@ class _TransitCarrierPickerState extends State<TransitCarrierPicker> {
         hintText: context.localizations.flightNumber,
         prefixText: _airlineData!.airLineCode ?? '',
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        contentPadding: EdgeInsets.symmetric(horizontal: 3.0),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 3.0),
       ),
       controller: _flightNumberEditingController,
       onChanged: (newFlightNumber) {
@@ -99,7 +99,7 @@ class _TransitCarrierPickerState extends State<TransitCarrierPicker> {
 
   Widget _buildTransitCarrierField(
       Iterable<TransitOptionMetadata> transitOptionMetadatas) {
-    if (_transitOption == TransitOption.Flight) {
+    if (_transitOption == TransitOption.flight) {
       return PlatformAutoComplete<(String airLineName, String airLineCode)>(
         prefixIcon: _buildTransitOptionPicker(transitOptionMetadatas),
         //TODO: This takes up entire space
@@ -134,8 +134,8 @@ class _TransitCarrierPickerState extends State<TransitCarrierPicker> {
           );
         },
       );
-    } else if (_transitOption == TransitOption.Walk ||
-        _transitOption == TransitOption.Vehicle) {
+    } else if (_transitOption == TransitOption.walk ||
+        _transitOption == TransitOption.vehicle) {
       return _buildTransitOptionPicker(transitOptionMetadatas);
     } else {
       return TextField(
@@ -168,11 +168,11 @@ class _TransitCarrierPickerState extends State<TransitCarrierPicker> {
                   child: Row(
                     children: [
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: Icon(e.icon),
                       ),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: Text(e.name),
                       )
                     ],
@@ -190,11 +190,11 @@ class _TransitCarrierPickerState extends State<TransitCarrierPicker> {
                   child: Row(
                     children: [
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: Icon(e.icon),
                       ),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: Text(e.name),
                       )
                     ],
@@ -206,7 +206,7 @@ class _TransitCarrierPickerState extends State<TransitCarrierPicker> {
         onChanged: (selectedTransitOption) {
           _transitOption = selectedTransitOption!;
           widget.onTransitOptionChanged(selectedTransitOption);
-          if (selectedTransitOption == TransitOption.Flight) {
+          if (selectedTransitOption == TransitOption.flight) {
             _airlineData = AirlineData.empty();
           }
           setState(() {});

@@ -44,7 +44,7 @@ class ExpenseFacade implements TripEntity {
       required String defaultCurrency})
       : title = '',
         totalExpense = Money(currency: defaultCurrency, amount: 0),
-        category = ExpenseCategory.Other,
+        category = ExpenseCategory.other,
         paidBy = Map.fromIterables(
             allTripContributors, List.filled(allTripContributors.length, 0)),
         splitBy = allTripContributors.toList();
@@ -86,17 +86,17 @@ class ExpenseFacade implements TripEntity {
 
 //added new entries, so maintain the place where logos are added corresponding to each category
 enum ExpenseCategory {
-  Other,
-  Flights,
-  Lodging,
-  CarRental,
-  PublicTransit,
-  Food,
-  Drinks,
-  Sightseeing,
-  Activities,
-  Shopping,
-  Fuel,
-  Groceries,
-  Taxi
+  other,
+  flights,
+  lodging,
+  carRental,
+  publicTransit,
+  food,
+  drinks,
+  sightseeing,
+  activities,
+  shopping,
+  fuel,
+  groceries,
+  taxi
 }

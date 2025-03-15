@@ -21,7 +21,7 @@ import '../plan_data/plan_data.dart';
 class ItineraryListItem extends StatefulWidget {
   final ItineraryFacade itineraryFacade;
 
-  ItineraryListItem({super.key, required this.itineraryFacade});
+  const ItineraryListItem({super.key, required this.itineraryFacade});
 
   DateTime get day => itineraryFacade.day;
 
@@ -45,7 +45,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
   void initState() {
     super.initState();
     _planDataUiElement = UiElement<PlanDataFacade>(
-        element: widget.itineraryFacade.planData, dataState: DataState.None);
+        element: widget.itineraryFacade.planData, dataState: DataState.none);
     _animationController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
@@ -109,7 +109,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
                 position: _animation,
                 child: Text(
                   _errorMessage!,
-                  style: TextStyle(color: Colors.red),
+                  style: const TextStyle(color: Colors.red),
                 ),
               ),
             ),
@@ -121,10 +121,10 @@ class _ItineraryListItemState extends State<ItineraryListItem>
   }
 
   void _showError(String message) {
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 3), () {
       _animationController.stop();
     });
-    Future.delayed(Duration(seconds: 5), () {
+    Future.delayed(const Duration(seconds: 5), () {
       setState(() {
         _showErrorMessage = false;
       });
@@ -157,7 +157,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
             _planDataUiElement.element = newPlanData;
             var planValidationResult =
                 _planDataUiElement.element.getValidationResult(false);
-            if (planValidationResult == PlanDataValidationResult.Valid) {
+            if (planValidationResult == PlanDataValidationResult.valid) {
               _canUpdateItineraryDataNotifier.value = true;
             } else {
               _canUpdateItineraryDataNotifier.value = false;
@@ -173,32 +173,32 @@ class _ItineraryListItemState extends State<ItineraryListItem>
     var planDataValidationResult =
         _planDataUiElement.element.getValidationResult(false);
     switch (planDataValidationResult) {
-      case PlanDataValidationResult.CheckListItemEmpty:
+      case PlanDataValidationResult.checkListItemEmpty:
         {
           _showError(context.localizations.checkListItemCannotBeEmpty);
           _canUpdateItineraryDataNotifier.value = false;
           break;
         }
-      case PlanDataValidationResult.CheckListTitleNotValid:
+      case PlanDataValidationResult.checkListTitleNotValid:
         {
           _showError(
               context.localizations.checkListTitleMustBeAtleast3Characters);
           _canUpdateItineraryDataNotifier.value = false;
           break;
         }
-      case PlanDataValidationResult.NoNotesOrCheckListsOrPlaces:
+      case PlanDataValidationResult.noNotesOrCheckListsOrPlaces:
         {
           _showError(context.localizations.noNotesOrCheckListsOrPlaces);
           _canUpdateItineraryDataNotifier.value = false;
           break;
         }
-      case PlanDataValidationResult.NoteEmpty:
+      case PlanDataValidationResult.noteEmpty:
         {
           _showError(context.localizations.noteCannotBeEmpty);
           _canUpdateItineraryDataNotifier.value = false;
           break;
         }
-      case PlanDataValidationResult.TitleEmpty:
+      case PlanDataValidationResult.titleEmpty:
         {
           _showError(context.localizations.titleCannotBeEmpty);
           _canUpdateItineraryDataNotifier.value = false;

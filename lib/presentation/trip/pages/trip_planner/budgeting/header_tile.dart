@@ -29,11 +29,11 @@ class BudgetingHeaderTile extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 5.0),
+          padding: const EdgeInsets.symmetric(vertical: 5.0),
           child: _createHeader(context),
         ),
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 5.0),
+          padding: const EdgeInsets.symmetric(vertical: 5.0),
           child: FlipCard(
             fill: Fill.back,
             direction: Axis.horizontal,
@@ -67,7 +67,7 @@ class BudgetingHeaderTile extends StatelessWidget {
                         padding: const EdgeInsets.all(8.0),
                         child: _buildExpenseViewButton(
                             context,
-                            ExpenseViewType.ExpenseList,
+                            ExpenseViewType.expenseList,
                             context.localizations.view_expenses,
                             Icons.list_rounded),
                       ),
@@ -77,7 +77,7 @@ class BudgetingHeaderTile extends StatelessWidget {
                         padding: const EdgeInsets.all(8.0),
                         child: _buildExpenseViewButton(
                             context,
-                            ExpenseViewType.BudgetEditor,
+                            ExpenseViewType.budgetEditor,
                             context.localizations.edit_budget,
                             Icons.edit_rounded),
                         // ),
@@ -92,7 +92,7 @@ class BudgetingHeaderTile extends StatelessWidget {
                         padding: const EdgeInsets.all(8.0),
                         child: _buildExpenseViewButton(
                             context,
-                            ExpenseViewType.DebtSummary,
+                            ExpenseViewType.debtSummary,
                             context.localizations.debt_summary,
                             Icons.money_rounded),
                         // ),
@@ -103,7 +103,7 @@ class BudgetingHeaderTile extends StatelessWidget {
                         padding: const EdgeInsets.all(8.0),
                         child: _buildExpenseViewButton(
                             context,
-                            ExpenseViewType.BreakdownViewer,
+                            ExpenseViewType.breakdownViewer,
                             context.localizations.view_breakdown,
                             Icons.bar_chart_rounded),
                       ),
@@ -187,7 +187,7 @@ class BudgetingHeaderTile extends StatelessWidget {
       buildWhen: (previousState, currentState) {
         if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
           var updatedTripEntity = currentState as UpdatedTripEntity;
-          if (updatedTripEntity.dataState == DataState.Update) {
+          if (updatedTripEntity.dataState == DataState.update) {
             var updatedTripMetadata = updatedTripEntity
                 .tripEntityModificationData
                 .modifiedCollectionItem as TripMetadataFacade;
@@ -237,7 +237,7 @@ class BudgetingHeaderTile extends StatelessWidget {
                 ),
                 if (totalExpense > 0)
                   Padding(
-                    padding: EdgeInsets.symmetric(vertical: 3.0),
+                    padding: const EdgeInsets.symmetric(vertical: 3.0),
                     child: LinearProgressIndicator(
                       value: expenseRatio,
                       color: Colors.green,
@@ -265,12 +265,12 @@ class BudgetingHeaderTile extends StatelessWidget {
               expenseUpdatedState.tripEntityModificationData;
           var modifiedCollectionItem = tripEntityModificationData
               .modifiedCollectionItem as ExpenseFacade;
-          if (expenseUpdatedState.dataState == DataState.NewUiEntry) {
+          if (expenseUpdatedState.dataState == DataState.newUiEntry) {
             isEnabled = false;
-          } else if (expenseUpdatedState.dataState == DataState.Create &&
+          } else if (expenseUpdatedState.dataState == DataState.create &&
               tripEntityModificationData.isFromEvent) {
             isEnabled = true;
-          } else if (expenseUpdatedState.dataState == DataState.Delete &&
+          } else if (expenseUpdatedState.dataState == DataState.delete &&
                   modifiedCollectionItem.id == null ||
               modifiedCollectionItem.id!.isEmpty) {
             isEnabled = true;
@@ -284,15 +284,15 @@ class BudgetingHeaderTile extends StatelessWidget {
                       UpdateTripEntity<ExpenseFacade>.createNewUiEntry());
                 },
           label: Text(context.localizations.add_expense),
-          icon: Icon(Icons.add_circle),
+          icon: const Icon(Icons.add_circle),
         );
       },
       buildWhen: (previousState, currentState) {
         if (currentState.isTripEntityUpdated<ExpenseFacade>()) {
           var expenseUpdatedState = currentState as UpdatedTripEntity;
-          if (expenseUpdatedState.dataState == DataState.Create ||
-              expenseUpdatedState.dataState == DataState.Delete ||
-              expenseUpdatedState.dataState == DataState.NewUiEntry) {
+          if (expenseUpdatedState.dataState == DataState.create ||
+              expenseUpdatedState.dataState == DataState.delete ||
+              expenseUpdatedState.dataState == DataState.newUiEntry) {
             return true;
           }
         }

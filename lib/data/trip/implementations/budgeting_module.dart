@@ -178,7 +178,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     }
     for (var date = startDay;
         date.isBefore(endDay) || date.isOnSameDayAs(endDay);
-        date = date.add(Duration(days: 1))) {
+        date = date.add(const Duration(days: 1))) {
       totalExpensesPerDay.putIfAbsent(date, () => 0.0);
     }
     return Map.fromEntries(totalExpensesPerDay.entries.toList()
@@ -221,37 +221,37 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     var expenseUiElementsToSort =
         List<UiElement<ExpenseFacade>>.from(expenseUiElements);
     var newUiEntry = expenseUiElementsToSort
-        .where((element) => element.dataState == DataState.NewUiEntry)
+        .where((element) => element.dataState == DataState.newUiEntry)
         .firstOrNull;
     expenseUiElementsToSort
-        .removeWhere((element) => element.dataState == DataState.NewUiEntry);
+        .removeWhere((element) => element.dataState == DataState.newUiEntry);
     switch (expenseSortOption) {
-      case ExpenseSortOption.OldToNew:
+      case ExpenseSortOption.oldToNew:
         {
           expenseUiElementsToSort =
               _sortOnDateTime(expenseUiElementsToSort).toList();
           break;
         }
-      case ExpenseSortOption.NewToOld:
+      case ExpenseSortOption.newToOld:
         {
           expenseUiElementsToSort =
               _sortOnDateTime(expenseUiElementsToSort, isAscendingOrder: false)
                   .toList();
           break;
         }
-      case ExpenseSortOption.Category:
+      case ExpenseSortOption.category:
         {
           expenseUiElementsToSort.sort((a, b) =>
               a.element.category.name.compareTo(b.element.category.name));
           break;
         }
-      case ExpenseSortOption.LowToHighCost:
+      case ExpenseSortOption.lowToHighCost:
         {
           expenseUiElementsToSort =
               (await _sortOnCost(expenseUiElementsToSort)).toList();
           break;
         }
-      case ExpenseSortOption.HighToLowCost:
+      case ExpenseSortOption.highToLowCost:
         {
           expenseUiElementsToSort = (await _sortOnCost(expenseUiElementsToSort,
                   isAscendingOrder: false))

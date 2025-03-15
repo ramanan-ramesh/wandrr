@@ -18,7 +18,7 @@ ThemeData createLightThemeData(BuildContext context) {
     scrollbarTheme: ScrollbarThemeData(
       thumbColor: WidgetStateProperty.all(Colors.green),
     ),
-    textButtonTheme: TextButtonThemeData(
+    textButtonTheme: const TextButtonThemeData(
       style: ButtonStyle(
         backgroundColor: WidgetStatePropertyAll(Colors.green),
         foregroundColor: WidgetStatePropertyAll(Colors.black),
@@ -29,7 +29,8 @@ ThemeData createLightThemeData(BuildContext context) {
     dialogTheme: DialogThemeData(
       backgroundColor: Colors.teal.shade400,
     ),
-    progressIndicatorTheme: ProgressIndicatorThemeData(color: Colors.black),
+    progressIndicatorTheme:
+        const ProgressIndicatorThemeData(color: Colors.black),
     listTileTheme: ListTileThemeData(
       tileColor: Colors.teal.shade300,
       textColor: Colors.black,
@@ -45,21 +46,21 @@ ThemeData createLightThemeData(BuildContext context) {
         ),
       ),
     ),
-    dividerTheme: DividerThemeData(
+    dividerTheme: const DividerThemeData(
       color: Colors.black,
       indent: 20,
       endIndent: 20,
     ),
-    popupMenuTheme: PopupMenuThemeData(),
-    iconButtonTheme: IconButtonThemeData(
+    popupMenuTheme: const PopupMenuThemeData(),
+    iconButtonTheme: const IconButtonThemeData(
       style: ButtonStyle(
         iconColor: WidgetStatePropertyAll(Colors.black),
         backgroundColor: WidgetStatePropertyAll(Colors.green),
         foregroundColor: WidgetStatePropertyAll(Colors.white),
       ),
     ),
-    iconTheme: IconThemeData(color: Colors.black),
-    floatingActionButtonTheme: FloatingActionButtonThemeData(
+    iconTheme: const IconThemeData(color: Colors.black),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
       splashColor: Colors.grey,
       backgroundColor: Colors.green,
       foregroundColor: Colors.black,
@@ -76,32 +77,32 @@ ThemeData createLightThemeData(BuildContext context) {
       unselectedLabelColor: Colors.black,
       labelColor: Colors.white,
     ),
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       color: Colors.teal,
       foregroundColor: Colors.black,
     ),
-    textSelectionTheme: TextSelectionThemeData(cursorColor: Colors.black),
+    textSelectionTheme: const TextSelectionThemeData(cursorColor: Colors.black),
     dropdownMenuTheme: DropdownMenuThemeData(
       menuStyle: MenuStyle(
         backgroundColor: WidgetStatePropertyAll(Colors.teal.shade300),
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
-      hintStyle: TextStyle(
+      hintStyle: const TextStyle(
         fontStyle: FontStyle.italic,
       ),
       filled: true,
       fillColor: Colors.teal.shade200,
-      floatingLabelStyle: TextStyle(
+      floatingLabelStyle: const TextStyle(
         color: Colors.black,
         fontWeight: FontWeight.bold,
       ),
-      border: OutlineInputBorder(
+      border: const OutlineInputBorder(
         borderRadius:
             BorderRadius.all(Radius.circular(Constants.cardBorderRadius)),
         borderSide: BorderSide(color: Colors.black),
       ),
-      focusedBorder: OutlineInputBorder(
+      focusedBorder: const OutlineInputBorder(
         borderSide: BorderSide(color: Colors.transparent),
       ),
       errorBorder: const OutlineInputBorder(
@@ -109,7 +110,7 @@ ThemeData createLightThemeData(BuildContext context) {
       ),
       iconColor: Colors.black,
     ),
-    switchTheme: SwitchThemeData(
+    switchTheme: const SwitchThemeData(
       trackColor: WidgetStatePropertyAll(Colors.green),
       thumbColor: WidgetStatePropertyAll(Colors.black),
     ),

@@ -69,7 +69,7 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
     if (locationType == _contintent) {
       return GeoLocationApiContext._fromApi(
           name: locationJson[_address][_name],
-          locationType: LocationType.Continent,
+          locationType: LocationType.continent,
           nodeClass: locationClass,
           nodeType: locationType,
           placeId: locationJson[_placeIdField],
@@ -78,7 +78,7 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
     } else if (locationType == _country) {
       return GeoLocationApiContext._fromApi(
           name: locationJson[_address][_country],
-          locationType: LocationType.Country,
+          locationType: LocationType.country,
           nodeClass: locationClass,
           boundingBox: boundingBox,
           placeId: locationJson[_placeIdField],
@@ -90,7 +90,7 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
       return GeoLocationApiContext._fromApi(
           country: country,
           name: state,
-          locationType: LocationType.State,
+          locationType: LocationType.state,
           placeId: locationJson[_placeIdField],
           nodeClass: locationClass,
           boundingBox: boundingBox,
@@ -109,40 +109,40 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
           name: city,
           placeId: locationJson[_placeIdField],
           boundingBox: boundingBox,
-          locationType: LocationType.City,
+          locationType: LocationType.city,
           nodeClass: locationClass,
           nodeType: locationType,
           address: locationJson[_displayAddress]);
     } else if (locationType == _station) {
       if (locationClass == _railway) {
         return _createGenericPlaceFromApi(
-            LocationType.RailwayStation, locationJson);
+            LocationType.railwayStation, locationJson);
       }
     } else if (locationType == _busStation) {
-      return _createGenericPlaceFromApi(LocationType.BusStation, locationJson);
+      return _createGenericPlaceFromApi(LocationType.busStation, locationJson);
     } else if (locationType == _restaurant ||
         locationType == _fastFood ||
         locationType == _hotel) {
-      return _createGenericPlaceFromApi(LocationType.Restaurant, locationJson);
+      return _createGenericPlaceFromApi(LocationType.restaurant, locationJson);
     } else if (locationType == _hostel ||
         locationType == _apartments ||
         locationType == _residential) {
-      return _createGenericPlaceFromApi(LocationType.Lodging, locationJson);
+      return _createGenericPlaceFromApi(LocationType.lodging, locationJson);
     } else if (locationType == _aerodrome) {
-      return _createGenericPlaceFromApi(LocationType.Airport, locationJson);
+      return _createGenericPlaceFromApi(LocationType.airport, locationJson);
     } else if (locationType == _administrative) {
       if (locationClass == _boundary) {
-        return _createGenericPlaceFromApi(LocationType.Region, locationJson);
+        return _createGenericPlaceFromApi(LocationType.region, locationJson);
       }
     } else if (locationType == _busStop) {
-      return _createGenericPlaceFromApi(LocationType.BusStop, locationJson);
+      return _createGenericPlaceFromApi(LocationType.busStop, locationJson);
     } else if (locationType == _tourism) {
       if (locationClass == _attraction) {
         return _createGenericPlaceFromApi(
-            LocationType.Attraction, locationJson);
+            LocationType.attraction, locationJson);
       }
     }
-    return _createGenericPlaceFromApi(LocationType.Place, locationJson);
+    return _createGenericPlaceFromApi(LocationType.place, locationJson);
   }
 
   @override

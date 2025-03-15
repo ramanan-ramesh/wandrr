@@ -65,19 +65,19 @@ abstract class DateRangePickerBase extends StatefulWidget {
                   dayTextStyle: TextStyle(
                       color: isLightTheme ? Colors.black : Colors.white),
                   selectedDayHighlightColor: Colors.green,
-                  selectedDayTextStyle: TextStyle(color: Colors.black),
+                  selectedDayTextStyle: const TextStyle(color: Colors.black),
                   selectedRangeHighlightColor: Colors.green,
-                  selectedRangeDayTextStyle: TextStyle(color: Colors.black),
-                  todayTextStyle: TextStyle(color: Colors.white),
-                  okButtonTextStyle: TextStyle(color: Colors.black),
-                  cancelButtonTextStyle: TextStyle(color: Colors.black),
-                  cancelButton: IgnorePointer(
+                  selectedRangeDayTextStyle: const TextStyle(color: Colors.black),
+                  todayTextStyle: const TextStyle(color: Colors.white),
+                  okButtonTextStyle: const TextStyle(color: Colors.black),
+                  cancelButtonTextStyle: const TextStyle(color: Colors.black),
+                  cancelButton: const IgnorePointer(
                     child: IconButton(
                       onPressed: null,
                       icon: Icon(Icons.cancel_rounded),
                     ),
                   ),
-                  okButton: IgnorePointer(
+                  okButton: const IgnorePointer(
                     child: IconButton(
                       onPressed: null,
                       icon: Icon(Icons.done_rounded),
@@ -212,7 +212,7 @@ class _PlatformFABDateRangePickerState
       onPressed: () => widget.showDateRangePickerDialog(
           _dateRangePickerKey, context, setState),
       key: _dateRangePickerKey,
-      icon: Icon(
+      icon: const Icon(
         Icons.date_range_rounded,
       ),
       label: Text(

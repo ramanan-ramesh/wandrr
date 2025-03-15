@@ -54,7 +54,7 @@ class _ItineraryListViewState extends State<ItineraryListView> {
   bool _shouldBuildItineraries(
       TripManagementState previousState, TripManagementState currentState) {
     if (currentState is UpdatedTripEntity<TripMetadataFacade> &&
-        currentState.dataState == DataState.Update) {
+        currentState.dataState == DataState.update) {
       var modifiedTripMetadata =
           currentState.tripEntityModificationData.modifiedCollectionItem;
       var areStartDatesSame = modifiedTripMetadata.startDate!
