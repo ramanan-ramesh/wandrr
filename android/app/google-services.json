@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "778106737436-ln30dk3np05l3lfeo44lqc1ouhhprcbe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rareapps.wandrr",
+            "certificate_hash": "1ca48a895263b08fe8ad8c915919b2ce6a98d054"
+          }
+        },
+        {
           "client_id": "778106737436-uo3dbm1gkt98gd8p7673ugad66l6k56i.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

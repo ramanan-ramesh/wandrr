@@ -273,9 +273,6 @@ class AppLocalizationsTa extends AppLocalizations {
   String get dateTimeSelection => 'தேதி மற்றும் நேரம் தேர்வு';
 
   @override
-  String get loadingTrip => 'பயணத்தை ஏற்றுகிறது...';
-
-  @override
   String get searchForCurrency => 'நாணயத்தை தேடு';
 
   @override
@@ -343,4 +340,19 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get noNotesOrCheckListsOrPlaces => 'குறிப்புகள், செக்கிலிஸ்ட்கள் அல்லது இடங்கள் உருவாக்கப்படவில்லை';
+
+  @override
+  String get loading => 'ஏற்றுகிறது...';
+
+  @override
+  String get loadingYourTrips => 'உங்கள் பயணங்களை ஏற்றுகிறது';
+
+  @override
+  String get loadedYourTrips => 'உங்கள் பயணங்களை ஏற்றுகிறது';
+
+  @override
+  String get loadingTripData => 'பயணத் தரவை ஏற்றுகிறது';
+
+  @override
+  String get launchingTrip => 'பயணத்தை ஏற்றுகிறது';
 }

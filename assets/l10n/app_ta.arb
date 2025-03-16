@@ -112,5 +112,10 @@
   "noteCannotBeEmpty": "குறிப்பு காலியாக இருக்க கூடாது",
   "checkListTitleMustBeAtleast3Characters": "செக்கிலிஸ்ட் தலைப்பு குறைந்தது 3 எழுத்துகள் இருக்க வேண்டும்",
   "checkListItemCannotBeEmpty": "செக்லிஸ்ட் உருப்படி காலியாக இருக்க கூடாது",
-  "noNotesOrCheckListsOrPlaces": "குறிப்புகள், செக்கிலிஸ்ட்கள் அல்லது இடங்கள் உருவாக்கப்படவில்லை"
+  "noNotesOrCheckListsOrPlaces": "குறிப்புகள், செக்கிலிஸ்ட்கள் அல்லது இடங்கள் உருவாக்கப்படவில்லை",
+  "loading" : "ஏற்றுகிறது...",
+  "loadingYourTrips" : "உங்கள் பயணங்களை ஏற்றுகிறது",
+  "loadedYourTrips" : "உங்கள் பயணங்களை ஏற்றுகிறது",
+  "loadingTripData" : "பயணத் தரவை ஏற்றுகிறது",
+  "launchingTrip" : "பயணத்தை ஏற்றுகிறது"
 }

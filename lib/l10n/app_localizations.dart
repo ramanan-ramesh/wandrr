@@ -625,12 +625,6 @@ abstract class AppLocalizations {
   /// **'Select a date and time'**
   String get dateTimeSelection;
 
-  /// No description provided for @loadingTrip.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading Trip...'**
-  String get loadingTrip;
-
   /// No description provided for @searchForCurrency.
   ///
   /// In en, this message translates to:
@@ -768,6 +762,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No notes, checklists or places added yet'**
   String get noNotesOrCheckListsOrPlaces;
+
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get loading;
+
+  /// No description provided for @loadingYourTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading your trips'**
+  String get loadingYourTrips;
+
+  /// No description provided for @loadedYourTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Loaded your trips'**
+  String get loadedYourTrips;
+
+  /// No description provided for @loadingTripData.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading trip data'**
+  String get loadingTripData;
+
+  /// No description provided for @launchingTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Launching trip'**
+  String get launchingTrip;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -87,7 +87,6 @@
   "stayAddress": "Hostel or Lodging Address",
   "carrierName":"Carrier Name",
   "dateTimeSelection" : "Select a date and time",
-  "loadingTrip":"Loading Trip...",
   "searchForCurrency":"Search a currency",
   "addItem":"Add item",
   "departAt":"Depart At",
@@ -110,5 +109,10 @@
   "noteCannotBeEmpty":"Note cannot be empty",
   "checkListTitleMustBeAtleast3Characters": "Checklist title must be at least 3 characters",
   "checkListItemCannotBeEmpty": "Checklist item cannot be empty",
-  "noNotesOrCheckListsOrPlaces": "No notes, checklists or places added yet"
+  "noNotesOrCheckListsOrPlaces": "No notes, checklists or places added yet",
+  "loading" : "Loading...",
+  "loadingYourTrips": "Loading your trips",
+  "loadedYourTrips": "Loaded your trips",
+  "loadingTripData" : "Loading trip data",
+  "launchingTrip" : "Launching trip"
 }

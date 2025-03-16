@@ -273,9 +273,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get dateTimeSelection => 'दिनांक और समय चुनें';
 
   @override
-  String get loadingTrip => 'यात्रा लोड हो रही है...';
-
-  @override
   String get searchForCurrency => 'मुद्रा खोजें';
 
   @override
@@ -343,4 +340,19 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get noNotesOrCheckListsOrPlaces => 'अभी तक कोई नोट, चेकलिस्ट या स्थान नहीं जोड़ा गया है';
+
+  @override
+  String get loading => 'लोड हो रहा है...';
+
+  @override
+  String get loadingYourTrips => 'आपकी यात्राएं लोड हो रही हैं';
+
+  @override
+  String get loadedYourTrips => 'आपकी यात्राएं लोड हो गई हैं';
+
+  @override
+  String get loadingTripData => 'यात्रा डेटा लोड हो रहा है';
+
+  @override
+  String get launchingTrip => 'यात्रा लॉन्च हो रही है';
 }

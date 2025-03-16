@@ -273,9 +273,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dateTimeSelection => 'Select a date and time';
 
   @override
-  String get loadingTrip => 'Loading Trip...';
-
-  @override
   String get searchForCurrency => 'Search a currency';
 
   @override
@@ -343,4 +340,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noNotesOrCheckListsOrPlaces => 'No notes, checklists or places added yet';
+
+  @override
+  String get loading => 'Loading...';
+
+  @override
+  String get loadingYourTrips => 'Loading your trips';
+
+  @override
+  String get loadedYourTrips => 'Loaded your trips';
+
+  @override
+  String get loadingTripData => 'Loading trip data';
+
+  @override
+  String get launchingTrip => 'Launching trip';
 }

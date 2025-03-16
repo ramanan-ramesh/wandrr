@@ -50,13 +50,7 @@ class _MasterContentPageLoader extends State<_MasterContentPageRouter> {
             child: const _ContentPage(),
           );
         }
-        return RiveAnimation.asset(
-          'assets/walk_animation.riv',
-          fit: BoxFit.fitHeight,
-          controllers: [
-            SimpleAnimation('Walk'),
-          ],
-        );
+        return _createAnimatedLoadingScreen(context);
       },
       buildWhen: (previousState, currentState) {
         return previousState != currentState &&
@@ -68,6 +62,33 @@ class _MasterContentPageLoader extends State<_MasterContentPageRouter> {
           _tryStartWalkAnimation();
         }
       },
+    );
+  }
+
+  Widget _createAnimatedLoadingScreen(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Stack(
+        children: [
+          RiveAnimation.asset(
+            'assets/walk_animation.riv',
+            fit: BoxFit.fitHeight,
+            controllers: [
+              SimpleAnimation('Walk'),
+            ],
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Text(
+              'Loading user data and theme',
+              style: TextStyle(
+                fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

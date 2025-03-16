@@ -112,5 +112,10 @@
      "noteCannotBeEmpty": "टिप्पणी खाली नहीं हो सकती",
      "checkListTitleMustBeAtleast3Characters": "चेकलिस्ट शीर्षक कम से कम 3 अक्षर होना चाहिए",
      "checkListItemCannotBeEmpty": "चेकलिस्ट आइटम खाली नहीं हो सकता",
-     "noNotesOrCheckListsOrPlaces": "अभी तक कोई नोट, चेकलिस्ट या स्थान नहीं जोड़ा गया है"
+     "noNotesOrCheckListsOrPlaces": "अभी तक कोई नोट, चेकलिस्ट या स्थान नहीं जोड़ा गया है",
+     "loading" : "लोड हो रहा है...",
+     "loadingYourTrips" : "आपकी यात्राएं लोड हो रही हैं",
+     "loadedYourTrips" : "आपकी यात्राएं लोड हो गई हैं",
+     "loadingTripData" : "यात्रा डेटा लोड हो रहा है",
+     "launchingTrip" : "यात्रा लॉन्च हो रही है"
 }

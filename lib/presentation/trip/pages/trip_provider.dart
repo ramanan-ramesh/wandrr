@@ -67,15 +67,7 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
             !_waveAnimation.isActive) {
           return _createTripContentPage(const TripPlannerPage());
         }
-        return RiveAnimation.asset(
-          'assets/walk_animation.riv',
-          fit: BoxFit.fitHeight,
-          controllers: [
-            _minimumWalkTimeCompletionNotifier.value
-                ? _waveAnimation
-                : _walkAnimation
-          ],
-        );
+        return _createAnimatedLoadingScreen(context);
       },
       buildWhen: (previousState, currentState) {
         return currentState != previousState &&
@@ -111,6 +103,43 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
           _tryStopWalkStartWaveAnimation();
         }
       },
+    );
+  }
+
+  Widget _createAnimatedLoadingScreen(BuildContext context) {
+    var currentState = BlocProvider.of<TripManagementBloc>(context).state;
+    String textToDisplay = context.localizations.loading;
+    if (currentState is LoadingTripManagement) {
+      textToDisplay = context.localizations.loadingYourTrips;
+    } else if (currentState is LoadedRepository) {
+      textToDisplay = context.localizations.loadedYourTrips;
+    } else if (currentState is LoadingTrip) {
+      textToDisplay = context.localizations.loadingTripData;
+    } else if (currentState is ActivatedTrip) {
+      textToDisplay = context.localizations.launchingTrip;
+    }
+    return Stack(
+      children: [
+        RiveAnimation.asset(
+          'assets/walk_animation.riv',
+          fit: BoxFit.fitHeight,
+          controllers: [
+            _minimumWalkTimeCompletionNotifier.value
+                ? _waveAnimation
+                : _walkAnimation
+          ],
+        ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Text(
+            textToDisplay,
+            style: TextStyle(
+              fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
+              color: Colors.black,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
