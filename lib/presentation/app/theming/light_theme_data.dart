@@ -51,7 +51,6 @@ ThemeData createLightThemeData(BuildContext context) {
       indent: 20,
       endIndent: 20,
     ),
-    popupMenuTheme: const PopupMenuThemeData(),
     iconButtonTheme: const IconButtonThemeData(
       style: ButtonStyle(
         iconColor: WidgetStatePropertyAll(Colors.black),
