@@ -152,7 +152,6 @@ class CollectionModelImplementation<Model>
         updatedModelItems.map((e) => leafRepositoryItemCreator(e)).toList();
 
     //Adds new items to collection. Updates items if already present.
-    WriteBatch writeBatch = FirebaseFirestore.instance.batch();
     var itemsToAdd = <LeafRepositoryItem<Model>>[];
     var itemsToDelete = <LeafRepositoryItem<Model>>[];
     for (var indexOfItem = 0;

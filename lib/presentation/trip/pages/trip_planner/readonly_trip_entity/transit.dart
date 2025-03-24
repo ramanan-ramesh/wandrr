@@ -4,21 +4,22 @@ import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 
 class ReadonlyTransitListItem extends StatelessWidget {
-  TransitFacade transitModelFacade;
+  final TransitFacade transitModelFacade;
 
-  ReadonlyTransitListItem({super.key, required this.transitModelFacade});
+  const ReadonlyTransitListItem({super.key, required this.transitModelFacade});
 
   @override
   Widget build(BuildContext context) {
     var isConfirmationIdValid =
         transitModelFacade.confirmationId?.isNotEmpty ?? false;
-    var isNotesValid = transitModelFacade.notes.isNotEmpty;
+    var isNotesValid = transitModelFacade.notes?.isNotEmpty ?? false;
     return IntrinsicHeight(
       child: Row(
         children: [
@@ -44,7 +45,7 @@ class ReadonlyTransitListItem extends StatelessWidget {
               ],
             ),
           ),
-          VerticalDivider(),
+          const VerticalDivider(),
           Expanded(
             flex: 2,
             child: Padding(
@@ -56,8 +57,8 @@ class ReadonlyTransitListItem extends StatelessWidget {
                   if (isNotesValid)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: _createTitleSubText(
-                          context.localizations.notes, transitModelFacade.notes,
+                      child: _createTitleSubText(context.localizations.notes,
+                          transitModelFacade.notes!,
                           maxLines: null),
                     ),
                   if (isConfirmationIdValid)
@@ -67,7 +68,7 @@ class ReadonlyTransitListItem extends StatelessWidget {
                           '${context.localizations.confirmation} #',
                           transitModelFacade.confirmationId!),
                     ),
-                  if (isConfirmationIdValid) Divider(),
+                  if (isConfirmationIdValid) const Divider(),
                   Align(
                     alignment: Alignment.center,
                     child: Padding(
@@ -87,7 +88,7 @@ class ReadonlyTransitListItem extends StatelessWidget {
   }
 
   String? _getTransitOperator() {
-    if (transitModelFacade.transitOption == TransitOption.Flight) {
+    if (transitModelFacade.transitOption == TransitOption.flight) {
       return transitModelFacade.operator!;
     } else {
       return transitModelFacade.operator;
@@ -100,14 +101,16 @@ class ReadonlyTransitListItem extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.all(2.0),
-          child: Text(
-            title,
-            style: TextStyle(fontWeight: FontWeight.bold),
+          padding: const EdgeInsets.all(2.0),
+          child: FittedBox(
+            child: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ),
         Padding(
-          padding: EdgeInsets.all(2.0),
+          padding: const EdgeInsets.all(2.0),
           child: Text(
             subtitle,
             maxLines: maxLines,
@@ -142,7 +145,7 @@ class ReadonlyTransitListItem extends StatelessWidget {
               ],
             ),
           ),
-          Expanded(
+          const Expanded(
             flex: 2,
             child: Divider(),
           ),
@@ -172,13 +175,13 @@ class _TransitEvent extends StatelessWidget {
   final bool isArrival;
   final TransitFacade transitFacade;
 
-  _TransitEvent(
-      {super.key, required this.isArrival, required this.transitFacade});
+  const _TransitEvent({required this.isArrival, required this.transitFacade});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Padding(
           padding: const EdgeInsets.all(3.0),
@@ -186,13 +189,10 @@ class _TransitEvent extends StatelessWidget {
             isArrival
                 ? context.localizations.arrive
                 : context.localizations.depart,
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge!
-                .copyWith(color: Colors.green),
+            style: Theme.of(context).textTheme.titleLarge!,
           ),
         ),
-        Expanded(
+        Flexible(
           child: Padding(
             padding: const EdgeInsets.all(3.0),
             child: _createLocationDetailTitle(context),
@@ -206,7 +206,7 @@ class _TransitEvent extends StatelessWidget {
     var locationToConsider = isArrival
         ? transitFacade.arrivalLocation!
         : transitFacade.departureLocation!;
-    if (transitFacade.transitOption == TransitOption.Flight) {
+    if (transitFacade.transitOption == TransitOption.flight) {
       return (locationToConsider.context as AirportLocationContext).airportCode;
     } else {
       return locationToConsider.toString();
@@ -220,11 +220,10 @@ class _TransitEvent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 2.0),
+          padding: const EdgeInsets.symmetric(vertical: 2.0),
           child: Wrap(
             children: [
               PlatformTextElements.createSubHeader(
-                  color: Colors.green,
                   context: context,
                   text: _createLocationTitle(),
                   shouldBold: true),
@@ -233,14 +232,14 @@ class _TransitEvent extends StatelessWidget {
         ),
         if (subTitle != null)
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 2.0),
+            padding: const EdgeInsets.symmetric(vertical: 2.0),
             child: FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(subTitle),
             ),
           ),
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 2.0),
+          padding: const EdgeInsets.symmetric(vertical: 2.0),
           child: Text(
             _createDateTimeDetail(),
           ),
@@ -274,9 +273,9 @@ class _TransitEvent extends StatelessWidget {
     var locationToConsider = isArrival
         ? transitFacade.arrivalLocation!
         : transitFacade.departureLocation!;
-    if (transitFacade.transitOption == TransitOption.Flight) {
+    if (transitFacade.transitOption == TransitOption.flight) {
       subTitle = locationToConsider.context.name;
-    } else if (locationToConsider.context.locationType != LocationType.City) {
+    } else if (locationToConsider.context.locationType != LocationType.city) {
       subTitle = locationToConsider.context.city;
     }
     return subTitle;

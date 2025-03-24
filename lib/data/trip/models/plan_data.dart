@@ -6,7 +6,7 @@ import 'location/location.dart';
 import 'note.dart';
 
 class PlanDataFacade extends Equatable implements TripEntity {
-  String tripId;
+  final String tripId;
 
   @override
   String? id;
@@ -47,29 +47,29 @@ class PlanDataFacade extends Equatable implements TripEntity {
   PlanDataValidationResult getValidationResult(bool isTitleRequired) {
     if (isTitleRequired) {
       if (title == null || title!.isEmpty) {
-        return PlanDataValidationResult.TitleEmpty;
+        return PlanDataValidationResult.titleEmpty;
       }
     }
     if (notes.isEmpty && checkLists.isEmpty && places.isEmpty) {
-      return PlanDataValidationResult.NoNotesOrCheckListsOrPlaces;
+      return PlanDataValidationResult.noNotesOrCheckListsOrPlaces;
     }
     if (notes.isNotEmpty) {
       if (notes.any((noteFacade) => noteFacade.note.isEmpty)) {
-        return PlanDataValidationResult.NoteEmpty;
+        return PlanDataValidationResult.noteEmpty;
       }
     }
     if (checkLists.isNotEmpty) {
       if (checkLists.any((checkList) =>
           checkList.title == null || checkList.title!.length < 3)) {
-        return PlanDataValidationResult.CheckListTitleNotValid;
+        return PlanDataValidationResult.checkListTitleNotValid;
       }
       if (checkLists.any((checkList) =>
           checkList.items.isEmpty ||
           checkList.items.any((checkListItem) => checkListItem.item.isEmpty))) {
-        return PlanDataValidationResult.CheckListItemEmpty;
+        return PlanDataValidationResult.checkListItemEmpty;
       }
     }
-    return PlanDataValidationResult.Valid;
+    return PlanDataValidationResult.valid;
   }
 
   @override
@@ -77,10 +77,10 @@ class PlanDataFacade extends Equatable implements TripEntity {
 }
 
 enum PlanDataValidationResult {
-  Valid,
-  TitleEmpty,
-  NoteEmpty,
-  CheckListTitleNotValid,
-  CheckListItemEmpty,
-  NoNotesOrCheckListsOrPlaces
+  valid,
+  titleEmpty,
+  noteEmpty,
+  checkListTitleNotValid,
+  checkListItemEmpty,
+  noNotesOrCheckListsOrPlaces
 }

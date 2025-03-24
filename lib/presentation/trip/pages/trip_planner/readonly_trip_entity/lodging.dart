@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:wandrr/data/trip/models/location/geo_location_api_context.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 
 class ReadonlyLodgingListItem extends StatelessWidget {
-  LodgingFacade lodgingModelFacade;
+  final LodgingFacade lodgingModelFacade;
 
-  ReadonlyLodgingListItem({super.key, required this.lodgingModelFacade});
+  const ReadonlyLodgingListItem({super.key, required this.lodgingModelFacade});
 
   @override
   Widget build(BuildContext context) {
@@ -27,30 +27,30 @@ class ReadonlyLodgingListItem extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Padding(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: PlatformTextElements.createSubHeader(
                         context: context,
-                        color: Colors.green,
                         text: (lodgingModelFacade.location!.context
                                 as GeoLocationApiContext)
-                            .name),
+                            .name,
+                        shouldBold: true),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: Text((lodgingModelFacade.location!.context
                                 as GeoLocationApiContext)
                             .address ??
                         ''),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: _buildDateTimeDetails(),
                   ),
                 ],
               ),
             ),
           ),
-          VerticalDivider(),
+          const VerticalDivider(),
           Expanded(
             flex: 2,
             child: Padding(
@@ -73,7 +73,7 @@ class ReadonlyLodgingListItem extends StatelessWidget {
                           '${context.localizations.confirmation} #',
                           lodgingModelFacade.confirmationId!),
                     ),
-                  if (isConfirmationIdValid) Divider(),
+                  if (isConfirmationIdValid) const Divider(),
                   Align(
                     alignment: Alignment.center,
                     child: Padding(
@@ -97,7 +97,7 @@ class ReadonlyLodgingListItem extends StatelessWidget {
         '${DateFormat.MMMEd().format(lodgingModelFacade.checkinDateTime!)} - ${DateFormat.MMMEd().format(lodgingModelFacade.checkoutDateTime!)}';
     return Text(
       dateTime,
-      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      style: const TextStyle(fontWeight: FontWeight.bold),
     );
   }
 
@@ -107,14 +107,14 @@ class ReadonlyLodgingListItem extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.all(2.0),
+          padding: const EdgeInsets.all(2.0),
           child: Text(
             title,
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
         Padding(
-          padding: EdgeInsets.all(2.0),
+          padding: const EdgeInsets.all(2.0),
           child: Text(
             subtitle,
             maxLines: maxLines,

@@ -9,12 +9,12 @@ import 'package:wandrr/presentation/app/blocs/authentication/auth_states.dart';
 
 class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
-  static final Map<String, AuthenticationFailures>
+  static final Map<String, AuthenticationFailureCode>
       _authenticationFailuresAndMessages = {
-    'invalid-email': AuthenticationFailures.InvalidEmail,
-    'wrong-password': AuthenticationFailures.WrongPassword,
-    'user-not-found': AuthenticationFailures.NoSuchUsernameExists,
-    'email-already-in-use': AuthenticationFailures.UsernameAlreadyExists
+    'invalid-email': AuthenticationFailureCode.invalidEmail,
+    'wrong-password': AuthenticationFailureCode.wrongPassword,
+    'user-not-found': AuthenticationFailureCode.noSuchUsernameExists,
+    'email-already-in-use': AuthenticationFailureCode.usernameAlreadyExists
   };
 
   String googleWebClientId;
@@ -24,9 +24,10 @@ class AuthenticationBloc
     on<AuthenticateWithThirdParty>(_onAuthWithThirdParty);
   }
 
-  static AuthenticationFailures _getAuthFailureReason(
+  static AuthenticationFailureCode _getAuthFailureReason(
       String errorCode, String? errorMessage) {
-    AuthenticationFailures authFailureReason = AuthenticationFailures.Undefined;
+    AuthenticationFailureCode authFailureReason =
+        AuthenticationFailureCode.undefined;
     if (errorMessage == null) {
       var matches = _authenticationFailuresAndMessages.keys
           .where((element) => errorCode.contains(element));
@@ -59,7 +60,7 @@ class AuthenticationBloc
       }
       emit(AuthenticationSuccess(
           authProviderUser: userCredential.user!,
-          authenticationType: AuthenticationType.EmailPassword));
+          authenticationType: AuthenticationType.emailPassword));
     } on FirebaseAuthException catch (exception) {
       emit(AuthenticationFailure(
           failureReason:
@@ -69,13 +70,18 @@ class AuthenticationBloc
 
   FutureOr<void> _onAuthWithThirdParty(AuthenticateWithThirdParty event,
       Emitter<AuthenticationState> emit) async {
-    if (event.authenticationType != AuthenticationType.Google) {
+    if (event.authenticationType != AuthenticationType.google) {
       return;
     }
 
     // Trigger the authentication flow
+    // GoogleSignIn googleSignIn;
+    // if (kIsWeb) {
+    //   googleSignIn = GoogleSignIn(clientId: googleWebClientId);
+    // } else {
+    //   googleSignIn = GoogleSignIn();
+    // }
     var googleSignIn = GoogleSignIn(clientId: googleWebClientId);
-    // var googleSignIn = GoogleSignIn();
     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
     // Obtain the auth details from the request
@@ -94,7 +100,7 @@ class AuthenticationBloc
     if (userCredential.user != null) {
       emit(AuthenticationSuccess(
           authProviderUser: userCredential.user!,
-          authenticationType: AuthenticationType.Google));
+          authenticationType: AuthenticationType.google));
     }
   }
 }

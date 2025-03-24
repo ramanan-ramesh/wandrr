@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
@@ -10,21 +11,21 @@ import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
 
 class TripEntityListElement<T extends TripEntity> extends StatefulWidget {
-  UiElement<T> uiElement;
-  void Function(BuildContext context, UiElement<T>)? onPressed;
-  Widget Function(UiElement<T> uiElement, ValueNotifier<bool>)
+  final UiElement<T> uiElement;
+  final void Function(BuildContext context, UiElement<T>)? onPressed;
+  final Widget Function(UiElement<T> uiElement, ValueNotifier<bool>)
       openedListElementCreator;
-  Widget Function() closedElementCreator;
-  bool Function(UiElement<T>)? canDelete;
-  bool Function(
+  final Widget Function() closedElementCreator;
+  final bool Function(UiElement<T>)? canDelete;
+  final bool Function(
       TripManagementState previousState,
       TripManagementState currentState,
       UiElement<T> uiElement)? additionalListItemBuildWhenCondition;
-  void Function(UiElement<T>)? onUpdatePressed;
-  void Function(UiElement<T>)? onDeletePressed;
-  String? Function(UiElement<T>)? errorMessageCreator;
+  final void Function(UiElement<T>)? onUpdatePressed;
+  final void Function(UiElement<T>)? onDeletePressed;
+  final String? Function(UiElement<T>)? errorMessageCreator;
 
-  TripEntityListElement(
+  const TripEntityListElement(
       {super.key,
       required this.uiElement,
       required this.openedListElementCreator,
@@ -50,50 +51,59 @@ class _TripEntityListElementState<T extends TripEntity>
       buildWhen: _shouldBuildListElement,
       builder: (BuildContext context, TripManagementState state) {
         var shouldOpenForEditing =
-            widget.uiElement.dataState == DataState.Select ||
-                widget.uiElement.dataState == DataState.NewUiEntry;
+            widget.uiElement.dataState == DataState.select ||
+                widget.uiElement.dataState == DataState.newUiEntry;
         return shouldOpenForEditing
-            ? _OpenedTripEntityUiElement(
-                uiElement: widget.uiElement,
-                openedListElementCreator: widget.openedListElementCreator,
-                onUpdatePressed: widget.onUpdatePressed,
-                onDeletePressed: widget.onDeletePressed,
-                canDelete: widget.canDelete != null
-                    ? widget.canDelete!(widget.uiElement)
-                    : true,
-                onPressed: () {
-                  if (widget.onPressed != null) {
-                    widget.onPressed?.call(context, widget.uiElement);
-                    return;
-                  }
-                  if (widget.uiElement.dataState != DataState.NewUiEntry) {
-                    context.addTripManagementEvent(UpdateTripEntity.select(
-                        tripEntity: widget.uiElement.element));
-                  }
-                },
-                errorMessageCreator: widget.errorMessageCreator,
-              )
-            : Material(
-                child: InkWell(
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    color: Colors.grey.shade900,
-                    child: widget.closedElementCreator(),
-                  ),
-                  onTap: () {
-                    if (widget.onPressed != null) {
-                      widget.onPressed?.call(context, widget.uiElement);
-                      return;
-                    }
-                    context.addTripManagementEvent(UpdateTripEntity.select(
-                        tripEntity: widget.uiElement.element));
-                  },
-                ),
-              );
+            ? _createEditableTripEntityListElement(context)
+            : _createReadonlyTripEntityListElement(context);
       },
       listener: (BuildContext context, TripManagementState state) {},
+    );
+  }
+
+  Widget _createEditableTripEntityListElement(BuildContext context) {
+    return _OpenedTripEntityUiElement(
+      uiElement: widget.uiElement,
+      openedListElementCreator: widget.openedListElementCreator,
+      onUpdatePressed: widget.onUpdatePressed,
+      onDeletePressed: widget.onDeletePressed,
+      canDelete:
+          widget.canDelete != null ? widget.canDelete!(widget.uiElement) : true,
+      onPressed: () {
+        if (widget.onPressed != null) {
+          widget.onPressed?.call(context, widget.uiElement);
+          return;
+        }
+        if (widget.uiElement.dataState != DataState.newUiEntry) {
+          context.addTripManagementEvent(
+              UpdateTripEntity.select(tripEntity: widget.uiElement.element));
+        }
+      },
+      errorMessageCreator: widget.errorMessageCreator,
+    );
+  }
+
+  Widget _createReadonlyTripEntityListElement(BuildContext context) {
+    return Material(
+      child: InkWell(
+        child: Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          color: context.isLightTheme
+              ? null
+              : Colors.grey.shade900, //ThemingRequired
+          child: widget.closedElementCreator(),
+        ),
+        onTap: () {
+          if (widget.onPressed != null) {
+            widget.onPressed?.call(context, widget.uiElement);
+            return;
+          }
+          context.addTripManagementEvent(
+              UpdateTripEntity.select(tripEntity: widget.uiElement.element));
+        },
+      ),
     );
   }
 
@@ -111,29 +121,33 @@ class _TripEntityListElementState<T extends TripEntity>
       T modifiedTransitCollectionItem =
           transitUpdatedState.tripEntityModificationData.modifiedCollectionItem;
       var updatedTransitId = modifiedTransitCollectionItem.id;
-      if (operationPerformed == DataState.Select) {
+      if (operationPerformed == DataState.select) {
         if (updatedTransitId == widget.uiElement.element.id &&
             updatedTransitId != null &&
             updatedTransitId.isNotEmpty) {
-          if (widget.uiElement.dataState == DataState.None) {
-            widget.uiElement.dataState = DataState.Select;
+          if (widget.uiElement.dataState == DataState.none) {
+            widget.uiElement.dataState =
+                DataState.select; //Select a de-selected item
             return true;
-          } else if (widget.uiElement.dataState == DataState.Select) {
-            widget.uiElement.dataState = DataState.None;
+          } else if (widget.uiElement.dataState == DataState.select) {
+            widget.uiElement.element = modifiedTransitCollectionItem;
+            widget.uiElement.dataState =
+                DataState.none; // De-select a selected item
             return true;
           }
         } else {
-          if (widget.uiElement.dataState == DataState.Select) {
-            widget.uiElement.dataState = DataState.None;
+          if (widget.uiElement.dataState == DataState.select) {
+            widget.uiElement.dataState = DataState
+                .none; // Don't do anything if selected item is not yet added to DB
             return true;
           }
         }
-      } else if (operationPerformed == DataState.Update &&
+      } else if (operationPerformed == DataState.update &&
           widget.uiElement.element.id == updatedTransitId &&
           updatedTransitId != null &&
           updatedTransitId.isNotEmpty) {
         widget.uiElement.element = modifiedTransitCollectionItem;
-        widget.uiElement.dataState = DataState.None;
+        widget.uiElement.dataState = DataState.none;
         return true;
       }
     }
@@ -142,15 +156,15 @@ class _TripEntityListElementState<T extends TripEntity>
 }
 
 class _OpenedTripEntityUiElement<T extends TripEntity> extends StatelessWidget {
-  UiElement<T> uiElement;
+  final UiElement<T> uiElement;
   final ValueNotifier<bool> _validityNotifier;
-  Widget Function(UiElement<T> uiElement, ValueNotifier<bool>)
+  final Widget Function(UiElement<T> uiElement, ValueNotifier<bool>)
       openedListElementCreator;
-  void Function(UiElement<T>)? onUpdatePressed;
-  void Function(UiElement<T>)? onDeletePressed;
-  bool canDelete;
-  VoidCallback onPressed;
-  String? Function(UiElement<T>)? errorMessageCreator;
+  final void Function(UiElement<T>)? onUpdatePressed;
+  final void Function(UiElement<T>)? onDeletePressed;
+  final bool canDelete;
+  final VoidCallback onPressed;
+  final String? Function(UiElement<T>)? errorMessageCreator;
 
   _OpenedTripEntityUiElement(
       {super.key,
@@ -163,7 +177,7 @@ class _OpenedTripEntityUiElement<T extends TripEntity> extends StatelessWidget {
       this.errorMessageCreator})
       : uiElement = uiElement.clone(),
         _validityNotifier = ValueNotifier(
-            uiElement.dataState == DataState.NewUiEntry ? false : true);
+            uiElement.dataState == DataState.newUiEntry ? false : true);
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +190,9 @@ class _OpenedTripEntityUiElement<T extends TripEntity> extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
-              color: Colors.white10,
+              color: context.isLightTheme
+                  ? Colors.teal.shade300
+                  : Colors.grey.shade500,
               child: openedListElementCreator(
                   uiElement.clone(), _validityNotifier),
             ),
@@ -196,7 +212,7 @@ class _OpenedTripEntityUiElement<T extends TripEntity> extends StatelessWidget {
 
 class _EditableTripEntityButtonBar<T extends TripEntity>
     extends StatefulWidget {
-  _EditableTripEntityButtonBar({
+  const _EditableTripEntityButtonBar({
     super.key,
     required ValueNotifier<bool> validityNotifier,
     required this.onUpdatePressed,
@@ -211,7 +227,7 @@ class _EditableTripEntityButtonBar<T extends TripEntity>
   final UiElement<T> uiElement;
   final bool canDelete;
   final void Function(UiElement<T> p1)? onDeletePressed;
-  String? Function(UiElement<T>)? errorMessageCreator;
+  final String? Function(UiElement<T>)? errorMessageCreator;
 
   @override
   State<_EditableTripEntityButtonBar<T>> createState() =>
@@ -276,7 +292,7 @@ class _EditableTripEntityButtonBarState<T extends TripEntity>
                   position: _animation,
                   child: Text(
                     _errorMessage!,
-                    style: TextStyle(color: Colors.red),
+                    style: const TextStyle(color: Colors.red),
                   ),
                 ),
               ),
@@ -293,7 +309,7 @@ class _EditableTripEntityButtonBarState<T extends TripEntity>
                 widget.onUpdatePressed!(widget.uiElement);
                 return;
               }
-              if (widget.uiElement.dataState == DataState.NewUiEntry) {
+              if (widget.uiElement.dataState == DataState.newUiEntry) {
                 context.addTripManagementEvent(UpdateTripEntity<T>.create(
                     tripEntity: widget.uiElement.element));
               } else {
@@ -339,7 +355,7 @@ class _EditableTripEntityButtonBarState<T extends TripEntity>
       _showErrorMessage = true;
     });
     _animationController.repeat(reverse: true);
-    Future.delayed(Duration(seconds: 5), () {
+    Future.delayed(const Duration(seconds: 5), () {
       if (mounted) {
         setState(() {
           _showErrorMessage = false;

@@ -5,12 +5,12 @@ import 'airport_location_context.dart';
 import 'geo_location_api_context.dart';
 
 class LocationFacade extends Equatable implements TripEntity {
-  String tripId;
-  double latitude;
+  final String tripId;
 
-  double longitude;
+  final double latitude;
+  final double longitude;
 
-  LocationContext context;
+  final LocationContext context;
 
   @override
   String? id;
@@ -21,13 +21,6 @@ class LocationFacade extends Equatable implements TripEntity {
       required this.context,
       required this.tripId,
       this.id});
-
-  void copyWith(LocationFacade locationModelFacade) {
-    latitude = locationModelFacade.latitude;
-    longitude = locationModelFacade.longitude;
-    context = locationModelFacade.context.clone();
-    id = locationModelFacade.id;
-  }
 
   LocationFacade clone() {
     return LocationFacade(
@@ -71,17 +64,17 @@ abstract class LocationContext {
 }
 
 enum LocationType {
-  Continent,
-  Country,
-  State,
-  City,
-  Place,
-  Region,
-  RailwayStation,
-  Airport,
-  BusStation,
-  Restaurant,
-  Attraction,
-  Lodging,
-  BusStop
+  continent,
+  country,
+  state,
+  city,
+  place,
+  region,
+  railwayStation,
+  airport,
+  busStation,
+  restaurant,
+  attraction,
+  lodging,
+  busStop
 }

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/data/app/implementations/collection_model_implementation.dart';
 import 'package:wandrr/data/app/models/collection_model_facade.dart';
 import 'package:wandrr/data/app/models/leaf_repository_item.dart';
@@ -19,6 +18,7 @@ import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 
 import 'expense.dart';
@@ -49,48 +49,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         _itineraryModelCollection = itineraryModelCollection,
         _transitOptionMetadatas =
             _initializeIconsAndTransitOptions(appLocalisations);
-
-  static Iterable<TransitOptionMetadata> _initializeIconsAndTransitOptions(
-      AppLocalizations appLocalizations) {
-    var transitOptionMetadataList = <TransitOptionMetadata>[];
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.PublicTransport,
-        icon: Icons.emoji_transportation_rounded,
-        name: appLocalizations.publicTransit));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.Flight,
-        icon: Icons.flight_rounded,
-        name: appLocalizations.flight));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.Bus,
-        icon: Icons.directions_bus_rounded,
-        name: appLocalizations.bus));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.Cruise,
-        icon: Icons.kayaking_rounded,
-        name: appLocalizations.cruise));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.Ferry,
-        icon: Icons.directions_ferry_outlined,
-        name: appLocalizations.ferry));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.RentedVehicle,
-        icon: Icons.car_rental_rounded,
-        name: appLocalizations.carRental));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.Train,
-        icon: Icons.train_rounded,
-        name: appLocalizations.train));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.Vehicle,
-        icon: Icons.bike_scooter_rounded,
-        name: appLocalizations.personalVehicle));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.Walk,
-        icon: Icons.directions_walk_rounded,
-        name: appLocalizations.walk));
-    return transitOptionMetadataList;
-  }
 
   @override
   List<TransitFacade> get transits =>
@@ -164,7 +122,8 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   static Future<TripDataModelImplementation> createExistingInstanceAsync(
       TripMetadataFacade tripMetadata,
       CurrencyConverterService currencyConverter,
-      AppLocalizations appLocalizations) async {
+      AppLocalizations appLocalizations,
+      String currentUserName) async {
     var tripMetadataModelImplementation =
         TripMetadataModelImplementation.fromModelFacade(
             tripMetadataModelFacade: tripMetadata);
@@ -224,7 +183,8 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         expenseModelCollection,
         currencyConverter,
         tripMetadataModelImplementation.budget.currency,
-        tripMetadataModelImplementation.contributors);
+        tripMetadataModelImplementation.contributors,
+        currentUserName);
 
     return TripDataModelImplementation(
         tripMetadataModelImplementation,
@@ -257,7 +217,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
           tripMetadataRepositoryPattern) async {
     var updatedTripMetadata = tripMetadataRepositoryPattern.facade;
     var currentContributors = _tripMetadataModelImplementation.contributors;
-    var didContributorsChange = !(ListEquality()
+    var didContributorsChange = !(const ListEquality()
         .equals(currentContributors, updatedTripMetadata.contributors));
     var didCurrencyChange = _tripMetadataModelImplementation.budget.currency !=
         updatedTripMetadata.budget.currency;
@@ -338,14 +298,55 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         yield item;
       }
     }
-    modelCollection.tryUpdateList(writeBatch, updatedItems);
+  }
+
+  static Iterable<TransitOptionMetadata> _initializeIconsAndTransitOptions(
+      AppLocalizations appLocalizations) {
+    var transitOptionMetadataList = <TransitOptionMetadata>[];
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.publicTransport,
+        icon: Icons.emoji_transportation_rounded,
+        name: appLocalizations.publicTransit));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.flight,
+        icon: Icons.flight_rounded,
+        name: appLocalizations.flight));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.bus,
+        icon: Icons.directions_bus_rounded,
+        name: appLocalizations.bus));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.cruise,
+        icon: Icons.kayaking_rounded,
+        name: appLocalizations.cruise));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.ferry,
+        icon: Icons.directions_ferry_outlined,
+        name: appLocalizations.ferry));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.rentedVehicle,
+        icon: Icons.car_rental_rounded,
+        name: appLocalizations.carRental));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.train,
+        icon: Icons.train_rounded,
+        name: appLocalizations.train));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.vehicle,
+        icon: Icons.bike_scooter_rounded,
+        name: appLocalizations.personalVehicle));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.walk,
+        icon: Icons.directions_walk_rounded,
+        name: appLocalizations.walk));
+    return transitOptionMetadataList;
   }
 
   Set<DateTime> _createDateRange(DateTime startDate, DateTime endDate) {
     Set<DateTime> dateSet = {};
     for (DateTime date = startDate;
         date.isBefore(endDate) || date.isAtSameMomentAs(endDate);
-        date = date.add(Duration(days: 1))) {
+        date = date.add(const Duration(days: 1))) {
       dateSet.add(date);
     }
     return dateSet;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_amount_edit_field.dart';
 
 class PaidByTab extends StatelessWidget {
@@ -10,7 +10,7 @@ class PaidByTab extends StatelessWidget {
   final double heightPerItem;
   final String defaultCurrencySymbol;
 
-  PaidByTab(
+  const PaidByTab(
       {super.key,
       required this.heightPerItem,
       required this.callback,
@@ -82,9 +82,8 @@ class _ExpenseEditField extends StatefulWidget {
   final String currencySymbol;
   final String initialExpense;
 
-  _ExpenseEditField(
-      {super.key,
-      required this.onChanged,
+  const _ExpenseEditField(
+      {required this.onChanged,
       this.prefixText,
       required this.initialExpense,
       required this.contributorColor,
@@ -106,7 +105,7 @@ class _ExpenseEditFieldState extends State<_ExpenseEditField> {
       },
       inputDecoration: InputDecoration(
         fillColor: Colors.white24,
-        border: OutlineInputBorder(),
+        border: const OutlineInputBorder(),
         prefix: widget.prefixText == null
             ? null
             : Padding(
@@ -128,7 +127,8 @@ class _ExpenseEditFieldState extends State<_ExpenseEditField> {
           radius: 17,
           child: Text(
             widget.currencySymbol,
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
       ),

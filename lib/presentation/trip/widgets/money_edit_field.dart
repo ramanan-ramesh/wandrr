@@ -4,37 +4,36 @@ import 'package:wandrr/presentation/trip/widgets/currency_drop_down.dart';
 import 'expense_amount_edit_field.dart';
 
 class PlatformMoneyEditField extends CurrencyDropDownField {
-  String amount;
-  bool isAmountEditable;
-  Function(double updatedAmount) onAmountUpdatedCallback;
+  final bool isAmountEditable;
+  final Function(double updatedAmount) onAmountUpdatedCallback;
+  final TextInputAction textInputAction;
+  final double? initialAmount;
 
   PlatformMoneyEditField(
       {required super.selectedCurrencyData,
       required super.allCurrencies,
       required this.onAmountUpdatedCallback,
-      double? amount,
+      this.initialAmount,
       required this.isAmountEditable,
       super.overlayEntry,
       super.key,
-      required super.currencySelectedCallback})
-      : amount = amount?.toStringAsFixed(2) ?? '0';
+      this.textInputAction = TextInputAction.next,
+      required super.currencySelectedCallback});
 
   @override
   State<PlatformMoneyEditField> createState() => _PlatformMoneyEditFieldState();
 }
 
 class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
-  static const _inputBorder = UnderlineInputBorder(
-    borderSide: BorderSide(color: Colors.green, width: 2.0),
-    borderRadius: BorderRadius.only(
-      topLeft: Radius.circular(0),
-      topRight: Radius.circular(0),
-      bottomLeft: Radius.circular(0),
-      bottomRight: Radius.circular(0),
-    ),
-  );
-
   final _amountEditingController = TextEditingController();
+  late String _currentAmount;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentAmount = widget.initialAmount?.toStringAsFixed(2) ?? '0';
+    _amountEditingController.text = _currentAmount;
+  }
 
   @override
   void dispose() {
@@ -44,7 +43,6 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
 
   @override
   Widget build(BuildContext context) {
-    _amountEditingController.text = widget.amount;
     return CompositedTransformTarget(
       link: widget.layerLink,
       child: ClipRRect(
@@ -63,17 +61,19 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
                   onPressed: () => widget.toggleDropdown(context, setState),
                   icon: Text(
                     widget.selectedCurrencyData.symbol,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.green),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
               Expanded(
                 child: PlatformExpenseAmountEditField(
-                  amount: widget.amount,
+                  textInputAction: widget.textInputAction,
+                  amount: _currentAmount,
                   isReadonly: !widget.isAmountEditable,
                   onExpenseAmountChanged: (newValue) {
-                    widget.amount = newValue.toStringAsFixed(2);
+                    _currentAmount = newValue.toStringAsFixed(2);
                     widget.onAmountUpdatedCallback(newValue);
                   },
                 ),

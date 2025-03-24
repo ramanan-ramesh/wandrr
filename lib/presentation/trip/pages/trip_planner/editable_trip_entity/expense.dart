@@ -3,7 +3,7 @@ import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
 import 'package:wandrr/data/trip/models/money.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/date_picker.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
@@ -16,7 +16,7 @@ class EditableExpenseListItem extends StatelessWidget {
   final Map<ExpenseCategory, String> categoryNames;
   final TextEditingController _descriptionFieldController =
       TextEditingController();
-  ValueNotifier<bool> validityNotifier;
+  final ValueNotifier<bool> validityNotifier;
   final TextEditingController _titleEditingController = TextEditingController();
 
   bool get _isLinkedExpense {
@@ -41,22 +41,22 @@ class EditableExpenseListItem extends StatelessWidget {
       return Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(5.0),
+            padding: const EdgeInsets.all(5.0),
             child: _createExpenseTitle(context),
           ),
           Padding(
-            padding: EdgeInsets.all(5.0),
+            padding: const EdgeInsets.all(5.0),
             child: Row(
               children: [
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 5.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: EdgeInsets.all(5.0),
+                          padding: const EdgeInsets.all(5.0),
                           child: _CategoryPicker(
                             callback: _isLinkedExpense
                                 ? null
@@ -95,8 +95,8 @@ class EditableExpenseListItem extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.all(5.0),
                             child: PlatformGeoLocationAutoComplete(
-                              initialText:
-                                  expenseUiElement.element.location?.toString(),
+                              selectedLocation:
+                                  expenseUiElement.element.location,
                               onLocationSelected: (location) {
                                 expenseUiElement.element.location = location;
                               },
@@ -106,10 +106,10 @@ class EditableExpenseListItem extends StatelessWidget {
                     ),
                   ),
                 ),
-                VerticalDivider(),
+                const VerticalDivider(),
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 5.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
                     child: ExpenditureEditTile(
                       callback: (paidBy, splitBy, totalExpense) {
                         expenseUiElement.element.paidBy = Map.from(paidBy);
@@ -133,7 +133,7 @@ class EditableExpenseListItem extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: EdgeInsets.all(5.0),
+          padding: const EdgeInsets.all(5.0),
           child: _createExpenseTitle(context),
         ),
         Padding(
@@ -167,7 +167,7 @@ class EditableExpenseListItem extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(5.0),
             child: PlatformGeoLocationAutoComplete(
-              initialText: expenseUiElement.element.location?.toString(),
+              selectedLocation: expenseUiElement.element.location,
               onLocationSelected: (location) {
                 expenseUiElement.element.location = location;
               },
@@ -205,14 +205,14 @@ class EditableExpenseListItem extends StatelessWidget {
 
   Widget _createExpenseTitle(BuildContext context) {
     if (!_isLinkedExpense) {
-      return PlatformTextElements.createTextField(
-          context: context,
-          labelText: context.localizations.title,
-          controller: _titleEditingController,
-          onTextChanged: (newTitle) {
-            expenseUiElement.element.title = newTitle;
-            _calculateExpenseUpdatePossibility();
-          });
+      return TextField(
+        controller: _titleEditingController,
+        onChanged: (newTitle) {
+          expenseUiElement.element.title = newTitle;
+          _calculateExpenseUpdatePossibility();
+        },
+        decoration: InputDecoration(labelText: context.localizations.title),
+      );
     } else {
       var title =
           (expenseUiElement as UiElementWithMetadata).metadata.toString();
@@ -231,11 +231,10 @@ class EditableExpenseListItem extends StatelessWidget {
 class _CategoryPicker extends StatefulWidget {
   final Function(ExpenseCategory expenseCategory)? callback;
   final Map<ExpenseCategory, String> categories;
-  ExpenseCategory category;
+  final ExpenseCategory category;
 
-  _CategoryPicker(
-      {super.key,
-      required this.callback,
+  const _CategoryPicker(
+      {required this.callback,
       required this.category,
       required this.categories});
 
@@ -244,10 +243,18 @@ class _CategoryPicker extends StatefulWidget {
 }
 
 class _CategoryPickerState extends State<_CategoryPicker> {
+  late ExpenseCategory _category;
+
+  @override
+  void initState() {
+    super.initState();
+    _category = widget.category;
+  }
+
   @override
   Widget build(BuildContext context) {
     return DropdownButton<ExpenseCategory>(
-        value: widget.category,
+        value: _category,
         selectedItemBuilder: (context) => widget.categories.keys
             .map(
               (expenseCategory) => DropdownMenuItem<ExpenseCategory>(
@@ -257,11 +264,11 @@ class _CategoryPickerState extends State<_CategoryPicker> {
                   child: Row(
                     children: [
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: Icon(iconsForCategories[expenseCategory]!),
                       ),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: Text(widget.categories[expenseCategory]!),
                       )
                     ],
@@ -279,11 +286,11 @@ class _CategoryPickerState extends State<_CategoryPicker> {
                   child: Row(
                     children: [
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: Icon(iconsForCategories[expenseCategory]!),
                       ),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: Text(widget.categories[expenseCategory]!),
                       )
                     ],
@@ -296,7 +303,7 @@ class _CategoryPickerState extends State<_CategoryPicker> {
             ? null
             : (selectedExpenseCategory) {
                 if (selectedExpenseCategory != null) {
-                  widget.category = selectedExpenseCategory;
+                  _category = selectedExpenseCategory;
                   setState(() {});
                   widget.callback!(selectedExpenseCategory);
                 }

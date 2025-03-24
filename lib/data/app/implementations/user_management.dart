@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/data/app/models/auth_type.dart';
 import 'package:wandrr/data/app/models/platform_user.dart';
 
@@ -20,10 +20,9 @@ class UserManagement {
     return _activeUser;
   }
 
-  FlutterSecureStorage localStorage;
+  SharedPreferences localStorage;
 
-  static Future<UserManagement> create(
-      FlutterSecureStorage localStorage) async {
+  static Future<UserManagement> create(SharedPreferences localStorage) async {
     var userFromCache = await _getUserFromCache(localStorage);
     return UserManagement(
         initialUser: userFromCache, localStorage: localStorage);
@@ -76,13 +75,12 @@ class UserManagement {
 
   //TODO: Should ideally attach AuthProviderUser here(if it persists)?
   static Future<PlatformUser?> _getUserFromCache(
-      FlutterSecureStorage localStorage) async {
-    var isLoggedInValue = await localStorage.read(key: _isLoggedIn) ?? '';
-    if (bool.tryParse(isLoggedInValue) == true) {
-      var userID = await localStorage.read(key: _userID) as String;
-      var authType =
-          await localStorage.read(key: _authenticationType) as String;
-      var userName = await localStorage.read(key: _userName) as String;
+      SharedPreferences localStorage) async {
+    var isLoggedInValue = localStorage.getBool(_isLoggedIn);
+    if (isLoggedInValue == true) {
+      var userID = localStorage.getString(_userID) as String;
+      var authType = localStorage.getString(_authenticationType) as String;
+      var userName = localStorage.getString(_userName) as String;
       return PlatformUser.fromCache(
           userName: userName,
           authenticationTypedValue: authType,
@@ -94,20 +92,20 @@ class UserManagement {
 
   Future _persistUser() async {
     if (activeUser != null) {
-      await localStorage.write(key: _userID, value: activeUser!.userID);
-      await localStorage.write(key: _userName, value: activeUser!.userName);
-      await localStorage.write(
-          key: _authenticationType, value: activeUser!.authenticationType.name);
+      await localStorage.setString(_userID, activeUser!.userID);
+      await localStorage.setString(_userName, activeUser!.userName);
+      await localStorage.setString(
+          _authenticationType, activeUser!.authenticationType.name);
       var displayName = activeUser!.displayName;
       if (displayName != null && displayName.isNotEmpty) {
-        await localStorage.write(key: _displayName, value: displayName);
+        await localStorage.setString(_displayName, displayName);
       }
-      await localStorage.write(key: _isLoggedIn, value: true.toString());
+      await localStorage.setBool(_isLoggedIn, true);
       if (_activeUser!.photoUrl != null) {
-        await localStorage.write(key: _photoUrl, value: _activeUser!.photoUrl!);
+        await localStorage.setString(_photoUrl, _activeUser!.photoUrl!);
       }
     } else {
-      await localStorage.write(key: _isLoggedIn, value: false.toString());
+      await localStorage.setBool(_isLoggedIn, false);
     }
   }
 

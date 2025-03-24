@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
+import 'package:wandrr/presentation/app/widgets/onboarding_image.dart';
 
 class OnBoardingPage extends StatelessWidget {
-  VoidCallback? onNavigateToNextPage;
+  final VoidCallback? onNavigateToNextPage;
 
-  OnBoardingPage({super.key, this.onNavigateToNextPage});
-
-  static const _onBoardingImageAsset = 'assets/images/plan_itinerary.jpg';
+  const OnBoardingPage({super.key, this.onNavigateToNextPage});
 
   @override
   Widget build(BuildContext context) {
@@ -18,42 +16,22 @@ class OnBoardingPage extends StatelessWidget {
       alignment: Alignment.center,
       children: [
         const Positioned.fill(
-          child: Image(
-            image: AssetImage(_onBoardingImageAsset),
-            fit: BoxFit.fitHeight,
-          ),
-        ),
-        Align(
-          alignment: Alignment.topCenter,
-          child: Container(
-            padding: const EdgeInsets.all(8.0),
-            child: FittedBox(
-                fit: BoxFit.contain,
-                child: Text(
-                  context.localizations.plan_itinerary,
-                  style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 45,
-                      fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.visible,
-                )),
-          ),
+          child: OnBoardingImage(),
         ),
         Align(
           alignment: Alignment.centerRight,
           child: Container(
-            padding: EdgeInsets.only(right: 4),
+            padding: const EdgeInsets.only(right: 4),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                LanguageSwitcher(),
+                const LanguageSwitcher(),
                 if (!isBigLayout)
                   FloatingActionButton.large(
                     onPressed: onNavigateToNextPage,
-                    shape: CircleBorder(),
-                    child: Icon(
+                    shape: const CircleBorder(),
+                    child: const Icon(
                       Icons.navigate_next_rounded,
                       size: 75,
                     ),

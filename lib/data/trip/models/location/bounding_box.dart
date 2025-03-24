@@ -8,7 +8,7 @@ class BoundingBox extends Equatable {
   final double maxLat, minLat;
   final double maxLon, minLon;
 
-  BoundingBox(
+  const BoundingBox(
       {required this.maxLat,
       required this.minLat,
       required this.maxLon,

@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/auto_complete.dart';
-import 'package:wandrr/presentation/trip/widgets/constants.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 class AirportsDataEditor extends StatefulWidget {
   final LocationFacade? initialLocation;
+  final double? locationOptionsViewWidth;
   final Function(LocationFacade selectedLocation)? onLocationSelected;
 
-  AirportsDataEditor(
-      {super.key, this.initialLocation, this.onLocationSelected});
+  const AirportsDataEditor(
+      {super.key,
+      this.initialLocation,
+      this.onLocationSelected,
+      this.locationOptionsViewWidth});
 
   @override
   State<AirportsDataEditor> createState() => _AirportsDataEditorState();
@@ -32,10 +34,13 @@ class _AirportsDataEditorState extends State<AirportsDataEditor> {
     var airportCode =
         (_location?.context as AirportLocationContext?)?.airportCode ?? '   ';
     return PlatformAutoComplete<LocationFacade>(
-      maxOptionWidgetWidth: context.isBigLayout ? 250 : null,
+      optionsViewWidth: widget.locationOptionsViewWidth,
       hintText: context.localizations.airport,
-      text: _location?.toString(),
-      customPrefix: Text(airportCode),
+      selectedItem: _location,
+      customPrefix: Text(
+        airportCode.toUpperCase(),
+        style: Theme.of(context).textTheme.titleSmall,
+      ),
       onSelected: (newAirport) {
         if (newAirport != _location) {
           setState(() {
@@ -51,19 +56,16 @@ class _AirportsDataEditorState extends State<AirportsDataEditor> {
       listItem: (airportData) {
         var airportLocationContext =
             airportData.context as AirportLocationContext;
-        return Material(
-          child: ListTile(
-            leading: Icon(TripPresentationConstants
-                .locationTypesAndIcons[airportLocationContext.locationType]),
-            title: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(airportLocationContext.name,
-                  style: const TextStyle(color: Colors.white)),
-            ),
-            trailing: Text(airportLocationContext.airportCode,
-                style: const TextStyle(color: Colors.white)),
-            subtitle: Text(airportLocationContext.city,
-                style: const TextStyle(color: Colors.white)),
+        return ListTile(
+          selected: airportData == _location,
+          title: Wrap(
+            children: [Text(airportLocationContext.name)],
+          ),
+          trailing: Text(
+            airportLocationContext.airportCode,
+          ),
+          subtitle: Text(
+            airportLocationContext.city,
           ),
         );
       },

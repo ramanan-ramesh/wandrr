@@ -1,6 +1,7 @@
 import 'package:wandrr/data/app/models/collection_change_metadata.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 
 abstract class TripManagementState {
@@ -19,7 +20,13 @@ abstract class TripManagementState {
   }
 }
 
-class Loading extends TripManagementState {}
+class LoadingTripManagement extends TripManagementState {}
+
+class LoadingTrip extends TripManagementState {
+  TripMetadataFacade tripMetadataFacade;
+
+  LoadingTrip(this.tripMetadataFacade);
+}
 
 class LoadedRepository extends TripManagementState {
   final TripRepositoryFacade tripRepository;
@@ -38,27 +45,27 @@ class UpdatedTripEntity<T> extends TripManagementState {
 
   UpdatedTripEntity.createdNewUiEntry(
       {required T tripEntity, required this.isOperationSuccess})
-      : dataState = DataState.NewUiEntry,
+      : dataState = DataState.newUiEntry,
         tripEntityModificationData = CollectionChangeMetadata(tripEntity, true);
 
   UpdatedTripEntity.created(
       {required this.tripEntityModificationData,
       required this.isOperationSuccess})
-      : dataState = DataState.Create;
+      : dataState = DataState.create;
 
   UpdatedTripEntity.deleted(
       {required this.tripEntityModificationData,
       required this.isOperationSuccess})
-      : dataState = DataState.Delete;
+      : dataState = DataState.delete;
 
   UpdatedTripEntity.updated(
       {required this.tripEntityModificationData,
       required this.isOperationSuccess})
-      : dataState = DataState.Update;
+      : dataState = DataState.update;
 
   UpdatedTripEntity.selected({
     required T tripEntity,
-  })  : dataState = DataState.Select,
+  })  : dataState = DataState.select,
         isOperationSuccess = true,
         tripEntityModificationData = CollectionChangeMetadata(tripEntity, true);
 }

@@ -4,17 +4,17 @@ import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 import 'package:wandrr/presentation/trip/widgets/geo_location_auto_complete.dart';
 
 class EditableLodgingListItem extends StatefulWidget {
-  UiElement<LodgingFacade> lodgingUiElement;
-  ValueNotifier<bool> validityNotifier;
+  final UiElement<LodgingFacade> lodgingUiElement;
+  final ValueNotifier<bool> validityNotifier;
 
-  EditableLodgingListItem(
+  const EditableLodgingListItem(
       {super.key,
       required this.lodgingUiElement,
       required this.validityNotifier});
@@ -36,51 +36,13 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
     var isBigLayout = context.isBigLayout;
     var tripMetadata = context.activeTrip.tripMetadata;
     if (isBigLayout) {
-      return Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 3.0),
-                    child: _buildStayLocationAutoComplete(context),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 3.0),
-                    child: _buildDateRangePicker(tripMetadata),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 3.0),
-                    child: _buildNotesEditor(context),
-                  )
-                ],
-              ),
-            ),
-          ),
-          VerticalDivider(),
-          Expanded(
-            flex: 2,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3.0),
-                  child: _buildConfirmationIdEditor(context),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: _buildExpenseEditTile(context),
-                ),
-              ],
-            ),
-          )
-        ],
-      );
+      return _createForBigLayout(context, tripMetadata);
     }
+    return _createForSmallLayout(context, tripMetadata);
+  }
+
+  Widget _createForSmallLayout(
+      BuildContext context, TripMetadataFacade tripMetadata) {
     return Column(
       children: [
         Padding(
@@ -102,6 +64,54 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
         Padding(
           padding: const EdgeInsets.all(4.0),
           child: _buildNotesEditor(context),
+        )
+      ],
+    );
+  }
+
+  Widget _createForBigLayout(
+      BuildContext context, TripMetadataFacade tripMetadata) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3.0),
+                  child: _buildStayLocationAutoComplete(context),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3.0),
+                  child: _buildDateRangePicker(tripMetadata),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3.0),
+                  child: _buildNotesEditor(context),
+                )
+              ],
+            ),
+          ),
+        ),
+        const VerticalDivider(),
+        Expanded(
+          flex: 2,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3.0),
+                child: _buildConfirmationIdEditor(context),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: _buildExpenseEditTile(context),
+              ),
+            ],
+          ),
         )
       ],
     );
@@ -149,8 +159,7 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
     );
   }
 
-  PlatformDateRangePicker _buildDateRangePicker(
-      TripMetadataFacade tripMetadata) {
+  Widget _buildDateRangePicker(TripMetadataFacade tripMetadata) {
     return PlatformDateRangePicker(
       startDate: widget.lodgingUiElement.element.checkinDateTime,
       endDate: widget.lodgingUiElement.element.checkoutDateTime,
@@ -168,7 +177,7 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
     return _createLodgingElement(
       context.localizations.stayAddress,
       PlatformGeoLocationAutoComplete(
-        initialText: widget.lodgingUiElement.element.location?.context.name,
+        selectedLocation: widget.lodgingUiElement.element.location,
         onLocationSelected: (newLocation) {
           widget.lodgingUiElement.element.location = newLocation;
           _calculateLodgingValidity();
@@ -177,18 +186,16 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
     );
   }
 
-  void _calculateLodgingValidity() {
-    widget.validityNotifier.value = widget.lodgingUiElement.element.isValid();
-  }
-
   Widget _createLodgingElement(String? title, Widget lodgingElement) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (title != null)
-          Text(
-            title.toUpperCase(),
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+          FittedBox(
+            child: Text(
+              title.toUpperCase(),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+            ),
           ),
         Padding(
           padding: const EdgeInsets.only(top: 3.0),
@@ -196,5 +203,9 @@ class _EditableLodgingListItemState extends State<EditableLodgingListItem> {
         )
       ],
     );
+  }
+
+  void _calculateLodgingValidity() {
+    widget.validityNotifier.value = widget.lodgingUiElement.element.isValid();
   }
 }

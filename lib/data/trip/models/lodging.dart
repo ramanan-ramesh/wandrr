@@ -16,7 +16,7 @@ class LodgingFacade extends Equatable implements TripEntity {
   @override
   String? id;
 
-  String tripId;
+  final String tripId;
 
   String? confirmationId;
 
@@ -47,18 +47,21 @@ class LodgingFacade extends Equatable implements TripEntity {
             tripId: tripId,
             title: ' ',
             totalExpense: Money(currency: defaultCurrency, amount: 0),
-            category: ExpenseCategory.Lodging,
+            category: ExpenseCategory.lodging,
             paidBy: Map.fromIterables(allTripContributors,
                 List.filled(allTripContributors.length, 0)),
             splitBy: allTripContributors.toList());
 
   void copyWith(LodgingFacade lodgingModelFacade) {
-    tripId = lodgingModelFacade.tripId;
     location = lodgingModelFacade.location;
-    checkinDateTime = lodgingModelFacade.checkinDateTime;
-    checkoutDateTime = lodgingModelFacade.checkoutDateTime;
-    id = lodgingModelFacade.id;
-    tripId = lodgingModelFacade.tripId;
+    checkinDateTime = DateTime(
+        lodgingModelFacade.checkinDateTime!.year,
+        lodgingModelFacade.checkinDateTime!.month,
+        lodgingModelFacade.checkinDateTime!.day);
+    checkoutDateTime = DateTime(
+        lodgingModelFacade.checkoutDateTime!.year,
+        lodgingModelFacade.checkoutDateTime!.month,
+        lodgingModelFacade.checkoutDateTime!.day);
     confirmationId = lodgingModelFacade.confirmationId;
     expense = lodgingModelFacade.expense;
     notes = lodgingModelFacade.notes;
@@ -67,8 +70,10 @@ class LodgingFacade extends Equatable implements TripEntity {
   LodgingFacade clone() {
     return LodgingFacade(
         location: location?.clone(),
-        checkinDateTime: checkinDateTime,
-        checkoutDateTime: checkoutDateTime,
+        checkinDateTime: DateTime(checkinDateTime!.year, checkinDateTime!.month,
+            checkinDateTime!.day),
+        checkoutDateTime: DateTime(checkoutDateTime!.year,
+            checkoutDateTime!.month, checkoutDateTime!.day),
         id: id,
         tripId: tripId,
         confirmationId: confirmationId,

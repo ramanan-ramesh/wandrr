@@ -44,7 +44,7 @@ class ExpenseFacade implements TripEntity {
       required String defaultCurrency})
       : title = '',
         totalExpense = Money(currency: defaultCurrency, amount: 0),
-        category = ExpenseCategory.Other,
+        category = ExpenseCategory.other,
         paidBy = Map.fromIterables(
             allTripContributors, List.filled(allTripContributors.length, 0)),
         splitBy = allTripContributors.toList();
@@ -59,7 +59,8 @@ class ExpenseFacade implements TripEntity {
     paidBy = expenseModelFacade.paidBy;
     splitBy = expenseModelFacade.splitBy;
     location = expenseModelFacade.location;
-    dateTime = expenseModelFacade.dateTime;
+    dateTime = DateTime(expenseModelFacade.dateTime!.year,
+        expenseModelFacade.dateTime!.month, expenseModelFacade.dateTime!.day);
   }
 
   ExpenseFacade clone() {
@@ -73,7 +74,9 @@ class ExpenseFacade implements TripEntity {
         paidBy: paidBy,
         splitBy: splitBy,
         location: location?.clone(),
-        dateTime: dateTime);
+        dateTime: dateTime != null
+            ? DateTime(dateTime!.year, dateTime!.month, dateTime!.day)
+            : null);
   }
 
   bool isValid() {
@@ -83,17 +86,17 @@ class ExpenseFacade implements TripEntity {
 
 //added new entries, so maintain the place where logos are added corresponding to each category
 enum ExpenseCategory {
-  Other,
-  Flights,
-  Lodging,
-  CarRental,
-  PublicTransit,
-  Food,
-  Drinks,
-  Sightseeing,
-  Activities,
-  Shopping,
-  Fuel,
-  Groceries,
-  Taxi
+  other,
+  flights,
+  lodging,
+  carRental,
+  publicTransit,
+  food,
+  drinks,
+  sightseeing,
+  activities,
+  shopping,
+  fuel,
+  groceries,
+  taxi
 }

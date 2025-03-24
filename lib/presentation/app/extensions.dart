@@ -1,6 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
 extension DateTimeExt on DateTime {
   int calculateDaysInBetween(DateTime dateTime,
       {bool includeExtraDay = false}) {
@@ -15,8 +12,4 @@ extension DateTimeExt on DateTime {
         month == dateTime.month &&
         day == dateTime.day;
   }
-}
-
-extension AppLocalizationsExt on BuildContext {
-  AppLocalizations get localizations => AppLocalizations.of(this)!;
 }

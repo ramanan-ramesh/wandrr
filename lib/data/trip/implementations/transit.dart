@@ -132,6 +132,8 @@ class TransitImplementation extends TransitFacade
         .set(json, SetOptions(merge: true))
         .catchError((error, stackTrace) {
       didUpdate = false;
+    }).then((value) {
+      copyWith(toUpdate);
     });
     return didUpdate;
   }

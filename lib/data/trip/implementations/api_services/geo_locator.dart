@@ -44,7 +44,7 @@ class GeoLocator implements GeoLocatorService {
         }
       } finally {
         _shouldAllowQuery = false;
-        Timer(Duration(seconds: 1), () {
+        Timer(const Duration(seconds: 1), () {
           _shouldAllowQuery = true;
         });
       }

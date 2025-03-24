@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/app/models/auth_type.dart';
 import 'package:wandrr/data/app/models/language_metadata.dart';
@@ -46,7 +46,7 @@ class AppDataRepository extends AppDataModifier {
   @override
   final String googleWebClientId;
 
-  final FlutterSecureStorage localStorage;
+  final SharedPreferences localStorage;
 
   @override
   final List<LanguageMetadata> languageMetadatas;
@@ -63,12 +63,14 @@ class AppDataRepository extends AppDataModifier {
         .doc('google')
         .get();
     String googleWebClientId = googleConfigDocument[_googleWebClientIdField];
-    var localStorage = FlutterSecureStorage();
+    var localStorage = await SharedPreferences.getInstance();
     var userManagement = await UserManagement.create(localStorage);
-    String language =
-        await localStorage.read(key: _language) ?? _defaultLanguage;
-    var themeModeValue = await localStorage.read(key: _themeMode);
-    ThemeMode themeMode = themeModeValue is String
+    String language = localStorage.getString(_language) ?? _defaultLanguage;
+    var themeModeValue = localStorage.getString(_themeMode);
+    if (themeModeValue == null) {
+      await localStorage.setString(_themeMode, ThemeMode.dark.name);
+    }
+    var themeMode = themeModeValue is String
         ? (ThemeMode.values
             .firstWhere((element) => element.name == themeModeValue))
         : ThemeMode.dark;
@@ -84,13 +86,13 @@ class AppDataRepository extends AppDataModifier {
 
   @override
   Future setActiveLanguage(String language) async {
-    await localStorage.write(key: _language, value: language);
+    await localStorage.setString(_language, language);
     activeLanguage = language;
   }
 
   @override
   Future setActiveThemeMode(ThemeMode themeMode) async {
-    await localStorage.write(key: _themeMode, value: themeMode.name);
+    await localStorage.setString(_themeMode, themeMode.name);
     activeThemeMode = themeMode;
   }
 

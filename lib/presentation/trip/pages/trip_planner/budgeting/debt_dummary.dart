@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/trip/models/debt_data.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/app_localizations.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 class DebtSummaryTile extends StatelessWidget {
   const DebtSummaryTile({super.key});
@@ -32,60 +32,53 @@ class DebtSummaryTile extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.hasData) {
             var debtDataList = snapshot.data!;
-            var personsOwingMoney = debtDataList.map((e) => e.owedBy);
-            var personsOwedMoney = debtDataList.map((e) => e.owedTo);
-            var allMoneyOwed = debtDataList.map((e) => e.money);
+            Widget childWidget;
+            if (budgetingModule.totalExpenditure == 0 || debtDataList.isEmpty) {
+              childWidget = Center(
+                child: Text(context.localizations.noExpensesToSplit),
+              );
+            } else {
+              childWidget = Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ...debtDataList.map(
+                    (e) => Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        FittedBox(
+                          child: _buildContributorName(
+                              e.owedBy,
+                              currentUserName,
+                              contributorsVsColors[e.owedBy]!,
+                              appLocalizations),
+                        ),
+                        FittedBox(
+                          child: Text(context.localizations.needsToPay),
+                        ),
+                        FittedBox(
+                          child: _buildContributorName(
+                              e.owedTo,
+                              currentUserName,
+                              contributorsVsColors[e.owedTo]!,
+                              appLocalizations),
+                        ),
+                        FittedBox(
+                          child: Text('${e.money}'),
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              );
+            }
             return Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 5.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        children: personsOwingMoney
-                            .map((e) => _buildContributorName(
-                                e,
-                                currentUserName,
-                                contributorsVsColors[e]!,
-                                appLocalizations))
-                            .toList(),
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        children: personsOwingMoney
-                            .map((e) =>
-                                Text(e == currentUserName ? 'Owe' : 'Owes'))
-                            .toList(),
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        children: personsOwedMoney
-                            .map((e) => _buildContributorName(
-                                e,
-                                currentUserName,
-                                contributorsVsColors[e]!,
-                                appLocalizations))
-                            .toList(),
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        children: allMoneyOwed
-                            .map((e) => Text(e.toString()))
-                            .toList(),
-                      ),
-                    ),
-                  ],
-                ),
+                child: childWidget,
               ),
             );
           }
-          return CircularProgressIndicator();
+          return const CircularProgressIndicator();
         },
       ),
     );
@@ -103,9 +96,12 @@ class DebtSummaryTile extends StatelessWidget {
             shape: BoxShape.circle,
           ),
         ),
-        label: FittedBox(
-            child: Text(contributorName == currentUserName
+        label: Wrap(
+          children: [
+            Text(contributorName == currentUserName
                 ? appLocalizations.you
-                : contributorName.split('@').first)));
+                : contributorName.split('@').first),
+          ],
+        ));
   }
 }

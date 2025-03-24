@@ -1,7 +1,8 @@
 //Align the dialog against the button that was pressed, rather than showing as bottomModalSheet
 import 'package:flutter/material.dart';
-import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart'
+    as appDataPicker;
+import 'package:wandrr/l10n/extension.dart';
 
 class PlatformDateTimePicker extends StatefulWidget {
   final DateTime? currentDateTime;
@@ -37,8 +38,9 @@ class _PlatformDateTimePickerState extends State<PlatformDateTimePicker> {
     return TextButton(
       onPressed: () {
         bool shouldRebuild = false;
-        DatePicker.showDateTimePicker(
-          currentTime: _dateTime ?? widget.currentDateTime,
+        appDataPicker.DatePicker.showDateTimePicker(
+          //TODO: Theme the picker
+          currentTime: _dateTime,
           context,
           showTitleActions: true,
           onConfirm: (date) {

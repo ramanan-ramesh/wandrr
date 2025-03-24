@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 
 import 'text.dart';
 
@@ -9,33 +8,33 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
   final FutureOr<Iterable<T>> Function(String searchValue) optionsBuilder;
   final Widget Function(T value) listItem;
   final Widget? customPrefix;
+  final Widget? prefixIcon;
   final void Function(T)? onSelected;
-  final String? text;
   final Widget? suffix;
   final String? hintText;
-  final double? maxOptionWidgetWidth;
-  static const _defaultAutoCompleteHintText = 'e.g. Paris, Hawaii...';
-
-  PlatformAutoComplete(
-      {Key? key,
-      required this.optionsBuilder,
-      required this.listItem,
-      this.text,
-      this.onSelected,
-      this.hintText,
-      this.suffix,
-      this.maxOptionWidgetWidth,
-      this.customPrefix})
-      : super(key: key);
-
+  final double? optionsViewWidth;
+  final String Function(T)? displayTextCreator;
   T? selectedItem;
 
+  static const _defaultAutoCompleteHintText = 'e.g. Paris, Hawaii...';
   late FocusNode? _focusNode;
   late TextEditingController _textEditingController;
 
+  PlatformAutoComplete(
+      {super.key,
+      required this.optionsBuilder,
+      required this.listItem,
+      this.selectedItem,
+      this.onSelected,
+      this.displayTextCreator,
+      this.hintText,
+      this.suffix,
+      this.optionsViewWidth,
+      this.customPrefix,
+      this.prefixIcon});
+
   @override
   Widget build(BuildContext context) {
-    var color = Theme.of(context).scaffoldBackgroundColor;
     return LayoutBuilder(
       builder: (context, constraints) {
         return SizedBox(
@@ -61,9 +60,23 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
               VoidCallback onFieldSubmitted,
             ) {
               _focusNode = focusNode;
+              focusNode.addListener(() {
+                if (!focusNode.hasFocus) {
+                  if (selectedItem != null) {
+                    if (displayTextCreator != null) {
+                      _textEditingController.text =
+                          displayTextCreator!(selectedItem!);
+                    } else {
+                      _textEditingController.text = selectedItem.toString();
+                    }
+                  }
+                }
+              });
               _textEditingController = textEditingController;
-              if (this.text != null) {
-                _textEditingController.text = this.text!;
+              if (selectedItem != null) {
+                _textEditingController.text = displayTextCreator != null
+                    ? displayTextCreator!(selectedItem!)
+                    : selectedItem!.toString();
               }
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -74,25 +87,18 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
                       child: customPrefix!,
                     ),
                   Expanded(
-                    child: Container(
-                      color: color,
-                      child: TextFormField(
-                        cursorColor: Colors.white,
-                        controller: _textEditingController,
-                        focusNode: _focusNode,
-                        style: const TextStyle(
-                          fontSize: PlatformTextElements.subHeaderSize,
-                          color: Colors.white,
-                        ),
-                        decoration: InputDecoration(
-                            suffix: suffix,
-                            fillColor: Colors.red,
-                            isDense: true,
-                            hintStyle: TextStyle(
-                                fontStyle: FontStyle.italic,
-                                color: Colors.white),
-                            hintText: hintText ?? _defaultAutoCompleteHintText,
-                            border: OutlineInputBorder()),
+                    child: TextFormField(
+                      controller: _textEditingController,
+                      focusNode: _focusNode,
+                      style: const TextStyle(
+                        fontSize: PlatformTextElements.subHeaderSize,
+                      ),
+                      decoration: InputDecoration(
+                        suffix: suffix,
+                        isDense: true,
+                        prefixIcon: prefixIcon,
+                        hintText: hintText ?? _defaultAutoCompleteHintText,
+                        // border: OutlineInputBorder(),
                       ),
                     ),
                   ),
@@ -103,50 +109,29 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
                 AutocompleteOnSelected<T> onSelected, Iterable<T> options) {
               return Align(
                 alignment: Alignment.topLeft,
-                child: SizedBox(
-                  width: maxOptionWidgetWidth ?? constraints.maxWidth,
+                child: Material(
+                  elevation: 4.0,
                   child: Container(
-                    color: Colors.green,
-                    child: Material(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxHeight: 200),
-                        child: ListView.separated(
-                            padding: EdgeInsets.zero,
-                            shrinkWrap: true,
-                            itemBuilder: (BuildContext context, int index) {
-                              final T option = options.elementAt(index);
-                              return InkWell(
-                                onTap: () {
-                                  onSelected(option);
-                                },
-                                child: Builder(builder: (BuildContext context) {
-                                  final bool highlight =
-                                      AutocompleteHighlightedOption.of(
-                                              context) ==
-                                          index;
-                                  if (highlight) {
-                                    SchedulerBinding.instance
-                                        .addPostFrameCallback(
-                                            (Duration timeStamp) {
-                                      Scrollable.ensureVisible(context,
-                                          alignment: 0.5);
-                                    });
-                                  }
-                                  return Container(
-                                    color: highlight
-                                        ? Theme.of(context).focusColor
-                                        : null,
-                                    child: listItem(option),
-                                  );
-                                }),
-                              );
+                    color: Theme.of(context).dialogTheme.backgroundColor,
+                    width: optionsViewWidth ?? constraints.maxWidth,
+                    child: ListView.separated(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemBuilder: (BuildContext context, int index) {
+                          final T option = options.elementAt(index);
+                          return InkWell(
+                            onTap: () {
+                              onSelected(option);
                             },
-                            separatorBuilder: (context, index) {
-                              return Divider();
-                            },
-                            itemCount: options.length),
-                      ),
-                    ),
+                            child: Builder(builder: (BuildContext context) {
+                              return listItem(option);
+                            }),
+                          );
+                        },
+                        separatorBuilder: (context, index) {
+                          return const Divider();
+                        },
+                        itemCount: options.length),
                   ),
                 ),
               );

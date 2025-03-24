@@ -1,8 +1,9 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 import 'data_states.dart';
 
-class UiElement<K> {
+class UiElement<K> extends Equatable {
   K element;
   DataState dataState;
   GlobalKey? key;
@@ -12,6 +13,9 @@ class UiElement<K> {
   UiElement<K> clone() {
     return UiElement(element: element, dataState: dataState, key: key);
   }
+
+  @override
+  List<Object?> get props => [element, dataState, key];
 }
 
 class UiElementWithMetadata<K, V> extends UiElement<K> {

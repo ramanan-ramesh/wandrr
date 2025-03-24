@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
-import 'package:wandrr/presentation/app/widgets/button.dart';
 
 class PlacesListView extends StatelessWidget {
-  PlacesListView(
+  const PlacesListView(
       {super.key, required this.places, required this.onPlacesChanged});
 
   final List<LocationFacade> places;
@@ -21,10 +20,10 @@ class PlacesListView extends StatelessWidget {
 
 class _PlacesReOrderableListView extends StatefulWidget {
   final List<LocationFacade> placesList;
-  Function() onPlacesChanged;
+  final Function() onPlacesChanged;
 
-  _PlacesReOrderableListView(
-      {super.key, required this.placesList, required this.onPlacesChanged});
+  const _PlacesReOrderableListView(
+      {required this.placesList, required this.onPlacesChanged});
 
   @override
   State<_PlacesReOrderableListView> createState() =>
@@ -56,14 +55,14 @@ class _PlacesReOrderableListViewState
                   ),
                 ),
               ),
-              HoverableDeleteButton(
-                callBack: () {
+              IconButton(
+                icon: const Icon(Icons.delete_rounded),
+                onPressed: () {
                   setState(() {
                     widget.placesList.removeAt(index);
                   });
-                  widget.onPlacesChanged();
                 },
-              )
+              ),
             ],
           );
         },

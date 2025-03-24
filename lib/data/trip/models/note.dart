@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 class NoteFacade extends Equatable {
-  String tripId;
+  final String tripId;
 
   String note;
 
@@ -14,10 +14,6 @@ class NoteFacade extends Equatable {
     required this.note,
     required this.tripId,
   });
-
-  void copyWith(NoteFacade noteModelFacade) {
-    note = noteModelFacade.note;
-  }
 
   NoteFacade clone() {
     return NoteFacade(note: note, tripId: tripId);

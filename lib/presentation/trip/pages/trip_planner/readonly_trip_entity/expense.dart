@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
-
-import '../../../widgets/expense_editing/expenditure_edit_tile.dart';
+import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 
 class ReadonlyExpenseListItem extends StatelessWidget {
   final ExpenseFacade expenseModelFacade;
@@ -24,7 +23,7 @@ class ReadonlyExpenseListItem extends StatelessWidget {
 
   final Map<ExpenseCategory, String> categoryNames;
 
-  ReadonlyExpenseListItem(
+  const ReadonlyExpenseListItem(
       {super.key,
       required this.expenseModelFacade,
       required this.categoryNames});
@@ -41,58 +40,17 @@ class ReadonlyExpenseListItem extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 3.0, vertical: 2.0),
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2.0),
-                      child:
-                          Icon(iconsForCategories[expenseModelFacade.category]),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2.0),
-                      child: Text(
-                        categoryNames[expenseModelFacade.category]!,
-                        maxLines: null,
-                        style: TextStyle(color: Colors.white, fontSize: 13),
-                      ),
-                    ),
-                  ],
-                ),
+                child: _createExpenseCategory(),
               ),
             ),
           ),
-          VerticalDivider(),
           Expanded(
             child: Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 3.0, vertical: 2.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(2.0),
-                    child: _createExpenseTitle(context),
-                  ),
-                  if (_subTitle.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: Text(_subTitle),
-                    ),
-                  if (expenseModelFacade.description != null &&
-                      expenseModelFacade.description!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: Text(
-                        "${context.localizations.description}\n${expenseModelFacade.description!}",
-                        maxLines: null,
-                      ),
-                    )
-                ],
-              ),
+              child: _createExpenseTitleSubtitle(context),
             ),
           ),
-          VerticalDivider(),
           ExpenditureEditTile(
             expenseUpdator: expenseModelFacade,
             isEditable: false,
@@ -103,8 +61,50 @@ class ReadonlyExpenseListItem extends StatelessWidget {
     );
   }
 
-  Text _createExpenseTitle(BuildContext context) {
-    return PlatformTextElements.createSubHeader(
-        context: context, text: expenseModelFacade.title);
+  Widget _createExpenseTitleSubtitle(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(2.0),
+          child: PlatformTextElements.createSubHeader(
+              context: context, text: expenseModelFacade.title),
+        ),
+        if (_subTitle.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: Text(_subTitle),
+          ),
+        if (expenseModelFacade.description != null &&
+            expenseModelFacade.description!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: Text(
+              "${context.localizations.description}\n${expenseModelFacade.description!}",
+              maxLines: null,
+            ),
+          )
+      ],
+    );
+  }
+
+  Widget _createExpenseCategory() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2.0),
+          child: Icon(iconsForCategories[expenseModelFacade.category]),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2.0),
+          child: Text(
+            categoryNames[expenseModelFacade.category]!,
+            maxLines: null,
+            style: const TextStyle(fontSize: 13),
+          ),
+        ),
+      ],
+    );
   }
 }

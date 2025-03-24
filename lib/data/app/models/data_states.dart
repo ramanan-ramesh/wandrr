@@ -1,1 +1,1 @@
-enum DataState { Create, Update, Delete, Select, None, NewUiEntry }
+enum DataState { create, update, delete, select, none, newUiEntry }

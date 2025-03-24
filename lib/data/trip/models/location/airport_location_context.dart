@@ -4,7 +4,7 @@ import 'location.dart';
 
 class AirportLocationContext with EquatableMixin implements LocationContext {
   @override
-  final LocationType locationType = LocationType.Airport;
+  final LocationType locationType = LocationType.airport;
   static const _locationTypeField = 'type';
 
   @override

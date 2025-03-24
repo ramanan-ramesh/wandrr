@@ -74,7 +74,7 @@ class FlightOperations implements FlightOperationsService {
       }
     } finally {
       _shouldAllowAirlineQuery = false;
-      Timer(Duration(seconds: 1), () {
+      Timer(const Duration(seconds: 1), () {
         _shouldAllowAirlineQuery = true;
       });
     }
@@ -111,8 +111,10 @@ class FlightOperations implements FlightOperationsService {
         var airportsDataList = allAirportsList
             .map((e) => LocationFacade(
                 tripId: '',
-                latitude: double.parse(e['latitude']),
-                longitude: double.parse(e['longitude']),
+                latitude:
+                    double.tryParse(e['latitude'].toString()) ?? e['latitude'],
+                longitude: double.tryParse(e['longitude'].toString()) ??
+                    e['longitude'],
                 context: AirportLocationContext.fromApi(e)))
             .toList();
         allMatchedAirports.addAll(airportsDataList);
@@ -120,7 +122,7 @@ class FlightOperations implements FlightOperationsService {
       }
     } finally {
       _shouldAllowAirportQuery = false;
-      Timer(Duration(seconds: 1), () {
+      Timer(const Duration(seconds: 1), () {
         _shouldAllowAirportQuery = true;
       });
     }

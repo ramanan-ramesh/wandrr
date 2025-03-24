@@ -6,13 +6,13 @@ import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 import 'trip_entity_list_element.dart';
 
@@ -25,19 +25,20 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
   final String emptyListMessage;
   Widget? headerTileButton;
   VoidCallback? headerTileActionButtonCallback;
-  BlocBuilderCondition<TripManagementState>? additionalListBuildWhenCondition;
-  bool Function(
+  final BlocBuilderCondition<TripManagementState>?
+      additionalListBuildWhenCondition;
+  final bool Function(
       TripManagementState previousState,
       TripManagementState currentState,
       UiElement<T> uiElement)? additionalListItemBuildWhenCondition;
   final String headerTileLabel;
-  void Function(BuildContext context, UiElement<T>)? onUiElementPressed;
-  FutureOr<Iterable<UiElement<T>>> Function(List<UiElement<T>> uiElements)
+  final void Function(BuildContext context, UiElement<T>)? onUiElementPressed;
+  final FutureOr<Iterable<UiElement<T>>> Function(List<UiElement<T>> uiElements)
       uiElementsSorter;
   final List<UiElement<T>> Function(TripDataFacade tripDataModelFacade)
       uiElementsCreator;
-  bool Function(UiElement<T>)? canDelete;
-  String? Function(UiElement<T>)? errorMessageCreator;
+  final bool Function(UiElement<T>)? canDelete;
+  final String? Function(UiElement<T>)? errorMessageCreator;
 
   TripEntityListView(
       {super.key,
@@ -97,40 +98,44 @@ class _TripEntityListViewState<T extends TripEntity>
                 snapshot.hasData) {
               _uiElements = snapshot.data!.toList();
             }
-            return SliverList.builder(
-              itemBuilder: (BuildContext context, int index) {
-                if (index == 0) {
-                  return _createHeaderTile(context);
-                } else if (index == 1 && _uiElements.isEmpty) {
-                  return _createEmptyMessagePane(context);
-                } else if (index > 0) {
-                  var uiElement = _uiElements.elementAt(index - 1);
-                  if (uiElement.dataState == DataState.NewUiEntry &&
-                      state is UpdatedTripEntity &&
-                      state.dataState == DataState.NewUiEntry) {}
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5.0),
-                    child: TripEntityListElement<T>(
-                      uiElement: uiElement,
-                      onPressed: widget.onUiElementPressed,
-                      canDelete: widget.canDelete,
-                      additionalListItemBuildWhenCondition:
-                          widget.additionalListItemBuildWhenCondition,
-                      onUpdatePressed: widget.onUpdatePressed,
-                      onDeletePressed: widget.onDeletePressed,
-                      openedListElementCreator: widget.openedListElementCreator,
-                      closedElementCreator: () => Container(
-                          color: Colors.black12,
-                          child: widget.closedListElementCreator(uiElement)),
-                      errorMessageCreator: widget.errorMessageCreator,
-                    ),
-                  );
-                }
-                return null;
-              },
-              itemCount: _isCollapsed
-                  ? 1
-                  : (_uiElements.isEmpty ? 2 : _uiElements.length + 1),
+
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  if (index == 0) {
+                    return _createHeaderTile(context);
+                  } else if (index == 1 && _uiElements.isEmpty) {
+                    return _createEmptyMessagePane(context);
+                  } else if (index > 0) {
+                    var uiElement = _uiElements.elementAt(index - 1);
+                    if (uiElement.dataState == DataState.newUiEntry &&
+                        state is UpdatedTripEntity &&
+                        state.dataState == DataState.newUiEntry) {}
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5.0),
+                      child: TripEntityListElement<T>(
+                        uiElement: uiElement,
+                        onPressed: widget.onUiElementPressed,
+                        canDelete: widget.canDelete,
+                        additionalListItemBuildWhenCondition:
+                            widget.additionalListItemBuildWhenCondition,
+                        onUpdatePressed: widget.onUpdatePressed,
+                        onDeletePressed: widget.onDeletePressed,
+                        openedListElementCreator:
+                            widget.openedListElementCreator,
+                        closedElementCreator: () => Container(
+                            color: Colors.black12,
+                            child: widget.closedListElementCreator(uiElement)),
+                        errorMessageCreator: widget.errorMessageCreator,
+                      ),
+                    );
+                  }
+                  return null;
+                },
+                childCount: _isCollapsed
+                    ? 1
+                    : (_uiElements.isEmpty ? 2 : _uiElements.length + 1),
+              ),
             );
           },
         );
@@ -143,9 +148,9 @@ class _TripEntityListViewState<T extends TripEntity>
       TripManagementState previousState, TripManagementState currentState) {
     if (currentState.isTripEntityUpdated<T>()) {
       var updatedTripEntityState = currentState as UpdatedTripEntity;
-      if (updatedTripEntityState.dataState == DataState.Delete ||
-          updatedTripEntityState.dataState == DataState.Create ||
-          updatedTripEntityState.dataState == DataState.NewUiEntry) {
+      if (updatedTripEntityState.dataState == DataState.delete ||
+          updatedTripEntityState.dataState == DataState.create ||
+          updatedTripEntityState.dataState == DataState.newUiEntry) {
         return true;
       }
     } else if (widget.additionalListBuildWhenCondition != null) {
@@ -189,7 +194,7 @@ class _TripEntityListViewState<T extends TripEntity>
             setState(() {});
           },
           trailing: Container(
-            constraints: BoxConstraints(
+            constraints: const BoxConstraints(
               maxWidth: 200,
             ),
             child: FittedBox(
@@ -202,7 +207,7 @@ class _TripEntityListViewState<T extends TripEntity>
       },
       listener: (BuildContext context, TripManagementState state) {
         if (state.isTripEntityUpdated<T>() &&
-            (state as UpdatedTripEntity).dataState == DataState.NewUiEntry) {
+            (state as UpdatedTripEntity).dataState == DataState.newUiEntry) {
           _isCollapsed = false;
           widget.headerTileActionButtonCallback?.call();
           setState(() {});
@@ -218,12 +223,12 @@ class _TripEntityListViewState<T extends TripEntity>
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       builder: (BuildContext context, TripManagementState state) {
         var shouldEnableButton = !_uiElements
-            .any((element) => element.dataState == DataState.NewUiEntry);
+            .any((element) => element.dataState == DataState.newUiEntry);
         if (state.isTripEntityUpdated<T>()) {
           var updatedTripEntityState = state as UpdatedTripEntity;
-          if (updatedTripEntityState.dataState == DataState.NewUiEntry) {
+          if (updatedTripEntityState.dataState == DataState.newUiEntry) {
             shouldEnableButton = false;
-          } else if (updatedTripEntityState.dataState == DataState.Delete &&
+          } else if (updatedTripEntityState.dataState == DataState.delete &&
               updatedTripEntityState
                       .tripEntityModificationData.modifiedCollectionItem.id ==
                   null) {
@@ -238,15 +243,16 @@ class _TripEntityListViewState<T extends TripEntity>
                       UpdateTripEntity<T>.createNewUiEntry());
                 },
           label: Text(context.localizations.addNew),
-          icon: Icon(Icons.add_rounded),
+          icon: const Icon(Icons.add_rounded),
+          elevation: 0,
         );
       },
       buildWhen: (previousState, currentState) {
         if (currentState.isTripEntityUpdated<T>()) {
           var updatedTripEntityState = currentState as UpdatedTripEntity;
-          return updatedTripEntityState.dataState == DataState.Create ||
-              updatedTripEntityState.dataState == DataState.NewUiEntry ||
-              updatedTripEntityState.dataState == DataState.Delete;
+          return updatedTripEntityState.dataState == DataState.create ||
+              updatedTripEntityState.dataState == DataState.newUiEntry ||
+              updatedTripEntityState.dataState == DataState.delete;
         }
         return false;
       },
@@ -258,37 +264,37 @@ class _TripEntityListViewState<T extends TripEntity>
       BuildContext context, TripManagementState state) {
     var activeTrip = context.activeTrip;
 
-    _uiElements.removeWhere((x) => x.dataState != DataState.NewUiEntry);
+    _uiElements.removeWhere((x) => x.dataState != DataState.newUiEntry);
 
     if (state.isTripEntityUpdated<T>()) {
       var updatedTripEntityState = state as UpdatedTripEntity;
       var updatedTripEntityDataState = updatedTripEntityState.dataState;
       if (updatedTripEntityState.tripEntityModificationData.isFromEvent) {
         switch (updatedTripEntityDataState) {
-          case DataState.Create:
+          case DataState.create:
             {
               _uiElements.removeWhere(
-                  (element) => element.dataState == DataState.NewUiEntry);
+                  (element) => element.dataState == DataState.newUiEntry);
               break;
             }
-          case DataState.Delete:
+          case DataState.delete:
             {
               if (updatedTripEntityState
                       .tripEntityModificationData.modifiedCollectionItem.id ==
                   null) {
                 _uiElements.removeWhere(
-                    (element) => element.dataState == DataState.NewUiEntry);
+                    (element) => element.dataState == DataState.newUiEntry);
               }
               break;
             }
-          case DataState.NewUiEntry:
+          case DataState.newUiEntry:
             {
               if (!_uiElements.any(
-                  (element) => element.dataState == DataState.NewUiEntry)) {
+                  (element) => element.dataState == DataState.newUiEntry)) {
                 _uiElements.add(UiElement(
                     element: updatedTripEntityState
                         .tripEntityModificationData.modifiedCollectionItem,
-                    dataState: DataState.NewUiEntry));
+                    dataState: DataState.newUiEntry));
               }
               break;
             }

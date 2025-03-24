@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/auth_type.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/blocs/authentication/auth_bloc.dart';
 import 'package:wandrr/presentation/app/blocs/authentication/auth_events.dart';
 import 'package:wandrr/presentation/app/blocs/authentication/auth_states.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/blocs/master_page/master_page_events.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 
@@ -19,10 +19,10 @@ class LoginPage extends StatelessWidget {
     return BlocProvider<AuthenticationBloc>(
       create: (context) =>
           AuthenticationBloc(context.appDataRepository.googleWebClientId),
-      child: Center(
+      child: const Center(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.0),
             child: _LoginPageForm(),
           ),
         ),
@@ -32,7 +32,7 @@ class LoginPage extends StatelessWidget {
 }
 
 class _LoginPageForm extends StatefulWidget {
-  const _LoginPageForm({super.key});
+  const _LoginPageForm();
 
   @override
   State<_LoginPageForm> createState() => _LoginPageFormState();
@@ -64,9 +64,6 @@ class _LoginPageFormState extends State<_LoginPageForm>
   @override
   Widget build(BuildContext context) {
     return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(_roundedCornerRadius)),
-      ),
       child: FocusTraversalGroup(
         policy: OrderedTraversalPolicy(),
         child: Column(
@@ -75,29 +72,29 @@ class _LoginPageFormState extends State<_LoginPageForm>
             _createTabBar(),
             const SizedBox(height: 16.0),
             FocusTraversalOrder(
-              order: NumericFocusOrder(1),
+              order: const NumericFocusOrder(1),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: _buildUserNamePasswordForm(),
+                child: _createUserNamePasswordForm(),
               ),
             ),
             const SizedBox(height: 24.0),
             FocusTraversalOrder(
-              order: NumericFocusOrder(2),
+              order: const NumericFocusOrder(2),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 200, minWidth: 150),
-                child: _buildSubmitButton(context),
+                child: _createSubmitButton(context),
               ),
             ),
             const SizedBox(height: 24.0),
-            _buildAlternateLoginMethods(context),
+            _createAlternateLoginMethods(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSubmitButton(BuildContext context) {
+  Widget _createSubmitButton(BuildContext context) {
     return BlocConsumer<AuthenticationBloc, AuthenticationState>(
       builder: (BuildContext context, AuthenticationState state) {
         var isSubmitted = false;
@@ -133,27 +130,26 @@ class _LoginPageFormState extends State<_LoginPageForm>
     );
   }
 
-  Column _buildAlternateLoginMethods(BuildContext context) {
+  Widget _createAlternateLoginMethods(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           context.localizations.alternativeLogin,
           style: Theme.of(context).textTheme.titleMedium,
-          // textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16.0),
-        _buildAlternateLoginProviderButton(
-            AuthenticationType.Google, googleLogoAsset, context),
+        _createAlternateAuthProviderButton(
+            AuthenticationType.google, googleLogoAsset, context),
       ],
     );
   }
 
-  Widget _buildAlternateLoginProviderButton(AuthenticationType thirdParty,
+  Widget _createAlternateAuthProviderButton(AuthenticationType thirdParty,
       String thirdPartyLogoAssetName, BuildContext context) {
     return Material(
       shape: const CircleBorder(),
-      clipBehavior: Clip.antiAliasWithSaveLayer,
+      clipBehavior: Clip.hardEdge,
       child: InkWell(
         splashColor: Colors.white30,
         onTap: () {
@@ -174,27 +170,17 @@ class _LoginPageFormState extends State<_LoginPageForm>
     return ClipRRect(
       borderRadius: BorderRadius.circular(_roundedCornerRadius),
       clipBehavior: Clip.hardEdge,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(_roundedCornerRadius),
-          border: Border.all(color: Colors.green),
-        ),
-        child: TabBar(
-          controller: _tabController,
-          indicator: BoxDecoration(
-            color: Theme.of(context).tabBarTheme.indicatorColor,
-            borderRadius: BorderRadius.circular(_roundedCornerRadius),
-          ),
-          tabs: [
-            Tab(text: context.localizations.login),
-            Tab(text: context.localizations.register),
-          ],
-        ),
+      child: TabBar(
+        controller: _tabController,
+        tabs: [
+          Tab(text: context.localizations.login),
+          Tab(text: context.localizations.register),
+        ],
       ),
     );
   }
 
-  Widget _buildUserNamePasswordForm() {
+  Widget _createUserNamePasswordForm() {
     return Form(
       key: _formKey,
       child: BlocConsumer<AuthenticationBloc, AuthenticationState>(
@@ -204,12 +190,12 @@ class _LoginPageFormState extends State<_LoginPageForm>
             child: Column(
               children: [
                 FocusTraversalOrder(
-                  order: NumericFocusOrder(1),
+                  order: const NumericFocusOrder(1),
                   child: _createUserNameField(state),
                 ),
                 const SizedBox(height: 16.0),
                 FocusTraversalOrder(
-                  order: NumericFocusOrder(2),
+                  order: const NumericFocusOrder(2),
                   child: _createPasswordField(state),
                 )
               ],
@@ -217,6 +203,11 @@ class _LoginPageFormState extends State<_LoginPageForm>
           );
         },
         listener: (BuildContext context, AuthenticationState state) {},
+        buildWhen: (previousState, currentState) {
+          return currentState is Authenticating ||
+              currentState is AuthenticationFailure ||
+              currentState is AuthenticationSuccess;
+        },
       ),
     );
   }
@@ -224,7 +215,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
   Widget _createPasswordField(AuthenticationState authState) {
     String? errorText;
     if (authState is AuthenticationFailure) {
-      if (authState.failureReason == AuthenticationFailures.WrongPassword) {
+      if (authState.failureReason == AuthenticationFailureCode.wrongPassword) {
         errorText = context.localizations.wrong_password_entered;
       }
     }
@@ -248,10 +239,10 @@ class _LoginPageFormState extends State<_LoginPageForm>
     String? errorText;
     if (authState is AuthenticationFailure) {
       if (authState.failureReason ==
-          AuthenticationFailures.UsernameAlreadyExists) {
+          AuthenticationFailureCode.usernameAlreadyExists) {
         errorText = context.localizations.userNameAlreadyExists;
       } else if (authState.failureReason ==
-          AuthenticationFailures.NoSuchUsernameExists) {
+          AuthenticationFailureCode.noSuchUsernameExists) {
         errorText = context.localizations.noSuchUserExists;
       }
     }
@@ -259,6 +250,8 @@ class _LoginPageFormState extends State<_LoginPageForm>
       context: context,
       textInputAction: TextInputAction.next,
       controller: _usernameController,
+      readonly:
+          authState is Authenticating || authState is AuthenticationSuccess,
       inputDecoration: InputDecoration(
         icon: const Icon(Icons.person_2_rounded),
         labelText: context.localizations.userName,
@@ -270,18 +263,16 @@ class _LoginPageFormState extends State<_LoginPageForm>
 
 class _PasswordField extends StatefulWidget {
   _PasswordField(
-      {super.key,
-      TextEditingController? controller,
+      {TextEditingController? controller,
       this.labelText,
       this.errorText,
-      this.helperText,
       this.textInputAction,
       this.validator})
       : controller = controller ?? TextEditingController();
 
   final TextInputAction? textInputAction;
   final TextEditingController? controller;
-  final String? labelText, errorText, helperText;
+  final String? labelText, errorText;
   final FormFieldValidator<String>? validator;
 
   @override
@@ -318,7 +309,7 @@ class _PasswordFieldState extends State<_PasswordField> {
       obscureText: _obscurePassword,
       textInputAction: widget.textInputAction,
       decoration: InputDecoration(
-        icon: Icon(Icons.password_rounded),
+        icon: const Icon(Icons.password_rounded),
         labelText: widget.labelText,
         suffixIcon: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 3.0),

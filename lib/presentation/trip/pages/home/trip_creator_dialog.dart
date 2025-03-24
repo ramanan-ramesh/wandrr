@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/data/trip/models/api_services/currency_data.dart';
+import 'package:wandrr/data/trip/models/currency_data.dart';
+import 'package:wandrr/data/trip/models/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
-import 'package:wandrr/presentation/trip/widgets/currency_drop_down.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/money_edit_field.dart';
 
 class TripCreatorDialog extends StatelessWidget {
   late final ValueNotifier<bool> _tripCreationMetadataValidityNotifier =
@@ -34,82 +35,99 @@ class TripCreatorDialog extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        AppBar(
-          leading: IconButton(
-            //TODO: Unable to style splashColor here
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            icon: Icon(
-              Icons.close_rounded,
+        _createAppBar(context),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+          child: FocusTraversalGroup(
+            policy: OrderedTraversalPolicy(),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: PlatformDateRangePicker(
+                    firstDate: DateTime.now(),
+                    callback: (startDate, endDate) {
+                      _currentTripMetadata.startDate = startDate;
+                      _currentTripMetadata.endDate = endDate;
+                      _tripCreationMetadataValidityNotifier.value =
+                          _currentTripMetadata.isValid();
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: FocusTraversalOrder(
+                    order: const NumericFocusOrder(1),
+                    child: TextField(
+                        onChanged: _updateTripName,
+                        textInputAction: TextInputAction.next,
+                        decoration: InputDecoration(
+                          labelText: context.localizations.tripName,
+                        ),
+                        controller: _tripNameEditingController),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    children: [
+                      Text(context.localizations.setBudgetAndCurrency),
+                      FocusTraversalOrder(
+                        order: const NumericFocusOrder(2),
+                        child: _createBudgetEditingField(currencyInfo),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-          centerTitle: true,
-          title: FittedBox(
-            child: PlatformTextElements.createHeader(
-                context: context, text: widgetContext.localizations.planTrip),
-          ),
         ),
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-          child: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: PlatformDateRangePicker(
-                  firstDate: DateTime.now(),
-                  callback: (startDate, endDate) {
-                    _currentTripMetadata.startDate = startDate;
-                    _currentTripMetadata.endDate = endDate;
-                    _tripCreationMetadataValidityNotifier.value =
-                        _currentTripMetadata.isValid();
-                  },
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: _buildTripNameField(context),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: PlatformTextElements.createSubHeader(
-                            context: context,
-                            text: widgetContext
-                                .localizations.chooseDefaultCurrency),
-                      ),
-                    ),
-                    Flexible(
-                      child: Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: PlatformCurrencyDropDown(
-                          selectedCurrencyData: currencyInfo,
-                          allCurrencies: widgetContext.supportedCurrencies,
-                          currencySelectedCallback:
-                              (CurrencyData selectedCurrencyInfo) {
-                            _currentTripMetadata.budget.currency =
-                                selectedCurrencyInfo.code;
-                            _tripCreationMetadataValidityNotifier.value =
-                                _currentTripMetadata.isValid();
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: FocusTraversalOrder(
+            order: const NumericFocusOrder(3),
+            child: _buildCreateTripButton(context),
           ),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 10),
-          child: _buildCreateTripButton(context),
         )
       ],
+    );
+  }
+
+  Widget _createBudgetEditingField(CurrencyData currencyInfo) {
+    return PlatformMoneyEditField(
+      textInputAction: TextInputAction.done,
+      allCurrencies: widgetContext.supportedCurrencies,
+      selectedCurrencyData: currencyInfo,
+      onAmountUpdatedCallback: (updatedAmount) {
+        _currentTripMetadata.budget = Money(
+            currency: _currentTripMetadata.budget.currency,
+            amount: updatedAmount);
+      },
+      currencySelectedCallback: (selectedCurrency) {
+        _currentTripMetadata.budget.currency = selectedCurrency.code;
+        _tripCreationMetadataValidityNotifier.value =
+            _currentTripMetadata.isValid();
+      },
+      isAmountEditable: true,
+    );
+  }
+
+  AppBar _createAppBar(BuildContext context) {
+    return AppBar(
+      leading: IconButton(
+        onPressed: () {
+          Navigator.of(context).pop();
+        },
+        icon: const Icon(
+          Icons.close_rounded,
+        ),
+      ),
+      centerTitle: true,
+      title: FittedBox(
+        child: PlatformTextElements.createHeader(
+            context: context, text: widgetContext.localizations.planTrip),
+      ),
     );
   }
 
@@ -128,14 +146,6 @@ class TripCreatorDialog extends StatelessWidget {
         _currentTripMetadata.isValid();
   }
 
-  Widget _buildTripNameField(BuildContext context) {
-    return PlatformTextElements.createTextField(
-        context: context,
-        labelText: context.localizations.tripName,
-        onTextChanged: _updateTripName,
-        controller: _tripNameEditingController);
-  }
-
   Widget _buildCreateTripButton(BuildContext context) {
     return PlatformSubmitterFAB.conditionallyEnabled(
       icon: Icons.done_rounded,
@@ -143,8 +153,7 @@ class TripCreatorDialog extends StatelessWidget {
       callback: () {
         if (_currentTripMetadata.isValid()) {
           _submitTripCreationEvent();
-          Navigator.of(context)
-              .pop(); //TODO: Animate the button to show 'Done' text, and then after a second, close the dialog
+          Navigator.of(context).pop();
         }
       },
       valueNotifier: _tripCreationMetadataValidityNotifier,

@@ -7,7 +7,7 @@ import 'login_page.dart';
 import 'onboarding_page.dart';
 
 class StartupPage extends StatefulWidget {
-  StartupPage({Key? key}) : super(key: key);
+  const StartupPage({Key? key}) : super(key: key);
 
   @override
   State<StartupPage> createState() => _StartupPageState();
@@ -56,7 +56,7 @@ class _StartupPageState extends State<StartupPage> {
 
   Widget _getPageToRender(bool isBigLayout) {
     if (isBigLayout) {
-      return Row(
+      return const Row(
         children: [
           Expanded(
             child: OnBoardingPage(),
@@ -69,7 +69,7 @@ class _StartupPageState extends State<StartupPage> {
     }
 
     return _shouldDisplayLoginScreen
-        ? LoginPage()
+        ? const LoginPage()
         : OnBoardingPage(
             onNavigateToNextPage: () {
               setState(() {

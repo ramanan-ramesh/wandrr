@@ -3,8 +3,7 @@ import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/editable_trip_entity/transit/transit.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/trip_entity_list_view.dart';
 
@@ -15,8 +14,6 @@ class TransitListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var transitOptionMetadataList =
-        context.tripRepository.activeTrip!.transitOptionMetadatas;
     return TripEntityListView<TransitFacade>(
       emptyListMessage: context.localizations.noTransitsCreated,
       headerTileLabel: context.localizations.transit,
@@ -25,7 +22,6 @@ class TransitListView extends StatelessWidget {
               ValueNotifier<bool> validityNotifier) =>
           EditableTransitListItem(
         transitUiElement: uiElement,
-        transitOptionMetadatas: transitOptionMetadataList,
         validityNotifier: validityNotifier,
       ),
       closedListElementCreator: (UiElement<TransitFacade> uiElement) =>
@@ -34,7 +30,7 @@ class TransitListView extends StatelessWidget {
           tripDataModelFacade
               .transits
               .map((transit) =>
-                  UiElement(element: transit, dataState: DataState.None))
+                  UiElement(element: transit, dataState: DataState.none))
               .toList(),
       errorMessageCreator: (transitUiElement) {
         var transit = transitUiElement.element;
@@ -46,6 +42,9 @@ class TransitListView extends StatelessWidget {
         } else if (transit.departureDateTime == null ||
             transit.arrivalDateTime == null) {
           return context.localizations.departureArrivalDateTimeCannotBeEmpty;
+        } else if (transit.arrivalDateTime!
+            .isBefore(transit.departureDateTime!)) {
+          return context.localizations.arrivalDepartureDateTimesError;
         }
         return null;
       },
@@ -55,10 +54,10 @@ class TransitListView extends StatelessWidget {
   Iterable<UiElement<TransitFacade>> _sortTransits(
       List<UiElement<TransitFacade>> transitUiElements) {
     var newUiEntries = transitUiElements
-        .where((element) => element.dataState == DataState.NewUiEntry)
+        .where((element) => element.dataState == DataState.newUiEntry)
         .toList();
     transitUiElements
-        .removeWhere((element) => element.dataState == DataState.NewUiEntry);
+        .removeWhere((element) => element.dataState == DataState.newUiEntry);
     var transitsWithValidDateTime = <UiElement<TransitFacade>>[];
     var transitsWithInvalidDateTime = <UiElement<TransitFacade>>[];
     for (var transitUiElement in transitUiElements) {

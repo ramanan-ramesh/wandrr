@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class PlatformExpenseAmountEditField extends StatelessWidget {
-  bool isReadonly;
-  Function(double)? onExpenseAmountChanged;
-  String amount;
+  final bool isReadonly;
+  final Function(double)? onExpenseAmountChanged;
+  String? amount;
   final TextEditingController _amountEditingController;
-  InputDecoration? inputDecoration;
-  Color? textColor;
+  final InputDecoration? inputDecoration;
+  final Color? textColor;
+  TextInputAction textInputAction;
 
   PlatformExpenseAmountEditField(
       {super.key,
@@ -17,7 +18,8 @@ class PlatformExpenseAmountEditField extends StatelessWidget {
       this.onExpenseAmountChanged,
       this.inputDecoration,
       this.textColor,
-      required this.amount})
+      this.textInputAction = TextInputAction.next,
+      this.amount})
       : _amountEditingController = TextEditingController(text: amount);
 
   @override
@@ -25,6 +27,7 @@ class PlatformExpenseAmountEditField extends StatelessWidget {
     return TextField(
       readOnly: isReadonly,
       style: TextStyle(color: textColor),
+      textInputAction: textInputAction,
       onChanged: (newValue) {
         if (newValue != amount) {
           amount = newValue;
@@ -34,7 +37,7 @@ class PlatformExpenseAmountEditField extends StatelessWidget {
           }
         }
       },
-      keyboardType: TextInputType.numberWithOptions(decimal: true),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
       controller: _amountEditingController,
       inputFormatters: [_DecimalTextInputFormatter()],
       decoration: inputDecoration,

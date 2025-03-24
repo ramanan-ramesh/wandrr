@@ -35,52 +35,6 @@ class PlanDataModelImplementation extends PlanDataFacade
   static const _checkListsField = 'checkLists';
 
   @override
-  set notes(List<NoteFacade> value) {
-    _notes = List.from(value.map((note) => note.clone()));
-  }
-
-  @override
-  set checkLists(List<CheckListFacade> value) {
-    _checkLists = List.from(value.map((checkList) =>
-        CheckListModelImplementation.fromModelFacade(
-            checkListModelFacade: checkList.clone())));
-  }
-
-  @override
-  set places(List<LocationFacade> placesToSet) {
-    _places = List.from(placesToSet.map((place) =>
-        LocationModelImplementation.fromModelFacade(
-            locationModelFacade: place,
-            collectionName: _collectionName,
-            parentId: id)));
-  }
-
-  static PlanDataModelImplementation fromModelFacade(
-      {required PlanDataFacade planDataFacade,
-      String collectionName = FirestoreCollections.planDataCollectionName}) {
-    var planDataId = planDataFacade.id;
-    var places = List<LocationModelImplementation>.from(planDataFacade.places
-        .map((place) => LocationModelImplementation.fromModelFacade(
-            locationModelFacade: place,
-            collectionName: collectionName,
-            parentId: planDataFacade.id)));
-    var notes =
-        List<NoteFacade>.from(planDataFacade.notes.map((note) => note.clone()));
-    var checkLists = List<CheckListModelImplementation>.from(planDataFacade
-        .checkLists
-        .map((checkList) => CheckListModelImplementation.fromModelFacade(
-            checkListModelFacade: checkList)));
-    return PlanDataModelImplementation(
-        id: planDataId,
-        tripId: planDataFacade.tripId,
-        title: planDataFacade.title,
-        collectionName: collectionName,
-        checkLists: checkLists,
-        places: places,
-        notes: notes);
-  }
-
-  @override
   DocumentReference<Object?> get documentReference => FirebaseFirestore.instance
       .collection(FirestoreCollections.tripCollectionName)
       .doc(tripId)
@@ -132,7 +86,54 @@ class PlanDataModelImplementation extends PlanDataFacade
     }
 
     return await FirestoreHelpers.tryUpdateDocumentField(
-        documentReference: documentReference, json: json);
+        documentReference: documentReference,
+        json: json,
+        onSuccess: () {
+          var planData = toUpdate.clone();
+          title = planData.title;
+          _notes = toUpdate.notes.map((e) => e.clone()).toList();
+          _checkLists = toUpdate.checkLists
+              .map((e) => CheckListModelImplementation.fromModelFacade(
+                  checkListModelFacade: e))
+              .toList();
+          _places = toUpdate.places
+              .map((e) => LocationModelImplementation.fromModelFacade(
+                  locationModelFacade: e,
+                  collectionName: _collectionName,
+                  parentId: id))
+              .toList();
+        });
+  }
+
+  @override
+  PlanDataFacade get facade => clone();
+
+  @override
+  Future dispose() async {}
+
+  static PlanDataModelImplementation fromModelFacade(
+      {required PlanDataFacade planDataFacade,
+      String collectionName = FirestoreCollections.planDataCollectionName}) {
+    var planDataId = planDataFacade.id;
+    var places = List<LocationModelImplementation>.from(planDataFacade.places
+        .map((place) => LocationModelImplementation.fromModelFacade(
+            locationModelFacade: place,
+            collectionName: collectionName,
+            parentId: planDataFacade.id)));
+    var notes =
+        List<NoteFacade>.from(planDataFacade.notes.map((note) => note.clone()));
+    var checkLists = List<CheckListModelImplementation>.from(planDataFacade
+        .checkLists
+        .map((checkList) => CheckListModelImplementation.fromModelFacade(
+            checkListModelFacade: checkList)));
+    return PlanDataModelImplementation(
+        id: planDataId,
+        tripId: planDataFacade.tripId,
+        title: planDataFacade.title,
+        collectionName: collectionName,
+        checkLists: checkLists,
+        places: places,
+        notes: notes);
   }
 
   static PlanDataModelImplementation fromDocumentSnapshot(
@@ -186,12 +187,6 @@ class PlanDataModelImplementation extends PlanDataFacade
             checkLists: [],
             places: [],
             notes: []);
-
-  @override
-  PlanDataFacade get facade => clone();
-
-  @override
-  Future dispose() async {}
 
   PlanDataModelImplementation(
       {String? id,

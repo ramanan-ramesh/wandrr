@@ -2,7 +2,7 @@ import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 
 class PlatformDatePicker extends StatefulWidget {
@@ -38,7 +38,7 @@ class _PlatformDatePickerState extends State<PlatformDatePicker> {
         _showDatePickerDialog(context, dialogWidth);
       },
       label: Text(buttonText),
-      icon: Icon(Icons.date_range_rounded),
+      icon: const Icon(Icons.date_range_rounded),
       key: _widgetKey,
     );
   }
@@ -73,15 +73,15 @@ class _PlatformDatePickerState extends State<PlatformDatePicker> {
                     calendarType: CalendarDatePicker2Type.single,
                     firstDayOfWeek: 1,
                     centerAlignModePicker: true,
-                    controlsTextStyle: TextStyle(color: Colors.white),
-                    dayTextStyle: TextStyle(color: Colors.white),
+                    controlsTextStyle: const TextStyle(color: Colors.white),
+                    dayTextStyle: const TextStyle(color: Colors.white),
                     selectedDayHighlightColor: Colors.green,
-                    selectedDayTextStyle: TextStyle(color: Colors.black),
+                    selectedDayTextStyle: const TextStyle(color: Colors.black),
                     selectedRangeHighlightColor: Colors.green,
-                    selectedRangeDayTextStyle: TextStyle(color: Colors.black),
-                    todayTextStyle: TextStyle(color: Colors.white),
-                    okButtonTextStyle: TextStyle(color: Colors.black),
-                    cancelButtonTextStyle: TextStyle(color: Colors.black),
+                    selectedRangeDayTextStyle: const TextStyle(color: Colors.black),
+                    todayTextStyle: const TextStyle(color: Colors.white),
+                    okButtonTextStyle: const TextStyle(color: Colors.black),
+                    cancelButtonTextStyle: const TextStyle(color: Colors.black),
                     cancelButton: TextButton(
                       onPressed: () {
                         Navigator.of(dialogContext).pop();
@@ -91,7 +91,7 @@ class _PlatformDatePickerState extends State<PlatformDatePicker> {
                     okButton: IgnorePointer(
                       child: TextButton(
                         onPressed: () {},
-                        child: Text('OK'),
+                        child: const Text('OK'),
                       ),
                     ),
                   ),

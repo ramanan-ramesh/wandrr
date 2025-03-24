@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 class SplitByTab extends StatefulWidget {
   final void Function(List<String>) callback;
   final Map<String, Color> contributorsVsColors;
-  List<String> splitBy;
+  final List<String> splitBy;
 
-  SplitByTab(
-      {required this.callback,
+  const SplitByTab(
+      {super.key,
+      required this.callback,
       required this.splitBy,
       required this.contributorsVsColors});
 

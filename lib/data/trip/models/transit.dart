@@ -7,7 +7,7 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'money.dart';
 
 class TransitFacade extends Equatable implements TripEntity {
-  String tripId;
+  final String tripId;
 
   @override
   String? id;
@@ -26,8 +26,7 @@ class TransitFacade extends Equatable implements TripEntity {
 
   String? confirmationId;
 
-  //TODO: Make this null. Don't want to put in DB if not present
-  String notes;
+  String? notes;
 
   ExpenseFacade expense;
 
@@ -63,8 +62,6 @@ class TransitFacade extends Equatable implements TripEntity {
             splitBy: allTripContributors.toList());
 
   void copyWith(TransitFacade transitModelFacade) {
-    tripId = transitModelFacade.tripId;
-    id = transitModelFacade.id;
     transitOption = transitModelFacade.transitOption;
     departureDateTime = transitModelFacade.departureDateTime;
     arrivalDateTime = transitModelFacade.arrivalDateTime;
@@ -100,38 +97,38 @@ class TransitFacade extends Equatable implements TripEntity {
 
   static ExpenseCategory getExpenseCategory(TransitOption transitOptions) {
     switch (transitOptions) {
-      case TransitOption.PublicTransport:
-      case TransitOption.Train:
-      case TransitOption.Cruise:
-      case TransitOption.Ferry:
-      case TransitOption.Bus:
+      case TransitOption.publicTransport:
+      case TransitOption.train:
+      case TransitOption.cruise:
+      case TransitOption.ferry:
+      case TransitOption.bus:
         {
-          return ExpenseCategory.PublicTransit;
+          return ExpenseCategory.publicTransit;
         }
-      case TransitOption.RentedVehicle:
+      case TransitOption.rentedVehicle:
         {
-          return ExpenseCategory.CarRental;
+          return ExpenseCategory.carRental;
         }
-      case TransitOption.Flight:
+      case TransitOption.flight:
         {
-          return ExpenseCategory.Flights;
+          return ExpenseCategory.flights;
         }
-      case TransitOption.Taxi:
+      case TransitOption.taxi:
         {
-          return ExpenseCategory.Taxi;
+          return ExpenseCategory.taxi;
         }
       default:
         {
-          return ExpenseCategory.PublicTransit;
+          return ExpenseCategory.publicTransit;
         }
     }
   }
 
   bool _isFlightOperatorValid() {
-    if (transitOption == TransitOption.Flight) {
+    if (transitOption == TransitOption.flight) {
       var splitOptions = operator?.split(' ');
       if (splitOptions != null &&
-          splitOptions.length == 3 &&
+          splitOptions.length >= 3 &&
           !splitOptions.any((e) => e.isEmpty)) {
         return true;
       }
@@ -147,7 +144,7 @@ class TransitFacade extends Equatable implements TripEntity {
         arrivalDateTime != null &&
         departureDateTime!.compareTo(arrivalDateTime!) < 0;
     var isTransitCarrierValid =
-        transitOption == TransitOption.Flight ? _isFlightOperatorValid() : true;
+        transitOption == TransitOption.flight ? _isFlightOperatorValid() : true;
     return areLocationsValid &&
         areDateTimesValid &&
         isTransitCarrierValid &&
@@ -172,14 +169,14 @@ class TransitFacade extends Equatable implements TripEntity {
 
 //added new entries, so maintain the place where logos are added corresponding to each category
 enum TransitOption {
-  Bus,
-  Flight,
-  RentedVehicle,
-  Train,
-  Walk,
-  Ferry,
-  Cruise,
-  Vehicle,
-  PublicTransport,
-  Taxi
+  bus,
+  flight,
+  rentedVehicle,
+  train,
+  walk,
+  ferry,
+  cruise,
+  vehicle,
+  publicTransport,
+  taxi
 }

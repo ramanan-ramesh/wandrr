@@ -2,16 +2,17 @@ import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 
 import 'dialog.dart';
 
-abstract class DateRangePickerData extends StatefulWidget {
+abstract class DateRangePickerBase extends StatefulWidget {
   final dateFormat = intl.DateFormat.MMMEd();
-  DateTime? startDate, endDate, firstDate, lastDate;
+  DateTime? startDate, endDate;
+  final DateTime? firstDate, lastDate;
   final Function(DateTime? start, DateTime? end)? callback;
 
-  DateRangePickerData(
+  DateRangePickerBase(
       {super.key,
       this.startDate,
       this.endDate,
@@ -22,9 +23,10 @@ abstract class DateRangePickerData extends StatefulWidget {
   void showDateRangePickerDialog(GlobalKey widgetKey, BuildContext context,
       void Function(VoidCallback fn) setState) {
     var isBigLayout = context.isBigLayout;
+    var isLightTheme = context.isLightTheme;
     PlatformDialogElements.showAlignedDialog(
         context: context,
-        widgetBuilder: (context) {
+        widgetBuilder: (dialogContext) {
           var dateRangePickerButtonRenderBox =
               widgetKey.currentContext!.findRenderObject() as RenderBox;
           double width;
@@ -42,12 +44,13 @@ abstract class DateRangePickerData extends StatefulWidget {
             //TODO: Make this work for android, by setting a max height
             child: Material(
               elevation: 5.0,
+              color: Theme.of(context).dialogTheme.backgroundColor,
               child: CalendarDatePicker2WithActionButtons(
                 onCancelTapped: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(dialogContext).pop();
                 },
                 onOkTapped: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(dialogContext).pop();
                 },
                 config: CalendarDatePicker2WithActionButtonsConfig(
                   firstDate: firstDate,
@@ -57,22 +60,24 @@ abstract class DateRangePickerData extends StatefulWidget {
                   firstDayOfWeek: 1,
                   calendarType: CalendarDatePicker2Type.range,
                   centerAlignModePicker: true,
-                  controlsTextStyle: TextStyle(color: Colors.white),
-                  dayTextStyle: TextStyle(color: Colors.white),
+                  controlsTextStyle: TextStyle(
+                      color: isLightTheme ? Colors.black : Colors.white),
+                  dayTextStyle: TextStyle(
+                      color: isLightTheme ? Colors.black : Colors.white),
                   selectedDayHighlightColor: Colors.green,
-                  selectedDayTextStyle: TextStyle(color: Colors.black),
+                  selectedDayTextStyle: const TextStyle(color: Colors.black),
                   selectedRangeHighlightColor: Colors.green,
-                  selectedRangeDayTextStyle: TextStyle(color: Colors.black),
-                  todayTextStyle: TextStyle(color: Colors.white),
-                  okButtonTextStyle: TextStyle(color: Colors.black),
-                  cancelButtonTextStyle: TextStyle(color: Colors.black),
-                  cancelButton: IgnorePointer(
+                  selectedRangeDayTextStyle: const TextStyle(color: Colors.black),
+                  todayTextStyle: const TextStyle(color: Colors.white),
+                  okButtonTextStyle: const TextStyle(color: Colors.black),
+                  cancelButtonTextStyle: const TextStyle(color: Colors.black),
+                  cancelButton: const IgnorePointer(
                     child: IconButton(
                       onPressed: null,
                       icon: Icon(Icons.cancel_rounded),
                     ),
                   ),
-                  okButton: IgnorePointer(
+                  okButton: const IgnorePointer(
                     child: IconButton(
                       onPressed: null,
                       icon: Icon(Icons.done_rounded),
@@ -112,7 +117,7 @@ abstract class DateRangePickerData extends StatefulWidget {
   }
 }
 
-class PlatformDateRangePicker extends DateRangePickerData {
+class PlatformDateRangePicker extends DateRangePickerBase {
   PlatformDateRangePicker(
       {super.key,
       super.startDate,
@@ -141,27 +146,40 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
       endDateTime = widget.dateFormat.format(widget.endDate!);
     }
     return TextButton(
-        key: _dateRangePickerKey,
-        onPressed: () {
-          widget.showDateRangePickerDialog(
-              _dateRangePickerKey, context, setState);
-        },
-        child: IntrinsicHeight(
-          child: Row(
-            children: [
-              Expanded(
+      key: _dateRangePickerKey,
+      onPressed: () {
+        widget.showDateRangePickerDialog(
+            _dateRangePickerKey, context, setState);
+      },
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(3.0),
+                child: FittedBox(
                   child: Text(
-                      '${(context.localizations.dateRangePickerStart)} $startDateTime')),
-              Expanded(
+                      '${(context.localizations.dateRangePickerStart)} $startDateTime'),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(3.0),
+                child: FittedBox(
                   child: Text(
-                      '${(context.localizations.dateRangePickerEnd)} $endDateTime'))
-            ],
-          ),
-        ));
+                      '${(context.localizations.dateRangePickerEnd)} $endDateTime'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
-class PlatformFABDateRangePicker extends DateRangePickerData {
+class PlatformFABDateRangePicker extends DateRangePickerBase {
   PlatformFABDateRangePicker(
       {super.key,
       super.startDate,
@@ -181,14 +199,12 @@ class _PlatformFABDateRangePickerState
 
   @override
   Widget build(BuildContext context) {
-    String startDateTime = '';
-    if (widget.startDate == null) {
-    } else {
+    String startDateTime = context.localizations.dateRangePickerStart;
+    if (widget.startDate != null) {
       startDateTime = widget.dateFormat.format(widget.startDate!);
     }
-    String endDateTime = '';
-    if (widget.endDate == null) {
-    } else {
+    String endDateTime = context.localizations.dateRangePickerEnd;
+    if (widget.endDate != null) {
       endDateTime = widget.dateFormat.format(widget.endDate!);
     }
     var dateRangeText = '$startDateTime to $endDateTime';
@@ -196,7 +212,7 @@ class _PlatformFABDateRangePickerState
       onPressed: () => widget.showDateRangePickerDialog(
           _dateRangePickerKey, context, setState),
       key: _dateRangePickerKey,
-      icon: Icon(
+      icon: const Icon(
         Icons.date_range_rounded,
       ),
       label: Text(

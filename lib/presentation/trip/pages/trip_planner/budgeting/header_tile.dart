@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/data/trip/trip_repository_extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/expense_view_type.dart';
+import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/flip_card/flip_card.dart';
 
 class BudgetingHeaderTile extends StatelessWidget {
   final ValueNotifier<ExpenseViewType> _expenseViewTypeNotifier;
@@ -27,101 +29,114 @@ class BudgetingHeaderTile extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 5.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: FittedBox(
-                    child: PlatformTextElements.createHeader(
-                        context: context,
-                        text: context.localizations.budgeting),
-                  ),
-                ),
-              ),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: _buildCreateExpenseButton(context),
-                ),
-              )
-            ],
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 5.0),
+          child: _createHeader(context),
         ),
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 5.0),
-          child: Card(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            child: Padding(
-              padding: const EdgeInsets.all(3.0),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: _buildBudgetOverview(context),
-                  ),
-                  Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: _buildExpenseViewButton(
-                                  context,
-                                  ExpenseViewType.ExpenseList,
-                                  context.localizations.view_expenses,
-                                  Icons.list_rounded),
-                            ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: _buildExpenseViewButton(
-                                  context,
-                                  ExpenseViewType.BudgetEditor,
-                                  context.localizations.edit_budget,
-                                  Icons.edit_rounded),
-                              // ),
-                            ),
-                          ),
-                        ],
+          padding: const EdgeInsets.symmetric(vertical: 5.0),
+          child: FlipCard(
+            fill: Fill.back,
+            direction: Axis.horizontal,
+            duration: const Duration(milliseconds: 750),
+            autoFlipDuration:
+                context.isBigLayout ? null : const Duration(seconds: 0),
+            front: _createOverviewTile(context),
+            back: _createOverviewTile(context),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _createOverviewTile(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(3.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: _buildBudgetOverview(context),
+            ),
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: _buildExpenseViewButton(
+                            context,
+                            ExpenseViewType.expenseList,
+                            context.localizations.view_expenses,
+                            Icons.list_rounded),
                       ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: _buildExpenseViewButton(
-                                  context,
-                                  ExpenseViewType.DebtSummary,
-                                  context.localizations.debt_summary,
-                                  Icons.money_rounded),
-                              // ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: _buildExpenseViewButton(
-                                  context,
-                                  ExpenseViewType.BreakdownViewer,
-                                  context.localizations.view_breakdown,
-                                  Icons.bar_chart_rounded),
-                            ),
-                          ),
-                        ],
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: _buildExpenseViewButton(
+                            context,
+                            ExpenseViewType.budgetEditor,
+                            context.localizations.edit_budget,
+                            Icons.edit_rounded),
+                        // ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: _buildExpenseViewButton(
+                            context,
+                            ExpenseViewType.debtSummary,
+                            context.localizations.debt_summary,
+                            Icons.money_rounded),
+                        // ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: _buildExpenseViewButton(
+                            context,
+                            ExpenseViewType.breakdownViewer,
+                            context.localizations.view_breakdown,
+                            Icons.bar_chart_rounded),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _createHeader(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: FittedBox(
+              child: PlatformTextElements.createHeader(
+                  context: context, text: context.localizations.budgeting),
             ),
           ),
         ),
+        Flexible(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: _buildCreateExpenseButton(context),
+          ),
+        )
       ],
     );
   }
@@ -172,7 +187,7 @@ class BudgetingHeaderTile extends StatelessWidget {
       buildWhen: (previousState, currentState) {
         if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
           var updatedTripEntity = currentState as UpdatedTripEntity;
-          if (updatedTripEntity.dataState == DataState.Update) {
+          if (updatedTripEntity.dataState == DataState.update) {
             var updatedTripMetadata = updatedTripEntity
                 .tripEntityModificationData
                 .modifiedCollectionItem as TripMetadataFacade;
@@ -218,12 +233,11 @@ class BudgetingHeaderTile extends StatelessWidget {
                   alignment: Alignment.centerRight,
                   child: Text(
                     budgetText,
-                    style: TextStyle(color: Colors.white),
                   ),
                 ),
                 if (totalExpense > 0)
                   Padding(
-                    padding: EdgeInsets.symmetric(vertical: 3.0),
+                    padding: const EdgeInsets.symmetric(vertical: 3.0),
                     child: LinearProgressIndicator(
                       value: expenseRatio,
                       color: Colors.green,
@@ -251,12 +265,12 @@ class BudgetingHeaderTile extends StatelessWidget {
               expenseUpdatedState.tripEntityModificationData;
           var modifiedCollectionItem = tripEntityModificationData
               .modifiedCollectionItem as ExpenseFacade;
-          if (expenseUpdatedState.dataState == DataState.NewUiEntry) {
+          if (expenseUpdatedState.dataState == DataState.newUiEntry) {
             isEnabled = false;
-          } else if (expenseUpdatedState.dataState == DataState.Create &&
+          } else if (expenseUpdatedState.dataState == DataState.create &&
               tripEntityModificationData.isFromEvent) {
             isEnabled = true;
-          } else if (expenseUpdatedState.dataState == DataState.Delete &&
+          } else if (expenseUpdatedState.dataState == DataState.delete &&
                   modifiedCollectionItem.id == null ||
               modifiedCollectionItem.id!.isEmpty) {
             isEnabled = true;
@@ -270,15 +284,15 @@ class BudgetingHeaderTile extends StatelessWidget {
                       UpdateTripEntity<ExpenseFacade>.createNewUiEntry());
                 },
           label: Text(context.localizations.add_expense),
-          icon: Icon(Icons.add_circle),
+          icon: const Icon(Icons.add_circle),
         );
       },
       buildWhen: (previousState, currentState) {
         if (currentState.isTripEntityUpdated<ExpenseFacade>()) {
           var expenseUpdatedState = currentState as UpdatedTripEntity;
-          if (expenseUpdatedState.dataState == DataState.Create ||
-              expenseUpdatedState.dataState == DataState.Delete ||
-              expenseUpdatedState.dataState == DataState.NewUiEntry) {
+          if (expenseUpdatedState.dataState == DataState.create ||
+              expenseUpdatedState.dataState == DataState.delete ||
+              expenseUpdatedState.dataState == DataState.newUiEntry) {
             return true;
           }
         }

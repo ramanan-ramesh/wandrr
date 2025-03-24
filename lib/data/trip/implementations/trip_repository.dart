@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter/services.dart';
 import 'package:wandrr/data/app/implementations/collection_model_implementation.dart';
 import 'package:wandrr/data/app/models/collection_model_facade.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
@@ -9,9 +10,11 @@ import 'package:wandrr/data/trip/implementations/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/api_services/currency_converter.dart';
 import 'package:wandrr/data/trip/models/api_services/flight_operations.dart';
 import 'package:wandrr/data/trip/models/api_services/geo_locator.dart';
+import 'package:wandrr/data/trip/models/currency_data.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
+import 'package:wandrr/l10n/app_localizations.dart';
 
 import 'api_services/currency_converter.dart';
 import 'api_services/flight_operations_service.dart';
@@ -20,8 +23,9 @@ import 'trip_data.dart';
 
 class TripRepositoryImplementation implements TripRepositoryEventHandler {
   static const _contributorsField = 'contributors';
+  static const _pathToSupportedCurrencies = 'assets/supported_currencies.json';
 
-  final AppLocalizations _appLocalizations;
+  AppLocalizations _appLocalizations;
 
   late StreamSubscription _tripMetadataUpdatedEventSubscription;
   late StreamSubscription _tripMetadataDeletedEventSubscription;
@@ -53,6 +57,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   @override
   final CurrencyConverterService currencyConverter;
 
+  final String currentUserName;
+
   static Future<TripRepositoryImplementation> createInstanceAsync(
       {required String userName,
       required AppLocalizations appLocalizations}) async {
@@ -72,12 +78,21 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     var geoLocator = await GeoLocator.create();
     var currencyConverter = CurrencyConverter.create();
     var flightOperationsService = await FlightOperations.create();
+
+    final String jsonString =
+        await rootBundle.loadString(_pathToSupportedCurrencies);
+    final List<dynamic> jsonResponse = json.decode(jsonString);
+    var currencyDataList =
+        jsonResponse.map((json) => CurrencyData.fromJson(json)).toList();
+
     return TripRepositoryImplementation._(
         tripMetadataModelCollection,
         appLocalizations,
         currencyConverter,
         geoLocator,
-        flightOperationsService);
+        flightOperationsService,
+        userName,
+        currencyDataList);
   }
 
   @override
@@ -90,8 +105,16 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
 
     await _activeTrip?.dispose();
     _activeTrip = await TripDataModelImplementation.createExistingInstanceAsync(
-        tripMetadata, currencyConverter, _appLocalizations);
+        tripMetadata, currencyConverter, _appLocalizations, currentUserName);
   }
+
+  @override
+  void updateLocalizations(AppLocalizations appLocalizations) {
+    _appLocalizations = appLocalizations;
+  }
+
+  @override
+  final Iterable<CurrencyData> supportedCurrencies;
 
   @override
   Future dispose() async {
@@ -104,7 +127,9 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
       this._appLocalizations,
       this.currencyConverter,
       this.geoLocator,
-      this.flightOperationsService) {
+      this.flightOperationsService,
+      this.currentUserName,
+      this.supportedCurrencies) {
     _tripMetadataUpdatedEventSubscription =
         tripMetadataModelCollection.onDocumentUpdated.listen((eventData) async {
       if (_activeTrip == null) {
