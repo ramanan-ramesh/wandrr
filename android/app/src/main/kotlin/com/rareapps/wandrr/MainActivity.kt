@@ -13,6 +13,7 @@ import android.util.DisplayMetrics
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
 
 class MainActivity : Activity() {
@@ -43,13 +44,14 @@ class MainActivity : Activity() {
         val animatorSet = AnimatorSet()
         animatorSet.duration = 3000
         animatorSet.playTogether(translationX, scaleX, scaleY, alpha)
+        animatorSet.doOnEnd {
+            spaceshipImageView.visibility = View.GONE
+        }
         animatorSet.start()
 
-        // Animate app logo fade out
         val appLogoFadeOut = ObjectAnimator.ofFloat(appLogo, "alpha", 1.0f, 0.0f)
         appLogoFadeOut.duration = 2000
 
-        // Animate wandrr text fade in and scale
         val wandrrTextFadeIn = ObjectAnimator.ofFloat(wandrrText, "alpha", 0.0f, 1.0f)
         val wandrrTextScaleX = ObjectAnimator.ofFloat(wandrrText, "scaleX", 0.5f, 1.0f)
         val wandrrTextScaleY = ObjectAnimator.ofFloat(wandrrText, "scaleY", 0.5f, 1.0f)
@@ -60,12 +62,10 @@ class MainActivity : Activity() {
         val textAnimatorSet = AnimatorSet()
         textAnimatorSet.playTogether(wandrrTextFadeIn, wandrrTextScaleX, wandrrTextScaleY)
 
-        // Start animations sequentially
         val sequentialAnimatorSet = AnimatorSet()
         sequentialAnimatorSet.playSequentially(appLogoFadeOut, textAnimatorSet)
         sequentialAnimatorSet.start()
 
-        // Delay to show the splash screen for a few seconds
         Handler(Looper.getMainLooper()).postDelayed({
             startActivity(Intent(this, FlutterAppActivity::class.java))
             finish()
