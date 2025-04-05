@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "778106737436-0leef8sist4vtdqtarroi5pvmjevfren.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rareapps.wandrr",
+            "certificate_hash": "dd1ce6c3181699329f5d391d38504423a722d014"
+          }
+        },
+        {
           "client_id": "778106737436-9loj9l71vhdjqckplkb4doe2p0njadls.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
