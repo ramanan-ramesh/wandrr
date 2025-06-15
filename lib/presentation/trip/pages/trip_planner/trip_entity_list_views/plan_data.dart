@@ -9,7 +9,7 @@ import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
-import 'package:wandrr/presentation/trip/pages/trip_planner/editable_trip_entity/plan_data/plan_data.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/plan_data/plan_data.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 class PlanDataListView extends StatefulWidget {

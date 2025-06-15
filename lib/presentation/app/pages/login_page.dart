@@ -9,6 +9,7 @@ import 'package:wandrr/presentation/app/blocs/authentication/auth_states.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/blocs/master_page/master_page_events.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
+import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 
 class LoginPage extends StatelessWidget {
@@ -63,7 +64,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return PlatformCard(
       child: FocusTraversalGroup(
         policy: OrderedTraversalPolicy(),
         child: Column(

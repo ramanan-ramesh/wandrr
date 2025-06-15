@@ -7,7 +7,7 @@ import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
-import 'package:wandrr/presentation/trip/pages/trip_planner/editable_trip_entity/itinerary/itinerary.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/itinerary/itinerary.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 class ItineraryListView extends StatefulWidget {

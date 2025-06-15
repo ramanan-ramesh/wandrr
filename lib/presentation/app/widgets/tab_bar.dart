@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'card.dart';
+
 class PlatformTabBar extends StatefulWidget {
   final Map<String, Widget> tabBarItems;
   final TabController? tabController;
@@ -28,7 +30,7 @@ class _PlatformTabBarState extends State<PlatformTabBar>
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return PlatformCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,

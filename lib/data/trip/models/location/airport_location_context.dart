@@ -16,9 +16,7 @@ class AirportLocationContext with EquatableMixin implements LocationContext {
   static const _nameField = 'name';
 
   final String airportCode;
-  static const _iataAirportCodeField = 'iata';
-  static const _icaoAirportCodeField = 'icao';
-  static const _airportCodeField = 'code';
+  static const _iataCodeField = 'iata';
 
   AirportLocationContext._(
       {required this.city,
@@ -26,20 +24,10 @@ class AirportLocationContext with EquatableMixin implements LocationContext {
       required String airportName})
       : name = airportName;
 
-  AirportLocationContext.fromApi(Map<String, dynamic> json)
-      : this._(
-            city: json[_cityField],
-            airportCode: json[_iataAirportCodeField] != null
-                ? ((json[_iataAirportCodeField] as String).isNotEmpty
-                    ? json[_iataAirportCodeField]
-                    : json[_icaoAirportCodeField])
-                : json[_icaoAirportCodeField],
-            airportName: json[_nameField]);
-
   AirportLocationContext.fromDocument(Map<String, dynamic> json)
       : this._(
             city: json[_cityField],
-            airportCode: json[_airportCodeField],
+            airportCode: json[_iataCodeField],
             airportName: json[_nameField]);
 
   @override
@@ -47,7 +35,7 @@ class AirportLocationContext with EquatableMixin implements LocationContext {
     return {
       _nameField: name,
       _cityField: city,
-      _airportCodeField: airportCode,
+      _iataCodeField: airportCode,
       _locationTypeField: locationType.name
     };
   }

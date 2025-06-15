@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/trip/models/currency_data.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
 import 'package:wandrr/data/trip/models/money.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/tab_bar.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/currency_drop_down.dart';
+import 'package:wandrr/presentation/trip/widgets/money_edit_field.dart';
 
 import 'paid_by_tab.dart';
 import 'split_by_tab.dart';
@@ -49,8 +52,8 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _totalExpenseValueNotifier = ValueNotifier(widget.totalExpense);
-    _currentPaidBy = Map.from(_currentPaidBy);
-    _currentSplitBy = List.from(_currentSplitBy);
+    _currentPaidBy = Map.from(widget.paidBy);
+    _currentSplitBy = List.from(widget.splitBy);
   }
 
   @override
@@ -64,35 +67,67 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   }
 
   Column _createReadonlyExpenditureTile(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2.0),
+    var columnItems = <Widget>[
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2.0),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
           child: PlatformTextElements.createSubHeader(
               context: context,
               shouldBold: widget.isEditable,
               text: _totalExpenseValueNotifier.value.toString()),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2.0),
-          child: Text(
-            '${context.localizations.splitBy} : ',
-          ),
+      ),
+    ];
+    var shouldHideSplitByData = widget.totalExpense.amount == 0 ||
+        widget.splitBy.isEmpty ||
+        widget.splitBy.length == 1 &&
+            widget.splitBy.single == context.activeUser!.userName;
+    if (!shouldHideSplitByData) {
+      columnItems.add(Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2.0),
+        child: Text(
+          '${context.localizations.splitBy} : ',
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2.0),
-          child: _buildSplitByIcons(),
-        ),
-      ],
+      ));
+      columnItems.add(Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2.0),
+        child: _buildSplitByIcons(),
+      ));
+    }
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: columnItems,
     );
   }
 
-  Card _createEditableExpenditureTile(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
+  Widget _createEditableExpenditureTile(BuildContext context) {
+    if (_contributorsVsColors.length == 1) {
+      var currentUserName = context.activeUser!.userName;
+      var allCurrencies = context.supportedCurrencies;
+      return PlatformMoneyEditField(
+        isAmountEditable: true,
+        initialAmount: _totalExpenseValueNotifier.value.amount,
+        allCurrencies: allCurrencies,
+        selectedCurrencyData: _currentCurrencyInfo,
+        onAmountUpdatedCallback: (updatedAmount) {
+          _currentPaidBy[currentUserName] = updatedAmount;
+          _totalExpenseValueNotifier.value =
+              Money(currency: _currentCurrencyInfo.code, amount: updatedAmount);
+          _invokeUpdatedCallback();
+        },
+        currencySelectedCallback: (CurrencyData selectedCurrencyInfo) {
+          setState(() {
+            _currentCurrencyInfo = selectedCurrencyInfo;
+            _totalExpenseValueNotifier.value = Money(
+                currency: selectedCurrencyInfo.code,
+                amount: _totalExpenseValueNotifier.value.amount);
+            _invokeUpdatedCallback();
+          });
+        },
+      );
+    }
+    return PlatformCard(
       child: Padding(
         padding: const EdgeInsets.all(4.0),
         child: Column(

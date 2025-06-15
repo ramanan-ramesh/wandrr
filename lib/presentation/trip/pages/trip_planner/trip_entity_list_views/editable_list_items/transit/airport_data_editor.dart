@@ -31,16 +31,12 @@ class _AirportsDataEditorState extends State<AirportsDataEditor> {
 
   @override
   Widget build(BuildContext context) {
-    var airportCode =
-        (_location?.context as AirportLocationContext?)?.airportCode ?? '   ';
     return PlatformAutoComplete<LocationFacade>(
       optionsViewWidth: widget.locationOptionsViewWidth,
       hintText: context.localizations.airport,
       selectedItem: _location,
-      customPrefix: Text(
-        airportCode.toUpperCase(),
-        style: Theme.of(context).textTheme.titleSmall,
-      ),
+      displayTextCreator: (location) =>
+          (location.context as AirportLocationContext).name,
       onSelected: (newAirport) {
         if (newAirport != _location) {
           setState(() {
@@ -52,7 +48,7 @@ class _AirportsDataEditorState extends State<AirportsDataEditor> {
         }
       },
       optionsBuilder:
-          context.tripRepository.flightOperationsService.queryAirportsData,
+          context.tripRepository.airportsDataService.queryAirportsData,
       listItem: (airportData) {
         var airportLocationContext =
             airportData.context as AirportLocationContext;

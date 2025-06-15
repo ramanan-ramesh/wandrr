@@ -177,7 +177,8 @@ class ItineraryStayAndTransits extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(3.0),
+              padding: const EdgeInsets.only(
+                  top: 3.0, left: 3.0, bottom: 3.0, right: 8.0),
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(trailing),
@@ -229,40 +230,10 @@ class ItineraryStayAndTransits extends StatelessWidget {
         return '${appLocalizations.departAt} ${dateTimeFormat.format(departureDateTime)}';
       } else if (!departureDateTime.isOnSameDayAs(itineraryDay) &&
           arrivalDateTime.isOnSameDayAs(itineraryDay)) {
-        var numberOfTravelDays =
-            arrivalDateTime.calculateDaysInBetween(departureDateTime);
-        return '${appLocalizations.arriveAt}${_convertToSuperScript('+$numberOfTravelDays')} ${dateTimeFormat.format(arrivalDateTime)}';
+        return '${appLocalizations.arriveAt} ${dateTimeFormat.format(arrivalDateTime)}';
       } else {
         return appLocalizations.allDayTravel;
       }
     }
   }
-
-  String _convertToSuperScript(String numberOfTravelDayDenotation) {
-    var superScriptText = '';
-    for (var character in numberOfTravelDayDenotation.characters) {
-      if (character == ' ') {
-        superScriptText += ' ';
-      } else {
-        superScriptText += _unicodeMap[character]!;
-      }
-    }
-    return superScriptText;
-  }
-
-  final _unicodeMap = {
-    '0': ('\u2070'),
-    '1': ('\u00B9'),
-    '2': ('\u00B2'),
-    '3': ('\u00B3'),
-    '4': ('\u2074'),
-    '5': ('\u2075'),
-    '6': ('\u2076'),
-    '7': ('\u2077'),
-    '8': ('\u2078'),
-    '9': ('\u2079'),
-    '+': '\u207A',
-    '(': '\u207D',
-    ')': '\u207E',
-  };
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/l10n/extension.dart';
 
 class PlatformTextElements {
-  static const double subHeaderSize = 20;
+  static const double subHeaderSize = 17;
   static const double formElementSize = 15;
   static final _emailRegExValidator = RegExp('.*@.*.com');
 

@@ -6,6 +6,7 @@ import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
+import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
@@ -55,54 +56,64 @@ class _TripEntityListElementState<T extends TripEntity>
                 widget.uiElement.dataState == DataState.newUiEntry;
         return shouldOpenForEditing
             ? _createEditableTripEntityListElement(context)
-            : _createReadonlyTripEntityListElement(context);
+            : _createTripEntityListElement(
+                context, widget.closedElementCreator());
       },
       listener: (BuildContext context, TripManagementState state) {},
     );
   }
 
   Widget _createEditableTripEntityListElement(BuildContext context) {
-    return _OpenedTripEntityUiElement(
-      uiElement: widget.uiElement,
-      openedListElementCreator: widget.openedListElementCreator,
-      onUpdatePressed: widget.onUpdatePressed,
-      onDeletePressed: widget.onDeletePressed,
-      canDelete:
-          widget.canDelete != null ? widget.canDelete!(widget.uiElement) : true,
-      onPressed: () {
-        if (widget.onPressed != null) {
-          widget.onPressed?.call(context, widget.uiElement);
-          return;
-        }
-        if (widget.uiElement.dataState != DataState.newUiEntry) {
-          context.addTripManagementEvent(
-              UpdateTripEntity.select(tripEntity: widget.uiElement.element));
-        }
-      },
-      errorMessageCreator: widget.errorMessageCreator,
+    var validityNotifier = ValueNotifier(
+        widget.uiElement.dataState == DataState.newUiEntry ? false : true);
+    return Column(
+      children: [
+        _createTripEntityListElement(
+          context,
+          widget.openedListElementCreator(
+              widget.uiElement.clone(), validityNotifier),
+        ),
+        _EditableTripEntityButtonBar(
+          validityNotifier: validityNotifier,
+          onUpdatePressed: widget.onUpdatePressed,
+          uiElement: widget.uiElement,
+          canDelete: widget.canDelete != null
+              ? widget.canDelete!(widget.uiElement)
+              : true,
+          onDeletePressed: widget.onDeletePressed,
+          errorMessageCreator: widget.errorMessageCreator,
+        ),
+      ],
     );
   }
 
-  Widget _createReadonlyTripEntityListElement(BuildContext context) {
-    return Material(
+  Widget _createTripEntityListElement(
+      BuildContext context, Widget listElement) {
+    return PlatformCard(
       child: InkWell(
-        child: Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          color: context.isLightTheme
-              ? null
-              : Colors.grey.shade900, //ThemingRequired
-          child: widget.closedElementCreator(),
-        ),
         onTap: () {
           if (widget.onPressed != null) {
             widget.onPressed?.call(context, widget.uiElement);
             return;
           }
-          context.addTripManagementEvent(
-              UpdateTripEntity.select(tripEntity: widget.uiElement.element));
+          if (widget.uiElement.dataState != DataState.newUiEntry) {
+            context.addTripManagementEvent(
+                UpdateTripEntity.select(tripEntity: widget.uiElement.element));
+          }
         },
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).cardTheme.color!,
+                context.isLightTheme ? Colors.white12 : Colors.grey.shade800
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+          ),
+          child: listElement,
+        ),
       ),
     );
   }
@@ -152,61 +163,6 @@ class _TripEntityListElementState<T extends TripEntity>
       }
     }
     return false;
-  }
-}
-
-class _OpenedTripEntityUiElement<T extends TripEntity> extends StatelessWidget {
-  final UiElement<T> uiElement;
-  final ValueNotifier<bool> _validityNotifier;
-  final Widget Function(UiElement<T> uiElement, ValueNotifier<bool>)
-      openedListElementCreator;
-  final void Function(UiElement<T>)? onUpdatePressed;
-  final void Function(UiElement<T>)? onDeletePressed;
-  final bool canDelete;
-  final VoidCallback onPressed;
-  final String? Function(UiElement<T>)? errorMessageCreator;
-
-  _OpenedTripEntityUiElement(
-      {super.key,
-      required UiElement<T> uiElement,
-      this.onDeletePressed,
-      this.onUpdatePressed,
-      required this.canDelete,
-      required this.onPressed,
-      required this.openedListElementCreator,
-      this.errorMessageCreator})
-      : uiElement = uiElement.clone(),
-        _validityNotifier = ValueNotifier(
-            uiElement.dataState == DataState.newUiEntry ? false : true);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Material(
-          child: InkWell(
-            onTap: onPressed,
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              color: context.isLightTheme
-                  ? Colors.teal.shade300
-                  : Colors.grey.shade500,
-              child: openedListElementCreator(
-                  uiElement.clone(), _validityNotifier),
-            ),
-          ),
-        ),
-        _EditableTripEntityButtonBar(
-            validityNotifier: _validityNotifier,
-            onUpdatePressed: onUpdatePressed,
-            uiElement: uiElement,
-            canDelete: canDelete,
-            onDeletePressed: onDeletePressed,
-            errorMessageCreator: errorMessageCreator),
-      ],
-    );
   }
 }
 

@@ -94,7 +94,9 @@ class ReadonlyExpenseListItem extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 2.0),
-          child: Icon(iconsForCategories[expenseModelFacade.category]),
+          child: IconButton(
+              onPressed: null,
+              icon: Icon(iconsForCategories[expenseModelFacade.category])),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 2.0),

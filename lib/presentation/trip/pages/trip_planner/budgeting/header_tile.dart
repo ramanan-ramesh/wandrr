@@ -6,6 +6,7 @@ import 'package:wandrr/data/trip/models/expense.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
+import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
@@ -49,7 +50,7 @@ class BudgetingHeaderTile extends StatelessWidget {
   }
 
   Widget _createOverviewTile(BuildContext context) {
-    return Card(
+    return PlatformCard(
       child: Padding(
         padding: const EdgeInsets.all(3.0),
         child: Column(

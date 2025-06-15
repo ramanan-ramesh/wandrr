@@ -55,7 +55,7 @@ abstract class LocationContext {
   LocationContext clone();
 
   static LocationContext createInstance({required Map<String, dynamic> json}) {
-    if (json['type'] == 'Airport') {
+    if (json['type'] == LocationType.airport.name) {
       return AirportLocationContext.fromDocument(json);
     }
 

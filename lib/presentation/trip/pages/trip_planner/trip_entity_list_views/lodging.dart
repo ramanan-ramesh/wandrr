@@ -4,9 +4,10 @@ import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/trip/pages/trip_planner/editable_trip_entity/lodging.dart';
-import 'package:wandrr/presentation/trip/pages/trip_planner/readonly_trip_entity/lodging.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/lodging.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/trip_entity_list_view.dart';
+
+import 'readonly_list_items/lodging.dart';
 
 class LodgingListView extends StatelessWidget {
   const LodgingListView({super.key});
@@ -19,12 +20,12 @@ class LodgingListView extends StatelessWidget {
       uiElementsSorter: _sortLodgings,
       openedListElementCreator: (UiElement<LodgingFacade> uiElement,
               ValueNotifier<bool> validityNotifier) =>
-          EditableLodgingListItem(
+          EditableLodgingPlan(
         lodgingUiElement: uiElement,
         validityNotifier: validityNotifier,
       ),
       closedListElementCreator: (UiElement<LodgingFacade> uiElement) =>
-          ReadonlyLodgingListItem(lodgingModelFacade: uiElement.element),
+          ReadonlyLodgingPlan(lodgingModelFacade: uiElement.element),
       uiElementsCreator: (TripDataFacade tripDataModelFacade) =>
           tripDataModelFacade
               .lodgings

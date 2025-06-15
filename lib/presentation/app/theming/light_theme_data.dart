@@ -4,6 +4,7 @@ import 'package:wandrr/presentation/app/theming/constants.dart';
 ThemeData createLightThemeData(BuildContext context) {
   return ThemeData(
     brightness: Brightness.light,
+    visualDensity: VisualDensity.adaptivePlatformDensity,
     colorScheme: ColorScheme(
         brightness: Brightness.light,
         primary: Colors.teal.shade400,
@@ -40,9 +41,12 @@ ThemeData createLightThemeData(BuildContext context) {
     ),
     cardTheme: CardTheme(
       data: CardThemeData(
-        color: Colors.teal.shade400,
+        clipBehavior: Clip.hardEdge,
+        color: Colors.teal.shade500,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(Constants.cardBorderRadius),
+          borderRadius: BorderRadius.all(
+            Radius.circular(Constants.cardBorderRadius),
+          ),
         ),
       ),
     ),
@@ -87,6 +91,7 @@ ThemeData createLightThemeData(BuildContext context) {
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
+      contentPadding: const EdgeInsets.all(8.0),
       hintStyle: const TextStyle(
         fontStyle: FontStyle.italic,
       ),

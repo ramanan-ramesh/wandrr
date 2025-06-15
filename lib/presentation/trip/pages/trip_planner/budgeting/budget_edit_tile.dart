@@ -3,6 +3,7 @@ import 'package:wandrr/data/trip/models/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
+import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
@@ -33,7 +34,7 @@ class _BudgetEditTileState extends State<BudgetEditTile> {
         allCurrencies.firstWhere((element) => element.code == currentCurrency);
     _amountEditingController.text = _currentBudget!.amount.toString();
     return SliverToBoxAdapter(
-      child: Card(
+      child: PlatformCard(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

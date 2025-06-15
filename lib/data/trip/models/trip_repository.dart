@@ -2,6 +2,7 @@ import 'package:wandrr/l10n/app_localizations.dart';
 
 import '../../app/models/collection_model_facade.dart';
 import '../../app/models/leaf_repository_item.dart';
+import 'api_services/airports_data.dart';
 import 'api_services/currency_converter.dart';
 import 'api_services/flight_operations.dart';
 import 'api_services/geo_locator.dart';
@@ -16,7 +17,9 @@ abstract class TripRepositoryFacade {
 
   CurrencyConverterService get currencyConverter;
 
-  FlightOperationsService get flightOperationsService;
+  AirlinesDataServiceFacade get airlinesDataService;
+
+  AirportsDataServiceFacade get airportsDataService;
 
   GeoLocatorService get geoLocator;
 

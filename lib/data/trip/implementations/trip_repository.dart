@@ -7,6 +7,7 @@ import 'package:wandrr/data/app/implementations/collection_model_implementation.
 import 'package:wandrr/data/app/models/collection_model_facade.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/trip_metadata.dart';
+import 'package:wandrr/data/trip/models/api_services/airports_data.dart';
 import 'package:wandrr/data/trip/models/api_services/currency_converter.dart';
 import 'package:wandrr/data/trip/models/api_services/flight_operations.dart';
 import 'package:wandrr/data/trip/models/api_services/geo_locator.dart';
@@ -16,8 +17,9 @@ import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 
+import 'api_services/airlines_data.dart';
+import 'api_services/airports_data.dart';
 import 'api_services/currency_converter.dart';
-import 'api_services/flight_operations_service.dart';
 import 'api_services/geo_locator.dart';
 import 'trip_data.dart';
 
@@ -49,7 +51,10 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   TripDataModelEventHandler? get activeTripEventHandler => _activeTrip;
 
   @override
-  final FlightOperationsService flightOperationsService;
+  final AirlinesDataServiceFacade airlinesDataService;
+
+  @override
+  final AirportsDataServiceFacade airportsDataService;
 
   @override
   final GeoLocatorService geoLocator;
@@ -77,7 +82,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
                 arrayContains: userName));
     var geoLocator = await GeoLocator.create();
     var currencyConverter = CurrencyConverter.create();
-    var flightOperationsService = await FlightOperations.create();
+    var airlinesDataService = await AirlinesDataService.create();
+    var airportsDataService = await AirportsDataService.create();
 
     final String jsonString =
         await rootBundle.loadString(_pathToSupportedCurrencies);
@@ -86,13 +92,15 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
         jsonResponse.map((json) => CurrencyData.fromJson(json)).toList();
 
     return TripRepositoryImplementation._(
-        tripMetadataModelCollection,
-        appLocalizations,
-        currencyConverter,
-        geoLocator,
-        flightOperationsService,
-        userName,
-        currencyDataList);
+      tripMetadataModelCollection,
+      appLocalizations,
+      currencyConverter,
+      geoLocator,
+      airlinesDataService,
+      airportsDataService,
+      userName,
+      currencyDataList,
+    );
   }
 
   @override
@@ -123,13 +131,15 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   }
 
   TripRepositoryImplementation._(
-      this._tripMetadataModelCollection,
-      this._appLocalizations,
-      this.currencyConverter,
-      this.geoLocator,
-      this.flightOperationsService,
-      this.currentUserName,
-      this.supportedCurrencies) {
+    this._tripMetadataModelCollection,
+    this._appLocalizations,
+    this.currencyConverter,
+    this.geoLocator,
+    this.airlinesDataService,
+    this.airportsDataService,
+    this.currentUserName,
+    this.supportedCurrencies,
+  ) {
     _tripMetadataUpdatedEventSubscription =
         tripMetadataModelCollection.onDocumentUpdated.listen((eventData) async {
       if (_activeTrip == null) {

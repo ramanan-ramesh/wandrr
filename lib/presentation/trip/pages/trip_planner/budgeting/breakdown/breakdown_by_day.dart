@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
@@ -44,11 +45,9 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
             if (percentageOfTotalExpense == 0.0) {
               continue;
             }
-            Widget dailyExpenseIndicator = Card(
-              elevation: 4,
-              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+            Widget dailyExpenseIndicator = Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: PlatformCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

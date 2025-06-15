@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/implementations/api_services/geo_locator.dart';
 import 'package:wandrr/data/trip/models/location/geo_location_api_context.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/l10n/extension.dart';
@@ -11,14 +10,12 @@ import 'package:wandrr/presentation/trip/widgets/constants.dart';
 class PlatformGeoLocationAutoComplete extends StatelessWidget {
   final Function(LocationFacade selectedLocation)? onLocationSelected;
   final bool shouldShowPrefix;
-  final GeoLocator? geoLocator;
   final double? locationOptionsViewWidth;
   LocationFacade? selectedLocation;
 
   PlatformGeoLocationAutoComplete(
       {super.key,
       this.selectedLocation,
-      this.geoLocator,
       this.onLocationSelected,
       this.locationOptionsViewWidth,
       this.shouldShowPrefix = false});
@@ -34,8 +31,7 @@ class PlatformGeoLocationAutoComplete extends StatelessWidget {
           onLocationSelected!(location);
         }
       },
-      optionsBuilder: geoLocator?.performQuery ??
-          context.tripRepository.geoLocator.performQuery,
+      optionsBuilder: context.tripRepository.geoLocator.performQuery,
       customPrefix: shouldShowPrefix
           ? FittedBox(
               fit: BoxFit.cover,

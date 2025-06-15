@@ -5,6 +5,7 @@ import 'constants.dart';
 ThemeData createDarkThemeData(BuildContext context) {
   return ThemeData(
     brightness: Brightness.dark,
+    visualDensity: VisualDensity.adaptivePlatformDensity,
     colorScheme: ColorScheme(
       brightness: Brightness.dark,
       primary: Colors.grey.shade900,
@@ -13,7 +14,7 @@ ThemeData createDarkThemeData(BuildContext context) {
       onSecondary: Colors.green,
       error: Colors.red,
       onError: Colors.white,
-      surface: Colors.grey.shade800,
+      surface: Colors.grey.shade700,
       onSurface: Colors.white,
     ),
     scrollbarTheme: ScrollbarThemeData(
@@ -40,10 +41,8 @@ ThemeData createDarkThemeData(BuildContext context) {
     ),
     cardTheme: CardTheme(
       data: CardThemeData(
-        color: Colors.black26,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(Constants.cardBorderRadius),
-        ),
+        clipBehavior: Clip.hardEdge,
+        color: Colors.grey.shade900,
       ),
     ),
     dividerTheme: const DividerThemeData(
