@@ -4,10 +4,9 @@ import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/trip/pages/trip_planner/editable_trip_entity/transit/transit.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/transit/transit.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/readonly_list_items/transit.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/trip_entity_list_view.dart';
-
-import '../readonly_trip_entity/transit.dart';
 
 class TransitListView extends StatelessWidget {
   const TransitListView({super.key});
@@ -20,12 +19,12 @@ class TransitListView extends StatelessWidget {
       uiElementsSorter: _sortTransits,
       openedListElementCreator: (UiElement<TransitFacade> uiElement,
               ValueNotifier<bool> validityNotifier) =>
-          EditableTransitListItem(
+          EditableTransitPlan(
         transitUiElement: uiElement,
         validityNotifier: validityNotifier,
       ),
       closedListElementCreator: (UiElement<TransitFacade> uiElement) =>
-          ReadonlyTransitListItem(transitModelFacade: uiElement.element),
+          ReadonlyTransitPlan(transitFacade: uiElement.element),
       uiElementsCreator: (TripDataFacade tripDataModelFacade) =>
           tripDataModelFacade
               .transits

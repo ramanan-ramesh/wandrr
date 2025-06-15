@@ -15,10 +15,9 @@ class GeoLocator implements GeoLocatorService {
   static const _apiKeyField = 'key';
   static const _apiServiceIdentifier = 'geoLocator';
   final String _apiKey;
-  static bool _shouldAllowQuery = true;
   static const _latitudeField = 'lat';
   static const _longitudeField = 'lon';
-  String lastQuery = '';
+  String lastExecutedQuery = '';
   List<LocationFacade> _lastQueriedLocations = [];
 
   static Future<GeoLocator> create() async {
@@ -32,22 +31,17 @@ class GeoLocator implements GeoLocatorService {
 
   @override
   Future<List<LocationFacade>> performQuery(String query) async {
-    if (query.length >= 2 && _shouldAllowQuery) {
+    if (lastExecutedQuery != query && query.length >= 2) {
       var queryUrl = _constructQuery(query);
       try {
         var queryResponse = await http.get(Uri.parse(queryUrl));
         if (queryResponse.statusCode == 200) {
-          lastQuery = query;
+          lastExecutedQuery = query;
           var locations = _convertResponse(queryResponse.body);
           _lastQueriedLocations = locations;
           return _lastQueriedLocations;
         }
-      } finally {
-        _shouldAllowQuery = false;
-        Timer(const Duration(seconds: 1), () {
-          _shouldAllowQuery = true;
-        });
-      }
+      } finally {}
     }
     return _lastQueriedLocations;
   }

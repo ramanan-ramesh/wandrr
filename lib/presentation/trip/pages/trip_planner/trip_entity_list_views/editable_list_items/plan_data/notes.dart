@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/note.dart';
+import 'package:wandrr/presentation/app/widgets/card.dart';
 
 class NotesListView extends StatefulWidget {
-  const NotesListView({super.key, required this.notes, required this.onNotesChanged});
+  const NotesListView(
+      {super.key, required this.notes, required this.onNotesChanged});
 
   final List<NoteFacade> notes;
   final Function() onNotesChanged;
@@ -70,9 +72,7 @@ class _NoteListItemState extends State<_NoteListItem> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Card(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        PlatformCard(
           child: TextFormField(
             maxLines: null,
             controller: _noteEditingController,

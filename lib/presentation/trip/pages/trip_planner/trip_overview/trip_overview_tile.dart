@@ -6,6 +6,7 @@ import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
+import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
@@ -75,7 +76,7 @@ class _OverviewTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var activeTrip = context.activeTrip;
-    var overViewTile = Card(
+    var overViewTile = PlatformCard(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(

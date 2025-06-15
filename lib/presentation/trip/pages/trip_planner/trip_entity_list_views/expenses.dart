@@ -11,8 +11,8 @@ import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
-import 'package:wandrr/presentation/trip/pages/trip_planner/editable_trip_entity/expense.dart';
-import 'package:wandrr/presentation/trip/pages/trip_planner/readonly_trip_entity/expense.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/expense.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/readonly_list_items/expense.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 import 'trip_entity_list_view.dart';

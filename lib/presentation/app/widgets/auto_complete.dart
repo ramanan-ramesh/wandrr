@@ -12,7 +12,9 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
   final void Function(T)? onSelected;
   final Widget? suffix;
   final String? hintText;
+  final String? labelText;
   final double? optionsViewWidth;
+  final TextStyle? textStyle;
   final String Function(T)? displayTextCreator;
   T? selectedItem;
 
@@ -26,8 +28,10 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
       required this.listItem,
       this.selectedItem,
       this.onSelected,
+      this.labelText,
       this.displayTextCreator,
       this.hintText,
+      this.textStyle,
       this.suffix,
       this.optionsViewWidth,
       this.customPrefix,
@@ -90,16 +94,16 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
                     child: TextFormField(
                       controller: _textEditingController,
                       focusNode: _focusNode,
-                      style: const TextStyle(
-                        fontSize: PlatformTextElements.subHeaderSize,
-                      ),
+                      style: Theme.of(context).textTheme.labelLarge ??
+                          const TextStyle(
+                            fontSize: PlatformTextElements.subHeaderSize,
+                          ),
                       decoration: InputDecoration(
-                        suffix: suffix,
-                        isDense: true,
-                        prefixIcon: prefixIcon,
-                        hintText: hintText ?? _defaultAutoCompleteHintText,
-                        // border: OutlineInputBorder(),
-                      ),
+                          suffix: suffix,
+                          isDense: true,
+                          prefixIcon: prefixIcon,
+                          hintText: hintText ?? _defaultAutoCompleteHintText,
+                          labelText: labelText),
                     ),
                   ),
                 ],

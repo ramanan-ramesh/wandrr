@@ -124,6 +124,8 @@ class TransitImplementation extends TransitFacade
     FirestoreHelpers.updateJson(
         operator, toUpdate.operator, _operatorField, json);
     FirestoreHelpers.updateJson(notes, toUpdate.notes, _notesField, json);
+    FirestoreHelpers.updateJson(
+        transitOption, toUpdate.transitOption, _transitOptionField, json);
     if (json.isEmpty) {
       return false;
     }

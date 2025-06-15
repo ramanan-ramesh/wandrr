@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/check_list.dart';
 import 'package:wandrr/data/trip/models/check_list_item.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/widgets/card.dart';
 
 class CheckListsView extends StatefulWidget {
   const CheckListsView(
@@ -63,10 +64,7 @@ class _CheckListState extends State<_CheckList> {
   Widget build(BuildContext context) {
     _titleEditingController =
         TextEditingController(text: widget.checkList.title);
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+    return PlatformCard(
       child: Column(
         children: [
           Row(
@@ -131,8 +129,7 @@ class _ReOrderableCheckListItems extends StatefulWidget {
   final Function() checkListItemsChanged;
 
   const _ReOrderableCheckListItems(
-      {required this.checkList,
-      required this.checkListItemsChanged});
+      {required this.checkList, required this.checkListItemsChanged});
 
   @override
   State<_ReOrderableCheckListItems> createState() =>

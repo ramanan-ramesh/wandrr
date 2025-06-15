@@ -9,7 +9,7 @@ import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
 import 'package:wandrr/presentation/trip/widgets/geo_location_auto_complete.dart';
 
-import '../../../widgets/expense_editing/expenditure_edit_tile.dart';
+import '../../../../widgets/expense_editing/expenditure_edit_tile.dart';
 
 class EditableExpenseListItem extends StatelessWidget {
   final UiElement<ExpenseFacade> expenseUiElement;

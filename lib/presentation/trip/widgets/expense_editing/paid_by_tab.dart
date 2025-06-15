@@ -106,12 +106,8 @@ class _ExpenseEditFieldState extends State<_ExpenseEditField> {
       inputDecoration: InputDecoration(
         fillColor: Colors.white24,
         border: const OutlineInputBorder(),
-        prefix: widget.prefixText == null
-            ? null
-            : Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                child: Text(widget.prefixText!),
-              ),
+        labelText: widget.prefixText,
+        floatingLabelBehavior: FloatingLabelBehavior.always,
         icon: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2.0),
           child: Container(

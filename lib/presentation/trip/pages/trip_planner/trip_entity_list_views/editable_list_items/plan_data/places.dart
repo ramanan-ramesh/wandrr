@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
+import 'package:wandrr/presentation/app/widgets/card.dart';
 
 class PlacesListView extends StatelessWidget {
   const PlacesListView(
@@ -45,10 +46,7 @@ class _PlacesReOrderableListViewState
             key: GlobalKey(),
             children: [
               Expanded(
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                child: PlatformCard(
                   child: ListTile(
                     leading: Text((index + 1).toString()),
                     title: Text(place.toString()),

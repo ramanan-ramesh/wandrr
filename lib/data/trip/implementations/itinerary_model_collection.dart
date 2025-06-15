@@ -270,7 +270,7 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
     for (var itinerary in _allItineraries) {
       var isItineraryDayOnOrAfterDeparture =
           itinerary.day.isOnSameDayAs(transit.departureDateTime!) ||
-              itinerary.day.isAfter(transit.arrivalDateTime!);
+              itinerary.day.isAfter(transit.departureDateTime!);
       var isItineraryDayOnOrBeforeArrival =
           itinerary.day.isOnSameDayAs(transit.arrivalDateTime!) ||
               itinerary.day.isBefore(transit.arrivalDateTime!);

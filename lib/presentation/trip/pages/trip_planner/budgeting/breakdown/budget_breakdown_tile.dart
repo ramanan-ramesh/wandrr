@@ -4,6 +4,7 @@ import 'package:wandrr/data/trip/models/expense.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/tab_bar.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
@@ -41,10 +42,11 @@ class _BudgetBreakdownTileState extends State<BudgetBreakdownTile>
         return SliverToBoxAdapter(
           child: Container(
             constraints: const BoxConstraints(maxHeight: 600),
-            child: Card(
+            child: PlatformCard(
               child: PlatformTabBar(
                 tabBarItems: <String, Widget>{
-                  context.localizations.category: const BreakdownByCategoryChart(),
+                  context.localizations.category:
+                      const BreakdownByCategoryChart(),
                   context.localizations.dayByDay: const BreakdownByDayChart(),
                 },
               ),

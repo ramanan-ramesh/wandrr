@@ -112,7 +112,8 @@ class _TripEntityListViewState<T extends TripEntity>
                         state is UpdatedTripEntity &&
                         state.dataState == DataState.newUiEntry) {}
                     return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5.0),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 5.0, horizontal: 3.0),
                       child: TripEntityListElement<T>(
                         uiElement: uiElement,
                         onPressed: widget.onUiElementPressed,
@@ -123,9 +124,8 @@ class _TripEntityListViewState<T extends TripEntity>
                         onDeletePressed: widget.onDeletePressed,
                         openedListElementCreator:
                             widget.openedListElementCreator,
-                        closedElementCreator: () => Container(
-                            color: Colors.black12,
-                            child: widget.closedListElementCreator(uiElement)),
+                        closedElementCreator: () =>
+                            widget.closedListElementCreator(uiElement),
                         errorMessageCreator: widget.errorMessageCreator,
                       ),
                     );

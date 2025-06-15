@@ -3,6 +3,7 @@ import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/trip/models/debt_data.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
@@ -71,7 +72,7 @@ class DebtSummaryTile extends StatelessWidget {
                 ],
               );
             }
-            return Card(
+            return PlatformCard(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 5.0),
                 child: childWidget,

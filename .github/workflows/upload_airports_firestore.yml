@@ -1,0 +1,29 @@
+name: Upload Airports Data to Firestore
+
+on:
+  schedule:
+    - cron: '0 0 1 1,4,7,10 *'  # every 3 months on the 1st day at midnight
+  workflow_dispatch:  # also allow manual trigger
+
+jobs:
+  upload_airports_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r scripts/requirements.txt
+
+      - name: Upload Airports to Firestore
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: |
+          python scripts/update_airports_firestore.py
