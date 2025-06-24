@@ -31,7 +31,7 @@ class PlatformGeoLocationAutoComplete extends StatelessWidget {
           onLocationSelected!(location);
         }
       },
-      optionsBuilder: context.tripRepository.geoLocator.performQuery,
+      optionsBuilder: context.tripRepository.geoLocator.queryData,
       customPrefix: shouldShowPrefix
           ? FittedBox(
               fit: BoxFit.cover,

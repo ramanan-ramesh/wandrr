@@ -28,7 +28,7 @@ ThemeData createDarkThemeData(BuildContext context) {
       ),
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: Colors.grey.shade700,
+      backgroundColor: Colors.grey.shade800,
     ),
     progressIndicatorTheme:
         const ProgressIndicatorThemeData(color: Colors.green),

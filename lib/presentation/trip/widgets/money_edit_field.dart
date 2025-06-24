@@ -50,7 +50,7 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
         borderRadius: BorderRadius.circular(50.0),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white10,
+            color: Theme.of(context).inputDecorationTheme.fillColor,
             borderRadius: BorderRadius.circular(50.0),
             border: Border.all(color: Colors.green),
           ),

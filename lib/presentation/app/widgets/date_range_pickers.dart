@@ -67,7 +67,8 @@ abstract class DateRangePickerBase extends StatefulWidget {
                   selectedDayHighlightColor: Colors.green,
                   selectedDayTextStyle: const TextStyle(color: Colors.black),
                   selectedRangeHighlightColor: Colors.green,
-                  selectedRangeDayTextStyle: const TextStyle(color: Colors.black),
+                  selectedRangeDayTextStyle:
+                      const TextStyle(color: Colors.black),
                   todayTextStyle: const TextStyle(color: Colors.white),
                   okButtonTextStyle: const TextStyle(color: Colors.black),
                   cancelButtonTextStyle: const TextStyle(color: Colors.black),
@@ -167,6 +168,7 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
               child: Padding(
                 padding: const EdgeInsets.all(3.0),
                 child: FittedBox(
+                  fit: BoxFit.scaleDown,
                   child: Text(
                       '${(context.localizations.dateRangePickerEnd)} $endDateTime'),
                 ),

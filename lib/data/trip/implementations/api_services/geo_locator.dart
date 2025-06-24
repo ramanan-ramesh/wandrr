@@ -3,40 +3,46 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
-import 'package:wandrr/data/trip/models/api_services/geo_locator.dart';
+import 'package:wandrr/data/trip/models/api_services/api_service.dart';
 import 'package:wandrr/data/trip/models/location/geo_location_api_context.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 
 import 'constants.dart';
 
-class GeoLocator implements GeoLocatorService {
+class GeoLocator implements ApiService<LocationFacade> {
   static const _apiSurfaceUrl = 'https://api.locationiq.com/v1/autocomplete?';
   static const _typeField = 'type';
   static const _apiKeyField = 'key';
-  static const _apiServiceIdentifier = 'geoLocator';
-  final String _apiKey;
+  static const _apiIdentifier = 'geoLocator';
+  late String _apiKey;
   static const _latitudeField = 'lat';
   static const _longitudeField = 'lon';
-  String lastExecutedQuery = '';
+  String _lastExecutedQuery = '';
   List<LocationFacade> _lastQueriedLocations = [];
 
-  static Future<GeoLocator> create() async {
+  GeoLocator() : apiIdentifier = _apiIdentifier;
+
+  @override
+  final String apiIdentifier;
+
+  @override
+  Future<void> initialize() async {
     var locationAPIDocumentQueryResult = await FirebaseFirestore.instance
         .collection(Constants.apiServicesCollectionName)
-        .where(_typeField, isEqualTo: _apiServiceIdentifier)
+        .where(_typeField, isEqualTo: _apiIdentifier)
         .get();
     var locationAPIDocument = locationAPIDocumentQueryResult.docs.first;
-    return GeoLocator._(apiKey: locationAPIDocument[_apiKeyField]);
+    _apiKey = locationAPIDocument[_apiKeyField] as String;
   }
 
   @override
-  Future<List<LocationFacade>> performQuery(String query) async {
-    if (lastExecutedQuery != query && query.length >= 2) {
+  Future<Iterable<LocationFacade>> queryData(String query) async {
+    if (_lastExecutedQuery != query && query.length >= 2) {
       var queryUrl = _constructQuery(query);
       try {
         var queryResponse = await http.get(Uri.parse(queryUrl));
         if (queryResponse.statusCode == 200) {
-          lastExecutedQuery = query;
+          _lastExecutedQuery = query;
           var locations = _convertResponse(queryResponse.body);
           _lastQueriedLocations = locations;
           return _lastQueriedLocations;
@@ -51,17 +57,21 @@ class GeoLocator implements GeoLocatorService {
 
   static List<LocationFacade> _convertResponse(String response) {
     List decodedResponse = json.decode(response);
-    return decodedResponse.map((e) => convertJsonToLocation(e)).toList();
+    return decodedResponse
+        .map(
+          (locationJson) => LocationFacade(
+              latitude: double.parse(locationJson[_latitudeField].toString()),
+              longitude: double.parse(locationJson[_longitudeField].toString()),
+              context: GeoLocationApiContext.fromApi(locationJson),
+              tripId: ''),
+        )
+        .toList();
   }
 
-  static LocationFacade convertJsonToLocation(
-      Map<String, dynamic> locationJson) {
-    return LocationFacade(
-        latitude: double.parse(locationJson[_latitudeField].toString()),
-        longitude: double.parse(locationJson[_longitudeField].toString()),
-        context: GeoLocationApiContext.fromApi(locationJson),
-        tripId: '');
+  @override
+  Future dispose() {
+    _lastExecutedQuery = '';
+    _lastQueriedLocations.clear();
+    return Future.value();
   }
-
-  GeoLocator._({required String apiKey}) : _apiKey = apiKey;
 }
