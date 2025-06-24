@@ -50,6 +50,7 @@ def main():
     }
     github_ref = os.environ.get("GITHUB_REF", "")
     github_branch = github_ref.split("/")[-1] if github_ref.startswith("refs/heads/") else "master"
+    github_repo = "ramanan-ramesh/wandrr"
     repo_base_url = github_repo
 
     with tempfile.TemporaryDirectory() as tmp:
