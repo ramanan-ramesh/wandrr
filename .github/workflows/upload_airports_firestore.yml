@@ -25,6 +25,6 @@ jobs:
       - name: Upload Airports and Airlines data to Firestore
         env:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
-          GITHUB_TOKEN: ${{ secrets.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN  }}
         run: |
           python scripts/update_air_data_main.py
