@@ -24,7 +24,7 @@ def process_and_upload_data(label, data, filename, github_path, config_type, db,
                             github_branch, repo_base_url):
     print(f"\n🔄 Processing {label}...")
     write_json(data, filename)
-    api_url = f"https://api.github.com/repos/{repo_base_url}/contents/{github_path}"
+    api_url = f"https://api.github.com/repos/{repo_base_url}/contents/{github_path}?ref={github_branch}"
     local_content = read_file(filename)
     remote_content, remote_sha = fetch_github_file(api_url, github_headers)
 
