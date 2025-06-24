@@ -1,11 +1,10 @@
+import 'package:wandrr/data/trip/models/api_services/api_service.dart';
+import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 
 import '../../app/models/collection_model_facade.dart';
 import '../../app/models/leaf_repository_item.dart';
-import 'api_services/airports_data.dart';
 import 'api_services/currency_converter.dart';
-import 'api_services/flight_operations.dart';
-import 'api_services/geo_locator.dart';
 import 'currency_data.dart';
 import 'trip_data.dart';
 import 'trip_metadata.dart';
@@ -17,11 +16,11 @@ abstract class TripRepositoryFacade {
 
   CurrencyConverterService get currencyConverter;
 
-  AirlinesDataServiceFacade get airlinesDataService;
+  ApiService<(String airlineName, String airlineCode)> get airlinesDataService;
 
-  AirportsDataServiceFacade get airportsDataService;
+  ApiService<LocationFacade> get airportsDataService;
 
-  GeoLocatorService get geoLocator;
+  ApiService<LocationFacade> get geoLocator;
 
   Iterable<CurrencyData> get supportedCurrencies;
 }

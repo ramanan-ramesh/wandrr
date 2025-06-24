@@ -105,8 +105,7 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor> {
               ? (airlineData.airLineName!, airlineData.airLineCode!)
               : null,
       displayTextCreator: (airlineData) => airlineData.$1,
-      optionsBuilder:
-          context.tripRepository.airlinesDataService.queryAirlinesData,
+      optionsBuilder: context.tripRepository.airlinesDataService.queryData,
       onSelected: (selectedAirlineData) {
         airlineData.airLineName = selectedAirlineData.$1;
         airlineData.airLineCode = selectedAirlineData.$2;

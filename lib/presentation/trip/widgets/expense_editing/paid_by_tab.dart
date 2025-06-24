@@ -104,8 +104,6 @@ class _ExpenseEditFieldState extends State<_ExpenseEditField> {
         widget.onChanged(newExpenseStringValue);
       },
       inputDecoration: InputDecoration(
-        fillColor: Colors.white24,
-        border: const OutlineInputBorder(),
         labelText: widget.prefixText,
         floatingLabelBehavior: FloatingLabelBehavior.always,
         icon: Padding(

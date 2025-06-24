@@ -5,22 +5,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:wandrr/data/app/implementations/collection_model_implementation.dart';
 import 'package:wandrr/data/app/models/collection_model_facade.dart';
+import 'package:wandrr/data/trip/implementations/api_services/api_services_creator.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/trip_metadata.dart';
-import 'package:wandrr/data/trip/models/api_services/airports_data.dart';
+import 'package:wandrr/data/trip/models/api_services/api_service.dart';
 import 'package:wandrr/data/trip/models/api_services/currency_converter.dart';
-import 'package:wandrr/data/trip/models/api_services/flight_operations.dart';
-import 'package:wandrr/data/trip/models/api_services/geo_locator.dart';
 import 'package:wandrr/data/trip/models/currency_data.dart';
+import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 
-import 'api_services/airlines_data.dart';
-import 'api_services/airports_data.dart';
-import 'api_services/currency_converter.dart';
-import 'api_services/geo_locator.dart';
 import 'trip_data.dart';
 
 class TripRepositoryImplementation implements TripRepositoryEventHandler {
@@ -51,13 +47,13 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   TripDataModelEventHandler? get activeTripEventHandler => _activeTrip;
 
   @override
-  final AirlinesDataServiceFacade airlinesDataService;
+  final ApiService<LocationFacade> geoLocator;
 
   @override
-  final AirportsDataServiceFacade airportsDataService;
+  final ApiService<(String, String)> airlinesDataService;
 
   @override
-  final GeoLocatorService geoLocator;
+  final ApiService<LocationFacade> airportsDataService;
 
   @override
   final CurrencyConverterService currencyConverter;
@@ -80,10 +76,13 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
                     tripMetadataModelFacade: tripMetadataModuleFacade),
             query: tripsCollectionReference.where(_contributorsField,
                 arrayContains: userName));
-    var geoLocator = await GeoLocator.create();
-    var currencyConverter = CurrencyConverter.create();
-    var airlinesDataService = await AirlinesDataService.create();
-    var airportsDataService = await AirportsDataService.create();
+    var geoLocator = ApiServicesCreator.createGeoLocator();
+    await geoLocator.initialize();
+    var currencyConverter = ApiServicesCreator.createCurrencyConverterService();
+    var airlinesDataService = ApiServicesCreator.createAirlinesDataService();
+    await airlinesDataService.initialize();
+    var airportsDataService = ApiServicesCreator.createAirportsDataService();
+    await airportsDataService.initialize();
 
     final String jsonString =
         await rootBundle.loadString(_pathToSupportedCurrencies);
@@ -128,6 +127,12 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   Future dispose() async {
     await _tripMetadataUpdatedEventSubscription.cancel();
     await _tripMetadataDeletedEventSubscription.cancel();
+    await _tripMetadataModelCollection.dispose();
+    await _activeTrip?.dispose();
+    await geoLocator.dispose();
+    await airlinesDataService.dispose();
+    await airportsDataService.dispose();
+    _activeTrip = null;
   }
 
   TripRepositoryImplementation._(

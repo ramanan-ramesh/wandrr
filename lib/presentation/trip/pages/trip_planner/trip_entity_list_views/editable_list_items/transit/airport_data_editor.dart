@@ -47,8 +47,7 @@ class _AirportsDataEditorState extends State<AirportsDataEditor> {
           }
         }
       },
-      optionsBuilder:
-          context.tripRepository.airportsDataService.queryAirportsData,
+      optionsBuilder: context.tripRepository.airportsDataService.queryData,
       listItem: (airportData) {
         var airportLocationContext =
             airportData.context as AirportLocationContext;
