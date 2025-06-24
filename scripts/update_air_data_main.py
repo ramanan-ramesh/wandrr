@@ -1,24 +1,27 @@
 # File: main.py
 
-import os
 import json
-from firestore_utils import initialize_firebase, update_firestore_config
-from github_utils import fetch_github_file, upload_to_github
+import os
+import tempfile
+
 from airlines_data_api import fetch_active_airlines
 from airports_data_api import fetch_airports_data
-
-import tempfile
+from firestore_utils import initialize_firebase, update_firestore_config
+from github_utils import fetch_github_file, upload_to_github
 
 
 def write_json(data, path):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
+
 def read_file(path):
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
-def process_and_upload_data(label, data, filename, github_path, config_type, db, github_headers, github_branch, repo_base_url):
+
+def process_and_upload_data(label, data, filename, github_path, config_type, db, github_headers,
+                            github_branch, repo_base_url):
     print(f"\n🔄 Processing {label}...")
     write_json(data, filename)
     api_url = f"https://api.github.com/repos/{repo_base_url}/contents/{github_path}"
@@ -45,15 +48,16 @@ def main():
         "Authorization": f"token {github_token}",
         "Content-Type": "application/json"
     }
-    github_branch = "master"
-    github_repo = "ramanan-ramesh/wandrr"
+    github_ref = os.environ.get("GITHUB_REF", "")
+    github_branch = github_ref.split("/")[-1] if github_ref.startswith("refs/heads/") else "master"
     repo_base_url = github_repo
 
     with tempfile.TemporaryDirectory() as tmp:
         airport_file = os.path.join(tmp, "airports_data.json")
         airline_file = os.path.join(tmp, "airlines_data.json")
 
-        airport_data = fetch_airports_data("https://davidmegginson.github.io/ourairports-data/airports.csv")
+        airport_data = fetch_airports_data(
+            "https://davidmegginson.github.io/ourairports-data/airports.csv")
         process_and_upload_data(
             label="Airports",
             data=airport_data,
