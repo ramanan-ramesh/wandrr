@@ -5,6 +5,9 @@ on:
     - cron: '0 0 1 1,3,5,7,9,11 *'  # every 2 months on the 1st day at midnight
   workflow_dispatch:  # also allow manual trigger
 
+permissions:
+  contents: write
+
 jobs:
   upload_airports_job:
     runs-on: ubuntu-latest
