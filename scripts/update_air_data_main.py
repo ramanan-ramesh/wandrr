@@ -1,13 +1,14 @@
 # File: main.py
 
-import os
 import json
-from firestore_utils import initialize_firebase, update_firestore_config
-from github_utils import fetch_github_file, upload_to_github
+import os
+import tempfile
+import urllib.parse
+
 from airlines_data_api import fetch_active_airlines
 from airports_data_api import fetch_airports_data
-
-import tempfile
+from firestore_utils import initialize_firebase, update_firestore_config
+from github_utils import fetch_github_file, upload_to_github
 
 
 def write_json(data, path):
@@ -18,10 +19,12 @@ def read_file(path):
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
-def process_and_upload_data(label, data, filename, github_path, config_type, db, github_headers, github_branch, repo_base_url):
+def process_and_upload_data(label, data, filename, github_path, config_type, db, github_headers,
+                            github_branch, repo_base_url):
     print(f"\n🔄 Processing {label}...")
     write_json(data, filename)
-    api_url = f"https://api.github.com/repos/{repo_base_url}/contents/{github_path}"
+    encoded_branch = urllib.parse.quote(github_branch, safe=":/?&=")
+    api_url = f"https://api.github.com/repos/{repo_base_url}/contents/{github_path}?ref={encoded_branch}"
     local_content = read_file(filename)
     remote_content, remote_sha = fetch_github_file(api_url, github_headers)
 
@@ -45,7 +48,8 @@ def main():
         "Authorization": f"token {github_token}",
         "Content-Type": "application/json"
     }
-    github_branch = "master"
+    github_ref = os.environ.get("GITHUB_REF", "")
+    github_branch = github_ref.split("/")[-1] if github_ref.startswith("refs/heads/") else "master"
     github_repo = "ramanan-ramesh/wandrr"
     repo_base_url = github_repo
 

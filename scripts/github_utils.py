@@ -1,14 +1,18 @@
 # File: github_utils.py
 
-import requests
 import base64
+import requests
 
 def fetch_github_file(api_url, headers):
     res = requests.get(api_url, headers=headers)
     if res.status_code == 200:
         data = res.json()
         content = base64.b64decode(data['content']).decode("utf-8") if "content" in data else None
-        return content, data.get("sha")
+        remote_sha = data.get("sha")
+        if remote_sha is None:
+            print("\nFile does not exist in the target branch. Creating a new file.")
+        else:
+            print("\nFile exists. Updating the existing file.")
     elif res.status_code == 404:
         return None, None
     else:

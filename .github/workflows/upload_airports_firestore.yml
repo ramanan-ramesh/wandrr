@@ -5,6 +5,9 @@ on:
     - cron: '0 0 1 1,3,5,7,9,11 *'  # every 2 months on the 1st day at midnight
   workflow_dispatch:  # also allow manual trigger
 
+permissions:
+  contents: write
+
 jobs:
   upload_airports_job:
     runs-on: ubuntu-latest
@@ -25,5 +28,6 @@ jobs:
       - name: Upload Airports and Airlines data to Firestore
         env:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN  }}
         run: |
           python scripts/update_air_data_main.py
