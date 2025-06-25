@@ -3,6 +3,7 @@
 import json
 import os
 import tempfile
+import urllib.parse
 
 from airlines_data_api import fetch_active_airlines
 from airports_data_api import fetch_airports_data
@@ -24,10 +25,9 @@ def process_and_upload_data(label, data, filename, github_path, config_type, db,
                             github_branch, repo_base_url):
     print(f"\n🔄 Processing {label}...")
     write_json(data, filename)
-    api_url = f"https://api.github.com/repos/{repo_base_url}/contents/{github_path}?ref={github_branch}"
-    print(f"API URL: {api_url}")
+    encoded_branch = urllib.parse.quote(github_branch, safe=":/?&=")
+    api_url = f"https://api.github.com/repos/{repo_base_url}/contents/{github_path}?ref={encoded_branch}"
     local_content = read_file(filename)
-    print(f"\nLocal content: {local_content}")
     remote_content, remote_sha = fetch_github_file(api_url, github_headers)
 
     if local_content.strip() != (remote_content or "").strip():

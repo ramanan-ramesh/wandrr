@@ -6,14 +6,10 @@ import requests
 
 def fetch_github_file(api_url, headers):
     res = requests.get(api_url, headers=headers)
-    print("\n Response status code:", res.status_code)
-    print("\nResponse content:", res)
     if res.status_code == 200:
         data = res.json()
         content = base64.b64decode(data['content']).decode("utf-8") if "content" in data else None
         remote_sha = data.get("sha")
-        print(f"api_url: {api_url}")
-        print(f"\nRemote SHA: {remote_sha}")
         if remote_sha is None:
             print("\nFile does not exist in the target branch. Creating a new file.")
         else:
@@ -33,9 +29,6 @@ def upload_to_github(api_url, headers, content, message, branch, sha=None):
     }
     if sha:
         payload["sha"] = sha
-
-    print(f"\nSHA: {sha}")
-    print("\npayload:", payload)
 
     res = requests.put(api_url, headers=headers, json=payload)
     if res.status_code not in [200, 201]:
