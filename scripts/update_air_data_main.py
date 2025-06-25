@@ -25,7 +25,9 @@ def process_and_upload_data(label, data, filename, github_path, config_type, db,
     print(f"\n🔄 Processing {label}...")
     write_json(data, filename)
     api_url = f"https://api.github.com/repos/{repo_base_url}/contents/{github_path}?ref={github_branch}"
+    print(f"API URL: {api_url}")
     local_content = read_file(filename)
+    print(f"\nLocal content: {local_content}")
     remote_content, remote_sha = fetch_github_file(api_url, github_headers)
 
     if local_content.strip() != (remote_content or "").strip():
