@@ -4,7 +4,6 @@ import csv
 import io
 import requests
 
-
 def fetch_airports_data(csv_url):
     print("\n🛬 Fetching airports CSV...")
     res = requests.get(csv_url)

@@ -15,11 +15,9 @@ def write_json(data, path):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
-
 def read_file(path):
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
-
 
 def process_and_upload_data(label, data, filename, github_path, config_type, db, github_headers,
                             github_branch, repo_base_url):
@@ -59,8 +57,7 @@ def main():
         airport_file = os.path.join(tmp, "airports_data.json")
         airline_file = os.path.join(tmp, "airlines_data.json")
 
-        airport_data = fetch_airports_data(
-            "https://davidmegginson.github.io/ourairports-data/airports.csv")
+        airport_data = fetch_airports_data("https://davidmegginson.github.io/ourairports-data/airports.csv")
         process_and_upload_data(
             label="Airports",
             data=airport_data,
