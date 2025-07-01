@@ -1392,12 +1392,360 @@
     "iata": "MX"
   },
   {
+    "name": "Canada Jetlines",
+    "iata": "AU"
+  },
+  {
+    "name": "City Airlines",
+    "iata": "VL"
+  },
+  {
+    "name": "California Pacific Airlines",
+    "iata": "4A"
+  },
+  {
+    "name": "Camair-Co",
+    "iata": "QC"
+  },
+  {
+    "name": "Cambodia Airways",
+    "iata": "KR"
+  },
+  {
+    "name": "Challenge Airlines IL",
+    "iata": "5C"
+  },
+  {
+    "name": "CHC Airways",
+    "iata": "AW"
+  },
+  {
+    "name": "Calima Aviación",
+    "iata": "3C"
+  },
+  {
+    "name": "Calm Air",
+    "iata": "MO"
+  },
+  {
+    "name": "Camai Air",
+    "iata": "R9"
+  },
+  {
+    "name": "Cambodia Angkor Air",
+    "iata": "K6"
+  },
+  {
+    "name": "CanJet",
+    "iata": "C6"
+  },
+  {
+    "name": "Canadian North",
+    "iata": "7F"
+  },
+  {
+    "name": "Canadian Western Airlines",
+    "iata": "W2"
+  },
+  {
+    "name": "Cape Air",
+    "iata": "9K"
+  },
+  {
+    "name": "Capital Cargo International Airlines",
+    "iata": "PT"
+  },
+  {
+    "name": "Cargo 360",
+    "iata": "GG"
+  },
+  {
+    "name": "Cargo Logic Air",
+    "iata": "P3"
+  },
+  {
+    "name": "Cargoitalia",
+    "iata": "2G"
+  },
+  {
+    "name": "Cargojet Airways",
+    "iata": "W8"
+  },
+  {
+    "name": "Cargolux",
+    "iata": "CV"
+  },
+  {
+    "name": "Cargolux Italia",
+    "iata": "C8"
+  },
+  {
+    "name": "Caribbean Airlines",
+    "iata": "BW"
+  },
+  {
+    "name": "Caribbean Star Airlines",
+    "iata": "8B"
+  },
+  {
+    "name": "Carpatair",
+    "iata": "V3"
+  },
+  {
+    "name": "Caspian Airlines",
+    "iata": "RV"
+  },
+  {
+    "name": "Cathay Pacific",
+    "iata": "CX"
+  },
+  {
+    "name": "Cayman Airways",
+    "iata": "KX"
+  },
+  {
+    "name": "Cebu Pacific",
+    "iata": "5J"
+  },
+  {
+    "name": "CMA-CGM AIRCARGO",
+    "iata": "2C"
+  },
+  {
+    "name": "Central Mountain Air",
+    "iata": "9M"
+  },
+  {
+    "name": "Centre-Avia",
+    "iata": "J7"
+  },
+  {
+    "name": "Centurion Air Cargo",
+    "iata": "WE"
+  },
+  {
+    "name": "Chair Airlines",
+    "iata": "CS"
+  },
+  {
+    "name": "Chalk's International Airlines",
+    "iata": "OP"
+  },
+  {
+    "name": "Champion Air",
+    "iata": "MG"
+  },
+  {
+    "name": "Chang An Airlines",
+    "iata": "2Z"
+  },
+  {
+    "name": "Chari Aviation Services",
+    "iata": "S8"
+  },
+  {
+    "name": "China Airlines",
+    "iata": "CI"
+  },
+  {
+    "name": "China Cargo Airlines",
+    "iata": "CK"
+  },
+  {
+    "name": "China Eastern Airlines",
+    "iata": "MU"
+  },
+  {
+    "name": "China Express Airlines",
+    "iata": "G5"
+  },
+  {
+    "name": "China Postal Airlines",
+    "iata": "8Y"
+  },
+  {
+    "name": "China Southern Airlines",
+    "iata": "CZ"
+  },
+  {
+    "name": "China United Airlines",
+    "iata": "KN"
+  },
+  {
+    "name": "China Xinhua Airlines",
+    "iata": "XO"
+  },
+  {
+    "name": "Chitaavia",
+    "iata": "X7"
+  },
+  {
+    "name": "Chongqing Airlines",
+    "iata": "OQ"
+  },
+  {
+    "name": "Cielos Airlines",
+    "iata": "A2"
+  },
+  {
+    "name": "Cimber Sterling",
+    "iata": "QI"
+  },
+  {
+    "name": "Cinnamon Air",
+    "iata": "C7"
+  },
+  {
+    "name": "Cirrus Airlines",
+    "iata": "C9"
+  },
+  {
+    "name": "City Connexion Airlines",
+    "iata": "G3"
+  },
+  {
+    "name": "CityJet",
+    "iata": "WX"
+  },
+  {
+    "name": "Club Air",
+    "iata": "6P"
+  },
+  {
+    "name": "Coast Air",
+    "iata": "BX"
+  },
+  {
+    "name": "Coastal Air",
+    "iata": "DQ"
+  },
+  {
+    "name": "Comair",
+    "iata": "OH"
+  },
+  {
+    "name": "Comair",
+    "iata": "MN"
+  },
+  {
+    "name": "CommutAir",
+    "iata": "C5"
+  },
+  {
+    "name": "Comores Airlines",
+    "iata": "KR"
+  },
+  {
+    "name": "Compass Airlines",
+    "iata": "CP"
+  },
+  {
+    "name": "Condor Flugdienst",
+    "iata": "DE"
+  },
+  {
+    "name": "Continental Airlines",
+    "iata": "CO"
+  },
+  {
+    "name": "Continental Express",
+    "iata": "CO"
+  },
+  {
+    "name": "Continental Micronesia",
+    "iata": "CS"
+  },
+  {
     "name": "Cambrian Airways",
     "iata": "CS"
   },
   {
-    "name": "Court Line",
+    "name": "Conviasa",
+    "iata": "V0"
+  },
+  {
+    "name": "Copa Airlines",
+    "iata": "CM"
+  },
+  {
+    "name": "Central Charter",
+    "iata": "CQ"
+  },
+  {
+    "name": "Corendon Airlines",
+    "iata": "XC"
+  },
+  {
+    "name": "Corendon Dutch Airlines",
+    "iata": "CD"
+  },
+  {
+    "name": "Corendon Airlines Europe",
+    "iata": "XR"
+  },
+  {
+    "name": "Contour Airlines",
+    "iata": "LF"
+  },
+  {
+    "name": "Corsairfly",
+    "iata": "SS"
+  },
+  {
+    "name": "Corse Méditerranée",
+    "iata": "XK"
+  },
+  {
+    "name": "Cosmic Air",
+    "iata": "F5"
+  },
+  {
+    "name": "Costa Rica Green Airways",
+    "iata": "GW"
+  },
+  {
+    "name": "Coyne Aviation",
+    "iata": "7C"
+  },
+  {
+    "name": "Croatia Airlines",
     "iata": "OU"
+  },
+  {
+    "name": "Crossair Europe",
+    "iata": "QE"
+  },
+  {
+    "name": "Cubana de Aviación",
+    "iata": "CU"
+  },
+  {
+    "name": "Cyprus Airways",
+    "iata": "CY"
+  },
+  {
+    "name": "Cyprus Turkish Airlines",
+    "iata": "YK"
+  },
+  {
+    "name": "Czech Airlines",
+    "iata": "OK"
+  },
+  {
+    "name": "Cargo Plus Aviation",
+    "iata": "8L"
+  },
+  {
+    "name": "CemAir",
+    "iata": "5Z"
+  },
+  {
+    "name": "Clickair",
+    "iata": "XG"
+  },
+  {
+    "name": "West Air (China)",
+    "iata": "PN"
   },
   {
     "name": "Deutsche Luft Hansa",
@@ -2400,151 +2748,163 @@
     "iata": "H9"
   },
   {
-    "name": "JEX",
+    "name": "J-Air",
+    "iata": "XM"
+  },
+  {
+    "name": "JAL Express",
     "iata": "JC"
   },
   {
-    "name": "JAZ",
+    "name": "JALways",
     "iata": "JO"
   },
   {
-    "name": "JMC",
+    "name": "JMC Airlines",
     "iata": "MT"
   },
   {
-    "name": "JAE",
+    "name": "JSC Transport Automated Information Systems",
+    "iata": "1M"
+  },
+  {
+    "name": "Jade Cargo International",
     "iata": "JI"
   },
   {
-    "name": "JAC",
+    "name": "Japan Air Commuter",
     "iata": "3X"
   },
   {
-    "name": "JAL",
+    "name": "Japan Airlines",
     "iata": "JL"
   },
   {
-    "name": "JAL",
+    "name": "Japan Airlines Domestic",
     "iata": "JL"
   },
   {
-    "name": "JAA",
+    "name": "Japan Asia Airways",
     "iata": "EG"
   },
   {
-    "name": "JTA",
+    "name": "Japan Transocean Air",
     "iata": "NU"
   },
   {
-    "name": "JAT",
+    "name": "JetSMART",
     "iata": "JA"
   },
   {
-    "name": "JAP",
+    "name": "JetSMART Perú",
     "iata": "JZ"
   },
   {
-    "name": "JES",
+    "name": "JetSMART Argentina",
     "iata": "WJ"
   },
   {
-    "name": "JAT",
+    "name": "Jat Airways",
     "iata": "JU"
   },
   {
-    "name": "JTY",
+    "name": "Jatayu Airlines",
     "iata": "VJ"
   },
   {
-    "name": "JZR",
+    "name": "Jazeera Airways",
     "iata": "J9"
   },
   {
-    "name": "JJA",
+    "name": "Jeju Air",
     "iata": "7C"
   },
   {
-    "name": "JEA",
+    "name": "OLT Express",
     "iata": "O2"
   },
   {
-    "name": "JAI",
+    "name": "Jet Airways",
     "iata": "9W"
   },
   {
-    "name": "PJS",
+    "name": "Jet Airways",
+    "iata": "QJ"
+  },
+  {
+    "name": "Jet Aviation",
     "iata": "PP"
   },
   {
-    "name": "JSA",
+    "name": "Jetstar Asia Airways",
     "iata": "3K"
   },
   {
-    "name": "EXS",
+    "name": "Jet2.com",
     "iata": "LS"
   },
   {
-    "name": "JBU",
+    "name": "JetBlue Airways",
     "iata": "B6"
   },
   {
-    "name": "JAA",
+    "name": "Jet Asia Airways",
     "iata": "JF"
   },
   {
-    "name": "JCS",
+    "name": "Jetclub",
     "iata": "0J"
   },
   {
-    "name": "JGO",
+    "name": "JetsGo",
     "iata": "SG"
   },
   {
-    "name": "JST",
+    "name": "Jetstar",
     "iata": "JQ"
   },
   {
-    "name": "JJP",
+    "name": "Jetstar Japan",
     "iata": "GK"
   },
   {
-    "name": "JKT",
+    "name": "Jetstar Hong Kong Airways",
     "iata": "JM"
   },
   {
-    "name": "JEC",
+    "name": "Jett8 Airlines Cargo",
     "iata": "JX"
   },
   {
-    "name": "JTD",
+    "name": "Jettime",
     "iata": "JO"
   },
   {
-    "name": "JXX",
+    "name": "JetX Airlines",
     "iata": "GX"
   },
   {
-    "name": "JNA",
+    "name": "Jin Air",
     "iata": "LJ"
   },
   {
-    "name": "JAV",
+    "name": "Jordan Aviation",
     "iata": "R5"
   },
   {
-    "name": "JCI",
+    "name": "Jordan International Air Cargo",
     "iata": "J4"
   },
   {
-    "name": "JSX",
+    "name": "JSX (airline)",
     "iata": "XE"
   },
   {
-    "name": "JUB",
+    "name": "Jubba Airways",
     "iata": "6J"
   },
   {
-    "name": "DKH",
+    "name": "Juneyao Airlines",
     "iata": "HO"
   },
   {
@@ -3732,7 +4092,7 @@
     "iata": "FN"
   },
   {
-    "name": "Regional Express",
+    "name": "Rex Airlines",
     "iata": "ZL"
   },
   {
