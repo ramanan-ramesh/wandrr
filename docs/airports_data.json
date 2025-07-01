@@ -805,13 +805,6 @@
     "iata": "TLG"
   },
   {
-    "name": "Argyle Downs Airport",
-    "city": "Argyle Downs",
-    "lat": -16.508604,
-    "lon": 128.922485,
-    "iata": "AGY"
-  },
-  {
     "name": "Ambatolhy Airport",
     "city": "Ambatolahy",
     "lat": -20.015833333299998,
@@ -4975,6 +4968,13 @@
     "lat": 39.03139,
     "lon": 107.98889,
     "iata": "OTO"
+  },
+  {
+    "name": "Bengbu Tenghu Airport (U.C.)",
+    "city": "Bengbu",
+    "lat": 33.165808,
+    "lon": 117.057295,
+    "iata": "BFY"
   },
   {
     "name": "Bearskin Lake Airport",
@@ -9717,9 +9717,9 @@
   },
   {
     "name": "Enniskillen/St Angelo Airport",
-    "city": "Enniskillen",
-    "lat": 54.398899,
-    "lon": -7.65167,
+    "city": "Enniskillen, Fermanagh and Omagh",
+    "lat": 54.398274,
+    "lon": -7.651179,
     "iata": "ENK"
   },
   {
@@ -15309,20 +15309,6 @@
     "iata": "FOA"
   },
   {
-    "name": "Papa Stour Airport",
-    "city": "Papa Stour Island",
-    "lat": 60.321701,
-    "lon": -1.69306,
-    "iata": "PSV"
-  },
-  {
-    "name": "Glenforsa Airfield",
-    "city": "Glenforsa",
-    "lat": 56.517202,
-    "lon": -5.91401,
-    "iata": "ULL"
-  },
-  {
     "name": "Garbaharey Airport",
     "city": "Garbaharey",
     "lat": 3.32294,
@@ -18044,6 +18030,13 @@
     "lat": 20.097778,
     "lon": 83.183333,
     "iata": "UKE"
+  },
+  {
+    "name": "Maa Mahamaya Airport",
+    "city": "Ambikapur",
+    "lat": 22.98753,
+    "lon": 83.19612,
+    "iata": "AHA"
   },
   {
     "name": "Jagdalpur Airport",
@@ -31278,8 +31271,8 @@
   {
     "name": "Corfu Ioannis Kapodistrias International Airport",
     "city": "Kerkyra (Corfu)",
-    "lat": 39.601898,
-    "lon": 19.911699,
+    "lat": 39.602024,
+    "lon": 19.912038,
     "iata": "CFU"
   },
   {
@@ -36636,6 +36629,13 @@
     "lat": -17.699301,
     "lon": 168.320007,
     "iata": "VLI"
+  },
+  {
+    "name": "Whitegrass Airport",
+    "city": "Tanna Island",
+    "lat": -19.455099,
+    "lon": 169.223999,
+    "iata": "TAH"
   },
   {
     "name": "Nowata Airport",
@@ -45031,10 +45031,10 @@
     "iata": "AYO"
   },
   {
-    "name": "Aeródromo de Bahía Negra",
+    "name": "Bahía Negra Airport",
     "city": "Bahía Negra",
-    "lat": -20.2246,
-    "lon": -58.179528,
+    "lat": -20.230777,
+    "lon": -58.170455,
     "iata": "BFA"
   },
   {
@@ -47556,6 +47556,13 @@
     "lat": -13.535699844400002,
     "lon": -71.9387969971,
     "iata": "CUZ"
+  },
+  {
+    "name": "Eduard Alexander Gummels Airport",
+    "city": "Kwatta",
+    "lat": 5.8604,
+    "lon": -55.192,
+    "iata": "EAX"
   },
   {
     "name": "Palo Verde Airport",
