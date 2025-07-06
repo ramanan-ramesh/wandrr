@@ -63,7 +63,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tripName => 'Trip Name';
 
   @override
-  String get setBudgetAndCurrency => 'Set a budget with a default currency';
+  String get enterAmount => 'Enter amount';
 
   @override
   String get transit => 'Transit';

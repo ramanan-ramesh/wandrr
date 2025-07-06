@@ -18,7 +18,7 @@ class UiElement<K> extends Equatable {
   List<Object?> get props => [element, dataState, key];
 }
 
-class UiElementWithMetadata<K, V> extends UiElement<K> {
+class UiElementWithMetadata<K, V> extends UiElement<K> implements Equatable {
   V metadata;
 
   UiElementWithMetadata(
@@ -33,4 +33,7 @@ class UiElementWithMetadata<K, V> extends UiElement<K> {
     return UiElementWithMetadata(
         element: element, dataState: dataState, key: key, metadata: metadata);
   }
+
+  @override
+  List<Object?> get props => super.props..add(metadata);
 }

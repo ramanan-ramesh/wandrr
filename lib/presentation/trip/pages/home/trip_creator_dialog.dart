@@ -31,78 +31,85 @@ class TripCreatorDialog extends StatelessWidget {
     var currencyInfo = widgetContext.supportedCurrencies.firstWhere((element) {
       return element.code == _currentTripMetadata.budget.currency;
     });
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _createAppBar(context),
-        Column(
+    return SingleChildScrollView(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minHeight: 400,
+          maxHeight: 600,
+          maxWidth: 450,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            FocusTraversalGroup(
-              policy: OrderedTraversalPolicy(),
-              child: Column(
-                children: [
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: FocusTraversalOrder(
-                            order: const NumericFocusOrder(1),
-                            child: PlatformDateRangePicker(
-                              firstDate: DateTime.now(),
-                              callback: (startDate, endDate) {
-                                _currentTripMetadata.startDate = startDate;
-                                _currentTripMetadata.endDate = endDate;
-                                _tripCreationMetadataValidityNotifier.value =
-                                    _currentTripMetadata.isValid();
-                              },
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: FocusTraversalOrder(
-                            order: const NumericFocusOrder(2),
-                            child: TextField(
-                                onChanged: _updateTripName,
-                                textInputAction: TextInputAction.next,
-                                decoration: InputDecoration(
-                                  labelText: context.localizations.tripName,
+            _createAppBar(context),
+            Column(
+              children: [
+                FocusTraversalGroup(
+                  policy: OrderedTraversalPolicy(),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 5),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: FocusTraversalOrder(
+                                order: const NumericFocusOrder(1),
+                                child: PlatformDateRangePicker(
+                                  firstDate: DateTime.now(),
+                                  callback: (startDate, endDate) {
+                                    _currentTripMetadata.startDate = startDate;
+                                    _currentTripMetadata.endDate = endDate;
+                                    _tripCreationMetadataValidityNotifier
+                                        .value = _currentTripMetadata.isValid();
+                                  },
                                 ),
-                                controller: _tripNameEditingController),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Column(
-                            children: [
-                              Text(context.localizations.setBudgetAndCurrency),
-                              FocusTraversalOrder(
-                                order: const NumericFocusOrder(3),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: FocusTraversalOrder(
+                                order: const NumericFocusOrder(2),
+                                child: TextField(
+                                    onChanged: _updateTripName,
+                                    textInputAction: TextInputAction.next,
+                                    decoration: InputDecoration(
+                                      labelText: context.localizations.tripName,
+                                    ),
+                                    controller: _tripNameEditingController),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(context.localizations.edit_budget),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: FocusTraversalOrder(
+                                order: NumericFocusOrder(3),
                                 child: _createBudgetEditingField(currencyInfo),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: FocusTraversalOrder(
+                          order: const NumericFocusOrder(4),
+                          child: _buildCreateTripButton(context),
+                        ),
+                      )
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: FocusTraversalOrder(
-                      order: const NumericFocusOrder(4),
-                      child: _buildCreateTripButton(context),
-                    ),
-                  )
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),
-      ],
+      ),
     );
   }
 
@@ -126,19 +133,25 @@ class TripCreatorDialog extends StatelessWidget {
   }
 
   Widget _createAppBar(BuildContext context) {
-    return AppBar(
-      leading: IconButton(
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-        icon: const Icon(
-          Icons.close_rounded,
-        ),
+    return Material(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      centerTitle: true,
-      title: FittedBox(
-        child: PlatformTextElements.createHeader(
-            context: context, text: widgetContext.localizations.planTrip),
+      clipBehavior: Clip.hardEdge,
+      child: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          icon: const Icon(
+            Icons.close_rounded,
+          ),
+        ),
+        centerTitle: true,
+        title: FittedBox(
+          child: PlatformTextElements.createHeader(
+              context: context, text: widgetContext.localizations.planTrip),
+        ),
       ),
     );
   }

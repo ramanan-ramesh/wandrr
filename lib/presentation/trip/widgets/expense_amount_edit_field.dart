@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:wandrr/l10n/extension.dart';
 
 class PlatformExpenseAmountEditField extends StatelessWidget {
   final bool isReadonly;
@@ -20,7 +21,10 @@ class PlatformExpenseAmountEditField extends StatelessWidget {
       this.textColor,
       this.textInputAction = TextInputAction.next,
       this.amount})
-      : _amountEditingController = TextEditingController(text: amount);
+      : _amountEditingController = TextEditingController(
+            text: amount != null
+                ? (double.parse(amount) == 0 ? null : amount)
+                : amount);
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +44,10 @@ class PlatformExpenseAmountEditField extends StatelessWidget {
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       controller: _amountEditingController,
       inputFormatters: [_DecimalTextInputFormatter()],
-      decoration: inputDecoration,
+      decoration: inputDecoration
+        ?..copyWith(
+            hintText: context.localizations
+                .enterAmount), //TODO: HintText is not displaying when field is empty
     );
   }
 }

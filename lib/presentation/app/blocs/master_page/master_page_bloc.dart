@@ -17,6 +17,7 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
     on<ChangeUser>(_onUserChange);
     on<Logout>(_onLogout);
     on<_LoadRepository>(_onLoadRepository);
+
     add(_LoadRepository());
   }
 

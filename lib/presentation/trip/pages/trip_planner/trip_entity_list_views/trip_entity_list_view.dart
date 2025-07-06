@@ -222,26 +222,26 @@ class _TripEntityListViewState<T extends TripEntity>
   Widget _buildCreateTripEntityButton(BuildContext context) {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       builder: (BuildContext context, TripManagementState state) {
-        var shouldEnableButton = !_uiElements
+        var canCreateTripEntity = !_uiElements
             .any((element) => element.dataState == DataState.newUiEntry);
         if (state.isTripEntityUpdated<T>()) {
           var updatedTripEntityState = state as UpdatedTripEntity;
           if (updatedTripEntityState.dataState == DataState.newUiEntry) {
-            shouldEnableButton = false;
+            canCreateTripEntity = false;
           } else if (updatedTripEntityState.dataState == DataState.delete &&
               updatedTripEntityState
                       .tripEntityModificationData.modifiedCollectionItem.id ==
                   null) {
-            shouldEnableButton = true;
+            canCreateTripEntity = true;
           }
         }
         return FloatingActionButton.extended(
-          onPressed: !shouldEnableButton
-              ? null
-              : () {
-                  context.addTripManagementEvent(
-                      UpdateTripEntity<T>.createNewUiEntry());
-                },
+          onPressed: () {
+            if (canCreateTripEntity) {
+              context.addTripManagementEvent(
+                  UpdateTripEntity<T>.createNewUiEntry());
+            }
+          },
           label: Text(context.localizations.addNew),
           icon: const Icon(Icons.add_rounded),
           elevation: 0,

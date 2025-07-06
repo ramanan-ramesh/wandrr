@@ -8,9 +8,11 @@ extension RepositoryExt on BuildContext {
   AppDataFacade get appDataRepository =>
       RepositoryProvider.of<AppDataFacade>(this);
 
-  AppDataModifier get appDataModifier => appDataRepository as AppDataModifier;
-
   bool get isBigLayout => appDataRepository.isBigLayout;
+
+  set isBigLayout(bool isBigLayout) {
+    (appDataRepository as AppDataModifier).isBigLayout = isBigLayout;
+  }
 
   bool get isLightTheme => appDataRepository.activeThemeMode == ThemeMode.light;
 

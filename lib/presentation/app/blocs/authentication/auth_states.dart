@@ -27,5 +27,6 @@ enum AuthenticationFailureCode {
   noSuchUsernameExists,
   invalidEmail,
   undefined,
+  cancelled,
   weakPassword
 }

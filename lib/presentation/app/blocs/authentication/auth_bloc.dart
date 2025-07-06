@@ -74,19 +74,19 @@ class AuthenticationBloc
       return;
     }
 
-    // Trigger the authentication flow
-    // GoogleSignIn googleSignIn;
-    // if (kIsWeb) {
-    //   googleSignIn = GoogleSignIn(clientId: googleWebClientId);
-    // } else {
-    //   googleSignIn = GoogleSignIn();
-    // }
     var googleSignIn = GoogleSignIn(clientId: googleWebClientId);
     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
     // Obtain the auth details from the request
     final GoogleSignInAuthentication? googleAuth =
         await googleUser?.authentication;
+
+    // Ensure at least one token is available
+    if (googleAuth?.accessToken == null && googleAuth?.idToken == null) {
+      emit(AuthenticationFailure(
+          failureReason: AuthenticationFailureCode.cancelled));
+      return;
+    }
 
     // Create a new credential
     final credential = GoogleAuthProvider.credential(

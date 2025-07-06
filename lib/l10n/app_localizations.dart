@@ -205,11 +205,11 @@ abstract class AppLocalizations {
   /// **'Trip Name'**
   String get tripName;
 
-  /// No description provided for @setBudgetAndCurrency.
+  /// No description provided for @enterAmount.
   ///
   /// In en, this message translates to:
-  /// **'Set a budget with a default currency'**
-  String get setBudgetAndCurrency;
+  /// **'Enter amount'**
+  String get enterAmount;
 
   /// No description provided for @transit.
   ///

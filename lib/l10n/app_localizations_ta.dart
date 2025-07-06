@@ -63,7 +63,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get tripName => 'பயணத்தின் பெயர்';
 
   @override
-  String get setBudgetAndCurrency => 'இயல்புநிலை நாணயம் உடைய பட்ஜெட்டை அமைக்கவும்';
+  String get enterAmount => 'தொகையை உள்ளிடவும்';
 
   @override
   String get transit => 'போக்குவரத்து';

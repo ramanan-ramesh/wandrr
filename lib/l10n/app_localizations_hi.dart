@@ -63,7 +63,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get tripName => 'यात्रा का नाम';
 
   @override
-  String get setBudgetAndCurrency => 'डिफ़ॉल्ट मुद्रा के साथ एक बजट सेट करें';
+  String get enterAmount => 'राशि दर्ज करें';
 
   @override
   String get transit => 'पारगमन';
