@@ -48,7 +48,7 @@ class ContributorDetails extends StatelessWidget {
   }
 
   bool _shouldBuildContributorDetails(previousState, currentState) {
-    if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
+    if (currentState.hasTripEntityUpdated<TripMetadataFacade>()) {
       var updatedTripEntity = currentState as UpdatedTripEntity;
       if (updatedTripEntity.dataState == DataState.update) {
         var tripMetadataModificationData =

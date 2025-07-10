@@ -223,6 +223,12 @@ abstract class AppLocalizations {
   /// **'Lodging'**
   String get lodging;
 
+  /// No description provided for @jumpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump To Date'**
+  String get jumpToDate;
+
   /// No description provided for @itinerary.
   ///
   /// In en, this message translates to:

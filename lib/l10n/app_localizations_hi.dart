@@ -72,6 +72,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get lodging => 'आवास';
 
   @override
+  String get jumpToDate => 'तिथि पर जाएं';
+
+  @override
   String get itinerary => 'यात्रा कार्यक्रम';
 
   @override

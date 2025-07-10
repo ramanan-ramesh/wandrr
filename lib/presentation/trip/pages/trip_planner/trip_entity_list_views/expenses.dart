@@ -137,7 +137,7 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
   bool _isLinkedTripEntityChanged<T extends TripEntity>(
       TripManagementState currentState,
       UiElement<ExpenseFacade> expenseUiElement) {
-    if (currentState.isTripEntityUpdated<T>() &&
+    if (currentState.hasTripEntityUpdated<T>() &&
         (currentState as UpdatedTripEntity).dataState == DataState.update) {
       if (expenseUiElement is UiElementWithMetadata<ExpenseFacade, T>) {
         var updatedTripEntity =
@@ -199,13 +199,13 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
   }
 
   bool _additionalBuildWhenCondition(previousState, currentState) {
-    if (currentState.isTripEntityUpdated<TransitFacade>()) {
+    if (currentState.hasTripEntityUpdated<TransitFacade>()) {
       var transitUpdatedState = currentState as UpdatedTripEntity;
       if (transitUpdatedState.dataState == DataState.create ||
           transitUpdatedState.dataState == DataState.delete) {
         return true;
       }
-    } else if (currentState.isTripEntityUpdated<LodgingFacade>()) {
+    } else if (currentState.hasTripEntityUpdated<LodgingFacade>()) {
       var lodgingUpdatedState = currentState as UpdatedTripEntity;
       if (lodgingUpdatedState.dataState == DataState.create ||
           lodgingUpdatedState.dataState == DataState.delete) {

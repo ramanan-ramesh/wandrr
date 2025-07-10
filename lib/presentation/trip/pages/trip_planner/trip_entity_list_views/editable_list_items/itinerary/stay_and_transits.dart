@@ -91,7 +91,7 @@ class ItineraryStayAndTransits extends StatelessWidget {
 
   bool _shouldBuildTransitAndLodgingItinerary(
       TripManagementState previousState, TripManagementState currentState) {
-    if (currentState.isTripEntityUpdated<LodgingFacade>()) {
+    if (currentState.hasTripEntityUpdated<LodgingFacade>()) {
       var currentLodgingState = currentState as UpdatedTripEntity;
       var updatedLodging = currentLodgingState
           .tripEntityModificationData.modifiedCollectionItem as LodgingFacade;
@@ -104,7 +104,7 @@ class ItineraryStayAndTransits extends StatelessWidget {
         return isLodgingEventOnSameDay;
       }
     }
-    if (currentState.isTripEntityUpdated<TransitFacade>()) {
+    if (currentState.hasTripEntityUpdated<TransitFacade>()) {
       var currentTransitState = currentState as UpdatedTripEntity;
       var updatedTransit = currentTransitState
           .tripEntityModificationData.modifiedCollectionItem as TransitFacade;

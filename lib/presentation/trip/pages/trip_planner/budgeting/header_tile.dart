@@ -186,7 +186,7 @@ class BudgetingHeaderTile extends StatelessWidget {
     var budget = activeTrip.tripMetadata.budget;
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
+        if (currentState.hasTripEntityUpdated<TripMetadataFacade>()) {
           var updatedTripEntity = currentState as UpdatedTripEntity;
           if (updatedTripEntity.dataState == DataState.update) {
             var updatedTripMetadata = updatedTripEntity
@@ -260,7 +260,7 @@ class BudgetingHeaderTile extends StatelessWidget {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       builder: (BuildContext context, TripManagementState state) {
         var isEnabled = true;
-        if (state.isTripEntityUpdated<ExpenseFacade>()) {
+        if (state.hasTripEntityUpdated<ExpenseFacade>()) {
           var expenseUpdatedState = state as UpdatedTripEntity;
           var tripEntityModificationData =
               expenseUpdatedState.tripEntityModificationData;
@@ -289,7 +289,7 @@ class BudgetingHeaderTile extends StatelessWidget {
         );
       },
       buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntityUpdated<ExpenseFacade>()) {
+        if (currentState.hasTripEntityUpdated<ExpenseFacade>()) {
           var expenseUpdatedState = currentState as UpdatedTripEntity;
           if (expenseUpdatedState.dataState == DataState.create ||
               expenseUpdatedState.dataState == DataState.delete ||

@@ -31,7 +31,7 @@ class TripListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
+        if (currentState.hasTripEntityUpdated<TripMetadataFacade>()) {
           var tripMetadataUpdatedState = currentState as UpdatedTripEntity;
           if (tripMetadataUpdatedState.dataState == DataState.delete ||
               tripMetadataUpdatedState.dataState == DataState.create) {
@@ -201,7 +201,7 @@ class _TripMetadataGridItem extends StatelessWidget {
       },
       listener: (BuildContext context, TripManagementState state) {},
       buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
+        if (currentState.hasTripEntityUpdated<TripMetadataFacade>()) {
           var tripMetadataUpdatedState = currentState as UpdatedTripEntity;
           if (tripMetadataUpdatedState
                   .tripEntityModificationData.modifiedCollectionItem.id ==

@@ -72,6 +72,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get lodging => 'தங்கும் இடம்';
 
   @override
+  String get jumpToDate => 'தேதிக்கு குதிக்கவும்';
+
+  @override
   String get itinerary => 'பயணத்திட்டம்';
 
   @override

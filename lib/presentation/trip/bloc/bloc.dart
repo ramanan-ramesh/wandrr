@@ -68,7 +68,6 @@ class TripManagementBloc
     on<UpdateTripEntity<PlanDataFacade>>(_onUpdatePlanData);
     on<UpdateItineraryPlanData>(_onItineraryDataUpdated);
     on<_UpdateTripEntityInternalEvent>(_onTripEntityUpdateInternal);
-    on<ScrollTo>(_onScrollTo);
 
     add(_OnStartup());
   }
@@ -469,10 +468,5 @@ class TripManagementBloc
       default:
         break;
     }
-  }
-
-  FutureOr<void> _onScrollTo(
-      ScrollTo event, Emitter<TripManagementState> emit) {
-    emit(ScrolledTo());
   }
 }

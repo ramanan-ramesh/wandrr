@@ -6,7 +6,6 @@ import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
@@ -23,8 +22,7 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
   final void Function(UiElement<T>)? onDeletePressed;
   final Widget Function(UiElement<T> uiElement) closedListElementCreator;
   final String emptyListMessage;
-  Widget? headerTileButton;
-  VoidCallback? headerTileActionButtonCallback;
+  final Widget? headerTileButton;
   final BlocBuilderCondition<TripManagementState>?
       additionalListBuildWhenCondition;
   final bool Function(
@@ -40,7 +38,7 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
   final bool Function(UiElement<T>)? canDelete;
   final String? Function(UiElement<T>)? errorMessageCreator;
 
-  TripEntityListView(
+  const TripEntityListView(
       {super.key,
       required this.openedListElementCreator,
       required this.closedListElementCreator,
@@ -54,9 +52,10 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
       this.onDeletePressed,
       this.canDelete,
       this.errorMessageCreator,
-      this.additionalListItemBuildWhenCondition});
+      this.additionalListItemBuildWhenCondition})
+      : headerTileButton = null;
 
-  TripEntityListView.customHeaderTileButton(
+  const TripEntityListView.customHeaderTileButton(
       {super.key,
       required this.openedListElementCreator,
       required this.closedListElementCreator,
@@ -64,7 +63,6 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
       required this.headerTileLabel,
       required this.uiElementsSorter,
       required Widget this.headerTileButton,
-      this.headerTileActionButtonCallback,
       this.additionalListBuildWhenCondition,
       this.onUiElementPressed,
       this.onUpdatePressed,
@@ -99,44 +97,50 @@ class _TripEntityListViewState<T extends TripEntity>
               _uiElements = snapshot.data!.toList();
             }
 
-            return SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (BuildContext context, int index) {
-                  if (index == 0) {
-                    return _createHeaderTile(context);
-                  } else if (index == 1 && _uiElements.isEmpty) {
-                    return _createEmptyMessagePane(context);
-                  } else if (index > 0) {
-                    var uiElement = _uiElements.elementAt(index - 1);
-                    if (uiElement.dataState == DataState.newUiEntry &&
-                        state is UpdatedTripEntity &&
-                        state.dataState == DataState.newUiEntry) {}
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 5.0, horizontal: 3.0),
-                      child: TripEntityListElement<T>(
-                        uiElement: uiElement,
-                        onPressed: widget.onUiElementPressed,
-                        canDelete: widget.canDelete,
-                        additionalListItemBuildWhenCondition:
-                            widget.additionalListItemBuildWhenCondition,
-                        onUpdatePressed: widget.onUpdatePressed,
-                        onDeletePressed: widget.onDeletePressed,
-                        openedListElementCreator:
-                            widget.openedListElementCreator,
-                        closedElementCreator: () =>
-                            widget.closedListElementCreator(uiElement),
-                        errorMessageCreator: widget.errorMessageCreator,
-                      ),
-                    );
-                  }
-                  return null;
-                },
-                childCount: _isCollapsed
-                    ? 1
-                    : (_uiElements.isEmpty ? 2 : _uiElements.length + 1),
+            return SliverMainAxisGroup(slivers: [
+              SliverAppBar(
+                flexibleSpace: _createHeaderTile(context),
+                pinned: true,
               ),
-            );
+              if (!_isCollapsed && _uiElements.isEmpty)
+                SliverToBoxAdapter(
+                  child: _createEmptyMessagePane(context),
+                ),
+              if (!_isCollapsed && _uiElements.isNotEmpty)
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 5.0, vertical: 10.0),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (BuildContext context, int index) {
+                        var uiElement = _uiElements.elementAt(index);
+                        if (uiElement.dataState == DataState.newUiEntry &&
+                            state is UpdatedTripEntity &&
+                            state.dataState == DataState.newUiEntry) {}
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 5.0, horizontal: 3.0),
+                          child: TripEntityListElement<T>(
+                            uiElement: uiElement,
+                            onPressed: widget.onUiElementPressed,
+                            canDelete: widget.canDelete,
+                            additionalListItemBuildWhenCondition:
+                                widget.additionalListItemBuildWhenCondition,
+                            onUpdatePressed: widget.onUpdatePressed,
+                            onDeletePressed: widget.onDeletePressed,
+                            openedListElementCreator:
+                                widget.openedListElementCreator,
+                            closedElementCreator: () =>
+                                widget.closedListElementCreator(uiElement),
+                            errorMessageCreator: widget.errorMessageCreator,
+                          ),
+                        );
+                      },
+                      childCount: _uiElements.length,
+                    ),
+                  ),
+                ),
+            ]);
           },
         );
       },
@@ -146,13 +150,11 @@ class _TripEntityListViewState<T extends TripEntity>
 
   bool _shouldBuildList(
       TripManagementState previousState, TripManagementState currentState) {
-    if (currentState.isTripEntityUpdated<T>()) {
+    if (currentState.hasTripEntityUpdated<T>()) {
       var updatedTripEntityState = currentState as UpdatedTripEntity;
-      if (updatedTripEntityState.dataState == DataState.delete ||
+      return updatedTripEntityState.dataState == DataState.delete ||
           updatedTripEntityState.dataState == DataState.create ||
-          updatedTripEntityState.dataState == DataState.newUiEntry) {
-        return true;
-      }
+          updatedTripEntityState.dataState == DataState.newUiEntry;
     } else if (widget.additionalListBuildWhenCondition != null) {
       return widget.additionalListBuildWhenCondition!(
           previousState, currentState);
@@ -206,15 +208,14 @@ class _TripEntityListViewState<T extends TripEntity>
         );
       },
       listener: (BuildContext context, TripManagementState state) {
-        if (state.isTripEntityUpdated<T>() &&
+        if (state.hasTripEntityUpdated<T>() &&
             (state as UpdatedTripEntity).dataState == DataState.newUiEntry) {
           _isCollapsed = false;
-          widget.headerTileActionButtonCallback?.call();
           setState(() {});
         }
       },
       buildWhen: (previousState, currentState) {
-        return currentState.isTripEntityUpdated<T>();
+        return currentState.hasTripEntityUpdated<T>();
       },
     );
   }
@@ -224,7 +225,7 @@ class _TripEntityListViewState<T extends TripEntity>
       builder: (BuildContext context, TripManagementState state) {
         var canCreateTripEntity = !_uiElements
             .any((element) => element.dataState == DataState.newUiEntry);
-        if (state.isTripEntityUpdated<T>()) {
+        if (state.hasTripEntityUpdated<T>()) {
           var updatedTripEntityState = state as UpdatedTripEntity;
           if (updatedTripEntityState.dataState == DataState.newUiEntry) {
             canCreateTripEntity = false;
@@ -235,20 +236,19 @@ class _TripEntityListViewState<T extends TripEntity>
             canCreateTripEntity = true;
           }
         }
-        return FloatingActionButton.extended(
+        return FloatingActionButton(
+          elevation: 0,
           onPressed: () {
             if (canCreateTripEntity) {
               context.addTripManagementEvent(
                   UpdateTripEntity<T>.createNewUiEntry());
             }
           },
-          label: Text(context.localizations.addNew),
-          icon: const Icon(Icons.add_rounded),
-          elevation: 0,
+          child: Icon(Icons.add),
         );
       },
       buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntityUpdated<T>()) {
+        if (currentState.hasTripEntityUpdated<T>()) {
           var updatedTripEntityState = currentState as UpdatedTripEntity;
           return updatedTripEntityState.dataState == DataState.create ||
               updatedTripEntityState.dataState == DataState.newUiEntry ||
@@ -266,7 +266,7 @@ class _TripEntityListViewState<T extends TripEntity>
 
     _uiElements.removeWhere((x) => x.dataState != DataState.newUiEntry);
 
-    if (state.isTripEntityUpdated<T>()) {
+    if (state.hasTripEntityUpdated<T>()) {
       var updatedTripEntityState = state as UpdatedTripEntity;
       var updatedTripEntityDataState = updatedTripEntityState.dataState;
       if (updatedTripEntityState.tripEntityModificationData.isFromEvent) {

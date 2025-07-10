@@ -8,6 +8,8 @@ import 'package:wandrr/presentation/trip/pages/trip_planner/trip_overview/trip_o
 
 import 'budgeting/header_tile.dart';
 import 'expense_view_type.dart';
+import 'navigation/floating_navigation_button.dart';
+import 'navigation/navigation_bar.dart';
 import 'trip_entity_list_views/plan_data.dart';
 
 class TripPlannerPage extends StatefulWidget {
@@ -21,7 +23,6 @@ class _TripPlannerPageState extends State<TripPlannerPage>
     with SingleTickerProviderStateMixin {
   final _expenseViewTypeNotifier =
       ValueNotifier<ExpenseViewType>(ExpenseViewType.expenseList);
-
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -29,17 +30,26 @@ class _TripPlannerPageState extends State<TripPlannerPage>
     if (context.isBigLayout) {
       return _createForBigLayout(context);
     } else {
-      return _createForSmallLayout(true);
+      return Stack(
+        children: [
+          _createForSmallLayout(true),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FloatingTripNavigationButton(),
+          ),
+        ],
+      );
     }
   }
 
   Widget _createForBigLayout(BuildContext context) {
     return Row(
       children: [
+        TripNavigationBar(),
         Expanded(
           child: CustomScrollView(
             controller: _scrollController,
-            slivers: const [
+            slivers: [
               SliverToBoxAdapter(
                 child: TripOverviewTile(),
               ),
@@ -90,7 +100,7 @@ class _TripPlannerPageState extends State<TripPlannerPage>
     );
   }
 
-  CustomScrollView _createForSmallLayout(bool isBigLayout) {
+  Widget _createForSmallLayout(bool isBigLayout) {
     return CustomScrollView(
       controller: _scrollController,
       slivers: [

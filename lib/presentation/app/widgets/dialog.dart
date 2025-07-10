@@ -9,13 +9,8 @@ class PlatformDialogElements {
       {double width = 200,
       required BuildContext context,
       Function(dynamic)? onDialogResult,
-      required Widget Function(BuildContext context) widgetBuilder,
-      required GlobalKey widgetKey}) {
-    if (widgetKey.currentContext == null) {
-      return;
-    }
-    RenderBox renderBox =
-        widgetKey.currentContext!.findRenderObject() as RenderBox;
+      required Widget Function(BuildContext context) widgetBuilder}) {
+    RenderBox renderBox = context.findRenderObject() as RenderBox;
     Offset widgetPosition = renderBox.localToGlobal(Offset.zero);
 
     var widgetSize = renderBox.size;

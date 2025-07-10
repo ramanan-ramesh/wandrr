@@ -80,7 +80,7 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
                 !_waveAnimation.isActive;
       },
       listener: (context, state) {
-        if (state.isTripEntityUpdated<TripMetadataFacade>()) {
+        if (state.hasTripEntityUpdated<TripMetadataFacade>()) {
           var tripMetadataUpdatedState = state as UpdatedTripEntity;
           if (tripMetadataUpdatedState.dataState == DataState.create) {
             context.addTripManagementEvent(LoadTrip(

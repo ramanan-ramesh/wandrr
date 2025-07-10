@@ -62,7 +62,7 @@ class _PlanDataListViewState extends State<PlanDataListView> {
 
   bool _shouldBuildPlanDataList(
       TripManagementState previousState, TripManagementState currentState) {
-    if (currentState.isTripEntityUpdated<PlanDataFacade>()) {
+    if (currentState.hasTripEntityUpdated<PlanDataFacade>()) {
       var planDataUpdatedState = currentState as UpdatedTripEntity;
       if (planDataUpdatedState.dataState == DataState.delete ||
           planDataUpdatedState.dataState == DataState.create ||
@@ -79,7 +79,7 @@ class _PlanDataListViewState extends State<PlanDataListView> {
 
     _planDataUiElements.removeWhere((x) => x.dataState != DataState.newUiEntry);
 
-    if (state.isTripEntityUpdated<PlanDataFacade>()) {
+    if (state.hasTripEntityUpdated<PlanDataFacade>()) {
       var updatedTripEntityState = state as UpdatedTripEntity;
       var updatedTripEntityDataState = updatedTripEntityState.dataState;
       if (updatedTripEntityState.tripEntityModificationData.isFromEvent) {
@@ -369,7 +369,7 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
 
   bool _shouldBuildPlanDataListItem(
       TripManagementState previousState, TripManagementState currentState) {
-    if (currentState.isTripEntityUpdated<PlanDataFacade>()) {
+    if (currentState.hasTripEntityUpdated<PlanDataFacade>()) {
       var planDataUpdatedState = currentState as UpdatedTripEntity;
       if (planDataUpdatedState.dataState == DataState.update &&
           _planDataUiElement.element.id ==

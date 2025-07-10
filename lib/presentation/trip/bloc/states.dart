@@ -5,7 +5,7 @@ import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 
 abstract class TripManagementState {
-  bool isTripEntityUpdated<T>() {
+  bool hasTripEntityUpdated<T>() {
     if (this is UpdatedTripEntity) {
       if (this is UpdatedTripEntity<T> &&
           (this as UpdatedTripEntity<T>).isOperationSuccess) {

@@ -55,9 +55,9 @@ class _BudgetBreakdownTileState extends State<BudgetBreakdownTile>
         );
       },
       buildWhen: (previousState, currentState) {
-        return currentState.isTripEntityUpdated<ExpenseFacade>() ||
-            currentState.isTripEntityUpdated<TransitFacade>() ||
-            currentState.isTripEntityUpdated<LodgingFacade>();
+        return currentState.hasTripEntityUpdated<ExpenseFacade>() ||
+            currentState.hasTripEntityUpdated<TransitFacade>() ||
+            currentState.hasTripEntityUpdated<LodgingFacade>();
       },
       listener: (BuildContext context, TripManagementState state) {},
     );

@@ -161,7 +161,7 @@ class _OverviewTile extends StatelessWidget {
     var activeTripTitle = activeTrip.tripMetadata.name;
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
+        if (currentState.hasTripEntityUpdated<TripMetadataFacade>()) {
           var updatedTripEntity = currentState as UpdatedTripEntity;
           var tripMetadataModificationData =
               updatedTripEntity.tripEntityModificationData

@@ -126,7 +126,7 @@ class _TripEntityListElementState<T extends TripEntity>
         return true;
       }
     }
-    if (currentState.isTripEntityUpdated<T>()) {
+    if (currentState.hasTripEntityUpdated<T>()) {
       var transitUpdatedState = currentState as UpdatedTripEntity;
       var operationPerformed = transitUpdatedState.dataState;
       T modifiedTransitCollectionItem =

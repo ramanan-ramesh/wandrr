@@ -72,6 +72,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lodging => 'Lodging';
 
   @override
+  String get jumpToDate => 'Jump To Date';
+
+  @override
   String get itinerary => 'Itinerary';
 
   @override
