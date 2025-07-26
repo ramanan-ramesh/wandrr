@@ -26,17 +26,16 @@ class _StartupPageState extends State<StartupPage> {
         Widget pageToRender;
         double minHeight = max(constraints.minHeight, _cutOffSize);
         double maxHeight = max(_cutOffSize, constraints.maxHeight);
-        var appDataModifier = context.appDataModifier;
         if (constraints.minWidth > 1000) {
           constraintsToApply = BoxConstraints(
               minWidth: constraints.minWidth,
               maxWidth: constraints.maxWidth,
               minHeight: minHeight,
               maxHeight: maxHeight);
-          appDataModifier.isBigLayout = true;
+          context.isBigLayout = true;
           pageToRender = _getPageToRender(true);
         } else {
-          appDataModifier.isBigLayout = false;
+          context.isBigLayout = false;
           pageToRender = _getPageToRender(false);
           constraintsToApply = BoxConstraints(
               minWidth: _smallScreenSize,

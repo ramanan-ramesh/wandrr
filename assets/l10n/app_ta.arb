@@ -17,7 +17,7 @@
   "dateRangePickerEnd": "முடிவு தேதி:",
   "destination": "இலக்கு",
   "tripName": "பயணத்தின் பெயர்",
-  "setBudgetAndCurrency": "இயல்புநிலை நாணயம் உடைய பட்ஜெட்டை அமைக்கவும்",
+  "enterAmount":"தொகையை உள்ளிடவும்",
   "transit": "போக்குவரத்து",
   "lodging": "தங்கும் இடம்",
   "itinerary": "பயணத்திட்டம்",

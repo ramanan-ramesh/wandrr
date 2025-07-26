@@ -17,7 +17,7 @@
   "budgetAmount": "Budget Amount",
   "destination": "Destination",
   "tripName": "Trip Name",
-  "setBudgetAndCurrency" : "Set a budget with a default currency",
+  "enterAmount" : "Enter amount",
   "transit": "Transit",
   "lodging": "Lodging",
   "itinerary": "Itinerary",

@@ -9,7 +9,8 @@ class AppLocalizationsTa extends AppLocalizations {
   AppLocalizationsTa([String locale = 'ta']) : super(locale);
 
   @override
-  String get plan_itinerary => 'உங்கள் பயணத்திட்டத்தை எளிதாகவும் நேர்த்தியாகவும் திட்டமிடுங்கள்';
+  String get plan_itinerary =>
+      'உங்கள் பயணத்திட்டத்தை எளிதாகவும் நேர்த்தியாகவும் திட்டமிடுங்கள்';
 
   @override
   String get login => 'உள்நுழை';
@@ -30,10 +31,12 @@ class AppLocalizationsTa extends AppLocalizations {
   String get alternativeLogin => 'பிற உள்நுழைவு முறை';
 
   @override
-  String get userNameAlreadyExists => 'இந்த பயனர் பெயர் ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது. அதன் மூலம் உள்நுழையலாம்';
+  String get userNameAlreadyExists =>
+      'இந்த பயனர் பெயர் ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது. அதன் மூலம் உள்நுழையலாம்';
 
   @override
-  String get noSuchUserExists => 'அத்தகைய பயனர்பெயர் எதுவும் இல்லை. அதற்கு பதிலாக நீங்கள் பதிவு செய்யலாம்';
+  String get noSuchUserExists =>
+      'அத்தகைய பயனர்பெயர் எதுவும் இல்லை. அதற்கு பதிலாக நீங்கள் பதிவு செய்யலாம்';
 
   @override
   String get enterValidEmail => 'சரியான மின்னஞ்சலை உள்ளிடவும்';
@@ -42,7 +45,8 @@ class AppLocalizationsTa extends AppLocalizations {
   String get viewRecentTrips => 'வரவிருக்கும் பயணங்களைக் காண்க';
 
   @override
-  String get noTripsCreated => 'வரவிருக்கும் பயணங்கள் இல்லையா? புதிய ஒன்றை உருவாக்கி மகிழுங்கள்!';
+  String get noTripsCreated =>
+      'வரவிருக்கும் பயணங்கள் இல்லையா? புதிய ஒன்றை உருவாக்கி மகிழுங்கள்!';
 
   @override
   String get planTrip => 'ஒரு பயணத்தைத் திட்டமிடுங்கள்!';
@@ -63,7 +67,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get tripName => 'பயணத்தின் பெயர்';
 
   @override
-  String get setBudgetAndCurrency => 'இயல்புநிலை நாணயம் உடைய பட்ஜெட்டை அமைக்கவும்';
+  String get enterAmount => 'தொகையை உள்ளிடவும்';
 
   @override
   String get transit => 'போக்குவரத்து';
@@ -291,7 +295,8 @@ class AppLocalizationsTa extends AppLocalizations {
   String get allDayStay => 'முழு நாள் தங்கும் இடம்';
 
   @override
-  String get noExpensesAssociatedWithDate => 'இந்த தேதியுடன் இணைக்கப்பட்ட செலவுகள் இல்லை';
+  String get noExpensesAssociatedWithDate =>
+      'இந்த தேதியுடன் இணைக்கப்பட்ட செலவுகள் இல்லை';
 
   @override
   String get noExpensesToSplit => 'பிரிக்க செலவுகள் இல்லை';
@@ -300,31 +305,39 @@ class AppLocalizationsTa extends AppLocalizations {
   String get needsToPay => 'பணம் செலுத்த வேண்டும்';
 
   @override
-  String get splitExpensesWithNewTripMateMessage => 'தற்போதைய செலவுகள் அனைத்தும் புதிய பயண துணையுடன் பிரிக்கப்படும். நீங்கள் தொடர விரும்புகிறீர்களா?';
+  String get splitExpensesWithNewTripMateMessage =>
+      'தற்போதைய செலவுகள் அனைத்தும் புதிய பயண துணையுடன் பிரிக்கப்படும். நீங்கள் தொடர விரும்புகிறீர்களா?';
 
   @override
   String get addNew => 'புதியதை சேர்க்கவும்';
 
   @override
-  String get departureArrivalDateTimeCannotBeEmpty => 'புறப்படும் மற்றும் வருகை தேதி நேரம் காலியாக இருக்கக்கூடாது';
+  String get departureArrivalDateTimeCannotBeEmpty =>
+      'புறப்படும் மற்றும் வருகை தேதி நேரம் காலியாக இருக்கக்கூடாது';
 
   @override
-  String get departureArrivalLocationCannotBeEmpty => 'புறப்படும் இடம் மற்றும் வருகை இடம் காலியாக இருக்கக்கூடாது';
+  String get departureArrivalLocationCannotBeEmpty =>
+      'புறப்படும் இடம் மற்றும் வருகை இடம் காலியாக இருக்கக்கூடாது';
 
   @override
-  String get departureAndArrivalLocationsCannotBeSame => 'புறப்பாடு மற்றும் வருகை இடங்கள் ஒரே மாதிரியாக இருக்கக்கூடாது';
+  String get departureAndArrivalLocationsCannotBeSame =>
+      'புறப்பாடு மற்றும் வருகை இடங்கள் ஒரே மாதிரியாக இருக்கக்கூடாது';
 
   @override
-  String get arrivalDepartureDateTimesError => 'புறப்படுவதற்கு முன் வருகை இருக்கக்கூடாது. மேலும், இரண்டும் பயணத் தொடக்க/முடிவு தேதிகளுக்குள் இருக்க வேண்டும்.';
+  String get arrivalDepartureDateTimesError =>
+      'புறப்படுவதற்கு முன் வருகை இருக்கக்கூடாது. மேலும், இரண்டும் பயணத் தொடக்க/முடிவு தேதிகளுக்குள் இருக்க வேண்டும்.';
 
   @override
-  String get lodgingAddressCannotBeEmpty => 'தங்கும் முகவரி காலியாக இருக்கக்கூடாது';
+  String get lodgingAddressCannotBeEmpty =>
+      'தங்கும் முகவரி காலியாக இருக்கக்கூடாது';
 
   @override
-  String get checkInAndCheckoutDatesCannotBeEmpty => 'சேர்க்கை மற்றும் சரிபார்க்கவும் தேதிகள் காலியாக இருக்க கூடாது';
+  String get checkInAndCheckoutDatesCannotBeEmpty =>
+      'சேர்க்கை மற்றும் சரிபார்க்கவும் தேதிகள் காலியாக இருக்க கூடாது';
 
   @override
-  String get expenseTitleMustBeAtleast3Characters => 'செலவின் தலைப்பில் குறைந்தது 3 எழுத்துகள் இருக்க வேண்டும்';
+  String get expenseTitleMustBeAtleast3Characters =>
+      'செலவின் தலைப்பில் குறைந்தது 3 எழுத்துகள் இருக்க வேண்டும்';
 
   @override
   String get titleCannotBeEmpty => 'தலைப்பு காலியாக இருக்க கூடாது';
@@ -333,13 +346,16 @@ class AppLocalizationsTa extends AppLocalizations {
   String get noteCannotBeEmpty => 'குறிப்பு காலியாக இருக்க கூடாது';
 
   @override
-  String get checkListTitleMustBeAtleast3Characters => 'செக்கிலிஸ்ட் தலைப்பு குறைந்தது 3 எழுத்துகள் இருக்க வேண்டும்';
+  String get checkListTitleMustBeAtleast3Characters =>
+      'செக்கிலிஸ்ட் தலைப்பு குறைந்தது 3 எழுத்துகள் இருக்க வேண்டும்';
 
   @override
-  String get checkListItemCannotBeEmpty => 'செக்லிஸ்ட் உருப்படி காலியாக இருக்க கூடாது';
+  String get checkListItemCannotBeEmpty =>
+      'செக்லிஸ்ட் உருப்படி காலியாக இருக்க கூடாது';
 
   @override
-  String get noNotesOrCheckListsOrPlaces => 'குறிப்புகள், செக்கிலிஸ்ட்கள் அல்லது இடங்கள் உருவாக்கப்படவில்லை';
+  String get noNotesOrCheckListsOrPlaces =>
+      'குறிப்புகள், செக்கிலிஸ்ட்கள் அல்லது இடங்கள் உருவாக்கப்படவில்லை';
 
   @override
   String get loading => 'ஏற்றுகிறது...';
