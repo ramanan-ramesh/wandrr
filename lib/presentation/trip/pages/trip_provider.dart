@@ -147,19 +147,11 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
     return RepositoryProvider(
       create: (BuildContext context) => _tripRepository!,
       child: LayoutBuilder(builder: (context, constraints) {
-        var appLevelData = context.appDataModifier;
-        BoxConstraints? contentPageLayoutConstraints;
-        if (constraints.maxWidth > TripProviderPageConstants.cutOffPageWidth) {
-          appLevelData.isBigLayout = true;
-        } else {
-          appLevelData.isBigLayout = false;
-          contentPageLayoutConstraints = const BoxConstraints(
-              minWidth: 500,
-              maxWidth: TripProviderPageConstants.maximumPageWidth);
-        }
+        var contentPageLayoutConstraints =
+            _calculateLayoutConstraints(constraints, context);
         return Scaffold(
           appBar: HomeAppBar(
-            contentWidth: appLevelData.isBigLayout
+            contentWidth: context.isBigLayout
                 ? TripProviderPageConstants.maximumPageWidth
                 : null,
           ),
@@ -172,6 +164,19 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
         );
       }),
     );
+  }
+
+  BoxConstraints? _calculateLayoutConstraints(
+      BoxConstraints constraints, BuildContext context) {
+    BoxConstraints? contentPageLayoutConstraints;
+    if (constraints.maxWidth > TripProviderPageConstants.cutOffPageWidth) {
+      context.isBigLayout = true;
+    } else {
+      context.isBigLayout = false;
+      contentPageLayoutConstraints = const BoxConstraints(
+          minWidth: 500, maxWidth: TripProviderPageConstants.maximumPageWidth);
+    }
+    return contentPageLayoutConstraints;
   }
 
   void _tryStartWalkAnimation() {

@@ -31,13 +31,17 @@ class TripCreatorDialog extends StatelessWidget {
     var currencyInfo = widgetContext.supportedCurrencies.firstWhere((element) {
       return element.code == _currentTripMetadata.budget.currency;
     });
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _createAppBar(context),
-        Column(
+    return SingleChildScrollView(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxHeight: 600,
+          maxWidth: 450,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
+            _createAppBar(context),
             FocusTraversalGroup(
               policy: OrderedTraversalPolicy(),
               child: Column(
@@ -51,35 +55,25 @@ class TripCreatorDialog extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: FocusTraversalOrder(
                             order: const NumericFocusOrder(1),
-                            child: PlatformDateRangePicker(
-                              firstDate: DateTime.now(),
-                              callback: (startDate, endDate) {
-                                _currentTripMetadata.startDate = startDate;
-                                _currentTripMetadata.endDate = endDate;
-                                _tripCreationMetadataValidityNotifier.value =
-                                    _currentTripMetadata.isValid();
-                              },
-                            ),
+                            child: _createDatePicker(),
                           ),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: FocusTraversalOrder(
                             order: const NumericFocusOrder(2),
-                            child: TextField(
-                                onChanged: _updateTripName,
-                                textInputAction: TextInputAction.next,
-                                decoration: InputDecoration(
-                                  labelText: context.localizations.tripName,
-                                ),
-                                controller: _tripNameEditingController),
+                            child: _createTripNameField(context),
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.only(top: 8),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(context.localizations.setBudgetAndCurrency),
+                              Text(
+                                context.localizations.edit_budget,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
                               FocusTraversalOrder(
                                 order: const NumericFocusOrder(3),
                                 child: _createBudgetEditingField(currencyInfo),
@@ -102,43 +96,75 @@ class TripCreatorDialog extends StatelessWidget {
             ),
           ],
         ),
-      ],
+      ),
+    );
+  }
+
+  TextField _createTripNameField(BuildContext context) {
+    return TextField(
+        onChanged: _updateTripName,
+        textInputAction: TextInputAction.next,
+        decoration: InputDecoration(
+          labelText: context.localizations.tripName,
+        ),
+        controller: _tripNameEditingController);
+  }
+
+  PlatformDateRangePicker _createDatePicker() {
+    return PlatformDateRangePicker(
+      firstDate: DateTime.now(),
+      callback: (startDate, endDate) {
+        _currentTripMetadata.startDate = startDate;
+        _currentTripMetadata.endDate = endDate;
+        _tripCreationMetadataValidityNotifier.value =
+            _currentTripMetadata.isValid();
+      },
     );
   }
 
   Widget _createBudgetEditingField(CurrencyData currencyInfo) {
-    return PlatformMoneyEditField(
-      textInputAction: TextInputAction.done,
-      allCurrencies: widgetContext.supportedCurrencies,
-      selectedCurrencyData: currencyInfo,
-      onAmountUpdatedCallback: (updatedAmount) {
-        _currentTripMetadata.budget = Money(
-            currency: _currentTripMetadata.budget.currency,
-            amount: updatedAmount);
-      },
-      currencySelectedCallback: (selectedCurrency) {
-        _currentTripMetadata.budget.currency = selectedCurrency.code;
-        _tripCreationMetadataValidityNotifier.value =
-            _currentTripMetadata.isValid();
-      },
-      isAmountEditable: true,
+    return Column(
+      children: [
+        PlatformMoneyEditField(
+          textInputAction: TextInputAction.done,
+          allCurrencies: widgetContext.supportedCurrencies,
+          selectedCurrencyData: currencyInfo,
+          onAmountUpdatedCallback: (updatedAmount) {
+            _currentTripMetadata.budget = Money(
+                currency: _currentTripMetadata.budget.currency,
+                amount: updatedAmount);
+          },
+          currencySelectedCallback: (selectedCurrency) {
+            _currentTripMetadata.budget.currency = selectedCurrency.code;
+            _tripCreationMetadataValidityNotifier.value =
+                _currentTripMetadata.isValid();
+          },
+          isAmountEditable: true,
+        ),
+      ],
     );
   }
 
   Widget _createAppBar(BuildContext context) {
-    return AppBar(
-      leading: IconButton(
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-        icon: const Icon(
-          Icons.close_rounded,
-        ),
+    return Material(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      centerTitle: true,
-      title: FittedBox(
-        child: PlatformTextElements.createHeader(
-            context: context, text: widgetContext.localizations.planTrip),
+      clipBehavior: Clip.hardEdge,
+      child: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          icon: const Icon(
+            Icons.close_rounded,
+          ),
+        ),
+        centerTitle: true,
+        title: FittedBox(
+          child: PlatformTextElements.createHeader(
+              context: context, text: widgetContext.localizations.planTrip),
+        ),
       ),
     );
   }
