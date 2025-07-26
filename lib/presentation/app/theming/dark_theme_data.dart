@@ -39,11 +39,9 @@ ThemeData createDarkThemeData(BuildContext context) {
       selectedTileColor: Colors.black,
       selectedColor: Colors.green,
     ),
-    cardTheme: CardTheme(
-      data: CardThemeData(
-        clipBehavior: Clip.hardEdge,
-        color: Colors.grey.shade900,
-      ),
+    cardTheme: CardThemeData(
+      clipBehavior: Clip.hardEdge,
+      color: Colors.grey.shade900,
     ),
     dividerTheme: const DividerThemeData(
       color: Colors.white,
@@ -63,7 +61,7 @@ ThemeData createDarkThemeData(BuildContext context) {
       backgroundColor: Colors.black,
       foregroundColor: Colors.green,
     ),
-    tabBarTheme: TabBarTheme(
+    tabBarTheme: TabBarThemeData(
       indicator: BoxDecoration(
         borderRadius: BorderRadius.circular(Constants.tabIndicatorRadius),
         border: Border.all(color: Colors.green),
