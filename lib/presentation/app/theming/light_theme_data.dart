@@ -39,14 +39,12 @@ ThemeData createLightThemeData(BuildContext context) {
       selectedTileColor: Colors.teal,
       selectedColor: Colors.black,
     ),
-    cardTheme: CardTheme(
-      data: CardThemeData(
-        clipBehavior: Clip.hardEdge,
-        color: Colors.teal.shade500,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(
-            Radius.circular(Constants.cardBorderRadius),
-          ),
+    cardTheme: CardThemeData(
+      clipBehavior: Clip.hardEdge,
+      color: Colors.teal.shade500,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(
+          Radius.circular(Constants.cardBorderRadius),
         ),
       ),
     ),
@@ -68,7 +66,7 @@ ThemeData createLightThemeData(BuildContext context) {
       backgroundColor: Colors.green,
       foregroundColor: Colors.black,
     ),
-    tabBarTheme: TabBarTheme(
+    tabBarTheme: TabBarThemeData(
       indicator: BoxDecoration(
         borderRadius: BorderRadius.circular(Constants.tabIndicatorRadius),
         border: Border.all(color: Colors.black),
