@@ -12,6 +12,10 @@ extension RepositoryExt on BuildContext {
 
   bool get isBigLayout => appDataRepository.isBigLayout;
 
+  set isBigLayout(bool isBigLayout) {
+    (appDataRepository as AppDataModifier).isBigLayout = isBigLayout;
+  }
+
   bool get isLightTheme => appDataRepository.activeThemeMode == ThemeMode.light;
 
   PlatformUser? get activeUser => appDataRepository.activeUser;

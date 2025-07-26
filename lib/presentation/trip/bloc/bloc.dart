@@ -48,10 +48,10 @@ class TripManagementBloc
 
   @override
   Future<void> close() async {
-    await super.close();
     for (var subscription in _tripRepositorySubscriptions) {
       await subscription.cancel();
     }
+    await super.close();
   }
 
   TripManagementBloc(this.currentUserName, this.appLocalizations)

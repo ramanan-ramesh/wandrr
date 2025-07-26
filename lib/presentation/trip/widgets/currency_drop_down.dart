@@ -93,6 +93,20 @@ abstract class CurrencyDropDownField extends StatefulWidget {
     );
   }
 
+  Widget createCurrencyButton(
+      BuildContext context, void Function(VoidCallback) setState) {
+    return Material(
+      shape: CircleBorder(),
+      child: IconButton(
+        onPressed: () => toggleDropdown(context, setState),
+        icon: Text(
+          selectedCurrencyData.symbol,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+      ),
+    );
+  }
+
   void toggleDropdown(
       BuildContext context, void Function(VoidCallback) setState) {
     if (overlayEntry == null) {
@@ -110,9 +124,9 @@ abstract class CurrencyDropDownField extends StatefulWidget {
 
   OverlayEntry _createCurrencyDropDownOverlay(
       BuildContext context, void Function(VoidCallback) setState) {
-    RenderBox renderBox = context.findRenderObject() as RenderBox;
-    Size size = renderBox.size;
-    Offset offset = renderBox.localToGlobal(Offset.zero);
+    RenderBox clickedRenderBox = context.findRenderObject() as RenderBox;
+    Size clickedRenderBoxSize = clickedRenderBox.size;
+    Offset clickedRenderBoxOffset = clickedRenderBox.localToGlobal(Offset.zero);
 
     return OverlayEntry(
       builder: (context) => GestureDetector(
@@ -124,13 +138,13 @@ abstract class CurrencyDropDownField extends StatefulWidget {
         child: Stack(
           children: [
             Positioned(
-              width: size.width,
-              left: offset.dx,
-              top: offset.dy + size.height,
+              width: clickedRenderBoxSize.width,
+              left: clickedRenderBoxOffset.dx,
+              top: clickedRenderBoxOffset.dy + clickedRenderBoxSize.height,
               child: CompositedTransformFollower(
                 link: layerLink,
                 showWhenUnlinked: false,
-                offset: const Offset(0.0, 5.0),
+                offset: const Offset(0.0, 0.0),
                 child: Material(
                   elevation: 4.0,
                   color: Theme.of(context).dialogTheme.backgroundColor,
@@ -143,6 +157,8 @@ abstract class CurrencyDropDownField extends StatefulWidget {
                       child: _SearchableCurrencyDropDown(
                         allCurrencies: allCurrencies,
                         currencyInfo: selectedCurrencyData,
+                        prefix: createCurrencyButton(context, setState),
+                        onClose: () => toggleDropdown(context, setState),
                         currencyListTileBuilder: (CurrencyData currency) {
                           return buildCurrencyListTile(
                               currency, false, context, setState);
@@ -199,11 +215,17 @@ class _SearchableCurrencyDropDown extends StatefulWidget {
   final Iterable<CurrencyData> allCurrencies;
   final CurrencyData currencyInfo;
   final Widget Function(CurrencyData currency) currencyListTileBuilder;
+  final VoidCallback onClose;
+  final Widget? prefix;
+  final TextInputAction? textInputAction;
 
   const _SearchableCurrencyDropDown(
       {required this.allCurrencies,
       required this.currencyInfo,
-      required this.currencyListTileBuilder});
+      required this.currencyListTileBuilder,
+      required this.onClose,
+      this.prefix,
+      this.textInputAction});
 
   @override
   State<_SearchableCurrencyDropDown> createState() =>
@@ -225,10 +247,7 @@ class _SearchableCurrencyDropDownState
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3.0),
-          child: _buildSearchEditor(context),
-        ),
+        _buildSearchEditor(context),
         Flexible(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 3.0),
@@ -246,49 +265,35 @@ class _SearchableCurrencyDropDownState
   }
 
   Widget _buildSearchEditor(BuildContext context) {
-    return SizedBox(
-      height: 60,
-      child: Row(
-        children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 3.0),
-            child: Icon(Icons.search_rounded),
-          ),
-          Expanded(
-            child: TextField(
-              //TODO: Bring focus automatically when dialog is opened
-              autofocus: true,
-              textInputAction: TextInputAction.done,
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: context.localizations.searchForCurrency,
-              ),
-              onChanged: (searchText) {
-                _currencies.clear();
-                if (searchText.isEmpty) {
-                  _currencies = widget.allCurrencies.toList();
-                } else {
-                  var searchResultsForCurrencyName = widget.allCurrencies.where(
-                      (currencyInfo) => currencyInfo.name
-                          .toLowerCase()
-                          .contains(searchText.toLowerCase()));
-                  var searchResultsForCurrencyCode = widget.allCurrencies.where(
-                      (currencyInfo) => currencyInfo.code
-                          .toLowerCase()
-                          .contains(searchText.toLowerCase()));
-                  _currencies.addAll(searchResultsForCurrencyName);
-                  for (var currencyInfo in searchResultsForCurrencyCode) {
-                    if (!_currencies.contains(currencyInfo)) {
-                      _currencies.add(currencyInfo);
-                    }
-                  }
-                }
-                setState(() {});
-              },
-            ),
-          ),
-        ],
+    return TextField(
+      autofocus: true,
+      onChanged: (searchText) {
+        _currencies.clear();
+        if (searchText.isEmpty) {
+          _currencies = widget.allCurrencies.toList();
+        } else {
+          var searchResultsForCurrencyName = widget.allCurrencies.where(
+              (currencyInfo) => currencyInfo.name
+                  .toLowerCase()
+                  .contains(searchText.toLowerCase()));
+          var searchResultsForCurrencyCode = widget.allCurrencies.where(
+              (currencyInfo) => currencyInfo.code
+                  .toLowerCase()
+                  .contains(searchText.toLowerCase()));
+          _currencies.addAll(searchResultsForCurrencyName);
+          for (var currencyInfo in searchResultsForCurrencyCode) {
+            if (!_currencies.contains(currencyInfo)) {
+              _currencies.add(currencyInfo);
+            }
+          }
+        }
+        setState(() {});
+      },
+      decoration: InputDecoration(
+        hintText: context.localizations.searchForCurrency,
+        prefixIcon: widget.prefix ?? Icon(Icons.search_rounded),
       ),
+      textInputAction: widget.textInputAction ?? TextInputAction.done,
     );
   }
 }
