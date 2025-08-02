@@ -12,6 +12,8 @@ import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/expense_view_type.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/trip_navigator.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/flip_card/flip_card.dart';
 
@@ -25,27 +27,35 @@ class BudgetingHeaderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5.0),
-          child: _createHeader(context),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5.0),
-          child: FlipCard(
-            fill: Fill.back,
-            direction: Axis.horizontal,
-            duration: const Duration(milliseconds: 750),
-            autoFlipDuration:
-                context.isBigLayout ? null : const Duration(seconds: 0),
-            front: _createOverviewTile(context),
-            back: _createOverviewTile(context),
+    return BlocListener<TripManagementBloc, TripManagementState>(
+      listener: (BuildContext context, TripManagementState state) {
+        if (state is ProcessSectionNavigation &&
+            state.section.toLowerCase() == NavigationSections.budgeting) {
+          RepositoryProvider.of<TripNavigator>(context).jumpToList(context);
+        }
+      },
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5.0),
+            child: _createHeader(context),
           ),
-        ),
-      ],
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5.0),
+            child: FlipCard(
+              fill: Fill.back,
+              direction: Axis.horizontal,
+              duration: const Duration(milliseconds: 750),
+              autoFlipDuration:
+                  context.isBigLayout ? null : const Duration(seconds: 0),
+              front: _createOverviewTile(context),
+              back: _createOverviewTile(context),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

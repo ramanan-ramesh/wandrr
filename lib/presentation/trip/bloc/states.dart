@@ -96,3 +96,10 @@ class ItineraryDataUpdated extends TripManagementState {
 
   ItineraryDataUpdated({required this.day, required this.isOperationSuccess});
 }
+
+class ProcessSectionNavigation extends TripManagementState {
+  DateTime? dateTime;
+  final String section;
+
+  ProcessSectionNavigation({required this.section, this.dateTime});
+}

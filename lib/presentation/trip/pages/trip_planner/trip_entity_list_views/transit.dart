@@ -4,6 +4,8 @@ import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/extensions.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/transit/transit.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/readonly_list_items/transit.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/trip_entity_list_view.dart';
@@ -14,6 +16,11 @@ class TransitListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TripEntityListView<TransitFacade>(
+      canConsiderUiElementForNavigation: (transit, dateTime) {
+        return transit.departureDateTime!.isOnSameDayAs(dateTime) ||
+            transit.arrivalDateTime!.isOnSameDayAs(dateTime);
+      },
+      section: NavigationSections.transit,
       emptyListMessage: context.localizations.noTransitsCreated,
       headerTileLabel: context.localizations.transit,
       uiElementsSorter: _sortTransits,

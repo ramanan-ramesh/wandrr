@@ -11,6 +11,7 @@ import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/expense.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/readonly_list_items/expense.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
@@ -33,6 +34,7 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
   Widget build(BuildContext context) {
     _initializeUIComponentNames(context);
     return TripEntityListView<ExpenseFacade>.customHeaderTileButton(
+      section: NavigationSections.budgeting,
       additionalListBuildWhenCondition: _additionalBuildWhenCondition,
       emptyListMessage: context.localizations.noExpensesCreated,
       headerTileLabel: context.localizations.expenses,

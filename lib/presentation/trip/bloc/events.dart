@@ -55,3 +55,10 @@ class UpdateItineraryPlanData extends TripManagementEvent {
 
   UpdateItineraryPlanData({required this.planData, required this.day});
 }
+
+class NavigateToSection extends TripManagementEvent {
+  DateTime? dateTime;
+  String section;
+
+  NavigateToSection({required this.section, this.dateTime});
+}

@@ -7,6 +7,8 @@ import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/trip_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/itinerary/itinerary.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
@@ -28,25 +30,38 @@ class _ItineraryListViewState extends State<ItineraryListView> {
       builder: (BuildContext context, TripManagementState state) {
         var activeTrip = context.activeTrip;
         var itineraryModelCollection = activeTrip.itineraryModelCollection;
-        return SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (BuildContext context, int index) {
-              if (index == 0) {
-                return PlatformTextElements.createHeader(
-                    context: context, text: context.localizations.itinerary);
-              } else {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3.0),
-                  child: ItineraryListItem(
-                      itineraryFacade: itineraryModelCollection[index - 1]),
-                );
-              }
-            },
-            childCount: itineraryModelCollection.length + 1,
-          ),
+        return SliverMainAxisGroup(
+          slivers: [
+            SliverToBoxAdapter(
+              child: PlatformTextElements.createHeader(
+                  context: context, text: context.localizations.itinerary),
+            ),
+            SliverPadding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
+              sliver: SliverList.builder(
+                itemCount: itineraryModelCollection.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 3.0),
+                    child: ItineraryListItem(
+                        itineraryFacade: itineraryModelCollection[index]),
+                  );
+                },
+              ),
+            ),
+          ],
         );
       },
-      listener: (BuildContext context, TripManagementState state) {},
+      listener: (BuildContext context, TripManagementState state) {
+        if (state is ProcessSectionNavigation &&
+            state.section.toLowerCase() ==
+                NavigationSections.itinerary.toLowerCase()) {
+          if (state.dateTime == null) {
+            RepositoryProvider.of<TripNavigator>(context).jumpToList(context);
+          }
+        }
+      },
     );
   }
 

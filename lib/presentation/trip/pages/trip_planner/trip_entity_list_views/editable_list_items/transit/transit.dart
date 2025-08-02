@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/date_time_picker.dart';
@@ -41,32 +42,7 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
   Widget build(BuildContext context) {
     var activeTrip = context.activeTrip;
     return TransitCardBase(
-        transitOption: TransitOptionPicker(
-          options: activeTrip.transitOptionMetadatas,
-          initialTransitOption: _transitFacade.transitOption,
-          onChanged: (transitOption) {
-            setState(() {
-              if (transitOption == TransitOption.walk ||
-                  transitOption == TransitOption.rentedVehicle ||
-                  transitOption == TransitOption.vehicle) {
-                _transitFacade.operator = null;
-              }
-              if ((transitOption == TransitOption.flight &&
-                      _transitFacade.transitOption != TransitOption.flight) ||
-                  (_transitFacade.transitOption == TransitOption.flight &&
-                      transitOption != TransitOption.flight)) {
-                _transitFacade.operator = null;
-                _transitFacade.arrivalLocation = null;
-                _transitFacade.departureLocation = null;
-              }
-              _transitFacade.transitOption = transitOption;
-              _transitFacade.expense.category =
-                  TransitFacade.getExpenseCategory(
-                      _transitFacade.transitOption);
-              _calculateTransitValidity();
-            });
-          },
-        ),
+        transitOption: _createTransitOptionPicker(activeTrip),
         transitOperator: TransitOperatorEditor(
           transitOption: _transitFacade.transitOption,
           initialOperator: _transitFacade.operator,
@@ -80,11 +56,46 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
         departureLocation: _buildLocationEditor(false),
         departureDateTime: _buildDateTimePicker(false, activeTrip.tripMetadata),
         expenseTile: ExpenditureEditTile(
-            expenseUpdator: _transitFacade.expense, isEditable: true),
+          expenseUpdator: _transitFacade.expense,
+          isEditable: true,
+          callback: (paidBy, splitBy, totalExpense) {
+            _transitFacade.expense.paidBy = Map.from(paidBy);
+            _transitFacade.expense.splitBy = List.from(splitBy);
+            _transitFacade.expense.totalExpense = totalExpense;
+          },
+        ),
         confirmationId: _buildConfirmationIdField(context),
         transitFacade: _transitFacade,
         notes: _buildNotesField(context),
         isEditable: true);
+  }
+
+  TransitOptionPicker _createTransitOptionPicker(TripDataFacade activeTrip) {
+    return TransitOptionPicker(
+      options: activeTrip.transitOptionMetadatas,
+      initialTransitOption: _transitFacade.transitOption,
+      onChanged: (transitOption) {
+        setState(() {
+          if (transitOption == TransitOption.walk ||
+              transitOption == TransitOption.rentedVehicle ||
+              transitOption == TransitOption.vehicle) {
+            _transitFacade.operator = null;
+          }
+          if ((transitOption == TransitOption.flight &&
+                  _transitFacade.transitOption != TransitOption.flight) ||
+              (_transitFacade.transitOption == TransitOption.flight &&
+                  transitOption != TransitOption.flight)) {
+            _transitFacade.operator = null;
+            _transitFacade.arrivalLocation = null;
+            _transitFacade.departureLocation = null;
+          }
+          _transitFacade.transitOption = transitOption;
+          _transitFacade.expense.category =
+              TransitFacade.getExpenseCategory(_transitFacade.transitOption);
+          _calculateTransitValidity();
+        });
+      },
+    );
   }
 
   Widget _buildLocationEditor(bool isArrival) {

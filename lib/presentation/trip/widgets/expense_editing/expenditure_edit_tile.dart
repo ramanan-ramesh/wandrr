@@ -51,14 +51,15 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _totalExpenseValueNotifier = ValueNotifier(widget.totalExpense);
     _currentPaidBy = Map.from(widget.paidBy);
     _currentSplitBy = List.from(widget.splitBy);
+    _totalExpenseValueNotifier = ValueNotifier(widget.totalExpense);
   }
 
   @override
   Widget build(BuildContext context) {
     _initializeContributors(context);
+    _totalExpenseValueNotifier.value = widget.totalExpense;
     if (widget.isEditable) {
       return _createEditableExpenditureTile(context);
     } else {

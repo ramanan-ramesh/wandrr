@@ -9,13 +9,11 @@ class PlatformDialogElements {
       {double width = 200,
       required BuildContext context,
       Function(dynamic)? onDialogResult,
-      required Widget Function(BuildContext context) widgetBuilder,
-      required GlobalKey widgetKey}) {
-    if (widgetKey.currentContext == null) {
+      required Widget Function(BuildContext context) widgetBuilder}) {
+    if (!context.mounted) {
       return;
     }
-    RenderBox renderBox =
-        widgetKey.currentContext!.findRenderObject() as RenderBox;
+    RenderBox renderBox = context.findRenderObject() as RenderBox;
     Offset widgetPosition = renderBox.localToGlobal(Offset.zero);
 
     var widgetSize = renderBox.size;
@@ -73,6 +71,7 @@ class PlatformDialogElements {
       followerAnchor: followerAnchor,
       targetAnchor: targetAnchor,
       barrierColor: Colors.transparent,
+      avoidOverflow: true,
     )
         .then((value) {
       if (onDialogResult != null) {
