@@ -9,8 +9,7 @@ class AppLocalizationsHi extends AppLocalizations {
   AppLocalizationsHi([String locale = 'hi']) : super(locale);
 
   @override
-  String get plan_itinerary =>
-      'आसानी और सुन्दरता के साथ अपनी यात्रा कार्यक्रम की योजना बनाएं';
+  String get plan_itinerary => 'आसानी और सुन्दरता के साथ अपनी यात्रा कार्यक्रम की योजना बनाएं';
 
   @override
   String get login => 'लॉग इन';
@@ -31,12 +30,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get alternativeLogin => 'प्रविष्ट करें इनके साथ भी';
 
   @override
-  String get userNameAlreadyExists =>
-      'यह उपयोगकर्ता नाम पहले से ही पंजीकृत है। आप इसके बजाय इसके साथ लॉगिन कर सकते हैं';
+  String get userNameAlreadyExists => 'यह उपयोगकर्ता नाम पहले से ही पंजीकृत है। आप इसके बजाय इसके साथ लॉगिन कर सकते हैं';
 
   @override
-  String get noSuchUserExists =>
-      'ऐसा कोई उपयोगकर्ता नाम मौजूद नहीं है। आप इसके बजाय इसके साथ पंजीकरण कर सकते हैं';
+  String get noSuchUserExists => 'ऐसा कोई उपयोगकर्ता नाम मौजूद नहीं है। आप इसके बजाय इसके साथ पंजीकरण कर सकते हैं';
 
   @override
   String get enterValidEmail => 'मान्य ईमेल दर्ज करें';
@@ -45,8 +42,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get viewRecentTrips => 'आगामी यात्राएं देखें';
 
   @override
-  String get noTripsCreated =>
-      'कोई आगामी यात्रा नहीं? एक नई यात्रा बनाने का आनंद लें!';
+  String get noTripsCreated => 'कोई आगामी यात्रा नहीं? एक नई यात्रा बनाने का आनंद लें!';
 
   @override
   String get planTrip => 'यात्रा की योजना बनायें!';
@@ -253,8 +249,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get addATitle => 'शीर्षक जोड़ें';
 
   @override
-  String get deleteTripConfirmation =>
-      'क्या आप सचमुच इस यात्रा को हटाना चाहते हैं?';
+  String get deleteTripConfirmation => 'क्या आप सचमुच इस यात्रा को हटाना चाहते हैं?';
 
   @override
   String get yes => 'हाँ';
@@ -296,8 +291,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get allDayStay => 'पूरे दिन रुकें';
 
   @override
-  String get noExpensesAssociatedWithDate =>
-      'किसी तिथि से संबंधित कोई व्यय नहीं';
+  String get noExpensesAssociatedWithDate => 'किसी तिथि से संबंधित कोई व्यय नहीं';
 
   @override
   String get noExpensesToSplit => 'विभाजित करने के लिए कोई व्यय नहीं है';
@@ -306,38 +300,31 @@ class AppLocalizationsHi extends AppLocalizations {
   String get needsToPay => 'भुगतान करना होगा';
 
   @override
-  String get splitExpensesWithNewTripMateMessage =>
-      'सभी मौजूदा खर्च नए ट्रिप मेट के साथ बांटे जाएंगे। क्या आप आगे बढ़ना चाहते हैं?';
+  String get splitExpensesWithNewTripMateMessage => 'सभी मौजूदा खर्च नए ट्रिप मेट के साथ बांटे जाएंगे। क्या आप आगे बढ़ना चाहते हैं?';
 
   @override
   String get addNew => 'नया जोड़ो';
 
   @override
-  String get departureArrivalDateTimeCannotBeEmpty =>
-      'प्रस्थान और आगमन तिथि समय खाली नहीं हो सकता';
+  String get departureArrivalDateTimeCannotBeEmpty => 'प्रस्थान और आगमन तिथि समय खाली नहीं हो सकता';
 
   @override
-  String get departureArrivalLocationCannotBeEmpty =>
-      'प्रस्थान और आगमन स्थान खाली नहीं हो सकता';
+  String get departureArrivalLocationCannotBeEmpty => 'प्रस्थान और आगमन स्थान खाली नहीं हो सकता';
 
   @override
-  String get departureAndArrivalLocationsCannotBeSame =>
-      'प्रस्थान और आगमन स्थान एक समान नहीं हो सकते';
+  String get departureAndArrivalLocationsCannotBeSame => 'प्रस्थान और आगमन स्थान एक समान नहीं हो सकते';
 
   @override
-  String get arrivalDepartureDateTimesError =>
-      'आगमन प्रस्थान से पहले नहीं हो सकता। साथ ही, दोनों यात्रा की आरंभ/समाप्ति तिथियों के भीतर होने चाहिए';
+  String get arrivalDepartureDateTimesError => 'आगमन प्रस्थान से पहले नहीं हो सकता। साथ ही, दोनों यात्रा की आरंभ/समाप्ति तिथियों के भीतर होने चाहिए';
 
   @override
   String get lodgingAddressCannotBeEmpty => 'आवास का पता खाली नहीं हो सकता';
 
   @override
-  String get checkInAndCheckoutDatesCannotBeEmpty =>
-      'चेक-इन और चेक-आउट तिथियाँ खाली नहीं हो सकतीं';
+  String get checkInAndCheckoutDatesCannotBeEmpty => 'चेक-इन और चेक-आउट तिथियाँ खाली नहीं हो सकतीं';
 
   @override
-  String get expenseTitleMustBeAtleast3Characters =>
-      'व्यय शीर्षक कम से कम 3 अक्षर होना चाहिए';
+  String get expenseTitleMustBeAtleast3Characters => 'व्यय शीर्षक कम से कम 3 अक्षर होना चाहिए';
 
   @override
   String get titleCannotBeEmpty => 'शीर्षक खाली नहीं हो सकता';
@@ -346,15 +333,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get noteCannotBeEmpty => 'टिप्पणी खाली नहीं हो सकती';
 
   @override
-  String get checkListTitleMustBeAtleast3Characters =>
-      'चेकलिस्ट शीर्षक कम से कम 3 अक्षर होना चाहिए';
+  String get checkListTitleMustBeAtleast3Characters => 'चेकलिस्ट शीर्षक कम से कम 3 अक्षर होना चाहिए';
 
   @override
   String get checkListItemCannotBeEmpty => 'चेकलिस्ट आइटम खाली नहीं हो सकता';
 
   @override
-  String get noNotesOrCheckListsOrPlaces =>
-      'अभी तक कोई नोट, चेकलिस्ट या स्थान नहीं जोड़ा गया है';
+  String get noNotesOrCheckListsOrPlaces => 'अभी तक कोई नोट, चेकलिस्ट या स्थान नहीं जोड़ा गया है';
 
   @override
   String get loading => 'लोड हो रहा है...';

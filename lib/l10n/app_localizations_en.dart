@@ -30,12 +30,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alternativeLogin => 'Sign in with';
 
   @override
-  String get userNameAlreadyExists =>
-      'This username is already registered. You can login with it instead';
+  String get userNameAlreadyExists => 'This username is already registered. You can login with it instead';
 
   @override
-  String get noSuchUserExists =>
-      'No such username exists. You can register with it instead';
+  String get noSuchUserExists => 'No such username exists. You can register with it instead';
 
   @override
   String get enterValidEmail => 'Enter a valid email';
@@ -44,8 +42,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get viewRecentTrips => 'View upcoming trips';
 
   @override
-  String get noTripsCreated =>
-      'No upcoming trips? Have fun creating a new one!';
+  String get noTripsCreated => 'No upcoming trips? Have fun creating a new one!';
 
   @override
   String get planTrip => 'Plan a trip!';
@@ -252,8 +249,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addATitle => 'Add a title';
 
   @override
-  String get deleteTripConfirmation =>
-      'Do you really want to delete this trip?';
+  String get deleteTripConfirmation => 'Do you really want to delete this trip?';
 
   @override
   String get yes => 'Yes';
@@ -295,8 +291,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allDayStay => 'All Day Stay';
 
   @override
-  String get noExpensesAssociatedWithDate =>
-      'No expenses associated with a date';
+  String get noExpensesAssociatedWithDate => 'No expenses associated with a date';
 
   @override
   String get noExpensesToSplit => 'There are no expenses to split';
@@ -305,38 +300,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get needsToPay => 'owes';
 
   @override
-  String get splitExpensesWithNewTripMateMessage =>
-      'All current expenses will be split with the new trip mate. Do you wish to proceed?';
+  String get splitExpensesWithNewTripMateMessage => 'All current expenses will be split with the new trip mate. Do you wish to proceed?';
 
   @override
   String get addNew => 'Add New';
 
   @override
-  String get departureArrivalDateTimeCannotBeEmpty =>
-      'Departure and Arrival date time cannot be empty';
+  String get departureArrivalDateTimeCannotBeEmpty => 'Departure and Arrival date time cannot be empty';
 
   @override
-  String get departureArrivalLocationCannotBeEmpty =>
-      'Departure and Arrival location cannot be empty';
+  String get departureArrivalLocationCannotBeEmpty => 'Departure and Arrival location cannot be empty';
 
   @override
-  String get departureAndArrivalLocationsCannotBeSame =>
-      'Departure and Arrival locations cannot be the same';
+  String get departureAndArrivalLocationsCannotBeSame => 'Departure and Arrival locations cannot be the same';
 
   @override
-  String get arrivalDepartureDateTimesError =>
-      'Arrival cannot be before departure. Also, both must be within the trip start/end dates';
+  String get arrivalDepartureDateTimesError => 'Arrival cannot be before departure. Also, both must be within the trip start/end dates';
 
   @override
   String get lodgingAddressCannotBeEmpty => 'Lodging address cannot be empty';
 
   @override
-  String get checkInAndCheckoutDatesCannotBeEmpty =>
-      'Check-In and Check-Out dates cannot be empty';
+  String get checkInAndCheckoutDatesCannotBeEmpty => 'Check-In and Check-Out dates cannot be empty';
 
   @override
-  String get expenseTitleMustBeAtleast3Characters =>
-      'Expense title must be at least 3 characters';
+  String get expenseTitleMustBeAtleast3Characters => 'Expense title must be at least 3 characters';
 
   @override
   String get titleCannotBeEmpty => 'Title cannot be empty';
@@ -345,15 +333,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noteCannotBeEmpty => 'Note cannot be empty';
 
   @override
-  String get checkListTitleMustBeAtleast3Characters =>
-      'Checklist title must be at least 3 characters';
+  String get checkListTitleMustBeAtleast3Characters => 'Checklist title must be at least 3 characters';
 
   @override
   String get checkListItemCannotBeEmpty => 'Checklist item cannot be empty';
 
   @override
-  String get noNotesOrCheckListsOrPlaces =>
-      'No notes, checklists or places added yet';
+  String get noNotesOrCheckListsOrPlaces => 'No notes, checklists or places added yet';
 
   @override
   String get loading => 'Loading...';
