@@ -8,8 +8,6 @@ class NavigationSections {
 
 class NavAnimationDurations {
   static const Duration navigateToSection = Duration(milliseconds: 1000);
-  static const Duration delayedTripEntitySectionOpen =
-      Duration(milliseconds: 1250);
 
   static const Duration delayedNavigateToDateInSection =
       Duration(milliseconds: 500);

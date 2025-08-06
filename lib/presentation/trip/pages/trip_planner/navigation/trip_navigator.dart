@@ -18,11 +18,12 @@ class TripNavigator {
   }
 
   void animateToListItem(
-      BuildContext context, ListController listController, int index) {
+      BuildContext context, ListController listController, int index,
+      {double alignment = 0.5}) {
     listController.animateToItem(
         index: index,
         scrollController: _scrollController,
-        alignment: 0.5,
+        alignment: alignment,
         duration: (val) => NavAnimationDurations.navigateToSection,
         curve: (val) => Curves.easeInOutBack);
   }

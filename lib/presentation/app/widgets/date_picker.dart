@@ -25,10 +25,10 @@ abstract class AbstractPlatformDatePicker extends StatefulWidget {
                 : createDatePickerConfig(dialogContext, widgetContext),
             value: [DateTime.now()],
             onValueChanged: (dateTimes) {
+              Navigator.of(dialogContext).pop();
               if (dateTimes.length == 1) {
                 onDateSelected(dateTimes.single!);
               }
-              Navigator.of(dialogContext).pop();
             },
           ),
         ),

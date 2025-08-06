@@ -89,8 +89,8 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
 class _TripEntityListViewState<T extends TripEntity>
     extends State<TripEntityListView<T>> {
   var _uiElements = <UiElement<T>>[];
-  bool _isCollapsed = true;
   final ListController _listController = ListController();
+  var _listVisibilityNotifier = ValueNotifier<bool>(false);
 
   @override
   Widget build(BuildContext context) {
@@ -113,46 +113,81 @@ class _TripEntityListViewState<T extends TripEntity>
                   flexibleSpace: _createHeaderTile(),
                   pinned: true,
                 ),
-                if (!_isCollapsed && _uiElements.isEmpty)
-                  SliverToBoxAdapter(
-                    child: _createEmptyMessagePane(context),
-                  ),
-                if (!_isCollapsed && _uiElements.isNotEmpty)
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 5.0, vertical: 10.0),
-                    sliver: SuperSliverList.builder(
-                      itemCount: _uiElements.length,
-                      listController: _listController,
-                      itemBuilder: (BuildContext context, int index) {
-                        var uiElement = _uiElements.elementAt(index);
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 5.0, horizontal: 3.0),
-                          child: TripEntityListElement<T>(
-                            uiElement: uiElement,
-                            onPressed: widget.onUiElementPressed,
-                            canDelete: widget.canDelete,
-                            additionalListItemBuildWhenCondition:
-                                widget.additionalListItemBuildWhenCondition,
-                            onUpdatePressed: widget.onUpdatePressed,
-                            onDeletePressed: widget.onDeletePressed,
-                            openedListElementCreator:
-                                widget.openedListElementCreator,
-                            closedElementCreator: (uiElement) =>
-                                widget.closedListElementCreator(uiElement),
-                            errorMessageCreator: widget.errorMessageCreator,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                ValueListenableBuilder<bool>(
+                  valueListenable: _listVisibilityNotifier,
+                  builder: (BuildContext context, bool isVisible, _) {
+                    return isVisible
+                        ? _createSliverList()
+                        : SliverToBoxAdapter(
+                            child: SizedBox.shrink(),
+                          );
+                    // return SliverToBoxAdapter(
+                    //   child:
+                    //       isVisible ? _createSliverList() : SizedBox.shrink(),
+                    // );
+                  },
+                ),
+                // if (!_isCollapsed && _uiElements.isEmpty)
+                //   SliverToBoxAdapter(
+                //     child: _createEmptyMessagePane(context),
+                //   ),
+                // if (!_isCollapsed && _uiElements.isNotEmpty)
+                //   SliverPadding(
+                //     padding: const EdgeInsets.symmetric(
+                //         horizontal: 5.0, vertical: 10.0),
+                //     sliver: _createSliverList(),
+                //   ),
               ],
             );
           },
         );
       },
-      listener: (BuildContext context, TripManagementState state) {},
+      listener: (BuildContext context, TripManagementState state) {
+        if (state.isTripEntityUpdated<T>() &&
+            (state as UpdatedTripEntity).dataState == DataState.newUiEntry) {
+          _setListVisibility(true);
+        } else if (state is ProcessSectionNavigation) {
+          if (state.section.toLowerCase() == widget.section.toLowerCase()) {
+            if (state.dateTime == null) {
+              RepositoryProvider.of<TripNavigator>(context).jumpToList(context);
+            } else {
+              _setListVisibility(true);
+              Future.delayed(
+                  NavAnimationDurations.delayedNavigateToDateInSection, () {
+                if (context.mounted) {
+                  _jumpToDate(state);
+                }
+              });
+            }
+          }
+        }
+      },
+    );
+  }
+
+  Widget _createSliverList() {
+    return SuperSliverList.builder(
+      itemCount: _uiElements.length,
+      listController: _listController,
+      itemBuilder: (BuildContext context, int index) {
+        var uiElement = _uiElements.elementAt(index);
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 3.0),
+          child: TripEntityListElement<T>(
+            uiElement: uiElement,
+            onPressed: widget.onUiElementPressed,
+            canDelete: widget.canDelete,
+            additionalListItemBuildWhenCondition:
+                widget.additionalListItemBuildWhenCondition,
+            onUpdatePressed: widget.onUpdatePressed,
+            onDeletePressed: widget.onDeletePressed,
+            openedListElementCreator: widget.openedListElementCreator,
+            closedElementCreator: (uiElement) =>
+                widget.closedListElementCreator(uiElement),
+            errorMessageCreator: widget.errorMessageCreator,
+          ),
+        );
+      },
     );
   }
 
@@ -176,10 +211,18 @@ class _TripEntityListViewState<T extends TripEntity>
     );
   }
 
-  void _toggleListVisibility() {
-    setState(() {
-      _isCollapsed = !_isCollapsed;
-    });
+  void _setListVisibility(bool visibility) {
+    if ((visibility && !_listVisibilityNotifier.value) ||
+        (!visibility && _listVisibilityNotifier.value)) {
+      _listVisibilityNotifier.value = !_listVisibilityNotifier.value;
+    }
+  }
+
+  void _toggleListVisibilityOnOpenClose() {
+    if (_listVisibilityNotifier.value) {
+      RepositoryProvider.of<TripNavigator>(context).jumpToList(context);
+    }
+    _listVisibilityNotifier.value = !_listVisibilityNotifier.value;
   }
 
   bool _shouldBuildList(
@@ -218,49 +261,39 @@ class _TripEntityListViewState<T extends TripEntity>
   }
 
   Widget _createHeaderTile() {
-    return _HeaderTile<T>(
-      section: widget.section,
-      onNavigateToDateInSection: _jumpToDate,
-      headerTile: ListTile(
-        //TODO: Fix this for tamil, the trailing widget consumes entire space in case of expenses
-        leading:
-            Icon(_isCollapsed ? Icons.menu_open_rounded : Icons.list_rounded),
-        title: Text(
-          widget.headerTileLabel,
+    return ListTile(
+      //TODO: Fix this for tamil, the trailing widget consumes entire space in case of expenses
+      leading: ValueListenableBuilder(
+          valueListenable: _listVisibilityNotifier,
+          builder: (context, isVisible, oldWidget) {
+            return Icon(
+                isVisible ? Icons.list_rounded : Icons.menu_open_rounded);
+          }),
+      title: Text(
+        widget.headerTileLabel,
+      ),
+      onTap: _toggleListVisibilityOnOpenClose,
+      trailing: Container(
+        constraints: const BoxConstraints(
+          maxWidth: 200,
         ),
-        onTap: _toggleListVisibility,
-        trailing: Container(
-          constraints: const BoxConstraints(
-            maxWidth: 200,
-          ),
-          child: FittedBox(
-            child: widget.headerTileButton != null
-                ? widget.headerTileButton!
-                : Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                        child: _createJumpToDateNavigator(context),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                        child: _buildCreateTripEntityButton(context),
-                      ),
-                    ],
-                  ),
-          ),
+        child: FittedBox(
+          child: widget.headerTileButton != null
+              ? widget.headerTileButton!
+              : Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                      child: _createJumpToDateNavigator(context),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                      child: _buildCreateTripEntityButton(context),
+                    ),
+                  ],
+                ),
         ),
       ),
-      open: () {
-        setState(() {
-          _isCollapsed = false;
-        });
-      },
-      close: () {
-        setState(() {
-          _isCollapsed = true;
-        });
-      },
     );
   }
 
@@ -351,52 +384,5 @@ class _TripEntityListViewState<T extends TripEntity>
       }
     }
     _uiElements.addAll(widget.uiElementsCreator(activeTrip));
-  }
-}
-
-class _HeaderTile<T extends TripEntity> extends StatelessWidget {
-  final Widget headerTile;
-  final String section;
-  final VoidCallback open;
-  final VoidCallback close;
-  final void Function(ProcessSectionNavigation) onNavigateToDateInSection;
-
-  _HeaderTile(
-      {super.key,
-      required this.section,
-      required this.headerTile,
-      required this.open,
-      required this.close,
-      required this.onNavigateToDateInSection});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocListener<TripManagementBloc, TripManagementState>(
-      listener: (BuildContext context, TripManagementState state) {
-        if (state.isTripEntityUpdated<T>() &&
-            (state as UpdatedTripEntity).dataState == DataState.newUiEntry) {
-          open();
-        } else if (state is ProcessSectionNavigation) {
-          if (state.section.toLowerCase() == section.toLowerCase()) {
-            if (state.dateTime == null) {
-              RepositoryProvider.of<TripNavigator>(context).jumpToList(context);
-              Future.delayed(NavAnimationDurations.delayedTripEntitySectionOpen,
-                  () {
-                open();
-              });
-            } else {
-              open();
-              Future.delayed(
-                  NavAnimationDurations.delayedNavigateToDateInSection, () {
-                onNavigateToDateInSection(state);
-              });
-            }
-          } else {
-            close();
-          }
-        }
-      },
-      child: headerTile,
-    );
   }
 }

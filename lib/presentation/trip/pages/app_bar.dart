@@ -34,7 +34,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _createAppLogo(context),
+                    _createHomeButton(context),
                     if (context.tripRepository.activeTrip != null)
                       IconButton(
                           onPressed: () {
@@ -82,7 +82,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  Widget _createAppLogo(BuildContext context) {
+  Widget _createHomeButton(BuildContext context) {
     return FloatingActionButton.extended(
       elevation: 0,
       onPressed: () {
