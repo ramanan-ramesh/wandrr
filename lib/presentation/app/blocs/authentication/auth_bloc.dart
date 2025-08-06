@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -74,14 +75,12 @@ class AuthenticationBloc
       return;
     }
 
-    // Trigger the authentication flow
-    // GoogleSignIn googleSignIn;
-    // if (kIsWeb) {
-    //   googleSignIn = GoogleSignIn(clientId: googleWebClientId);
-    // } else {
-    //   googleSignIn = GoogleSignIn();
-    // }
-    var googleSignIn = GoogleSignIn(clientId: googleWebClientId);
+    GoogleSignIn googleSignIn;
+    if(Platform.isIOS || Platform.isMacOS) {
+      googleSignIn = GoogleSignIn();
+    } else {
+      googleSignIn = GoogleSignIn(clientId: googleWebClientId);
+    }
     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
     // Obtain the auth details from the request
