@@ -2,11 +2,12 @@ import 'dart:collection';
 
 import 'package:wandrr/data/app/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/models/plan_data.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 import 'lodging.dart';
 import 'transit.dart';
 
-abstract class ItineraryFacade {
+abstract class ItineraryFacade extends TripEntity {
   final String tripId;
 
   final DateTime day;
@@ -22,6 +23,9 @@ abstract class ItineraryFacade {
   PlanDataFacade get planData;
 
   ItineraryFacade(this.tripId, this.day);
+
+  @override
+  String get id => day.toIso8601String();
 }
 
 abstract class ItineraryModelEventHandler extends ItineraryFacade {

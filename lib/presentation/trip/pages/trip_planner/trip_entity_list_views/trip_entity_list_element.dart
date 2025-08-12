@@ -16,7 +16,7 @@ class TripEntityListElement<T extends TripEntity> extends StatefulWidget {
   final void Function(BuildContext context, UiElement<T>)? onPressed;
   final Widget Function(UiElement<T> uiElement, ValueNotifier<bool>)
       openedListElementCreator;
-  final Widget Function() closedElementCreator;
+  final Widget Function(UiElement<T>) closedElementCreator;
   final bool Function(UiElement<T>)? canDelete;
   final bool Function(
       TripManagementState previousState,
@@ -57,7 +57,7 @@ class _TripEntityListElementState<T extends TripEntity>
         return shouldOpenForEditing
             ? _createEditableTripEntityListElement(context)
             : _createTripEntityListElement(
-                context, widget.closedElementCreator());
+                context, widget.closedElementCreator(widget.uiElement));
       },
       listener: (BuildContext context, TripManagementState state) {},
     );

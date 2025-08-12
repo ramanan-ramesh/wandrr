@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
@@ -12,6 +13,9 @@ import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/jump_to_date.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/trip_navigator.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 
 import 'trip_entity_list_element.dart';
@@ -24,7 +28,6 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
   final Widget Function(UiElement<T> uiElement) closedListElementCreator;
   final String emptyListMessage;
   Widget? headerTileButton;
-  VoidCallback? headerTileActionButtonCallback;
   final BlocBuilderCondition<TripManagementState>?
       additionalListBuildWhenCondition;
   final bool Function(
@@ -39,6 +42,8 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
       uiElementsCreator;
   final bool Function(UiElement<T>)? canDelete;
   final String? Function(UiElement<T>)? errorMessageCreator;
+  final bool Function(T, DateTime)? canConsiderUiElementForNavigation;
+  final String section;
 
   TripEntityListView(
       {super.key,
@@ -48,6 +53,8 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
       required this.headerTileLabel,
       required this.uiElementsSorter,
       required this.uiElementsCreator,
+      required this.section,
+      this.canConsiderUiElementForNavigation,
       this.onUiElementPressed,
       this.additionalListBuildWhenCondition,
       this.onUpdatePressed,
@@ -64,7 +71,8 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
       required this.headerTileLabel,
       required this.uiElementsSorter,
       required Widget this.headerTileButton,
-      this.headerTileActionButtonCallback,
+      required this.section,
+      this.canConsiderUiElementForNavigation,
       this.additionalListBuildWhenCondition,
       this.onUiElementPressed,
       this.onUpdatePressed,
@@ -75,20 +83,21 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
       this.additionalListItemBuildWhenCondition});
 
   @override
-  State<TripEntityListView<T>> createState() => _TripEntityListViewState<T>();
+  State<TripEntityListView> createState() => _TripEntityListViewState<T>();
 }
 
 class _TripEntityListViewState<T extends TripEntity>
     extends State<TripEntityListView<T>> {
   var _uiElements = <UiElement<T>>[];
-  bool _isCollapsed = true;
+  final ListController _listController = ListController();
+  var _isListVisible = false;
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       buildWhen: _shouldBuildList,
       builder: (BuildContext context, TripManagementState state) {
-        _updateListElementsOnBuild(context, state);
+        _updateListElementsOnBuild(state);
         return FutureBuilder<Iterable<UiElement<T>>>(
           future:
               _uiElementsSorterWrapper(widget.uiElementsSorter, _uiElements),
@@ -98,49 +107,115 @@ class _TripEntityListViewState<T extends TripEntity>
                 snapshot.hasData) {
               _uiElements = snapshot.data!.toList();
             }
-
-            return SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (BuildContext context, int index) {
-                  if (index == 0) {
-                    return _createHeaderTile(context);
-                  } else if (index == 1 && _uiElements.isEmpty) {
-                    return _createEmptyMessagePane(context);
-                  } else if (index > 0) {
-                    var uiElement = _uiElements.elementAt(index - 1);
-                    if (uiElement.dataState == DataState.newUiEntry &&
-                        state is UpdatedTripEntity &&
-                        state.dataState == DataState.newUiEntry) {}
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 5.0, horizontal: 3.0),
-                      child: TripEntityListElement<T>(
-                        uiElement: uiElement,
-                        onPressed: widget.onUiElementPressed,
-                        canDelete: widget.canDelete,
-                        additionalListItemBuildWhenCondition:
-                            widget.additionalListItemBuildWhenCondition,
-                        onUpdatePressed: widget.onUpdatePressed,
-                        onDeletePressed: widget.onDeletePressed,
-                        openedListElementCreator:
-                            widget.openedListElementCreator,
-                        closedElementCreator: () =>
-                            widget.closedListElementCreator(uiElement),
-                        errorMessageCreator: widget.errorMessageCreator,
+            return SliverMainAxisGroup(
+              slivers: [
+                SliverAppBar(
+                  flexibleSpace: _createHeaderTile(),
+                  pinned: true,
+                ),
+                _isListVisible
+                    ? (_uiElements.isEmpty
+                        ? SliverToBoxAdapter(
+                            child: _createEmptyMessagePane(),
+                          )
+                        : _createSliverList())
+                    : SliverToBoxAdapter(
+                        child: SizedBox.shrink(),
                       ),
-                    );
-                  }
-                  return null;
-                },
-                childCount: _isCollapsed
-                    ? 1
-                    : (_uiElements.isEmpty ? 2 : _uiElements.length + 1),
-              ),
+              ],
             );
           },
         );
       },
-      listener: (BuildContext context, TripManagementState state) {},
+      listener: (BuildContext context, TripManagementState state) {
+        if (state.isTripEntityUpdated<T>() &&
+            (state as UpdatedTripEntity).dataState == DataState.newUiEntry) {
+          _setListVisibility(true);
+        } else if (state is ProcessSectionNavigation) {
+          if (state.section.toLowerCase() == widget.section.toLowerCase()) {
+            if (state.dateTime == null) {
+              RepositoryProvider.of<TripNavigator>(context).jumpToList(context);
+            } else {
+              _setListVisibility(true);
+              Future.delayed(
+                  NavAnimationDurations.delayedNavigateToDateInSection, () {
+                if (context.mounted) {
+                  _jumpToDate(state);
+                }
+              });
+            }
+          }
+        }
+      },
+    );
+  }
+
+  Widget _createSliverList() {
+    return SuperSliverList.builder(
+      itemCount: _uiElements.length,
+      listController: _listController,
+      itemBuilder: (BuildContext context, int index) {
+        var uiElement = _uiElements.elementAt(index);
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 3.0),
+          child: TripEntityListElement<T>(
+            uiElement: uiElement,
+            onPressed: widget.onUiElementPressed,
+            canDelete: widget.canDelete,
+            additionalListItemBuildWhenCondition:
+                widget.additionalListItemBuildWhenCondition,
+            onUpdatePressed: widget.onUpdatePressed,
+            onDeletePressed: widget.onDeletePressed,
+            openedListElementCreator: widget.openedListElementCreator,
+            closedElementCreator: (uiElement) =>
+                widget.closedListElementCreator(uiElement),
+            errorMessageCreator: widget.errorMessageCreator,
+          ),
+        );
+      },
+    );
+  }
+
+  void _toggleListVisibility() {
+    _setListVisibility(!_isListVisible);
+  }
+
+  void _setListVisibility(bool isVisible) {
+    if (_isListVisible == isVisible) {
+      return;
+    }
+
+    setState(() {
+      _isListVisible = isVisible;
+    });
+  }
+
+  void _toggleListVisibilityOnOpenClose() {
+    if (_isListVisible) {
+      RepositoryProvider.of<TripNavigator>(context)
+          .jumpToList(context, alignment: 0.0);
+    }
+
+    _toggleListVisibility();
+  }
+
+  void _jumpToDate(ProcessSectionNavigation state) {
+    for (var index = 0; index < _uiElements.length; index++) {
+      var uiElement = _uiElements[index];
+      if (widget.canConsiderUiElementForNavigation != null &&
+          widget.canConsiderUiElementForNavigation!(
+              uiElement.element, state.dateTime!)) {
+        RepositoryProvider.of<TripNavigator>(context)
+            .animateToListItem(context, _listController, index);
+        break;
+      }
+    }
+  }
+
+  Widget _createJumpToDateNavigator() {
+    return JumpToDateNavigator(
+      section: widget.section,
+      tripEntitiesGetter: () => _uiElements.map((e) => e.element),
     );
   }
 
@@ -166,7 +241,7 @@ class _TripEntityListViewState<T extends TripEntity>
     return Future.value(func(uiElements));
   }
 
-  Container _createEmptyMessagePane(BuildContext context) {
+  Widget _createEmptyMessagePane() {
     return Container(
       height: 200,
       color: Colors.transparent,
@@ -179,47 +254,40 @@ class _TripEntityListViewState<T extends TripEntity>
     );
   }
 
-  Widget _createHeaderTile(BuildContext context) {
-    return BlocConsumer<TripManagementBloc, TripManagementState>(
-      builder: (BuildContext context, TripManagementState state) {
-        return ListTile(
-          //TODO: Fix this for tamil, the trailing widget consumes entire space in case of expenses
-          leading:
-              Icon(_isCollapsed ? Icons.menu_open_rounded : Icons.list_rounded),
-          title: Text(
-            widget.headerTileLabel,
-          ),
-          onTap: () {
-            _isCollapsed = !_isCollapsed;
-            setState(() {});
-          },
-          trailing: Container(
-            constraints: const BoxConstraints(
-              maxWidth: 200,
-            ),
-            child: FittedBox(
-              child: widget.headerTileButton != null
-                  ? widget.headerTileButton!
-                  : _buildCreateTripEntityButton(context),
-            ),
-          ),
-        );
-      },
-      listener: (BuildContext context, TripManagementState state) {
-        if (state.isTripEntityUpdated<T>() &&
-            (state as UpdatedTripEntity).dataState == DataState.newUiEntry) {
-          _isCollapsed = false;
-          widget.headerTileActionButtonCallback?.call();
-          setState(() {});
-        }
-      },
-      buildWhen: (previousState, currentState) {
-        return currentState.isTripEntityUpdated<T>();
-      },
+  Widget _createHeaderTile() {
+    return ListTile(
+      //TODO: Fix this for tamil, the trailing widget consumes entire space in case of expenses
+      leading:
+          Icon(_isListVisible ? Icons.list_rounded : Icons.menu_open_rounded),
+      title: Text(
+        widget.headerTileLabel,
+      ),
+      onTap: _toggleListVisibilityOnOpenClose,
+      trailing: Container(
+        constraints: const BoxConstraints(
+          maxWidth: 200,
+        ),
+        child: FittedBox(
+          child: widget.headerTileButton != null
+              ? widget.headerTileButton!
+              : Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                      child: _createJumpToDateNavigator(),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                      child: _buildCreateTripEntityButton(),
+                    ),
+                  ],
+                ),
+        ),
+      ),
     );
   }
 
-  Widget _buildCreateTripEntityButton(BuildContext context) {
+  Widget _buildCreateTripEntityButton() {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       builder: (BuildContext context, TripManagementState state) {
         var shouldEnableButton = !_uiElements
@@ -260,8 +328,7 @@ class _TripEntityListViewState<T extends TripEntity>
     );
   }
 
-  void _updateListElementsOnBuild(
-      BuildContext context, TripManagementState state) {
+  void _updateListElementsOnBuild(TripManagementState state) {
     var activeTrip = context.activeTrip;
 
     _uiElements.removeWhere((x) => x.dataState != DataState.newUiEntry);

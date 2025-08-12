@@ -76,6 +76,9 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
                     tripMetadataModelFacade: tripMetadataModuleFacade),
             query: tripsCollectionReference.where(_contributorsField,
                 arrayContains: userName));
+    //TODO: Move creation of services to Trip initialization.
+    // Approach 1 : Have a list of ApiServices that is filled when trip is loaded
+    // Approach 2 : Have a different repository for api services
     var geoLocator = ApiServicesCreator.createGeoLocator();
     await geoLocator.initialize();
     var currencyConverter = ApiServicesCreator.createCurrencyConverterService();

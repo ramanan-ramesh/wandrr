@@ -91,8 +91,7 @@ abstract class DateRangePickerBase extends StatefulWidget {
               ),
             ),
           );
-        },
-        widgetKey: widgetKey);
+        });
   }
 
   void _tryUpdateDateRange(

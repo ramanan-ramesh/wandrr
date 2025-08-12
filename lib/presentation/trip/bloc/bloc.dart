@@ -17,27 +17,6 @@ import 'package:wandrr/l10n/app_localizations.dart';
 import 'events.dart';
 import 'states.dart';
 
-class _UpdateTripEntityInternalEvent<T extends TripEntity>
-    extends TripManagementEvent {
-  CollectionChangeMetadata<T> updateData;
-  bool isOperationSuccess;
-  DataState dateState;
-
-  _UpdateTripEntityInternalEvent.updated(
-      this.updateData, this.isOperationSuccess)
-      : dateState = DataState.update;
-
-  _UpdateTripEntityInternalEvent.created(
-      this.updateData, this.isOperationSuccess)
-      : dateState = DataState.create;
-
-  _UpdateTripEntityInternalEvent.deleted(
-      this.updateData, this.isOperationSuccess)
-      : dateState = DataState.delete;
-}
-
-class _OnStartup extends TripManagementEvent {}
-
 class TripManagementBloc
     extends Bloc<TripManagementEvent, TripManagementState> {
   TripRepositoryEventHandler? _tripRepository;
@@ -68,6 +47,10 @@ class TripManagementBloc
     on<UpdateTripEntity<PlanDataFacade>>(_onUpdatePlanData);
     on<UpdateItineraryPlanData>(_onItineraryDataUpdated);
     on<_UpdateTripEntityInternalEvent>(_onTripEntityUpdateInternal);
+    on<NavigateToSection>((event, emit) {
+      emit(ProcessSectionNavigation(
+          section: event.section, dateTime: event.dateTime));
+    });
 
     add(_OnStartup());
   }
@@ -470,3 +453,24 @@ class TripManagementBloc
     }
   }
 }
+
+class _UpdateTripEntityInternalEvent<T extends TripEntity>
+    extends TripManagementEvent {
+  CollectionChangeMetadata<T> updateData;
+  bool isOperationSuccess;
+  DataState dateState;
+
+  _UpdateTripEntityInternalEvent.updated(
+      this.updateData, this.isOperationSuccess)
+      : dateState = DataState.update;
+
+  _UpdateTripEntityInternalEvent.created(
+      this.updateData, this.isOperationSuccess)
+      : dateState = DataState.create;
+
+  _UpdateTripEntityInternalEvent.deleted(
+      this.updateData, this.isOperationSuccess)
+      : dateState = DataState.delete;
+}
+
+class _OnStartup extends TripManagementEvent {}

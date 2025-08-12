@@ -11,6 +11,8 @@ import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/trip_navigator.dart';
 import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/flip_card/flip_card.dart';
 
@@ -20,10 +22,10 @@ const double _heightOfContributorWidget = 20.0;
 const double _maxOverviewElementHeight = 50.0;
 
 class TripOverviewTile extends StatelessWidget {
-  const TripOverviewTile({Key? key}) : super(key: key);
-
   static const _imageHeight = 250.0;
   static const _assetImage = 'assets/images/planning_the_trip.jpg';
+
+  const TripOverviewTile({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,29 +34,41 @@ class TripOverviewTile extends StatelessWidget {
     var isBigLayout = context.isBigLayout;
     var heightOfOverViewTile =
         _calculateOverViewTileSize(isBigLayout, numberOfContributors);
-    return Stack(
-      fit: StackFit.passthrough,
-      clipBehavior: Clip.none,
-      children: [
-        Column(
-          children: [
-            Image.asset(
-              _assetImage,
-              fit: isBigLayout ? BoxFit.fill : BoxFit.contain,
-              height: _imageHeight,
-            ),
-            SizedBox(
-              height: heightOfOverViewTile,
-            ),
-          ],
-        ),
-        const Positioned(
-          left: 10,
-          right: 10,
-          top: 200,
-          child: _OverviewTile(),
-        )
-      ],
+    return BlocListener<TripManagementBloc, TripManagementState>(
+      listenWhen: (previousState, currentState) {
+        return currentState is ProcessSectionNavigation &&
+            currentState.section == NavigationSections.tripOverview;
+      },
+      listener: (BuildContext context, TripManagementState state) {
+        if (state is ProcessSectionNavigation &&
+            state.section == NavigationSections.tripOverview) {
+          RepositoryProvider.of<TripNavigator>(context).jumpToList(context);
+        }
+      },
+      child: Stack(
+        fit: StackFit.passthrough,
+        clipBehavior: Clip.none,
+        children: [
+          Column(
+            children: [
+              Image.asset(
+                TripOverviewTile._assetImage,
+                fit: isBigLayout ? BoxFit.fill : BoxFit.contain,
+                height: TripOverviewTile._imageHeight,
+              ),
+              SizedBox(
+                height: heightOfOverViewTile,
+              ),
+            ],
+          ),
+          const Positioned(
+            left: 10,
+            right: 10,
+            top: 200,
+            child: _OverviewTile(),
+          )
+        ],
+      ),
     );
   }
 

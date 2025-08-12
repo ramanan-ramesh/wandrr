@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/expense_view_adapter.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/trip_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/itinerary.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/lodging.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/transit.dart';
@@ -8,38 +10,43 @@ import 'package:wandrr/presentation/trip/pages/trip_planner/trip_overview/trip_o
 
 import 'budgeting/header_tile.dart';
 import 'expense_view_type.dart';
+import 'navigation/jump_to_list.dart';
+import 'navigation/nav_bar.dart';
 import 'trip_entity_list_views/plan_data.dart';
 
-class TripPlannerPage extends StatefulWidget {
-  const TripPlannerPage({Key? key}) : super(key: key);
-
-  @override
-  State<TripPlannerPage> createState() => _TripPlannerPageState();
-}
-
-class _TripPlannerPageState extends State<TripPlannerPage>
-    with SingleTickerProviderStateMixin {
+class TripPlannerPage extends StatelessWidget {
   final _expenseViewTypeNotifier =
       ValueNotifier<ExpenseViewType>(ExpenseViewType.expenseList);
-
   final ScrollController _scrollController = ScrollController();
+
+  TripPlannerPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (context.isBigLayout) {
-      return _createForBigLayout(context);
-    } else {
-      return _createForSmallLayout(true);
-    }
+    return RepositoryProvider<TripNavigator>(
+      create: (context) => TripNavigator(scrollController: _scrollController),
+      child: context.isBigLayout
+          ? _createForBigLayout()
+          : Stack(
+              children: [
+                _createForSmallLayout(),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: FloatingJumpToListNavigator(),
+                ),
+              ],
+            ),
+    );
   }
 
-  Widget _createForBigLayout(BuildContext context) {
+  Widget _createForBigLayout() {
     return Row(
       children: [
+        JumpToListNavigationBar(),
         Expanded(
           child: CustomScrollView(
             controller: _scrollController,
-            slivers: const [
+            slivers: [
               SliverToBoxAdapter(
                 child: TripOverviewTile(),
               ),
@@ -90,11 +97,11 @@ class _TripPlannerPageState extends State<TripPlannerPage>
     );
   }
 
-  CustomScrollView _createForSmallLayout(bool isBigLayout) {
+  Widget _createForSmallLayout() {
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
-        const SliverToBoxAdapter(
+        SliverToBoxAdapter(
           child: TripOverviewTile(),
         ),
         const SliverPadding(

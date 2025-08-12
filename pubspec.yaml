@@ -52,6 +52,7 @@ dependencies:
   flutter_datetime_picker_plus: ^2.2.0
   rive: ^0.13.20
   shared_preferences: ^2.5.2
+  super_sliver_list: ^0.4.1
 
 dev_dependencies:
   flutter_test:

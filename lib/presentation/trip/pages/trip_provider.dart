@@ -65,7 +65,7 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
         } else if (state is ActivatedTrip &&
             !_walkAnimation.isActive &&
             !_waveAnimation.isActive) {
-          return _createTripContentPage(const TripPlannerPage());
+          return _createTripContentPage(TripPlannerPage());
         }
         return _createAnimatedLoadingScreen(context);
       },
