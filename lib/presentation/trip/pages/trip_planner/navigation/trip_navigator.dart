@@ -9,22 +9,23 @@ class TripNavigator {
   TripNavigator({required ScrollController scrollController})
       : _scrollController = scrollController;
 
-  void jumpToList(BuildContext context) {
+  void jumpToList(BuildContext context, {double alignment = 0.0}) {
     Scrollable.ensureVisible(
       context,
       curve: Curves.easeInOutBack,
-      alignment: 0.0,
+      alignment: alignment,
     );
   }
 
   void animateToListItem(
       BuildContext context, ListController listController, int index,
-      {double alignment = 0.5}) {
+      {double alignment = 0.5,
+      Duration duration = NavAnimationDurations.navigateToSection}) {
     listController.animateToItem(
         index: index,
         scrollController: _scrollController,
         alignment: alignment,
-        duration: (val) => NavAnimationDurations.navigateToSection,
+        duration: (val) => duration,
         curve: (val) => Curves.easeInOutBack);
   }
 }

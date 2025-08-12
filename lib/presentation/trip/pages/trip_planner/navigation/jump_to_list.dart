@@ -82,7 +82,7 @@ class _FloatingJumpToListNavigatorState
             index: 0,
             baseLeft: position.dx,
             top: position.dy,
-            icon: Icons.money_rounded,
+            icon: Icons.attach_money_rounded,
           ),
           Positioned(
             left: position.dx,
