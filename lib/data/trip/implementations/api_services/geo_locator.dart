@@ -3,13 +3,13 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
-import 'package:wandrr/data/trip/models/api_services/api_service.dart';
+import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/location/geo_location_api_context.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 
 import 'constants.dart';
 
-class GeoLocator implements ApiService<LocationFacade> {
+class GeoLocator implements ApiService<String, Iterable<LocationFacade>> {
   static const _apiSurfaceUrl = 'https://api.locationiq.com/v1/autocomplete?';
   static const _typeField = 'type';
   static const _apiKeyField = 'key';
@@ -69,9 +69,8 @@ class GeoLocator implements ApiService<LocationFacade> {
   }
 
   @override
-  Future dispose() {
+  FutureOr<void> dispose() {
     _lastExecutedQuery = '';
     _lastQueriedLocations.clear();
-    return Future.value();
   }
 }

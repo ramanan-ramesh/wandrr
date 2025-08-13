@@ -9,7 +9,7 @@ import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/money_edit_field.dart';
 
 class TripCreatorDialog extends StatelessWidget {

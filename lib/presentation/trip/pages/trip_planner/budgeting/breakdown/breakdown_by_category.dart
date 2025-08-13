@@ -2,7 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class BreakdownByCategoryChart extends StatefulWidget {
   const BreakdownByCategoryChart({super.key});

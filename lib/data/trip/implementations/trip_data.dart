@@ -8,11 +8,13 @@ import 'package:wandrr/data/app/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/budgeting_module.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/itinerary_model_collection.dart';
-import 'package:wandrr/data/trip/models/api_services/currency_converter.dart';
+import 'package:wandrr/data/trip/models/api_service.dart';
+import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting_module.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/money.dart';
 import 'package:wandrr/data/trip/models/plan_data.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
@@ -103,7 +105,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       get itineraryModelCollectionEventHandler => _itineraryModelCollection;
   final ItineraryModelCollection _itineraryModelCollection;
 
-  CurrencyConverterService currencyConverter;
+  ApiService<(Money, String), double?> currencyConverter;
 
   @override
   TripMetadataFacade get tripMetadata =>
@@ -121,7 +123,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
 
   static Future<TripDataModelImplementation> createExistingInstanceAsync(
       TripMetadataFacade tripMetadata,
-      CurrencyConverterService currencyConverter,
+      ApiServicesRepository apiServicesRepository,
       AppLocalizations appLocalizations,
       String currentUserName) async {
     var tripMetadataModelImplementation =
@@ -181,7 +183,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         transitModelCollection,
         lodgingModelCollection,
         expenseModelCollection,
-        currencyConverter,
+        apiServicesRepository.currencyConverter,
         tripMetadataModelImplementation.budget.currency,
         tripMetadataModelImplementation.contributors,
         currentUserName);
@@ -193,7 +195,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         expenseModelCollection,
         planDataModelCollection,
         itineraries,
-        currencyConverter,
+        apiServicesRepository.currencyConverter,
         budgetingModuleFacade,
         appLocalizations);
   }

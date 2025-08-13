@@ -5,7 +5,7 @@ import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class AddTripMateField extends StatelessWidget {
   const AddTripMateField({

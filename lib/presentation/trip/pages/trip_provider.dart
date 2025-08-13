@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/extension.dart';
@@ -65,7 +66,10 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
         } else if (state is ActivatedTrip &&
             !_walkAnimation.isActive &&
             !_waveAnimation.isActive) {
-          return _createTripContentPage(TripPlannerPage());
+          return RepositoryProvider<ApiServicesRepository>(
+            create: (context) => state.apiServicesRepository,
+            child: _createTripContentPage(TripPlannerPage()),
+          );
         }
         return _createAnimatedLoadingScreen(context);
       },

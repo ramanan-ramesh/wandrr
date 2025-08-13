@@ -14,7 +14,7 @@ import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/expense.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/readonly_list_items/expense.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 import 'trip_entity_list_view.dart';
 

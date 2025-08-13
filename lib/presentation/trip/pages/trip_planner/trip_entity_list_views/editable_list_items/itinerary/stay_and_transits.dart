@@ -11,7 +11,7 @@ import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class ItineraryStayAndTransits extends StatelessWidget {
   final DateTime itineraryDay;

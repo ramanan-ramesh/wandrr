@@ -3,7 +3,7 @@ import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/auto_complete.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class AirportsDataEditor extends StatefulWidget {
   final LocationFacade? initialLocation;
@@ -47,7 +47,8 @@ class _AirportsDataEditorState extends State<AirportsDataEditor> {
           }
         }
       },
-      optionsBuilder: context.tripRepository.airportsDataService.queryData,
+      optionsBuilder:
+          context.apiServicesRepository.airportsDataService.queryData,
       listItem: (airportData) {
         var airportLocationContext =
             airportData.context as AirportLocationContext;

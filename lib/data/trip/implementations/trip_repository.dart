@@ -5,13 +5,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:wandrr/data/app/implementations/collection_model_implementation.dart';
 import 'package:wandrr/data/app/models/collection_model_facade.dart';
-import 'package:wandrr/data/trip/implementations/api_services/api_services_creator.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/trip_metadata.dart';
-import 'package:wandrr/data/trip/models/api_services/api_service.dart';
-import 'package:wandrr/data/trip/models/api_services/currency_converter.dart';
+import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/currency_data.dart';
-import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
@@ -46,18 +43,6 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   @override
   TripDataModelEventHandler? get activeTripEventHandler => _activeTrip;
 
-  @override
-  final ApiService<LocationFacade> geoLocator;
-
-  @override
-  final ApiService<(String, String)> airlinesDataService;
-
-  @override
-  final ApiService<LocationFacade> airportsDataService;
-
-  @override
-  final CurrencyConverterService currencyConverter;
-
   final String currentUserName;
 
   static Future<TripRepositoryImplementation> createInstanceAsync(
@@ -76,16 +61,6 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
                     tripMetadataModelFacade: tripMetadataModuleFacade),
             query: tripsCollectionReference.where(_contributorsField,
                 arrayContains: userName));
-    //TODO: Move creation of services to Trip initialization.
-    // Approach 1 : Have a list of ApiServices that is filled when trip is loaded
-    // Approach 2 : Have a different repository for api services
-    var geoLocator = ApiServicesCreator.createGeoLocator();
-    await geoLocator.initialize();
-    var currencyConverter = ApiServicesCreator.createCurrencyConverterService();
-    var airlinesDataService = ApiServicesCreator.createAirlinesDataService();
-    await airlinesDataService.initialize();
-    var airportsDataService = ApiServicesCreator.createAirportsDataService();
-    await airportsDataService.initialize();
 
     final String jsonString =
         await rootBundle.loadString(_pathToSupportedCurrencies);
@@ -96,26 +71,26 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     return TripRepositoryImplementation._(
       tripMetadataModelCollection,
       appLocalizations,
-      currencyConverter,
-      geoLocator,
-      airlinesDataService,
-      airportsDataService,
       userName,
       currencyDataList,
     );
   }
 
   @override
-  Future loadAndActivateTrip(TripMetadataFacade? tripMetadata) async {
-    if (tripMetadata == null) {
-      await _activeTrip?.dispose();
-      _activeTrip = null;
-      return;
-    }
+  Future unloadActiveTrip() async {
+    await _activeTrip?.dispose();
+    _activeTrip = null;
+  }
 
+  @override
+  Future loadTrip(TripMetadataFacade tripMetadata,
+      ApiServicesRepository apiServicesRepository) async {
     await _activeTrip?.dispose();
     _activeTrip = await TripDataModelImplementation.createExistingInstanceAsync(
-        tripMetadata, currencyConverter, _appLocalizations, currentUserName);
+        tripMetadata,
+        apiServicesRepository,
+        _appLocalizations,
+        currentUserName);
   }
 
   @override
@@ -132,19 +107,12 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     await _tripMetadataDeletedEventSubscription.cancel();
     await _tripMetadataModelCollection.dispose();
     await _activeTrip?.dispose();
-    await geoLocator.dispose();
-    await airlinesDataService.dispose();
-    await airportsDataService.dispose();
     _activeTrip = null;
   }
 
   TripRepositoryImplementation._(
     this._tripMetadataModelCollection,
     this._appLocalizations,
-    this.currencyConverter,
-    this.geoLocator,
-    this.airlinesDataService,
-    this.airportsDataService,
     this.currentUserName,
     this.supportedCurrencies,
   ) {

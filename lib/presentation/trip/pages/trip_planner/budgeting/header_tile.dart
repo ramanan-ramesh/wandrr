@@ -14,7 +14,7 @@ import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/expense_view_type.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/trip_navigator.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/flip_card/flip_card.dart';
 
 class BudgetingHeaderTile extends StatelessWidget {

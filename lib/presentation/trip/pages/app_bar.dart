@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
+import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/delete_trip_dialog.dart';
 
 import '../../app/blocs/master_page/master_page_events.dart';
@@ -31,7 +32,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             width: contentWidth,
             child: BlocConsumer<TripManagementBloc, TripManagementState>(
               builder: (BuildContext context, TripManagementState state) {
-                return Row(
+                var appBarContent = Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _createHomeButton(context),
@@ -44,6 +45,14 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                     _createRightActionButtons(context),
                   ],
                 );
+                if (state is ActivatedTrip) {
+                  return RepositoryProvider<ApiServicesRepository>(
+                    create: (context) => state.apiServicesRepository,
+                    child: appBarContent,
+                  );
+                }
+
+                return appBarContent;
               },
               listener: (BuildContext context, TripManagementState state) {},
               buildWhen: (previousState, currentState) {

@@ -1,0 +1,18 @@
+import 'dart:async';
+
+import 'api_service.dart';
+import 'location/location.dart';
+import 'money.dart';
+
+abstract class ApiServicesRepository {
+  ApiService<(Money, String), double?> get currencyConverter;
+
+  ApiService<String, Iterable<(String airlineName, String airlineCode)>>
+      get airlinesDataService;
+
+  ApiService<String, Iterable<LocationFacade>> get airportsDataService;
+
+  ApiService<String, Iterable<LocationFacade>> get geoLocator;
+
+  FutureOr<void> dispose();
+}

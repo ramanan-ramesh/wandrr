@@ -4,7 +4,7 @@ import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/base_list_items/lodging_card_base.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 import 'package:wandrr/presentation/trip/widgets/geo_location_auto_complete.dart';
 
