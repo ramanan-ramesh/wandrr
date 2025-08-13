@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class BreakdownByDayChart extends StatefulWidget {
   const BreakdownByDayChart({super.key});

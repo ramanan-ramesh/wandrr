@@ -4,7 +4,7 @@ import 'package:wandrr/data/trip/models/check_list.dart';
 import 'package:wandrr/data/trip/models/check_list_item.dart';
 import 'package:wandrr/data/trip/models/note.dart';
 import 'package:wandrr/data/trip/models/plan_data.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/geo_location_auto_complete.dart';
 
 import 'checklists.dart';

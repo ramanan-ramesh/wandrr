@@ -8,7 +8,7 @@ import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/airline_data.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/base_list_items/transit_card_base.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 
 class ReadonlyTransitPlan extends StatelessWidget {

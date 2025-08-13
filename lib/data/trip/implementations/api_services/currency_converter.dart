@@ -2,23 +2,33 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:wandrr/data/trip/models/api_services/currency_converter.dart';
+import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/money.dart';
 
-class CurrencyConverter implements CurrencyConverterService {
+class CurrencyConverter implements ApiService<(Money, String), double?> {
   static const _apiSurfaceUrl =
       'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1';
 
   final List<_CurrencyExchangeData> _exchangeRates = [];
 
-  static CurrencyConverter create() {
-    return CurrencyConverter();
+  String _constructQuery(String currencyToConvertTo) {
+    return '$_apiSurfaceUrl/currencies/${currencyToConvertTo.toLowerCase()}.json';
   }
 
   @override
-  FutureOr<double?> performQuery(
-      {required Money currencyAmount,
-      required String currencyToConvertTo}) async {
+  final String apiIdentifier = "CurrencyConverter";
+
+  @override
+  FutureOr<void> dispose() {}
+
+  @override
+  FutureOr<void> initialize() {}
+
+  @override
+  Future<double?> queryData(
+      (Money moneyToConvert, String currencyToConvertTo) query) async {
+    var currencyAmount = query.$1;
+    var currencyToConvertTo = query.$2;
     if (currencyAmount.amount == 0) {
       return 0;
     }
@@ -79,11 +89,6 @@ class CurrencyConverter implements CurrencyConverterService {
     return exchangeRate != null
         ? exchangeRate.exchangeRate * currencyAmount.amount
         : null;
-  }
-
-  String _constructQuery(String currencyToConvertTo) {
-    return '$_apiSurfaceUrl/currencies/${currencyToConvertTo.toLowerCase()}.json';
-    // return '$_apiSurfaceUrl/${currencyToConvertTo.toLowerCase()}.json';
   }
 }
 

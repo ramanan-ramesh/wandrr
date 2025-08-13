@@ -9,7 +9,7 @@ import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_vie
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/transit/airport_data_editor.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/transit/transit_operator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/transit/transit_option_picker.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 import 'package:wandrr/presentation/trip/widgets/geo_location_auto_complete.dart';
 

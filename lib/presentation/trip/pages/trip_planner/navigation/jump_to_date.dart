@@ -13,7 +13,7 @@ import 'package:wandrr/presentation/app/widgets/date_picker.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class JumpToDateNavigator<T extends TripEntity>
     extends AbstractPlatformDatePicker {

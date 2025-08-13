@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/app/models/collection_model_facade.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/models/ui_element.dart';
-import 'package:wandrr/data/trip/models/api_services/currency_converter.dart';
+import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/budgeting_module.dart';
 import 'package:wandrr/data/trip/models/debt_data.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
@@ -18,7 +18,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   final CollectionModelFacade<TransitFacade> _transitModelCollection;
   final CollectionModelFacade<LodgingFacade> _lodgingModelCollection;
   final CollectionModelFacade<ExpenseFacade> _expenseModelCollection;
-  final CurrencyConverterService currencyConverter;
+  final ApiService<(Money, String), double?> currencyConverter;
   String defaultCurrency;
   final String currentUserName;
   Iterable<String> _contributors;
@@ -29,7 +29,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       CollectionModelFacade<TransitFacade> transitModelCollection,
       CollectionModelFacade<LodgingFacade> lodgingModelCollection,
       CollectionModelFacade<ExpenseFacade> expenseModelCollection,
-      CurrencyConverterService currencyConverter,
+      ApiService<(Money, String), double?> currencyConverter,
       String defaultCurrency,
       Iterable<String> contributors,
       String currentUserName) async {
@@ -89,9 +89,8 @@ class BudgetingModule implements BudgetingModuleEventHandler {
         continue;
       }
 
-      var totalExpense = (await currencyConverter.performQuery(
-          currencyAmount: expense.totalExpense,
-          currencyToConvertTo: defaultCurrency))!;
+      var totalExpense = (await currencyConverter
+          .queryData((expense.totalExpense, defaultCurrency)))!;
 
       var averageExpense = totalExpense / splitBy.length;
       var paidBy = expense.paidBy;
@@ -143,9 +142,8 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     var allExpenses = _getAllExpenses();
 
     for (var expense in allExpenses) {
-      var totalExpense = (await currencyConverter.performQuery(
-          currencyAmount: expense.totalExpense,
-          currencyToConvertTo: defaultCurrency))!;
+      var totalExpense = (await currencyConverter
+          .queryData((expense.totalExpense, defaultCurrency)))!;
 
       if (categorizedExpenses.containsKey(expense.category)) {
         categorizedExpenses[expense.category] =
@@ -169,9 +167,8 @@ class BudgetingModule implements BudgetingModuleEventHandler {
         var expenseDateTime = expense.dateTime!;
         var expenseDate = DateTime(
             expenseDateTime.year, expenseDateTime.month, expenseDateTime.day);
-        var totalExpense = (await currencyConverter.performQuery(
-            currencyAmount: expense.totalExpense,
-            currencyToConvertTo: defaultCurrency))!;
+        var totalExpense = (await currencyConverter
+            .queryData((expense.totalExpense, defaultCurrency)))!;
         totalExpensesPerDay.update(expenseDate, (value) => value + totalExpense,
             ifAbsent: () => totalExpense);
       }
@@ -267,7 +264,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
 
   static Future<double> _calculateTotalExpenseAmount(
       CollectionModelFacade<TransitFacade> transitModelCollection,
-      CurrencyConverterService currencyConverter,
+      ApiService<(Money, String), double?> currencyConverter,
       String defaultCurrency,
       CollectionModelFacade<LodgingFacade> lodgingModelCollection,
       CollectionModelFacade<ExpenseFacade> expenseModelCollection,
@@ -301,9 +298,8 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     if (expensesToConsider.isNotEmpty) {
       totalExpenditure = 0.0;
       for (var expense in expensesToConsider) {
-        var totalExpense = await currencyConverter.performQuery(
-            currencyAmount: expense.totalExpense,
-            currencyToConvertTo: defaultCurrency);
+        var totalExpense = await currencyConverter
+            .queryData((expense.totalExpense, defaultCurrency));
         totalExpenditure += totalExpense!;
       }
     }
@@ -391,9 +387,8 @@ class BudgetingModule implements BudgetingModuleEventHandler {
         <UiElement<ExpenseFacade>, double>{};
 
     for (var expenseUiElement in expenseUiElements) {
-      var expenseValue = await currencyConverter.performQuery(
-          currencyAmount: expenseUiElement.element.totalExpense,
-          currencyToConvertTo: defaultCurrency);
+      var expenseValue = await currencyConverter
+          .queryData((expenseUiElement.element.totalExpense, defaultCurrency));
       expenseElementsWithConvertedCurrency[expenseUiElement] = expenseValue!;
     }
 

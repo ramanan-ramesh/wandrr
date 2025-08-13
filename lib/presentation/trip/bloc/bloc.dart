@@ -4,7 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/app/models/collection_change_metadata.dart';
 import 'package:wandrr/data/app/models/collection_model_facade.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/trip/implementations/api_services/repository.dart';
 import 'package:wandrr/data/trip/implementations/trip_repository.dart';
+import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/plan_data.dart';
@@ -24,6 +26,7 @@ class TripManagementBloc
   final _tripRepositorySubscriptions = <StreamSubscription>[];
   final AppLocalizations appLocalizations;
   final String currentUserName;
+  ApiServicesRepository? _apiServicesRepository;
 
   @override
   Future<void> close() async {
@@ -104,7 +107,9 @@ class TripManagementBloc
 
   FutureOr<void> _onGoToHome(
       GoToHome event, Emitter<TripManagementState> emit) async {
-    await _tripRepository!.loadAndActivateTrip(null);
+    await _tripRepository!.unloadActiveTrip();
+    await _apiServicesRepository?.dispose();
+    _apiServicesRepository = null;
     await _clearTripSubscriptions();
 
     emit(NavigateToHome());
@@ -120,7 +125,9 @@ class TripManagementBloc
       if (_tripRepository!.activeTripEventHandler != null) {
         await _clearTripSubscriptions();
       }
-      await _tripRepository!.loadAndActivateTrip(event.tripMetadata);
+      _apiServicesRepository = await ApiServicesRepositoryImpl.createInstance();
+      await _tripRepository!
+          .loadTrip(event.tripMetadata, _apiServicesRepository!);
       var activeTrip = _tripRepository!.activeTripEventHandler!;
       _subscribeToCollectionUpdatesForTripEntity<TransitFacade>(
           activeTrip.transitsModelCollection, emit);
@@ -130,7 +137,7 @@ class TripManagementBloc
           activeTrip.expenseModelCollection, emit);
       _subscribeToCollectionUpdatesForTripEntity<PlanDataFacade>(
           activeTrip.planDataModelCollection, emit);
-      emit(ActivatedTrip());
+      emit(ActivatedTrip(apiServicesRepository: _apiServicesRepository!));
     }
   }
 

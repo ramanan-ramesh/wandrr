@@ -1,14 +1,16 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wandrr/data/trip/models/api_services/api_service.dart';
+import 'package:wandrr/data/trip/models/api_service.dart';
 
 import 'constants.dart';
 
-abstract class CachedDataService<T> extends ApiService<T> {
+abstract class CachedDataService<TResult>
+    extends ApiService<String, Iterable<TResult>> {
   static const _lastRefreshedAtField = 'lastRefreshedAt';
   static const _typeField = 'type';
   static const _dataUrlField = 'dataUrl';
@@ -18,7 +20,7 @@ abstract class CachedDataService<T> extends ApiService<T> {
 
   String get _dataAtSharedPrefsField => '${apiIdentifier}_data';
 
-  final HashSet<T> _allData = HashSet<T>();
+  final HashSet<TResult> _allData = HashSet<TResult>();
 
   CachedDataService(this.apiIdentifier);
 
@@ -36,19 +38,16 @@ abstract class CachedDataService<T> extends ApiService<T> {
   }
 
   @override
-  Future dispose() async {
-    var sharedPreferences = await SharedPreferences.getInstance();
-    await sharedPreferences.remove(_dataAtSharedPrefsField);
-    await sharedPreferences.remove(_lastRefreshedAtSharedPrefsField);
+  FutureOr<void> dispose() async {
     _allData.clear();
   }
 
-  T fromJsonInDatabase(Map<String, dynamic> jsonInDatabase);
+  TResult fromJsonInDatabase(Map<String, dynamic> jsonInDatabase);
 
-  T fromJsonInCache(Map<String, dynamic> jsonInCache);
+  TResult fromJsonInCache(Map<String, dynamic> jsonInCache);
 
   @override
-  Future<Iterable<T>> queryData(String query) {
+  Future<Iterable<TResult>> queryData(String query) {
     if (query.isEmpty) {
       return Future.value(_allData);
     }
@@ -56,7 +55,7 @@ abstract class CachedDataService<T> extends ApiService<T> {
         _allData.where((item) => shouldConsiderItemInQueryResult(item, query)));
   }
 
-  bool shouldConsiderItemInQueryResult(T item, String query) {
+  bool shouldConsiderItemInQueryResult(TResult item, String query) {
     return item.toString().toLowerCase().contains(query.toLowerCase());
   }
 
@@ -75,7 +74,7 @@ abstract class CachedDataService<T> extends ApiService<T> {
         jsonDecode(sharedPreferences.getString(_dataAtSharedPrefsField)!)
             as List;
     _allData.addAll(dataAtCacheJsonMap.map((entry) {
-      return fromJsonInCache(entry);
+      return fromJsonInCache(entry as Map<String, dynamic>);
     }));
   }
 
@@ -103,10 +102,8 @@ abstract class CachedDataService<T> extends ApiService<T> {
           sharedPreferences.getString(_dataAtSharedPrefsField);
       if (lastRefreshedAtCacheValue != null && dataAtCacheValue != null) {
         return DateTime.parse(lastRefreshedAtCacheValue)
-            .isAfter(lastRefreshedAt);
+            .isBefore(lastRefreshedAt);
       }
-      return lastRefreshedAtCacheValue == null ||
-          DateTime.parse(lastRefreshedAtCacheValue).isBefore(DateTime.now());
     }
     return true;
   }

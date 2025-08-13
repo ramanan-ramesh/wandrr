@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 import 'trip_creator_dialog.dart';
 import 'trips_list_view.dart';

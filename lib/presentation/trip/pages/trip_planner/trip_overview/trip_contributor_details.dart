@@ -7,7 +7,7 @@ import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 import 'add_tripmate_button.dart';
 

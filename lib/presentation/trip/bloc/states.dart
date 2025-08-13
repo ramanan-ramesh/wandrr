@@ -1,5 +1,6 @@
 import 'package:wandrr/data/app/models/collection_change_metadata.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/expense.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
@@ -36,7 +37,11 @@ class LoadedRepository extends TripManagementState {
 
 class NavigateToHome extends TripManagementState {}
 
-class ActivatedTrip extends TripManagementState {}
+class ActivatedTrip extends TripManagementState {
+  final ApiServicesRepository apiServicesRepository;
+
+  ActivatedTrip({required this.apiServicesRepository});
+}
 
 class UpdatedTripEntity<T> extends TripManagementState {
   final CollectionChangeMetadata<T> tripEntityModificationData;

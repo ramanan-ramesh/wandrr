@@ -4,7 +4,7 @@ import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/auto_complete.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/constants.dart';
 
 class PlatformGeoLocationAutoComplete extends StatelessWidget {
@@ -31,7 +31,7 @@ class PlatformGeoLocationAutoComplete extends StatelessWidget {
           onLocationSelected!(location);
         }
       },
-      optionsBuilder: context.tripRepository.geoLocator.queryData,
+      optionsBuilder: context.apiServicesRepository.geoLocator.queryData,
       customPrefix: shouldShowPrefix
           ? FittedBox(
               fit: BoxFit.cover,

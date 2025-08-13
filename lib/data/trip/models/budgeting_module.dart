@@ -19,9 +19,6 @@ abstract class BudgetingModuleFacade {
       List<UiElement<ExpenseFacade>> expenseUiElements,
       ExpenseSortOption expenseSortOption);
 
-  Future<void> tryBalanceExpensesOnContributorsChanged(
-      List<String> contributors);
-
   Stream<double> get totalExpenditureStream;
 
   double get totalExpenditure;
@@ -34,4 +31,7 @@ abstract class BudgetingModuleEventHandler extends BudgetingModuleFacade
       Iterable<LodgingFacade> deletedLodgings = const []});
 
   void updateCurrency(String defaultCurrency);
+
+  Future<void> tryBalanceExpensesOnContributorsChanged(
+      List<String> contributors);
 }

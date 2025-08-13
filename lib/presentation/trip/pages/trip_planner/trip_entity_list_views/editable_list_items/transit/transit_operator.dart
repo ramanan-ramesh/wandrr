@@ -5,7 +5,7 @@ import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/auto_complete.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/airline_data.dart';
-import 'package:wandrr/presentation/trip/trip_repository_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class TransitOperatorEditor extends StatelessWidget {
   final TransitOption transitOption;
@@ -105,7 +105,8 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor> {
               ? (airlineData.airLineName!, airlineData.airLineCode!)
               : null,
       displayTextCreator: (airlineData) => airlineData.$1,
-      optionsBuilder: context.tripRepository.airlinesDataService.queryData,
+      optionsBuilder:
+          context.apiServicesRepository.airlinesDataService.queryData,
       onSelected: (selectedAirlineData) {
         airlineData.airLineName = selectedAirlineData.$1;
         airlineData.airLineCode = selectedAirlineData.$2;
