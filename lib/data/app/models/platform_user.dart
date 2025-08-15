@@ -18,12 +18,12 @@ class PlatformUser {
 
   PlatformUser.fromCache(
       {required this.userName,
-      required String authenticationTypedValue,
+      required String authenticationTypeRawValue,
       this.displayName,
       required this.userID,
       this.photoUrl})
       : isLoggedIn = true,
         authenticationType = AuthenticationType.values.firstWhere((authValue) =>
             authValue.toString() ==
-            'AuthenticationType.$authenticationTypedValue');
+            'AuthenticationType.$authenticationTypeRawValue');
 }

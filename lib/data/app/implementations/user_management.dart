@@ -83,7 +83,7 @@ class UserManagement {
       var userName = localStorage.getString(_userName) as String;
       return PlatformUser.fromCache(
           userName: userName,
-          authenticationTypedValue: authType,
+          authenticationTypeRawValue: authType,
           userID: userID);
     }
 

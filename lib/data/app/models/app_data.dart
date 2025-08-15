@@ -12,8 +12,6 @@ abstract class AppDataFacade {
 
   ThemeMode get activeThemeMode;
 
-  String get defaultCurrency;
-
   bool get isBigLayout;
 
   String get googleWebClientId;

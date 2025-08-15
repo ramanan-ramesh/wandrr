@@ -26,8 +26,6 @@ class AppDataRepository extends AppDataModifier {
 
   final UserManagement _userManagement;
 
-  static AppDataRepository? _singleTonInstance;
-
   @override
   String activeLanguage;
 
@@ -41,9 +39,6 @@ class AppDataRepository extends AppDataModifier {
   bool isBigLayout;
 
   @override
-  String get defaultCurrency => 'INR';
-
-  @override
   final String googleWebClientId;
 
   final SharedPreferences localStorage;
@@ -52,9 +47,6 @@ class AppDataRepository extends AppDataModifier {
   final List<LanguageMetadata> languageMetadatas;
 
   static Future<AppDataModifier> create() async {
-    if (_singleTonInstance != null) {
-      return _singleTonInstance!;
-    }
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
@@ -75,13 +67,12 @@ class AppDataRepository extends AppDataModifier {
             .firstWhere((element) => element.name == themeModeValue))
         : ThemeMode.dark;
 
-    _singleTonInstance = AppDataRepository._(
+    return AppDataRepository._(
         userManagement: userManagement,
         initialLanguage: language,
         initialThemeMode: themeMode,
         googleWebClientId: googleWebClientId,
         localStorage: localStorage);
-    return _singleTonInstance!;
   }
 
   @override
