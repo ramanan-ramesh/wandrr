@@ -76,7 +76,7 @@ class AuthenticationBloc
     }
 
     GoogleSignIn googleSignIn;
-    if(Platform.isIOS || Platform.isMacOS) {
+    if (Platform.isIOS || Platform.isMacOS) {
       googleSignIn = GoogleSignIn();
     } else {
       googleSignIn = GoogleSignIn(clientId: googleWebClientId);

@@ -13,7 +13,3 @@ abstract interface class LeafRepositoryItem<T> {
 
   T get facade;
 }
-
-abstract interface class Dispose {
-  Future dispose();
-}

@@ -44,7 +44,7 @@ ThemeData createLightThemeData(BuildContext context) {
       color: Colors.teal.shade500,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(
-          Radius.circular(Constants.cardBorderRadius),
+          Radius.circular(ThemeConstants.cardBorderRadius),
         ),
       ),
     ),
@@ -68,7 +68,7 @@ ThemeData createLightThemeData(BuildContext context) {
     ),
     tabBarTheme: TabBarThemeData(
       indicator: BoxDecoration(
-        borderRadius: BorderRadius.circular(Constants.tabIndicatorRadius),
+        borderRadius: BorderRadius.circular(ThemeConstants.tabIndicatorRadius),
         border: Border.all(color: Colors.black),
       ),
       indicatorSize: TabBarIndicatorSize.tab,
@@ -101,7 +101,7 @@ ThemeData createLightThemeData(BuildContext context) {
       ),
       border: const OutlineInputBorder(
         borderRadius:
-            BorderRadius.all(Radius.circular(Constants.cardBorderRadius)),
+            BorderRadius.all(Radius.circular(ThemeConstants.cardBorderRadius)),
         borderSide: BorderSide(color: Colors.black),
       ),
       focusedBorder: const OutlineInputBorder(

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:wandrr/data/app/models/dispose.dart';
+
 import 'collection_change_set.dart';
 import 'collection_item_change_metadata.dart';
 import 'leaf_repository_item.dart';

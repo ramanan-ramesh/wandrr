@@ -3,7 +3,7 @@ import 'dart:collection';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/itinerary.dart';

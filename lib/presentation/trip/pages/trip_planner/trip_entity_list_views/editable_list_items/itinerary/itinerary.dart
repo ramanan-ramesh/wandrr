@@ -14,9 +14,8 @@ import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/itinerary/stay_and_transits.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/plan_data/plan_data.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
-
-import '../plan_data/plan_data.dart';
 
 class ItineraryListItem extends StatefulWidget {
   final ItineraryFacade itineraryFacade;
