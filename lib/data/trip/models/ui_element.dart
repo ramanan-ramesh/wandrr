@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
-import 'data_states.dart';
+import '../../app/models/data_states.dart';
 
 class UiElement<K> extends Equatable {
   K element;

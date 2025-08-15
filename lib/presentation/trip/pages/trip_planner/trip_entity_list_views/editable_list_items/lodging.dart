@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/ui_element.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/base_list_items/lodging_card_base.dart';

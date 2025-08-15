@@ -1,5 +1,5 @@
 import 'package:wandrr/data/app/models/leaf_repository_item.dart';
-import 'package:wandrr/data/app/models/ui_element.dart';
+import 'package:wandrr/data/trip/models/ui_element.dart';
 
 import 'debt_data.dart';
 import 'expense.dart';
