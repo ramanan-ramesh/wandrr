@@ -1,14 +1,13 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wandrr/data/app/models/collection_change_metadata.dart';
-import 'package:wandrr/data/app/models/collection_change_set.dart';
-import 'package:wandrr/data/app/models/collection_model_facade.dart';
-import 'package:wandrr/data/app/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/collection_change_set.dart';
+import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
+import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/model_collection.dart';
 
-class CollectionModelImplementation<Model>
-    implements CollectionModelFacade<Model> {
-  static Future<CollectionModelImplementation<Model>> createInstance<Model>(
+class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
+  static Future<FirestoreModelCollection<Model>> createInstance<Model>(
       CollectionReference collectionReference,
       LeafRepositoryItem<Model> Function(DocumentSnapshot documentSnapshot)
           fromDocumentSnapshot,
@@ -20,7 +19,7 @@ class CollectionModelImplementation<Model>
       var item = fromDocumentSnapshot(documentSnapshot);
       collectionItems.add(item);
     }
-    var modelCollection = CollectionModelImplementation<Model>._sync(
+    var modelCollection = FirestoreModelCollection<Model>._sync(
         collectionReference: collectionReference,
         fromDocumentSnapshot: fromDocumentSnapshot,
         leafRepositoryItemCreator: (x) => leafRepositoryItemCreator(x),
@@ -29,21 +28,20 @@ class CollectionModelImplementation<Model>
     return modelCollection;
   }
 
-  static Future<CollectionModelImplementation<Model>>
-      createInstanceAsync<Model>(
-          CollectionReference collectionReference,
-          Future<LeafRepositoryItem<Model>> Function(
-                  DocumentSnapshot documentSnapshot)
-              fromDocumentSnapshot,
-          LeafRepositoryItem<Model> Function(Model) repositoryPatternCreator,
-          {Query? query}) async {
+  static Future<FirestoreModelCollection<Model>> createInstanceAsync<Model>(
+      CollectionReference collectionReference,
+      Future<LeafRepositoryItem<Model>> Function(
+              DocumentSnapshot documentSnapshot)
+          fromDocumentSnapshot,
+      LeafRepositoryItem<Model> Function(Model) repositoryPatternCreator,
+      {Query? query}) async {
     var collectionItems = <LeafRepositoryItem<Model>>[];
     var queryResult = await (query ?? collectionReference).get();
     for (var documentSnapshot in queryResult.docs) {
       var item = await fromDocumentSnapshot(documentSnapshot);
       collectionItems.add(item);
     }
-    var modelCollection = CollectionModelImplementation<Model>._async(
+    var modelCollection = FirestoreModelCollection<Model>._async(
         collectionReference: collectionReference,
         fromDocumentSnapshot: fromDocumentSnapshot,
         leafRepositoryItemCreator: (x) => repositoryPatternCreator(x),
@@ -74,29 +72,31 @@ class CollectionModelImplementation<Model>
   }
 
   @override
-  Stream<CollectionChangeMetadata<LeafRepositoryItem<Model>>>
+  Stream<CollectionItemChangeMetadata<LeafRepositoryItem<Model>>>
       get onDocumentAdded => _additionStreamController.stream;
-  final StreamController<CollectionChangeMetadata<LeafRepositoryItem<Model>>>
+  final StreamController<
+          CollectionItemChangeMetadata<LeafRepositoryItem<Model>>>
       _additionStreamController = StreamController<
-          CollectionChangeMetadata<LeafRepositoryItem<Model>>>.broadcast();
+          CollectionItemChangeMetadata<LeafRepositoryItem<Model>>>.broadcast();
 
   @override
-  Stream<CollectionChangeMetadata<LeafRepositoryItem<Model>>>
+  Stream<CollectionItemChangeMetadata<LeafRepositoryItem<Model>>>
       get onDocumentDeleted => _deletionStreamController.stream;
-  final StreamController<CollectionChangeMetadata<LeafRepositoryItem<Model>>>
+  final StreamController<
+          CollectionItemChangeMetadata<LeafRepositoryItem<Model>>>
       _deletionStreamController = StreamController<
-          CollectionChangeMetadata<LeafRepositoryItem<Model>>>.broadcast();
+          CollectionItemChangeMetadata<LeafRepositoryItem<Model>>>.broadcast();
 
   @override
   Stream<
-          CollectionChangeMetadata<
+          CollectionItemChangeMetadata<
               CollectionChangeSet<LeafRepositoryItem<Model>>>>
       get onDocumentUpdated => _updationStreamController.stream;
   final StreamController<
-          CollectionChangeMetadata<
+          CollectionItemChangeMetadata<
               CollectionChangeSet<LeafRepositoryItem<Model>>>>
       _updationStreamController = StreamController<
-          CollectionChangeMetadata<
+          CollectionItemChangeMetadata<
               CollectionChangeSet<LeafRepositoryItem<Model>>>>.broadcast();
 
   @override
@@ -127,7 +127,7 @@ class CollectionModelImplementation<Model>
       addedCollectionItem = createdEntity;
       _collectionItems.add(createdEntity);
       _additionStreamController
-          .add(CollectionChangeMetadata(createdEntity, true));
+          .add(CollectionItemChangeMetadata(createdEntity, true));
     });
 
     return addedCollectionItem;
@@ -141,7 +141,7 @@ class CollectionModelImplementation<Model>
       didDelete = await _tryDeleteCollectionItem(repositoryPattern);
       if (didDelete) {
         _deletionStreamController
-            .add(CollectionChangeMetadata(repositoryPattern, true));
+            .add(CollectionItemChangeMetadata(repositoryPattern, true));
       }
     });
     return didDelete;
@@ -203,7 +203,7 @@ class CollectionModelImplementation<Model>
                 repositoryPattern.documentReference.id)) {
               _collectionItems.add(repositoryPattern);
               _additionStreamController
-                  .add(CollectionChangeMetadata(repositoryPattern, false));
+                  .add(CollectionItemChangeMetadata(repositoryPattern, false));
             }
 
             break;
@@ -213,7 +213,7 @@ class CollectionModelImplementation<Model>
             _collectionItems.removeWhere((element) =>
                 element.documentReference.id == documentSnapshot.id);
             _deletionStreamController
-                .add(CollectionChangeMetadata(repositoryPattern, false));
+                .add(CollectionItemChangeMetadata(repositoryPattern, false));
             break;
           }
         case DocumentChangeType.modified:
@@ -223,7 +223,7 @@ class CollectionModelImplementation<Model>
             var collectionItemBeforeUpdate =
                 _collectionItems[matchingElementIndex];
             _collectionItems[matchingElementIndex] = repositoryPattern;
-            _updationStreamController.add(CollectionChangeMetadata(
+            _updationStreamController.add(CollectionItemChangeMetadata(
                 CollectionChangeSet(
                     collectionItemBeforeUpdate, repositoryPattern),
                 false));
@@ -250,7 +250,7 @@ class CollectionModelImplementation<Model>
                 repositoryPattern.documentReference.id)) {
               _collectionItems.add(repositoryPattern);
               _additionStreamController
-                  .add(CollectionChangeMetadata(repositoryPattern, false));
+                  .add(CollectionItemChangeMetadata(repositoryPattern, false));
             }
             break;
           }
@@ -259,7 +259,7 @@ class CollectionModelImplementation<Model>
             _collectionItems.removeWhere((element) =>
                 element.documentReference.id == documentSnapshot.id);
             _deletionStreamController
-                .add(CollectionChangeMetadata(repositoryPattern, false));
+                .add(CollectionItemChangeMetadata(repositoryPattern, false));
             break;
           }
         case DocumentChangeType.modified:
@@ -269,7 +269,7 @@ class CollectionModelImplementation<Model>
             var collectionItemBeforeUpdate =
                 _collectionItems[matchingElementIndex];
             _collectionItems[matchingElementIndex] = repositoryPattern;
-            _updationStreamController.add(CollectionChangeMetadata(
+            _updationStreamController.add(CollectionItemChangeMetadata(
                 CollectionChangeSet(
                     collectionItemBeforeUpdate, repositoryPattern),
                 false));
@@ -289,7 +289,7 @@ class CollectionModelImplementation<Model>
     return didDelete;
   }
 
-  CollectionModelImplementation._sync(
+  FirestoreModelCollection._sync(
       {required this.leafRepositoryItemCreator,
       required CollectionReference collectionReference,
       required this.fromDocumentSnapshot,
@@ -307,7 +307,7 @@ class CollectionModelImplementation<Model>
     _collectionStreamSubscription = streamSubscription;
   }
 
-  CollectionModelImplementation._async(
+  FirestoreModelCollection._async(
       {required this.leafRepositoryItemCreator,
       required CollectionReference collectionReference,
       required this.fromDocumentSnapshot,

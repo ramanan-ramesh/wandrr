@@ -82,7 +82,8 @@ class _PlanDataListViewState extends State<PlanDataListView> {
     if (state.isTripEntityUpdated<PlanDataFacade>()) {
       var updatedTripEntityState = state as UpdatedTripEntity;
       var updatedTripEntityDataState = updatedTripEntityState.dataState;
-      if (updatedTripEntityState.tripEntityModificationData.isFromEvent) {
+      if (updatedTripEntityState
+          .tripEntityModificationData.isFromExplicitAction) {
         switch (updatedTripEntityDataState) {
           case DataState.create:
             {

@@ -279,7 +279,7 @@ class BudgetingHeaderTile extends StatelessWidget {
           if (expenseUpdatedState.dataState == DataState.newUiEntry) {
             isEnabled = false;
           } else if (expenseUpdatedState.dataState == DataState.create &&
-              tripEntityModificationData.isFromEvent) {
+              tripEntityModificationData.isFromExplicitAction) {
             isEnabled = true;
           } else if (expenseUpdatedState.dataState == DataState.delete &&
                   modifiedCollectionItem.id == null ||

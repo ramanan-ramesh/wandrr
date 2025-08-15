@@ -92,7 +92,7 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
                     .tripEntityModificationData.modifiedCollectionItem));
           }
           if (tripMetadataUpdatedState.dataState == DataState.delete) {
-            if (state.tripEntityModificationData.isFromEvent) {
+            if (state.tripEntityModificationData.isFromExplicitAction) {
               context.addTripManagementEvent(GoToHome());
             }
           }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/data/app/models/collection_change_metadata.dart';
+import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
@@ -179,7 +179,7 @@ class _OverviewTile extends StatelessWidget {
           var updatedTripEntity = currentState as UpdatedTripEntity;
           var tripMetadataModificationData =
               updatedTripEntity.tripEntityModificationData
-                  as CollectionChangeMetadata<TripMetadataFacade>;
+                  as CollectionItemChangeMetadata<TripMetadataFacade>;
           if (tripMetadataModificationData.modifiedCollectionItem.name !=
               activeTripTitle) {
             activeTripTitle =

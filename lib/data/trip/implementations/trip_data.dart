@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/implementations/collection_model_implementation.dart';
-import 'package:wandrr/data/app/models/collection_model_facade.dart';
-import 'package:wandrr/data/app/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/implementations/firestore_model_collection.dart';
+import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/budgeting_module.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/itinerary_model_collection.dart';
@@ -34,10 +34,10 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
 
   TripDataModelImplementation(
       TripMetadataModelImplementation tripMetadata,
-      CollectionModelImplementation<TransitFacade> transitModelCollection,
-      CollectionModelImplementation<LodgingFacade> lodgingModelCollection,
-      CollectionModelImplementation<ExpenseFacade> expenseModelCollection,
-      CollectionModelImplementation<PlanDataFacade> planDataModelCollection,
+      FirestoreModelCollection<TransitFacade> transitModelCollection,
+      FirestoreModelCollection<LodgingFacade> lodgingModelCollection,
+      FirestoreModelCollection<ExpenseFacade> expenseModelCollection,
+      FirestoreModelCollection<PlanDataFacade> planDataModelCollection,
       ItineraryModelCollection itineraryModelCollection,
       this.currencyConverter,
       BudgetingModuleEventHandler budgetingModuleEventHandler,
@@ -59,19 +59,19 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
           .map((facade) => facade.clone()));
 
   @override
-  CollectionModelFacade<TransitFacade> get transitsModelCollection =>
+  ModelCollectionFacade<TransitFacade> get transitsModelCollection =>
       _transitModelCollection;
-  final CollectionModelImplementation<TransitFacade> _transitModelCollection;
+  final FirestoreModelCollection<TransitFacade> _transitModelCollection;
 
   @override
-  CollectionModelFacade<LodgingFacade> get lodgingModelCollection =>
+  ModelCollectionFacade<LodgingFacade> get lodgingModelCollection =>
       _lodgingModelCollection;
-  final CollectionModelImplementation<LodgingFacade> _lodgingModelCollection;
+  final FirestoreModelCollection<LodgingFacade> _lodgingModelCollection;
 
   @override
-  CollectionModelFacade<ExpenseFacade> get expenseModelCollection =>
+  ModelCollectionFacade<ExpenseFacade> get expenseModelCollection =>
       _expenseModelCollection;
-  final CollectionModelImplementation<ExpenseFacade> _expenseModelCollection;
+  final FirestoreModelCollection<ExpenseFacade> _expenseModelCollection;
 
   @override
   List<ExpenseFacade> get expenses =>
@@ -92,9 +92,9 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
           .map((facade) => facade.clone()));
 
   @override
-  CollectionModelFacade<PlanDataFacade> get planDataModelCollection =>
+  ModelCollectionFacade<PlanDataFacade> get planDataModelCollection =>
       _planDataModelCollection;
-  final CollectionModelFacade<PlanDataFacade> _planDataModelCollection;
+  final ModelCollectionFacade<PlanDataFacade> _planDataModelCollection;
 
   @override
   ItineraryFacadeCollection get itineraryModelCollection =>
@@ -134,46 +134,34 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         .collection(FirestoreCollections.tripCollectionName)
         .doc(tripMetadata.id);
 
-    var transitModelCollection =
-        await CollectionModelImplementation.createInstance(
-            tripDocumentReference.collection(
-                FirestoreCollections.transitCollectionName),
-            (documentSnapshot) =>
-                TransitImplementation.fromDocumentSnapshot(
-                    tripMetadata.id!, documentSnapshot),
-            (transitModelFacade) => TransitImplementation.fromModelFacade(
-                transitModelFacade: transitModelFacade));
-    var lodgingModelCollection =
-        await CollectionModelImplementation.createInstance(
-            tripDocumentReference.collection(
-                FirestoreCollections.lodgingCollectionName),
-            (documentSnapshot) =>
-                LodgingModelImplementation.fromDocumentSnapshot(
-                    tripId: tripMetadata.id!,
-                    documentSnapshot: documentSnapshot),
-            (lodgingModelFacade) => LodgingModelImplementation.fromModelFacade(
-                lodgingModelFacade: lodgingModelFacade));
-    var expenseModelCollection =
-        await CollectionModelImplementation.createInstance(
-            tripDocumentReference.collection(
-                FirestoreCollections.expenseCollectionName),
-            (documentSnapshot) =>
-                ExpenseModelImplementation.fromDocumentSnapshot(
-                    tripId: tripMetadata.id!,
-                    documentSnapshot: documentSnapshot),
-            (expenseModelFacade) => ExpenseModelImplementation.fromModelFacade(
-                expenseModelFacade: expenseModelFacade));
-    var planDataModelCollection =
-        await CollectionModelImplementation.createInstance(
-            tripDocumentReference
-                .collection(FirestoreCollections.planDataCollectionName),
-            (documentSnapshot) =>
-                PlanDataModelImplementation.fromDocumentSnapshot(
-                    tripId: tripMetadata.id!,
-                    documentSnapshot: documentSnapshot),
-            (planDataModelFacade) =>
-                PlanDataModelImplementation.fromModelFacade(
-                    planDataFacade: planDataModelFacade));
+    var transitModelCollection = await FirestoreModelCollection.createInstance(
+        tripDocumentReference
+            .collection(FirestoreCollections.transitCollectionName),
+        (documentSnapshot) => TransitImplementation.fromDocumentSnapshot(
+            tripMetadata.id!, documentSnapshot),
+        (transitModelFacade) => TransitImplementation.fromModelFacade(
+            transitModelFacade: transitModelFacade));
+    var lodgingModelCollection = await FirestoreModelCollection.createInstance(
+        tripDocumentReference
+            .collection(FirestoreCollections.lodgingCollectionName),
+        (documentSnapshot) => LodgingModelImplementation.fromDocumentSnapshot(
+            tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
+        (lodgingModelFacade) => LodgingModelImplementation.fromModelFacade(
+            lodgingModelFacade: lodgingModelFacade));
+    var expenseModelCollection = await FirestoreModelCollection.createInstance(
+        tripDocumentReference
+            .collection(FirestoreCollections.expenseCollectionName),
+        (documentSnapshot) => ExpenseModelImplementation.fromDocumentSnapshot(
+            tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
+        (expenseModelFacade) => ExpenseModelImplementation.fromModelFacade(
+            expenseModelFacade: expenseModelFacade));
+    var planDataModelCollection = await FirestoreModelCollection.createInstance(
+        tripDocumentReference
+            .collection(FirestoreCollections.planDataCollectionName),
+        (documentSnapshot) => PlanDataModelImplementation.fromDocumentSnapshot(
+            tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
+        (planDataModelFacade) => PlanDataModelImplementation.fromModelFacade(
+            planDataFacade: planDataModelFacade));
 
     var itineraries =
         await ItineraryModelCollection.createItineraryModelCollection(
@@ -286,7 +274,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
 
   Iterable<T> _updateTripEntityListOnDatesChanged<T>(
       Set<DateTime> removedDates,
-      CollectionModelImplementation<T> modelCollection,
+      FirestoreModelCollection<T> modelCollection,
       bool Function(DateTime, T) itemsFilter,
       WriteBatch writeBatch) sync* {
     var updatedItems = <T>[];

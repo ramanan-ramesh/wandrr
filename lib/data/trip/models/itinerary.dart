@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-import 'package:wandrr/data/app/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/models/plan_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 

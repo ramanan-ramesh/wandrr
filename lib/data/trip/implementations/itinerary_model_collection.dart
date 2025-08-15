@@ -3,8 +3,8 @@ import 'dart:collection';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:wandrr/data/app/models/collection_model_facade.dart';
-import 'package:wandrr/data/app/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/itinerary.dart';
 import 'package:wandrr/data/trip/implementations/plan_data_model_implementation.dart';
@@ -17,8 +17,8 @@ import 'package:wandrr/presentation/app/extensions.dart';
 class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
     implements Dispose {
   final _subscriptions = <StreamSubscription>[];
-  final CollectionModelFacade<TransitFacade> _transitModelCollection;
-  final CollectionModelFacade<LodgingFacade> _lodgingModelCollection;
+  final ModelCollectionFacade<TransitFacade> _transitModelCollection;
+  final ModelCollectionFacade<LodgingFacade> _lodgingModelCollection;
   final List<ItineraryModelImplementation> _allItineraries;
 
   static final _dateFormat = DateFormat('ddMMyyyy');
@@ -28,8 +28,8 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
   final String tripId;
 
   ItineraryModelCollection(
-      CollectionModelFacade<TransitFacade> transitModelCollection,
-      CollectionModelFacade<LodgingFacade> lodgingModelCollection,
+      ModelCollectionFacade<TransitFacade> transitModelCollection,
+      ModelCollectionFacade<LodgingFacade> lodgingModelCollection,
       DateTime startDate,
       DateTime endDate,
       this.tripId,
@@ -75,8 +75,8 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
   }
 
   static Future<ItineraryModelCollection> createItineraryModelCollection(
-      CollectionModelFacade<TransitFacade> transitModelCollection,
-      CollectionModelFacade<LodgingFacade> lodgingModelCollection,
+      ModelCollectionFacade<TransitFacade> transitModelCollection,
+      ModelCollectionFacade<LodgingFacade> lodgingModelCollection,
       TripMetadataFacade tripMetadataFacade) async {
     var itineraries = await _createItineraryList(
         tripMetadataFacade, transitModelCollection, lodgingModelCollection);
@@ -92,8 +92,8 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
 
   static Future<List<ItineraryModelImplementation>> _createItineraryList(
       TripMetadataFacade tripMetadataFacade,
-      CollectionModelFacade<TransitFacade> transitModelCollection,
-      CollectionModelFacade<LodgingFacade> lodgingModelCollection) async {
+      ModelCollectionFacade<TransitFacade> transitModelCollection,
+      ModelCollectionFacade<LodgingFacade> lodgingModelCollection) async {
     var startDateFromFacade = tripMetadataFacade.startDate!;
     var endDateFromFacade = tripMetadataFacade.endDate!;
     var numberOfDaysOfTrip = startDateFromFacade

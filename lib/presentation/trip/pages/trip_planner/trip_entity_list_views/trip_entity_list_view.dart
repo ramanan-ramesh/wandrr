@@ -336,7 +336,8 @@ class _TripEntityListViewState<T extends TripEntity>
     if (state.isTripEntityUpdated<T>()) {
       var updatedTripEntityState = state as UpdatedTripEntity;
       var updatedTripEntityDataState = updatedTripEntityState.dataState;
-      if (updatedTripEntityState.tripEntityModificationData.isFromEvent) {
+      if (updatedTripEntityState
+          .tripEntityModificationData.isFromExplicitAction) {
         switch (updatedTripEntityDataState) {
           case DataState.create:
             {

@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wandrr/data/app/models/collection_model_facade.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/budgeting_module.dart';
 import 'package:wandrr/data/trip/models/debt_data.dart';
@@ -15,9 +15,9 @@ import 'package:wandrr/data/trip/models/ui_element.dart';
 import 'package:wandrr/presentation/app/extensions.dart';
 
 class BudgetingModule implements BudgetingModuleEventHandler {
-  final CollectionModelFacade<TransitFacade> _transitModelCollection;
-  final CollectionModelFacade<LodgingFacade> _lodgingModelCollection;
-  final CollectionModelFacade<ExpenseFacade> _expenseModelCollection;
+  final ModelCollectionFacade<TransitFacade> _transitModelCollection;
+  final ModelCollectionFacade<LodgingFacade> _lodgingModelCollection;
+  final ModelCollectionFacade<ExpenseFacade> _expenseModelCollection;
   final ApiService<(Money, String), double?> currencyConverter;
   String defaultCurrency;
   final String currentUserName;
@@ -26,9 +26,9 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   final _subscriptions = <StreamSubscription>[];
 
   static Future<BudgetingModuleEventHandler> createInstance(
-      CollectionModelFacade<TransitFacade> transitModelCollection,
-      CollectionModelFacade<LodgingFacade> lodgingModelCollection,
-      CollectionModelFacade<ExpenseFacade> expenseModelCollection,
+      ModelCollectionFacade<TransitFacade> transitModelCollection,
+      ModelCollectionFacade<LodgingFacade> lodgingModelCollection,
+      ModelCollectionFacade<ExpenseFacade> expenseModelCollection,
       ApiService<(Money, String), double?> currencyConverter,
       String defaultCurrency,
       Iterable<String> contributors,
@@ -263,11 +263,11 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   }
 
   static Future<double> _calculateTotalExpenseAmount(
-      CollectionModelFacade<TransitFacade> transitModelCollection,
+      ModelCollectionFacade<TransitFacade> transitModelCollection,
       ApiService<(Money, String), double?> currencyConverter,
       String defaultCurrency,
-      CollectionModelFacade<LodgingFacade> lodgingModelCollection,
-      CollectionModelFacade<ExpenseFacade> expenseModelCollection,
+      ModelCollectionFacade<LodgingFacade> lodgingModelCollection,
+      ModelCollectionFacade<ExpenseFacade> expenseModelCollection,
       String currentUserName,
       {Iterable<TransitFacade> transitsToExclude = const [],
       Iterable<LodgingFacade> lodgingsToExclude = const []}) async {
@@ -425,7 +425,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   }
 
   void _recalculateExpensesOnContributorsChanged<T>(
-      CollectionModelFacade<T> modelCollection,
+      ModelCollectionFacade<T> modelCollection,
       Iterable<String> contributors,
       WriteBatch writeBatch,
       {bool isLinkedExpense = false}) async {

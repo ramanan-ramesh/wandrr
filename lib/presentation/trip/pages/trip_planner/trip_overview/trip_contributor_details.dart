@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/data/app/models/collection_change_metadata.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
@@ -53,7 +53,7 @@ class ContributorDetails extends StatelessWidget {
       if (updatedTripEntity.dataState == DataState.update) {
         var tripMetadataModificationData =
             updatedTripEntity.tripEntityModificationData
-                as CollectionChangeMetadata<TripMetadataFacade>;
+                as CollectionItemChangeMetadata<TripMetadataFacade>;
         var latestContributors =
             tripMetadataModificationData.modifiedCollectionItem.contributors;
         if (!listEquals(latestContributors, contributors)) {

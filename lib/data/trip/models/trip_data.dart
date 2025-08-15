@@ -1,5 +1,5 @@
-import 'package:wandrr/data/app/models/collection_model_facade.dart';
-import 'package:wandrr/data/app/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/itinerary.dart';
 import 'package:wandrr/data/trip/models/plan_data.dart';
 
@@ -38,11 +38,11 @@ abstract class TripDataModelEventHandler extends TripDataFacade
 
   LeafRepositoryItem<TripMetadataFacade> get tripMetadataModelEventHandler;
 
-  CollectionModelFacade<TransitFacade> get transitsModelCollection;
+  ModelCollectionFacade<TransitFacade> get transitsModelCollection;
 
-  CollectionModelFacade<LodgingFacade> get lodgingModelCollection;
+  ModelCollectionFacade<LodgingFacade> get lodgingModelCollection;
 
-  CollectionModelFacade<ExpenseFacade> get expenseModelCollection;
+  ModelCollectionFacade<ExpenseFacade> get expenseModelCollection;
 
-  CollectionModelFacade<PlanDataFacade> get planDataModelCollection;
+  ModelCollectionFacade<PlanDataFacade> get planDataModelCollection;
 }

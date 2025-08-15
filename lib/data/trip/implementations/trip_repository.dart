@@ -3,8 +3,8 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
-import 'package:wandrr/data/app/implementations/collection_model_implementation.dart';
-import 'package:wandrr/data/app/models/collection_model_facade.dart';
+import 'package:wandrr/data/store/implementations/firestore_model_collection.dart';
+import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
@@ -32,9 +32,9 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
           .map<TripMetadataFacade>((facade) => facade.clone()));
 
   @override
-  CollectionModelFacade<TripMetadataFacade> get tripMetadataModelCollection =>
+  ModelCollectionFacade<TripMetadataFacade> get tripMetadataModelCollection =>
       _tripMetadataModelCollection;
-  final CollectionModelFacade<TripMetadataFacade> _tripMetadataModelCollection;
+  final ModelCollectionFacade<TripMetadataFacade> _tripMetadataModelCollection;
 
   @override
   TripDataFacade? get activeTrip => _activeTrip;
@@ -52,7 +52,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
         .collection(FirestoreCollections.tripMetadataCollectionName);
 
     var tripMetadataModelCollection =
-        await CollectionModelImplementation.createInstance(
+        await FirestoreModelCollection.createInstance(
             tripsCollectionReference,
             (snapshot) =>
                 TripMetadataModelImplementation.fromDocumentSnapshot(snapshot),
