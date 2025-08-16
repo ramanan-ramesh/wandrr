@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/trip/implementations/budgeting/expense.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
-import 'package:wandrr/data/trip/implementations/expense.dart';
 import 'package:wandrr/data/trip/implementations/firestore_helpers.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/transit.dart';

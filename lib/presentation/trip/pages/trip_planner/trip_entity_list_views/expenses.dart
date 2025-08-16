@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/trip/models/expense.dart';
-import 'package:wandrr/data/trip/models/expense_sort_options.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_sort_options.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/ui_element.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
+import 'package:wandrr/presentation/app/bloc/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';

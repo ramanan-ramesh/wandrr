@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/money.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
+import 'package:wandrr/presentation/app/bloc/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';

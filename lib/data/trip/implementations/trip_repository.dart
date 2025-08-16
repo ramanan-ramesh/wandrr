@@ -8,7 +8,7 @@ import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
-import 'package:wandrr/data/trip/models/currency_data.dart';
+import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/note.dart';
+import 'package:wandrr/data/trip/models/plan_data/note.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 
 class NotesListView extends StatefulWidget {

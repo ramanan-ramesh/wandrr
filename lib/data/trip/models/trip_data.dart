@@ -2,10 +2,10 @@ import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/itinerary.dart';
-import 'package:wandrr/data/trip/models/plan_data.dart';
+import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 
-import 'budgeting_module.dart';
-import 'expense.dart';
+import 'budgeting/budgeting_module.dart';
+import 'budgeting/expense.dart';
 import 'lodging.dart';
 import 'transit.dart';
 import 'transit_option_metadata.dart';

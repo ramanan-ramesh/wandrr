@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
-import 'package:wandrr/data/trip/models/check_list.dart';
-import 'package:wandrr/data/trip/models/check_list_item.dart';
+import 'package:wandrr/data/trip/models/plan_data/check_list.dart';
+import 'package:wandrr/data/trip/models/plan_data/check_list_item.dart';
 
 class CheckListModelImplementation extends CheckListFacade
     implements LeafRepositoryItem<CheckListFacade> {

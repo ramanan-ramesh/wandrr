@@ -4,9 +4,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:rive/rive.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
+import 'package:wandrr/data/auth/models/status.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
-import 'package:wandrr/presentation/app/blocs/master_page/master_page_bloc.dart';
-import 'package:wandrr/presentation/app/blocs/master_page/master_page_states.dart';
+import 'package:wandrr/presentation/app/bloc/master_page_bloc.dart';
+import 'package:wandrr/presentation/app/bloc/master_page_states.dart';
 import 'package:wandrr/presentation/app/pages/startup_page.dart';
 import 'package:wandrr/presentation/app/theming/dark_theme_data.dart';
 import 'package:wandrr/presentation/app/theming/light_theme_data.dart';
@@ -19,19 +20,19 @@ class MasterPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<MasterPageBloc>(
       create: (context) => MasterPageBloc(),
-      child: const _MasterContentPageRouter(),
+      child: const _ContentPageRouter(),
     );
   }
 }
 
-class _MasterContentPageRouter extends StatefulWidget {
-  const _MasterContentPageRouter();
+class _ContentPageRouter extends StatefulWidget {
+  const _ContentPageRouter();
 
   @override
-  State<_MasterContentPageRouter> createState() => _MasterContentPageLoader();
+  State<_ContentPageRouter> createState() => _MasterContentPageLoader();
 }
 
-class _MasterContentPageLoader extends State<_MasterContentPageRouter> {
+class _MasterContentPageLoader extends State<_ContentPageRouter> {
   var _hasMinimumWalkAnimationTimePassed = false;
   static const _minimumWalkAnimationTime = Duration(seconds: 2);
 
@@ -141,7 +142,9 @@ class _ContentPage extends StatelessWidget {
       buildWhen: (previousState, currentState) {
         return currentState is ActiveLanguageChanged ||
             currentState is ActiveThemeModeChanged ||
-            currentState is ActiveUserChanged;
+            (currentState is AuthStateChanged &&
+                (currentState.authStatus == AuthStatus.loggedIn ||
+                    currentState.authStatus == AuthStatus.loggedOut));
       },
       listener: (BuildContext context, MasterPageState state) {},
     );

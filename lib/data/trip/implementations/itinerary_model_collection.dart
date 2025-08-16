@@ -7,12 +7,12 @@ import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/itinerary.dart';
-import 'package:wandrr/data/trip/implementations/plan_data_model_implementation.dart';
+import 'package:wandrr/data/trip/implementations/plan_data/plan_data_model_implementation.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 
 class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
     implements Dispose {

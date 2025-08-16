@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
+import 'package:wandrr/presentation/app/bloc/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 
 import 'constants.dart';

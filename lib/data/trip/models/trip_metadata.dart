@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 
-import 'money.dart';
+import 'budgeting/money.dart';
 
 class TripMetadataFacade extends Equatable implements TripEntity {
   @override

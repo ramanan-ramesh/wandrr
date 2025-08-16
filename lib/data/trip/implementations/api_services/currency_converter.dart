@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:wandrr/data/trip/models/api_service.dart';
-import 'package:wandrr/data/trip/models/money.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
 
 class CurrencyConverter implements ApiService<(Money, String), double?> {
   static const _apiSurfaceUrl =

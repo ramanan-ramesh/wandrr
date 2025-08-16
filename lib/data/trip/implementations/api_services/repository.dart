@@ -4,8 +4,8 @@ import 'package:wandrr/data/trip/implementations/api_services/currency_converter
 import 'package:wandrr/data/trip/implementations/api_services/geo_locator.dart';
 import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
-import 'package:wandrr/data/trip/models/money.dart';
 
 import 'airlines_data.dart';
 import 'airports_data.dart';

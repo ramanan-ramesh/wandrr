@@ -5,7 +5,7 @@ import 'package:wandrr/data/trip/implementations/firestore_helpers.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 
-import 'expense.dart';
+import 'budgeting/expense.dart';
 
 class LodgingModelImplementation extends LodgingFacade
     implements LeafRepositoryItem<LodgingFacade> {

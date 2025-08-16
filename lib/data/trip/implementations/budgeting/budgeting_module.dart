@@ -4,15 +4,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/api_service.dart';
-import 'package:wandrr/data/trip/models/budgeting_module.dart';
-import 'package:wandrr/data/trip/models/debt_data.dart';
-import 'package:wandrr/data/trip/models/expense.dart';
-import 'package:wandrr/data/trip/models/expense_sort_options.dart';
+import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
+import 'package:wandrr/data/trip/models/budgeting/debt_data.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_sort_options.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/money.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/ui_element.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 
 class BudgetingModule implements BudgetingModuleEventHandler {
   final ModelCollectionFacade<TransitFacade> _transitModelCollection;

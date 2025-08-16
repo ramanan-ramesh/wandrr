@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/language_metadata.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
-import 'package:wandrr/presentation/app/blocs/master_page/master_page_events.dart';
+import 'package:wandrr/presentation/app/bloc/bloc_extensions.dart';
+import 'package:wandrr/presentation/app/bloc/master_page_events.dart';
 
+//TODO: Refactor this class and analyze the behaviour. Keep a timer in this class after submitting, so that it takes 1.5 seconds to go from CircularProgressIndicator to Icon.
 class PlatformSubmitterFAB extends StatefulWidget {
   final IconData icon;
   final BuildContext context;
@@ -104,8 +105,9 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
       backgroundColor: !canEnable
           ? (isLightTheme ? Colors.grey : Colors.grey.shade700)
           : null,
-      child:
-          widget.isSubmitted ? const CircularProgressIndicator() : Icon(widget.icon),
+      child: widget.isSubmitted
+          ? const CircularProgressIndicator()
+          : Icon(widget.icon),
     );
   }
 
@@ -117,6 +119,8 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
       if (widget.formState!.currentState != null) {
         if (widget.formState!.currentState!.validate()) {
           widget.validationSuccessCallback?.call();
+          widget.isSubmitted = true;
+          setState(() {});
         } else {
           widget.validationFailureCallback?.call();
           widget.isSubmitted = false;

@@ -4,10 +4,10 @@ import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/models/itinerary.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/plan_data.dart';
+import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 
-import 'plan_data_model_implementation.dart';
+import 'plan_data/plan_data_model_implementation.dart';
 
 class ItineraryModelImplementation extends ItineraryModelEventHandler {
   @override

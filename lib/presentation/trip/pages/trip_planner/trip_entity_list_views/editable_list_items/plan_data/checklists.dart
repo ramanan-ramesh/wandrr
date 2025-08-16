@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/check_list.dart';
-import 'package:wandrr/data/trip/models/check_list_item.dart';
+import 'package:wandrr/data/trip/models/plan_data/check_list.dart';
+import 'package:wandrr/data/trip/models/plan_data/check_list_item.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 

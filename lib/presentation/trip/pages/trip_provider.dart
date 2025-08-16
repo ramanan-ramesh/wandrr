@@ -7,7 +7,7 @@ import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
+import 'package:wandrr/presentation/app/bloc/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/bloc/bloc.dart';
 import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/bloc/states.dart';

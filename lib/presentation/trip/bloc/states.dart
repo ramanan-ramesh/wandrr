@@ -1,7 +1,7 @@
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
-import 'package:wandrr/data/trip/models/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 

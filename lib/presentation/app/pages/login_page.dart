@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/data/app/models/auth_type.dart';
+import 'package:wandrr/data/auth/models/auth_type.dart';
+import 'package:wandrr/data/auth/models/status.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/blocs/authentication/auth_bloc.dart';
-import 'package:wandrr/presentation/app/blocs/authentication/auth_events.dart';
-import 'package:wandrr/presentation/app/blocs/authentication/auth_states.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
-import 'package:wandrr/presentation/app/blocs/master_page/master_page_events.dart';
+import 'package:wandrr/presentation/app/bloc/bloc_extensions.dart';
+import 'package:wandrr/presentation/app/bloc/master_page_bloc.dart';
+import 'package:wandrr/presentation/app/bloc/master_page_events.dart';
+import 'package:wandrr/presentation/app/bloc/master_page_states.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
@@ -17,15 +16,11 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<AuthenticationBloc>(
-      create: (context) =>
-          AuthenticationBloc(context.appDataRepository.googleWebClientId),
-      child: const Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(16.0),
-            child: _LoginPageForm(),
-          ),
+    return const Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: _LoginPageForm(),
         ),
       ),
     );
@@ -96,37 +91,23 @@ class _LoginPageFormState extends State<_LoginPageForm>
   }
 
   Widget _createSubmitButton(BuildContext context) {
-    return BlocConsumer<AuthenticationBloc, AuthenticationState>(
-      builder: (BuildContext context, AuthenticationState state) {
-        var isSubmitted = false;
-        if (state is AuthenticationFailure) {
-          isSubmitted = false;
-        } else if (state is Authenticating) {
-          isSubmitted = true;
-        }
+    return _AuthStateObserver(
+      onAuthStateChangeBuilder: (state, canEnable) {
         return PlatformSubmitterFAB.form(
           icon: Icons.login_rounded,
-          isSubmitted: isSubmitted,
           context: context,
           formState: _formKey,
-          isEnabledInitially: true,
+          isEnabledInitially: canEnable,
           validationSuccessCallback: () {
             var username = _usernameController.text;
             var password = _passwordController.text;
 
             context.addAuthenticationEvent(AuthenticateWithUsernamePassword(
                 userName: username,
-                passWord: password,
-                isLogin: _tabController.index == 0));
+                password: password,
+                shouldRegister: _tabController.index == 1));
           },
         );
-      },
-      listener: (BuildContext context, AuthenticationState state) {
-        if (state is AuthenticationSuccess) {
-          context.addMasterPageEvent(ChangeUser.signIn(
-              authProviderUser: state.authProviderUser,
-              authenticationType: state.authenticationType));
-        }
       },
     );
   }
@@ -148,22 +129,28 @@ class _LoginPageFormState extends State<_LoginPageForm>
 
   Widget _createAlternateAuthProviderButton(AuthenticationType thirdParty,
       String thirdPartyLogoAssetName, BuildContext context) {
-    return Material(
-      shape: const CircleBorder(),
-      clipBehavior: Clip.hardEdge,
-      child: InkWell(
-        splashColor: Colors.white30,
-        onTap: () {
-          context
-              .addAuthenticationEvent(AuthenticateWithThirdParty(thirdParty));
-        },
-        child: Ink.image(
-          image: AssetImage(thirdPartyLogoAssetName),
-          fit: BoxFit.cover,
-          height: 60,
-          width: 60,
-        ),
-      ),
+    return _AuthStateObserver(
+      onAuthStateChangeBuilder: (state, canEnable) {
+        return Material(
+          shape: const CircleBorder(),
+          clipBehavior: Clip.hardEdge,
+          child: InkWell(
+            splashColor: Colors.white30,
+            onTap: canEnable
+                ? () {
+                    context.addAuthenticationEvent(
+                        AuthenticateWithThirdParty(thirdParty));
+                  }
+                : null,
+            child: Ink.image(
+              image: AssetImage(thirdPartyLogoAssetName),
+              fit: BoxFit.cover,
+              height: 60,
+              width: 60,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -184,97 +171,88 @@ class _LoginPageFormState extends State<_LoginPageForm>
   Widget _createUserNamePasswordForm() {
     return Form(
       key: _formKey,
-      child: BlocConsumer<AuthenticationBloc, AuthenticationState>(
-        builder: (BuildContext context, AuthenticationState state) {
-          return FocusTraversalGroup(
-            policy: OrderedTraversalPolicy(),
-            child: Column(
-              children: [
-                FocusTraversalOrder(
-                  order: const NumericFocusOrder(1),
-                  child: _createUserNameField(state),
-                ),
-                const SizedBox(height: 16.0),
-                FocusTraversalOrder(
-                  order: const NumericFocusOrder(2),
-                  child: _createPasswordField(state),
-                )
-              ],
+      child: FocusTraversalGroup(
+        policy: OrderedTraversalPolicy(),
+        child: Column(
+          children: [
+            FocusTraversalOrder(
+              order: const NumericFocusOrder(1),
+              child: _UserNameField(
+                textEditingController: _usernameController,
+                textInputAction: TextInputAction.next,
+              ),
             ),
-          );
-        },
-        listener: (BuildContext context, AuthenticationState state) {},
-        buildWhen: (previousState, currentState) {
-          return currentState is Authenticating ||
-              currentState is AuthenticationFailure ||
-              currentState is AuthenticationSuccess;
-        },
-      ),
-    );
-  }
-
-  Widget _createPasswordField(AuthenticationState authState) {
-    String? errorText;
-    if (authState is AuthenticationFailure) {
-      if (authState.failureReason == AuthenticationFailureCode.wrongPassword) {
-        errorText = context.localizations.wrong_password_entered;
-      }
-    }
-    return _PasswordField(
-      controller: _passwordController,
-      textInputAction: TextInputAction.done,
-      labelText: context.localizations.password,
-      errorText: errorText,
-      validator: (password) {
-        if (password != null) {
-          if (password.length <= 6) {
-            return context.localizations.password_short;
-          }
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _createUserNameField(AuthenticationState authState) {
-    String? errorText;
-    if (authState is AuthenticationFailure) {
-      if (authState.failureReason ==
-          AuthenticationFailureCode.usernameAlreadyExists) {
-        errorText = context.localizations.userNameAlreadyExists;
-      } else if (authState.failureReason ==
-          AuthenticationFailureCode.noSuchUsernameExists) {
-        errorText = context.localizations.noSuchUserExists;
-      }
-    }
-    return PlatformTextElements.createUsernameFormField(
-      context: context,
-      textInputAction: TextInputAction.next,
-      controller: _usernameController,
-      readonly:
-          authState is Authenticating || authState is AuthenticationSuccess,
-      inputDecoration: InputDecoration(
-        icon: const Icon(Icons.person_2_rounded),
-        labelText: context.localizations.userName,
-        errorText: errorText,
+            const SizedBox(height: 16.0),
+            FocusTraversalOrder(
+              order: const NumericFocusOrder(2),
+              child: _PasswordField(
+                controller: _passwordController,
+                textInputAction: TextInputAction.done,
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
 }
 
+class _UserNameField extends StatefulWidget {
+  final TextEditingController textEditingController;
+  final TextInputAction? textInputAction;
+
+  const _UserNameField(
+      {required this.textEditingController, this.textInputAction});
+
+  @override
+  State<_UserNameField> createState() => _UserNameFieldState();
+}
+
+class _UserNameFieldState extends State<_UserNameField> {
+  String? _errorText;
+
+  @override
+  Widget build(BuildContext context) {
+    return _AuthStateObserver(
+      onAuthStateChangeListener: (state) {
+        if (state.authStatus == AuthStatus.usernameAlreadyExists) {
+          _errorText = context.localizations.userNameAlreadyExists;
+        } else if (state.authStatus == AuthStatus.noSuchUsernameExists) {
+          _errorText = context.localizations.noSuchUserExists;
+        }
+      },
+      onAuthStateChangeBuilder: (state, canEnable) {
+        return PlatformTextElements.createUsernameFormField(
+          context: context,
+          controller: widget.textEditingController,
+          textInputAction: widget.textInputAction,
+          readonly: !canEnable,
+          inputDecoration: InputDecoration(
+            icon: const Icon(Icons.person_2_rounded),
+            labelText: context.localizations.userName,
+            errorText: _errorText,
+          ),
+          onTextChanged: (text, isValid) {
+            if (_errorText != null) {
+              setState(() {
+                _errorText = null;
+              });
+            }
+          },
+        );
+      },
+    );
+  }
+}
+
 class _PasswordField extends StatefulWidget {
-  _PasswordField(
-      {TextEditingController? controller,
-      this.labelText,
-      this.errorText,
-      this.textInputAction,
-      this.validator})
-      : controller = controller ?? TextEditingController();
+  const _PasswordField({
+    required this.controller,
+    this.textInputAction,
+  });
 
   final TextInputAction? textInputAction;
-  final TextEditingController? controller;
-  final String? labelText, errorText;
-  final FormFieldValidator<String>? validator;
+  final TextEditingController controller;
 
   @override
   State<_PasswordField> createState() => _PasswordFieldState();
@@ -282,6 +260,7 @@ class _PasswordField extends StatefulWidget {
 
 class _PasswordFieldState extends State<_PasswordField> {
   bool _obscurePassword = true;
+  String? _errorText;
   late FocusNode focusNode;
 
   @override
@@ -304,25 +283,80 @@ class _PasswordFieldState extends State<_PasswordField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      focusNode: focusNode,
-      controller: widget.controller,
-      obscureText: _obscurePassword,
-      textInputAction: widget.textInputAction,
-      decoration: InputDecoration(
-        icon: const Icon(Icons.password_rounded),
-        labelText: widget.labelText,
-        suffixIcon: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 3.0),
-          child: IconButton(
-            icon: Icon(
-                _obscurePassword ? Icons.visibility_off : Icons.visibility),
-            onPressed: _togglePasswordVisibility,
+    return _AuthStateObserver(
+      onAuthStateChangeListener: (state) {
+        if (state.authStatus == AuthStatus.wrongPassword) {
+          _errorText = context.localizations.wrong_password_entered;
+        }
+      },
+      onAuthStateChangeBuilder: (state, canEnable) {
+        return TextFormField(
+          readOnly: !canEnable,
+          focusNode: focusNode,
+          controller: widget.controller,
+          obscureText: _obscurePassword,
+          textInputAction: widget.textInputAction,
+          onChanged: (password) {
+            if (_errorText != null) {
+              setState(() {
+                _errorText = null;
+              });
+            }
+          },
+          decoration: InputDecoration(
+            icon: const Icon(Icons.password_rounded),
+            labelText: context.localizations.password,
+            suffixIcon: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 3.0),
+              child: IconButton(
+                icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility),
+                onPressed: _togglePasswordVisibility,
+              ),
+            ),
+            errorText: _errorText,
           ),
-        ),
-        errorText: widget.errorText,
-      ),
-      validator: widget.validator,
+          validator: (password) {
+            if (password != null) {
+              if (password.length <= 6) {
+                return context.localizations.password_short;
+              }
+            }
+            return null;
+          },
+        );
+      },
+    );
+  }
+}
+
+class _AuthStateObserver extends StatelessWidget {
+  final void Function(AuthStateChanged state)? onAuthStateChangeListener;
+  final Widget Function(MasterPageState state, bool canEnable)
+      onAuthStateChangeBuilder;
+
+  const _AuthStateObserver({
+    this.onAuthStateChangeListener,
+    required this.onAuthStateChangeBuilder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<MasterPageBloc, MasterPageState>(
+      listener: (context, state) {
+        if (onAuthStateChangeListener != null && state is AuthStateChanged) {
+          onAuthStateChangeListener!(state);
+        }
+      },
+      builder: (context, state) {
+        var canEnable = !(state is AuthStateChanged &&
+            (state.authStatus == AuthStatus.authenticating ||
+                state.authStatus == AuthStatus.loggedIn));
+        return onAuthStateChangeBuilder(state, canEnable);
+      },
+      buildWhen: (previousState, currentState) {
+        return currentState is AuthStateChanged;
+      },
     );
   }
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/data/trip/models/currency_data.dart';
-import 'package:wandrr/data/trip/models/expense.dart';
-import 'package:wandrr/data/trip/models/money.dart';
+import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/tab_bar.dart';

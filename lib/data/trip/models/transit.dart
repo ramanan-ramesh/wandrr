@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:intl/intl.dart';
-import 'package:wandrr/data/trip/models/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
-import 'money.dart';
+import 'budgeting/money.dart';
 
 class TransitFacade extends Equatable implements TripEntity {
   final String tripId;

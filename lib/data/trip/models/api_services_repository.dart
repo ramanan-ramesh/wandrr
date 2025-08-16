@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'api_service.dart';
+import 'budgeting/money.dart';
 import 'location/location.dart';
-import 'money.dart';
 
 abstract class ApiServicesRepository {
   ApiService<(Money, String), double?> get currencyConverter;

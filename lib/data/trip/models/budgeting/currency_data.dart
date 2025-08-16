@@ -16,7 +16,7 @@ class CurrencyData {
       code: json['code'],
       name: json['name'],
       symbol: json['symbol'],
-      flag: json['flag'],
+      flag: json.containsKey('flag') ? json['flag'] as String : null,
     );
   }
 
@@ -25,7 +25,7 @@ class CurrencyData {
       'code': code,
       'name': name,
       'symbol': symbol,
-      'flag': flag,
+      if (flag != null) 'flag': flag,
     };
   }
 }

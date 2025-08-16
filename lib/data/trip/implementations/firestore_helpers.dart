@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
-import 'package:wandrr/data/trip/implementations/expense.dart';
+import 'package:wandrr/data/trip/implementations/budgeting/expense.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
-import 'package:wandrr/data/trip/models/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
-import 'package:wandrr/data/trip/models/money.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 
 class FirestoreHelpers {

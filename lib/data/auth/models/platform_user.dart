@@ -3,7 +3,6 @@ import 'auth_type.dart';
 class PlatformUser {
   final AuthenticationType authenticationType;
   final String userName;
-  final bool isLoggedIn;
   final String? displayName;
   final String userID;
   final String? photoUrl;
@@ -13,8 +12,7 @@ class PlatformUser {
       required this.authenticationType,
       required this.userID,
       this.displayName,
-      this.photoUrl})
-      : isLoggedIn = true;
+      this.photoUrl});
 
   PlatformUser.fromCache(
       {required this.userName,
@@ -22,8 +20,7 @@ class PlatformUser {
       this.displayName,
       required this.userID,
       this.photoUrl})
-      : isLoggedIn = true,
-        authenticationType = AuthenticationType.values.firstWhere((authValue) =>
+      : authenticationType = AuthenticationType.values.firstWhere((authValue) =>
             authValue.toString() ==
             'AuthenticationType.$authenticationTypeRawValue');
 }
