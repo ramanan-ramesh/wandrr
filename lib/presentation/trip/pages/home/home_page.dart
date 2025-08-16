@@ -45,7 +45,7 @@ class HomePage extends StatelessWidget {
               style: Theme.of(context).textTheme.headlineSmall,
             ),
           ),
-          const Expanded(
+          Expanded(
             child: TripListView(),
           ),
         ],

@@ -1,8 +1,8 @@
 import 'package:wandrr/data/app/models/dispose.dart';
+import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/ui_element.dart';
 
-import '../lodging.dart';
-import '../transit.dart';
 import 'debt_data.dart';
 import 'expense.dart';
 import 'expense_sort_options.dart';

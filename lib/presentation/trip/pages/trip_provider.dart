@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
+import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
@@ -125,7 +126,7 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
     return Stack(
       children: [
         RiveAnimation.asset(
-          'assets/walk_animation.riv',
+          Assets.walkAnimation,
           fit: BoxFit.fitHeight,
           controllers: [
             _minimumWalkTimeCompletionNotifier.value

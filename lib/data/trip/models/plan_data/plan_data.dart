@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
-import '../location/location.dart';
 import 'check_list.dart';
 import 'note.dart';
 

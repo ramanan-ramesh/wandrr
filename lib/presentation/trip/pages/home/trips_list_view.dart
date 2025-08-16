@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
@@ -17,13 +18,13 @@ import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/delete_trip_dialog.dart';
 
 class TripListView extends StatelessWidget {
-  static const _tripPlanningImageAssets = [
-    'assets/images/trip_planning_1.jpg',
-    'assets/images/trip_planning_2.jpg',
-    'assets/images/trip_planning_3.jpg'
+  final List<AssetGenImage> _tripPlanningImageAssets = [
+    Assets.images.tripPlanning1,
+    Assets.images.tripPlanning2,
+    Assets.images.tripPlanning3,
   ];
 
-  const TripListView({
+  TripListView({
     super.key,
   });
 
@@ -81,23 +82,14 @@ class TripListView extends StatelessWidget {
     );
   }
 
-  List<String> _generateRandomImages(int numberOfTripMetadatas) {
-    List<String> tempImages = List.from(_tripPlanningImageAssets);
+  List<AssetGenImage> _generateRandomImages(int numberOfTripMetadatas) {
+    List<AssetGenImage> tempImages = List.from(_tripPlanningImageAssets);
     Random random = Random();
-    var gridImages = <String>[];
+    var gridImages = <AssetGenImage>[];
     for (int i = 0; i < numberOfTripMetadatas; i++) {
-      if (i < numberOfTripMetadatas) {
-        tempImages.shuffle(random);
-        gridImages.add(tempImages[i % 3]);
-      } else {
-        List<String> remainingImages = List.from(_tripPlanningImageAssets);
-        remainingImages.remove(gridImages[i - 1]);
-        remainingImages.remove(gridImages[i - 2]);
-
-        gridImages.add(remainingImages[random.nextInt(remainingImages.length)]);
-      }
+      tempImages.shuffle(random);
+      gridImages.add(tempImages[i % 3]);
     }
-
     return gridImages;
   }
 }
@@ -106,13 +98,10 @@ class _TripMetadataGridItem extends StatelessWidget {
   final _dateFormat = DateFormat.MMMEd();
 
   _TripMetadataGridItem(
-      {required this.tripMetaDataFacade, required String imageAsset})
-      : imageAsset = AssetImage(imageAsset),
-        imageAssetLocation = imageAsset;
+      {required this.tripMetaDataFacade, required this.imageAsset});
 
   TripMetadataFacade tripMetaDataFacade;
-  final String imageAssetLocation;
-  final AssetImage imageAsset;
+  final AssetGenImage imageAsset;
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +121,7 @@ class _TripMetadataGridItem extends StatelessWidget {
               children: [
                 Stack(
                   children: [
-                    Image.asset(imageAssetLocation, fit: BoxFit.cover),
+                    imageAsset.image(fit: BoxFit.cover),
                     Positioned(
                       bottom: 0,
                       left: 0,

@@ -4,12 +4,12 @@ import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/firestore_helpers.dart';
+import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/plan_data/check_list.dart';
 import 'package:wandrr/data/trip/models/plan_data/note.dart';
 import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 
-import '../location.dart';
 import 'check_list.dart';
 
 class PlanDataModelImplementation extends PlanDataFacade

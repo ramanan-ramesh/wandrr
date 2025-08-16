@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/data/auth/models/auth_type.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 import 'package:wandrr/l10n/extension.dart';
@@ -40,7 +41,6 @@ class _LoginPageFormState extends State<_LoginPageForm>
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   late TabController _tabController;
-  static const String googleLogoAsset = 'assets/images/google_logo.png';
   static const double _roundedCornerRadius = 25.0;
 
   @override
@@ -122,13 +122,13 @@ class _LoginPageFormState extends State<_LoginPageForm>
         ),
         const SizedBox(height: 16.0),
         _createAlternateAuthProviderButton(
-            AuthenticationType.google, googleLogoAsset, context),
+            AuthenticationType.google, Assets.images.googleLogo, context),
       ],
     );
   }
 
   Widget _createAlternateAuthProviderButton(AuthenticationType thirdParty,
-      String thirdPartyLogoAssetName, BuildContext context) {
+      AssetGenImage thirdPartyLogoAsset, BuildContext context) {
     return _AuthStateObserver(
       onAuthStateChangeBuilder: (state, canEnable) {
         return Material(
@@ -143,7 +143,7 @@ class _LoginPageFormState extends State<_LoginPageForm>
                   }
                 : null,
             child: Ink.image(
-              image: AssetImage(thirdPartyLogoAssetName),
+              image: thirdPartyLogoAsset.provider(),
               fit: BoxFit.cover,
               height: 60,
               width: 60,

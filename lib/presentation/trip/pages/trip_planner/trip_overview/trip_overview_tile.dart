@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
@@ -23,7 +24,6 @@ const double _maxOverviewElementHeight = 50.0;
 
 class TripOverviewTile extends StatelessWidget {
   static const _imageHeight = 250.0;
-  static const _assetImage = 'assets/images/planning_the_trip.jpg';
 
   const TripOverviewTile({super.key});
 
@@ -51,8 +51,7 @@ class TripOverviewTile extends StatelessWidget {
         children: [
           Column(
             children: [
-              Image.asset(
-                TripOverviewTile._assetImage,
+              Assets.images.planningTheTrip.image(
                 fit: isBigLayout ? BoxFit.fill : BoxFit.contain,
                 height: TripOverviewTile._imageHeight,
               ),

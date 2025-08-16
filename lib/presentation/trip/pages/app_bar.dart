@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/presentation/app/bloc/bloc_extensions.dart';
@@ -12,7 +13,6 @@ import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/delete_trip_dialog.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
-  static const String _appLogoAsset = 'assets/images/logo.jpg';
   final double? contentWidth;
 
   @override
@@ -101,8 +101,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         style: TextStyle(
             fontSize: Theme.of(context).textTheme.titleLarge!.fontSize),
       ),
-      icon: Image.asset(
-        _appLogoAsset,
+      icon: Image(
+        image: Assets.images.logo.provider(),
         color: context.isLightTheme ? Colors.black : Colors.green,
         width: 40,
         height: 40,
