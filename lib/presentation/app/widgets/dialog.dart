@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:aligned_dialog/aligned_dialog.dart' as alignedDialog;
+import 'package:aligned_dialog/aligned_dialog.dart' as aligned_dialog;
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart' as routes show showGeneralDialog;
 
@@ -45,7 +45,7 @@ class PlatformDialogElements {
         followerAnchor = Alignment.topLeft;
       }
     }
-    alignedDialog
+    aligned_dialog
         .showAlignedDialog(
       transitionsBuilder: (ctx, anim1, anim2, child) => BackdropFilter(
         filter:

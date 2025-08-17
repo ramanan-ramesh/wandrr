@@ -119,7 +119,7 @@ class _TripEntityListViewState<T extends TripEntity>
                             child: _createEmptyMessagePane(),
                           )
                         : _createSliverList())
-                    : SliverToBoxAdapter(
+                    : const SliverToBoxAdapter(
                         child: SizedBox.shrink(),
                       ),
               ],

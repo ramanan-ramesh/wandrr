@@ -97,7 +97,7 @@ abstract class CurrencyDropDownField extends StatefulWidget {
   Widget createCurrencyButton(
       BuildContext context, void Function(VoidCallback) setState) {
     return Material(
-      shape: CircleBorder(),
+      shape: const CircleBorder(),
       child: IconButton(
         onPressed: () => toggleDropdown(context, setState),
         icon: Text(
@@ -218,15 +218,13 @@ class _SearchableCurrencyDropDown extends StatefulWidget {
   final Widget Function(CurrencyData currency) currencyListTileBuilder;
   final VoidCallback onClose;
   final Widget? prefix;
-  final TextInputAction? textInputAction;
 
   const _SearchableCurrencyDropDown(
       {required this.allCurrencies,
       required this.currencyInfo,
       required this.currencyListTileBuilder,
       required this.onClose,
-      this.prefix,
-      this.textInputAction});
+      this.prefix});
 
   @override
   State<_SearchableCurrencyDropDown> createState() =>
@@ -292,9 +290,9 @@ class _SearchableCurrencyDropDownState
       },
       decoration: InputDecoration(
         hintText: context.localizations.searchForCurrency,
-        prefixIcon: widget.prefix ?? Icon(Icons.search_rounded),
+        prefixIcon: widget.prefix ?? const Icon(Icons.search_rounded),
       ),
-      textInputAction: widget.textInputAction ?? TextInputAction.done,
+      textInputAction: TextInputAction.done,
     );
   }
 }

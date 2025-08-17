@@ -31,7 +31,7 @@ class LodgingCardBase extends StatelessWidget {
         children: [
           _createAdaptiveLayout(context),
           const SizedBox(height: 12.0),
-          if (!isEditable) Divider(),
+          if (!isEditable) const Divider(),
           notes,
         ],
       ),

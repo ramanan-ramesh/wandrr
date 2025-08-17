@@ -11,6 +11,6 @@ class WandrrApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MasterPage();
+    return const MasterPage();
   }
 }

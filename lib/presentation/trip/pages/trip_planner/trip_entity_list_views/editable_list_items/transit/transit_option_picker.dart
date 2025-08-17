@@ -7,7 +7,7 @@ class TransitOptionPicker extends StatefulWidget {
   final TransitOption? initialTransitOption;
   final ValueChanged<TransitOption>? onChanged;
 
-  TransitOptionPicker({
+  const TransitOptionPicker({
     Key? key,
     required this.options,
     this.initialTransitOption,

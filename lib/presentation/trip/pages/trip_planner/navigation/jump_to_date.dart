@@ -49,7 +49,7 @@ class _JumpToDateNavigatorState<T extends TripEntity>
         if (areThereTripEntities) {
           return _createActionButton(context);
         } else {
-          return SizedBox.shrink();
+          return const SizedBox.shrink();
         }
       },
     );
@@ -80,7 +80,7 @@ class _JumpToDateNavigatorState<T extends TripEntity>
                   ),
         );
       },
-      child: Icon(Icons.assistant_navigation),
+      child: const Icon(Icons.assistant_navigation),
     );
   }
 

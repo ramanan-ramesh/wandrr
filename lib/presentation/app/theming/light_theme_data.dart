@@ -42,7 +42,7 @@ ThemeData createLightThemeData(BuildContext context) {
     cardTheme: CardThemeData(
       clipBehavior: Clip.hardEdge,
       color: Colors.teal.shade500,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius),
         ),
@@ -79,7 +79,7 @@ ThemeData createLightThemeData(BuildContext context) {
       labelColor: Colors.white,
     ),
     appBarTheme: const AppBarTheme(
-      color: Colors.teal,
+      backgroundColor: Colors.teal,
       foregroundColor: Colors.black,
     ),
     textSelectionTheme: const TextSelectionThemeData(cursorColor: Colors.black),

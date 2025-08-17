@@ -30,7 +30,7 @@ class TripPlannerPage extends StatelessWidget {
           : Stack(
               children: [
                 _createForSmallLayout(),
-                Align(
+                const Align(
                   alignment: Alignment.centerRight,
                   child: FloatingJumpToListNavigator(),
                 ),
@@ -42,11 +42,11 @@ class TripPlannerPage extends StatelessWidget {
   Widget _createForBigLayout() {
     return Row(
       children: [
-        JumpToListNavigationBar(),
+        const JumpToListNavigationBar(),
         Expanded(
           child: CustomScrollView(
             controller: _scrollController,
-            slivers: [
+            slivers: const [
               SliverToBoxAdapter(
                 child: TripOverviewTile(),
               ),
@@ -101,7 +101,7 @@ class TripPlannerPage extends StatelessWidget {
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
-        SliverToBoxAdapter(
+        const SliverToBoxAdapter(
           child: TripOverviewTile(),
         ),
         const SliverPadding(

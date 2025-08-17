@@ -53,9 +53,7 @@ class _FlightDetailsEditor extends StatefulWidget {
   final Function(String?) onOperatorChanged;
 
   const _FlightDetailsEditor(
-      {super.key,
-      required this.initialOperator,
-      required this.onOperatorChanged});
+      {required this.initialOperator, required this.onOperatorChanged});
 
   @override
   State<_FlightDetailsEditor> createState() => _FlightDetailsEditorState();
@@ -142,7 +140,7 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor> {
       children: [
         Text(
           ' ${airlineData.airLineCode ?? '  '}  ',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         Flexible(
           child: ConstrainedBox(
