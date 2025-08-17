@@ -11,7 +11,7 @@ class PlatformExpenseAmountEditField extends StatelessWidget {
   final TextEditingController _amountEditingController;
   final InputDecoration? inputDecoration;
   final Color? textColor;
-  TextInputAction textInputAction;
+  final TextInputAction textInputAction;
 
   PlatformExpenseAmountEditField(
       {super.key,

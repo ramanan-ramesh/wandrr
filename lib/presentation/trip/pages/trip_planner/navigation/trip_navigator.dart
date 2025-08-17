@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
 import 'constants.dart';
@@ -27,5 +28,18 @@ class TripNavigator {
         alignment: alignment,
         duration: (val) => duration,
         curve: (val) => Curves.easeInOutBack);
+  }
+
+  bool isSliverAppBarPinned(GlobalKey headerKey) {
+    if (headerKey.currentContext == null || !_scrollController.hasClients) {
+      return false;
+    }
+    final renderObject =
+        headerKey.currentContext!.findRenderObject() as RenderSliver;
+    final geometry = renderObject.geometry;
+    if (geometry != null) {
+      return geometry.layoutExtent == 0.0;
+    }
+    return false;
   }
 }

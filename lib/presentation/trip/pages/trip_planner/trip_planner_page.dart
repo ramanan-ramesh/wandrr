@@ -11,7 +11,7 @@ import 'package:wandrr/presentation/trip/pages/trip_planner/trip_overview/trip_o
 import 'budgeting/header_tile.dart';
 import 'expense_view_type.dart';
 import 'navigation/jump_to_list.dart';
-import 'navigation/nav_bar.dart';
+import 'navigation/nav_rail.dart';
 import 'trip_entity_list_views/plan_data.dart';
 
 class TripPlannerPage extends StatelessWidget {
@@ -42,7 +42,7 @@ class TripPlannerPage extends StatelessWidget {
   Widget _createForBigLayout() {
     return Row(
       children: [
-        const JumpToListNavigationBar(),
+        const JumpToListNavigationRail(),
         Expanded(
           child: CustomScrollView(
             controller: _scrollController,

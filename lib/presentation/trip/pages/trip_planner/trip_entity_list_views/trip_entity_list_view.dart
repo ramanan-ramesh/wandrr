@@ -27,7 +27,7 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
   final void Function(UiElement<T>)? onDeletePressed;
   final Widget Function(UiElement<T> uiElement) closedListElementCreator;
   final String emptyListMessage;
-  Widget? headerTileButton;
+  final Widget? headerTileButton;
   final BlocBuilderCondition<TripManagementState>?
       additionalListBuildWhenCondition;
   final bool Function(
@@ -45,7 +45,7 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
   final bool Function(T, DateTime)? canConsiderUiElementForNavigation;
   final String section;
 
-  TripEntityListView(
+  const TripEntityListView(
       {super.key,
       required this.openedListElementCreator,
       required this.closedListElementCreator,
@@ -61,9 +61,10 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
       this.onDeletePressed,
       this.canDelete,
       this.errorMessageCreator,
-      this.additionalListItemBuildWhenCondition});
+      this.additionalListItemBuildWhenCondition})
+      : headerTileButton = null;
 
-  TripEntityListView.customHeaderTileButton(
+  const TripEntityListView.customHeaderTileButton(
       {super.key,
       required this.openedListElementCreator,
       required this.closedListElementCreator,
@@ -91,6 +92,7 @@ class _TripEntityListViewState<T extends TripEntity>
   var _uiElements = <UiElement<T>>[];
   final ListController _listController = ListController();
   var _isListVisible = false;
+  final _headerContext = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -110,6 +112,7 @@ class _TripEntityListViewState<T extends TripEntity>
             return SliverMainAxisGroup(
               slivers: [
                 SliverAppBar(
+                  key: _headerContext,
                   flexibleSpace: _createHeaderTile(),
                   pinned: true,
                 ),
@@ -192,8 +195,11 @@ class _TripEntityListViewState<T extends TripEntity>
 
   void _toggleListVisibilityOnOpenClose() {
     if (_isListVisible) {
-      RepositoryProvider.of<TripNavigator>(context)
-          .jumpToList(context, alignment: 0.0);
+      if (RepositoryProvider.of<TripNavigator>(context)
+          .isSliverAppBarPinned(_headerContext)) {
+        RepositoryProvider.of<TripNavigator>(context)
+            .jumpToList(context, alignment: 0.0);
+      }
     }
 
     _toggleListVisibility();
