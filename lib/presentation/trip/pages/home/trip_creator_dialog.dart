@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
@@ -117,7 +117,7 @@ class TripCreatorDialog extends StatelessWidget {
         _currentTripMetadata.startDate = startDate;
         _currentTripMetadata.endDate = endDate;
         _tripCreationMetadataValidityNotifier.value =
-            _currentTripMetadata.isValid();
+            _currentTripMetadata.validate();
       },
     );
   }
@@ -137,7 +137,7 @@ class TripCreatorDialog extends StatelessWidget {
           currencySelectedCallback: (selectedCurrency) {
             _currentTripMetadata.budget.currency = selectedCurrency.code;
             _tripCreationMetadataValidityNotifier.value =
-                _currentTripMetadata.isValid();
+                _currentTripMetadata.validate();
           },
           isAmountEditable: true,
         ),
@@ -181,7 +181,7 @@ class TripCreatorDialog extends StatelessWidget {
   void _updateTripName(String newTripName) {
     _currentTripMetadata.name = newTripName;
     _tripCreationMetadataValidityNotifier.value =
-        _currentTripMetadata.isValid();
+        _currentTripMetadata.validate();
   }
 
   Widget _buildCreateTripButton(BuildContext context) {

@@ -61,7 +61,7 @@ class TripMetadataFacade extends Equatable implements TripEntity {
         budget: budget);
   }
 
-  bool isValid() {
+  bool validate() {
     var hasValidName = name.isNotEmpty;
     var hasValidDateRange = endDate != null &&
         startDate != null &&

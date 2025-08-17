@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/app/models/language_metadata.dart';
 import 'package:wandrr/data/auth/implementations/user_management.dart';
@@ -9,23 +10,22 @@ import 'package:wandrr/data/auth/models/user_management.dart';
 import 'firebase_options.dart';
 
 class AppDataRepository extends AppDataModifier {
+  static const String _themeMode = "themeMode";
+
+  static const _hindiLanguage = '\u0939\u093f\u0902\u0926\u0940';
+  static const _tamilLanguage = '\u0ba4\u0bae\u0bbf\u0bb4\u0bcd';
+  static const _englishLanguage = 'English';
   static const String _language = "language";
   static const String _defaultLanguage = "en";
 
-  static const String _themeMode = "themeMode";
-
-  static const _hindiLanguage = 'हिंदी';
-  static const _tamilLanguage = 'தமிழ்';
-  static const _englishLanguage = 'English';
-  static const _imageAssetsLocation = 'assets/images/flags';
-
-  final UserManagement _userManagement;
+  final SharedPreferences _localStorage;
 
   @override
   UserManagementFacade get userManagementFacade => _userManagement;
 
   @override
   UserManagementModifier get userManagementModifier => _userManagement;
+  final UserManagementModifier _userManagement;
 
   @override
   String activeLanguage;
@@ -36,19 +36,21 @@ class AppDataRepository extends AppDataModifier {
   @override
   bool isBigLayout;
 
-  final SharedPreferences localStorage;
-
   @override
-  final List<LanguageMetadata> languageMetadatas;
+  final Iterable<LanguageMetadata> languageMetadatas;
 
-  static Future<AppDataModifier> create() async {
+  static Future<AppDataModifier> createInstance() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
+    var userManagement = await UserManagement.createInstance();
     var localStorage = await SharedPreferences.getInstance();
-    var userManagement = await UserManagement.createInstance(localStorage);
-    String language = localStorage.getString(_language) ?? _defaultLanguage;
+    var languageValue = localStorage.getString(_language);
+    if (languageValue == null || languageValue.isEmpty) {
+      await localStorage.setString(_language, _defaultLanguage);
+      languageValue = _defaultLanguage;
+    }
     var themeModeValue = localStorage.getString(_themeMode);
     if (themeModeValue == null) {
       await localStorage.setString(_themeMode, ThemeMode.dark.name);
@@ -57,41 +59,41 @@ class AppDataRepository extends AppDataModifier {
         ? (ThemeMode.values
             .firstWhere((element) => element.name == themeModeValue))
         : ThemeMode.dark;
-
     return AppDataRepository._(
         userManagement: userManagement,
-        initialLanguage: language,
+        initialLanguage: languageValue,
         initialThemeMode: themeMode,
         localStorage: localStorage);
   }
 
   @override
   Future setActiveLanguage(String language) async {
-    await localStorage.setString(_language, language);
+    await _localStorage.setString(_language, language);
     activeLanguage = language;
   }
 
   @override
   Future setActiveThemeMode(ThemeMode themeMode) async {
-    await localStorage.setString(_themeMode, themeMode.name);
+    await _localStorage.setString(_themeMode, themeMode.name);
     activeThemeMode = themeMode;
   }
 
   AppDataRepository._(
       {required String initialLanguage,
       required ThemeMode initialThemeMode,
-      required UserManagement userManagement,
-      required this.localStorage})
-      : _userManagement = userManagement,
+      required UserManagementModifier userManagement,
+      required SharedPreferences localStorage})
+      : _localStorage = localStorage,
+        _userManagement = userManagement,
         activeThemeMode = initialThemeMode,
         activeLanguage = initialLanguage,
         isBigLayout = false,
         languageMetadatas = [
-          const LanguageMetadata(
-              '$_imageAssetsLocation/india.png', 'ta', _tamilLanguage),
-          const LanguageMetadata(
-              '$_imageAssetsLocation/india.png', 'hi', _hindiLanguage),
-          const LanguageMetadata(
-              '$_imageAssetsLocation/britain.png', 'en', _englishLanguage),
+          LanguageMetadata(
+              Assets.images.flags.india.path, 'ta', _tamilLanguage),
+          LanguageMetadata(
+              Assets.images.flags.india.path, 'hi', _hindiLanguage),
+          LanguageMetadata(
+              Assets.images.flags.britain.path, 'en', _englishLanguage),
         ];
 }

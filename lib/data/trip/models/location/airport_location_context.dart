@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'location.dart';
+import 'location_context.dart';
 
 class AirportLocationContext with EquatableMixin implements LocationContext {
   @override
@@ -17,12 +18,6 @@ class AirportLocationContext with EquatableMixin implements LocationContext {
 
   final String airportCode;
   static const _iataCodeField = 'iata';
-
-  AirportLocationContext._(
-      {required this.city,
-      required this.airportCode,
-      required String airportName})
-      : name = airportName;
 
   AirportLocationContext.fromDocument(Map<String, dynamic> json)
       : this._(
@@ -45,6 +40,12 @@ class AirportLocationContext with EquatableMixin implements LocationContext {
     return AirportLocationContext._(
         city: city, airportCode: airportCode, airportName: name);
   }
+
+  AirportLocationContext._(
+      {required this.city,
+      required this.airportCode,
+      required String airportName})
+      : name = airportName;
 
   @override
   List<Object?> get props => [locationType, city, name, airportCode];

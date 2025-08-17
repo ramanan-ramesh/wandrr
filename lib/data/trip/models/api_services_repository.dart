@@ -5,7 +5,8 @@ import 'budgeting/money.dart';
 import 'location/location.dart';
 
 abstract class ApiServicesRepository {
-  ApiService<(Money, String), double?> get currencyConverter;
+  ApiService<(Money moneyToConvert, String currencyToConvertTo), double?>
+      get currencyConverter;
 
   ApiService<String, Iterable<(String airlineName, String airlineCode)>>
       get airlinesDataService;

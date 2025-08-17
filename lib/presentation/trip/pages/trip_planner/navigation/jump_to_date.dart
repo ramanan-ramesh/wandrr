@@ -85,7 +85,7 @@ class _JumpToDateNavigatorState<T extends TripEntity>
   }
 
   Iterable<DateTime> _retrieveDatesToConsider(BuildContext context) {
-    var itineraries = context.activeTrip.itineraryModelCollection;
+    var itineraries = context.activeTrip.itineraryCollection;
     var datesToConsider = HashSet<DateTime>();
     var tripEntities = widget.tripEntitiesGetter();
     if (tripEntities.first is ItineraryFacade) {

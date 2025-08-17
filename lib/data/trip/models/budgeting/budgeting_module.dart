@@ -5,6 +5,7 @@ import 'package:wandrr/data/trip/models/ui_element.dart';
 
 import 'debt_data.dart';
 import 'expense.dart';
+import 'expense_category.dart';
 import 'expense_sort_options.dart';
 
 abstract class BudgetingModuleFacade {
@@ -32,6 +33,5 @@ abstract class BudgetingModuleEventHandler extends BudgetingModuleFacade
 
   void updateCurrency(String defaultCurrency);
 
-  Future<void> tryBalanceExpensesOnContributorsChanged(
-      List<String> contributors);
+  Future<void> balanceExpensesOnContributorsChanged(List<String> contributors);
 }

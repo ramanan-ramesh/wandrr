@@ -15,9 +15,9 @@ abstract class AppDataFacade {
 }
 
 abstract class AppDataModifier extends AppDataFacade {
-  Future setActiveLanguage(String language);
-
   UserManagementModifier get userManagementModifier;
+
+  Future setActiveLanguage(String language);
 
   Future setActiveThemeMode(ThemeMode themeMode);
 

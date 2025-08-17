@@ -51,10 +51,10 @@ class PlatformExpenseAmountEditField extends StatelessWidget {
 }
 
 class _DecimalTextInputFormatter extends TextInputFormatter {
+  final int decimalRange;
+
   _DecimalTextInputFormatter({this.decimalRange = 2})
       : assert(decimalRange > 0);
-
-  final int decimalRange;
 
   @override
   TextEditingValue formatEditUpdate(

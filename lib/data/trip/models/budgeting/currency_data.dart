@@ -1,4 +1,9 @@
 class CurrencyData {
+  static const String _codeField = 'code';
+  static const String _nameField = 'name';
+  static const String _symbolField = 'symbol';
+  static const String _flagField = 'flag';
+
   final String code;
   final String name;
   final String symbol;
@@ -13,19 +18,19 @@ class CurrencyData {
 
   factory CurrencyData.fromJson(Map<String, dynamic> json) {
     return CurrencyData(
-      code: json['code'],
-      name: json['name'],
-      symbol: json['symbol'],
-      flag: json['flag'],
+      code: json[_codeField],
+      name: json[_nameField],
+      symbol: json[_symbolField],
+      flag: json[_flagField],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'code': code,
-      'name': name,
-      'symbol': symbol,
-      if (flag != null) 'flag': flag,
+      _codeField: code,
+      _nameField: name,
+      _symbolField: symbol,
+      if (flag != null) _flagField: flag,
     };
   }
 }

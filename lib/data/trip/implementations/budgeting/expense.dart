@@ -4,6 +4,7 @@ import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/firestore_helpers.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 
 class ExpenseModelImplementation extends ExpenseFacade

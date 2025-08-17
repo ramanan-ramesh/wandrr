@@ -4,7 +4,7 @@ import 'package:wandrr/l10n/extension.dart';
 
 abstract class CurrencyDropDownField extends StatefulWidget {
   CurrencyData selectedCurrencyData;
-  OverlayEntry? overlayEntry;
+  OverlayEntry? _overlayEntry;
   final Iterable<CurrencyData> allCurrencies;
   final Function(CurrencyData selectedCurrencyInfo) currencySelectedCallback;
   final LayerLink layerLink = LayerLink();
@@ -12,9 +12,10 @@ abstract class CurrencyDropDownField extends StatefulWidget {
   CurrencyDropDownField(
       {super.key,
       required this.selectedCurrencyData,
-      this.overlayEntry,
+      OverlayEntry? overlayEntry,
       required this.allCurrencies,
-      required this.currencySelectedCallback});
+      required this.currencySelectedCallback})
+      : _overlayEntry = overlayEntry;
 
   Widget buildCurrencyListTile(CurrencyData currency, bool isDropDownButton,
       BuildContext context, void Function(VoidCallback) setState) {
@@ -109,17 +110,17 @@ abstract class CurrencyDropDownField extends StatefulWidget {
 
   void toggleDropdown(
       BuildContext context, void Function(VoidCallback) setState) {
-    if (overlayEntry == null) {
-      overlayEntry = _createCurrencyDropDownOverlay(context, setState);
-      Overlay.of(context).insert(overlayEntry!);
+    if (_overlayEntry == null) {
+      _overlayEntry = _createCurrencyDropDownOverlay(context, setState);
+      Overlay.of(context).insert(_overlayEntry!);
     } else {
-      overlayEntry?.remove();
-      overlayEntry = null;
+      _overlayEntry?.remove();
+      _overlayEntry = null;
     }
   }
 
   void removeOverlayEntry() {
-    overlayEntry?.remove();
+    _overlayEntry?.remove();
   }
 
   OverlayEntry _createCurrencyDropDownOverlay(
@@ -132,8 +133,8 @@ abstract class CurrencyDropDownField extends StatefulWidget {
       builder: (context) => GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () {
-          overlayEntry?.remove();
-          overlayEntry = null;
+          _overlayEntry?.remove();
+          _overlayEntry = null;
         },
         child: Stack(
           children: [

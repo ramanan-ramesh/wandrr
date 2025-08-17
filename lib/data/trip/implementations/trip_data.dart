@@ -97,12 +97,12 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   final ModelCollectionFacade<PlanDataFacade> _planDataModelCollection;
 
   @override
-  ItineraryFacadeCollection get itineraryModelCollection =>
+  ItineraryFacadeCollection get itineraryCollection =>
       _itineraryModelCollection;
 
   @override
-  ItineraryFacadeCollectionEventHandler
-      get itineraryModelCollectionEventHandler => _itineraryModelCollection;
+  ItineraryFacadeCollectionEventHandler get itineraryCollectionEventHandler =>
+      _itineraryModelCollection;
   final ItineraryModelCollection _itineraryModelCollection;
 
   ApiService<(Money, String), double?> currencyConverter;
@@ -117,8 +117,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   final TripMetadataModelImplementation _tripMetadataModelImplementation;
 
   @override
-  BudgetingModuleFacade get budgetingModuleFacade =>
-      _budgetingModuleEventHandler;
+  BudgetingModuleFacade get budgetingFacade => _budgetingModuleEventHandler;
   final BudgetingModuleEventHandler _budgetingModuleEventHandler;
 
   static Future<TripDataModelImplementation> createExistingInstanceAsync(
@@ -167,7 +166,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         await ItineraryModelCollection.createItineraryModelCollection(
             transitModelCollection, lodgingModelCollection, tripMetadata);
 
-    var budgetingModuleFacade = await BudgetingModule.createInstance(
+    var budgetingModule = await BudgetingModule.createInstance(
         transitModelCollection,
         lodgingModelCollection,
         expenseModelCollection,
@@ -184,7 +183,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         planDataModelCollection,
         itineraries,
         apiServicesRepository.currencyConverter,
-        budgetingModuleFacade,
+        budgetingModule,
         appLocalizations);
   }
 
@@ -204,8 +203,8 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   @override
   Future updateTripMetadata(
       LeafRepositoryItem<TripMetadataFacade>
-          tripMetadataRepositoryPattern) async {
-    var updatedTripMetadata = tripMetadataRepositoryPattern.facade;
+          tripMetadataLeafRepositoryItem) async {
+    var updatedTripMetadata = tripMetadataLeafRepositoryItem.facade;
     var currentContributors = _tripMetadataModelImplementation.contributors;
     var didContributorsChange = !(const ListEquality()
         .equals(currentContributors, updatedTripMetadata.contributors));
@@ -253,9 +252,8 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     }
 
     if (didContributorsChange) {
-      await _budgetingModuleEventHandler
-          .tryBalanceExpensesOnContributorsChanged(
-              updatedTripMetadata.contributors);
+      await _budgetingModuleEventHandler.balanceExpensesOnContributorsChanged(
+          updatedTripMetadata.contributors);
     }
 
     var shouldRecalculateTotalExpense =

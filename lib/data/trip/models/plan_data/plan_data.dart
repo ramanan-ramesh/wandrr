@@ -44,7 +44,7 @@ class PlanDataFacade extends Equatable implements TripEntity {
             List.from(checkLists.map((checkList) => checkList.clone())));
   }
 
-  PlanDataValidationResult getValidationResult(bool isTitleRequired) {
+  PlanDataValidationResult validate(bool isTitleRequired) {
     if (isTitleRequired) {
       if (title == null || title!.isEmpty) {
         return PlanDataValidationResult.titleEmpty;

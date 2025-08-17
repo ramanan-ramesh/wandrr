@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/expense_view_adapter.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/trip_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/itinerary.dart';

@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:rive/rive.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/app/bloc/master_page_bloc.dart';
@@ -97,9 +97,11 @@ class _MasterContentPageLoader extends State<_ContentPageRouter> {
   void _tryStartWalkAnimation() {
     _hasMinimumWalkAnimationTimePassed = false;
     Future.delayed(_minimumWalkAnimationTime, () {
-      setState(() {
-        _hasMinimumWalkAnimationTimePassed = true;
-      });
+      if (mounted) {
+        setState(() {
+          _hasMinimumWalkAnimationTimePassed = true;
+        });
+      }
     });
   }
 }

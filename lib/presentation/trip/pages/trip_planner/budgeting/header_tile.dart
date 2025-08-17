@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
@@ -212,13 +212,13 @@ class BudgetingHeaderTile extends StatelessWidget {
       },
       builder: (BuildContext context, TripManagementState state) {
         return StreamBuilder(
-          stream: activeTrip.budgetingModuleFacade.totalExpenditureStream,
+          stream: activeTrip.budgetingFacade.totalExpenditureStream,
           builder: (BuildContext context, AsyncSnapshot<double> snapshot) {
             var tripMetadata = activeTrip.tripMetadata;
             double currentTotalExpenditure;
             if (snapshot.data == null) {
               currentTotalExpenditure =
-                  activeTrip.budgetingModuleFacade.totalExpenditure;
+                  activeTrip.budgetingFacade.totalExpenditure;
             } else {
               currentTotalExpenditure = snapshot.data!;
             }
@@ -259,7 +259,7 @@ class BudgetingHeaderTile extends StatelessWidget {
               ],
             );
           },
-          initialData: activeTrip.budgetingModuleFacade.totalExpenditure,
+          initialData: activeTrip.budgetingFacade.totalExpenditure,
         );
       },
       listener: (BuildContext context, TripManagementState state) {},

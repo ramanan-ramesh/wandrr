@@ -7,6 +7,7 @@ import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
 import 'package:wandrr/data/trip/models/budgeting/debt_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_sort_options.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
@@ -402,7 +403,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   }
 
   @override
-  Future<void> tryBalanceExpensesOnContributorsChanged(
+  Future<void> balanceExpensesOnContributorsChanged(
       List<String> contributors) async {
     var writeBatch = FirebaseFirestore.instance.batch();
     _contributors = contributors;

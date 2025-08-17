@@ -79,6 +79,6 @@ class _EditableLodgingPlanState extends State<EditableLodgingPlan> {
   }
 
   void _calculateLodgingValidity() {
-    widget.validityNotifier.value = widget.lodgingUiElement.element.isValid();
+    widget.validityNotifier.value = widget.lodgingUiElement.element.validate();
   }
 }

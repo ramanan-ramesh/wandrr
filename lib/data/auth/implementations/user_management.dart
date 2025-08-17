@@ -17,10 +17,10 @@ class UserManagement implements UserManagementModifier {
   static const _displayNameField = 'displayName';
   static const _isLoggedInField = 'isLoggedIn';
   static const _photoUrlField = 'photoUrl';
-
   static const String _usersDBCollectionName = 'users';
   static const String _googleWebClientIdField = 'webClientId';
 
+  // List of all errors available here - https://firebase.google.com/docs/auth/admin/errors
   static final Map<String, AuthStatus> _authenticationFailuresAndMessages = {
     'invalid-email': AuthStatus.invalidEmail,
     'wrong-password': AuthStatus.wrongPassword,
@@ -33,11 +33,12 @@ class UserManagement implements UserManagementModifier {
   @override
   PlatformUser? activeUser;
 
-  static Future<UserManagement> createInstance(
-      SharedPreferences localStorage) async {
-    var userFromCache = await _getUserFromCache(localStorage);
+  static Future<UserManagementModifier> createInstance() async {
+    var sharedPreferences = await SharedPreferences.getInstance();
+    var currentUser = FirebaseAuth.instance.currentUser;
+    var platformUser = await _getPlatformUser(sharedPreferences, currentUser);
     return UserManagement._(
-        activeUser: userFromCache, localStorage: localStorage);
+        activeUser: platformUser, localStorage: sharedPreferences);
   }
 
   @override
@@ -103,7 +104,7 @@ class UserManagement implements UserManagementModifier {
     try {
       await FirebaseAuth.instance.signOut();
       activeUser = null;
-      await _persistUser();
+      await _persistActiveUser();
       return true;
     } catch (e) {
       return false;
@@ -146,7 +147,7 @@ class UserManagement implements UserManagementModifier {
             userID: existingUserDocument.id,
             photoUrl: authProviderUser.photoURL);
       }
-      await _persistUser();
+      await _persistActiveUser();
       return true;
     } catch (e) {
       return false;
@@ -154,23 +155,33 @@ class UserManagement implements UserManagementModifier {
   }
 
   //TODO: Should ideally attach AuthProviderUser here(if it persists)?
-  static Future<PlatformUser?> _getUserFromCache(
-      SharedPreferences localStorage) async {
-    var isLoggedInValue = localStorage.getBool(_isLoggedInField);
-    if (isLoggedInValue == true) {
-      var userID = localStorage.getString(_userIDField) as String;
-      var authType = localStorage.getString(_authenticationTypeField) as String;
-      var userName = localStorage.getString(_userNameField) as String;
-      return PlatformUser.fromCache(
-          userName: userName,
-          authenticationTypeRawValue: authType,
-          userID: userID);
+  static Future<PlatformUser?> _getPlatformUser(
+      SharedPreferences localStorage, User? currentUser) async {
+    var isLoggedInValue = localStorage.getBool(_isLoggedInField) ?? false;
+    if (currentUser != null) {
+      AuthenticationType authenticationType = AuthenticationType.emailPassword;
+      if (isLoggedInValue) {
+        var authTypeInLocalStorage =
+            localStorage.getString(_authenticationTypeField) as String;
+        authenticationType = AuthenticationType.values.firstWhere(
+            (element) => element.name == authTypeInLocalStorage,
+            orElse: () => AuthenticationType.emailPassword);
+      }
+      return PlatformUser.fromAuth(
+          userName: currentUser.email!,
+          authenticationType: authenticationType,
+          userID: currentUser.uid,
+          displayName: currentUser.displayName,
+          photoUrl: currentUser.photoURL);
+    } else {
+      if (isLoggedInValue) {
+        await _clearCache(localStorage);
+      }
+      return null;
     }
-
-    return null;
   }
 
-  Future _persistUser() async {
+  Future _persistActiveUser() async {
     if (activeUser != null) {
       await _localStorage.setString(_userIDField, activeUser!.userID);
       await _localStorage.setString(_userNameField, activeUser!.userName);
@@ -185,8 +196,17 @@ class UserManagement implements UserManagementModifier {
         await _localStorage.setString(_photoUrlField, activeUser!.photoUrl!);
       }
     } else {
-      await _localStorage.setBool(_isLoggedInField, false);
+      await _clearCache(_localStorage);
     }
+  }
+
+  static Future<void> _clearCache(SharedPreferences localStorage) async {
+    await localStorage.setBool(_isLoggedInField, false);
+    await localStorage.remove(_userIDField);
+    await localStorage.remove(_userNameField);
+    await localStorage.remove(_authenticationTypeField);
+    await localStorage.remove(_displayNameField);
+    await localStorage.remove(_photoUrlField);
   }
 
   static AuthStatus _getAuthFailureReason(

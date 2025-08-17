@@ -25,7 +25,7 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
 
   FutureOr<void> _onLoadRepository(
       _LoadRepository event, Emitter<MasterPageState> emit) async {
-    _appDataRepository ??= await AppDataRepository.create();
+    _appDataRepository ??= await AppDataRepository.createInstance();
     emit(LoadedRepository(appData: _appDataRepository!));
   }
 

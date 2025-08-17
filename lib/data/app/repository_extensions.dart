@@ -7,8 +7,6 @@ extension RepositoryExt on BuildContext {
   AppDataFacade get appDataRepository =>
       RepositoryProvider.of<AppDataFacade>(this);
 
-  AppDataModifier get appDataModifier => appDataRepository as AppDataModifier;
-
   bool get isBigLayout => appDataRepository.isBigLayout;
 
   set isBigLayout(bool isBigLayout) {

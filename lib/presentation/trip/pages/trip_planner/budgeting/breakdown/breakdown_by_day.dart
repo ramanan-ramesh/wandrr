@@ -16,7 +16,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
   @override
   Widget build(BuildContext context) {
     var activeTrip = context.activeTrip;
-    var budgetingModule = activeTrip.budgetingModuleFacade;
+    var budgetingModule = activeTrip.budgetingFacade;
     var tripMetadata = activeTrip.tripMetadata;
     return FutureBuilder<Map<DateTime, double>>(
       future: budgetingModule.retrieveTotalExpensePerDay(

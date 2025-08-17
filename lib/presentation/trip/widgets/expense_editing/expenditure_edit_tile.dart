@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';

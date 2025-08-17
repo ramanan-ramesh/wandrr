@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 
 class LodgingCardBase extends StatelessWidget {

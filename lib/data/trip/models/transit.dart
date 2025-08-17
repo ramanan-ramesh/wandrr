@@ -4,6 +4,7 @@ import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
+import 'budgeting/expense_category.dart';
 import 'budgeting/money.dart';
 
 class TransitFacade extends Equatable implements TripEntity {
@@ -124,6 +125,20 @@ class TransitFacade extends Equatable implements TripEntity {
     }
   }
 
+  bool validate() {
+    var areLocationsValid =
+        departureLocation != null && arrivalLocation != null;
+    var areDateTimesValid = departureDateTime != null &&
+        arrivalDateTime != null &&
+        departureDateTime!.compareTo(arrivalDateTime!) < 0;
+    var isTransitCarrierValid =
+        transitOption == TransitOption.flight ? _isFlightOperatorValid() : true;
+    return areLocationsValid &&
+        areDateTimesValid &&
+        isTransitCarrierValid &&
+        expense.validate();
+  }
+
   bool _isFlightOperatorValid() {
     if (transitOption == TransitOption.flight) {
       var splitOptions = operator?.split(' ');
@@ -135,20 +150,6 @@ class TransitFacade extends Equatable implements TripEntity {
       return false;
     }
     return true;
-  }
-
-  bool isValid() {
-    var areLocationsValid =
-        departureLocation != null && arrivalLocation != null;
-    var areDateTimesValid = departureDateTime != null &&
-        arrivalDateTime != null &&
-        departureDateTime!.compareTo(arrivalDateTime!) < 0;
-    var isTransitCarrierValid =
-        transitOption == TransitOption.flight ? _isFlightOperatorValid() : true;
-    return areLocationsValid &&
-        areDateTimesValid &&
-        isTransitCarrierValid &&
-        expense.isValid();
   }
 
   @override

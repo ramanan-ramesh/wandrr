@@ -14,17 +14,17 @@ class BoundingBox extends Equatable {
       required this.maxLon,
       required this.minLon});
 
-  BoundingBox clone() {
-    return BoundingBox(
-        maxLat: maxLat, minLat: minLat, maxLon: maxLon, minLon: minLon);
-  }
-
   static BoundingBox fromDocument(Map<String, dynamic> json) {
     return BoundingBox(
         maxLat: double.parse(json[_maxLatField].toString()),
         minLat: double.parse(json[_minLatField].toString()),
         maxLon: double.parse(json[_maxLonField].toString()),
         minLon: double.parse(json[_minLonField].toString()));
+  }
+
+  BoundingBox clone() {
+    return BoundingBox(
+        maxLat: maxLat, minLat: minLat, maxLon: maxLon, minLon: minLon);
   }
 
   Map<String, dynamic> toJson() {

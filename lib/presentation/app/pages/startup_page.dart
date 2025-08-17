@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 
 import 'login_page.dart';
 import 'onboarding_page.dart';

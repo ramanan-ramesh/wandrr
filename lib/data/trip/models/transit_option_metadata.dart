@@ -6,6 +6,6 @@ class TransitOptionMetadata {
   final IconData icon;
   final String name;
 
-  TransitOptionMetadata(
+  const TransitOptionMetadata(
       {required this.transitOption, required this.icon, required this.name});
 }

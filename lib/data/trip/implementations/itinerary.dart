@@ -54,16 +54,20 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
   @override
   void setCheckinLodging(LodgingFacade? lodging) {
     _checkinLodging = lodging;
+    _fullDayLodging = null;
   }
 
   @override
   void setCheckoutLodging(LodgingFacade? lodging) {
     _checkoutLodging = lodging;
+    _fullDayLodging = null;
   }
 
   @override
   void setFullDayLodging(LodgingFacade? lodging) {
     _fullDayLodging = lodging;
+    _checkinLodging = null;
+    _checkoutLodging = null;
   }
 
   @override

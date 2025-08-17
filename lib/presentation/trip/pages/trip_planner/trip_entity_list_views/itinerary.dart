@@ -29,7 +29,7 @@ class _ItineraryListViewState extends State<ItineraryListView> {
       buildWhen: _shouldBuildItineraries,
       builder: (BuildContext context, TripManagementState state) {
         var activeTrip = context.activeTrip;
-        var itineraryModelCollection = activeTrip.itineraryModelCollection;
+        var itineraryModelCollection = activeTrip.itineraryCollection;
         return SliverMainAxisGroup(
           slivers: [
             SliverToBoxAdapter(

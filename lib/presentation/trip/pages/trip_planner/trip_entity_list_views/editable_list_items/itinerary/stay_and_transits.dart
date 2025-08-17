@@ -24,7 +24,7 @@ class ItineraryStayAndTransits extends StatelessWidget {
     var appLocalizations = context.localizations;
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       builder: (BuildContext context, TripManagementState state) {
-        var itinerary = context.activeTrip.itineraryModelCollection
+        var itinerary = context.activeTrip.itineraryCollection
             .getItineraryForDay(itineraryDay);
         var transits = itinerary.transits.toList()
           ..sort((transit1, transit2) => transit1.departureDateTime!

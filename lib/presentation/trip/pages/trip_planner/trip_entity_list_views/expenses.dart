@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_sort_options.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -63,7 +64,7 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
             categoryNames: _categoryNames);
       },
       uiElementsSorter: (List<UiElement<ExpenseFacade>> uiElements) {
-        var budgetingModuleFacade = context.activeTrip.budgetingModuleFacade;
+        var budgetingModuleFacade = context.activeTrip.budgetingFacade;
         return budgetingModuleFacade.sortExpenseElements(
             uiElements, _selectedSortOption);
       },

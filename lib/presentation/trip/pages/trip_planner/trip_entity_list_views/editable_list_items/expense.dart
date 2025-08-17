@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/ui_element.dart';
 import 'package:wandrr/l10n/extension.dart';
@@ -222,7 +223,7 @@ class EditableExpenseListItem extends StatelessWidget {
 
   void _calculateExpenseUpdatePossibility() {
     var isTitleValid = expenseUiElement.element.title.isNotEmpty;
-    var isExpenseValid = isTitleValid && expenseUiElement.element.isValid();
+    var isExpenseValid = isTitleValid && expenseUiElement.element.validate();
     validityNotifier.value = isExpenseValid;
   }
 }

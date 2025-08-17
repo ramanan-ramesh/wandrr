@@ -35,13 +35,13 @@ abstract class ItineraryModelEventHandler extends ItineraryFacade {
 
   void addTransit(TransitFacade transitToAdd);
 
+  void removeTransit(TransitFacade transit);
+
   void setCheckinLodging(LodgingFacade? lodging);
 
   void setCheckoutLodging(LodgingFacade? lodging);
 
   void setFullDayLodging(LodgingFacade? lodging);
-
-  void removeTransit(TransitFacade transit);
 }
 
 abstract class ItineraryFacadeCollection extends ListBase<ItineraryFacade> {

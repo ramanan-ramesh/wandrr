@@ -146,7 +146,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
         return false;
       },
       builder: (BuildContext context, TripManagementState state) {
-        var itineraryPlanData = context.activeTrip.itineraryModelCollection
+        var itineraryPlanData = context.activeTrip.itineraryCollection
             .getItineraryForDay(widget.day)
             .planData;
         _planDataUiElement.element = itineraryPlanData;
@@ -155,7 +155,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
           planDataUpdated: (newPlanData) {
             _planDataUiElement.element = newPlanData;
             var planValidationResult =
-                _planDataUiElement.element.getValidationResult(false);
+                _planDataUiElement.element.validate(false);
             if (planValidationResult == PlanDataValidationResult.valid) {
               _canUpdateItineraryDataNotifier.value = true;
             } else {
@@ -169,8 +169,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
   }
 
   void _tryShowError() {
-    var planDataValidationResult =
-        _planDataUiElement.element.getValidationResult(false);
+    var planDataValidationResult = _planDataUiElement.element.validate(false);
     switch (planDataValidationResult) {
       case PlanDataValidationResult.checkListItemEmpty:
         {

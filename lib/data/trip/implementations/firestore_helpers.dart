@@ -4,6 +4,7 @@ import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/budgeting/expense.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/transit.dart';

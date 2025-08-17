@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/presentation/app/bloc/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/bloc/master_page_events.dart';

@@ -4,6 +4,7 @@ import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
+import 'budgeting/expense_category.dart';
 import 'budgeting/money.dart';
 
 class LodgingFacade extends Equatable implements TripEntity {
@@ -81,11 +82,11 @@ class LodgingFacade extends Equatable implements TripEntity {
         notes: notes);
   }
 
-  bool isValid() {
+  bool validate() {
     return location != null &&
         checkinDateTime != null &&
         checkoutDateTime != null &&
-        expense.isValid();
+        expense.validate();
   }
 
   @override

@@ -22,20 +22,19 @@ abstract class TripDataFacade {
 
   List<PlanDataFacade> get planDataList;
 
-  ItineraryFacadeCollection get itineraryModelCollection;
+  ItineraryFacadeCollection get itineraryCollection;
 
-  BudgetingModuleFacade get budgetingModuleFacade;
+  BudgetingModuleFacade get budgetingFacade;
 
   Iterable<TransitOptionMetadata> get transitOptionMetadatas;
 }
 
 abstract class TripDataModelEventHandler extends TripDataFacade
     implements Dispose {
-  ItineraryFacadeCollectionEventHandler
-      get itineraryModelCollectionEventHandler;
+  ItineraryFacadeCollectionEventHandler get itineraryCollectionEventHandler;
 
   Future updateTripMetadata(
-      LeafRepositoryItem<TripMetadataFacade> tripMetadataRepositoryPattern);
+      LeafRepositoryItem<TripMetadataFacade> tripMetadataLeafRepositoryItem);
 
   LeafRepositoryItem<TripMetadataFacade> get tripMetadataModelEventHandler;
 

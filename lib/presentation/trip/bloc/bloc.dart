@@ -230,7 +230,7 @@ class TripManagementBloc
       UpdateItineraryPlanData event, Emitter<TripManagementState> emit) async {
     var activeTrip = _tripRepository!.activeTripEventHandler!;
     var itinerary =
-        activeTrip.itineraryModelCollection.getItineraryForDay(event.day);
+        activeTrip.itineraryCollection.getItineraryForDay(event.day);
     var didUpdate =
         await itinerary.planDataEventHandler.tryUpdate(event.planData);
     emit(ItineraryDataUpdated(day: event.day, isOperationSuccess: didUpdate));

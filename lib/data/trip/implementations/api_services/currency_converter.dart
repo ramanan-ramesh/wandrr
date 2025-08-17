@@ -11,10 +11,6 @@ class CurrencyConverter implements ApiService<(Money, String), double?> {
 
   final List<_CurrencyExchangeData> _exchangeRates = [];
 
-  String _constructQuery(String currencyToConvertTo) {
-    return '$_apiSurfaceUrl/currencies/${currencyToConvertTo.toLowerCase()}.json';
-  }
-
   @override
   final String apiIdentifier = "CurrencyConverter";
 
@@ -89,6 +85,10 @@ class CurrencyConverter implements ApiService<(Money, String), double?> {
     return exchangeRate != null
         ? exchangeRate.exchangeRate * currencyAmount.amount
         : null;
+  }
+
+  String _constructQuery(String currencyToConvertTo) {
+    return '$_apiSurfaceUrl/currencies/${currencyToConvertTo.toLowerCase()}.json';
   }
 }
 

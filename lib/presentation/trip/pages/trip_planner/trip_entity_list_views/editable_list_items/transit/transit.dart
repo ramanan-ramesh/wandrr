@@ -176,6 +176,6 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
   }
 
   void _calculateTransitValidity() {
-    widget.validityNotifier.value = _transitUiElement.element.isValid();
+    widget.validityNotifier.value = _transitUiElement.element.validate();
   }
 }

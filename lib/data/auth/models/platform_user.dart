@@ -17,8 +17,8 @@ class PlatformUser {
   PlatformUser.fromCache(
       {required this.userName,
       required String authenticationTypeRawValue,
-      this.displayName,
       required this.userID,
+      this.displayName,
       this.photoUrl})
       : authenticationType = AuthenticationType.values.firstWhere((authValue) =>
             authValue.toString() ==

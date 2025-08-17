@@ -1,6 +1,7 @@
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
+import 'expense_category.dart';
 import 'money.dart';
 
 class ExpenseFacade implements TripEntity {
@@ -79,24 +80,7 @@ class ExpenseFacade implements TripEntity {
             : null);
   }
 
-  bool isValid() {
+  bool validate() {
     return paidBy.isNotEmpty && splitBy.isNotEmpty;
   }
-}
-
-//added new entries, so maintain the place where logos are added corresponding to each category
-enum ExpenseCategory {
-  other,
-  flights,
-  lodging,
-  carRental,
-  publicTransit,
-  food,
-  drinks,
-  sightseeing,
-  activities,
-  shopping,
-  fuel,
-  groceries,
-  taxi
 }

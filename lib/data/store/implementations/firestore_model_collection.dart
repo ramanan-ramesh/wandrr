@@ -1,12 +1,19 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wandrr/data/store/models/collection_change_set.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
+import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 
+//TODO: Prevent multiple events resulting due to same document change. Also, clone all collection items during external access
 class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
+  final CollectionReference<Object?> _collectionReference;
+  bool _shouldListenToUpdates = false;
+  late StreamSubscription _collectionStreamSubscription;
+  final FutureOr<LeafRepositoryItem<Model>?> Function(
+      DocumentSnapshot documentSnapshot) _fromDocumentSnapshot;
+
   static Future<FirestoreModelCollection<Model>> createInstance<Model>(
       CollectionReference collectionReference,
       LeafRepositoryItem<Model> Function(DocumentSnapshot documentSnapshot)
@@ -33,7 +40,7 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
       Future<LeafRepositoryItem<Model>> Function(
               DocumentSnapshot documentSnapshot)
           fromDocumentSnapshot,
-      LeafRepositoryItem<Model> Function(Model) repositoryPatternCreator,
+      LeafRepositoryItem<Model> Function(Model) leafRepositoryItemCreator,
       {Query? query}) async {
     var collectionItems = <LeafRepositoryItem<Model>>[];
     var queryResult = await (query ?? collectionReference).get();
@@ -44,21 +51,14 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
     var modelCollection = FirestoreModelCollection<Model>._async(
         collectionReference: collectionReference,
         fromDocumentSnapshot: fromDocumentSnapshot,
-        leafRepositoryItemCreator: (x) => repositoryPatternCreator(x),
+        leafRepositoryItemCreator: (x) => leafRepositoryItemCreator(x),
         collectionItems: collectionItems,
         query: query);
     return modelCollection;
   }
 
-  final CollectionReference<Object?> _collectionReference;
-  bool _shouldListenToUpdates = false;
-  late StreamSubscription _collectionStreamSubscription;
-
-  final FutureOr<LeafRepositoryItem<Model>?> Function(
-      DocumentSnapshot documentSnapshot) fromDocumentSnapshot;
-
   @override
-  List<LeafRepositoryItem<Model>> get collectionItems =>
+  Iterable<LeafRepositoryItem<Model>> get collectionItems =>
       List.from(_collectionItems);
   final List<LeafRepositoryItem<Model>> _collectionItems;
 
@@ -90,14 +90,14 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
   @override
   Stream<
           CollectionItemChangeMetadata<
-              CollectionChangeSet<LeafRepositoryItem<Model>>>>
+              CollectionItemChangeSet<LeafRepositoryItem<Model>>>>
       get onDocumentUpdated => _updationStreamController.stream;
   final StreamController<
           CollectionItemChangeMetadata<
-              CollectionChangeSet<LeafRepositoryItem<Model>>>>
+              CollectionItemChangeSet<LeafRepositoryItem<Model>>>>
       _updationStreamController = StreamController<
           CollectionItemChangeMetadata<
-              CollectionChangeSet<LeafRepositoryItem<Model>>>>.broadcast();
+              CollectionItemChangeSet<LeafRepositoryItem<Model>>>>.broadcast();
 
   @override
   LeafRepositoryItem<Model> Function(Model model) leafRepositoryItemCreator;
@@ -117,12 +117,12 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
     LeafRepositoryItem<Model>? addedCollectionItem;
 
     await runUpdateTransaction(() async {
-      var repositoryPattern = leafRepositoryItemCreator(toAdd);
+      var leafRepositoryItem = leafRepositoryItemCreator(toAdd);
       var addResult =
-          await _collectionReference.add(repositoryPattern.toJson());
+          await _collectionReference.add(leafRepositoryItem.toJson());
 
       var addedDocumentSnapshot = await addResult.get();
-      var createdEntity = await fromDocumentSnapshot(addedDocumentSnapshot)
+      var createdEntity = await _fromDocumentSnapshot(addedDocumentSnapshot)
           as LeafRepositoryItem<Model>;
       addedCollectionItem = createdEntity;
       _collectionItems.add(createdEntity);
@@ -137,18 +137,18 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
   FutureOr<bool> tryDeleteItem(Model toDelete) async {
     var didDelete = false;
     await runUpdateTransaction(() async {
-      var repositoryPattern = leafRepositoryItemCreator(toDelete);
-      didDelete = await _tryDeleteCollectionItem(repositoryPattern);
+      var leafRepositoryItem = leafRepositoryItemCreator(toDelete);
+      didDelete = await _tryDeleteCollectionItem(leafRepositoryItem);
       if (didDelete) {
         _deletionStreamController
-            .add(CollectionItemChangeMetadata(repositoryPattern, true));
+            .add(CollectionItemChangeMetadata(leafRepositoryItem, true));
       }
     });
     return didDelete;
   }
 
   void tryUpdateList(WriteBatch writeBatch, List<Model> updatedModelItems) {
-    var newRepositoryPatterns =
+    var newLeafRepositoryItems =
         updatedModelItems.map((e) => leafRepositoryItemCreator(e)).toList();
 
     //Adds new items to collection. Updates items if already present.
@@ -158,29 +158,29 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
         indexOfItem < updatedModelItems.length;
         indexOfItem++) {
       var newItem = updatedModelItems[indexOfItem];
-      var newItemRepositoryPattern = newRepositoryPatterns[indexOfItem];
+      var newleafRepositoryItem = newLeafRepositoryItems[indexOfItem];
       var indexInCurrentCollectionItems = _collectionItems.indexWhere(
-          (collectionItem) => collectionItem.id == newItemRepositoryPattern.id);
+          (collectionItem) => collectionItem.id == newleafRepositoryItem.id);
       if (indexInCurrentCollectionItems >= 0) {
         var collectionItemToUpdate =
             _collectionItems[indexInCurrentCollectionItems];
         if (collectionItemToUpdate.facade != newItem) {
           writeBatch.set(collectionItemToUpdate.documentReference,
-              newItemRepositoryPattern.toJson());
+              newleafRepositoryItem.toJson());
           _collectionItems[indexInCurrentCollectionItems] =
-              newItemRepositoryPattern;
+              newleafRepositoryItem;
         }
       } else {
         var newDocument = _collectionReference.doc();
-        newItemRepositoryPattern.id = newDocument.id;
-        writeBatch.set(newDocument, newItemRepositoryPattern.toJson());
-        itemsToAdd.add(newItemRepositoryPattern);
+        newleafRepositoryItem.id = newDocument.id;
+        writeBatch.set(newDocument, newleafRepositoryItem.toJson());
+        itemsToAdd.add(newleafRepositoryItem);
       }
     }
 
     //Deletes items that are not in new
     for (var item in _collectionItems) {
-      if (!newRepositoryPatterns.any((element) => element.id == item.id)) {
+      if (!newLeafRepositoryItems.any((element) => element.id == item.id)) {
         writeBatch.delete(item.documentReference);
         itemsToDelete.add(item);
       }
@@ -193,17 +193,17 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
     }
     for (var documentChange in documentChanges) {
       var documentSnapshot = documentChange.doc;
-      var repositoryPattern =
-          fromDocumentSnapshot(documentSnapshot) as LeafRepositoryItem<Model>;
+      var leafRepositoryItem =
+          _fromDocumentSnapshot(documentSnapshot) as LeafRepositoryItem<Model>;
       switch (documentChange.type) {
         case DocumentChangeType.added:
           {
             if (!_collectionItems.any((element) =>
                 element.documentReference.id ==
-                repositoryPattern.documentReference.id)) {
-              _collectionItems.add(repositoryPattern);
+                leafRepositoryItem.documentReference.id)) {
+              _collectionItems.add(leafRepositoryItem);
               _additionStreamController
-                  .add(CollectionItemChangeMetadata(repositoryPattern, false));
+                  .add(CollectionItemChangeMetadata(leafRepositoryItem, false));
             }
 
             break;
@@ -213,7 +213,7 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
             _collectionItems.removeWhere((element) =>
                 element.documentReference.id == documentSnapshot.id);
             _deletionStreamController
-                .add(CollectionItemChangeMetadata(repositoryPattern, false));
+                .add(CollectionItemChangeMetadata(leafRepositoryItem, false));
             break;
           }
         case DocumentChangeType.modified:
@@ -222,10 +222,10 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
                 element.documentReference.id == documentSnapshot.id);
             var collectionItemBeforeUpdate =
                 _collectionItems[matchingElementIndex];
-            _collectionItems[matchingElementIndex] = repositoryPattern;
+            _collectionItems[matchingElementIndex] = leafRepositoryItem;
             _updationStreamController.add(CollectionItemChangeMetadata(
-                CollectionChangeSet(
-                    collectionItemBeforeUpdate, repositoryPattern),
+                CollectionItemChangeSet(
+                    collectionItemBeforeUpdate, leafRepositoryItem),
                 false));
             break;
           }
@@ -240,17 +240,17 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
     }
     for (var documentChange in documentChanges) {
       var documentSnapshot = documentChange.doc;
-      var repositoryPattern = await fromDocumentSnapshot(documentSnapshot)
+      var leafRepositoryItem = await _fromDocumentSnapshot(documentSnapshot)
           as LeafRepositoryItem<Model>;
       switch (documentChange.type) {
         case DocumentChangeType.added:
           {
             if (!_collectionItems.any((element) =>
                 element.documentReference.id ==
-                repositoryPattern.documentReference.id)) {
-              _collectionItems.add(repositoryPattern);
+                leafRepositoryItem.documentReference.id)) {
+              _collectionItems.add(leafRepositoryItem);
               _additionStreamController
-                  .add(CollectionItemChangeMetadata(repositoryPattern, false));
+                  .add(CollectionItemChangeMetadata(leafRepositoryItem, false));
             }
             break;
           }
@@ -259,7 +259,7 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
             _collectionItems.removeWhere((element) =>
                 element.documentReference.id == documentSnapshot.id);
             _deletionStreamController
-                .add(CollectionItemChangeMetadata(repositoryPattern, false));
+                .add(CollectionItemChangeMetadata(leafRepositoryItem, false));
             break;
           }
         case DocumentChangeType.modified:
@@ -268,10 +268,10 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
                 element.documentReference.id == documentSnapshot.id);
             var collectionItemBeforeUpdate =
                 _collectionItems[matchingElementIndex];
-            _collectionItems[matchingElementIndex] = repositoryPattern;
+            _collectionItems[matchingElementIndex] = leafRepositoryItem;
             _updationStreamController.add(CollectionItemChangeMetadata(
-                CollectionChangeSet(
-                    collectionItemBeforeUpdate, repositoryPattern),
+                CollectionItemChangeSet(
+                    collectionItemBeforeUpdate, leafRepositoryItem),
                 false));
           }
       }
@@ -292,10 +292,13 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
   FirestoreModelCollection._sync(
       {required this.leafRepositoryItemCreator,
       required CollectionReference collectionReference,
-      required this.fromDocumentSnapshot,
+      required FutureOr<LeafRepositoryItem<Model>?> Function(
+              DocumentSnapshot<Object?>)
+          fromDocumentSnapshot,
       required List<LeafRepositoryItem<Model>> collectionItems,
       Query? query})
-      : _collectionReference = collectionReference,
+      : _fromDocumentSnapshot = fromDocumentSnapshot,
+        _collectionReference = collectionReference,
         _collectionItems = collectionItems {
     //TODO: This fires the first time, even though collectionItems would have been initialized by then
     // TODO: Can we use this platform API ?- collectionReference.withConverter(fromFirestore: fromFirestore, toFirestore: toFirestore)
@@ -310,10 +313,13 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
   FirestoreModelCollection._async(
       {required this.leafRepositoryItemCreator,
       required CollectionReference collectionReference,
-      required this.fromDocumentSnapshot,
+      required FutureOr<LeafRepositoryItem<Model>?> Function(
+              DocumentSnapshot<Object?>)
+          fromDocumentSnapshot,
       required List<LeafRepositoryItem<Model>> collectionItems,
       Query? query})
-      : _collectionReference = collectionReference,
+      : _fromDocumentSnapshot = fromDocumentSnapshot,
+        _collectionReference = collectionReference,
         _collectionItems = collectionItems {
     // TODO: Can we use this platform API ?- collectionReference.withConverter(fromFirestore: fromFirestore, toFirestore: toFirestore)
     _shouldListenToUpdates = false;

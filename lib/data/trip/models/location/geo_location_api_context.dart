@@ -2,10 +2,11 @@ import 'package:equatable/equatable.dart';
 
 import 'bounding_box.dart';
 import 'location.dart';
+import 'location_context.dart';
 
 class GeoLocationApiContext with EquatableMixin implements LocationContext {
-  static const classField = 'class';
-  static const typeField = 'type';
+  static const _classField = 'class';
+  static const _typeField = 'type';
   static const _displayAddress = 'display_address';
   static const String _contintent = 'continent';
   static const String _country = 'country';
@@ -64,8 +65,8 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
         minLat: double.parse(boundingBoxValue[0].toString()),
         maxLon: double.parse(boundingBoxValue[3].toString()),
         minLon: double.parse(boundingBoxValue[2].toString()));
-    String locationClass = locationJson[classField];
-    String locationType = locationJson[typeField];
+    String locationClass = locationJson[_classField];
+    String locationType = locationJson[_typeField];
     if (locationType == _contintent) {
       return GeoLocationApiContext._fromApi(
           name: locationJson[_address][_name],
@@ -170,8 +171,8 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
     var country = locationJson[_address][_country];
     var name = locationJson[_address][_name];
     return GeoLocationApiContext._fromApi(
-        nodeClass: locationJson[classField],
-        nodeType: locationJson[typeField],
+        nodeClass: locationJson[_classField],
+        nodeType: locationJson[_typeField],
         placeId: locationJson[_placeIdField],
         boundingBox: boundingBox,
         locationType: locationType,
@@ -187,8 +188,8 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
         placeId: json[_placeIdField],
         address: json[_address],
         locationType: json[_locationTypeField],
-        nodeClass: json[classField],
-        nodeType: json[typeField],
+        nodeClass: json[_classField],
+        nodeType: json[_typeField],
         name: json[_name],
         country: json[_country],
         boundingBox: BoundingBox.fromDocument(json[_boundingBoxField]),
@@ -199,9 +200,9 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> json = {};
-    json[typeField] = _nodeType;
+    json[_typeField] = _nodeType;
     json[_locationTypeField] = locationType.name;
-    json[classField] = _nodeClass;
+    json[_classField] = _nodeClass;
     json[_name] = name;
     json[_address] = address;
     json[_boundingBoxField] = boundingBox.toJson();
