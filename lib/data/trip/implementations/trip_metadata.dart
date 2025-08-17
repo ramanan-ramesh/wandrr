@@ -57,19 +57,17 @@ class TripMetadataModelImplementation extends TripMetadataFacade
 
   //expects a valid database object
   @override
-  Map<String, dynamic> toJson() {
-    return {
-      _startDateField: Timestamp.fromDate(startDate!),
-      _endDateField: Timestamp.fromDate(endDate!),
-      _contributorsField: contributors,
-      _nameField: name,
-      _budgetField: budget.toString()
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        _startDateField: Timestamp.fromDate(startDate!),
+        _endDateField: Timestamp.fromDate(endDate!),
+        _contributorsField: contributors,
+        _nameField: name,
+        _budgetField: budget.toString()
+      };
 
   @override
   Future<bool> tryUpdate(TripMetadataFacade toUpdate) async {
-    Map<String, dynamic> json = {};
+    var json = <String, dynamic>{};
     FirestoreHelpers.updateJson(endDate, toUpdate.endDate, _endDateField, json);
     FirestoreHelpers.updateJson(
         startDate, toUpdate.startDate, _startDateField, json);

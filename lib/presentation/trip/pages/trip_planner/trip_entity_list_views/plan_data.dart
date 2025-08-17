@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
@@ -157,7 +159,7 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
 
     _animation = TweenSequence<Offset>([
       TweenSequenceItem(
-          tween: Tween(begin: const Offset(0, 0), end: const Offset(0.1, 0)),
+          tween: Tween(begin: Offset.zero, end: const Offset(0.1, 0)),
           weight: 1),
       TweenSequenceItem(
           tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
@@ -169,7 +171,7 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
           tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
           weight: 1),
       TweenSequenceItem(
-          tween: Tween(begin: const Offset(-0.1, 0), end: const Offset(0, 0)),
+          tween: Tween(begin: const Offset(-0.1, 0), end: Offset.zero),
           weight: 1),
     ]).animate(CurvedAnimation(
         parent: _animationController, curve: Curves.easeInOutCirc));
@@ -265,9 +267,7 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
                 }
               },
               valueNotifier: _canUpdatePlanDataNotifier,
-              callbackOnClickWhileDisabled: () {
-                _tryShowError();
-              },
+              callbackOnClickWhileDisabled: _tryShowError,
             ),
           ),
           Padding(
@@ -294,7 +294,8 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
   }
 
   void _tryShowError() {
-    var planDataValidationResult = _planDataUiElement.element.validate(true);
+    var planDataValidationResult =
+        _planDataUiElement.element.validate(isTitleRequired: true);
     switch (planDataValidationResult) {
       case PlanDataValidationResult.checkListItemEmpty:
         {
@@ -329,7 +330,6 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
         }
       default:
         _canUpdatePlanDataNotifier.value = true;
-        break;
     }
   }
 
@@ -350,7 +350,7 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
       _errorMessage = message;
       _showErrorMessage = true;
     });
-    _animationController.repeat(reverse: true);
+    unawaited(_animationController.repeat(reverse: true));
   }
 
   void _tryUpdatePlanData(PlanDataFacade newPlanData) {
@@ -358,7 +358,8 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
     _planDataUiElement.element = newPlanData;
     _planDataUiElement.element.title = title;
 
-    var planValidationResult = _planDataUiElement.element.validate(true);
+    var planValidationResult =
+        _planDataUiElement.element.validate(isTitleRequired: true);
     if (planValidationResult == PlanDataValidationResult.valid) {
       _canUpdatePlanDataNotifier.value = true;
     } else {

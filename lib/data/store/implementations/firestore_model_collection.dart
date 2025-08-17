@@ -22,7 +22,7 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
       {Query? query}) async {
     var collectionItems = <LeafRepositoryItem<Model>>[];
     var queryResult = await (query ?? collectionReference).get();
-    for (var documentSnapshot in queryResult.docs) {
+    for (final documentSnapshot in queryResult.docs) {
       var item = fromDocumentSnapshot(documentSnapshot);
       collectionItems.add(item);
     }
@@ -44,7 +44,7 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
       {Query? query}) async {
     var collectionItems = <LeafRepositoryItem<Model>>[];
     var queryResult = await (query ?? collectionReference).get();
-    for (var documentSnapshot in queryResult.docs) {
+    for (final documentSnapshot in queryResult.docs) {
       var item = await fromDocumentSnapshot(documentSnapshot);
       collectionItems.add(item);
     }
@@ -126,8 +126,8 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
           as LeafRepositoryItem<Model>;
       addedCollectionItem = createdEntity;
       _collectionItems.add(createdEntity);
-      _additionStreamController
-          .add(CollectionItemChangeMetadata(createdEntity, true));
+      _additionStreamController.add(CollectionItemChangeMetadata(createdEntity,
+          isFromExplicitAction: true));
     });
 
     return addedCollectionItem;
@@ -140,8 +140,9 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
       var leafRepositoryItem = leafRepositoryItemCreator(toDelete);
       didDelete = await _tryDeleteCollectionItem(leafRepositoryItem);
       if (didDelete) {
-        _deletionStreamController
-            .add(CollectionItemChangeMetadata(leafRepositoryItem, true));
+        _deletionStreamController.add(CollectionItemChangeMetadata(
+            leafRepositoryItem,
+            isFromExplicitAction: true));
       }
     });
     return didDelete;
@@ -179,7 +180,7 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
     }
 
     //Deletes items that are not in new
-    for (var item in _collectionItems) {
+    for (final item in _collectionItems) {
       if (!newLeafRepositoryItems.any((element) => element.id == item.id)) {
         writeBatch.delete(item.documentReference);
         itemsToDelete.add(item);
@@ -191,7 +192,7 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
     if (!_shouldListenToUpdates || documentChanges.isEmpty) {
       return;
     }
-    for (var documentChange in documentChanges) {
+    for (final documentChange in documentChanges) {
       var documentSnapshot = documentChange.doc;
       var leafRepositoryItem =
           _fromDocumentSnapshot(documentSnapshot) as LeafRepositoryItem<Model>;
@@ -202,8 +203,9 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
                 element.documentReference.id ==
                 leafRepositoryItem.documentReference.id)) {
               _collectionItems.add(leafRepositoryItem);
-              _additionStreamController
-                  .add(CollectionItemChangeMetadata(leafRepositoryItem, false));
+              _additionStreamController.add(CollectionItemChangeMetadata(
+                  leafRepositoryItem,
+                  isFromExplicitAction: false));
             }
 
             break;
@@ -212,8 +214,9 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
           {
             _collectionItems.removeWhere((element) =>
                 element.documentReference.id == documentSnapshot.id);
-            _deletionStreamController
-                .add(CollectionItemChangeMetadata(leafRepositoryItem, false));
+            _deletionStreamController.add(CollectionItemChangeMetadata(
+                leafRepositoryItem,
+                isFromExplicitAction: false));
             break;
           }
         case DocumentChangeType.modified:
@@ -226,7 +229,7 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
             _updationStreamController.add(CollectionItemChangeMetadata(
                 CollectionItemChangeSet(
                     collectionItemBeforeUpdate, leafRepositoryItem),
-                false));
+                isFromExplicitAction: false));
             break;
           }
       }
@@ -238,7 +241,7 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
     if (!_shouldListenToUpdates || documentChanges.isEmpty) {
       return;
     }
-    for (var documentChange in documentChanges) {
+    for (final documentChange in documentChanges) {
       var documentSnapshot = documentChange.doc;
       var leafRepositoryItem = await _fromDocumentSnapshot(documentSnapshot)
           as LeafRepositoryItem<Model>;
@@ -249,8 +252,9 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
                 element.documentReference.id ==
                 leafRepositoryItem.documentReference.id)) {
               _collectionItems.add(leafRepositoryItem);
-              _additionStreamController
-                  .add(CollectionItemChangeMetadata(leafRepositoryItem, false));
+              _additionStreamController.add(CollectionItemChangeMetadata(
+                  leafRepositoryItem,
+                  isFromExplicitAction: false));
             }
             break;
           }
@@ -258,8 +262,9 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
           {
             _collectionItems.removeWhere((element) =>
                 element.documentReference.id == documentSnapshot.id);
-            _deletionStreamController
-                .add(CollectionItemChangeMetadata(leafRepositoryItem, false));
+            _deletionStreamController.add(CollectionItemChangeMetadata(
+                leafRepositoryItem,
+                isFromExplicitAction: false));
             break;
           }
         case DocumentChangeType.modified:
@@ -272,7 +277,7 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
             _updationStreamController.add(CollectionItemChangeMetadata(
                 CollectionItemChangeSet(
                     collectionItemBeforeUpdate, leafRepositoryItem),
-                false));
+                isFromExplicitAction: false));
           }
       }
     }
@@ -303,11 +308,10 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
     //TODO: This fires the first time, even though collectionItems would have been initialized by then
     // TODO: Can we use this platform API ?- collectionReference.withConverter(fromFirestore: fromFirestore, toFirestore: toFirestore)
     _shouldListenToUpdates = false;
-    var streamSubscription = (query ?? collectionReference)
+    _collectionStreamSubscription = (query ?? collectionReference)
         .snapshots()
         .listen((event) => _onCollectionDataUpdate(event.docChanges));
     _shouldListenToUpdates = true;
-    _collectionStreamSubscription = streamSubscription;
   }
 
   FirestoreModelCollection._async(
@@ -323,9 +327,10 @@ class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
         _collectionItems = collectionItems {
     // TODO: Can we use this platform API ?- collectionReference.withConverter(fromFirestore: fromFirestore, toFirestore: toFirestore)
     _shouldListenToUpdates = false;
-    var streamSubscription = (query ?? collectionReference).snapshots().listen(
-        (event) async => await _onCollectionDataUpdateAsync(event.docChanges));
+    _collectionStreamSubscription = (query ?? collectionReference)
+        .snapshots()
+        .listen((event) async =>
+            await _onCollectionDataUpdateAsync(event.docChanges));
     _shouldListenToUpdates = true;
-    _collectionStreamSubscription = streamSubscription;
   }
 }

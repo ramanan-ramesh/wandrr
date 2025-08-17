@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
@@ -58,7 +60,8 @@ class _ItineraryListViewState extends State<ItineraryListView> {
             state.section.toLowerCase() ==
                 NavigationSections.itinerary.toLowerCase()) {
           if (state.dateTime == null) {
-            RepositoryProvider.of<TripNavigator>(context).jumpToList(context);
+            unawaited(RepositoryProvider.of<TripNavigator>(context)
+                .jumpToList(context));
           }
         }
       },

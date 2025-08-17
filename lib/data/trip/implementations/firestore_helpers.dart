@@ -43,7 +43,7 @@ class FirestoreHelpers {
     }
     if (shouldWriteToJson) {
       if (valueToSet is DateTime) {
-        json[key] = (Timestamp.fromDate(valueToSet));
+        json[key] = Timestamp.fromDate(valueToSet);
       } else if (valueToSet is Money) {
         json[key] = valueToSet.toString();
       } else if (valueToSet is LeafRepositoryItem) {
@@ -55,7 +55,7 @@ class FirestoreHelpers {
         json[key] = valueToSet.name;
       } else if (valueToSet is Map<String, Money>) {
         json[key] = {
-          for (var mapEntry in valueToSet.entries)
+          for (final mapEntry in valueToSet.entries)
             mapEntry.key: mapEntry.value.toString()
         };
       } else if (valueToSet is List<LeafRepositoryItem>) {

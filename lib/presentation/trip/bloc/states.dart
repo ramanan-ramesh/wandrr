@@ -51,8 +51,8 @@ class UpdatedTripEntity<T> extends TripManagementState {
   UpdatedTripEntity.createdNewUiEntry(
       {required T tripEntity, required this.isOperationSuccess})
       : dataState = DataState.newUiEntry,
-        tripEntityModificationData =
-            CollectionItemChangeMetadata(tripEntity, true);
+        tripEntityModificationData = CollectionItemChangeMetadata(tripEntity,
+            isFromExplicitAction: true);
 
   UpdatedTripEntity.created(
       {required this.tripEntityModificationData,
@@ -73,8 +73,8 @@ class UpdatedTripEntity<T> extends TripManagementState {
     required T tripEntity,
   })  : dataState = DataState.select,
         isOperationSuccess = true,
-        tripEntityModificationData =
-            CollectionItemChangeMetadata(tripEntity, true);
+        tripEntityModificationData = CollectionItemChangeMetadata(tripEntity,
+            isFromExplicitAction: true);
 }
 
 class UpdatedLinkedExpense<T> extends UpdatedTripEntity<ExpenseFacade> {
@@ -86,14 +86,12 @@ class UpdatedLinkedExpense<T> extends UpdatedTripEntity<ExpenseFacade> {
       required bool isFromEvent,
       required bool isOperationSuccess})
       : super.updated(
-            tripEntityModificationData:
-                CollectionItemChangeMetadata(expense, isFromEvent),
+            tripEntityModificationData: CollectionItemChangeMetadata(expense,
+                isFromExplicitAction: isFromEvent),
             isOperationSuccess: isOperationSuccess);
 
   UpdatedLinkedExpense.selected(
-      {required ExpenseFacade expense,
-      required this.link,
-      required bool isOperationSuccess})
+      {required ExpenseFacade expense, required this.link})
       : super.selected(tripEntity: expense);
 }
 

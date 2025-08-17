@@ -45,8 +45,7 @@ class GeoLocator implements ApiService<String, Iterable<LocationFacade>> {
         if (queryResponse.statusCode == 200) {
           _lastExecutedQuery = query;
           var locations = _convertResponse(queryResponse.body);
-          _lastQueriedLocations = locations;
-          return _lastQueriedLocations;
+          return _lastQueriedLocations = locations;
         }
       } finally {}
     }

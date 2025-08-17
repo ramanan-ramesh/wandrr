@@ -15,7 +15,7 @@ class ReadonlyTransitPlan extends StatelessWidget {
   final TransitFacade transitFacade;
   final AirlineData? airlineData;
 
-  ReadonlyTransitPlan({super.key, required this.transitFacade})
+  ReadonlyTransitPlan({required this.transitFacade, super.key})
       : airlineData = (transitFacade.transitOption == TransitOption.flight &&
                 transitFacade.operator != null)
             ? (AirlineData(transitFacade.operator!))

@@ -30,7 +30,7 @@ class TripManagementBloc
 
   @override
   Future<void> close() async {
-    for (var subscription in _tripRepositorySubscriptions) {
+    for (final subscription in _tripRepositorySubscriptions) {
       await subscription.cancel();
     }
     await super.close();
@@ -68,10 +68,11 @@ class TripManagementBloc
           .tripMetadataModelCollection.onDocumentUpdated
           .listen((eventData) {
         var collectionModificationData = CollectionItemChangeMetadata(
-            eventData.modifiedCollectionItem.afterUpdate.facade, false);
+            eventData.modifiedCollectionItem.afterUpdate.facade,
+            isFromExplicitAction: false);
         if (!isClosed) {
-          add(_UpdateTripEntityInternalEvent.updated(
-              collectionModificationData, true));
+          add(_UpdateTripEntityInternalEvent.updated(collectionModificationData,
+              isOperationSuccess: true));
         }
       });
       var tripMetadataAddedSubscription = _tripRepository!
@@ -79,10 +80,12 @@ class TripManagementBloc
           .listen((eventData) {
         if (!eventData.isFromExplicitAction) {
           var collectionModificationData = CollectionItemChangeMetadata(
-              eventData.modifiedCollectionItem.facade, false);
+              eventData.modifiedCollectionItem.facade,
+              isFromExplicitAction: false);
           if (!isClosed) {
             add(_UpdateTripEntityInternalEvent.created(
-                collectionModificationData, true));
+                collectionModificationData,
+                isOperationSuccess: true));
           }
         }
       });
@@ -91,10 +94,12 @@ class TripManagementBloc
           .listen((eventData) {
         if (!eventData.isFromExplicitAction) {
           var collectionModificationData = CollectionItemChangeMetadata(
-              eventData.modifiedCollectionItem.facade, false);
+              eventData.modifiedCollectionItem.facade,
+              isFromExplicitAction: false);
           if (!isClosed) {
             add(_UpdateTripEntityInternalEvent.deleted(
-                collectionModificationData, true));
+                collectionModificationData,
+                isOperationSuccess: true));
           }
         }
       });
@@ -149,7 +154,6 @@ class TripManagementBloc
           tripId: activeTrip.tripMetadata.id!,
           transitOption: TransitOption.publicTransport,
           allTripContributors: activeTrip.tripMetadata.contributors,
-          currentUserName: currentUserName,
           defaultCurrency: activeTrip.tripMetadata.budget.currency);
       emit(UpdatedTripEntity<TransitFacade>.createdNewUiEntry(
           tripEntity: transit, isOperationSuccess: true));
@@ -170,7 +174,6 @@ class TripManagementBloc
       var lodgingModelFacade = LodgingFacade.newUiEntry(
           tripId: activeTrip.tripMetadata.id!,
           allTripContributors: activeTrip.tripMetadata.contributors,
-          currentUserName: currentUserName,
           defaultCurrency: activeTrip.tripMetadata.budget.currency);
       emit(UpdatedTripEntity<LodgingFacade>.createdNewUiEntry(
           tripEntity: lodgingModelFacade, isOperationSuccess: true));
@@ -194,7 +197,6 @@ class TripManagementBloc
       var newExpense = ExpenseFacade.newUiEntry(
           tripId: activeTrip.tripMetadata.id!,
           allTripContributors: activeTrip.tripMetadata.contributors,
-          currentUserName: currentUserName,
           defaultCurrency: activeTrip.tripMetadata.budget.currency);
       emit(UpdatedTripEntity<ExpenseFacade>.createdNewUiEntry(
           tripEntity: newExpense, isOperationSuccess: true));
@@ -254,9 +256,7 @@ class TripManagementBloc
       case DataState.select:
         {
           emit(UpdatedLinkedExpense.selected(
-              link: event.link,
-              expense: event.tripEntity!,
-              isOperationSuccess: true));
+              link: event.link, expense: event.tripEntity!));
           break;
         }
       case DataState.update:
@@ -279,9 +279,7 @@ class TripManagementBloc
       case DataState.select:
         {
           emit(UpdatedLinkedExpense.selected(
-              link: event.link,
-              expense: event.tripEntity!,
-              isOperationSuccess: true));
+              link: event.link, expense: event.tripEntity!));
           break;
         }
       case DataState.update:
@@ -315,13 +313,15 @@ class TripManagementBloc
             var addedEntity = await modelCollection.tryAdd(tripEntity);
             if (addedEntity != null) {
               emit(UpdatedTripEntity<E>.created(
-                  tripEntityModificationData:
-                      CollectionItemChangeMetadata(addedEntity.facade, true),
+                  tripEntityModificationData: CollectionItemChangeMetadata(
+                      addedEntity.facade,
+                      isFromExplicitAction: true),
                   isOperationSuccess: true));
             } else {
               emit(UpdatedTripEntity<E>.created(
-                  tripEntityModificationData:
-                      CollectionItemChangeMetadata(tripEntity, true),
+                  tripEntityModificationData: CollectionItemChangeMetadata(
+                      tripEntity,
+                      isFromExplicitAction: true),
                   isOperationSuccess: false));
             }
           }
@@ -334,14 +334,16 @@ class TripManagementBloc
                 (element) => element.documentReference.id == tripEntityId)) {
               var didDelete = await modelCollection.tryDeleteItem(tripEntity);
               emit(UpdatedTripEntity<E>.deleted(
-                  tripEntityModificationData:
-                      CollectionItemChangeMetadata(tripEntity, true),
+                  tripEntityModificationData: CollectionItemChangeMetadata(
+                      tripEntity,
+                      isFromExplicitAction: true),
                   isOperationSuccess: didDelete));
             }
           } else {
             emit(UpdatedTripEntity<E>.deleted(
-                tripEntityModificationData:
-                    CollectionItemChangeMetadata(tripEntity, true),
+                tripEntityModificationData: CollectionItemChangeMetadata(
+                    tripEntity,
+                    isFromExplicitAction: true),
                 isOperationSuccess: true));
           }
           break;
@@ -358,8 +360,9 @@ class TripManagementBloc
                 didUpdate = await collectionItem.tryUpdate(tripEntity);
               });
               emit(UpdatedTripEntity<E>.updated(
-                  tripEntityModificationData:
-                      CollectionItemChangeMetadata(tripEntity, true),
+                  tripEntityModificationData: CollectionItemChangeMetadata(
+                      tripEntity,
+                      isFromExplicitAction: true),
                   isOperationSuccess: didUpdate));
             }
           }
@@ -388,10 +391,12 @@ class TripManagementBloc
         modelCollection.onDocumentAdded.listen((eventData) {
       if (!eventData.isFromExplicitAction) {
         var collectionModificationData = CollectionItemChangeMetadata(
-            eventData.modifiedCollectionItem.facade, false);
+            eventData.modifiedCollectionItem.facade,
+            isFromExplicitAction: false);
         if (!isClosed) {
           add(_UpdateTripEntityInternalEvent<T>.created(
-              collectionModificationData, true));
+              collectionModificationData,
+              isOperationSuccess: true));
         }
       }
     });
@@ -399,10 +404,12 @@ class TripManagementBloc
         modelCollection.onDocumentDeleted.listen((eventData) {
       if (!eventData.isFromExplicitAction) {
         var collectionModificationData = CollectionItemChangeMetadata(
-            eventData.modifiedCollectionItem.facade, false);
+            eventData.modifiedCollectionItem.facade,
+            isFromExplicitAction: false);
         if (!isClosed) {
           add(_UpdateTripEntityInternalEvent<T>.deleted(
-              collectionModificationData, true));
+              collectionModificationData,
+              isOperationSuccess: true));
         }
       }
     });
@@ -410,10 +417,12 @@ class TripManagementBloc
         modelCollection.onDocumentUpdated.listen((eventData) {
       if (!eventData.isFromExplicitAction) {
         var collectionModificationData = CollectionItemChangeMetadata(
-            eventData.modifiedCollectionItem.afterUpdate.facade, false);
+            eventData.modifiedCollectionItem.afterUpdate.facade,
+            isFromExplicitAction: false);
         if (!isClosed) {
           add(_UpdateTripEntityInternalEvent<T>.updated(
-              collectionModificationData, true));
+              collectionModificationData,
+              isOperationSuccess: true));
         }
       }
     });
@@ -423,7 +432,7 @@ class TripManagementBloc
   }
 
   Future<void> _clearTripSubscriptions() async {
-    for (var subscription in _tripStreamSubscriptions) {
+    for (final subscription in _tripStreamSubscriptions) {
       await subscription.cancel();
     }
     _tripStreamSubscriptions.clear();
@@ -467,16 +476,16 @@ class _UpdateTripEntityInternalEvent<T extends TripEntity>
   bool isOperationSuccess;
   DataState dateState;
 
-  _UpdateTripEntityInternalEvent.updated(
-      this.updateData, this.isOperationSuccess)
+  _UpdateTripEntityInternalEvent.updated(this.updateData,
+      {required this.isOperationSuccess})
       : dateState = DataState.update;
 
-  _UpdateTripEntityInternalEvent.created(
-      this.updateData, this.isOperationSuccess)
+  _UpdateTripEntityInternalEvent.created(this.updateData,
+      {required this.isOperationSuccess})
       : dateState = DataState.create;
 
-  _UpdateTripEntityInternalEvent.deleted(
-      this.updateData, this.isOperationSuccess)
+  _UpdateTripEntityInternalEvent.deleted(this.updateData,
+      {required this.isOperationSuccess})
       : dateState = DataState.delete;
 }
 

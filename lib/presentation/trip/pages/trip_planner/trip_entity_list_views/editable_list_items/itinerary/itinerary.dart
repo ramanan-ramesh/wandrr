@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -20,7 +22,7 @@ import 'package:wandrr/presentation/trip/repository_extensions.dart';
 class ItineraryListItem extends StatefulWidget {
   final ItineraryFacade itineraryFacade;
 
-  const ItineraryListItem({super.key, required this.itineraryFacade});
+  const ItineraryListItem({required this.itineraryFacade, super.key});
 
   DateTime get day => itineraryFacade.day;
 
@@ -52,7 +54,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
 
     _animation = TweenSequence<Offset>([
       TweenSequenceItem(
-          tween: Tween(begin: const Offset(0, 0), end: const Offset(0.1, 0)),
+          tween: Tween(begin: Offset.zero, end: const Offset(0.1, 0)),
           weight: 1),
       TweenSequenceItem(
           tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
@@ -64,7 +66,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
           tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
           weight: 1),
       TweenSequenceItem(
-          tween: Tween(begin: const Offset(-0.1, 0), end: const Offset(0, 0)),
+          tween: Tween(begin: const Offset(-0.1, 0), end: Offset.zero),
           weight: 1),
     ]).animate(CurvedAnimation(
         parent: _animationController, curve: Curves.easeInOutCirc));
@@ -132,7 +134,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
       _errorMessage = message;
       _showErrorMessage = true;
     });
-    _animationController.repeat(reverse: true);
+    unawaited(_animationController.repeat(reverse: true));
   }
 
   Widget _buildPlanData() {
@@ -155,7 +157,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
           planDataUpdated: (newPlanData) {
             _planDataUiElement.element = newPlanData;
             var planValidationResult =
-                _planDataUiElement.element.validate(false);
+                _planDataUiElement.element.validate(isTitleRequired: false);
             if (planValidationResult == PlanDataValidationResult.valid) {
               _canUpdateItineraryDataNotifier.value = true;
             } else {
@@ -169,7 +171,8 @@ class _ItineraryListItemState extends State<ItineraryListItem>
   }
 
   void _tryShowError() {
-    var planDataValidationResult = _planDataUiElement.element.validate(false);
+    var planDataValidationResult =
+        _planDataUiElement.element.validate(isTitleRequired: false);
     switch (planDataValidationResult) {
       case PlanDataValidationResult.checkListItemEmpty:
         {
@@ -204,7 +207,6 @@ class _ItineraryListItemState extends State<ItineraryListItem>
         }
       default:
         _canUpdateItineraryDataNotifier.value = true;
-        break;
     }
   }
 
@@ -228,9 +230,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
             context.addTripManagementEvent(UpdateItineraryPlanData(
                 planData: _planDataUiElement.element, day: widget.day));
           },
-          callbackOnClickWhileDisabled: () {
-            _tryShowError();
-          },
+          callbackOnClickWhileDisabled: _tryShowError,
           isElevationRequired: false,
         );
       },

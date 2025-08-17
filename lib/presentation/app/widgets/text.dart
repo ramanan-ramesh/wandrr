@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/l10n/extension.dart';
 
+typedef OnEmailChangedCallback = void Function(String, {required bool isValid});
+
 class PlatformTextElements {
   static const double subHeaderSize = 17;
   static const double formElementSize = 15;
@@ -35,7 +37,7 @@ class PlatformTextElements {
       {required BuildContext context,
       InputDecoration? inputDecoration,
       TextEditingController? controller,
-      Function(String, bool)? onTextChanged,
+      OnEmailChangedCallback? onEmailChanged,
       TextInputAction? textInputAction,
       String? Function(String? value)? validator,
       bool readonly = false}) {
@@ -45,9 +47,9 @@ class PlatformTextElements {
       minLines: 1,
       textInputAction: textInputAction,
       onChanged: (username) {
-        if (onTextChanged != null) {
+        if (onEmailChanged != null) {
           var isValid = _isEmailValid(username);
-          onTextChanged(username, isValid);
+          onEmailChanged(username, isValid: isValid);
         }
       },
       controller: controller,

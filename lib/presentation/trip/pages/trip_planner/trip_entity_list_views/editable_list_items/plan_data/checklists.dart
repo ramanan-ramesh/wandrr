@@ -6,7 +6,7 @@ import 'package:wandrr/presentation/app/widgets/card.dart';
 
 class CheckListsView extends StatefulWidget {
   const CheckListsView(
-      {super.key, required this.checkLists, required this.onCheckListsChanged});
+      {required this.checkLists, required this.onCheckListsChanged, super.key});
 
   final List<CheckListFacade> checkLists;
   final Function() onCheckListsChanged;
@@ -183,10 +183,10 @@ class _CheckListItem extends StatefulWidget {
   final Function() onDeleted;
 
   const _CheckListItem(
-      {super.key,
-      required this.checkListItem,
+      {required this.checkListItem,
       required this.callback,
-      required this.onDeleted});
+      required this.onDeleted,
+      super.key});
 
   @override
   State<_CheckListItem> createState() => _CheckListItemState();

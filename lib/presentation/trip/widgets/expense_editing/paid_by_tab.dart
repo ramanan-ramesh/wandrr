@@ -11,12 +11,12 @@ class PaidByTab extends StatelessWidget {
   final String defaultCurrencySymbol;
 
   const PaidByTab(
-      {super.key,
-      required this.heightPerItem,
+      {required this.heightPerItem,
       required this.callback,
       required this.contributorsVsColors,
       required this.defaultCurrencySymbol,
-      required this.paidBy});
+      required this.paidBy,
+      super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -84,10 +84,10 @@ class _ExpenseEditField extends StatefulWidget {
 
   const _ExpenseEditField(
       {required this.onChanged,
-      this.prefixText,
       required this.initialExpense,
       required this.contributorColor,
-      required this.currencySymbol});
+      required this.currencySymbol,
+      this.prefixText});
 
   @override
   State<_ExpenseEditField> createState() => _ExpenseEditFieldState();

@@ -4,7 +4,7 @@ import 'package:wandrr/presentation/app/widgets/card.dart';
 
 class NotesListView extends StatefulWidget {
   const NotesListView(
-      {super.key, required this.notes, required this.onNotesChanged});
+      {required this.notes, required this.onNotesChanged, super.key});
 
   final List<NoteFacade> notes;
   final Function() onNotesChanged;

@@ -54,7 +54,7 @@ class PlanDataModelImplementation extends PlanDataFacade
 
   @override
   Future<bool> tryUpdate(PlanDataFacade toUpdate) async {
-    Map<String, dynamic> json = {};
+    var json = <String, dynamic>{};
     var shouldUpdate = false;
     if (title != toUpdate.title) {
       shouldUpdate = true;
@@ -147,20 +147,20 @@ class PlanDataModelImplementation extends PlanDataFacade
     var checkLists = <CheckListModelImplementation>[];
     var notes = <NoteFacade>[];
     var places = <LocationModelImplementation>[];
-    for (var checkListDocumentData in List<Map<String, dynamic>>.from(
+    for (final checkListDocumentData in List<Map<String, dynamic>>.from(
         documentData[_checkListsField] ?? [])) {
       var checkList = CheckListModelImplementation.fromDocumentData(
           documentData: checkListDocumentData, tripId: tripId);
       checkLists.add(checkList);
     }
 
-    for (var noteDocumentData
+    for (final noteDocumentData
         in List<String>.from(documentData[_notesField] ?? [])) {
       var note = NoteFacade(note: noteDocumentData, tripId: tripId);
       notes.add(note);
     }
 
-    for (var placesDocumentData
+    for (final placesDocumentData
         in List<Map<String, dynamic>>.from(documentData[_placesField] ?? [])) {
       var place = LocationModelImplementation.fromJson(
           json: placesDocumentData, tripId: tripId);
@@ -190,13 +190,13 @@ class PlanDataModelImplementation extends PlanDataFacade
             notes: []);
 
   PlanDataModelImplementation(
-      {String? id,
-      required String tripId,
-      String? title,
+      {required String tripId,
       required String collectionName,
       required List<CheckListModelImplementation> checkLists,
       required List<NoteFacade> notes,
-      required List<LocationModelImplementation> places})
+      required List<LocationModelImplementation> places,
+      String? id,
+      String? title})
       : _checkLists = checkLists,
         _notes = notes,
         _places = places,

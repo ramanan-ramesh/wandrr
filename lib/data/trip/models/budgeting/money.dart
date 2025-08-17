@@ -14,9 +14,7 @@ class Money extends Equatable {
   }
 
   @override
-  String toString() {
-    return '${amount.toStringAsFixed(2)} $currency';
-  }
+  String toString() => '${amount.toStringAsFixed(2)} $currency';
 
   @override
   List<Object?> get props => [currency, amount];

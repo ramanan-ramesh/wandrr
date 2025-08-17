@@ -113,7 +113,7 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
 
   Widget _createAnimatedLoadingScreen(BuildContext context) {
     var currentState = BlocProvider.of<TripManagementBloc>(context).state;
-    String textToDisplay = context.localizations.loading;
+    var textToDisplay = context.localizations.loading;
     if (currentState is LoadingTripManagement) {
       textToDisplay = context.localizations.loadingYourTrips;
     } else if (currentState is LoadedRepository) {

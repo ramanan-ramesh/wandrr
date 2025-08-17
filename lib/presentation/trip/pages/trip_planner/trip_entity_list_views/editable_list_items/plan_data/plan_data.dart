@@ -16,9 +16,9 @@ class PlanDataListItem extends StatefulWidget {
   final Function(PlanDataFacade) planDataUpdated;
 
   const PlanDataListItem(
-      {super.key,
-      required this.initialPlanDataUiElement,
-      required this.planDataUpdated});
+      {required this.initialPlanDataUiElement,
+      required this.planDataUpdated,
+      super.key});
 
   @override
   State<PlanDataListItem> createState() => _PlanDataListItemState();
@@ -100,7 +100,7 @@ class _PlanDataListItemState extends State<PlanDataListItem> {
               items: [CheckListItem(item: '', isChecked: false)],
               tripId: tripId);
           var isAnyCheckListEmpty = false;
-          for (var checkList in _planDataUiElement.element.checkLists) {
+          for (final checkList in _planDataUiElement.element.checkLists) {
             if (checkList.items.isEmpty ||
                 checkList.items
                     .any((checkListItem) => checkListItem.item.isEmpty)) {

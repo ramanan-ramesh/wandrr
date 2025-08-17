@@ -14,27 +14,21 @@ class BoundingBox extends Equatable {
       required this.maxLon,
       required this.minLon});
 
-  static BoundingBox fromDocument(Map<String, dynamic> json) {
-    return BoundingBox(
-        maxLat: double.parse(json[_maxLatField].toString()),
-        minLat: double.parse(json[_minLatField].toString()),
-        maxLon: double.parse(json[_maxLonField].toString()),
-        minLon: double.parse(json[_minLonField].toString()));
-  }
+  static BoundingBox fromDocument(Map<String, dynamic> json) => BoundingBox(
+      maxLat: double.parse(json[_maxLatField].toString()),
+      minLat: double.parse(json[_minLatField].toString()),
+      maxLon: double.parse(json[_maxLonField].toString()),
+      minLon: double.parse(json[_minLonField].toString()));
 
-  BoundingBox clone() {
-    return BoundingBox(
-        maxLat: maxLat, minLat: minLat, maxLon: maxLon, minLon: minLon);
-  }
+  BoundingBox clone() => BoundingBox(
+      maxLat: maxLat, minLat: minLat, maxLon: maxLon, minLon: minLon);
 
-  Map<String, dynamic> toJson() {
-    return {
-      _maxLatField: maxLat,
-      _maxLonField: maxLon,
-      _minLonField: minLon,
-      _minLatField: minLat
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        _maxLatField: maxLat,
+        _maxLonField: maxLon,
+        _minLonField: minLon,
+        _minLatField: minLat
+      };
 
   @override
   List<Object?> get props => [maxLat, minLat, maxLon, minLon];

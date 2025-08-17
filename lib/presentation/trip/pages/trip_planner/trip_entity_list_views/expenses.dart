@@ -201,7 +201,8 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
     context.addTripManagementEvent(eventToAdd);
   }
 
-  bool _additionalBuildWhenCondition(previousState, currentState) {
+  bool _additionalBuildWhenCondition(
+      TripManagementState previousState, TripManagementState currentState) {
     if (currentState.isTripEntityUpdated<TransitFacade>()) {
       var transitUpdatedState = currentState as UpdatedTripEntity;
       if (transitUpdatedState.dataState == DataState.create ||

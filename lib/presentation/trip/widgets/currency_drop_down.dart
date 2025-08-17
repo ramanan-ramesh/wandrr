@@ -10,15 +10,16 @@ abstract class CurrencyDropDownField extends StatefulWidget {
   final LayerLink layerLink = LayerLink();
 
   CurrencyDropDownField(
-      {super.key,
-      required this.selectedCurrencyData,
-      OverlayEntry? overlayEntry,
+      {required this.selectedCurrencyData,
       required this.allCurrencies,
-      required this.currencySelectedCallback})
+      required this.currencySelectedCallback,
+      super.key,
+      OverlayEntry? overlayEntry})
       : _overlayEntry = overlayEntry;
 
-  Widget buildCurrencyListTile(CurrencyData currency, bool isDropDownButton,
-      BuildContext context, void Function(VoidCallback) setState) {
+  Widget buildCurrencyListTile(CurrencyData currency, BuildContext context,
+      void Function(VoidCallback) setState,
+      {required bool isDropDownButton}) {
     var textColor = Theme.of(context).listTileTheme.textColor;
     var isEqualToCurrentlySelectedItem = currency == selectedCurrencyData;
     if (isDropDownButton || isEqualToCurrentlySelectedItem) {
@@ -125,9 +126,9 @@ abstract class CurrencyDropDownField extends StatefulWidget {
 
   OverlayEntry _createCurrencyDropDownOverlay(
       BuildContext context, void Function(VoidCallback) setState) {
-    RenderBox clickedRenderBox = context.findRenderObject() as RenderBox;
-    Size clickedRenderBoxSize = clickedRenderBox.size;
-    Offset clickedRenderBoxOffset = clickedRenderBox.localToGlobal(Offset.zero);
+    var clickedRenderBox = context.findRenderObject() as RenderBox;
+    var clickedRenderBoxSize = clickedRenderBox.size;
+    var clickedRenderBoxOffset = clickedRenderBox.localToGlobal(Offset.zero);
 
     return OverlayEntry(
       builder: (context) => GestureDetector(
@@ -145,7 +146,7 @@ abstract class CurrencyDropDownField extends StatefulWidget {
               child: CompositedTransformFollower(
                 link: layerLink,
                 showWhenUnlinked: false,
-                offset: const Offset(0.0, 0.0),
+                offset: Offset.zero,
                 child: Material(
                   elevation: 4.0,
                   color: Theme.of(context).dialogTheme.backgroundColor,
@@ -162,7 +163,8 @@ abstract class CurrencyDropDownField extends StatefulWidget {
                         onClose: () => toggleDropdown(context, setState),
                         currencyListTileBuilder: (CurrencyData currency) {
                           return buildCurrencyListTile(
-                              currency, false, context, setState);
+                              currency, context, setState,
+                              isDropDownButton: false);
                         },
                       ),
                     ),
@@ -181,9 +183,9 @@ class PlatformCurrencyDropDown extends CurrencyDropDownField {
   PlatformCurrencyDropDown(
       {required super.selectedCurrencyData,
       required super.allCurrencies,
+      required super.currencySelectedCallback,
       super.overlayEntry,
-      super.key,
-      required super.currencySelectedCallback});
+      super.key});
 
   @override
   _PlatformCurrencyDropDownState createState() =>
@@ -206,7 +208,8 @@ class _PlatformCurrencyDropDownState extends State<PlatformCurrencyDropDown> {
       child: InkWell(
         onTap: () => widget.toggleDropdown(context, setState),
         child: widget.buildCurrencyListTile(
-            widget.selectedCurrencyData, true, context, setState),
+            widget.selectedCurrencyData, context, setState,
+            isDropDownButton: true),
       ),
     );
   }
@@ -280,7 +283,7 @@ class _SearchableCurrencyDropDownState
                   .toLowerCase()
                   .contains(searchText.toLowerCase()));
           _currencies.addAll(searchResultsForCurrencyName);
-          for (var currencyInfo in searchResultsForCurrencyCode) {
+          for (final currencyInfo in searchResultsForCurrencyCode) {
             if (!_currencies.contains(currencyInfo)) {
               _currencies.add(currencyInfo);
             }

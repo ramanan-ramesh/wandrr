@@ -1,4 +1,6 @@
 //Align the dialog against the button that was pressed, rather than showing as bottomModalSheet
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart'
     as app_data_picker;
@@ -10,11 +12,11 @@ class PlatformDateTimePicker extends StatefulWidget {
   final DateTime startDateTime, endDateTime;
 
   const PlatformDateTimePicker(
-      {super.key,
+      {required this.startDateTime,
+      required this.endDateTime,
+      super.key,
       this.dateTimeUpdated,
-      this.currentDateTime,
-      required this.startDateTime,
-      required this.endDateTime});
+      this.currentDateTime});
 
   @override
   State<PlatformDateTimePicker> createState() => _PlatformDateTimePickerState();
@@ -37,8 +39,8 @@ class _PlatformDateTimePickerState extends State<PlatformDateTimePicker> {
         : placeHolderString;
     return TextButton(
       onPressed: () {
-        bool shouldRebuild = false;
-        app_data_picker.DatePicker.showDateTimePicker(
+        var shouldRebuild = false;
+        unawaited(app_data_picker.DatePicker.showDateTimePicker(
           //TODO: Theme the picker
           currentTime: _dateTime,
           context,
@@ -63,7 +65,7 @@ class _PlatformDateTimePickerState extends State<PlatformDateTimePicker> {
               setState(() {});
             }
           },
-        );
+        ));
       },
       child: Text(dateTimeText),
     );

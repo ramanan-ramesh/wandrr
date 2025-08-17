@@ -14,12 +14,12 @@ class PlatformMoneyEditField extends CurrencyDropDownField {
       {required super.selectedCurrencyData,
       required super.allCurrencies,
       required this.onAmountUpdatedCallback,
-      this.initialAmount,
       required this.isAmountEditable,
+      required super.currencySelectedCallback,
+      this.initialAmount,
       super.overlayEntry,
       super.key,
-      this.textInputAction = TextInputAction.next,
-      required super.currencySelectedCallback});
+      this.textInputAction = TextInputAction.next});
 
   @override
   State<PlatformMoneyEditField> createState() => _PlatformMoneyEditFieldState();

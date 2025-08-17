@@ -10,8 +10,8 @@ class ExpenseViewAdapter extends StatelessWidget {
   final ValueNotifier<ExpenseViewType> _expenseViewTypeNotifier;
 
   const ExpenseViewAdapter(
-      {super.key,
-      required ValueNotifier<ExpenseViewType> expenseViewTypeNotifier})
+      {required ValueNotifier<ExpenseViewType> expenseViewTypeNotifier,
+      super.key})
       : _expenseViewTypeNotifier = expenseViewTypeNotifier;
 
   @override

@@ -74,7 +74,7 @@ class ExpenseModelImplementation extends ExpenseFacade
 
   @override
   Future<bool> tryUpdate(ExpenseFacade toUpdate) async {
-    Map<String, dynamic> json = {};
+    var json = <String, dynamic>{};
     FirestoreHelpers.updateJson(
         totalExpense, toUpdate.totalExpense, _totalExpenseField, json);
     FirestoreHelpers.updateJson(paidBy, toUpdate.paidBy, _paidByField, json);
@@ -117,7 +117,7 @@ class ExpenseModelImplementation extends ExpenseFacade
       }
     }
 
-    List<String> splitBy = List.from(documentSnapshot[_splitByField]);
+    var splitBy = List<String>.from(documentSnapshot[_splitByField]);
 
     LocationModelImplementation? location;
     if (documentData.containsKey(_locationField)) {
@@ -127,8 +127,8 @@ class ExpenseModelImplementation extends ExpenseFacade
       }
     }
 
-    Map<String, double> paidBy = {};
-    for (var paidByEntry in documentSnapshot[_paidByField].entries) {
+    var paidBy = <String, double>{};
+    for (final paidByEntry in documentSnapshot[_paidByField].entries) {
       var amount = paidByEntry.value;
       paidBy[paidByEntry.key] = double.parse(amount.toString());
     }
@@ -163,7 +163,7 @@ class ExpenseModelImplementation extends ExpenseFacade
       }
     }
 
-    List<String> splitBy = List.from(json[_splitByField]);
+    var splitBy = List<String>.from(json[_splitByField]);
 
     LocationModelImplementation? location;
     if (json.containsKey(_locationField)) {
@@ -175,7 +175,7 @@ class ExpenseModelImplementation extends ExpenseFacade
 
     var paidByValue = Map<String, dynamic>.from(json[_paidByField]);
     var paidBy = <String, double>{};
-    for (var paidByEntry in paidByValue.entries) {
+    for (final paidByEntry in paidByValue.entries) {
       var amount = paidByEntry.value;
       paidBy[paidByEntry.key] = double.parse(amount.toString());
     }

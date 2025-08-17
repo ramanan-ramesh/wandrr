@@ -83,10 +83,10 @@ class TripListView extends StatelessWidget {
   }
 
   List<AssetGenImage> _generateRandomImages(int numberOfTripMetadatas) {
-    List<AssetGenImage> tempImages = List.from(_tripPlanningImageAssets);
-    Random random = Random();
+    var tempImages = List<AssetGenImage>.from(_tripPlanningImageAssets);
+    var random = Random();
     var gridImages = <AssetGenImage>[];
-    for (int i = 0; i < numberOfTripMetadatas; i++) {
+    for (var i = 0; i < numberOfTripMetadatas; i++) {
       tempImages.shuffle(random);
       gridImages.add(tempImages[i % 3]);
     }

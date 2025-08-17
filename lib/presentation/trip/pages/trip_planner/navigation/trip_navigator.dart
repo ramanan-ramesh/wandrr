@@ -10,8 +10,8 @@ class TripNavigator {
   TripNavigator({required ScrollController scrollController})
       : _scrollController = scrollController;
 
-  void jumpToList(BuildContext context, {double alignment = 0.0}) {
-    Scrollable.ensureVisible(
+  Future jumpToList(BuildContext context, {double alignment = 0.0}) async {
+    await Scrollable.ensureVisible(
       context,
       curve: Curves.easeInOutBack,
       alignment: alignment,

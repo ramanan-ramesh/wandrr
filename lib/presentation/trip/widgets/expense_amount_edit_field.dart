@@ -61,10 +61,10 @@ class _DecimalTextInputFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    TextSelection newSelection = newValue.selection;
-    String truncated = newValue.text;
+    var newSelection = newValue.selection;
+    var truncated = newValue.text;
 
-    String value = newValue.text;
+    var value = newValue.text;
 
     // Check if more than one decimal point exists
     if (value.indexOf('.') != value.lastIndexOf('.')) {

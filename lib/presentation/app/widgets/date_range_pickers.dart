@@ -99,19 +99,13 @@ abstract class DateRangePickerBase extends StatefulWidget {
     if (dates.length == 1) {
       startDate = dates.first;
       endDate = null;
-      setState(() {
-        if (callback != null) {
-          callback!(startDate, endDate);
-        }
-      });
+      setState(() {});
     }
     if (dates.length == 2) {
       startDate = dates.first;
       endDate = dates.elementAt(1);
       setState(() {
-        if (callback != null) {
-          callback!(startDate, endDate);
-        }
+        callback?.call(startDate, endDate);
       });
     }
   }
@@ -137,11 +131,11 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
   @override
   Widget build(BuildContext context) {
     //TODO: Track focus and then decide whether to overlay the date range picker
-    String startDateTime = '';
+    var startDateTime = '';
     if (widget.startDate != null) {
       startDateTime = widget.dateFormat.format(widget.startDate!);
     }
-    String endDateTime = '';
+    var endDateTime = '';
     if (widget.endDate != null) {
       endDateTime = widget.dateFormat.format(widget.endDate!);
     }
@@ -159,7 +153,7 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
                 padding: const EdgeInsets.all(3.0),
                 child: FittedBox(
                   child: Text(
-                      '${(context.localizations.dateRangePickerStart)} $startDateTime'),
+                      '${context.localizations.dateRangePickerStart} $startDateTime'),
                 ),
               ),
             ),
@@ -169,7 +163,7 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
-                      '${(context.localizations.dateRangePickerEnd)} $endDateTime'),
+                      '${context.localizations.dateRangePickerEnd} $endDateTime'),
                 ),
               ),
             ),
@@ -200,11 +194,11 @@ class _PlatformFABDateRangePickerState
 
   @override
   Widget build(BuildContext context) {
-    String startDateTime = context.localizations.dateRangePickerStart;
+    var startDateTime = context.localizations.dateRangePickerStart;
     if (widget.startDate != null) {
       startDateTime = widget.dateFormat.format(widget.startDate!);
     }
-    String endDateTime = context.localizations.dateRangePickerEnd;
+    var endDateTime = context.localizations.dateRangePickerEnd;
     if (widget.endDate != null) {
       endDateTime = widget.dateFormat.format(widget.endDate!);
     }

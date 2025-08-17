@@ -18,12 +18,10 @@ class MasterPage extends StatelessWidget {
   const MasterPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider<MasterPageBloc>(
-      create: (context) => MasterPageBloc(),
-      child: const _ContentPageRouter(),
-    );
-  }
+  Widget build(BuildContext context) => BlocProvider<MasterPageBloc>(
+        create: (context) => MasterPageBloc(),
+        child: const _ContentPageRouter(),
+      );
 }
 
 class _ContentPageRouter extends StatefulWidget {
@@ -54,11 +52,9 @@ class _MasterContentPageLoader extends State<_ContentPageRouter> {
         }
         return _createAnimatedLoadingScreen(context);
       },
-      buildWhen: (previousState, currentState) {
-        return previousState != currentState &&
-                currentState is LoadedRepository ||
-            currentState is Loading;
-      },
+      buildWhen: (previousState, currentState) =>
+          previousState != currentState && currentState is LoadedRepository ||
+          currentState is Loading,
       listener: (BuildContext context, MasterPageState state) {
         if (state is Loading) {
           _tryStartWalkAnimation();
@@ -67,32 +63,30 @@ class _MasterContentPageLoader extends State<_ContentPageRouter> {
     );
   }
 
-  Widget _createAnimatedLoadingScreen(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Stack(
-        children: [
-          RiveAnimation.asset(
-            Assets.walkAnimation,
-            fit: BoxFit.fitHeight,
-            controllers: [
-              SimpleAnimation('Walk'),
-            ],
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Text(
-              'Loading user data and theme',
-              style: TextStyle(
-                fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
-                color: Colors.black,
+  Widget _createAnimatedLoadingScreen(BuildContext context) => Directionality(
+        textDirection: TextDirection.ltr,
+        child: Stack(
+          children: [
+            RiveAnimation.asset(
+              Assets.walkAnimation,
+              fit: BoxFit.fitHeight,
+              controllers: [
+                SimpleAnimation('Walk'),
+              ],
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Text(
+                'Loading user data and theme',
+                style: TextStyle(
+                  fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
+                  color: Colors.black,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 
   void _tryStartWalkAnimation() {
     _hasMinimumWalkAnimationTimePassed = false;
@@ -112,44 +106,42 @@ class _ContentPage extends StatelessWidget {
   const _ContentPage();
 
   @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<MasterPageBloc, MasterPageState>(
-      builder: (BuildContext context, MasterPageState state) {
-        var appLevelData = context.appDataRepository;
-        var currentTheme = appLevelData.activeThemeMode;
-        return MaterialApp(
-          locale: Locale(appLevelData.activeLanguage),
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: AppLocalizations.supportedLocales,
-          title: _appTitle,
-          debugShowCheckedModeBanner: false,
-          darkTheme: createDarkThemeData(context),
-          themeMode: currentTheme,
-          theme: createLightThemeData(context),
-          home: Material(
-            child: DropdownButtonHideUnderline(
-              child: SafeArea(
-                child: context.activeUser == null
-                    ? const StartupPage()
-                    : const TripProvider(),
+  Widget build(BuildContext context) =>
+      BlocConsumer<MasterPageBloc, MasterPageState>(
+        builder: (BuildContext context, MasterPageState state) {
+          var appLevelData = context.appDataRepository;
+          var currentTheme = appLevelData.activeThemeMode;
+          return MaterialApp(
+            locale: Locale(appLevelData.activeLanguage),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            title: _appTitle,
+            debugShowCheckedModeBanner: false,
+            darkTheme: createDarkThemeData(context),
+            themeMode: currentTheme,
+            theme: createLightThemeData(context),
+            home: Material(
+              child: DropdownButtonHideUnderline(
+                child: SafeArea(
+                  child: context.activeUser == null
+                      ? const StartupPage()
+                      : const TripProvider(),
+                ),
               ),
             ),
-          ),
-        );
-      },
-      buildWhen: (previousState, currentState) {
-        return currentState is ActiveLanguageChanged ||
+          );
+        },
+        buildWhen: (previousState, currentState) =>
+            currentState is ActiveLanguageChanged ||
             currentState is ActiveThemeModeChanged ||
             (currentState is AuthStateChanged &&
                 (currentState.authStatus == AuthStatus.loggedIn ||
-                    currentState.authStatus == AuthStatus.loggedOut));
-      },
-      listener: (BuildContext context, MasterPageState state) {},
-    );
-  }
+                    currentState.authStatus == AuthStatus.loggedOut)),
+        listener: (BuildContext context, MasterPageState state) {},
+      );
 }

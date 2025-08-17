@@ -17,7 +17,6 @@ class TransitCardBase extends StatelessWidget {
   final bool isEditable;
 
   const TransitCardBase({
-    super.key,
     required this.transitOption,
     required this.transitOperator,
     required this.arrivalLocation,
@@ -29,6 +28,7 @@ class TransitCardBase extends StatelessWidget {
     required this.transitFacade,
     required this.notes,
     required this.isEditable,
+    super.key,
   });
 
   @override
@@ -105,7 +105,9 @@ class TransitCardBase extends StatelessWidget {
 
   Widget _buildBigLayoutBody(
       BuildContext context, bool doesTransitNeedPriorBooking) {
-    if (!doesTransitNeedPriorBooking) return _buildTransitEvents(context);
+    if (!doesTransitNeedPriorBooking) {
+      return _buildTransitEvents(context);
+    }
     return Row(
       children: [
         Expanded(flex: 3, child: _buildTransitEvents(context)),
@@ -129,7 +131,9 @@ class TransitCardBase extends StatelessWidget {
 
   Widget _buildSmallLayoutBody(
       BuildContext context, bool doesTransitNeedPriorBooking) {
-    if (!doesTransitNeedPriorBooking) return _buildTransitEvents(context);
+    if (!doesTransitNeedPriorBooking) {
+      return _buildTransitEvents(context);
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

@@ -16,8 +16,8 @@ class LocationModelImplementation extends LocationFacade
       {required super.latitude,
       required super.longitude,
       required super.context,
-      super.id,
       required super.tripId,
+      super.id,
       String? collectionName,
       String? parentId})
       : _parentId = parentId ?? '',
@@ -88,9 +88,7 @@ class LocationModelImplementation extends LocationFacade
   }
 
   @override
-  Future<bool> tryUpdate(LocationFacade toUpdate) async {
-    return true;
-  }
+  Future<bool> tryUpdate(LocationFacade toUpdate) async => true;
 
   @override
   LocationFacade get facade => clone();

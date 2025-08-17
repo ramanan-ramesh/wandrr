@@ -9,9 +9,9 @@ class DeleteTripDialog extends StatelessWidget {
   final TripMetadataFacade tripMetadataFacade;
 
   const DeleteTripDialog(
-      {super.key,
-      required this.widgetContext,
-      required this.tripMetadataFacade});
+      {required this.widgetContext,
+      required this.tripMetadataFacade,
+      super.key});
 
   @override
   Widget build(BuildContext context) {

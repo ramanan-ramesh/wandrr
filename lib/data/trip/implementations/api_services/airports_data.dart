@@ -8,14 +8,12 @@ class AirportsDataService extends CachedDataService<LocationFacade> {
   AirportsDataService() : super(_apiIdentifier);
 
   @override
-  LocationFacade fromJsonInCache(Map<String, dynamic> jsonInCache) {
-    return _fromJson(jsonInCache);
-  }
+  LocationFacade fromJsonInCache(Map<String, dynamic> jsonInCache) =>
+      _fromJson(jsonInCache);
 
   @override
-  LocationFacade fromJsonInDatabase(Map<String, dynamic> jsonInDatabase) {
-    return _fromJson(jsonInDatabase);
-  }
+  LocationFacade fromJsonInDatabase(Map<String, dynamic> jsonInDatabase) =>
+      _fromJson(jsonInDatabase);
 
   @override
   bool shouldConsiderItemInQueryResult(LocationFacade item, String query) {
@@ -26,16 +24,13 @@ class AirportsDataService extends CachedDataService<LocationFacade> {
         _contains(airportLocationContext.city, query);
   }
 
-  static LocationFacade _fromJson(Map<String, dynamic> json) {
-    return LocationFacade(
-      tripId: '',
-      latitude: double.parse(json['lat'].toString()),
-      longitude: double.parse(json['lon'].toString()),
-      context: AirportLocationContext.fromDocument(json),
-    );
-  }
+  static LocationFacade _fromJson(Map<String, dynamic> json) => LocationFacade(
+        tripId: '',
+        latitude: double.parse(json['lat'].toString()),
+        longitude: double.parse(json['lon'].toString()),
+        context: AirportLocationContext.fromDocument(json),
+      );
 
-  static bool _contains(String a, String b) {
-    return a.toLowerCase().contains(b.toLowerCase());
-  }
+  static bool _contains(String a, String b) =>
+      a.toLowerCase().contains(b.toLowerCase());
 }

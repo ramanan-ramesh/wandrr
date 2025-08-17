@@ -16,7 +16,7 @@ import 'package:wandrr/presentation/trip/repository_extensions.dart';
 class ItineraryStayAndTransits extends StatelessWidget {
   final DateTime itineraryDay;
 
-  const ItineraryStayAndTransits({super.key, required this.itineraryDay});
+  const ItineraryStayAndTransits({required this.itineraryDay, super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -54,16 +54,14 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     var tripMetadataModelCollection =
         await FirestoreModelCollection.createInstance(
             tripsCollectionReference,
-            (snapshot) =>
-                TripMetadataModelImplementation.fromDocumentSnapshot(snapshot),
+            TripMetadataModelImplementation.fromDocumentSnapshot,
             (tripMetadataModuleFacade) =>
                 TripMetadataModelImplementation.fromModelFacade(
                     tripMetadataModelFacade: tripMetadataModuleFacade),
             query: tripsCollectionReference.where(_contributorsField,
                 arrayContains: userName));
 
-    final String jsonString =
-        await rootBundle.loadString(_pathToSupportedCurrencies);
+    final jsonString = await rootBundle.loadString(_pathToSupportedCurrencies);
     final List<dynamic> jsonResponse = json.decode(jsonString);
     var currencyDataList =
         jsonResponse.map((json) => CurrencyData.fromJson(json)).toList();

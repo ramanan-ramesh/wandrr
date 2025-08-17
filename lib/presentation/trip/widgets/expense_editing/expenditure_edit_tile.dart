@@ -25,10 +25,10 @@ class ExpenditureEditTile extends StatefulWidget {
       callback;
 
   ExpenditureEditTile(
-      {super.key,
-      required ExpenseFacade expenseUpdator,
-      this.callback,
-      required this.isEditable})
+      {required ExpenseFacade expenseUpdator,
+      required this.isEditable,
+      super.key,
+      this.callback})
       : paidBy = expenseUpdator.paidBy,
         splitBy = expenseUpdator.splitBy,
         totalExpense = expenseUpdator.totalExpense;
@@ -185,17 +185,15 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   }
 
   void _invokeUpdatedCallback() {
-    if (widget.callback != null) {
-      widget.callback!(
-          _currentPaidBy, _currentSplitBy, _totalExpenseValueNotifier.value);
-    }
+    widget.callback?.call(
+        _currentPaidBy, _currentSplitBy, _totalExpenseValueNotifier.value);
   }
 
   void _initializeContributors(BuildContext context) {
     var contributors = context.activeTrip.tripMetadata.contributors;
     var allContributors = List.from(contributors);
     allContributors.sort();
-    for (int index = 0; index < allContributors.length; index++) {
+    for (var index = 0; index < allContributors.length; index++) {
       var contributor = allContributors.elementAt(index);
       _contributorsVsColors[contributor] = contributorColors[index];
     }

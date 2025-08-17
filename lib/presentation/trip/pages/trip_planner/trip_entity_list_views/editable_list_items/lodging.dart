@@ -13,9 +13,9 @@ class EditableLodgingPlan extends StatefulWidget {
   final ValueNotifier<bool> validityNotifier;
 
   const EditableLodgingPlan({
-    super.key,
     required this.lodgingUiElement,
     required this.validityNotifier,
+    super.key,
   });
 
   @override

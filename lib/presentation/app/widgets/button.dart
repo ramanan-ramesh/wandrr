@@ -20,9 +20,9 @@ class PlatformSubmitterFAB extends StatefulWidget {
   final bool isElevationRequired;
 
   PlatformSubmitterFAB(
-      {super.key,
-      required this.icon,
+      {required this.icon,
       required this.context,
+      super.key,
       this.isElevationRequired = true,
       this.callback,
       this.isSubmitted = false,
@@ -30,9 +30,9 @@ class PlatformSubmitterFAB extends StatefulWidget {
       : isConditionallyVisible = false;
 
   PlatformSubmitterFAB.form(
-      {super.key,
-      required this.icon,
+      {required this.icon,
       required this.context,
+      super.key,
       this.isElevationRequired = true,
       this.callback,
       this.formState,
@@ -43,15 +43,15 @@ class PlatformSubmitterFAB extends StatefulWidget {
       : isConditionallyVisible = false;
 
   PlatformSubmitterFAB.conditionallyEnabled(
-      {super.key,
-      required this.icon,
+      {required this.icon,
       required this.context,
+      required ValueNotifier<bool> this.valueNotifier,
+      super.key,
       this.isElevationRequired = true,
       this.callback,
       this.formState,
       this.validationFailureCallback,
       this.validationSuccessCallback,
-      required ValueNotifier<bool> this.valueNotifier,
       this.isSubmitted = false,
       this.isConditionallyVisible = false,
       this.callbackOnClickWhileDisabled,
@@ -91,9 +91,7 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
     return FloatingActionButton(
       onPressed: widget.isSubmitted || !canEnable
           ? () {
-              if (widget.callbackOnClickWhileDisabled != null) {
-                widget.callbackOnClickWhileDisabled!();
-              }
+              widget.callbackOnClickWhileDisabled?.call();
             }
           : _onPressed,
       elevation: widget.isElevationRequired

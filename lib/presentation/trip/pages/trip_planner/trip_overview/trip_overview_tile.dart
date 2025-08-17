@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
@@ -42,7 +44,8 @@ class TripOverviewTile extends StatelessWidget {
       listener: (BuildContext context, TripManagementState state) {
         if (state is ProcessSectionNavigation &&
             state.section == NavigationSections.tripOverview) {
-          RepositoryProvider.of<TripNavigator>(context).jumpToList(context);
+          unawaited(RepositoryProvider.of<TripNavigator>(context)
+              .jumpToList(context));
         }
       },
       child: Stack(
@@ -110,7 +113,7 @@ class _OverviewTile extends StatelessWidget {
       fill: Fill.back,
       direction: Axis.vertical,
       duration: const Duration(milliseconds: 750),
-      autoFlipDuration: const Duration(seconds: 0),
+      autoFlipDuration: Duration.zero,
       front: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: overViewTile,

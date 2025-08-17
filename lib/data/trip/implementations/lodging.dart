@@ -78,20 +78,18 @@ class LodgingModelImplementation extends LodgingFacade
       .doc(id);
 
   @override
-  Map<String, dynamic> toJson() {
-    return {
-      _locationField: (location as LeafRepositoryItem).toJson(),
-      _expenseField: (expense as LeafRepositoryItem).toJson(),
-      _checkinDateTimeField: Timestamp.fromDate(checkinDateTime!),
-      _checkoutDateTimeField: Timestamp.fromDate(checkoutDateTime!),
-      _confirmationIdField: confirmationId,
-      _notesField: notes
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        _locationField: (location as LeafRepositoryItem).toJson(),
+        _expenseField: (expense as LeafRepositoryItem).toJson(),
+        _checkinDateTimeField: Timestamp.fromDate(checkinDateTime!),
+        _checkoutDateTimeField: Timestamp.fromDate(checkoutDateTime!),
+        _confirmationIdField: confirmationId,
+        _notesField: notes
+      };
 
   @override
   Future<bool> tryUpdate(LodgingFacade toUpdate) async {
-    Map<String, dynamic> json = {};
+    var json = <String, dynamic>{};
     FirestoreHelpers.updateJson(
         checkinDateTime, toUpdate.checkinDateTime, _checkinDateTimeField, json);
     FirestoreHelpers.updateJson(checkoutDateTime, toUpdate.checkoutDateTime,
@@ -104,7 +102,7 @@ class LodgingModelImplementation extends LodgingFacade
     FirestoreHelpers.updateJson(expense, toUpdate.expense, _expenseField, json);
 
     var didUpdateLodging = json.isNotEmpty;
-    documentReference.set(json, SetOptions(merge: true)).then((value) {
+    await documentReference.set(json, SetOptions(merge: true)).then((value) {
       didUpdateLodging = true;
       copyWith(toUpdate);
     }).catchError((error, stackTrace) {

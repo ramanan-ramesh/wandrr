@@ -21,7 +21,7 @@ class JumpToDateNavigator<T extends TripEntity>
   final Iterable<T> Function() tripEntitiesGetter;
 
   const JumpToDateNavigator(
-      {super.key, required this.section, required this.tripEntitiesGetter});
+      {required this.section, required this.tripEntitiesGetter, super.key});
 
   @override
   State<JumpToDateNavigator> createState() => _JumpToDateNavigatorState();
@@ -92,9 +92,9 @@ class _JumpToDateNavigatorState<T extends TripEntity>
       return tripEntities.map((entity) => (entity as ItineraryFacade).day);
     }
 
-    for (var itinerary in itineraries) {
+    for (final itinerary in itineraries) {
       var day = itinerary.day;
-      for (var tripEntity in tripEntities) {
+      for (final tripEntity in tripEntities) {
         if (tripEntity is LodgingFacade) {
           if (itinerary.checkinLodging != null &&
               itinerary.checkinLodging!.id == tripEntity.id) {

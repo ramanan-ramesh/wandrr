@@ -13,10 +13,10 @@ class TransitOperatorEditor extends StatelessWidget {
   final Function(String?) onOperatorChanged;
 
   const TransitOperatorEditor(
-      {super.key,
-      required this.transitOption,
-      this.initialOperator,
-      required this.onOperatorChanged});
+      {required this.transitOption,
+      required this.onOperatorChanged,
+      super.key,
+      this.initialOperator});
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +41,7 @@ class TransitOperatorEditor extends StatelessWidget {
         labelText: context
             .localizations.carrierName, //TODO: This gets cut off for Tamil
       ),
-      onChanged: (newCarrier) {
-        onOperatorChanged(newCarrier);
-      },
+      onChanged: onOperatorChanged,
     );
   }
 }

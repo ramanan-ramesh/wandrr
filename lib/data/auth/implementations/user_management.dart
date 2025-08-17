@@ -84,12 +84,11 @@ class UserManagement implements UserManagementModifier {
     } else {
       googleSignIn = GoogleSignIn(clientId: googleWebClientId);
     }
-    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+    var googleUser = await googleSignIn.signIn();
 
-    final GoogleSignInAuthentication? googleAuth =
-        await googleUser?.authentication;
+    var googleAuth = await googleUser?.authentication;
 
-    final credential = GoogleAuthProvider.credential(
+    var credential = GoogleAuthProvider.credential(
       accessToken: googleAuth?.accessToken,
       idToken: googleAuth?.idToken,
     );
@@ -106,7 +105,7 @@ class UserManagement implements UserManagementModifier {
       activeUser = null;
       await _persistActiveUser();
       return true;
-    } catch (e) {
+    } on Exception {
       return false;
     }
   }
@@ -149,7 +148,7 @@ class UserManagement implements UserManagementModifier {
       }
       await _persistActiveUser();
       return true;
-    } catch (e) {
+    } on Exception {
       return false;
     }
   }
@@ -159,7 +158,7 @@ class UserManagement implements UserManagementModifier {
       SharedPreferences localStorage, User? currentUser) async {
     var isLoggedInValue = localStorage.getBool(_isLoggedInField) ?? false;
     if (currentUser != null) {
-      AuthenticationType authenticationType = AuthenticationType.emailPassword;
+      var authenticationType = AuthenticationType.emailPassword;
       if (isLoggedInValue) {
         var authTypeInLocalStorage =
             localStorage.getString(_authenticationTypeField) as String;
@@ -211,7 +210,7 @@ class UserManagement implements UserManagementModifier {
 
   static AuthStatus _getAuthFailureReason(
       String errorCode, String? errorMessage) {
-    AuthStatus authFailureReason = AuthStatus.undefined;
+    var authFailureReason = AuthStatus.undefined;
     if (errorMessage == null) {
       var matches = _authenticationFailuresAndMessages.keys
           .where((element) => errorCode.contains(element));
@@ -229,13 +228,11 @@ class UserManagement implements UserManagementModifier {
   }
 
   static Map<String, dynamic> _userToJsonDocument(
-      String userName, AuthenticationType authenticationType) {
-    //TODO: Must add display name also here, if it's present
-    return {
-      _userNameField: userName,
-      _authenticationTypeField: authenticationType.name
-    };
-  }
+          String userName, AuthenticationType authenticationType) =>
+      {
+        _userNameField: userName,
+        _authenticationTypeField: authenticationType.name
+      };
 
   UserManagement._(
       {required this.activeUser, required SharedPreferences localStorage})

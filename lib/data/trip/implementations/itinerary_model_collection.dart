@@ -105,7 +105,7 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
       var currentTripDay = startDateFromFacade.add(Duration(days: dayCounter));
       transitsPerDay[currentTripDay] = [];
     }
-    for (var transitItem in transitModelCollection.collectionItems) {
+    for (final transitItem in transitModelCollection.collectionItems) {
       var transit = transitItem.facade;
       var totalDaysOfTransit = transit.departureDateTime!
           .calculateDaysInBetween(transit.arrivalDateTime!,
@@ -123,7 +123,7 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
     }
 
     var lodgingEventsPerDay = <DateTime, List<LodgingFacade>>{};
-    for (var lodgingItem in lodgingModelCollection.collectionItems) {
+    for (final lodgingItem in lodgingModelCollection.collectionItems) {
       var lodging = lodgingItem.facade;
       var totalStayTimeInDays = lodging.checkinDateTime!.calculateDaysInBetween(
           lodging.checkoutDateTime!,
@@ -195,16 +195,16 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
   @override
   Future updateTripDays(DateTime startDate, DateTime endDate) async {
     // Sets for old and new date ranges
-    Set<DateTime> oldDates = _getDateRange(_startDate, _endDate);
-    Set<DateTime> newDates = _getDateRange(startDate, endDate);
+    var oldDates = _getDateRange(_startDate, _endDate);
+    var newDates = _getDateRange(startDate, endDate);
 
     // Identify dates to be added and removed
-    Set<DateTime> datesToAdd = newDates.difference(oldDates);
-    Set<DateTime> datesToRemove = oldDates.difference(newDates);
+    var datesToAdd = newDates.difference(oldDates);
+    var datesToRemove = oldDates.difference(newDates);
 
     // Remove itineraries for dates not in the new date range
     var writeBatch = FirebaseFirestore.instance.batch();
-    for (var date in datesToRemove) {
+    for (final date in datesToRemove) {
       var itineraryIndex =
           indexWhere((itinerary) => itinerary.day.isOnSameDayAs(date));
       var itinerary = this[itineraryIndex];
@@ -213,7 +213,7 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
 
     if (datesToRemove.isNotEmpty) {
       await writeBatch.commit().then((value) {
-        for (var date in datesToRemove) {
+        for (final date in datesToRemove) {
           _allItineraries
               .removeWhere((itinerary) => itinerary.day.isOnSameDayAs(date));
         }
@@ -221,7 +221,7 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
     }
 
     // Add new itineraries for dates in the new date range but not in the old date range
-    for (var date in datesToAdd) {
+    for (final date in datesToAdd) {
       var planDataModelImplementation = PlanDataModelImplementation.empty(
           id: _dateFormat.format(date),
           tripId: tripId,
@@ -245,15 +245,12 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
   set length(int newLength) {}
 
   @override
-  ItineraryModelImplementation operator [](int index) {
-    return _allItineraries[index];
-  }
+  ItineraryModelImplementation operator [](int index) => _allItineraries[index];
 
   @override
-  ItineraryModelEventHandler getItineraryForDay(DateTime dateTime) {
-    return _allItineraries
-        .singleWhere((itinerary) => itinerary.day.isOnSameDayAs(dateTime));
-  }
+  ItineraryModelEventHandler getItineraryForDay(DateTime dateTime) =>
+      _allItineraries
+          .singleWhere((itinerary) => itinerary.day.isOnSameDayAs(dateTime));
 
   @override
   void operator []=(int index, ItineraryFacade value) {}
@@ -261,21 +258,20 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
   @override
   Future dispose() async {
     _allItineraries.clear();
-    for (var subscription in _subscriptions) {
+    for (final subscription in _subscriptions) {
       await subscription.cancel();
     }
   }
 
   void _addOrRemoveTransitToItinerary(TransitFacade transit, bool toDelete) {
-    for (var itinerary in _allItineraries) {
+    for (final itinerary in _allItineraries) {
       var isItineraryDayOnOrAfterDeparture =
           itinerary.day.isOnSameDayAs(transit.departureDateTime!) ||
               itinerary.day.isAfter(transit.departureDateTime!);
       var isItineraryDayOnOrBeforeArrival =
           itinerary.day.isOnSameDayAs(transit.arrivalDateTime!) ||
               itinerary.day.isBefore(transit.arrivalDateTime!);
-      if (isItineraryDayOnOrAfterDeparture &&
-          (isItineraryDayOnOrBeforeArrival)) {
+      if (isItineraryDayOnOrAfterDeparture && isItineraryDayOnOrBeforeArrival) {
         if (toDelete) {
           itinerary.removeTransit(transit);
         } else {
@@ -286,7 +282,7 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
   }
 
   void _addOrRemoveLodgingToItinerary(LodgingFacade lodging, bool toDelete) {
-    for (var itinerary in _allItineraries) {
+    for (final itinerary in _allItineraries) {
       if (itinerary.day.isOnSameDayAs(lodging.checkinDateTime!)) {
         itinerary.setCheckinLodging(toDelete ? null : lodging);
       }
@@ -301,10 +297,10 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
   }
 
   Set<DateTime> _getDateRange(DateTime startDate, DateTime endDate) {
-    Set<DateTime> dateSet = {};
+    var dateSet = <DateTime>{};
     var newStartDate = DateTime(startDate.year, startDate.month, startDate.day);
     var newEndDate = DateTime(endDate.year, endDate.month, endDate.day);
-    for (DateTime date = newStartDate;
+    for (var date = newStartDate;
         date.isBefore(newEndDate) || date.isAtSameMomentAs(newEndDate);
         date = date.add(const Duration(days: 1))) {
       dateSet.add(date);

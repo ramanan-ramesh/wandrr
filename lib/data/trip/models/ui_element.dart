@@ -9,9 +9,8 @@ class UiElement<K> extends Equatable {
 
   UiElement({required this.element, required this.dataState, this.key});
 
-  UiElement<K> clone() {
-    return UiElement(element: element, dataState: dataState, key: key);
-  }
+  UiElement<K> clone() =>
+      UiElement(element: element, dataState: dataState, key: key);
 
   @override
   List<Object?> get props => [element, dataState, key];
@@ -28,8 +27,6 @@ class UiElementWithMetadata<K, V> extends UiElement<K> {
       : super(element: element, dataState: dataState);
 
   @override
-  UiElementWithMetadata<K, V> clone() {
-    return UiElementWithMetadata(
-        element: element, dataState: dataState, key: key, metadata: metadata);
-  }
+  UiElementWithMetadata<K, V> clone() => UiElementWithMetadata(
+      element: element, dataState: dataState, key: key, metadata: metadata);
 }

@@ -7,9 +7,6 @@ extension DateTimeExt on DateTime {
     return numberOfDaysOfTrip.abs() + (includeExtraDay ? 1 : 0);
   }
 
-  bool isOnSameDayAs(DateTime dateTime) {
-    return year == dateTime.year &&
-        month == dateTime.month &&
-        day == dateTime.day;
-  }
+  bool isOnSameDayAs(DateTime dateTime) =>
+      year == dateTime.year && month == dateTime.month && day == dateTime.day;
 }

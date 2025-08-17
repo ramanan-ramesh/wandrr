@@ -17,10 +17,10 @@ class ContributorDetails extends StatelessWidget {
   final double maxOverviewElementHeight;
 
   ContributorDetails(
-      {super.key,
-      required Iterable<String> contributors,
+      {required Iterable<String> contributors,
       required this.heightOfContributorWidget,
-      required this.maxOverviewElementHeight})
+      required this.maxOverviewElementHeight,
+      super.key})
       : contributors = contributors.toList();
 
   @override
@@ -47,7 +47,8 @@ class ContributorDetails extends StatelessWidget {
     );
   }
 
-  bool _shouldBuildContributorDetails(previousState, currentState) {
+  bool _shouldBuildContributorDetails(
+      TripManagementState previousState, TripManagementState currentState) {
     if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
       var updatedTripEntity = currentState as UpdatedTripEntity;
       if (updatedTripEntity.dataState == DataState.update) {

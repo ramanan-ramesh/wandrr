@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
@@ -21,8 +23,8 @@ class BudgetingHeaderTile extends StatelessWidget {
   final ValueNotifier<ExpenseViewType> _expenseViewTypeNotifier;
 
   const BudgetingHeaderTile(
-      {super.key,
-      required ValueNotifier<ExpenseViewType> expenseViewTypeNotifier})
+      {required ValueNotifier<ExpenseViewType> expenseViewTypeNotifier,
+      super.key})
       : _expenseViewTypeNotifier = expenseViewTypeNotifier;
 
   @override
@@ -31,7 +33,8 @@ class BudgetingHeaderTile extends StatelessWidget {
       listener: (BuildContext context, TripManagementState state) {
         if (state is ProcessSectionNavigation &&
             state.section.toLowerCase() == NavigationSections.budgeting) {
-          RepositoryProvider.of<TripNavigator>(context).jumpToList(context);
+          unawaited(RepositoryProvider.of<TripNavigator>(context)
+              .jumpToList(context));
         }
       },
       child: Column(
@@ -48,8 +51,7 @@ class BudgetingHeaderTile extends StatelessWidget {
               fill: Fill.back,
               direction: Axis.horizontal,
               duration: const Duration(milliseconds: 750),
-              autoFlipDuration:
-                  context.isBigLayout ? null : const Duration(seconds: 0),
+              autoFlipDuration: context.isBigLayout ? null : Duration.zero,
               front: _createOverviewTile(context),
               back: _createOverviewTile(context),
             ),
@@ -227,8 +229,7 @@ class BudgetingHeaderTile extends StatelessWidget {
                 _calculateExpenseRatio(totalExpense, budget.amount);
             var currencyInfo = context.supportedCurrencies.firstWhere(
                 (element) => element.code == tripMetadata.budget.currency);
-            var budgetText =
-                '${context.localizations.budget}: ${budget.toString()}';
+            var budgetText = '${context.localizations.budget}: $budget';
             var totalExpenseText =
                 '${currencyInfo.symbol} ${totalExpense.toStringAsFixed(2)}';
             return Column(

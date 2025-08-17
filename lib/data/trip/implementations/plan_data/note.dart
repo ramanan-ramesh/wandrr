@@ -21,18 +21,16 @@ class NoteModelImplementation extends NoteFacade
   }) : super(note: noteModelFacade.note, tripId: noteModelFacade.tripId);
 
   static NoteModelImplementation fromDocumentSnapshot(
-      {required DocumentSnapshot documentSnapshot, required String tripId}) {
-    return NoteModelImplementation._(
-        note: documentSnapshot[_noteField], tripId: tripId);
-  }
+          {required DocumentSnapshot documentSnapshot,
+          required String tripId}) =>
+      NoteModelImplementation._(
+          note: documentSnapshot[_noteField], tripId: tripId);
 
   @override
   Map<String, dynamic> toJson() => {_noteField: note};
 
   @override
-  Future<bool> tryUpdate(NoteFacade toUpdate) async {
-    return true;
-  }
+  Future<bool> tryUpdate(NoteFacade toUpdate) async => true;
 
   NoteModelImplementation._({
     required super.note,

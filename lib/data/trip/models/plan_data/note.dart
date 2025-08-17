@@ -15,9 +15,7 @@ class NoteFacade extends Equatable {
     required this.tripId,
   });
 
-  NoteFacade clone() {
-    return NoteFacade(note: note, tripId: tripId);
-  }
+  NoteFacade clone() => NoteFacade(note: note, tripId: tripId);
 
   @override
   List<Object?> get props => [tripId, note];

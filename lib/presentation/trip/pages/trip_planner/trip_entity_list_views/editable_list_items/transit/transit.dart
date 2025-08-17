@@ -18,9 +18,9 @@ class EditableTransitPlan extends StatefulWidget {
   final ValueNotifier<bool> validityNotifier;
 
   const EditableTransitPlan(
-      {super.key,
-      required this.transitUiElement,
-      required this.validityNotifier});
+      {required this.transitUiElement,
+      required this.validityNotifier,
+      super.key});
 
   @override
   State<EditableTransitPlan> createState() => _EditableTransitPlanState();

@@ -7,17 +7,15 @@ class CheckListFacade extends Equatable {
   final List<CheckListItem> items;
   final String tripId;
 
-  CheckListFacade({this.title, required this.items, required this.tripId});
+  CheckListFacade({required this.items, required this.tripId, this.title});
 
   CheckListFacade.newUiEntry(
-      {this.title, required this.items, required this.tripId});
+      {required this.items, required this.tripId, this.title});
 
-  CheckListFacade clone() {
-    return CheckListFacade(
-        items: List.from(items.map((item) => item.clone())),
-        tripId: tripId,
-        title: title);
-  }
+  CheckListFacade clone() => CheckListFacade(
+      items: List.from(items.map((item) => item.clone())),
+      tripId: tripId,
+      title: title);
 
   @override
   List<Object?> get props => [title, items, tripId];

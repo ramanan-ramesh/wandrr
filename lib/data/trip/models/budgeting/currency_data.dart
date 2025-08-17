@@ -16,21 +16,17 @@ class CurrencyData {
     this.flag,
   });
 
-  factory CurrencyData.fromJson(Map<String, dynamic> json) {
-    return CurrencyData(
-      code: json[_codeField],
-      name: json[_nameField],
-      symbol: json[_symbolField],
-      flag: json[_flagField],
-    );
-  }
+  factory CurrencyData.fromJson(Map<String, dynamic> json) => CurrencyData(
+        code: json[_codeField],
+        name: json[_nameField],
+        symbol: json[_symbolField],
+        flag: json[_flagField],
+      );
 
-  Map<String, dynamic> toMap() {
-    return {
-      _codeField: code,
-      _nameField: name,
-      _symbolField: symbol,
-      if (flag != null) _flagField: flag,
-    };
-  }
+  Map<String, dynamic> toMap() => {
+        _codeField: code,
+        _nameField: name,
+        _symbolField: symbol,
+        if (flag != null) _flagField: flag,
+      };
 }

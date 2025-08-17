@@ -22,7 +22,7 @@ class TripCreatorDialog extends StatelessWidget {
   final TextEditingController _tripNameEditingController =
       TextEditingController();
 
-  TripCreatorDialog({super.key, required this.widgetContext})
+  TripCreatorDialog({required this.widgetContext, super.key})
       : _currentTripMetadata =
             TripMetadataFacade.newUiEntry(defaultCurrency: _defaultCurrency);
 

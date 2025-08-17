@@ -37,10 +37,10 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
           }
           var dailyExpenseIndicators = <Widget>[];
           var totalExpense = expensesPerDay.values.reduce((a, b) => a + b);
-          for (var dailyExpense in expensesPerDay.entries) {
+          for (final dailyExpense in expensesPerDay.entries) {
             var percentageOfTotalExpense =
                 totalExpense == 0 ? 0.0 : dailyExpense.value / totalExpense;
-            String date = DateFormat('EEE, MMM d').format(dailyExpense.key);
+            var date = DateFormat('EEE, MMM d').format(dailyExpense.key);
             date = date.substring(date.indexOf(',') + 1);
             if (percentageOfTotalExpense == 0.0) {
               continue;

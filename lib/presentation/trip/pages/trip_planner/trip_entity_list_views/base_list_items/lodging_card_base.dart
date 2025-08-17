@@ -12,7 +12,6 @@ class LodgingCardBase extends StatelessWidget {
   final bool isEditable;
 
   const LodgingCardBase({
-    super.key,
     required this.lodgingFacade,
     required this.location,
     required this.dateTime,
@@ -20,6 +19,7 @@ class LodgingCardBase extends StatelessWidget {
     required this.confirmationId,
     required this.expense,
     required this.isEditable,
+    super.key,
   });
 
   @override

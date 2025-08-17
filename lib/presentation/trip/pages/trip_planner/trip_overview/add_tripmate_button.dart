@@ -20,7 +20,7 @@ class AddTripMateField extends StatelessWidget {
     return PlatformTextElements.createUsernameFormField(
       context: context,
       controller: tripMateUserNameEditingController,
-      onTextChanged: (username, isValid) {
+      onEmailChanged: (username, {required bool isValid}) {
         if (currentContributors
             .any((e) => e.toLowerCase() == username.toLowerCase())) {
           addTripEditingValueNotifier.value = false;

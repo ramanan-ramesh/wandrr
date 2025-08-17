@@ -22,14 +22,12 @@ class LocationFacade extends Equatable implements TripEntity {
       required this.tripId,
       this.id});
 
-  LocationFacade clone() {
-    return LocationFacade(
-        latitude: latitude,
-        longitude: longitude,
-        context: context,
-        tripId: tripId,
-        id: id);
-  }
+  LocationFacade clone() => LocationFacade(
+      latitude: latitude,
+      longitude: longitude,
+      context: context,
+      tripId: tripId,
+      id: id);
 
   @override
   String toString() {

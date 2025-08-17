@@ -147,16 +147,14 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
   }
 
   @override
-  GeoLocationApiContext clone() {
-    return GeoLocationApiContext._fromApi(
-        locationType: locationType,
-        nodeClass: _nodeClass,
-        boundingBox: boundingBox.clone(),
-        placeId: placeId,
-        nodeType: _nodeType,
-        name: name,
-        address: address);
-  }
+  GeoLocationApiContext clone() => GeoLocationApiContext._fromApi(
+      locationType: locationType,
+      nodeClass: _nodeClass,
+      boundingBox: boundingBox.clone(),
+      placeId: placeId,
+      nodeType: _nodeType,
+      name: name,
+      address: address);
 
   static GeoLocationApiContext _createGenericPlaceFromApi(
       LocationType locationType, Map<String, dynamic> locationJson) {
@@ -183,23 +181,22 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
         address: locationJson[_displayAddress]);
   }
 
-  static GeoLocationApiContext fromDocument(Map<String, dynamic> json) {
-    return GeoLocationApiContext._fromDocument(
-        placeId: json[_placeIdField],
-        address: json[_address],
-        locationType: json[_locationTypeField],
-        nodeClass: json[_classField],
-        nodeType: json[_typeField],
-        name: json[_name],
-        country: json[_country],
-        boundingBox: BoundingBox.fromDocument(json[_boundingBoxField]),
-        city: json[_city],
-        state: json[_state]);
-  }
+  static GeoLocationApiContext fromDocument(Map<String, dynamic> json) =>
+      GeoLocationApiContext._fromDocument(
+          placeId: json[_placeIdField],
+          address: json[_address],
+          locationType: json[_locationTypeField],
+          nodeClass: json[_classField],
+          nodeType: json[_typeField],
+          name: json[_name],
+          country: json[_country],
+          boundingBox: BoundingBox.fromDocument(json[_boundingBoxField]),
+          city: json[_city],
+          state: json[_state]);
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> json = {};
+    var json = <String, dynamic>{};
     json[_typeField] = _nodeType;
     json[_locationTypeField] = locationType.name;
     json[_classField] = _nodeClass;

@@ -189,7 +189,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
 
   @override
   Future dispose() async {
-    for (var subscription in _subscriptions) {
+    for (final subscription in _subscriptions) {
       await subscription.cancel();
     }
     await _transitModelCollection.dispose();
@@ -225,12 +225,12 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     if (haveTripDatesChanged) {
       await _itineraryModelCollection.updateTripDays(
           updatedTripMetadata.startDate!, updatedTripMetadata.endDate!);
-      Set<DateTime> oldDates = _createDateRange(
+      var oldDates = _createDateRange(
           _tripMetadataModelImplementation.startDate!,
           _tripMetadataModelImplementation.endDate!);
-      Set<DateTime> newDates = _createDateRange(
+      var newDates = _createDateRange(
           updatedTripMetadata.startDate!, updatedTripMetadata.endDate!);
-      Set<DateTime> datesToRemove = oldDates.difference(newDates);
+      var datesToRemove = oldDates.difference(newDates);
 
       var writeBatch = FirebaseFirestore.instance.batch();
       deletedTransits.addAll(_updateTripEntityListOnDatesChanged<TransitFacade>(
@@ -259,7 +259,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     var shouldRecalculateTotalExpense =
         haveTripDatesChanged || didContributorsChange || didCurrencyChange;
     if (shouldRecalculateTotalExpense) {
-      _budgetingModuleEventHandler.recalculateTotalExpenditure(
+      await _budgetingModuleEventHandler.recalculateTotalExpenditure(
           deletedTransits: deletedTransits, deletedLodgings: deletedLodgings);
     }
     _tripMetadataModelImplementation.copyWith(updatedTripMetadata);
@@ -277,7 +277,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       WriteBatch writeBatch) sync* {
     var updatedItems = <T>[];
     var currentCollectionItems = modelCollection.collectionItems;
-    for (var collectionItem in currentCollectionItems) {
+    for (final collectionItem in currentCollectionItems) {
       var item = collectionItem.facade;
       if (!removedDates.any((removedDate) => itemsFilter(removedDate, item))) {
         updatedItems.add(item);
@@ -331,8 +331,8 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   }
 
   Set<DateTime> _createDateRange(DateTime startDate, DateTime endDate) {
-    Set<DateTime> dateSet = {};
-    for (DateTime date = startDate;
+    var dateSet = <DateTime>{};
+    for (var date = startDate;
         date.isBefore(endDate) || date.isAtSameMomentAs(endDate);
         date = date.add(const Duration(days: 1))) {
       dateSet.add(date);

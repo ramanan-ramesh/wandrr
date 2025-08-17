@@ -66,7 +66,7 @@ class TransitListView extends StatelessWidget {
         .removeWhere((element) => element.dataState == DataState.newUiEntry);
     var transitsWithValidDateTime = <UiElement<TransitFacade>>[];
     var transitsWithInvalidDateTime = <UiElement<TransitFacade>>[];
-    for (var transitUiElement in transitUiElements) {
+    for (final transitUiElement in transitUiElements) {
       var transit = transitUiElement.element;
       if (transit.departureDateTime != null &&
           transit.arrivalDateTime != null) {

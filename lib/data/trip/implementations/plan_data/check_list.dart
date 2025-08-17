@@ -28,22 +28,18 @@ class CheckListModelImplementation extends CheckListFacade
             tripId: checkListModelFacade.tripId);
 
   @override
-  Map<String, dynamic> toJson() {
-    return {
-      _titleField: title,
-      _itemsField: items
-          .map((checkListItem) => {
-                _itemField: checkListItem.item,
-                _isCheckedField: checkListItem.isChecked
-              })
-          .toList()
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        _titleField: title,
+        _itemsField: items
+            .map((checkListItem) => {
+                  _itemField: checkListItem.item,
+                  _isCheckedField: checkListItem.isChecked
+                })
+            .toList()
+      };
 
   @override
-  Future<bool> tryUpdate(CheckListFacade toUpdate) async {
-    return true;
-  }
+  Future<bool> tryUpdate(CheckListFacade toUpdate) async => true;
 
   static CheckListModelImplementation fromDocumentData(
       {required Map<String, dynamic> documentData, required String tripId}) {
@@ -57,5 +53,5 @@ class CheckListModelImplementation extends CheckListFacade
   }
 
   CheckListModelImplementation._(
-      {required super.items, super.title, required super.tripId});
+      {required super.items, required super.tripId, super.title});
 }

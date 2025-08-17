@@ -27,24 +27,21 @@ class PlanDataFacade extends Equatable implements TripEntity {
 
   PlanDataFacade(
       {required this.tripId,
-      this.id,
-      this.title,
       required this.places,
       required this.notes,
-      required this.checkLists});
+      required this.checkLists,
+      this.id,
+      this.title});
 
-  PlanDataFacade clone() {
-    return PlanDataFacade(
-        tripId: tripId,
-        id: id,
-        title: title,
-        places: List.from(places.map((place) => place.clone())),
-        notes: List.from(notes.map((note) => note.clone())),
-        checkLists:
-            List.from(checkLists.map((checkList) => checkList.clone())));
-  }
+  PlanDataFacade clone() => PlanDataFacade(
+      tripId: tripId,
+      id: id,
+      title: title,
+      places: List.from(places.map((place) => place.clone())),
+      notes: List.from(notes.map((note) => note.clone())),
+      checkLists: List.from(checkLists.map((checkList) => checkList.clone())));
 
-  PlanDataValidationResult validate(bool isTitleRequired) {
+  PlanDataValidationResult validate({required bool isTitleRequired}) {
     if (isTitleRequired) {
       if (title == null || title!.isEmpty) {
         return PlanDataValidationResult.titleEmpty;

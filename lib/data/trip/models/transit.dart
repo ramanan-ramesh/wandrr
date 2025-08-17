@@ -48,10 +48,9 @@ class TransitFacade extends Equatable implements TripEntity {
   TransitFacade.newUiEntry(
       {required this.tripId,
       required this.transitOption,
-      String? notes,
       required List<String> allTripContributors,
-      required String currentUserName,
-      required String defaultCurrency})
+      required String defaultCurrency,
+      String? notes})
       : notes = notes ?? '',
         expense = ExpenseFacade(
             tripId: tripId,
@@ -78,23 +77,21 @@ class TransitFacade extends Equatable implements TripEntity {
   String toString() {
     var dateTime =
         '${DateFormat.MMMM().format(departureDateTime!).substring(0, 3)} ${departureDateTime!.day}';
-    return '${departureLocation!.toString()} to ${arrivalLocation!.toString()} on $dateTime';
+    return '${departureLocation!} to ${arrivalLocation!} on $dateTime';
   }
 
-  TransitFacade clone() {
-    return TransitFacade(
-        tripId: tripId,
-        transitOption: transitOption,
-        departureDateTime: departureDateTime,
-        arrivalDateTime: arrivalDateTime,
-        departureLocation: departureLocation?.clone(),
-        arrivalLocation: arrivalLocation?.clone(),
-        expense: expense.clone(),
-        confirmationId: confirmationId,
-        id: id,
-        operator: operator,
-        notes: notes);
-  }
+  TransitFacade clone() => TransitFacade(
+      tripId: tripId,
+      transitOption: transitOption,
+      departureDateTime: departureDateTime,
+      arrivalDateTime: arrivalDateTime,
+      departureLocation: departureLocation?.clone(),
+      arrivalLocation: arrivalLocation?.clone(),
+      expense: expense.clone(),
+      confirmationId: confirmationId,
+      id: id,
+      operator: operator,
+      notes: notes);
 
   static ExpenseCategory getExpenseCategory(TransitOption transitOptions) {
     switch (transitOptions) {
@@ -131,8 +128,12 @@ class TransitFacade extends Equatable implements TripEntity {
     var areDateTimesValid = departureDateTime != null &&
         arrivalDateTime != null &&
         departureDateTime!.compareTo(arrivalDateTime!) < 0;
-    var isTransitCarrierValid =
-        transitOption == TransitOption.flight ? _isFlightOperatorValid() : true;
+    bool isTransitCarrierValid;
+    if (transitOption == TransitOption.flight) {
+      isTransitCarrierValid = _isFlightOperatorValid();
+    } else {
+      isTransitCarrierValid = true;
+    }
     return areLocationsValid &&
         areDateTimesValid &&
         isTransitCarrierValid &&

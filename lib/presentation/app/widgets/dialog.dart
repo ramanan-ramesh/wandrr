@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:aligned_dialog/aligned_dialog.dart' as aligned_dialog;
@@ -6,24 +7,24 @@ import 'package:flutter/widgets.dart' as routes show showGeneralDialog;
 
 class PlatformDialogElements {
   static void showAlignedDialog(
-      {double width = 200,
-      required BuildContext context,
-      Function(dynamic)? onDialogResult,
-      required Widget Function(BuildContext context) widgetBuilder}) {
+      {required BuildContext context,
+      required Widget Function(BuildContext context) widgetBuilder,
+      double width = 200,
+      Function(dynamic)? onDialogResult}) {
     if (!context.mounted) {
       return;
     }
-    RenderBox renderBox = context.findRenderObject() as RenderBox;
-    Offset widgetPosition = renderBox.localToGlobal(Offset.zero);
+    var renderBox = context.findRenderObject() as RenderBox;
+    var widgetPosition = renderBox.localToGlobal(Offset.zero);
 
     var widgetSize = renderBox.size;
-    Size screenSize = MediaQuery.of(context).size;
-    double distanceOfWidgetTopFromScreenTop = widgetPosition.dy;
-    double distanceOfWidgetBottomFromScreenBottom =
+    var screenSize = MediaQuery.of(context).size;
+    var distanceOfWidgetTopFromScreenTop = widgetPosition.dy;
+    var distanceOfWidgetBottomFromScreenBottom =
         screenSize.height - widgetPosition.dy;
-    double distanceOfWidgetEndFromScreenEnd =
+    var distanceOfWidgetEndFromScreenEnd =
         screenSize.width - (widgetPosition.dx + widgetSize.width);
-    double distanceOfWidgetStartFromScreenStart = widgetPosition.dx;
+    var distanceOfWidgetStartFromScreenStart = widgetPosition.dx;
     Alignment targetAnchor, followerAnchor;
     if (distanceOfWidgetTopFromScreenTop >
         distanceOfWidgetBottomFromScreenBottom) {
@@ -45,7 +46,7 @@ class PlatformDialogElements {
         followerAnchor = Alignment.topLeft;
       }
     }
-    aligned_dialog
+    unawaited(aligned_dialog
         .showAlignedDialog(
       transitionsBuilder: (ctx, anim1, anim2, child) => BackdropFilter(
         filter:
@@ -77,13 +78,13 @@ class PlatformDialogElements {
       if (onDialogResult != null) {
         onDialogResult(value);
       }
-    });
+    }));
   }
 
   static void showGeneralDialog(
       BuildContext scaffoldContext, Widget dialogContent,
       {bool isDismissible = false}) {
-    routes.showGeneralDialog(
+    unawaited(routes.showGeneralDialog(
       context: scaffoldContext,
       barrierDismissible: isDismissible,
       pageBuilder: (BuildContext context, Animation<double> animation,
@@ -104,13 +105,13 @@ class PlatformDialogElements {
           child: child,
         ),
       ),
-    );
+    ));
   }
 
   static void showAlertDialog(
       BuildContext scaffoldContext, WidgetBuilder dialogContentCreator,
       {bool isDismissible = false}) {
-    routes.showGeneralDialog(
+    unawaited(routes.showGeneralDialog(
       context: scaffoldContext,
       barrierDismissible: isDismissible,
       pageBuilder: (BuildContext context, Animation<double> animation,
@@ -128,6 +129,6 @@ class PlatformDialogElements {
           ),
         );
       },
-    );
+    ));
   }
 }

@@ -90,7 +90,7 @@ class PlatformDatePicker extends AbstractPlatformDatePicker {
   final Function(DateTime) callBack;
 
   const PlatformDatePicker(
-      {super.key, this.initialDateTime, required this.callBack});
+      {required this.callBack, super.key, this.initialDateTime});
 
   @override
   State<PlatformDatePicker> createState() => _PlatformDatePickerState();

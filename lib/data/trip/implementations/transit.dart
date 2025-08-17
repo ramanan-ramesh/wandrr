@@ -69,47 +69,45 @@ class TransitImplementation extends TransitFacade
       .doc(id);
 
   static TransitImplementation fromDocumentSnapshot(
-      String tripId, DocumentSnapshot documentSnapshot) {
-    return TransitImplementation(
-        id: documentSnapshot.id,
-        tripId: tripId,
-        notes: documentSnapshot[_notesField],
-        transitOption: TransitOption.values.firstWhere(
-            (element) => element.name == documentSnapshot[_transitOptionField]),
-        expense: ExpenseModelImplementation.fromJson(
-            tripId: tripId,
-            json: documentSnapshot[_expenseField] as Map<String, dynamic>),
-        confirmationId: documentSnapshot[_confirmationIdField],
-        departureDateTime:
-            (documentSnapshot[_departureDateTimeField] as Timestamp).toDate(),
-        arrivalDateTime:
-            (documentSnapshot[_arrivalDateTimeField] as Timestamp).toDate(),
-        arrivalLocation: LocationModelImplementation.fromJson(
-            json: documentSnapshot[_arrivalLocationField], tripId: tripId),
-        departureLocation: LocationModelImplementation.fromJson(
-            json: documentSnapshot[_departureLocationField], tripId: tripId),
-        operator: documentSnapshot[_operatorField]);
-  }
+          String tripId, DocumentSnapshot documentSnapshot) =>
+      TransitImplementation(
+          id: documentSnapshot.id,
+          tripId: tripId,
+          notes: documentSnapshot[_notesField],
+          transitOption: TransitOption.values.firstWhere((element) =>
+              element.name == documentSnapshot[_transitOptionField]),
+          expense: ExpenseModelImplementation.fromJson(
+              tripId: tripId,
+              json: documentSnapshot[_expenseField] as Map<String, dynamic>),
+          confirmationId: documentSnapshot[_confirmationIdField],
+          departureDateTime:
+              (documentSnapshot[_departureDateTimeField] as Timestamp).toDate(),
+          arrivalDateTime:
+              (documentSnapshot[_arrivalDateTimeField] as Timestamp).toDate(),
+          arrivalLocation: LocationModelImplementation.fromJson(
+              json: documentSnapshot[_arrivalLocationField], tripId: tripId),
+          departureLocation: LocationModelImplementation.fromJson(
+              json: documentSnapshot[_departureLocationField], tripId: tripId),
+          operator: documentSnapshot[_operatorField]);
 
   @override
-  Map<String, dynamic> toJson() {
-    return {
-      _transitOptionField: transitOption.name,
-      _expenseField: (expense as LeafRepositoryItem?)?.toJson(),
-      _departureDateTimeField: Timestamp.fromDate(departureDateTime!),
-      _arrivalDateTimeField: Timestamp.fromDate(arrivalDateTime!),
-      _departureLocationField:
-          (departureLocation as LeafRepositoryItem?)?.toJson(),
-      _arrivalLocationField: (arrivalLocation as LeafRepositoryItem?)?.toJson(),
-      _confirmationIdField: confirmationId,
-      _operatorField: operator,
-      _notesField: notes
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        _transitOptionField: transitOption.name,
+        _expenseField: (expense as LeafRepositoryItem?)?.toJson(),
+        _departureDateTimeField: Timestamp.fromDate(departureDateTime!),
+        _arrivalDateTimeField: Timestamp.fromDate(arrivalDateTime!),
+        _departureLocationField:
+            (departureLocation as LeafRepositoryItem?)?.toJson(),
+        _arrivalLocationField:
+            (arrivalLocation as LeafRepositoryItem?)?.toJson(),
+        _confirmationIdField: confirmationId,
+        _operatorField: operator,
+        _notesField: notes
+      };
 
   @override
   Future<bool> tryUpdate(TransitFacade toUpdate) async {
-    Map<String, dynamic> json = {};
+    var json = <String, dynamic>{};
     FirestoreHelpers.updateJson(departureLocation, toUpdate.departureLocation,
         _departureLocationField, json);
     FirestoreHelpers.updateJson(

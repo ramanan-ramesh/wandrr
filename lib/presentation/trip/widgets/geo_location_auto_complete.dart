@@ -29,9 +29,7 @@ class PlatformGeoLocationAutoComplete extends StatelessWidget {
       selectedItem: selectedLocation,
       onSelected: (location) {
         selectedLocation = location;
-        if (onLocationSelected != null) {
-          onLocationSelected!(location);
-        }
+        onLocationSelected?.call(location);
       },
       optionsBuilder: context.apiServicesRepository.geoLocator.queryData,
       customPrefix: shouldShowPrefix

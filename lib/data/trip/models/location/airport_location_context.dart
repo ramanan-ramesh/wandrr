@@ -26,20 +26,16 @@ class AirportLocationContext with EquatableMixin implements LocationContext {
             airportName: json[_nameField]);
 
   @override
-  Map<String, dynamic> toJson() {
-    return {
-      _nameField: name,
-      _cityField: city,
-      _iataCodeField: airportCode,
-      _locationTypeField: locationType.name
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        _nameField: name,
+        _cityField: city,
+        _iataCodeField: airportCode,
+        _locationTypeField: locationType.name
+      };
 
   @override
-  LocationContext clone() {
-    return AirportLocationContext._(
-        city: city, airportCode: airportCode, airportName: name);
-  }
+  LocationContext clone() => AirportLocationContext._(
+      city: city, airportCode: airportCode, airportName: name);
 
   AirportLocationContext._(
       {required this.city,

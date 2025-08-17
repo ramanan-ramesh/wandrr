@@ -7,7 +7,7 @@ class PlatformCard extends StatelessWidget {
   final Widget child;
 
   const PlatformCard(
-      {super.key, this.borderColor, required this.child, this.color});
+      {required this.child, super.key, this.borderColor, this.color});
 
   @override
   Widget build(BuildContext context) {

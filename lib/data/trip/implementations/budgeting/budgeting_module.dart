@@ -34,7 +34,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       String defaultCurrency,
       Iterable<String> contributors,
       String currentUserName) async {
-    double totalExpenditure = await _calculateTotalExpenseAmount(
+    var totalExpenditure = await _calculateTotalExpenseAmount(
         transitModelCollection,
         currencyConverter,
         defaultCurrency,
@@ -68,7 +68,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
 
   @override
   Future dispose() async {
-    for (var subscription in _subscriptions) {
+    for (final subscription in _subscriptions) {
       await subscription.cancel();
     }
   }
@@ -84,7 +84,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     var netBalances = <String, double>{};
 
     // Calculate net balance for each contributor
-    for (var expense in allExpenses) {
+    for (final expense in allExpenses) {
       var splitBy = expense.splitBy;
       if (splitBy.length <= 1) {
         continue;
@@ -96,7 +96,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       var averageExpense = totalExpense / splitBy.length;
       var paidBy = expense.paidBy;
 
-      for (var contributor in splitBy) {
+      for (final contributor in splitBy) {
         var paidAmount = paidBy[contributor] ?? 0.0;
         var balance = paidAmount - averageExpense;
 
@@ -117,10 +117,12 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     });
 
     // Settle debts using a greedy algorithm
-    for (var owing in contributorsOwing.entries) {
+    for (final owing in contributorsOwing.entries) {
       var amountOwed = owing.value;
-      for (var owed in contributorsOwed.entries) {
-        if (amountOwed == 0) break;
+      for (final owed in contributorsOwed.entries) {
+        if (amountOwed == 0) {
+          break;
+        }
 
         var amountToSettle = amountOwed < owed.value ? amountOwed : owed.value;
         allDebtDataList.add(DebtData(
@@ -142,7 +144,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     var categorizedExpenses = <ExpenseCategory, double>{};
     var allExpenses = _getAllExpenses();
 
-    for (var expense in allExpenses) {
+    for (final expense in allExpenses) {
       var totalExpense = (await currencyConverter
           .queryData((expense.totalExpense, defaultCurrency)))!;
 
@@ -163,7 +165,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     var totalExpensesPerDay = <DateTime, double>{};
     var allExpenses = _getAllExpenses();
 
-    for (var expense in allExpenses) {
+    for (final expense in allExpenses) {
       if (expense.dateTime != null) {
         var expenseDateTime = expense.dateTime!;
         var expenseDate = DateTime(
@@ -272,9 +274,9 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       String currentUserName,
       {Iterable<TransitFacade> transitsToExclude = const [],
       Iterable<LodgingFacade> lodgingsToExclude = const []}) async {
-    double totalExpenditure = 0.0;
+    var totalExpenditure = 0.0;
     var expensesToConsider = <ExpenseFacade>[];
-    for (var transit in transitModelCollection.collectionItems) {
+    for (final transit in transitModelCollection.collectionItems) {
       if (!transitsToExclude.any((e) => e.id == transit.id)) {
         var expense = transit.facade.expense;
         if (expense.splitBy.contains(currentUserName)) {
@@ -282,7 +284,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
         }
       }
     }
-    for (var lodging in lodgingModelCollection.collectionItems) {
+    for (final lodging in lodgingModelCollection.collectionItems) {
       if (!lodgingsToExclude.any((e) => e.id == lodging.id)) {
         var expense = lodging.facade.expense;
         if (expense.splitBy.contains(currentUserName)) {
@@ -290,7 +292,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
         }
       }
     }
-    for (var expense in expenseModelCollection.collectionItems) {
+    for (final expense in expenseModelCollection.collectionItems) {
       var expenseFacade = expense.facade;
       if (expenseFacade.splitBy.contains(currentUserName)) {
         expensesToConsider.add(expenseFacade);
@@ -298,7 +300,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     }
     if (expensesToConsider.isNotEmpty) {
       totalExpenditure = 0.0;
-      for (var expense in expensesToConsider) {
+      for (final expense in expensesToConsider) {
         var totalExpense = await currencyConverter
             .queryData((expense.totalExpense, defaultCurrency));
         totalExpenditure += totalExpense!;
@@ -346,21 +348,19 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     }));
   }
 
-  Iterable<ExpenseFacade> _getAllExpenses() {
-    return _transitModelCollection.collectionItems
-        .map((e) => e.facade.expense)
-        .followedBy(_lodgingModelCollection.collectionItems
-            .map((e) => e.facade.expense))
-        .followedBy(
-            _expenseModelCollection.collectionItems.map((e) => e.facade));
-  }
+  Iterable<ExpenseFacade> _getAllExpenses() => _transitModelCollection
+      .collectionItems
+      .map((e) => e.facade.expense)
+      .followedBy(
+          _lodgingModelCollection.collectionItems.map((e) => e.facade.expense))
+      .followedBy(_expenseModelCollection.collectionItems.map((e) => e.facade));
 
   Iterable<UiElement<ExpenseFacade>> _sortOnDateTime(
       List<UiElement<ExpenseFacade>> expenseUiElements,
       {bool isAscendingOrder = true}) {
     var expensesWithDateTime = <UiElement<ExpenseFacade>>[];
     var expensesWithoutDateTime = <UiElement<ExpenseFacade>>[];
-    for (var expenseUiElement in expenseUiElements) {
+    for (final expenseUiElement in expenseUiElements) {
       var expense = expenseUiElement.element;
       if (expense.dateTime != null) {
         expensesWithDateTime.add(expenseUiElement);
@@ -387,7 +387,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     var expenseElementsWithConvertedCurrency =
         <UiElement<ExpenseFacade>, double>{};
 
-    for (var expenseUiElement in expenseUiElements) {
+    for (final expenseUiElement in expenseUiElements) {
       var expenseValue = await currencyConverter
           .queryData((expenseUiElement.element.totalExpense, defaultCurrency));
       expenseElementsWithConvertedCurrency[expenseUiElement] = expenseValue!;
@@ -407,13 +407,13 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       List<String> contributors) async {
     var writeBatch = FirebaseFirestore.instance.batch();
     _contributors = contributors;
-    _recalculateExpensesOnContributorsChanged<TransitFacade>(
+    await _recalculateExpensesOnContributorsChanged<TransitFacade>(
         _transitModelCollection, contributors, writeBatch,
         isLinkedExpense: true);
-    _recalculateExpensesOnContributorsChanged<LodgingFacade>(
+    await _recalculateExpensesOnContributorsChanged<LodgingFacade>(
         _lodgingModelCollection, contributors, writeBatch,
         isLinkedExpense: true);
-    _recalculateExpensesOnContributorsChanged<ExpenseFacade>(
+    await _recalculateExpensesOnContributorsChanged<ExpenseFacade>(
         _expenseModelCollection, contributors, writeBatch,
         isLinkedExpense: false);
 
@@ -425,12 +425,12 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     this.defaultCurrency = defaultCurrency;
   }
 
-  void _recalculateExpensesOnContributorsChanged<T>(
+  Future _recalculateExpensesOnContributorsChanged<T>(
       ModelCollectionFacade<T> modelCollection,
       Iterable<String> contributors,
       WriteBatch writeBatch,
       {bool isLinkedExpense = false}) async {
-    for (var collectionItem in modelCollection.collectionItems) {
+    for (final collectionItem in modelCollection.collectionItems) {
       dynamic collectionItemFacade = collectionItem.facade;
       ExpenseFacade expenseModelFacade;
       if (isLinkedExpense) {
@@ -439,17 +439,17 @@ class BudgetingModule implements BudgetingModuleEventHandler {
         expenseModelFacade = collectionItemFacade;
       }
 
-      for (var contributor in contributors) {
+      for (final contributor in contributors) {
         if (!expenseModelFacade.splitBy.contains(contributor)) {
           expenseModelFacade.splitBy.add(contributor);
         }
       }
-      for (var contributorSplittingExpense in expenseModelFacade.splitBy) {
+      for (final contributorSplittingExpense in expenseModelFacade.splitBy) {
         if (!contributors.contains(contributorSplittingExpense)) {
           expenseModelFacade.splitBy.remove(contributorSplittingExpense);
         }
       }
-      for (var contributorThatPayed in expenseModelFacade.paidBy.keys) {
+      for (final contributorThatPayed in expenseModelFacade.paidBy.keys) {
         if (!contributors.contains(contributorThatPayed)) {
           expenseModelFacade.paidBy.remove(contributorThatPayed);
         }

@@ -24,10 +24,10 @@ class EditableExpenseListItem extends StatelessWidget {
   }
 
   EditableExpenseListItem(
-      {super.key,
-      required this.expenseUiElement,
+      {required this.expenseUiElement,
       required this.categoryNames,
-      required this.validityNotifier}) {
+      required this.validityNotifier,
+      super.key}) {
     _calculateExpenseUpdatePossibility();
   }
 

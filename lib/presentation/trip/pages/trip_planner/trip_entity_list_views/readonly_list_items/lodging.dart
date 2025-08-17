@@ -10,7 +10,7 @@ import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edi
 class ReadonlyLodgingPlan extends StatelessWidget {
   final LodgingFacade lodgingModelFacade;
 
-  const ReadonlyLodgingPlan({super.key, required this.lodgingModelFacade});
+  const ReadonlyLodgingPlan({required this.lodgingModelFacade, super.key});
 
   @override
   Widget build(BuildContext context) {

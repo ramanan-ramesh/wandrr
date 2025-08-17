@@ -67,7 +67,7 @@ class CurrencyConverter implements ApiService<(Money, String), double?> {
         var responseValue = Map.from(decodedJsonResponse);
         var exchangeRates =
             Map.from(responseValue[currencyToConvertTo.toLowerCase()]);
-        for (var exchangeRate in exchangeRates.entries) {
+        for (final exchangeRate in exchangeRates.entries) {
           _exchangeRates.add(_CurrencyExchangeData(
               currency: exchangeRate.key.toString().toUpperCase(),
               currencyToConvertTo: currencyToConvertTo.toUpperCase(),
@@ -79,7 +79,7 @@ class CurrencyConverter implements ApiService<(Money, String), double?> {
                 element.currencyToConvertTo == currencyToConvertTo)
             .firstOrNull;
       }
-    } catch (e) {
+    } on Exception {
       return null;
     }
     return exchangeRate != null
@@ -87,9 +87,8 @@ class CurrencyConverter implements ApiService<(Money, String), double?> {
         : null;
   }
 
-  String _constructQuery(String currencyToConvertTo) {
-    return '$_apiSurfaceUrl/currencies/${currencyToConvertTo.toLowerCase()}.json';
-  }
+  String _constructQuery(String currencyToConvertTo) =>
+      '$_apiSurfaceUrl/currencies/${currencyToConvertTo.toLowerCase()}.json';
 }
 
 class _CurrencyExchangeData {

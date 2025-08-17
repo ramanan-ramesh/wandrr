@@ -55,9 +55,8 @@ abstract class CachedDataService<TResult>
         _allData.where((item) => shouldConsiderItemInQueryResult(item, query)));
   }
 
-  bool shouldConsiderItemInQueryResult(TResult item, String query) {
-    return item.toString().toLowerCase().contains(query.toLowerCase());
-  }
+  bool shouldConsiderItemInQueryResult(TResult item, String query) =>
+      item.toString().toLowerCase().contains(query.toLowerCase());
 
   Future<void> _tryInitializeCache(
       QueryDocumentSnapshot<Map<String, dynamic>> documentData) async {
@@ -73,9 +72,8 @@ abstract class CachedDataService<TResult>
     var dataAtCacheJsonMap =
         jsonDecode(sharedPreferences.getString(_dataAtSharedPrefsField)!)
             as List;
-    _allData.addAll(dataAtCacheJsonMap.map((entry) {
-      return fromJsonInCache(entry as Map<String, dynamic>);
-    }));
+    _allData.addAll(dataAtCacheJsonMap
+        .map((entry) => fromJsonInCache(entry as Map<String, dynamic>)));
   }
 
   Future _updateCache(String dataUrl, DateTime lastRefreshedAt,
@@ -83,9 +81,8 @@ abstract class CachedDataService<TResult>
     var httpResponse = await http.get(Uri.parse(dataUrl));
     var httpResponseBody = httpResponse.body;
     var httpResponseBodyJson = jsonDecode(httpResponseBody) as List;
-    _allData.addAll(httpResponseBodyJson.map((entry) {
-      return fromJsonInDatabase(entry);
-    }));
+    _allData.addAll(httpResponseBodyJson
+        .map((entry) => fromJsonInDatabase(entry as Map<String, dynamic>)));
     await sharedPreferences.setString(
         _dataAtSharedPrefsField, jsonEncode(httpResponseBodyJson));
     await sharedPreferences.setString(

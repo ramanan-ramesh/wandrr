@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
@@ -27,11 +29,11 @@ class TripEntityListElement<T extends TripEntity> extends StatefulWidget {
   final String? Function(UiElement<T>)? errorMessageCreator;
 
   const TripEntityListElement(
-      {super.key,
-      required this.uiElement,
+      {required this.uiElement,
       required this.openedListElementCreator,
       required this.closedElementCreator,
       required this.canDelete,
+      super.key,
       this.additionalListItemBuildWhenCondition,
       this.onUpdatePressed,
       this.onDeletePressed,
@@ -64,8 +66,12 @@ class _TripEntityListElementState<T extends TripEntity>
   }
 
   Widget _createEditableTripEntityListElement(BuildContext context) {
-    var validityNotifier = ValueNotifier(
-        widget.uiElement.dataState == DataState.newUiEntry ? false : true);
+    ValueNotifier<bool> validityNotifier;
+    if (widget.uiElement.dataState == DataState.newUiEntry) {
+      validityNotifier = ValueNotifier(false);
+    } else {
+      validityNotifier = ValueNotifier(true);
+    }
     return Column(
       children: [
         _createTripEntityListElement(
@@ -77,9 +83,7 @@ class _TripEntityListElementState<T extends TripEntity>
           validityNotifier: validityNotifier,
           onUpdatePressed: widget.onUpdatePressed,
           uiElement: widget.uiElement,
-          canDelete: widget.canDelete != null
-              ? widget.canDelete!(widget.uiElement)
-              : true,
+          canDelete: widget.canDelete?.call(widget.uiElement) ?? true,
           onDeletePressed: widget.onDeletePressed,
           errorMessageCreator: widget.errorMessageCreator,
         ),
@@ -169,12 +173,12 @@ class _TripEntityListElementState<T extends TripEntity>
 class _EditableTripEntityButtonBar<T extends TripEntity>
     extends StatefulWidget {
   const _EditableTripEntityButtonBar({
-    super.key,
     required ValueNotifier<bool> validityNotifier,
     required this.onUpdatePressed,
     required this.uiElement,
     required this.canDelete,
     required this.onDeletePressed,
+    super.key,
     this.errorMessageCreator,
   }) : _validityNotifier = validityNotifier;
 
@@ -209,7 +213,7 @@ class _EditableTripEntityButtonBarState<T extends TripEntity>
 
     _animation = TweenSequence<Offset>([
       TweenSequenceItem(
-          tween: Tween(begin: const Offset(0, 0), end: const Offset(0.1, 0)),
+          tween: Tween(begin: Offset.zero, end: const Offset(0.1, 0)),
           weight: 1),
       TweenSequenceItem(
           tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
@@ -221,7 +225,7 @@ class _EditableTripEntityButtonBarState<T extends TripEntity>
           tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
           weight: 1),
       TweenSequenceItem(
-          tween: Tween(begin: const Offset(-0.1, 0), end: const Offset(0, 0)),
+          tween: Tween(begin: const Offset(-0.1, 0), end: Offset.zero),
           weight: 1),
     ]).animate(CurvedAnimation(
         parent: _animationController, curve: Curves.easeInOutCirc));
@@ -310,7 +314,7 @@ class _EditableTripEntityButtonBarState<T extends TripEntity>
       _errorMessage = message;
       _showErrorMessage = true;
     });
-    _animationController.repeat(reverse: true);
+    unawaited(_animationController.repeat(reverse: true));
     Future.delayed(const Duration(seconds: 5), () {
       if (mounted) {
         setState(() {

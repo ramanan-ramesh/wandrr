@@ -46,14 +46,14 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
   final String section;
 
   const TripEntityListView(
-      {super.key,
-      required this.openedListElementCreator,
+      {required this.openedListElementCreator,
       required this.closedListElementCreator,
       required this.emptyListMessage,
       required this.headerTileLabel,
       required this.uiElementsSorter,
       required this.uiElementsCreator,
       required this.section,
+      super.key,
       this.canConsiderUiElementForNavigation,
       this.onUiElementPressed,
       this.additionalListBuildWhenCondition,
@@ -65,21 +65,21 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
       : headerTileButton = null;
 
   const TripEntityListView.customHeaderTileButton(
-      {super.key,
-      required this.openedListElementCreator,
+      {required this.openedListElementCreator,
       required this.closedListElementCreator,
       required this.emptyListMessage,
       required this.headerTileLabel,
       required this.uiElementsSorter,
       required Widget this.headerTileButton,
       required this.section,
+      required this.uiElementsCreator,
+      super.key,
       this.canConsiderUiElementForNavigation,
       this.additionalListBuildWhenCondition,
       this.onUiElementPressed,
       this.onUpdatePressed,
       this.onDeletePressed,
       this.canDelete,
-      required this.uiElementsCreator,
       this.errorMessageCreator,
       this.additionalListItemBuildWhenCondition});
 
@@ -137,7 +137,8 @@ class _TripEntityListViewState<T extends TripEntity>
         } else if (state is ProcessSectionNavigation) {
           if (state.section.toLowerCase() == widget.section.toLowerCase()) {
             if (state.dateTime == null) {
-              RepositoryProvider.of<TripNavigator>(context).jumpToList(context);
+              unawaited(RepositoryProvider.of<TripNavigator>(context)
+                  .jumpToList(context));
             } else {
               _setListVisibility(true);
               Future.delayed(
@@ -197,8 +198,12 @@ class _TripEntityListViewState<T extends TripEntity>
     if (_isListVisible) {
       if (RepositoryProvider.of<TripNavigator>(context)
           .isSliverAppBarPinned(_headerContext)) {
-        RepositoryProvider.of<TripNavigator>(context)
-            .jumpToList(context, alignment: 0.0);
+        unawaited(RepositoryProvider.of<TripNavigator>(context)
+            .jumpToList(context, alignment: 0.0)
+            .then((_) {
+          _toggleListVisibility();
+        }));
+        return;
       }
     }
 

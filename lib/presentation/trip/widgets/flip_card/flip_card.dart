@@ -1,5 +1,3 @@
-library flip_card;
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -44,7 +42,7 @@ extension on TickerFuture {
       completer.complete();
     }
 
-    orCancel.then(thunk, onError: thunk);
+    unawaited(orCancel.then(thunk, onError: thunk));
     return completer.future;
   }
 }
@@ -72,9 +70,9 @@ extension on TickerFuture {
 /// ```
 class FlipCard extends StatefulWidget {
   const FlipCard({
-    super.key,
     required this.front,
     required this.back,
+    super.key,
     this.duration = const Duration(milliseconds: 500),
     this.onFlip,
     this.onFlipDone,
@@ -189,7 +187,9 @@ class FlipCardState extends State<FlipCard>
   /// This function returns a future that will complete when animation is done
   /// {@endtemplate}
   Future<void> flip([CardSide? targetSide]) async {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     widget.onFlip?.call();
 
     targetSide ??= getOppositeSide();
@@ -197,10 +197,8 @@ class FlipCardState extends State<FlipCard>
     switch (targetSide) {
       case CardSide.front:
         await controller.reverse().complete;
-        break;
       case CardSide.back:
         await controller.forward().complete;
-        break;
     }
 
     widget.onFlipDone?.call(targetSide);
@@ -222,10 +220,8 @@ class FlipCardState extends State<FlipCard>
     switch (targetSide) {
       case CardSide.front:
         controller.value = 0.0;
-        break;
       case CardSide.back:
         controller.value = 1.0;
-        break;
     }
 
     widget.onFlipDone?.call(targetSide);
@@ -282,7 +278,9 @@ class FlipCardState extends State<FlipCard>
     Curve curveTo = Curves.easeInOut,
     Curve curveBack = Curves.easeInOut,
   }) async {
-    if (controller.status != AnimationStatus.dismissed) return;
+    if (controller.status != AnimationStatus.dismissed) {
+      return;
+    }
 
     duration = duration ?? controller.duration!;
     final halfDuration =

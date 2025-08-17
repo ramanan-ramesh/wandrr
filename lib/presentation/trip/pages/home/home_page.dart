@@ -54,7 +54,7 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildCreateTripButton(BuildContext pageContext) {
-    bool keyboardIsOpened = MediaQuery.of(pageContext).viewInsets.bottom != 0.0;
+    var keyboardIsOpened = MediaQuery.of(pageContext).viewInsets.bottom != 0.0;
     return Visibility(
       visible: !keyboardIsOpened,
       child: FloatingActionButton.extended(
