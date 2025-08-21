@@ -153,7 +153,6 @@ class UserManagement implements UserManagementModifier {
     }
   }
 
-  //TODO: Should ideally attach AuthProviderUser here(if it persists)?
   static Future<PlatformUser?> _getPlatformUser(
       SharedPreferences localStorage, User? currentUser) async {
     var isLoggedInValue = localStorage.getBool(_isLoggedInField) ?? false;

@@ -32,26 +32,6 @@ import 'trip_metadata.dart';
 class TripDataModelImplementation extends TripDataModelEventHandler {
   final _subscriptions = <StreamSubscription>[];
 
-  TripDataModelImplementation(
-      TripMetadataModelImplementation tripMetadata,
-      FirestoreModelCollection<TransitFacade> transitModelCollection,
-      FirestoreModelCollection<LodgingFacade> lodgingModelCollection,
-      FirestoreModelCollection<ExpenseFacade> expenseModelCollection,
-      FirestoreModelCollection<PlanDataFacade> planDataModelCollection,
-      ItineraryModelCollection itineraryModelCollection,
-      this.currencyConverter,
-      BudgetingModuleEventHandler budgetingModuleEventHandler,
-      AppLocalizations appLocalisations)
-      : _transitModelCollection = transitModelCollection,
-        _lodgingModelCollection = lodgingModelCollection,
-        _expenseModelCollection = expenseModelCollection,
-        _planDataModelCollection = planDataModelCollection,
-        _tripMetadataModelImplementation = tripMetadata,
-        _budgetingModuleEventHandler = budgetingModuleEventHandler,
-        _itineraryModelCollection = itineraryModelCollection,
-        _transitOptionMetadatas =
-            _initializeIconsAndTransitOptions(appLocalisations);
-
   @override
   List<TransitFacade> get transits =>
       List.from(_transitModelCollection.collectionItems
@@ -175,7 +155,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         tripMetadataModelImplementation.contributors,
         currentUserName);
 
-    return TripDataModelImplementation(
+    return TripDataModelImplementation._(
         tripMetadataModelImplementation,
         transitModelCollection,
         lodgingModelCollection,
@@ -339,4 +319,24 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     }
     return dateSet;
   }
+
+  TripDataModelImplementation._(
+      TripMetadataModelImplementation tripMetadata,
+      FirestoreModelCollection<TransitFacade> transitModelCollection,
+      FirestoreModelCollection<LodgingFacade> lodgingModelCollection,
+      FirestoreModelCollection<ExpenseFacade> expenseModelCollection,
+      FirestoreModelCollection<PlanDataFacade> planDataModelCollection,
+      ItineraryModelCollection itineraryModelCollection,
+      this.currencyConverter,
+      BudgetingModuleEventHandler budgetingModuleEventHandler,
+      AppLocalizations appLocalisations)
+      : _transitModelCollection = transitModelCollection,
+        _lodgingModelCollection = lodgingModelCollection,
+        _expenseModelCollection = expenseModelCollection,
+        _planDataModelCollection = planDataModelCollection,
+        _tripMetadataModelImplementation = tripMetadata,
+        _budgetingModuleEventHandler = budgetingModuleEventHandler,
+        _itineraryModelCollection = itineraryModelCollection,
+        _transitOptionMetadatas =
+            _initializeIconsAndTransitOptions(appLocalisations);
 }

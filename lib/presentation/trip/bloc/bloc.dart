@@ -61,7 +61,7 @@ class TripManagementBloc
   FutureOr<void> _onStartup(
       _OnStartup event, Emitter<TripManagementState> emit) async {
     if (_tripRepository == null) {
-      _tripRepository = await TripRepositoryImplementation.createInstanceAsync(
+      _tripRepository = await TripRepositoryImplementation.createInstance(
           userName: currentUserName, appLocalizations: appLocalizations);
 
       var tripMetadataUpdatedSubscription = _tripRepository!

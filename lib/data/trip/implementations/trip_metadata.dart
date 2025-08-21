@@ -21,7 +21,6 @@ class TripMetadataModelImplementation extends TripMetadataFacade
       .collection(FirestoreCollections.tripMetadataCollectionName)
       .doc(id);
 
-  //TODO: Id not expected to be valid. This is just to add ModelFacade object to DB.
   TripMetadataModelImplementation.fromModelFacade(
       {required TripMetadataFacade tripMetadataModelFacade})
       : super(

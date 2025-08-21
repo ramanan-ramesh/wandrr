@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/data/store/implementations/firestore_model_collection.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
@@ -18,7 +19,6 @@ import 'trip_data.dart';
 
 class TripRepositoryImplementation implements TripRepositoryEventHandler {
   static const _contributorsField = 'contributors';
-  static const _pathToSupportedCurrencies = 'assets/supported_currencies.json';
 
   AppLocalizations _appLocalizations;
 
@@ -45,7 +45,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
 
   final String currentUserName;
 
-  static Future<TripRepositoryImplementation> createInstanceAsync(
+  static Future<TripRepositoryImplementation> createInstance(
       {required String userName,
       required AppLocalizations appLocalizations}) async {
     var tripsCollectionReference = FirebaseFirestore.instance
@@ -61,7 +61,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
             query: tripsCollectionReference.where(_contributorsField,
                 arrayContains: userName));
 
-    final jsonString = await rootBundle.loadString(_pathToSupportedCurrencies);
+    final jsonString = await rootBundle.loadString(Assets.supportedCurrencies);
     final List<dynamic> jsonResponse = json.decode(jsonString);
     var currencyDataList =
         jsonResponse.map((json) => CurrencyData.fromJson(json)).toList();
