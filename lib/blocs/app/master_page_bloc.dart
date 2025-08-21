@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/blocs/app/master_page_events.dart';
+import 'package:wandrr/blocs/app/master_page_states.dart';
 import 'package:wandrr/data/app/implementations/app_data.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/auth/models/status.dart';
-import 'package:wandrr/presentation/app/bloc/master_page_events.dart';
-import 'package:wandrr/presentation/app/bloc/master_page_states.dart';
 
 class _LoadRepository extends MasterPageEvent {}
 

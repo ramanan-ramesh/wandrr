@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
+import 'package:wandrr/blocs/app/master_page_bloc.dart';
+import 'package:wandrr/blocs/app/master_page_events.dart';
+import 'package:wandrr/blocs/app/master_page_states.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/data/auth/models/auth_type.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/bloc/bloc_extensions.dart';
-import 'package:wandrr/presentation/app/bloc/master_page_bloc.dart';
-import 'package:wandrr/presentation/app/bloc/master_page_events.dart';
-import 'package:wandrr/presentation/app/bloc/master_page_states.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';

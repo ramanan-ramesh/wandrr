@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/presentation/app/bloc/bloc_extensions.dart';
-import 'package:wandrr/presentation/trip/bloc/events.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
 
 class FloatingJumpToListNavigator extends StatefulWidget {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/blocs/app/master_page_events.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/data/app/models/language_metadata.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/presentation/app/bloc/bloc_extensions.dart';
-import 'package:wandrr/presentation/app/bloc/master_page_events.dart';
 
 //TODO: Refactor this class and analyze the behaviour. Keep a timer in this class after submitting, so that it takes 1.5 seconds to go from CircularProgressIndicator to Icon.
 class PlatformSubmitterFAB extends StatefulWidget {
