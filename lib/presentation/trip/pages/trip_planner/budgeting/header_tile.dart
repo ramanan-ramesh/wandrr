@@ -33,8 +33,7 @@ class BudgetingHeaderTile extends StatelessWidget {
       listener: (BuildContext context, TripManagementState state) {
         if (state is ProcessSectionNavigation &&
             state.section.toLowerCase() == NavigationSections.budgeting) {
-          unawaited(RepositoryProvider.of<TripNavigator>(context)
-              .jumpToList(context));
+          unawaited(context.tripNavigator.jumpToList(context));
         }
       },
       child: Column(

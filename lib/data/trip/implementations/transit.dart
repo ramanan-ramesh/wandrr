@@ -6,6 +6,7 @@ import 'package:wandrr/data/trip/implementations/firestore_helpers.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 
+// ignore: must_be_immutable
 class TransitImplementation extends TransitFacade
     implements LeafRepositoryItem<TransitFacade> {
   static const _departureLocationField = 'departureLocation';
@@ -17,25 +18,6 @@ class TransitImplementation extends TransitFacade
   static const _confirmationIdField = 'confirmationId';
   static const _expenseField = 'totalExpense';
   static const _notesField = 'notes';
-
-  TransitImplementation(
-      {required super.tripId,
-      required super.transitOption,
-      required super.departureDateTime,
-      required super.arrivalDateTime,
-      required LocationModelImplementation departureLocation,
-      required LocationModelImplementation arrivalLocation,
-      required ExpenseModelImplementation expense,
-      super.confirmationId,
-      super.id,
-      super.operator,
-      super.notes})
-      : super(
-            arrivalLocation: arrivalLocation,
-            expense: expense,
-            departureLocation: departureLocation) {
-    expense.dateTime = departureDateTime;
-  }
 
   TransitImplementation.fromModelFacade(
       {required TransitFacade transitModelFacade})
@@ -61,16 +43,9 @@ class TransitImplementation extends TransitFacade
     expense.dateTime = departureDateTime;
   }
 
-  @override
-  DocumentReference<Object?> get documentReference => FirebaseFirestore.instance
-      .collection(FirestoreCollections.tripCollectionName)
-      .doc(tripId)
-      .collection(FirestoreCollections.transitCollectionName)
-      .doc(id);
-
   static TransitImplementation fromDocumentSnapshot(
           String tripId, DocumentSnapshot documentSnapshot) =>
-      TransitImplementation(
+      TransitImplementation._(
           id: documentSnapshot.id,
           tripId: tripId,
           notes: documentSnapshot[_notesField],
@@ -89,6 +64,13 @@ class TransitImplementation extends TransitFacade
           departureLocation: LocationModelImplementation.fromJson(
               json: documentSnapshot[_departureLocationField], tripId: tripId),
           operator: documentSnapshot[_operatorField]);
+
+  @override
+  DocumentReference<Object?> get documentReference => FirebaseFirestore.instance
+      .collection(FirestoreCollections.tripCollectionName)
+      .doc(tripId)
+      .collection(FirestoreCollections.transitCollectionName)
+      .doc(id);
 
   @override
   Map<String, dynamic> toJson() => {
@@ -124,20 +106,33 @@ class TransitImplementation extends TransitFacade
     FirestoreHelpers.updateJson(notes, toUpdate.notes, _notesField, json);
     FirestoreHelpers.updateJson(
         transitOption, toUpdate.transitOption, _transitOptionField, json);
-    if (json.isEmpty) {
-      return false;
-    }
-    var didUpdate = json.isNotEmpty;
-    await documentReference
-        .set(json, SetOptions(merge: true))
-        .catchError((error, stackTrace) {
-      didUpdate = false;
-    }).then((value) {
-      copyWith(toUpdate);
-    });
-    return didUpdate;
+    return await FirestoreHelpers.tryUpdateDocumentField(
+        documentReference: documentReference,
+        json: json,
+        onSuccess: () {
+          copyWith(toUpdate);
+        });
   }
 
   @override
   TransitFacade get facade => clone();
+
+  TransitImplementation._(
+      {required super.tripId,
+      required super.transitOption,
+      required super.departureDateTime,
+      required super.arrivalDateTime,
+      required LocationModelImplementation departureLocation,
+      required LocationModelImplementation arrivalLocation,
+      required ExpenseModelImplementation expense,
+      super.confirmationId,
+      super.id,
+      super.operator,
+      super.notes})
+      : super(
+            arrivalLocation: arrivalLocation,
+            expense: expense,
+            departureLocation: departureLocation) {
+    expense.dateTime = departureDateTime;
+  }
 }

@@ -10,6 +10,52 @@ import 'package:wandrr/data/trip/models/transit.dart';
 import 'plan_data/plan_data_model_implementation.dart';
 
 class ItineraryModelImplementation extends ItineraryModelEventHandler {
+  ItineraryModelImplementation(
+      String tripId,
+      DateTime day,
+      PlanDataModelImplementation planDataModelImplementation,
+      List<TransitFacade> transits,
+      {LodgingFacade? checkinLodging,
+      LodgingFacade? checkoutLodging,
+      LodgingFacade? fullDayLodging})
+      : _planDataModelImplementation = planDataModelImplementation,
+        _transits = transits,
+        _checkinLodging = checkinLodging,
+        _checkoutLodging = checkoutLodging,
+        _fullDayLodging = fullDayLodging,
+        super(tripId, day);
+
+  static Future<ItineraryModelImplementation> createInstance(
+      {required String tripId,
+      required DateTime day,
+      required List<TransitFacade> transits,
+      LodgingFacade? checkinLodging,
+      LodgingFacade? checkoutLodging,
+      LodgingFacade? fullDayLodging}) async {
+    var itineraryDataDocumentId = _dateFormat.format(day);
+    var itineraryDataCollection = FirebaseFirestore.instance
+        .collection(FirestoreCollections.tripCollectionName)
+        .doc(tripId)
+        .collection(FirestoreCollections.itineraryDataCollectionName)
+        .doc(itineraryDataDocumentId);
+
+    var itineraryDocumentReference = await itineraryDataCollection.get();
+
+    var planDataModelImplementation =
+        PlanDataModelImplementation.fromDocumentSnapshot(
+            tripId: tripId,
+            documentSnapshot: itineraryDocumentReference,
+            collectionName: FirestoreCollections.itineraryDataCollectionName);
+
+    var itineraryModelImplementation = ItineraryModelImplementation(
+        tripId, day, planDataModelImplementation, transits,
+        checkinLodging: checkinLodging,
+        checkoutLodging: checkoutLodging,
+        fullDayLodging: fullDayLodging);
+
+    return itineraryModelImplementation;
+  }
+
   @override
   LodgingFacade? get checkoutLodging => _checkoutLodging?.clone();
   LodgingFacade? _checkoutLodging;
@@ -35,21 +81,6 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
   final List<TransitFacade> _transits;
 
   static final _dateFormat = DateFormat('ddMMyyyy');
-
-  ItineraryModelImplementation(
-      String tripId,
-      DateTime day,
-      PlanDataModelImplementation planDataModelImplementation,
-      List<TransitFacade> transits,
-      {LodgingFacade? checkinLodging,
-      LodgingFacade? checkoutLodging,
-      LodgingFacade? fullDayLodging})
-      : _planDataModelImplementation = planDataModelImplementation,
-        _transits = transits,
-        _checkinLodging = checkinLodging,
-        _checkoutLodging = checkoutLodging,
-        _fullDayLodging = fullDayLodging,
-        super(tripId, day);
 
   @override
   void setCheckinLodging(LodgingFacade? lodging) {
@@ -80,36 +111,5 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
   @override
   void removeTransit(TransitFacade transit) {
     _transits.removeWhere((transit) => transit.id == transit.id);
-  }
-
-  static Future<ItineraryModelImplementation> createExistingInstanceAsync(
-      {required String tripId,
-      required DateTime day,
-      required List<TransitFacade> transits,
-      LodgingFacade? checkinLodging,
-      LodgingFacade? checkoutLodging,
-      LodgingFacade? fullDayLodging}) async {
-    var itineraryDataDocumentId = _dateFormat.format(day);
-    var itineraryDataCollection = FirebaseFirestore.instance
-        .collection(FirestoreCollections.tripCollectionName)
-        .doc(tripId)
-        .collection(FirestoreCollections.itineraryDataCollectionName)
-        .doc(itineraryDataDocumentId);
-
-    var itineraryDocumentReference = await itineraryDataCollection.get();
-
-    var planDataModelImplementation =
-        PlanDataModelImplementation.fromDocumentSnapshot(
-            tripId: tripId,
-            documentSnapshot: itineraryDocumentReference,
-            collectionName: FirestoreCollections.itineraryDataCollectionName);
-
-    var itineraryModelImplementation = ItineraryModelImplementation(
-        tripId, day, planDataModelImplementation, transits,
-        checkinLodging: checkinLodging,
-        checkoutLodging: checkoutLodging,
-        fullDayLodging: fullDayLodging);
-
-    return itineraryModelImplementation;
   }
 }

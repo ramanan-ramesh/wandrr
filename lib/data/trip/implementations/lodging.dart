@@ -7,6 +7,7 @@ import 'package:wandrr/data/trip/models/lodging.dart';
 
 import 'budgeting/expense.dart';
 
+// ignore: must_be_immutable
 class LodgingModelImplementation extends LodgingFacade
     implements LeafRepositoryItem<LodgingFacade> {
   static const _locationField = 'location';
@@ -57,19 +58,6 @@ class LodgingModelImplementation extends LodgingFacade
         confirmationId: documentData[_confirmationIdField]);
   }
 
-  LodgingModelImplementation._(
-      {required LocationModelImplementation location,
-      required super.checkinDateTime,
-      required super.checkoutDateTime,
-      required super.tripId,
-      required ExpenseModelImplementation expense,
-      super.confirmationId,
-      super.id,
-      super.notes})
-      : super(location: location, expense: expense) {
-    expense.dateTime = checkinDateTime;
-  }
-
   @override
   DocumentReference<Object?> get documentReference => FirebaseFirestore.instance
       .collection(FirestoreCollections.tripCollectionName)
@@ -101,16 +89,27 @@ class LodgingModelImplementation extends LodgingFacade
     FirestoreHelpers.updateJson(notes, toUpdate.notes, _notesField, json);
     FirestoreHelpers.updateJson(expense, toUpdate.expense, _expenseField, json);
 
-    var didUpdateLodging = json.isNotEmpty;
-    await documentReference.set(json, SetOptions(merge: true)).then((value) {
-      didUpdateLodging = true;
-      copyWith(toUpdate);
-    }).catchError((error, stackTrace) {
-      didUpdateLodging = false;
-    });
-    return didUpdateLodging;
+    return FirestoreHelpers.tryUpdateDocumentField(
+        documentReference: documentReference,
+        json: json,
+        onSuccess: () {
+          copyWith(toUpdate);
+        });
   }
 
   @override
   LodgingFacade get facade => clone();
+
+  LodgingModelImplementation._(
+      {required LocationModelImplementation location,
+      required super.checkinDateTime,
+      required super.checkoutDateTime,
+      required super.tripId,
+      required ExpenseModelImplementation expense,
+      super.confirmationId,
+      super.id,
+      super.notes})
+      : super(location: location, expense: expense) {
+    expense.dateTime = checkinDateTime;
+  }
 }

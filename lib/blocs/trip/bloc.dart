@@ -26,7 +26,7 @@ class TripManagementBloc
   final _tripRepositorySubscriptions = <StreamSubscription>[];
   final AppLocalizations appLocalizations;
   final String currentUserName;
-  ApiServicesRepository? _apiServicesRepository;
+  ApiServicesRepositoryModifier? _apiServicesRepository;
 
   @override
   Future<void> close() async {

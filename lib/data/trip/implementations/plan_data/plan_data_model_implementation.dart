@@ -12,11 +12,88 @@ import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 
 import 'check_list.dart';
 
+// ignore: must_be_immutable
 class PlanDataModelImplementation extends PlanDataFacade
     implements LeafRepositoryItem<PlanDataFacade>, Dispose {
   static const _titleField = 'title';
-
   final String _collectionName;
+
+  static PlanDataModelImplementation fromModelFacade(
+      {required PlanDataFacade planDataFacade,
+      String collectionName = FirestoreCollections.planDataCollectionName}) {
+    var planDataId = planDataFacade.id;
+    var places = List<LocationModelImplementation>.from(planDataFacade.places
+        .map((place) => LocationModelImplementation.fromModelFacade(
+            locationModelFacade: place,
+            collectionName: collectionName,
+            parentId: planDataFacade.id)));
+    var notes =
+        List<NoteFacade>.from(planDataFacade.notes.map((note) => note.clone()));
+    var checkLists = List<CheckListModelImplementation>.from(planDataFacade
+        .checkLists
+        .map((checkList) => CheckListModelImplementation.fromModelFacade(
+            checkListModelFacade: checkList)));
+    return PlanDataModelImplementation._(
+        id: planDataId,
+        tripId: planDataFacade.tripId,
+        title: planDataFacade.title,
+        collectionName: collectionName,
+        checkLists: checkLists,
+        places: places,
+        notes: notes);
+  }
+
+  static PlanDataModelImplementation fromDocumentSnapshot(
+      {required String tripId,
+      required DocumentSnapshot documentSnapshot,
+      String collectionName = FirestoreCollections.planDataCollectionName}) {
+    var documentData = documentSnapshot.data() as Map<String, dynamic>? ?? {};
+    var title = documentData[_titleField];
+
+    var checkLists = <CheckListModelImplementation>[];
+    var notes = <NoteFacade>[];
+    var places = <LocationModelImplementation>[];
+    for (final checkListDocumentData in List<Map<String, dynamic>>.from(
+        documentData[_checkListsField] ?? [])) {
+      var checkList = CheckListModelImplementation.fromDocumentData(
+          documentData: checkListDocumentData, tripId: tripId);
+      checkLists.add(checkList);
+    }
+
+    for (final noteDocumentData
+        in List<String>.from(documentData[_notesField] ?? [])) {
+      var note = NoteFacade(note: noteDocumentData, tripId: tripId);
+      notes.add(note);
+    }
+
+    for (final placesDocumentData
+        in List<Map<String, dynamic>>.from(documentData[_placesField] ?? [])) {
+      var place = LocationModelImplementation.fromJson(
+          json: placesDocumentData, tripId: tripId);
+      places.add(place);
+    }
+
+    return PlanDataModelImplementation._(
+        id: documentSnapshot.id,
+        tripId: tripId,
+        title: title,
+        collectionName: collectionName,
+        checkLists: checkLists,
+        places: places,
+        notes: notes);
+  }
+
+  PlanDataModelImplementation.empty(
+      {required String tripId,
+      required String id,
+      String collectionName = FirestoreCollections.planDataCollectionName})
+      : this._(
+            id: id,
+            tripId: tripId,
+            collectionName: collectionName,
+            checkLists: [],
+            places: [],
+            notes: []);
 
   @override
   List<LocationFacade> get places =>
@@ -112,84 +189,7 @@ class PlanDataModelImplementation extends PlanDataFacade
   @override
   Future dispose() async {}
 
-  static PlanDataModelImplementation fromModelFacade(
-      {required PlanDataFacade planDataFacade,
-      String collectionName = FirestoreCollections.planDataCollectionName}) {
-    var planDataId = planDataFacade.id;
-    var places = List<LocationModelImplementation>.from(planDataFacade.places
-        .map((place) => LocationModelImplementation.fromModelFacade(
-            locationModelFacade: place,
-            collectionName: collectionName,
-            parentId: planDataFacade.id)));
-    var notes =
-        List<NoteFacade>.from(planDataFacade.notes.map((note) => note.clone()));
-    var checkLists = List<CheckListModelImplementation>.from(planDataFacade
-        .checkLists
-        .map((checkList) => CheckListModelImplementation.fromModelFacade(
-            checkListModelFacade: checkList)));
-    return PlanDataModelImplementation(
-        id: planDataId,
-        tripId: planDataFacade.tripId,
-        title: planDataFacade.title,
-        collectionName: collectionName,
-        checkLists: checkLists,
-        places: places,
-        notes: notes);
-  }
-
-  static PlanDataModelImplementation fromDocumentSnapshot(
-      {required String tripId,
-      required DocumentSnapshot documentSnapshot,
-      String collectionName = FirestoreCollections.planDataCollectionName}) {
-    var documentData = documentSnapshot.data() as Map<String, dynamic>? ?? {};
-    var title = documentData[_titleField];
-
-    var checkLists = <CheckListModelImplementation>[];
-    var notes = <NoteFacade>[];
-    var places = <LocationModelImplementation>[];
-    for (final checkListDocumentData in List<Map<String, dynamic>>.from(
-        documentData[_checkListsField] ?? [])) {
-      var checkList = CheckListModelImplementation.fromDocumentData(
-          documentData: checkListDocumentData, tripId: tripId);
-      checkLists.add(checkList);
-    }
-
-    for (final noteDocumentData
-        in List<String>.from(documentData[_notesField] ?? [])) {
-      var note = NoteFacade(note: noteDocumentData, tripId: tripId);
-      notes.add(note);
-    }
-
-    for (final placesDocumentData
-        in List<Map<String, dynamic>>.from(documentData[_placesField] ?? [])) {
-      var place = LocationModelImplementation.fromJson(
-          json: placesDocumentData, tripId: tripId);
-      places.add(place);
-    }
-
-    return PlanDataModelImplementation(
-        id: documentSnapshot.id,
-        tripId: tripId,
-        title: title,
-        collectionName: collectionName,
-        checkLists: checkLists,
-        places: places,
-        notes: notes);
-  }
-
-  PlanDataModelImplementation.empty(
-      {required String tripId,
-      required String id,
-      String collectionName = FirestoreCollections.planDataCollectionName})
-      : this(
-            id: id,
-            tripId: tripId,
-            collectionName: collectionName,
-            checkLists: [],
-            places: [],
-            notes: []);
-
-  PlanDataModelImplementation(
+  PlanDataModelImplementation._(
       {required String tripId,
       required String collectionName,
       required List<CheckListModelImplementation> checkLists,

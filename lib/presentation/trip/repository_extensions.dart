@@ -13,8 +13,8 @@ extension TripRepositoryExtensions on BuildContext {
   TripRepositoryFacade get tripRepository =>
       RepositoryProvider.of<TripRepositoryFacade>(this);
 
-  ApiServicesRepository get apiServicesRepository =>
-      RepositoryProvider.of<ApiServicesRepository>(this);
+  ApiServicesRepositoryFacade get apiServicesRepository =>
+      RepositoryProvider.of<ApiServicesRepositoryFacade>(this);
 
   TripDataFacade get activeTrip => tripRepository.activeTrip!;
 

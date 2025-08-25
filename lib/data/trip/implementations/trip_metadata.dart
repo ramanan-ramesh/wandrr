@@ -7,6 +7,7 @@ import 'package:wandrr/data/trip/implementations/firestore_helpers.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
+// ignore: must_be_immutable
 class TripMetadataModelImplementation extends TripMetadataFacade
     implements LeafRepositoryItem<TripMetadataFacade> {
   static const String _startDateField = 'startDate';
@@ -15,11 +16,6 @@ class TripMetadataModelImplementation extends TripMetadataFacade
   static const String _contributorsField = 'contributors';
   static const _budgetField = 'budget';
   static const _defaultCurrency = 'INR';
-
-  @override
-  DocumentReference get documentReference => FirebaseFirestore.instance
-      .collection(FirestoreCollections.tripMetadataCollectionName)
-      .doc(id);
 
   TripMetadataModelImplementation.fromModelFacade(
       {required TripMetadataFacade tripMetadataModelFacade})
@@ -54,6 +50,11 @@ class TripMetadataModelImplementation extends TripMetadataFacade
         budget: budget);
   }
 
+  @override
+  DocumentReference get documentReference => FirebaseFirestore.instance
+      .collection(FirestoreCollections.tripMetadataCollectionName)
+      .doc(id);
+
   //expects a valid database object
   @override
   Map<String, dynamic> toJson() => {
@@ -74,16 +75,12 @@ class TripMetadataModelImplementation extends TripMetadataFacade
     FirestoreHelpers.updateJson(
         contributors, toUpdate.contributors, _contributorsField, json);
     FirestoreHelpers.updateJson(name, toUpdate.name, _nameField, json);
-    var didUpdate = json.isNotEmpty;
-    if (json.isNotEmpty) {
-      await documentReference.set(json, SetOptions(merge: true)).then((value) {
-        didUpdate = true;
-        copyWith(toUpdate);
-      }).catchError((error, stackTrace) {
-        didUpdate = false;
-      });
-    }
-    return didUpdate;
+    return FirestoreHelpers.tryUpdateDocumentField(
+        documentReference: documentReference,
+        json: json,
+        onSuccess: () {
+          copyWith(toUpdate);
+        });
   }
 
   @override

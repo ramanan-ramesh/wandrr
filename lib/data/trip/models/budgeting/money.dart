@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
 
 class Money extends Equatable {
-  String currency;
-  double amount;
+  final String currency;
+  final double amount;
 
-  Money({required this.currency, required this.amount});
+  const Money({required this.currency, required this.amount});
 
   static Money fromDocumentData(String documentData) {
     var splittedStrings = documentData.split(' ');

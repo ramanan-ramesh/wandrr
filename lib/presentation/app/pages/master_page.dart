@@ -12,7 +12,7 @@ import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/app/pages/startup_page.dart';
 import 'package:wandrr/presentation/app/theming/dark_theme_data.dart';
 import 'package:wandrr/presentation/app/theming/light_theme_data.dart';
-import 'package:wandrr/presentation/trip/pages/trip_provider.dart';
+import 'package:wandrr/presentation/trip/pages/trip_provider/trip_provider.dart';
 
 class MasterPage extends StatelessWidget {
   const MasterPage({super.key});

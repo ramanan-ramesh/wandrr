@@ -4,6 +4,7 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'airport_location_context.dart';
 import 'location_context.dart';
 
+// ignore: must_be_immutable
 class LocationFacade extends Equatable implements TripEntity {
   final String tripId;
 

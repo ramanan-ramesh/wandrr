@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
 import 'constants.dart';
@@ -42,4 +43,8 @@ class TripNavigator {
     }
     return false;
   }
+}
+
+extension TripNavigatorExt on BuildContext {
+  TripNavigator get tripNavigator => RepositoryProvider.of<TripNavigator>(this);
 }

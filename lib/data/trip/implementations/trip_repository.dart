@@ -25,26 +25,6 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   late StreamSubscription _tripMetadataUpdatedEventSubscription;
   late StreamSubscription _tripMetadataDeletedEventSubscription;
 
-  @override
-  List<TripMetadataFacade> get tripMetadatas =>
-      List.from(_tripMetadataModelCollection.collectionItems
-          .cast<TripMetadataFacade>()
-          .map<TripMetadataFacade>((facade) => facade.clone()));
-
-  @override
-  ModelCollectionFacade<TripMetadataFacade> get tripMetadataModelCollection =>
-      _tripMetadataModelCollection;
-  final ModelCollectionFacade<TripMetadataFacade> _tripMetadataModelCollection;
-
-  @override
-  TripDataFacade? get activeTrip => _activeTrip;
-  TripDataModelImplementation? _activeTrip;
-
-  @override
-  TripDataModelEventHandler? get activeTripEventHandler => _activeTrip;
-
-  final String currentUserName;
-
   static Future<TripRepositoryImplementation> createInstance(
       {required String userName,
       required AppLocalizations appLocalizations}) async {
@@ -75,6 +55,26 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   }
 
   @override
+  List<TripMetadataFacade> get tripMetadatas =>
+      List.from(_tripMetadataModelCollection.collectionItems
+          .cast<TripMetadataFacade>()
+          .map<TripMetadataFacade>((facade) => facade.clone()));
+
+  @override
+  ModelCollectionFacade<TripMetadataFacade> get tripMetadataModelCollection =>
+      _tripMetadataModelCollection;
+  final ModelCollectionFacade<TripMetadataFacade> _tripMetadataModelCollection;
+
+  @override
+  TripDataFacade? get activeTrip => _activeTrip;
+  TripDataModelImplementation? _activeTrip;
+
+  @override
+  TripDataModelEventHandler? get activeTripEventHandler => _activeTrip;
+
+  final String currentUserName;
+
+  @override
   Future unloadActiveTrip() async {
     await _activeTrip?.dispose();
     _activeTrip = null;
@@ -82,13 +82,10 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
 
   @override
   Future loadTrip(TripMetadataFacade tripMetadata,
-      ApiServicesRepository apiServicesRepository) async {
+      ApiServicesRepositoryFacade apiServicesRepository) async {
     await _activeTrip?.dispose();
-    _activeTrip = await TripDataModelImplementation.createExistingInstanceAsync(
-        tripMetadata,
-        apiServicesRepository,
-        _appLocalizations,
-        currentUserName);
+    _activeTrip = await TripDataModelImplementation.createInstance(tripMetadata,
+        apiServicesRepository, _appLocalizations, currentUserName);
   }
 
   @override

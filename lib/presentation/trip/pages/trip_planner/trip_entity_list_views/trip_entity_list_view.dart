@@ -137,8 +137,7 @@ class _TripEntityListViewState<T extends TripEntity>
         } else if (state is ProcessSectionNavigation) {
           if (state.section.toLowerCase() == widget.section.toLowerCase()) {
             if (state.dateTime == null) {
-              unawaited(RepositoryProvider.of<TripNavigator>(context)
-                  .jumpToList(context));
+              unawaited(context.tripNavigator.jumpToList(context));
             } else {
               _setListVisibility(true);
               Future.delayed(
@@ -196,11 +195,9 @@ class _TripEntityListViewState<T extends TripEntity>
 
   void _toggleListVisibilityOnOpenClose() {
     if (_isListVisible) {
-      if (RepositoryProvider.of<TripNavigator>(context)
-          .isSliverAppBarPinned(_headerContext)) {
-        unawaited(RepositoryProvider.of<TripNavigator>(context)
-            .jumpToList(context, alignment: 0.0)
-            .then((_) {
+      if (context.tripNavigator.isSliverAppBarPinned(_headerContext)) {
+        unawaited(
+            context.tripNavigator.jumpToList(context, alignment: 0.0).then((_) {
           _toggleListVisibility();
         }));
         return;
@@ -216,7 +213,7 @@ class _TripEntityListViewState<T extends TripEntity>
       if (widget.canConsiderUiElementForNavigation != null &&
           widget.canConsiderUiElementForNavigation!(
               uiElement.element, state.dateTime!)) {
-        RepositoryProvider.of<TripNavigator>(context)
+        context.tripNavigator
             .animateToListItem(context, _listController, index);
         break;
       }

@@ -45,7 +45,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ],
                 );
                 if (state is ActivatedTrip) {
-                  return RepositoryProvider<ApiServicesRepository>(
+                  return RepositoryProvider<ApiServicesRepositoryFacade>(
                     create: (context) => state.apiServicesRepository,
                     child: appBarContent,
                   );

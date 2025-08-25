@@ -12,10 +12,10 @@ import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/trip/pages/app_bar.dart';
-import 'package:wandrr/presentation/trip/pages/constants.dart';
 import 'package:wandrr/presentation/trip/pages/home/home_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_planner_page.dart';
+import 'package:wandrr/presentation/trip/pages/trip_provider/app_bar.dart';
+import 'package:wandrr/presentation/trip/pages/trip_provider/constants.dart';
 
 class TripProvider extends StatelessWidget {
   const TripProvider({super.key});
@@ -67,7 +67,7 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
         } else if (state is ActivatedTrip &&
             !_walkAnimation.isActive &&
             !_waveAnimation.isActive) {
-          return RepositoryProvider<ApiServicesRepository>(
+          return RepositoryProvider<ApiServicesRepositoryFacade>(
             create: (context) => state.apiServicesRepository,
             child: _createTripContentPage(TripPlannerPage()),
           );

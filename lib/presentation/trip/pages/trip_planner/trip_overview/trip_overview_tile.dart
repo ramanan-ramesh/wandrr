@@ -44,8 +44,7 @@ class TripOverviewTile extends StatelessWidget {
       listener: (BuildContext context, TripManagementState state) {
         if (state is ProcessSectionNavigation &&
             state.section == NavigationSections.tripOverview) {
-          unawaited(RepositoryProvider.of<TripNavigator>(context)
-              .jumpToList(context));
+          unawaited(context.tripNavigator.jumpToList(context));
         }
       },
       child: Stack(

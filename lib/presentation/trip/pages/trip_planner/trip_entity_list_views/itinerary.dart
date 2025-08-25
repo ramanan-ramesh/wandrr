@@ -60,8 +60,7 @@ class _ItineraryListViewState extends State<ItineraryListView> {
             state.section.toLowerCase() ==
                 NavigationSections.itinerary.toLowerCase()) {
           if (state.dateTime == null) {
-            unawaited(RepositoryProvider.of<TripNavigator>(context)
-                .jumpToList(context));
+            unawaited(context.tripNavigator.jumpToList(context));
           }
         }
       },

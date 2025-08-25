@@ -7,6 +7,7 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'budgeting/expense_category.dart';
 import 'budgeting/money.dart';
 
+// ignore: must_be_immutable
 class LodgingFacade extends Equatable implements TripEntity {
   LocationFacade? location;
 

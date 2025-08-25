@@ -15,14 +15,14 @@ abstract class CachedDataService<TResult>
   static const _typeField = 'type';
   static const _dataUrlField = 'dataUrl';
 
+  final HashSet<TResult> _allData = HashSet<TResult>();
+
+  CachedDataService(this.apiIdentifier);
+
   String get _lastRefreshedAtSharedPrefsField =>
       '${apiIdentifier}_$_lastRefreshedAtField';
 
   String get _dataAtSharedPrefsField => '${apiIdentifier}_data';
-
-  final HashSet<TResult> _allData = HashSet<TResult>();
-
-  CachedDataService(this.apiIdentifier);
 
   @override
   final String apiIdentifier;

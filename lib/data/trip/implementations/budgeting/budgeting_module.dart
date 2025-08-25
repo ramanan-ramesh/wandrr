@@ -52,20 +52,6 @@ class BudgetingModule implements BudgetingModuleEventHandler {
         currentUserName);
   }
 
-  BudgetingModule._(
-      this._transitModelCollection,
-      this._lodgingModelCollection,
-      this._expenseModelCollection,
-      this.currencyConverter,
-      this.defaultCurrency,
-      Iterable<String> contributors,
-      double totalExpenditure,
-      this.currentUserName)
-      : _totalExpenditure = totalExpenditure,
-        _contributors = contributors {
-    _subscribeToTotalExpenseReCalculatorEvents();
-  }
-
   @override
   Future dispose() async {
     for (final subscription in _subscriptions) {
@@ -309,7 +295,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     return totalExpenditure;
   }
 
-  void _subscribeToTotalExpenseReCalculatorEvents() {
+  void _subscribeToTotalExpenseReCalculationEvents() {
     _subscriptions
         .add(_transitModelCollection.onDocumentAdded.listen((eventData) async {
       await recalculateTotalExpenditure();
@@ -459,5 +445,19 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       writeBatch.update(
           collectionItem.documentReference, itemToUpdate.toJson());
     }
+  }
+
+  BudgetingModule._(
+      this._transitModelCollection,
+      this._lodgingModelCollection,
+      this._expenseModelCollection,
+      this.currencyConverter,
+      this.defaultCurrency,
+      Iterable<String> contributors,
+      double totalExpenditure,
+      this.currentUserName)
+      : _totalExpenditure = totalExpenditure,
+        _contributors = contributors {
+    _subscribeToTotalExpenseReCalculationEvents();
   }
 }

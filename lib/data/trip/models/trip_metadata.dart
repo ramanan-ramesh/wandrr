@@ -4,6 +4,7 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 import 'budgeting/money.dart';
 
+// ignore: must_be_immutable
 class TripMetadataFacade extends Equatable implements TripEntity {
   @override
   String? id;

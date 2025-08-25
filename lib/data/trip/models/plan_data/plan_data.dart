@@ -5,6 +5,7 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'check_list.dart';
 import 'note.dart';
 
+// ignore: must_be_immutable
 class PlanDataFacade extends Equatable implements TripEntity {
   final String tripId;
 

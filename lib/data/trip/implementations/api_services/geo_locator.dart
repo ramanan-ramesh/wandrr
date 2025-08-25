@@ -24,9 +24,6 @@ class GeoLocator implements ApiService<String, Iterable<LocationFacade>> {
   GeoLocator() : apiIdentifier = _apiIdentifier;
 
   @override
-  final String apiIdentifier;
-
-  @override
   Future<void> initialize() async {
     var locationAPIDocumentQueryResult = await FirebaseFirestore.instance
         .collection(Constants.apiServicesCollectionName)
@@ -35,6 +32,9 @@ class GeoLocator implements ApiService<String, Iterable<LocationFacade>> {
     var locationAPIDocument = locationAPIDocumentQueryResult.docs.first;
     _apiKey = locationAPIDocument[_apiKeyField] as String;
   }
+
+  @override
+  final String apiIdentifier;
 
   @override
   Future<Iterable<LocationFacade>> queryData(String query) async {

@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'check_list_item.dart';
 
+// ignore: must_be_immutable
 class CheckListFacade extends Equatable {
   String? title;
   final List<CheckListItem> items;

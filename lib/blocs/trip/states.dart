@@ -38,7 +38,7 @@ class LoadedRepository extends TripManagementState {
 class NavigateToHome extends TripManagementState {}
 
 class ActivatedTrip extends TripManagementState {
-  final ApiServicesRepository apiServicesRepository;
+  final ApiServicesRepositoryFacade apiServicesRepository;
 
   ActivatedTrip({required this.apiServicesRepository});
 }

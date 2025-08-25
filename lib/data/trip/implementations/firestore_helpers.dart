@@ -15,14 +15,17 @@ class FirestoreHelpers {
       required Map<String, dynamic> json,
       Function? onSuccess}) async {
     var didErrorOccur = false;
+    var didUpdate = false;
     if (json.isEmpty) {
       return false;
     }
-    await documentReference
-        .set(json, SetOptions(merge: true))
-        .then((value) => onSuccess?.call())
-        .catchError((error, stackTrace) => didErrorOccur = true);
-    return !didErrorOccur;
+    await documentReference.set(json, SetOptions(merge: true)).then((value) {
+      onSuccess?.call();
+      didUpdate = true;
+    }).catchError((error, stackTrace) {
+      didErrorOccur = true;
+    });
+    return !didErrorOccur && didUpdate;
   }
 
   static void updateJson(Object? currentValue, Object? valueToSet, String key,
@@ -49,7 +52,6 @@ class FirestoreHelpers {
       } else if (valueToSet is LeafRepositoryItem) {
         json[key] = valueToSet.toJson();
       } else if (valueToSet is ExpenseCategory) {
-        //Not required
         json[key] = valueToSet.name;
       } else if (valueToSet is TransitOption) {
         json[key] = valueToSet.name;
@@ -72,19 +74,6 @@ class FirestoreHelpers {
       } else {
         json[key] = valueToSet;
       }
-    }
-  }
-
-  static void updateJsonWithValue(Object? currentValue, Object? valueToCompare,
-      String key, Object valueToSet, Map<String, dynamic> json) {
-    if (valueToCompare is List? && currentValue is List?) {
-      if (!(const ListEquality().equals(currentValue, valueToCompare))) {
-        json[key] = valueToSet;
-      }
-      return;
-    }
-    if (!(valueToCompare == currentValue)) {
-      json[key] = valueToSet;
     }
   }
 }

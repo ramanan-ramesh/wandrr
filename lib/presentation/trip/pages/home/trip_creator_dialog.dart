@@ -135,7 +135,9 @@ class TripCreatorDialog extends StatelessWidget {
                 amount: updatedAmount);
           },
           currencySelectedCallback: (selectedCurrency) {
-            _currentTripMetadata.budget.currency = selectedCurrency.code;
+            _currentTripMetadata.budget = Money(
+                currency: selectedCurrency.code,
+                amount: _currentTripMetadata.budget.amount);
             _tripCreationMetadataValidityNotifier.value =
                 _currentTripMetadata.validate();
           },

@@ -12,15 +12,6 @@ class CurrencyConverter implements ApiService<(Money, String), double?> {
   final List<_CurrencyExchangeData> _exchangeRates = [];
 
   @override
-  final String apiIdentifier = "CurrencyConverter";
-
-  @override
-  FutureOr<void> dispose() {}
-
-  @override
-  FutureOr<void> initialize() {}
-
-  @override
   Future<double?> queryData(
       (Money moneyToConvert, String currencyToConvertTo) query) async {
     var currencyAmount = query.$1;
@@ -87,16 +78,25 @@ class CurrencyConverter implements ApiService<(Money, String), double?> {
         : null;
   }
 
+  @override
+  final String apiIdentifier = "CurrencyConverter";
+
+  @override
+  FutureOr<void> dispose() {}
+
+  @override
+  FutureOr<void> initialize() {}
+
   String _constructQuery(String currencyToConvertTo) =>
       '$_apiSurfaceUrl/currencies/${currencyToConvertTo.toLowerCase()}.json';
 }
 
 class _CurrencyExchangeData {
-  String currency;
-  String currencyToConvertTo;
-  double exchangeRate;
+  final String currency;
+  final String currencyToConvertTo;
+  final double exchangeRate;
 
-  _CurrencyExchangeData(
+  const _CurrencyExchangeData(
       {required this.currency,
       required this.currencyToConvertTo,
       required this.exchangeRate});

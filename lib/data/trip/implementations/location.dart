@@ -4,6 +4,7 @@ import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/location/location_context.dart';
 
+// ignore: must_be_immutable
 class LocationModelImplementation extends LocationFacade
     implements LeafRepositoryItem<LocationFacade> {
   static const String _contextField = 'context';
@@ -11,18 +12,6 @@ class LocationModelImplementation extends LocationFacade
 
   final String _collectionName;
   final String _parentId;
-
-  LocationModelImplementation(
-      {required super.latitude,
-      required super.longitude,
-      required super.context,
-      required super.tripId,
-      super.id,
-      String? collectionName,
-      String? parentId})
-      : _parentId = parentId ?? '',
-        _collectionName =
-            collectionName ?? FirestoreCollections.planDataCollectionName;
 
   LocationModelImplementation.fromModelFacade(
       {required LocationFacade locationModelFacade,
@@ -47,7 +36,7 @@ class LocationModelImplementation extends LocationFacade
     var geoPoint = json[_latitudeLongitudeField] as GeoPoint;
     var locationContext =
         LocationContext.createInstance(json: json[_contextField]);
-    return LocationModelImplementation(
+    return LocationModelImplementation._(
         latitude: geoPoint.latitude,
         longitude: geoPoint.longitude,
         tripId: tripId,
@@ -80,7 +69,7 @@ class LocationModelImplementation extends LocationFacade
     var geoPoint = json[_latitudeLongitudeField] as GeoPoint;
     var locationContext =
         LocationContext.createInstance(json: json[_contextField]);
-    return LocationModelImplementation(
+    return LocationModelImplementation._(
         latitude: geoPoint.latitude,
         longitude: geoPoint.longitude,
         tripId: tripId,
@@ -92,4 +81,16 @@ class LocationModelImplementation extends LocationFacade
 
   @override
   LocationFacade get facade => clone();
+
+  LocationModelImplementation._(
+      {required super.latitude,
+      required super.longitude,
+      required super.context,
+      required super.tripId,
+      super.id,
+      String? collectionName,
+      String? parentId})
+      : _parentId = parentId ?? '',
+        _collectionName =
+            collectionName ?? FirestoreCollections.planDataCollectionName;
 }

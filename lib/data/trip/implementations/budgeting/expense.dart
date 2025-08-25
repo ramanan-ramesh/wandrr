@@ -35,18 +35,52 @@ class ExpenseModelImplementation extends ExpenseFacade
             dateTime: expenseModelFacade.dateTime,
             category: expenseModelFacade.category);
 
-  ExpenseModelImplementation(
-      {required super.tripId,
-      required super.title,
-      required super.totalExpense,
-      required super.category,
-      required super.paidBy,
-      required super.splitBy,
-      super.description,
-      super.id,
-      LocationModelImplementation? location,
-      super.dateTime})
-      : super(location: location);
+  static ExpenseModelImplementation fromDocumentSnapshot(
+      {required String tripId, required DocumentSnapshot documentSnapshot}) {
+    var expenseValue = documentSnapshot[_totalExpenseField] as String;
+    var expenseValues = expenseValue.split(' ');
+    var cost = double.parse(expenseValues.first);
+    var currency = expenseValues.elementAt(1);
+
+    var category = ExpenseCategory.values.firstWhere(
+        (element) => documentSnapshot[_categoryField] == element.name);
+
+    Timestamp? dateTimeValue;
+    var documentData = documentSnapshot.data() as Map<String, dynamic>;
+    if (documentData.containsKey(_dateTimeField)) {
+      if (documentSnapshot[_dateTimeField] != null) {
+        dateTimeValue = documentSnapshot[_dateTimeField] as Timestamp;
+      }
+    }
+
+    var splitBy = List<String>.from(documentSnapshot[_splitByField]);
+
+    LocationModelImplementation? location;
+    if (documentData.containsKey(_locationField)) {
+      if (documentSnapshot[_locationField] != null) {
+        location = LocationModelImplementation.fromJson(
+            json: documentSnapshot[_locationField], tripId: tripId);
+      }
+    }
+
+    var paidBy = <String, double>{};
+    for (final paidByEntry in documentSnapshot[_paidByField].entries) {
+      var amount = paidByEntry.value;
+      paidBy[paidByEntry.key] = double.parse(amount.toString());
+    }
+
+    return ExpenseModelImplementation._(
+        totalExpense: Money(currency: currency, amount: cost),
+        tripId: tripId,
+        paidBy: paidBy,
+        dateTime: dateTimeValue?.toDate(),
+        category: category,
+        splitBy: splitBy,
+        id: documentSnapshot.id,
+        title: documentSnapshot[_titleField],
+        location: location,
+        description: documentSnapshot[_descriptionField]);
+  }
 
   @override
   DocumentReference<Object?> get documentReference => FirebaseFirestore.instance
@@ -89,61 +123,12 @@ class ExpenseModelImplementation extends ExpenseFacade
     FirestoreHelpers.updateJson(
         description, toUpdate.description, _descriptionField, json);
 
-    var didUpdate = json.isNotEmpty;
-    await documentReference.set(json, SetOptions(merge: true)).then((value) {
-      didUpdate = true;
-      copyWith(toUpdate);
-    }).catchError((error, stackTrace) {
-      didUpdate = false;
-    });
-    return didUpdate;
-  }
-
-  static ExpenseModelImplementation fromDocumentSnapshot(
-      {required String tripId, required DocumentSnapshot documentSnapshot}) {
-    var expenseValue = documentSnapshot[_totalExpenseField] as String;
-    var expenseValues = expenseValue.split(' ');
-    var cost = double.parse(expenseValues.first);
-    var currency = expenseValues.elementAt(1);
-
-    var category = ExpenseCategory.values.firstWhere(
-        (element) => documentSnapshot[_categoryField] == element.name);
-
-    Timestamp? dateTimeValue;
-    var documentData = documentSnapshot.data() as Map<String, dynamic>;
-    if (documentData.containsKey(_dateTimeField)) {
-      if (documentSnapshot[_dateTimeField] != null) {
-        dateTimeValue = documentSnapshot[_dateTimeField] as Timestamp;
-      }
-    }
-
-    var splitBy = List<String>.from(documentSnapshot[_splitByField]);
-
-    LocationModelImplementation? location;
-    if (documentData.containsKey(_locationField)) {
-      if (documentSnapshot[_locationField] != null) {
-        location = LocationModelImplementation.fromJson(
-            json: documentSnapshot[_locationField], tripId: tripId);
-      }
-    }
-
-    var paidBy = <String, double>{};
-    for (final paidByEntry in documentSnapshot[_paidByField].entries) {
-      var amount = paidByEntry.value;
-      paidBy[paidByEntry.key] = double.parse(amount.toString());
-    }
-
-    return ExpenseModelImplementation(
-        totalExpense: Money(currency: currency, amount: cost),
-        tripId: tripId,
-        paidBy: paidBy,
-        dateTime: dateTimeValue?.toDate(),
-        category: category,
-        splitBy: splitBy,
-        id: documentSnapshot.id,
-        title: documentSnapshot[_titleField],
-        location: location,
-        description: documentSnapshot[_descriptionField]);
+    return await FirestoreHelpers.tryUpdateDocumentField(
+        documentReference: documentReference,
+        json: json,
+        onSuccess: () {
+          copyWith(toUpdate);
+        });
   }
 
   static ExpenseModelImplementation fromJson(
@@ -180,7 +165,7 @@ class ExpenseModelImplementation extends ExpenseFacade
       paidBy[paidByEntry.key] = double.parse(amount.toString());
     }
 
-    return ExpenseModelImplementation(
+    return ExpenseModelImplementation._(
         totalExpense: Money(currency: currency, amount: cost),
         tripId: tripId,
         paidBy: paidBy,
@@ -194,4 +179,17 @@ class ExpenseModelImplementation extends ExpenseFacade
 
   @override
   ExpenseFacade get facade => clone();
+
+  ExpenseModelImplementation._(
+      {required super.tripId,
+      required super.title,
+      required super.totalExpense,
+      required super.category,
+      required super.paidBy,
+      required super.splitBy,
+      super.description,
+      super.id,
+      LocationModelImplementation? location,
+      super.dateTime})
+      : super(location: location);
 }

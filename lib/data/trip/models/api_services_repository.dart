@@ -4,7 +4,7 @@ import 'api_service.dart';
 import 'budgeting/money.dart';
 import 'location/location.dart';
 
-abstract class ApiServicesRepository {
+abstract class ApiServicesRepositoryFacade {
   ApiService<(Money moneyToConvert, String currencyToConvertTo), double?>
       get currencyConverter;
 
@@ -14,6 +14,9 @@ abstract class ApiServicesRepository {
   ApiService<String, Iterable<LocationFacade>> get airportsDataService;
 
   ApiService<String, Iterable<LocationFacade>> get geoLocator;
+}
 
+abstract class ApiServicesRepositoryModifier
+    extends ApiServicesRepositoryFacade {
   FutureOr<void> dispose();
 }
