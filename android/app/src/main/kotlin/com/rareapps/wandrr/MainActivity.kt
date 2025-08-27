@@ -6,15 +6,21 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Resources
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
+import android.util.Size
 import android.view.View
+import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
+
 
 class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,9 +33,8 @@ class MainActivity : Activity() {
 
         tryApplySavedTheme()
 
-        val displayMetrics = DisplayMetrics()
-        windowManager.defaultDisplay.getMetrics(displayMetrics)
-        val screenWidth = displayMetrics.widthPixels
+        val screenSize = ScreenMetricsCompat.getScreenSize(this)
+        val screenWidth = screenSize.width
 
         val translationX = ObjectAnimator.ofFloat(
             spaceshipImageView,
@@ -74,7 +79,7 @@ class MainActivity : Activity() {
 
     private fun tryApplySavedTheme() {
         val prefs: SharedPreferences =
-            getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+            getSharedPreferences("FlutterSharedPreferences", MODE_PRIVATE)
         val themeMode = prefs.getString("flutter.themeMode", "dark")
 
         val rootView = findViewById<View>(R.id.splash_screen_root)
@@ -86,6 +91,38 @@ class MainActivity : Activity() {
         } else {
             rootView.setBackgroundColor(ContextCompat.getColor(this, R.color.splash_light))
             textView.setTextColor(ContextCompat.getColor(this, android.R.color.black))
+        }
+    }
+
+    object ScreenMetricsCompat {
+        private val api: Api =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) ApiLevel30()
+            else Api()
+
+        /**
+         * Returns screen size in pixels.
+         */
+        fun getScreenSize(context: Context): Size = api.getScreenSize(context)
+
+        @Suppress("DEPRECATION")
+        private open class Api {
+            open fun getScreenSize(context: Context): Size {
+                val display = context.getSystemService(WindowManager::class.java).defaultDisplay
+                val metrics = if (display != null) {
+                    DisplayMetrics().also { display.getRealMetrics(it) }
+                } else {
+                    Resources.getSystem().displayMetrics
+                }
+                return Size(metrics.widthPixels, metrics.heightPixels)
+            }
+        }
+
+        @RequiresApi(Build.VERSION_CODES.R)
+        private class ApiLevel30 : Api() {
+            override fun getScreenSize(context: Context): Size {
+                val metrics: android.view.WindowMetrics = context.getSystemService(WindowManager::class.java).currentWindowMetrics
+                return Size(metrics.bounds.width(), metrics.bounds.height())
+            }
         }
     }
 }

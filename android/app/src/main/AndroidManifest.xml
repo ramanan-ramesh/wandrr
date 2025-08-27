@@ -12,7 +12,8 @@
     <application
         android:name="${applicationName}"
         android:icon="@mipmap/app_logo_round"
-        android:label="wandrr">
+        android:label="wandrr"
+        android:supportsRtl="false">
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"

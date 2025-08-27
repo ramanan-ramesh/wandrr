@@ -20,7 +20,7 @@
         android:alpha="0.0"
         android:scaleX="0.5"
         android:scaleY="0.5"
-        android:text="wandrr"
+        android:text="@string/app_name"
         android:textColor="#000000"
         android:textSize="50sp" />
 
