@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/data/auth/models/auth_type.dart';
@@ -79,10 +78,10 @@ class UserManagement implements UserManagementModifier {
     String googleWebClientId = googleConfigDocument[_googleWebClientIdField];
 
     GoogleSignIn googleSignIn;
-    if (Platform.isIOS) {
-      googleSignIn = GoogleSignIn();
-    } else {
+    if (kIsWeb) {
       googleSignIn = GoogleSignIn(clientId: googleWebClientId);
+    } else {
+      googleSignIn = GoogleSignIn();
     }
     var googleUser = await googleSignIn.signIn();
 
