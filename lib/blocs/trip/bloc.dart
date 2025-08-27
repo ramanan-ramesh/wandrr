@@ -298,7 +298,7 @@ class TripManagementBloc
   FutureOr _tryUpdateTripEntityAndEmitState<E>(
       E tripEntity,
       DataState requestedDataState,
-      ModelCollectionFacade<E> modelCollection,
+      ModelCollectionModifier<E> modelCollection,
       String? tripEntityId,
       Emitter<TripManagementState> emit) async {
     switch (requestedDataState) {

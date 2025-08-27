@@ -12,28 +12,14 @@ import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
-  Widget build(BuildContext context) => const Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(16.0),
-            child: _LoginPageForm(),
-          ),
-        ),
-      );
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageForm extends StatefulWidget {
-  const _LoginPageForm();
-
-  @override
-  State<_LoginPageForm> createState() => _LoginPageFormState();
-}
-
-class _LoginPageFormState extends State<_LoginPageForm>
+class _LoginPageState extends State<LoginPage>
     with SingleTickerProviderStateMixin {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
@@ -56,55 +42,66 @@ class _LoginPageFormState extends State<_LoginPageForm>
   }
 
   @override
-  Widget build(BuildContext context) => PlatformCard(
-        child: FocusTraversalGroup(
-          policy: OrderedTraversalPolicy(),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _createTabBar(),
-              const SizedBox(height: 16.0),
-              FocusTraversalOrder(
-                order: const NumericFocusOrder(1),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: _createUserNamePasswordForm(),
-                ),
+  Widget build(BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: PlatformCard(
+            child: FocusTraversalGroup(
+              policy: OrderedTraversalPolicy(),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _createTabBar(),
+                  const SizedBox(height: 16.0),
+                  FocusTraversalOrder(
+                    order: const NumericFocusOrder(1),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: _createUserNamePasswordForm(),
+                    ),
+                  ),
+                  const SizedBox(height: 24.0),
+                  FocusTraversalOrder(
+                    order: const NumericFocusOrder(2),
+                    child: ConstrainedBox(
+                      constraints:
+                          const BoxConstraints(maxWidth: 200, minWidth: 150),
+                      child: _createSubmitButton(context),
+                    ),
+                  ),
+                  const SizedBox(height: 24.0),
+                  _createAlternateLoginMethods(context),
+                ],
               ),
-              const SizedBox(height: 24.0),
-              FocusTraversalOrder(
-                order: const NumericFocusOrder(2),
-                child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxWidth: 200, minWidth: 150),
-                  child: _createSubmitButton(context),
-                ),
-              ),
-              const SizedBox(height: 24.0),
-              _createAlternateLoginMethods(context),
-            ],
+            ),
           ),
         ),
-      );
+      ),
+    );
+  }
 
-  Widget _createSubmitButton(BuildContext context) => _AuthStateObserver(
-        onAuthStateChangeBuilder: (state, {required bool canEnable}) =>
-            PlatformSubmitterFAB.form(
-          icon: Icons.login_rounded,
-          context: context,
-          formState: _formKey,
-          isEnabledInitially: canEnable,
-          validationSuccessCallback: () {
-            var username = _usernameController.text;
-            var password = _passwordController.text;
+  Widget _createSubmitButton(BuildContext context) {
+    return _AuthStateObserver(
+      onAuthStateChangeBuilder: (state, {required bool canEnable}) =>
+          PlatformSubmitterFAB.form(
+        icon: Icons.login_rounded,
+        context: context,
+        formState: _formKey,
+        isEnabledInitially: canEnable,
+        validationSuccessCallback: () {
+          var username = _usernameController.text;
+          var password = _passwordController.text;
 
-            context.addAuthenticationEvent(AuthenticateWithUsernamePassword(
-                userName: username,
-                password: password,
-                shouldRegister: _tabController.index == 1));
-          },
-        ),
-      );
+          context.addAuthenticationEvent(AuthenticateWithUsernamePassword(
+              userName: username,
+              password: password,
+              shouldRegister: _tabController.index == 1));
+        },
+      ),
+    );
+  }
 
   Widget _createAlternateLoginMethods(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.center,

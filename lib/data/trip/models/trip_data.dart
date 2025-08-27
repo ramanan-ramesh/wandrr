@@ -38,11 +38,11 @@ abstract class TripDataModelEventHandler extends TripDataFacade
 
   LeafRepositoryItem<TripMetadataFacade> get tripMetadataModelEventHandler;
 
-  ModelCollectionFacade<TransitFacade> get transitsModelCollection;
+  ModelCollectionModifier<TransitFacade> get transitsModelCollection;
 
-  ModelCollectionFacade<LodgingFacade> get lodgingModelCollection;
+  ModelCollectionModifier<LodgingFacade> get lodgingModelCollection;
 
-  ModelCollectionFacade<ExpenseFacade> get expenseModelCollection;
+  ModelCollectionModifier<ExpenseFacade> get expenseModelCollection;
 
-  ModelCollectionFacade<PlanDataFacade> get planDataModelCollection;
+  ModelCollectionModifier<PlanDataFacade> get planDataModelCollection;
 }

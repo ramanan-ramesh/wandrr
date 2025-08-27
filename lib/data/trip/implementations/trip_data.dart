@@ -105,19 +105,19 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
           .map((facade) => facade.clone()));
 
   @override
-  ModelCollectionFacade<TransitFacade> get transitsModelCollection =>
+  ModelCollectionModifier<TransitFacade> get transitsModelCollection =>
       _transitModelCollection;
-  final FirestoreModelCollection<TransitFacade> _transitModelCollection;
+  final ModelCollectionModifier<TransitFacade> _transitModelCollection;
 
   @override
-  ModelCollectionFacade<LodgingFacade> get lodgingModelCollection =>
+  ModelCollectionModifier<LodgingFacade> get lodgingModelCollection =>
       _lodgingModelCollection;
-  final FirestoreModelCollection<LodgingFacade> _lodgingModelCollection;
+  final ModelCollectionModifier<LodgingFacade> _lodgingModelCollection;
 
   @override
-  ModelCollectionFacade<ExpenseFacade> get expenseModelCollection =>
+  ModelCollectionModifier<ExpenseFacade> get expenseModelCollection =>
       _expenseModelCollection;
-  final FirestoreModelCollection<ExpenseFacade> _expenseModelCollection;
+  final ModelCollectionModifier<ExpenseFacade> _expenseModelCollection;
 
   @override
   List<ExpenseFacade> get expenses =>
@@ -138,9 +138,9 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
           .map((facade) => facade.clone()));
 
   @override
-  ModelCollectionFacade<PlanDataFacade> get planDataModelCollection =>
+  ModelCollectionModifier<PlanDataFacade> get planDataModelCollection =>
       _planDataModelCollection;
-  final ModelCollectionFacade<PlanDataFacade> _planDataModelCollection;
+  final ModelCollectionModifier<PlanDataFacade> _planDataModelCollection;
 
   @override
   ItineraryFacadeCollection get itineraryCollection =>
@@ -251,7 +251,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
 
   Iterable<T> _updateTripEntityListOnDatesChanged<T>(
       Set<DateTime> removedDates,
-      FirestoreModelCollection<T> modelCollection,
+      ModelCollectionFacade<T> modelCollection,
       bool Function(DateTime, T) itemsFilter,
       WriteBatch writeBatch) sync* {
     var updatedItems = <T>[];
@@ -321,10 +321,10 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
 
   TripDataModelImplementation._(
       TripMetadataModelImplementation tripMetadata,
-      FirestoreModelCollection<TransitFacade> transitModelCollection,
-      FirestoreModelCollection<LodgingFacade> lodgingModelCollection,
-      FirestoreModelCollection<ExpenseFacade> expenseModelCollection,
-      FirestoreModelCollection<PlanDataFacade> planDataModelCollection,
+      ModelCollectionModifier<TransitFacade> transitModelCollection,
+      ModelCollectionModifier<LodgingFacade> lodgingModelCollection,
+      ModelCollectionModifier<ExpenseFacade> expenseModelCollection,
+      ModelCollectionModifier<PlanDataFacade> planDataModelCollection,
       ItineraryModelCollection itineraryModelCollection,
       this.currencyConverter,
       BudgetingModuleEventHandler budgetingModuleEventHandler,

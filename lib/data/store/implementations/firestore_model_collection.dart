@@ -7,7 +7,8 @@ import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 
 //TODO: Prevent multiple events resulting due to same document change. Also, clone all collection items during external access
-class FirestoreModelCollection<Model> implements ModelCollectionFacade<Model> {
+class FirestoreModelCollection<Model>
+    implements ModelCollectionModifier<Model> {
   final CollectionReference<Object?> _collectionReference;
   bool _shouldListenToUpdates = false;
   late StreamSubscription _collectionStreamSubscription;

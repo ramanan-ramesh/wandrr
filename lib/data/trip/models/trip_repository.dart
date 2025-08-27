@@ -17,7 +17,7 @@ abstract class TripRepositoryFacade {
 
 abstract class TripRepositoryEventHandler extends TripRepositoryFacade
     implements Dispose {
-  ModelCollectionFacade<TripMetadataFacade> get tripMetadataModelCollection;
+  ModelCollectionModifier<TripMetadataFacade> get tripMetadataModelCollection;
 
   TripDataModelEventHandler? get activeTripEventHandler;
 

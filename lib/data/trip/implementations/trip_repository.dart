@@ -61,9 +61,10 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
           .map<TripMetadataFacade>((facade) => facade.clone()));
 
   @override
-  ModelCollectionFacade<TripMetadataFacade> get tripMetadataModelCollection =>
+  ModelCollectionModifier<TripMetadataFacade> get tripMetadataModelCollection =>
       _tripMetadataModelCollection;
-  final ModelCollectionFacade<TripMetadataFacade> _tripMetadataModelCollection;
+  final ModelCollectionModifier<TripMetadataFacade>
+      _tripMetadataModelCollection;
 
   @override
   TripDataFacade? get activeTrip => _activeTrip;
