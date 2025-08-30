@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/auto_complete.dart';
@@ -13,10 +13,10 @@ class TransitOperatorEditor extends StatelessWidget {
   final Function(String?) onOperatorChanged;
 
   const TransitOperatorEditor(
-      {super.key,
-      required this.transitOption,
-      this.initialOperator,
-      required this.onOperatorChanged});
+      {required this.transitOption,
+      required this.onOperatorChanged,
+      super.key,
+      this.initialOperator});
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +41,7 @@ class TransitOperatorEditor extends StatelessWidget {
         labelText: context
             .localizations.carrierName, //TODO: This gets cut off for Tamil
       ),
-      onChanged: (newCarrier) {
-        onOperatorChanged(newCarrier);
-      },
+      onChanged: onOperatorChanged,
     );
   }
 }
@@ -53,9 +51,7 @@ class _FlightDetailsEditor extends StatefulWidget {
   final Function(String?) onOperatorChanged;
 
   const _FlightDetailsEditor(
-      {super.key,
-      required this.initialOperator,
-      required this.onOperatorChanged});
+      {required this.initialOperator, required this.onOperatorChanged});
 
   @override
   State<_FlightDetailsEditor> createState() => _FlightDetailsEditorState();
@@ -142,7 +138,7 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor> {
       children: [
         Text(
           ' ${airlineData.airLineCode ?? '  '}  ',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         Flexible(
           child: ConstrainedBox(

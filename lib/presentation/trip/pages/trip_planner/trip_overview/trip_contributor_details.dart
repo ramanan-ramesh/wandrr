@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/data/app/models/collection_change_metadata.dart';
+import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/presentation/trip/bloc/bloc.dart';
-import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
@@ -17,10 +17,10 @@ class ContributorDetails extends StatelessWidget {
   final double maxOverviewElementHeight;
 
   ContributorDetails(
-      {super.key,
-      required Iterable<String> contributors,
+      {required Iterable<String> contributors,
       required this.heightOfContributorWidget,
-      required this.maxOverviewElementHeight})
+      required this.maxOverviewElementHeight,
+      super.key})
       : contributors = contributors.toList();
 
   @override
@@ -47,13 +47,14 @@ class ContributorDetails extends StatelessWidget {
     );
   }
 
-  bool _shouldBuildContributorDetails(previousState, currentState) {
+  bool _shouldBuildContributorDetails(
+      TripManagementState previousState, TripManagementState currentState) {
     if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
       var updatedTripEntity = currentState as UpdatedTripEntity;
       if (updatedTripEntity.dataState == DataState.update) {
         var tripMetadataModificationData =
             updatedTripEntity.tripEntityModificationData
-                as CollectionChangeMetadata<TripMetadataFacade>;
+                as CollectionItemChangeMetadata<TripMetadataFacade>;
         var latestContributors =
             tripMetadataModificationData.modifiedCollectionItem.contributors;
         if (!listEquals(latestContributors, contributors)) {

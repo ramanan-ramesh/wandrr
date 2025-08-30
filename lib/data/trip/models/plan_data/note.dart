@@ -1,0 +1,23 @@
+import 'package:equatable/equatable.dart';
+
+// ignore: must_be_immutable
+class NoteFacade extends Equatable {
+  final String tripId;
+
+  String note;
+
+  NoteFacade({
+    required this.note,
+    required this.tripId,
+  });
+
+  NoteFacade.newUiEntry({
+    required this.note,
+    required this.tripId,
+  });
+
+  NoteFacade clone() => NoteFacade(note: note, tripId: tripId);
+
+  @override
+  List<Object?> get props => [tripId, note];
+}

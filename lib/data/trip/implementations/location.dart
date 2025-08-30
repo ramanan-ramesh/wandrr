@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wandrr/data/app/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
+import 'package:wandrr/data/trip/models/location/location_context.dart';
 
+// ignore: must_be_immutable
 class LocationModelImplementation extends LocationFacade
     implements LeafRepositoryItem<LocationFacade> {
   static const String _contextField = 'context';
@@ -25,17 +27,24 @@ class LocationModelImplementation extends LocationFacade
             id: locationModelFacade.id,
             tripId: locationModelFacade.tripId);
 
-  LocationModelImplementation(
-      {required super.latitude,
-      required super.longitude,
-      required super.context,
-      super.id,
-      required super.tripId,
-      String? collectionName,
-      String? parentId})
-      : _parentId = parentId ?? '',
-        _collectionName =
-            collectionName ?? FirestoreCollections.planDataCollectionName;
+  static LocationModelImplementation fromDocumentSnapshot(
+      {required DocumentSnapshot documentSnapshot,
+      required String tripId,
+      String? parentId,
+      String? collectionName}) {
+    var json = documentSnapshot.data() as Map<String, dynamic>;
+    var geoPoint = json[_latitudeLongitudeField] as GeoPoint;
+    var locationContext =
+        LocationContext.createInstance(json: json[_contextField]);
+    return LocationModelImplementation._(
+        latitude: geoPoint.latitude,
+        longitude: geoPoint.longitude,
+        tripId: tripId,
+        id: documentSnapshot.id,
+        context: locationContext,
+        parentId: parentId,
+        collectionName: collectionName);
+  }
 
   @override
   DocumentReference<Object?> get documentReference => FirebaseFirestore.instance
@@ -55,31 +64,12 @@ class LocationModelImplementation extends LocationFacade
     };
   }
 
-  static LocationModelImplementation fromDocumentSnapshot(
-      {required DocumentSnapshot documentSnapshot,
-      required String tripId,
-      String? parentId,
-      String? collectionName}) {
-    var json = documentSnapshot.data() as Map<String, dynamic>;
-    var geoPoint = json[_latitudeLongitudeField] as GeoPoint;
-    var locationContext =
-        LocationContext.createInstance(json: json[_contextField]);
-    return LocationModelImplementation(
-        latitude: geoPoint.latitude,
-        longitude: geoPoint.longitude,
-        tripId: tripId,
-        id: documentSnapshot.id,
-        context: locationContext,
-        parentId: parentId,
-        collectionName: collectionName);
-  }
-
   static LocationModelImplementation fromJson(
       {required Map<String, dynamic> json, required String tripId}) {
     var geoPoint = json[_latitudeLongitudeField] as GeoPoint;
     var locationContext =
         LocationContext.createInstance(json: json[_contextField]);
-    return LocationModelImplementation(
+    return LocationModelImplementation._(
         latitude: geoPoint.latitude,
         longitude: geoPoint.longitude,
         tripId: tripId,
@@ -87,10 +77,20 @@ class LocationModelImplementation extends LocationFacade
   }
 
   @override
-  Future<bool> tryUpdate(LocationFacade toUpdate) async {
-    return true;
-  }
+  Future<bool> tryUpdate(LocationFacade toUpdate) async => true;
 
   @override
   LocationFacade get facade => clone();
+
+  LocationModelImplementation._(
+      {required super.latitude,
+      required super.longitude,
+      required super.context,
+      required super.tripId,
+      super.id,
+      String? collectionName,
+      String? parentId})
+      : _parentId = parentId ?? '',
+        _collectionName =
+            collectionName ?? FirestoreCollections.planDataCollectionName;
 }

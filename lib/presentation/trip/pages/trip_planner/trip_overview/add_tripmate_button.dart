@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
-import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class AddTripMateField extends StatelessWidget {
@@ -20,7 +20,7 @@ class AddTripMateField extends StatelessWidget {
     return PlatformTextElements.createUsernameFormField(
       context: context,
       controller: tripMateUserNameEditingController,
-      onTextChanged: (username, isValid) {
+      onEmailChanged: (username, {required bool isValid}) {
         if (currentContributors
             .any((e) => e.toLowerCase() == username.toLowerCase())) {
           addTripEditingValueNotifier.value = false;

@@ -1,6 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
@@ -17,7 +17,7 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
 
   @override
   Widget build(BuildContext context) {
-    var budgetingModule = context.activeTrip.budgetingModuleFacade;
+    var budgetingModule = context.activeTrip.budgetingFacade;
     return FutureBuilder<Map<ExpenseCategory, double>>(
         future: budgetingModule.retrieveTotalExpensePerCategory(),
         builder: (BuildContext context,

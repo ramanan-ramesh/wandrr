@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/data/trip/models/ui_element.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/date_time_picker.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/base_list_items/transit_card_base.dart';
@@ -18,9 +18,9 @@ class EditableTransitPlan extends StatefulWidget {
   final ValueNotifier<bool> validityNotifier;
 
   const EditableTransitPlan(
-      {super.key,
-      required this.transitUiElement,
-      required this.validityNotifier});
+      {required this.transitUiElement,
+      required this.validityNotifier,
+      super.key});
 
   @override
   State<EditableTransitPlan> createState() => _EditableTransitPlanState();
@@ -176,6 +176,6 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
   }
 
   void _calculateTransitValidity() {
-    widget.validityNotifier.value = _transitUiElement.element.isValid();
+    widget.validityNotifier.value = _transitUiElement.element.validate();
   }
 }

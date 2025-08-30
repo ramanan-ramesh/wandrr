@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/expense_view_adapter.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/trip_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/itinerary.dart';
@@ -11,7 +11,7 @@ import 'package:wandrr/presentation/trip/pages/trip_planner/trip_overview/trip_o
 import 'budgeting/header_tile.dart';
 import 'expense_view_type.dart';
 import 'navigation/jump_to_list.dart';
-import 'navigation/nav_bar.dart';
+import 'navigation/nav_rail.dart';
 import 'trip_entity_list_views/plan_data.dart';
 
 class TripPlannerPage extends StatelessWidget {
@@ -30,7 +30,7 @@ class TripPlannerPage extends StatelessWidget {
           : Stack(
               children: [
                 _createForSmallLayout(),
-                Align(
+                const Align(
                   alignment: Alignment.centerRight,
                   child: FloatingJumpToListNavigator(),
                 ),
@@ -42,11 +42,11 @@ class TripPlannerPage extends StatelessWidget {
   Widget _createForBigLayout() {
     return Row(
       children: [
-        JumpToListNavigationBar(),
+        const JumpToListNavigationRail(),
         Expanded(
           child: CustomScrollView(
             controller: _scrollController,
-            slivers: [
+            slivers: const [
               SliverToBoxAdapter(
                 child: TripOverviewTile(),
               ),
@@ -101,7 +101,7 @@ class TripPlannerPage extends StatelessWidget {
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
-        SliverToBoxAdapter(
+        const SliverToBoxAdapter(
           child: TripOverviewTile(),
         ),
         const SliverPadding(

@@ -1,7 +1,7 @@
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 
@@ -90,7 +90,7 @@ class PlatformDatePicker extends AbstractPlatformDatePicker {
   final Function(DateTime) callBack;
 
   const PlatformDatePicker(
-      {super.key, this.initialDateTime, required this.callBack});
+      {required this.callBack, super.key, this.initialDateTime});
 
   @override
   State<PlatformDatePicker> createState() => _PlatformDatePickerState();

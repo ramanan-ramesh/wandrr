@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wandrr/data/app/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/firestore_helpers.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 
-import 'expense.dart';
+import 'budgeting/expense.dart';
 
+// ignore: must_be_immutable
 class LodgingModelImplementation extends LodgingFacade
     implements LeafRepositoryItem<LodgingFacade> {
   static const _locationField = 'location';
@@ -57,6 +58,48 @@ class LodgingModelImplementation extends LodgingFacade
         confirmationId: documentData[_confirmationIdField]);
   }
 
+  @override
+  DocumentReference<Object?> get documentReference => FirebaseFirestore.instance
+      .collection(FirestoreCollections.tripCollectionName)
+      .doc(tripId)
+      .collection(FirestoreCollections.lodgingCollectionName)
+      .doc(id);
+
+  @override
+  Map<String, dynamic> toJson() => {
+        _locationField: (location as LeafRepositoryItem).toJson(),
+        _expenseField: (expense as LeafRepositoryItem).toJson(),
+        _checkinDateTimeField: Timestamp.fromDate(checkinDateTime!),
+        _checkoutDateTimeField: Timestamp.fromDate(checkoutDateTime!),
+        _confirmationIdField: confirmationId,
+        _notesField: notes
+      };
+
+  @override
+  Future<bool> tryUpdate(LodgingFacade toUpdate) async {
+    var json = <String, dynamic>{};
+    FirestoreHelpers.updateJson(
+        checkinDateTime, toUpdate.checkinDateTime, _checkinDateTimeField, json);
+    FirestoreHelpers.updateJson(checkoutDateTime, toUpdate.checkoutDateTime,
+        _checkoutDateTimeField, json);
+    FirestoreHelpers.updateJson(
+        location, toUpdate.location, _locationField, json);
+    FirestoreHelpers.updateJson(
+        confirmationId, toUpdate.confirmationId, _confirmationIdField, json);
+    FirestoreHelpers.updateJson(notes, toUpdate.notes, _notesField, json);
+    FirestoreHelpers.updateJson(expense, toUpdate.expense, _expenseField, json);
+
+    return FirestoreHelpers.tryUpdateDocumentField(
+        documentReference: documentReference,
+        json: json,
+        onSuccess: () {
+          copyWith(toUpdate);
+        });
+  }
+
+  @override
+  LodgingFacade get facade => clone();
+
   LodgingModelImplementation._(
       {required LocationModelImplementation location,
       required super.checkinDateTime,
@@ -69,50 +112,4 @@ class LodgingModelImplementation extends LodgingFacade
       : super(location: location, expense: expense) {
     expense.dateTime = checkinDateTime;
   }
-
-  @override
-  DocumentReference<Object?> get documentReference => FirebaseFirestore.instance
-      .collection(FirestoreCollections.tripCollectionName)
-      .doc(tripId)
-      .collection(FirestoreCollections.lodgingCollectionName)
-      .doc(id);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return {
-      _locationField: (location as LeafRepositoryItem).toJson(),
-      _expenseField: (expense as LeafRepositoryItem).toJson(),
-      _checkinDateTimeField: Timestamp.fromDate(checkinDateTime!),
-      _checkoutDateTimeField: Timestamp.fromDate(checkoutDateTime!),
-      _confirmationIdField: confirmationId,
-      _notesField: notes
-    };
-  }
-
-  @override
-  Future<bool> tryUpdate(LodgingFacade toUpdate) async {
-    Map<String, dynamic> json = {};
-    FirestoreHelpers.updateJson(
-        checkinDateTime, toUpdate.checkinDateTime, _checkinDateTimeField, json);
-    FirestoreHelpers.updateJson(checkoutDateTime, toUpdate.checkoutDateTime,
-        _checkoutDateTimeField, json);
-    FirestoreHelpers.updateJson(
-        location, toUpdate.location, _locationField, json);
-    FirestoreHelpers.updateJson(
-        confirmationId, toUpdate.confirmationId, _confirmationIdField, json);
-    FirestoreHelpers.updateJson(notes, toUpdate.notes, _notesField, json);
-    FirestoreHelpers.updateJson(expense, toUpdate.expense, _expenseField, json);
-
-    var didUpdateLodging = json.isNotEmpty;
-    documentReference.set(json, SetOptions(merge: true)).then((value) {
-      didUpdateLodging = true;
-      copyWith(toUpdate);
-    }).catchError((error, stackTrace) {
-      didUpdateLodging = false;
-    });
-    return didUpdateLodging;
-  }
-
-  @override
-  LodgingFacade get facade => clone();
 }

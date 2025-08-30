@@ -42,9 +42,7 @@ class _AirportsDataEditorState extends State<AirportsDataEditor> {
           setState(() {
             _location = newAirport;
           });
-          if (widget.onLocationSelected != null) {
-            widget.onLocationSelected!(newAirport);
-          }
+          widget.onLocationSelected?.call(newAirport);
         }
       },
       optionsBuilder:

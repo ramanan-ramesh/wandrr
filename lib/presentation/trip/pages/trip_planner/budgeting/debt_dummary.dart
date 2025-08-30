@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/data/trip/models/debt_data.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/budgeting/debt_data.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
@@ -16,7 +16,7 @@ class DebtSummaryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     var activeTrip = context.activeTrip;
     var currentUserName = context.activeUser!.userName;
-    var budgetingModule = activeTrip.budgetingModuleFacade;
+    var budgetingModule = activeTrip.budgetingFacade;
     var appLocalizations = context.localizations;
     var currentContributors = activeTrip.tripMetadata.contributors;
     currentContributors.sort((a, b) => a.compareTo(b));

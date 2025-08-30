@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/app/models/ui_element.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
+import 'package:wandrr/data/trip/models/ui_element.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/transit/transit.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/readonly_list_items/transit.dart';
@@ -66,7 +66,7 @@ class TransitListView extends StatelessWidget {
         .removeWhere((element) => element.dataState == DataState.newUiEntry);
     var transitsWithValidDateTime = <UiElement<TransitFacade>>[];
     var transitsWithInvalidDateTime = <UiElement<TransitFacade>>[];
-    for (var transitUiElement in transitUiElements) {
+    for (final transitUiElement in transitUiElements) {
       var transit = transitUiElement.element;
       if (transit.departureDateTime != null &&
           transit.arrivalDateTime != null) {

@@ -3,12 +3,13 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
-import 'package:wandrr/data/app/implementations/collection_model_implementation.dart';
-import 'package:wandrr/data/app/models/collection_model_facade.dart';
+import 'package:wandrr/asset_manager/assets.gen.dart';
+import 'package:wandrr/data/store/implementations/firestore_model_collection.dart';
+import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
-import 'package:wandrr/data/trip/models/currency_data.dart';
+import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
@@ -18,52 +19,29 @@ import 'trip_data.dart';
 
 class TripRepositoryImplementation implements TripRepositoryEventHandler {
   static const _contributorsField = 'contributors';
-  static const _pathToSupportedCurrencies = 'assets/supported_currencies.json';
 
   AppLocalizations _appLocalizations;
 
   late StreamSubscription _tripMetadataUpdatedEventSubscription;
   late StreamSubscription _tripMetadataDeletedEventSubscription;
 
-  @override
-  List<TripMetadataFacade> get tripMetadatas =>
-      List.from(_tripMetadataModelCollection.collectionItems
-          .cast<TripMetadataFacade>()
-          .map<TripMetadataFacade>((facade) => facade.clone()));
-
-  @override
-  CollectionModelFacade<TripMetadataFacade> get tripMetadataModelCollection =>
-      _tripMetadataModelCollection;
-  final CollectionModelFacade<TripMetadataFacade> _tripMetadataModelCollection;
-
-  @override
-  TripDataFacade? get activeTrip => _activeTrip;
-  TripDataModelImplementation? _activeTrip;
-
-  @override
-  TripDataModelEventHandler? get activeTripEventHandler => _activeTrip;
-
-  final String currentUserName;
-
-  static Future<TripRepositoryImplementation> createInstanceAsync(
+  static Future<TripRepositoryImplementation> createInstance(
       {required String userName,
       required AppLocalizations appLocalizations}) async {
     var tripsCollectionReference = FirebaseFirestore.instance
         .collection(FirestoreCollections.tripMetadataCollectionName);
 
     var tripMetadataModelCollection =
-        await CollectionModelImplementation.createInstance(
+        await FirestoreModelCollection.createInstance(
             tripsCollectionReference,
-            (snapshot) =>
-                TripMetadataModelImplementation.fromDocumentSnapshot(snapshot),
+            TripMetadataModelImplementation.fromDocumentSnapshot,
             (tripMetadataModuleFacade) =>
                 TripMetadataModelImplementation.fromModelFacade(
                     tripMetadataModelFacade: tripMetadataModuleFacade),
             query: tripsCollectionReference.where(_contributorsField,
                 arrayContains: userName));
 
-    final String jsonString =
-        await rootBundle.loadString(_pathToSupportedCurrencies);
+    final jsonString = await rootBundle.loadString(Assets.supportedCurrencies);
     final List<dynamic> jsonResponse = json.decode(jsonString);
     var currencyDataList =
         jsonResponse.map((json) => CurrencyData.fromJson(json)).toList();
@@ -77,6 +55,27 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   }
 
   @override
+  List<TripMetadataFacade> get tripMetadatas =>
+      List.from(_tripMetadataModelCollection.collectionItems
+          .cast<TripMetadataFacade>()
+          .map<TripMetadataFacade>((facade) => facade.clone()));
+
+  @override
+  ModelCollectionModifier<TripMetadataFacade> get tripMetadataModelCollection =>
+      _tripMetadataModelCollection;
+  final ModelCollectionModifier<TripMetadataFacade>
+      _tripMetadataModelCollection;
+
+  @override
+  TripDataFacade? get activeTrip => _activeTrip;
+  TripDataModelImplementation? _activeTrip;
+
+  @override
+  TripDataModelEventHandler? get activeTripEventHandler => _activeTrip;
+
+  final String currentUserName;
+
+  @override
   Future unloadActiveTrip() async {
     await _activeTrip?.dispose();
     _activeTrip = null;
@@ -84,13 +83,10 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
 
   @override
   Future loadTrip(TripMetadataFacade tripMetadata,
-      ApiServicesRepository apiServicesRepository) async {
+      ApiServicesRepositoryFacade apiServicesRepository) async {
     await _activeTrip?.dispose();
-    _activeTrip = await TripDataModelImplementation.createExistingInstanceAsync(
-        tripMetadata,
-        apiServicesRepository,
-        _appLocalizations,
-        currentUserName);
+    _activeTrip = await TripDataModelImplementation.createInstance(tripMetadata,
+        apiServicesRepository, _appLocalizations, currentUserName);
   }
 
   @override

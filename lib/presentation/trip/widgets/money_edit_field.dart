@@ -3,7 +3,6 @@ import 'package:wandrr/presentation/trip/widgets/currency_drop_down.dart';
 
 import 'expense_amount_edit_field.dart';
 
-//TODO: Align the drop-down in such a way that the search box icon now becomes a cancel icon, and the amount input becomes currency name search input area. On clicking on cancel, it reverts to original field
 class PlatformMoneyEditField extends CurrencyDropDownField {
   final bool isAmountEditable;
   final Function(double updatedAmount) onAmountUpdatedCallback;
@@ -14,12 +13,12 @@ class PlatformMoneyEditField extends CurrencyDropDownField {
       {required super.selectedCurrencyData,
       required super.allCurrencies,
       required this.onAmountUpdatedCallback,
-      this.initialAmount,
       required this.isAmountEditable,
+      required super.currencySelectedCallback,
+      this.initialAmount,
       super.overlayEntry,
       super.key,
-      this.textInputAction = TextInputAction.next,
-      required super.currencySelectedCallback});
+      this.textInputAction = TextInputAction.next});
 
   @override
   State<PlatformMoneyEditField> createState() => _PlatformMoneyEditFieldState();

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/note.dart';
+import 'package:wandrr/data/trip/models/plan_data/note.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 
 class NotesListView extends StatefulWidget {
   const NotesListView(
-      {super.key, required this.notes, required this.onNotesChanged});
+      {required this.notes, required this.onNotesChanged, super.key});
 
   final List<NoteFacade> notes;
   final Function() onNotesChanged;

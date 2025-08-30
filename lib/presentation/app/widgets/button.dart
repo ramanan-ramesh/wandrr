@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
+import 'package:wandrr/blocs/app/master_page_events.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/data/app/models/language_metadata.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
-import 'package:wandrr/presentation/app/blocs/master_page/master_page_events.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 
+//TODO: Refactor this class and analyze the behaviour. Keep a timer in this class after submitting, so that it takes 1.5 seconds to go from CircularProgressIndicator to Icon.
 class PlatformSubmitterFAB extends StatefulWidget {
   final IconData icon;
   final BuildContext context;
@@ -19,9 +20,9 @@ class PlatformSubmitterFAB extends StatefulWidget {
   final bool isElevationRequired;
 
   PlatformSubmitterFAB(
-      {super.key,
-      required this.icon,
+      {required this.icon,
       required this.context,
+      super.key,
       this.isElevationRequired = true,
       this.callback,
       this.isSubmitted = false,
@@ -29,9 +30,9 @@ class PlatformSubmitterFAB extends StatefulWidget {
       : isConditionallyVisible = false;
 
   PlatformSubmitterFAB.form(
-      {super.key,
-      required this.icon,
+      {required this.icon,
       required this.context,
+      super.key,
       this.isElevationRequired = true,
       this.callback,
       this.formState,
@@ -42,15 +43,15 @@ class PlatformSubmitterFAB extends StatefulWidget {
       : isConditionallyVisible = false;
 
   PlatformSubmitterFAB.conditionallyEnabled(
-      {super.key,
-      required this.icon,
+      {required this.icon,
       required this.context,
+      required ValueNotifier<bool> this.valueNotifier,
+      super.key,
       this.isElevationRequired = true,
       this.callback,
       this.formState,
       this.validationFailureCallback,
       this.validationSuccessCallback,
-      required ValueNotifier<bool> this.valueNotifier,
       this.isSubmitted = false,
       this.isConditionallyVisible = false,
       this.callbackOnClickWhileDisabled,
@@ -90,9 +91,7 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
     return FloatingActionButton(
       onPressed: widget.isSubmitted || !canEnable
           ? () {
-              if (widget.callbackOnClickWhileDisabled != null) {
-                widget.callbackOnClickWhileDisabled!();
-              }
+              widget.callbackOnClickWhileDisabled?.call();
             }
           : _onPressed,
       elevation: widget.isElevationRequired
@@ -104,8 +103,9 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
       backgroundColor: !canEnable
           ? (isLightTheme ? Colors.grey : Colors.grey.shade700)
           : null,
-      child:
-          widget.isSubmitted ? const CircularProgressIndicator() : Icon(widget.icon),
+      child: widget.isSubmitted
+          ? const CircularProgressIndicator()
+          : Icon(widget.icon),
     );
   }
 
@@ -117,6 +117,8 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
       if (widget.formState!.currentState != null) {
         if (widget.formState!.currentState!.validate()) {
           widget.validationSuccessCallback?.call();
+          widget.isSubmitted = true;
+          setState(() {});
         } else {
           widget.validationFailureCallback?.call();
           widget.isSubmitted = false;

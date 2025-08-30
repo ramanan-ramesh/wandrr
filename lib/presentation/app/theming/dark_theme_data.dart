@@ -63,7 +63,7 @@ ThemeData createDarkThemeData(BuildContext context) {
     ),
     tabBarTheme: TabBarThemeData(
       indicator: BoxDecoration(
-        borderRadius: BorderRadius.circular(Constants.tabIndicatorRadius),
+        borderRadius: BorderRadius.circular(ThemeConstants.tabIndicatorRadius),
         border: Border.all(color: Colors.green),
       ),
       indicatorColor: Colors.green,
@@ -74,7 +74,7 @@ ThemeData createDarkThemeData(BuildContext context) {
       unselectedLabelColor: Colors.grey,
     ),
     appBarTheme: const AppBarTheme(
-      color: Colors.teal,
+      backgroundColor: Colors.teal,
       foregroundColor: Colors.black,
     ),
     textSelectionTheme: const TextSelectionThemeData(cursorColor: Colors.black),
@@ -96,7 +96,7 @@ ThemeData createDarkThemeData(BuildContext context) {
       ),
       border: const OutlineInputBorder(
         borderRadius:
-            BorderRadius.all(Radius.circular(Constants.cardBorderRadius)),
+            BorderRadius.all(Radius.circular(ThemeConstants.cardBorderRadius)),
         borderSide: BorderSide(color: Colors.white),
       ),
       focusedBorder: const OutlineInputBorder(

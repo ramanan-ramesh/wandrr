@@ -6,10 +6,10 @@ class SplitByTab extends StatefulWidget {
   final List<String> splitBy;
 
   const SplitByTab(
-      {super.key,
-      required this.callback,
+      {required this.callback,
       required this.splitBy,
-      required this.contributorsVsColors});
+      required this.contributorsVsColors,
+      super.key});
 
   @override
   State<SplitByTab> createState() => _SplitByTabState();

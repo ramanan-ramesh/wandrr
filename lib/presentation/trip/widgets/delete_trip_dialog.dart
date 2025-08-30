@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
-import 'package:wandrr/presentation/trip/bloc/events.dart';
 
 class DeleteTripDialog extends StatelessWidget {
   final BuildContext widgetContext;
   final TripMetadataFacade tripMetadataFacade;
 
   const DeleteTripDialog(
-      {super.key,
-      required this.widgetContext,
-      required this.tripMetadataFacade});
+      {required this.widgetContext,
+      required this.tripMetadataFacade,
+      super.key});
 
   @override
   Widget build(BuildContext context) {

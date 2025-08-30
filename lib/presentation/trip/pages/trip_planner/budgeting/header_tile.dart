@@ -1,16 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/events.dart';
+import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/trip/models/expense.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
-import 'package:wandrr/presentation/trip/bloc/bloc.dart';
-import 'package:wandrr/presentation/trip/bloc/events.dart';
-import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/expense_view_type.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/trip_navigator.dart';
@@ -21,8 +23,8 @@ class BudgetingHeaderTile extends StatelessWidget {
   final ValueNotifier<ExpenseViewType> _expenseViewTypeNotifier;
 
   const BudgetingHeaderTile(
-      {super.key,
-      required ValueNotifier<ExpenseViewType> expenseViewTypeNotifier})
+      {required ValueNotifier<ExpenseViewType> expenseViewTypeNotifier,
+      super.key})
       : _expenseViewTypeNotifier = expenseViewTypeNotifier;
 
   @override
@@ -31,7 +33,7 @@ class BudgetingHeaderTile extends StatelessWidget {
       listener: (BuildContext context, TripManagementState state) {
         if (state is ProcessSectionNavigation &&
             state.section.toLowerCase() == NavigationSections.budgeting) {
-          RepositoryProvider.of<TripNavigator>(context).jumpToList(context);
+          unawaited(context.tripNavigator.jumpToList(context));
         }
       },
       child: Column(
@@ -48,8 +50,7 @@ class BudgetingHeaderTile extends StatelessWidget {
               fill: Fill.back,
               direction: Axis.horizontal,
               duration: const Duration(milliseconds: 750),
-              autoFlipDuration:
-                  context.isBigLayout ? null : const Duration(seconds: 0),
+              autoFlipDuration: context.isBigLayout ? null : Duration.zero,
               front: _createOverviewTile(context),
               back: _createOverviewTile(context),
             ),
@@ -212,13 +213,13 @@ class BudgetingHeaderTile extends StatelessWidget {
       },
       builder: (BuildContext context, TripManagementState state) {
         return StreamBuilder(
-          stream: activeTrip.budgetingModuleFacade.totalExpenditureStream,
+          stream: activeTrip.budgetingFacade.totalExpenditureStream,
           builder: (BuildContext context, AsyncSnapshot<double> snapshot) {
             var tripMetadata = activeTrip.tripMetadata;
             double currentTotalExpenditure;
             if (snapshot.data == null) {
               currentTotalExpenditure =
-                  activeTrip.budgetingModuleFacade.totalExpenditure;
+                  activeTrip.budgetingFacade.totalExpenditure;
             } else {
               currentTotalExpenditure = snapshot.data!;
             }
@@ -227,8 +228,7 @@ class BudgetingHeaderTile extends StatelessWidget {
                 _calculateExpenseRatio(totalExpense, budget.amount);
             var currencyInfo = context.supportedCurrencies.firstWhere(
                 (element) => element.code == tripMetadata.budget.currency);
-            var budgetText =
-                '${context.localizations.budget}: ${budget.toString()}';
+            var budgetText = '${context.localizations.budget}: $budget';
             var totalExpenseText =
                 '${currencyInfo.symbol} ${totalExpense.toStringAsFixed(2)}';
             return Column(
@@ -259,7 +259,7 @@ class BudgetingHeaderTile extends StatelessWidget {
               ],
             );
           },
-          initialData: activeTrip.budgetingModuleFacade.totalExpenditure,
+          initialData: activeTrip.budgetingFacade.totalExpenditure,
         );
       },
       listener: (BuildContext context, TripManagementState state) {},
@@ -279,7 +279,7 @@ class BudgetingHeaderTile extends StatelessWidget {
           if (expenseUpdatedState.dataState == DataState.newUiEntry) {
             isEnabled = false;
           } else if (expenseUpdatedState.dataState == DataState.create &&
-              tripEntityModificationData.isFromEvent) {
+              tripEntityModificationData.isFromExplicitAction) {
             isEnabled = true;
           } else if (expenseUpdatedState.dataState == DataState.delete &&
                   modifiedCollectionItem.id == null ||

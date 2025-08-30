@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/data/app/models/ui_element.dart';
-import 'package:wandrr/data/trip/models/expense.dart';
-import 'package:wandrr/data/trip/models/money.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
+import 'package:wandrr/data/trip/models/ui_element.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/date_picker.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
+import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 import 'package:wandrr/presentation/trip/widgets/geo_location_auto_complete.dart';
-
-import '../../../../widgets/expense_editing/expenditure_edit_tile.dart';
 
 class EditableExpenseListItem extends StatelessWidget {
   final UiElement<ExpenseFacade> expenseUiElement;
@@ -24,10 +24,10 @@ class EditableExpenseListItem extends StatelessWidget {
   }
 
   EditableExpenseListItem(
-      {super.key,
-      required this.expenseUiElement,
+      {required this.expenseUiElement,
       required this.categoryNames,
-      required this.validityNotifier}) {
+      required this.validityNotifier,
+      super.key}) {
     _calculateExpenseUpdatePossibility();
   }
 
@@ -223,7 +223,7 @@ class EditableExpenseListItem extends StatelessWidget {
 
   void _calculateExpenseUpdatePossibility() {
     var isTitleValid = expenseUiElement.element.title.isNotEmpty;
-    var isExpenseValid = isTitleValid && expenseUiElement.element.isValid();
+    var isExpenseValid = isTitleValid && expenseUiElement.element.validate();
     validityNotifier.value = isExpenseValid;
   }
 }

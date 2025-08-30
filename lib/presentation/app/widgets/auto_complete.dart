@@ -23,9 +23,9 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
   late TextEditingController _textEditingController;
 
   PlatformAutoComplete(
-      {super.key,
-      required this.optionsBuilder,
+      {required this.optionsBuilder,
       required this.listItem,
+      super.key,
       this.selectedItem,
       this.onSelected,
       this.labelText,
@@ -50,12 +50,8 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
             onSelected: (T selection) {
               selectedItem = selection;
               _textEditingController.text = selection.toString();
-              if (onSelected != null) {
-                onSelected!(selection);
-              }
-              if (_focusNode != null) {
-                _focusNode!.unfocus();
-              }
+              onSelected?.call(selection);
+              _focusNode?.unfocus();
             },
             fieldViewBuilder: (
               BuildContext context,
@@ -122,7 +118,7 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
                         padding: EdgeInsets.zero,
                         shrinkWrap: true,
                         itemBuilder: (BuildContext context, int index) {
-                          final T option = options.elementAt(index);
+                          final option = options.elementAt(index);
                           return InkWell(
                             onTap: () {
                               onSelected(option);

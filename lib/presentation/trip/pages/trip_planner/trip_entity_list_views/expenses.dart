@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip/events.dart';
+import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/app/models/ui_element.dart';
-import 'package:wandrr/data/trip/models/expense.dart';
-import 'package:wandrr/data/trip/models/expense_sort_options.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_sort_options.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
+import 'package:wandrr/data/trip/models/ui_element.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
-import 'package:wandrr/presentation/trip/bloc/events.dart';
-import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/expense.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/readonly_list_items/expense.dart';
@@ -63,7 +64,7 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
             categoryNames: _categoryNames);
       },
       uiElementsSorter: (List<UiElement<ExpenseFacade>> uiElements) {
-        var budgetingModuleFacade = context.activeTrip.budgetingModuleFacade;
+        var budgetingModuleFacade = context.activeTrip.budgetingFacade;
         return budgetingModuleFacade.sortExpenseElements(
             uiElements, _selectedSortOption);
       },
@@ -200,7 +201,8 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
     context.addTripManagementEvent(eventToAdd);
   }
 
-  bool _additionalBuildWhenCondition(previousState, currentState) {
+  bool _additionalBuildWhenCondition(
+      TripManagementState previousState, TripManagementState currentState) {
     if (currentState.isTripEntityUpdated<TransitFacade>()) {
       var transitUpdatedState = currentState as UpdatedTripEntity;
       if (transitUpdatedState.dataState == DataState.create ||

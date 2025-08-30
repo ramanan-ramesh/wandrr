@@ -1,27 +1,28 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/events.dart';
+import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/app/models/ui_element.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary.dart';
-import 'package:wandrr/data/trip/models/plan_data.dart';
+import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
+import 'package:wandrr/data/trip/models/ui_element.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
-import 'package:wandrr/presentation/trip/bloc/bloc.dart';
-import 'package:wandrr/presentation/trip/bloc/events.dart';
-import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/itinerary/stay_and_transits.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/plan_data/plan_data.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
-
-import '../plan_data/plan_data.dart';
 
 class ItineraryListItem extends StatefulWidget {
   final ItineraryFacade itineraryFacade;
 
-  const ItineraryListItem({super.key, required this.itineraryFacade});
+  const ItineraryListItem({required this.itineraryFacade, super.key});
 
   DateTime get day => itineraryFacade.day;
 
@@ -53,7 +54,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
 
     _animation = TweenSequence<Offset>([
       TweenSequenceItem(
-          tween: Tween(begin: const Offset(0, 0), end: const Offset(0.1, 0)),
+          tween: Tween(begin: Offset.zero, end: const Offset(0.1, 0)),
           weight: 1),
       TweenSequenceItem(
           tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
@@ -65,7 +66,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
           tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
           weight: 1),
       TweenSequenceItem(
-          tween: Tween(begin: const Offset(-0.1, 0), end: const Offset(0, 0)),
+          tween: Tween(begin: const Offset(-0.1, 0), end: Offset.zero),
           weight: 1),
     ]).animate(CurvedAnimation(
         parent: _animationController, curve: Curves.easeInOutCirc));
@@ -133,7 +134,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
       _errorMessage = message;
       _showErrorMessage = true;
     });
-    _animationController.repeat(reverse: true);
+    unawaited(_animationController.repeat(reverse: true));
   }
 
   Widget _buildPlanData() {
@@ -147,7 +148,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
         return false;
       },
       builder: (BuildContext context, TripManagementState state) {
-        var itineraryPlanData = context.activeTrip.itineraryModelCollection
+        var itineraryPlanData = context.activeTrip.itineraryCollection
             .getItineraryForDay(widget.day)
             .planData;
         _planDataUiElement.element = itineraryPlanData;
@@ -156,7 +157,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
           planDataUpdated: (newPlanData) {
             _planDataUiElement.element = newPlanData;
             var planValidationResult =
-                _planDataUiElement.element.getValidationResult(false);
+                _planDataUiElement.element.validate(isTitleRequired: false);
             if (planValidationResult == PlanDataValidationResult.valid) {
               _canUpdateItineraryDataNotifier.value = true;
             } else {
@@ -171,7 +172,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
 
   void _tryShowError() {
     var planDataValidationResult =
-        _planDataUiElement.element.getValidationResult(false);
+        _planDataUiElement.element.validate(isTitleRequired: false);
     switch (planDataValidationResult) {
       case PlanDataValidationResult.checkListItemEmpty:
         {
@@ -206,7 +207,6 @@ class _ItineraryListItemState extends State<ItineraryListItem>
         }
       default:
         _canUpdateItineraryDataNotifier.value = true;
-        break;
     }
   }
 
@@ -230,9 +230,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
             context.addTripManagementEvent(UpdateItineraryPlanData(
                 planData: _planDataUiElement.element, day: widget.day));
           },
-          callbackOnClickWhileDisabled: () {
-            _tryShowError();
-          },
+          callbackOnClickWhileDisabled: _tryShowError,
           isElevationRequired: false,
         );
       },

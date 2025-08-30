@@ -9,14 +9,12 @@ class AirlinesDataService
   AirlinesDataService() : super(_apiIdentifier);
 
   @override
-  (String, String) fromJsonInCache(Map<String, dynamic> jsonInCache) {
-    return _fromJson(jsonInCache);
-  }
+  (String, String) fromJsonInCache(Map<String, dynamic> jsonInCache) =>
+      _fromJson(jsonInCache);
 
   @override
-  (String, String) fromJsonInDatabase(Map<String, dynamic> jsonInDatabase) {
-    return _fromJson(jsonInDatabase);
-  }
+  (String, String) fromJsonInDatabase(Map<String, dynamic> jsonInDatabase) =>
+      _fromJson(jsonInDatabase);
 
   @override
   bool shouldConsiderItemInQueryResult(
@@ -26,7 +24,6 @@ class AirlinesDataService
         item.$2.toLowerCase() == queryInLowerCase;
   }
 
-  static (String, String) _fromJson(Map<String, dynamic> json) {
-    return (json[_nameField] as String, json[_iataField] as String);
-  }
+  static (String, String) _fromJson(Map<String, dynamic> json) =>
+      (json[_nameField] as String, json[_iataField] as String);
 }

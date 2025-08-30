@@ -1,16 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/data/app/models/collection_change_metadata.dart';
+import 'package:wandrr/asset_manager/assets.gen.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/events.dart';
+import 'package:wandrr/blocs/trip/states.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
-import 'package:wandrr/presentation/trip/bloc/bloc.dart';
-import 'package:wandrr/presentation/trip/bloc/events.dart';
-import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/trip_navigator.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
@@ -23,7 +26,6 @@ const double _maxOverviewElementHeight = 50.0;
 
 class TripOverviewTile extends StatelessWidget {
   static const _imageHeight = 250.0;
-  static const _assetImage = 'assets/images/planning_the_trip.jpg';
 
   const TripOverviewTile({super.key});
 
@@ -42,7 +44,7 @@ class TripOverviewTile extends StatelessWidget {
       listener: (BuildContext context, TripManagementState state) {
         if (state is ProcessSectionNavigation &&
             state.section == NavigationSections.tripOverview) {
-          RepositoryProvider.of<TripNavigator>(context).jumpToList(context);
+          unawaited(context.tripNavigator.jumpToList(context));
         }
       },
       child: Stack(
@@ -51,8 +53,7 @@ class TripOverviewTile extends StatelessWidget {
         children: [
           Column(
             children: [
-              Image.asset(
-                TripOverviewTile._assetImage,
+              Assets.images.planningTheTrip.image(
                 fit: isBigLayout ? BoxFit.fill : BoxFit.contain,
                 height: TripOverviewTile._imageHeight,
               ),
@@ -111,7 +112,7 @@ class _OverviewTile extends StatelessWidget {
       fill: Fill.back,
       direction: Axis.vertical,
       duration: const Duration(milliseconds: 750),
-      autoFlipDuration: const Duration(seconds: 0),
+      autoFlipDuration: Duration.zero,
       front: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: overViewTile,
@@ -179,7 +180,7 @@ class _OverviewTile extends StatelessWidget {
           var updatedTripEntity = currentState as UpdatedTripEntity;
           var tripMetadataModificationData =
               updatedTripEntity.tripEntityModificationData
-                  as CollectionChangeMetadata<TripMetadataFacade>;
+                  as CollectionItemChangeMetadata<TripMetadataFacade>;
           if (tripMetadataModificationData.modifiedCollectionItem.name !=
               activeTripTitle) {
             activeTripTitle =

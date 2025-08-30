@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
-import 'package:wandrr/data/trip/models/currency_data.dart';
-import 'package:wandrr/data/trip/models/money.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip/events.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
-import 'package:wandrr/presentation/trip/bloc/events.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/money_edit_field.dart';
 
@@ -22,7 +22,7 @@ class TripCreatorDialog extends StatelessWidget {
   final TextEditingController _tripNameEditingController =
       TextEditingController();
 
-  TripCreatorDialog({super.key, required this.widgetContext})
+  TripCreatorDialog({required this.widgetContext, super.key})
       : _currentTripMetadata =
             TripMetadataFacade.newUiEntry(defaultCurrency: _defaultCurrency);
 
@@ -117,7 +117,7 @@ class TripCreatorDialog extends StatelessWidget {
         _currentTripMetadata.startDate = startDate;
         _currentTripMetadata.endDate = endDate;
         _tripCreationMetadataValidityNotifier.value =
-            _currentTripMetadata.isValid();
+            _currentTripMetadata.validate();
       },
     );
   }
@@ -135,9 +135,11 @@ class TripCreatorDialog extends StatelessWidget {
                 amount: updatedAmount);
           },
           currencySelectedCallback: (selectedCurrency) {
-            _currentTripMetadata.budget.currency = selectedCurrency.code;
+            _currentTripMetadata.budget = Money(
+                currency: selectedCurrency.code,
+                amount: _currentTripMetadata.budget.amount);
             _tripCreationMetadataValidityNotifier.value =
-                _currentTripMetadata.isValid();
+                _currentTripMetadata.validate();
           },
           isAmountEditable: true,
         ),
@@ -181,7 +183,7 @@ class TripCreatorDialog extends StatelessWidget {
   void _updateTripName(String newTripName) {
     _currentTripMetadata.name = newTripName;
     _tripCreationMetadataValidityNotifier.value =
-        _currentTripMetadata.isValid();
+        _currentTripMetadata.validate();
   }
 
   Widget _buildCreateTripButton(BuildContext context) {

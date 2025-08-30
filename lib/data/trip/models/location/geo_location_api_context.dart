@@ -2,10 +2,11 @@ import 'package:equatable/equatable.dart';
 
 import 'bounding_box.dart';
 import 'location.dart';
+import 'location_context.dart';
 
 class GeoLocationApiContext with EquatableMixin implements LocationContext {
-  static const classField = 'class';
-  static const typeField = 'type';
+  static const _classField = 'class';
+  static const _typeField = 'type';
   static const _displayAddress = 'display_address';
   static const String _contintent = 'continent';
   static const String _country = 'country';
@@ -64,8 +65,8 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
         minLat: double.parse(boundingBoxValue[0].toString()),
         maxLon: double.parse(boundingBoxValue[3].toString()),
         minLon: double.parse(boundingBoxValue[2].toString()));
-    String locationClass = locationJson[classField];
-    String locationType = locationJson[typeField];
+    String locationClass = locationJson[_classField];
+    String locationType = locationJson[_typeField];
     if (locationType == _contintent) {
       return GeoLocationApiContext._fromApi(
           name: locationJson[_address][_name],
@@ -146,16 +147,14 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
   }
 
   @override
-  GeoLocationApiContext clone() {
-    return GeoLocationApiContext._fromApi(
-        locationType: locationType,
-        nodeClass: _nodeClass,
-        boundingBox: boundingBox.clone(),
-        placeId: placeId,
-        nodeType: _nodeType,
-        name: name,
-        address: address);
-  }
+  GeoLocationApiContext clone() => GeoLocationApiContext._fromApi(
+      locationType: locationType,
+      nodeClass: _nodeClass,
+      boundingBox: boundingBox.clone(),
+      placeId: placeId,
+      nodeType: _nodeType,
+      name: name,
+      address: address);
 
   static GeoLocationApiContext _createGenericPlaceFromApi(
       LocationType locationType, Map<String, dynamic> locationJson) {
@@ -170,8 +169,8 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
     var country = locationJson[_address][_country];
     var name = locationJson[_address][_name];
     return GeoLocationApiContext._fromApi(
-        nodeClass: locationJson[classField],
-        nodeType: locationJson[typeField],
+        nodeClass: locationJson[_classField],
+        nodeType: locationJson[_typeField],
         placeId: locationJson[_placeIdField],
         boundingBox: boundingBox,
         locationType: locationType,
@@ -182,26 +181,25 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
         address: locationJson[_displayAddress]);
   }
 
-  static GeoLocationApiContext fromDocument(Map<String, dynamic> json) {
-    return GeoLocationApiContext._fromDocument(
-        placeId: json[_placeIdField],
-        address: json[_address],
-        locationType: json[_locationTypeField],
-        nodeClass: json[classField],
-        nodeType: json[typeField],
-        name: json[_name],
-        country: json[_country],
-        boundingBox: BoundingBox.fromDocument(json[_boundingBoxField]),
-        city: json[_city],
-        state: json[_state]);
-  }
+  static GeoLocationApiContext fromDocument(Map<String, dynamic> json) =>
+      GeoLocationApiContext._fromDocument(
+          placeId: json[_placeIdField],
+          address: json[_address],
+          locationType: json[_locationTypeField],
+          nodeClass: json[_classField],
+          nodeType: json[_typeField],
+          name: json[_name],
+          country: json[_country],
+          boundingBox: BoundingBox.fromDocument(json[_boundingBoxField]),
+          city: json[_city],
+          state: json[_state]);
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> json = {};
-    json[typeField] = _nodeType;
+    var json = <String, dynamic>{};
+    json[_typeField] = _nodeType;
     json[_locationTypeField] = locationType.name;
-    json[classField] = _nodeClass;
+    json[_classField] = _nodeClass;
     json[_name] = name;
     json[_address] = address;
     json[_boundingBoxField] = boundingBox.toJson();

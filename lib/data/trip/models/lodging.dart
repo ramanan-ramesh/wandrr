@@ -1,11 +1,13 @@
 import 'package:equatable/equatable.dart';
 import 'package:intl/intl.dart';
-import 'package:wandrr/data/trip/models/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
-import 'money.dart';
+import 'budgeting/expense_category.dart';
+import 'budgeting/money.dart';
 
+// ignore: must_be_immutable
 class LodgingFacade extends Equatable implements TripEntity {
   LocationFacade? location;
 
@@ -28,20 +30,19 @@ class LodgingFacade extends Equatable implements TripEntity {
       {required this.location,
       required this.checkinDateTime,
       required this.checkoutDateTime,
-      String? id,
       required this.tripId,
-      this.confirmationId,
       required this.expense,
+      String? id,
+      this.confirmationId,
       String? notes})
       : id = id ?? '',
         notes = notes ?? '';
 
   LodgingFacade.newUiEntry(
       {required this.tripId,
-      String? notes,
       required List<String> allTripContributors,
-      required String currentUserName,
-      required String defaultCurrency})
+      required String defaultCurrency,
+      String? notes})
       : notes = notes ?? '',
         expense = ExpenseFacade(
             tripId: tripId,
@@ -67,26 +68,23 @@ class LodgingFacade extends Equatable implements TripEntity {
     notes = lodgingModelFacade.notes;
   }
 
-  LodgingFacade clone() {
-    return LodgingFacade(
-        location: location?.clone(),
-        checkinDateTime: DateTime(checkinDateTime!.year, checkinDateTime!.month,
-            checkinDateTime!.day),
-        checkoutDateTime: DateTime(checkoutDateTime!.year,
-            checkoutDateTime!.month, checkoutDateTime!.day),
-        id: id,
-        tripId: tripId,
-        confirmationId: confirmationId,
-        expense: expense.clone(),
-        notes: notes);
-  }
+  LodgingFacade clone() => LodgingFacade(
+      location: location?.clone(),
+      checkinDateTime: DateTime(
+          checkinDateTime!.year, checkinDateTime!.month, checkinDateTime!.day),
+      checkoutDateTime: DateTime(checkoutDateTime!.year,
+          checkoutDateTime!.month, checkoutDateTime!.day),
+      id: id,
+      tripId: tripId,
+      confirmationId: confirmationId,
+      expense: expense.clone(),
+      notes: notes);
 
-  bool isValid() {
-    return location != null &&
-        checkinDateTime != null &&
-        checkoutDateTime != null &&
-        expense.isValid();
-  }
+  bool validate() =>
+      location != null &&
+      checkinDateTime != null &&
+      checkoutDateTime != null &&
+      expense.validate();
 
   @override
   String toString() {
@@ -94,7 +92,7 @@ class LodgingFacade extends Equatable implements TripEntity {
         '${DateFormat.MMMM().format(checkinDateTime!).substring(0, 3)} ${checkinDateTime!.day}';
     var checkOutDayDescription =
         '${DateFormat.MMMM().format(checkoutDateTime!).substring(0, 3)} ${checkoutDateTime!.day}';
-    return 'Stay at ${location!.toString()} from $checkInDayDescription to $checkOutDayDescription';
+    return 'Stay at ${location!} from $checkInDayDescription to $checkOutDayDescription';
   }
 
   @override

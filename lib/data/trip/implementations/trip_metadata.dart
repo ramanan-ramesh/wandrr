@@ -1,12 +1,13 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wandrr/data/app/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/firestore_helpers.dart';
-import 'package:wandrr/data/trip/models/money.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
+// ignore: must_be_immutable
 class TripMetadataModelImplementation extends TripMetadataFacade
     implements LeafRepositoryItem<TripMetadataFacade> {
   static const String _startDateField = 'startDate';
@@ -16,12 +17,6 @@ class TripMetadataModelImplementation extends TripMetadataFacade
   static const _budgetField = 'budget';
   static const _defaultCurrency = 'INR';
 
-  @override
-  DocumentReference get documentReference => FirebaseFirestore.instance
-      .collection(FirestoreCollections.tripMetadataCollectionName)
-      .doc(id);
-
-  //TODO: Id not expected to be valid. This is just to add ModelFacade object to DB.
   TripMetadataModelImplementation.fromModelFacade(
       {required TripMetadataFacade tripMetadataModelFacade})
       : super(
@@ -55,21 +50,24 @@ class TripMetadataModelImplementation extends TripMetadataFacade
         budget: budget);
   }
 
+  @override
+  DocumentReference get documentReference => FirebaseFirestore.instance
+      .collection(FirestoreCollections.tripMetadataCollectionName)
+      .doc(id);
+
   //expects a valid database object
   @override
-  Map<String, dynamic> toJson() {
-    return {
-      _startDateField: Timestamp.fromDate(startDate!),
-      _endDateField: Timestamp.fromDate(endDate!),
-      _contributorsField: contributors,
-      _nameField: name,
-      _budgetField: budget.toString()
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        _startDateField: Timestamp.fromDate(startDate!),
+        _endDateField: Timestamp.fromDate(endDate!),
+        _contributorsField: contributors,
+        _nameField: name,
+        _budgetField: budget.toString()
+      };
 
   @override
   Future<bool> tryUpdate(TripMetadataFacade toUpdate) async {
-    Map<String, dynamic> json = {};
+    var json = <String, dynamic>{};
     FirestoreHelpers.updateJson(endDate, toUpdate.endDate, _endDateField, json);
     FirestoreHelpers.updateJson(
         startDate, toUpdate.startDate, _startDateField, json);
@@ -77,16 +75,12 @@ class TripMetadataModelImplementation extends TripMetadataFacade
     FirestoreHelpers.updateJson(
         contributors, toUpdate.contributors, _contributorsField, json);
     FirestoreHelpers.updateJson(name, toUpdate.name, _nameField, json);
-    var didUpdate = json.isNotEmpty;
-    if (json.isNotEmpty) {
-      await documentReference.set(json, SetOptions(merge: true)).then((value) {
-        didUpdate = true;
-        copyWith(toUpdate);
-      }).catchError((error, stackTrace) {
-        didUpdate = false;
-      });
-    }
-    return didUpdate;
+    return FirestoreHelpers.tryUpdateDocumentField(
+        documentReference: documentReference,
+        json: json,
+        onSuccess: () {
+          copyWith(toUpdate);
+        });
   }
 
   @override

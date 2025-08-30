@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/app/models/ui_element.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
+import 'package:wandrr/data/trip/models/ui_element.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/lodging.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/trip_entity_list_view.dart';
@@ -18,8 +18,8 @@ class LodgingListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return TripEntityListView<LodgingFacade>(
       canConsiderUiElementForNavigation: (lodging, dateTime) {
-        return (lodging.checkinDateTime!.isOnSameDayAs(dateTime) ||
-            lodging.checkoutDateTime!.isOnSameDayAs(dateTime));
+        return lodging.checkinDateTime!.isOnSameDayAs(dateTime) ||
+            lodging.checkoutDateTime!.isOnSameDayAs(dateTime);
       },
       section: NavigationSections.lodging,
       emptyListMessage: context.localizations.noLodgingCreated,
@@ -56,7 +56,7 @@ class LodgingListView extends StatelessWidget {
       List<UiElement<LodgingFacade>> lodgingUiElements) {
     var lodgingsWithValidDateTime = <UiElement<LodgingFacade>>[];
     var lodgingsWithInvalidDateTime = <UiElement<LodgingFacade>>[];
-    for (var lodgingUiElement in lodgingUiElements) {
+    for (final lodgingUiElement in lodgingUiElements) {
       var lodging = lodgingUiElement.element;
       if (lodging.checkinDateTime != null) {
         lodgingsWithValidDateTime.add(lodgingUiElement);

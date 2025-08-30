@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'flip_card.dart';
 
 Widget _fill(Widget child) => Positioned.fill(child: child);
+
 Widget _noop(Widget child) => child;
 
 /// The transition used internally by [FlipCard]
@@ -13,10 +14,10 @@ Widget _noop(Widget child) => child;
 /// at the cost of built-in methods like [FlipCardState.flip]
 class FlipCardTransition extends StatefulWidget {
   const FlipCardTransition({
-    super.key,
     required this.front,
     required this.back,
     required this.animation,
+    super.key,
     this.direction = Axis.horizontal,
     this.fill = Fill.none,
     this.alignment = Alignment.center,
@@ -173,10 +174,10 @@ class _FlipCardTransitionState extends State<FlipCardTransition> {
 /// where the angle is [Animation.value]
 class FlipTransition extends AnimatedWidget {
   const FlipTransition({
-    super.key,
     required this.child,
     required this.animation,
     required this.direction,
+    super.key,
   }) : super(listenable: animation);
 
   /// The [Animation] that controls this transition
@@ -195,10 +196,8 @@ class FlipTransition extends AnimatedWidget {
     switch (direction) {
       case Axis.horizontal:
         transform.rotateY(animation.value);
-        break;
       case Axis.vertical:
         transform.rotateX(animation.value);
-        break;
     }
 
     return Transform(

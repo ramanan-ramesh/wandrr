@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/currency_data.dart';
+import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/l10n/extension.dart';
 
 abstract class CurrencyDropDownField extends StatefulWidget {
   CurrencyData selectedCurrencyData;
-  OverlayEntry? overlayEntry;
+  OverlayEntry? _overlayEntry;
   final Iterable<CurrencyData> allCurrencies;
   final Function(CurrencyData selectedCurrencyInfo) currencySelectedCallback;
   final LayerLink layerLink = LayerLink();
 
   CurrencyDropDownField(
-      {super.key,
-      required this.selectedCurrencyData,
-      this.overlayEntry,
+      {required this.selectedCurrencyData,
       required this.allCurrencies,
-      required this.currencySelectedCallback});
+      required this.currencySelectedCallback,
+      super.key,
+      OverlayEntry? overlayEntry})
+      : _overlayEntry = overlayEntry;
 
-  Widget buildCurrencyListTile(CurrencyData currency, bool isDropDownButton,
-      BuildContext context, void Function(VoidCallback) setState) {
+  Widget buildCurrencyListTile(CurrencyData currency, BuildContext context,
+      void Function(VoidCallback) setState,
+      {required bool isDropDownButton}) {
     var textColor = Theme.of(context).listTileTheme.textColor;
     var isEqualToCurrentlySelectedItem = currency == selectedCurrencyData;
     if (isDropDownButton || isEqualToCurrentlySelectedItem) {
@@ -96,7 +98,7 @@ abstract class CurrencyDropDownField extends StatefulWidget {
   Widget createCurrencyButton(
       BuildContext context, void Function(VoidCallback) setState) {
     return Material(
-      shape: CircleBorder(),
+      shape: const CircleBorder(),
       child: IconButton(
         onPressed: () => toggleDropdown(context, setState),
         icon: Text(
@@ -109,31 +111,31 @@ abstract class CurrencyDropDownField extends StatefulWidget {
 
   void toggleDropdown(
       BuildContext context, void Function(VoidCallback) setState) {
-    if (overlayEntry == null) {
-      overlayEntry = _createCurrencyDropDownOverlay(context, setState);
-      Overlay.of(context).insert(overlayEntry!);
+    if (_overlayEntry == null) {
+      _overlayEntry = _createCurrencyDropDownOverlay(context, setState);
+      Overlay.of(context).insert(_overlayEntry!);
     } else {
-      overlayEntry?.remove();
-      overlayEntry = null;
+      _overlayEntry?.remove();
+      _overlayEntry = null;
     }
   }
 
   void removeOverlayEntry() {
-    overlayEntry?.remove();
+    _overlayEntry?.remove();
   }
 
   OverlayEntry _createCurrencyDropDownOverlay(
       BuildContext context, void Function(VoidCallback) setState) {
-    RenderBox clickedRenderBox = context.findRenderObject() as RenderBox;
-    Size clickedRenderBoxSize = clickedRenderBox.size;
-    Offset clickedRenderBoxOffset = clickedRenderBox.localToGlobal(Offset.zero);
+    var clickedRenderBox = context.findRenderObject() as RenderBox;
+    var clickedRenderBoxSize = clickedRenderBox.size;
+    var clickedRenderBoxOffset = clickedRenderBox.localToGlobal(Offset.zero);
 
     return OverlayEntry(
       builder: (context) => GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () {
-          overlayEntry?.remove();
-          overlayEntry = null;
+          _overlayEntry?.remove();
+          _overlayEntry = null;
         },
         child: Stack(
           children: [
@@ -144,7 +146,7 @@ abstract class CurrencyDropDownField extends StatefulWidget {
               child: CompositedTransformFollower(
                 link: layerLink,
                 showWhenUnlinked: false,
-                offset: const Offset(0.0, 0.0),
+                offset: Offset.zero,
                 child: Material(
                   elevation: 4.0,
                   color: Theme.of(context).dialogTheme.backgroundColor,
@@ -161,7 +163,8 @@ abstract class CurrencyDropDownField extends StatefulWidget {
                         onClose: () => toggleDropdown(context, setState),
                         currencyListTileBuilder: (CurrencyData currency) {
                           return buildCurrencyListTile(
-                              currency, false, context, setState);
+                              currency, context, setState,
+                              isDropDownButton: false);
                         },
                       ),
                     ),
@@ -180,9 +183,9 @@ class PlatformCurrencyDropDown extends CurrencyDropDownField {
   PlatformCurrencyDropDown(
       {required super.selectedCurrencyData,
       required super.allCurrencies,
+      required super.currencySelectedCallback,
       super.overlayEntry,
-      super.key,
-      required super.currencySelectedCallback});
+      super.key});
 
   @override
   _PlatformCurrencyDropDownState createState() =>
@@ -205,7 +208,8 @@ class _PlatformCurrencyDropDownState extends State<PlatformCurrencyDropDown> {
       child: InkWell(
         onTap: () => widget.toggleDropdown(context, setState),
         child: widget.buildCurrencyListTile(
-            widget.selectedCurrencyData, true, context, setState),
+            widget.selectedCurrencyData, context, setState,
+            isDropDownButton: true),
       ),
     );
   }
@@ -217,15 +221,13 @@ class _SearchableCurrencyDropDown extends StatefulWidget {
   final Widget Function(CurrencyData currency) currencyListTileBuilder;
   final VoidCallback onClose;
   final Widget? prefix;
-  final TextInputAction? textInputAction;
 
   const _SearchableCurrencyDropDown(
       {required this.allCurrencies,
       required this.currencyInfo,
       required this.currencyListTileBuilder,
       required this.onClose,
-      this.prefix,
-      this.textInputAction});
+      this.prefix});
 
   @override
   State<_SearchableCurrencyDropDown> createState() =>
@@ -281,7 +283,7 @@ class _SearchableCurrencyDropDownState
                   .toLowerCase()
                   .contains(searchText.toLowerCase()));
           _currencies.addAll(searchResultsForCurrencyName);
-          for (var currencyInfo in searchResultsForCurrencyCode) {
+          for (final currencyInfo in searchResultsForCurrencyCode) {
             if (!_currencies.contains(currencyInfo)) {
               _currencies.add(currencyInfo);
             }
@@ -291,9 +293,9 @@ class _SearchableCurrencyDropDownState
       },
       decoration: InputDecoration(
         hintText: context.localizations.searchForCurrency,
-        prefixIcon: widget.prefix ?? Icon(Icons.search_rounded),
+        prefixIcon: widget.prefix ?? const Icon(Icons.search_rounded),
       ),
-      textInputAction: widget.textInputAction ?? TextInputAction.done,
+      textInputAction: TextInputAction.done,
     );
   }
 }

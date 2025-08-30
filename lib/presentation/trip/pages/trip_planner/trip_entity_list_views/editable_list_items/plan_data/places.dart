@@ -4,7 +4,7 @@ import 'package:wandrr/presentation/app/widgets/card.dart';
 
 class PlacesListView extends StatelessWidget {
   const PlacesListView(
-      {super.key, required this.places, required this.onPlacesChanged});
+      {required this.places, required this.onPlacesChanged, super.key});
 
   final List<LocationFacade> places;
   final Function() onPlacesChanged;
@@ -12,10 +12,7 @@ class PlacesListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _PlacesReOrderableListView(
-        placesList: places,
-        onPlacesChanged: () {
-          onPlacesChanged();
-        });
+        placesList: places, onPlacesChanged: onPlacesChanged);
   }
 }
 

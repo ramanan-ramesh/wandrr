@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 
 class LodgingCardBase extends StatelessWidget {
@@ -12,7 +12,6 @@ class LodgingCardBase extends StatelessWidget {
   final bool isEditable;
 
   const LodgingCardBase({
-    super.key,
     required this.lodgingFacade,
     required this.location,
     required this.dateTime,
@@ -20,6 +19,7 @@ class LodgingCardBase extends StatelessWidget {
     required this.confirmationId,
     required this.expense,
     required this.isEditable,
+    super.key,
   });
 
   @override
@@ -31,7 +31,7 @@ class LodgingCardBase extends StatelessWidget {
         children: [
           _createAdaptiveLayout(context),
           const SizedBox(height: 12.0),
-          if (!isEditable) Divider(),
+          if (!isEditable) const Divider(),
           notes,
         ],
       ),

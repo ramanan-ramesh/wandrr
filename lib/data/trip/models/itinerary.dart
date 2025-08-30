@@ -1,7 +1,7 @@
 import 'dart:collection';
 
-import 'package:wandrr/data/app/models/leaf_repository_item.dart';
-import 'package:wandrr/data/trip/models/plan_data.dart';
+import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 import 'lodging.dart';
@@ -35,13 +35,13 @@ abstract class ItineraryModelEventHandler extends ItineraryFacade {
 
   void addTransit(TransitFacade transitToAdd);
 
+  void removeTransit(TransitFacade transit);
+
   void setCheckinLodging(LodgingFacade? lodging);
 
   void setCheckoutLodging(LodgingFacade? lodging);
 
   void setFullDayLodging(LodgingFacade? lodging);
-
-  void removeTransit(TransitFacade transit);
 }
 
 abstract class ItineraryFacadeCollection extends ListBase<ItineraryFacade> {

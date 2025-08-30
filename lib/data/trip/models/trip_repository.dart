@@ -1,9 +1,9 @@
+import 'package:wandrr/data/app/models/dispose.dart';
+import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 
-import '../../app/models/collection_model_facade.dart';
-import '../../app/models/leaf_repository_item.dart';
 import 'api_services_repository.dart';
-import 'currency_data.dart';
+import 'budgeting/currency_data.dart';
 import 'trip_data.dart';
 import 'trip_metadata.dart';
 
@@ -17,14 +17,14 @@ abstract class TripRepositoryFacade {
 
 abstract class TripRepositoryEventHandler extends TripRepositoryFacade
     implements Dispose {
-  CollectionModelFacade<TripMetadataFacade> get tripMetadataModelCollection;
+  ModelCollectionModifier<TripMetadataFacade> get tripMetadataModelCollection;
 
   TripDataModelEventHandler? get activeTripEventHandler;
 
   Future unloadActiveTrip();
 
   Future loadTrip(TripMetadataFacade tripMetadata,
-      ApiServicesRepository apiServicesRepository);
+      ApiServicesRepositoryFacade apiServicesRepository);
 
   void updateLocalizations(AppLocalizations appLocalizations);
 }

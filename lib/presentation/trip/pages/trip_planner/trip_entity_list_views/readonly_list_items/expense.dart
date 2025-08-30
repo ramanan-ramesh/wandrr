@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:wandrr/data/trip/models/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
@@ -12,7 +13,7 @@ class ReadonlyExpenseListItem extends StatelessWidget {
   String get _subTitle {
     var subTitle = '';
     if (expenseModelFacade.location != null) {
-      subTitle += '@ ${expenseModelFacade.location.toString()}';
+      subTitle += '@ ${expenseModelFacade.location}';
     }
     if (expenseModelFacade.dateTime != null) {
       subTitle +=
@@ -24,9 +25,9 @@ class ReadonlyExpenseListItem extends StatelessWidget {
   final Map<ExpenseCategory, String> categoryNames;
 
   const ReadonlyExpenseListItem(
-      {super.key,
-      required this.expenseModelFacade,
-      required this.categoryNames});
+      {required this.expenseModelFacade,
+      required this.categoryNames,
+      super.key});
 
   @override
   Widget build(BuildContext context) {

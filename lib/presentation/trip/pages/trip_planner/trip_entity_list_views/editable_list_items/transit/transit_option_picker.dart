@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
@@ -7,9 +9,9 @@ class TransitOptionPicker extends StatefulWidget {
   final TransitOption? initialTransitOption;
   final ValueChanged<TransitOption>? onChanged;
 
-  TransitOptionPicker({
-    Key? key,
+  const TransitOptionPicker({
     required this.options,
+    Key? key,
     this.initialTransitOption,
     this.onChanged,
   }) : super(key: key);
@@ -88,12 +90,12 @@ class _TransitOptionPickerState extends State<TransitOptionPicker>
 
   void _calculateMaxTriggerWidth() {
     double maxWidth = 0;
-    const TextStyle textStyle = TextStyle(fontWeight: FontWeight.w500);
-    const double iconWidth = 24.0 + 12.0;
-    const double arrowWidth = 24.0 + 8.0;
+    const textStyle = TextStyle(fontWeight: FontWeight.w500);
+    const iconWidth = 24.0 + 12.0;
+    const arrowWidth = 24.0 + 8.0;
 
     for (final option in transitOptionMetadatas) {
-      final TextPainter textPainter = TextPainter(
+      final textPainter = TextPainter(
         text: TextSpan(text: option.name, style: textStyle),
         textDirection: TextDirection.ltr,
       )..layout();
@@ -110,9 +112,9 @@ class _TransitOptionPickerState extends State<TransitOptionPicker>
       _isDropdownOpen = !_isDropdownOpen;
       if (_isDropdownOpen) {
         _showOverlay();
-        _animationController.forward();
+        unawaited(_animationController.forward());
       } else {
-        _animationController.reverse();
+        unawaited(_animationController.reverse());
         _hideOverlay();
       }
     });
@@ -123,10 +125,10 @@ class _TransitOptionPickerState extends State<TransitOptionPicker>
       return;
     }
 
-    final RenderBox renderBox = context.findRenderObject() as RenderBox;
+    final renderBox = context.findRenderObject() as RenderBox;
     final triggerOffset = renderBox.localToGlobal(Offset.zero);
-    final double dropdownHeight = 7 * _itemHeight;
-    final double selectedItemOffset = _selectedIndex! * _itemHeight;
+    final dropdownHeight = 7 * _itemHeight;
+    final selectedItemOffset = _selectedIndex! * _itemHeight;
     var listScrollController = ScrollController();
     _overlayEntry = OverlayEntry(
       builder: (context) => GestureDetector(
@@ -197,9 +199,7 @@ class _TransitOptionPickerState extends State<TransitOptionPicker>
     _shuffleMetadataListOnSelection();
     _updateSelectedIndex(option);
     _toggleDropdown();
-    if (widget.onChanged != null) {
-      widget.onChanged!(option);
-    }
+    widget.onChanged?.call(option);
   }
 
   Widget _buildDropdownItem(
@@ -237,7 +237,7 @@ class _TransitOptionPickerState extends State<TransitOptionPicker>
         height: _itemHeight,
         child: InkWell(
           onTap: _toggleDropdown,
-          child: Container(
+          child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8.0),
               border: Border.all(color: Colors.grey[400]!),

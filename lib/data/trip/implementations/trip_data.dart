@@ -2,55 +2,101 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/implementations/collection_model_implementation.dart';
-import 'package:wandrr/data/app/models/collection_model_facade.dart';
-import 'package:wandrr/data/app/models/leaf_repository_item.dart';
-import 'package:wandrr/data/trip/implementations/budgeting_module.dart';
+import 'package:wandrr/data/store/implementations/firestore_model_collection.dart';
+import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/model_collection.dart';
+import 'package:wandrr/data/trip/implementations/budgeting/budgeting_module.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/itinerary_model_collection.dart';
 import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
-import 'package:wandrr/data/trip/models/budgeting_module.dart';
-import 'package:wandrr/data/trip/models/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/money.dart';
-import 'package:wandrr/data/trip/models/plan_data.dart';
+import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 
-import 'expense.dart';
+import 'budgeting/expense.dart';
 import 'lodging.dart';
-import 'plan_data_model_implementation.dart';
+import 'plan_data/plan_data_model_implementation.dart';
 import 'transit.dart';
 import 'trip_metadata.dart';
 
 class TripDataModelImplementation extends TripDataModelEventHandler {
   final _subscriptions = <StreamSubscription>[];
 
-  TripDataModelImplementation(
-      TripMetadataModelImplementation tripMetadata,
-      CollectionModelImplementation<TransitFacade> transitModelCollection,
-      CollectionModelImplementation<LodgingFacade> lodgingModelCollection,
-      CollectionModelImplementation<ExpenseFacade> expenseModelCollection,
-      CollectionModelImplementation<PlanDataFacade> planDataModelCollection,
-      ItineraryModelCollection itineraryModelCollection,
-      this.currencyConverter,
-      BudgetingModuleEventHandler budgetingModuleEventHandler,
-      AppLocalizations appLocalisations)
-      : _transitModelCollection = transitModelCollection,
-        _lodgingModelCollection = lodgingModelCollection,
-        _expenseModelCollection = expenseModelCollection,
-        _planDataModelCollection = planDataModelCollection,
-        _tripMetadataModelImplementation = tripMetadata,
-        _budgetingModuleEventHandler = budgetingModuleEventHandler,
-        _itineraryModelCollection = itineraryModelCollection,
-        _transitOptionMetadatas =
-            _initializeIconsAndTransitOptions(appLocalisations);
+  static Future<TripDataModelImplementation> createInstance(
+      TripMetadataFacade tripMetadata,
+      ApiServicesRepositoryFacade apiServicesRepository,
+      AppLocalizations appLocalizations,
+      String currentUserName) async {
+    var tripMetadataModelImplementation =
+        TripMetadataModelImplementation.fromModelFacade(
+            tripMetadataModelFacade: tripMetadata);
+
+    var tripDocumentReference = FirebaseFirestore.instance
+        .collection(FirestoreCollections.tripCollectionName)
+        .doc(tripMetadata.id);
+
+    var transitModelCollection = await FirestoreModelCollection.createInstance(
+        tripDocumentReference
+            .collection(FirestoreCollections.transitCollectionName),
+        (documentSnapshot) => TransitImplementation.fromDocumentSnapshot(
+            tripMetadata.id!, documentSnapshot),
+        (transitModelFacade) => TransitImplementation.fromModelFacade(
+            transitModelFacade: transitModelFacade));
+    var lodgingModelCollection = await FirestoreModelCollection.createInstance(
+        tripDocumentReference
+            .collection(FirestoreCollections.lodgingCollectionName),
+        (documentSnapshot) => LodgingModelImplementation.fromDocumentSnapshot(
+            tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
+        (lodgingModelFacade) => LodgingModelImplementation.fromModelFacade(
+            lodgingModelFacade: lodgingModelFacade));
+    var expenseModelCollection = await FirestoreModelCollection.createInstance(
+        tripDocumentReference
+            .collection(FirestoreCollections.expenseCollectionName),
+        (documentSnapshot) => ExpenseModelImplementation.fromDocumentSnapshot(
+            tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
+        (expenseModelFacade) => ExpenseModelImplementation.fromModelFacade(
+            expenseModelFacade: expenseModelFacade));
+    var planDataModelCollection = await FirestoreModelCollection.createInstance(
+        tripDocumentReference
+            .collection(FirestoreCollections.planDataCollectionName),
+        (documentSnapshot) => PlanDataModelImplementation.fromDocumentSnapshot(
+            tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
+        (planDataModelFacade) => PlanDataModelImplementation.fromModelFacade(
+            planDataFacade: planDataModelFacade));
+
+    var itineraries = await ItineraryModelCollection.createInstance(
+        transitModelCollection, lodgingModelCollection, tripMetadata);
+
+    var budgetingModule = await BudgetingModule.createInstance(
+        transitModelCollection,
+        lodgingModelCollection,
+        expenseModelCollection,
+        apiServicesRepository.currencyConverter,
+        tripMetadataModelImplementation.budget.currency,
+        tripMetadataModelImplementation.contributors,
+        currentUserName);
+
+    return TripDataModelImplementation._(
+        tripMetadataModelImplementation,
+        transitModelCollection,
+        lodgingModelCollection,
+        expenseModelCollection,
+        planDataModelCollection,
+        itineraries,
+        apiServicesRepository.currencyConverter,
+        budgetingModule,
+        appLocalizations);
+  }
 
   @override
   List<TransitFacade> get transits =>
@@ -59,19 +105,19 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
           .map((facade) => facade.clone()));
 
   @override
-  CollectionModelFacade<TransitFacade> get transitsModelCollection =>
+  ModelCollectionModifier<TransitFacade> get transitsModelCollection =>
       _transitModelCollection;
-  final CollectionModelImplementation<TransitFacade> _transitModelCollection;
+  final ModelCollectionModifier<TransitFacade> _transitModelCollection;
 
   @override
-  CollectionModelFacade<LodgingFacade> get lodgingModelCollection =>
+  ModelCollectionModifier<LodgingFacade> get lodgingModelCollection =>
       _lodgingModelCollection;
-  final CollectionModelImplementation<LodgingFacade> _lodgingModelCollection;
+  final ModelCollectionModifier<LodgingFacade> _lodgingModelCollection;
 
   @override
-  CollectionModelFacade<ExpenseFacade> get expenseModelCollection =>
+  ModelCollectionModifier<ExpenseFacade> get expenseModelCollection =>
       _expenseModelCollection;
-  final CollectionModelImplementation<ExpenseFacade> _expenseModelCollection;
+  final ModelCollectionModifier<ExpenseFacade> _expenseModelCollection;
 
   @override
   List<ExpenseFacade> get expenses =>
@@ -92,17 +138,17 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
           .map((facade) => facade.clone()));
 
   @override
-  CollectionModelFacade<PlanDataFacade> get planDataModelCollection =>
+  ModelCollectionModifier<PlanDataFacade> get planDataModelCollection =>
       _planDataModelCollection;
-  final CollectionModelFacade<PlanDataFacade> _planDataModelCollection;
+  final ModelCollectionModifier<PlanDataFacade> _planDataModelCollection;
 
   @override
-  ItineraryFacadeCollection get itineraryModelCollection =>
+  ItineraryFacadeCollection get itineraryCollection =>
       _itineraryModelCollection;
 
   @override
-  ItineraryFacadeCollectionEventHandler
-      get itineraryModelCollectionEventHandler => _itineraryModelCollection;
+  ItineraryFacadeCollectionEventHandler get itineraryCollectionEventHandler =>
+      _itineraryModelCollection;
   final ItineraryModelCollection _itineraryModelCollection;
 
   ApiService<(Money, String), double?> currencyConverter;
@@ -117,92 +163,12 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   final TripMetadataModelImplementation _tripMetadataModelImplementation;
 
   @override
-  BudgetingModuleFacade get budgetingModuleFacade =>
-      _budgetingModuleEventHandler;
+  BudgetingModuleFacade get budgetingFacade => _budgetingModuleEventHandler;
   final BudgetingModuleEventHandler _budgetingModuleEventHandler;
-
-  static Future<TripDataModelImplementation> createExistingInstanceAsync(
-      TripMetadataFacade tripMetadata,
-      ApiServicesRepository apiServicesRepository,
-      AppLocalizations appLocalizations,
-      String currentUserName) async {
-    var tripMetadataModelImplementation =
-        TripMetadataModelImplementation.fromModelFacade(
-            tripMetadataModelFacade: tripMetadata);
-
-    var tripDocumentReference = FirebaseFirestore.instance
-        .collection(FirestoreCollections.tripCollectionName)
-        .doc(tripMetadata.id);
-
-    var transitModelCollection =
-        await CollectionModelImplementation.createInstance(
-            tripDocumentReference.collection(
-                FirestoreCollections.transitCollectionName),
-            (documentSnapshot) =>
-                TransitImplementation.fromDocumentSnapshot(
-                    tripMetadata.id!, documentSnapshot),
-            (transitModelFacade) => TransitImplementation.fromModelFacade(
-                transitModelFacade: transitModelFacade));
-    var lodgingModelCollection =
-        await CollectionModelImplementation.createInstance(
-            tripDocumentReference.collection(
-                FirestoreCollections.lodgingCollectionName),
-            (documentSnapshot) =>
-                LodgingModelImplementation.fromDocumentSnapshot(
-                    tripId: tripMetadata.id!,
-                    documentSnapshot: documentSnapshot),
-            (lodgingModelFacade) => LodgingModelImplementation.fromModelFacade(
-                lodgingModelFacade: lodgingModelFacade));
-    var expenseModelCollection =
-        await CollectionModelImplementation.createInstance(
-            tripDocumentReference.collection(
-                FirestoreCollections.expenseCollectionName),
-            (documentSnapshot) =>
-                ExpenseModelImplementation.fromDocumentSnapshot(
-                    tripId: tripMetadata.id!,
-                    documentSnapshot: documentSnapshot),
-            (expenseModelFacade) => ExpenseModelImplementation.fromModelFacade(
-                expenseModelFacade: expenseModelFacade));
-    var planDataModelCollection =
-        await CollectionModelImplementation.createInstance(
-            tripDocumentReference
-                .collection(FirestoreCollections.planDataCollectionName),
-            (documentSnapshot) =>
-                PlanDataModelImplementation.fromDocumentSnapshot(
-                    tripId: tripMetadata.id!,
-                    documentSnapshot: documentSnapshot),
-            (planDataModelFacade) =>
-                PlanDataModelImplementation.fromModelFacade(
-                    planDataFacade: planDataModelFacade));
-
-    var itineraries =
-        await ItineraryModelCollection.createItineraryModelCollection(
-            transitModelCollection, lodgingModelCollection, tripMetadata);
-
-    var budgetingModuleFacade = await BudgetingModule.createInstance(
-        transitModelCollection,
-        lodgingModelCollection,
-        expenseModelCollection,
-        apiServicesRepository.currencyConverter,
-        tripMetadataModelImplementation.budget.currency,
-        tripMetadataModelImplementation.contributors,
-        currentUserName);
-
-    return TripDataModelImplementation(
-        tripMetadataModelImplementation,
-        transitModelCollection,
-        lodgingModelCollection,
-        expenseModelCollection,
-        planDataModelCollection,
-        itineraries,
-        apiServicesRepository.currencyConverter,
-        budgetingModuleFacade,
-        appLocalizations);
-  }
 
   @override
   Future dispose() async {
-    for (var subscription in _subscriptions) {
+    for (final subscription in _subscriptions) {
       await subscription.cancel();
     }
     await _transitModelCollection.dispose();
@@ -216,8 +182,8 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   @override
   Future updateTripMetadata(
       LeafRepositoryItem<TripMetadataFacade>
-          tripMetadataRepositoryPattern) async {
-    var updatedTripMetadata = tripMetadataRepositoryPattern.facade;
+          tripMetadataLeafRepositoryItem) async {
+    var updatedTripMetadata = tripMetadataLeafRepositoryItem.facade;
     var currentContributors = _tripMetadataModelImplementation.contributors;
     var didContributorsChange = !(const ListEquality()
         .equals(currentContributors, updatedTripMetadata.contributors));
@@ -238,12 +204,12 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     if (haveTripDatesChanged) {
       await _itineraryModelCollection.updateTripDays(
           updatedTripMetadata.startDate!, updatedTripMetadata.endDate!);
-      Set<DateTime> oldDates = _createDateRange(
+      var oldDates = _createDateRange(
           _tripMetadataModelImplementation.startDate!,
           _tripMetadataModelImplementation.endDate!);
-      Set<DateTime> newDates = _createDateRange(
+      var newDates = _createDateRange(
           updatedTripMetadata.startDate!, updatedTripMetadata.endDate!);
-      Set<DateTime> datesToRemove = oldDates.difference(newDates);
+      var datesToRemove = oldDates.difference(newDates);
 
       var writeBatch = FirebaseFirestore.instance.batch();
       deletedTransits.addAll(_updateTripEntityListOnDatesChanged<TransitFacade>(
@@ -265,15 +231,14 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     }
 
     if (didContributorsChange) {
-      await _budgetingModuleEventHandler
-          .tryBalanceExpensesOnContributorsChanged(
-              updatedTripMetadata.contributors);
+      await _budgetingModuleEventHandler.balanceExpensesOnContributorsChanged(
+          updatedTripMetadata.contributors);
     }
 
     var shouldRecalculateTotalExpense =
         haveTripDatesChanged || didContributorsChange || didCurrencyChange;
     if (shouldRecalculateTotalExpense) {
-      _budgetingModuleEventHandler.recalculateTotalExpenditure(
+      await _budgetingModuleEventHandler.recalculateTotalExpenditure(
           deletedTransits: deletedTransits, deletedLodgings: deletedLodgings);
     }
     _tripMetadataModelImplementation.copyWith(updatedTripMetadata);
@@ -286,12 +251,12 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
 
   Iterable<T> _updateTripEntityListOnDatesChanged<T>(
       Set<DateTime> removedDates,
-      CollectionModelImplementation<T> modelCollection,
+      ModelCollectionFacade<T> modelCollection,
       bool Function(DateTime, T) itemsFilter,
       WriteBatch writeBatch) sync* {
     var updatedItems = <T>[];
     var currentCollectionItems = modelCollection.collectionItems;
-    for (var collectionItem in currentCollectionItems) {
+    for (final collectionItem in currentCollectionItems) {
       var item = collectionItem.facade;
       if (!removedDates.any((removedDate) => itemsFilter(removedDate, item))) {
         updatedItems.add(item);
@@ -345,12 +310,32 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   }
 
   Set<DateTime> _createDateRange(DateTime startDate, DateTime endDate) {
-    Set<DateTime> dateSet = {};
-    for (DateTime date = startDate;
+    var dateSet = <DateTime>{};
+    for (var date = startDate;
         date.isBefore(endDate) || date.isAtSameMomentAs(endDate);
         date = date.add(const Duration(days: 1))) {
       dateSet.add(date);
     }
     return dateSet;
   }
+
+  TripDataModelImplementation._(
+      TripMetadataModelImplementation tripMetadata,
+      ModelCollectionModifier<TransitFacade> transitModelCollection,
+      ModelCollectionModifier<LodgingFacade> lodgingModelCollection,
+      ModelCollectionModifier<ExpenseFacade> expenseModelCollection,
+      ModelCollectionModifier<PlanDataFacade> planDataModelCollection,
+      ItineraryModelCollection itineraryModelCollection,
+      this.currencyConverter,
+      BudgetingModuleEventHandler budgetingModuleEventHandler,
+      AppLocalizations appLocalisations)
+      : _transitModelCollection = transitModelCollection,
+        _lodgingModelCollection = lodgingModelCollection,
+        _expenseModelCollection = expenseModelCollection,
+        _planDataModelCollection = planDataModelCollection,
+        _tripMetadataModelImplementation = tripMetadata,
+        _budgetingModuleEventHandler = budgetingModuleEventHandler,
+        _itineraryModelCollection = itineraryModelCollection,
+        _transitOptionMetadatas =
+            _initializeIconsAndTransitOptions(appLocalisations);
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
 import 'constants.dart';
@@ -9,8 +11,8 @@ class TripNavigator {
   TripNavigator({required ScrollController scrollController})
       : _scrollController = scrollController;
 
-  void jumpToList(BuildContext context, {double alignment = 0.0}) {
-    Scrollable.ensureVisible(
+  Future jumpToList(BuildContext context, {double alignment = 0.0}) async {
+    await Scrollable.ensureVisible(
       context,
       curve: Curves.easeInOutBack,
       alignment: alignment,
@@ -28,4 +30,21 @@ class TripNavigator {
         duration: (val) => duration,
         curve: (val) => Curves.easeInOutBack);
   }
+
+  bool isSliverAppBarPinned(GlobalKey headerKey) {
+    if (headerKey.currentContext == null || !_scrollController.hasClients) {
+      return false;
+    }
+    final renderObject =
+        headerKey.currentContext!.findRenderObject() as RenderSliver;
+    final geometry = renderObject.geometry;
+    if (geometry != null) {
+      return geometry.layoutExtent == 0.0;
+    }
+    return false;
+  }
+}
+
+extension TripNavigatorExt on BuildContext {
+  TripNavigator get tripNavigator => RepositoryProvider.of<TripNavigator>(this);
 }

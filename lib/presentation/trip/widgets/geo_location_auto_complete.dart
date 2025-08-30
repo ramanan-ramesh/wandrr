@@ -13,12 +13,14 @@ class PlatformGeoLocationAutoComplete extends StatelessWidget {
   final double? locationOptionsViewWidth;
   LocationFacade? selectedLocation;
 
-  PlatformGeoLocationAutoComplete(
-      {super.key,
-      this.selectedLocation,
-      this.onLocationSelected,
-      this.locationOptionsViewWidth,
-      this.shouldShowPrefix = false});
+  // Constructor
+  PlatformGeoLocationAutoComplete({
+    super.key,
+    this.selectedLocation,
+    this.onLocationSelected,
+    this.locationOptionsViewWidth,
+    this.shouldShowPrefix = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +29,7 @@ class PlatformGeoLocationAutoComplete extends StatelessWidget {
       selectedItem: selectedLocation,
       onSelected: (location) {
         selectedLocation = location;
-        if (onLocationSelected != null) {
-          onLocationSelected!(location);
-        }
+        onLocationSelected?.call(location);
       },
       optionsBuilder: context.apiServicesRepository.geoLocator.queryData,
       customPrefix: shouldShowPrefix

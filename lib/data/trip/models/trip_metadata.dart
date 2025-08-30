@@ -1,9 +1,10 @@
 import 'package:equatable/equatable.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 
-import 'money.dart';
+import 'budgeting/money.dart';
 
+// ignore: must_be_immutable
 class TripMetadataFacade extends Equatable implements TripEntity {
   @override
   String? id;
@@ -47,21 +48,19 @@ class TripMetadataFacade extends Equatable implements TripEntity {
     budget = tripMetadataModel.budget;
   }
 
-  TripMetadataFacade clone() {
-    return TripMetadataFacade(
-        id: id,
-        startDate: startDate != null
-            ? DateTime(startDate!.year, startDate!.month, startDate!.day)
-            : null,
-        endDate: endDate != null
-            ? DateTime(endDate!.year, endDate!.month, endDate!.day)
-            : null,
-        name: name,
-        contributors: contributors,
-        budget: budget);
-  }
+  TripMetadataFacade clone() => TripMetadataFacade(
+      id: id,
+      startDate: startDate != null
+          ? DateTime(startDate!.year, startDate!.month, startDate!.day)
+          : null,
+      endDate: endDate != null
+          ? DateTime(endDate!.year, endDate!.month, endDate!.day)
+          : null,
+      name: name,
+      contributors: contributors,
+      budget: budget);
 
-  bool isValid() {
+  bool validate() {
     var hasValidName = name.isNotEmpty;
     var hasValidDateRange = endDate != null &&
         startDate != null &&

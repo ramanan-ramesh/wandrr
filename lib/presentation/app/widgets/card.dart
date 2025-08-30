@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
-
-import '../theming/constants.dart';
+import 'package:wandrr/presentation/app/theming/constants.dart';
 
 class PlatformCard extends StatelessWidget {
-  Color? borderColor;
-  Color? color;
+  final Color? borderColor;
+  final Color? color;
   final Widget child;
 
-  PlatformCard({super.key, this.borderColor, required this.child, this.color});
+  const PlatformCard(
+      {required this.child, super.key, this.borderColor, this.color});
 
   @override
   Widget build(BuildContext context) {
     return Card(
       color: color,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(Constants.cardBorderRadius),
+        borderRadius: BorderRadius.circular(ThemeConstants.cardBorderRadius),
         side: BorderSide(
           color: borderColor ?? Colors.transparent,
           width: 1,

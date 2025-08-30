@@ -3,26 +3,13 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:wandrr/data/trip/models/api_service.dart';
-import 'package:wandrr/data/trip/models/money.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
 
 class CurrencyConverter implements ApiService<(Money, String), double?> {
   static const _apiSurfaceUrl =
       'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1';
 
   final List<_CurrencyExchangeData> _exchangeRates = [];
-
-  String _constructQuery(String currencyToConvertTo) {
-    return '$_apiSurfaceUrl/currencies/${currencyToConvertTo.toLowerCase()}.json';
-  }
-
-  @override
-  final String apiIdentifier = "CurrencyConverter";
-
-  @override
-  FutureOr<void> dispose() {}
-
-  @override
-  FutureOr<void> initialize() {}
 
   @override
   Future<double?> queryData(
@@ -71,7 +58,7 @@ class CurrencyConverter implements ApiService<(Money, String), double?> {
         var responseValue = Map.from(decodedJsonResponse);
         var exchangeRates =
             Map.from(responseValue[currencyToConvertTo.toLowerCase()]);
-        for (var exchangeRate in exchangeRates.entries) {
+        for (final exchangeRate in exchangeRates.entries) {
           _exchangeRates.add(_CurrencyExchangeData(
               currency: exchangeRate.key.toString().toUpperCase(),
               currencyToConvertTo: currencyToConvertTo.toUpperCase(),
@@ -83,21 +70,33 @@ class CurrencyConverter implements ApiService<(Money, String), double?> {
                 element.currencyToConvertTo == currencyToConvertTo)
             .firstOrNull;
       }
-    } catch (e) {
+    } on Exception {
       return null;
     }
     return exchangeRate != null
         ? exchangeRate.exchangeRate * currencyAmount.amount
         : null;
   }
+
+  @override
+  final String apiIdentifier = "CurrencyConverter";
+
+  @override
+  FutureOr<void> dispose() {}
+
+  @override
+  FutureOr<void> initialize() {}
+
+  String _constructQuery(String currencyToConvertTo) =>
+      '$_apiSurfaceUrl/currencies/${currencyToConvertTo.toLowerCase()}.json';
 }
 
 class _CurrencyExchangeData {
-  String currency;
-  String currencyToConvertTo;
-  double exchangeRate;
+  final String currency;
+  final String currencyToConvertTo;
+  final double exchangeRate;
 
-  _CurrencyExchangeData(
+  const _CurrencyExchangeData(
       {required this.currency,
       required this.currencyToConvertTo,
       required this.exchangeRate});

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/l10n/extension.dart';
 
 class OnBoardingImage extends StatelessWidget {
-  static const _onBoardingImageAsset = 'assets/images/plan_itinerary.jpg';
-
   const OnBoardingImage({super.key});
 
   @override
@@ -12,9 +11,9 @@ class OnBoardingImage extends StatelessWidget {
       fit: StackFit.expand,
       alignment: Alignment.center,
       children: [
-        const Positioned.fill(
+        Positioned.fill(
           child: Image(
-            image: AssetImage(_onBoardingImageAsset),
+            image: Assets.images.planItinerary.provider(),
             fit: BoxFit.fitHeight,
           ),
         ),

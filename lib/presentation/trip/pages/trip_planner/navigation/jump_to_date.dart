@@ -2,17 +2,17 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/events.dart';
+import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
-import 'package:wandrr/presentation/app/extensions.dart';
 import 'package:wandrr/presentation/app/widgets/date_picker.dart';
-import 'package:wandrr/presentation/trip/bloc/bloc.dart';
-import 'package:wandrr/presentation/trip/bloc/events.dart';
-import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class JumpToDateNavigator<T extends TripEntity>
@@ -21,7 +21,7 @@ class JumpToDateNavigator<T extends TripEntity>
   final Iterable<T> Function() tripEntitiesGetter;
 
   const JumpToDateNavigator(
-      {super.key, required this.section, required this.tripEntitiesGetter});
+      {required this.section, required this.tripEntitiesGetter, super.key});
 
   @override
   State<JumpToDateNavigator> createState() => _JumpToDateNavigatorState();
@@ -49,7 +49,7 @@ class _JumpToDateNavigatorState<T extends TripEntity>
         if (areThereTripEntities) {
           return _createActionButton(context);
         } else {
-          return SizedBox.shrink();
+          return const SizedBox.shrink();
         }
       },
     );
@@ -80,21 +80,21 @@ class _JumpToDateNavigatorState<T extends TripEntity>
                   ),
         );
       },
-      child: Icon(Icons.assistant_navigation),
+      child: const Icon(Icons.assistant_navigation),
     );
   }
 
   Iterable<DateTime> _retrieveDatesToConsider(BuildContext context) {
-    var itineraries = context.activeTrip.itineraryModelCollection;
+    var itineraries = context.activeTrip.itineraryCollection;
     var datesToConsider = HashSet<DateTime>();
     var tripEntities = widget.tripEntitiesGetter();
     if (tripEntities.first is ItineraryFacade) {
       return tripEntities.map((entity) => (entity as ItineraryFacade).day);
     }
 
-    for (var itinerary in itineraries) {
+    for (final itinerary in itineraries) {
       var day = itinerary.day;
-      for (var tripEntity in tripEntities) {
+      for (final tripEntity in tripEntities) {
         if (tripEntity is LodgingFacade) {
           if (itinerary.checkinLodging != null &&
               itinerary.checkinLodging!.id == tripEntity.id) {

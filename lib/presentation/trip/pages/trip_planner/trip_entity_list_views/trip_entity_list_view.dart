@@ -3,16 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/events.dart';
+import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/app/models/ui_element.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
+import 'package:wandrr/data/trip/models/ui_element.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/blocs/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
-import 'package:wandrr/presentation/trip/bloc/bloc.dart';
-import 'package:wandrr/presentation/trip/bloc/events.dart';
-import 'package:wandrr/presentation/trip/bloc/states.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/jump_to_date.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/trip_navigator.dart';
@@ -27,7 +27,7 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
   final void Function(UiElement<T>)? onDeletePressed;
   final Widget Function(UiElement<T> uiElement) closedListElementCreator;
   final String emptyListMessage;
-  Widget? headerTileButton;
+  final Widget? headerTileButton;
   final BlocBuilderCondition<TripManagementState>?
       additionalListBuildWhenCondition;
   final bool Function(
@@ -45,15 +45,15 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
   final bool Function(T, DateTime)? canConsiderUiElementForNavigation;
   final String section;
 
-  TripEntityListView(
-      {super.key,
-      required this.openedListElementCreator,
+  const TripEntityListView(
+      {required this.openedListElementCreator,
       required this.closedListElementCreator,
       required this.emptyListMessage,
       required this.headerTileLabel,
       required this.uiElementsSorter,
       required this.uiElementsCreator,
       required this.section,
+      super.key,
       this.canConsiderUiElementForNavigation,
       this.onUiElementPressed,
       this.additionalListBuildWhenCondition,
@@ -61,24 +61,25 @@ class TripEntityListView<T extends TripEntity> extends StatefulWidget {
       this.onDeletePressed,
       this.canDelete,
       this.errorMessageCreator,
-      this.additionalListItemBuildWhenCondition});
+      this.additionalListItemBuildWhenCondition})
+      : headerTileButton = null;
 
-  TripEntityListView.customHeaderTileButton(
-      {super.key,
-      required this.openedListElementCreator,
+  const TripEntityListView.customHeaderTileButton(
+      {required this.openedListElementCreator,
       required this.closedListElementCreator,
       required this.emptyListMessage,
       required this.headerTileLabel,
       required this.uiElementsSorter,
       required Widget this.headerTileButton,
       required this.section,
+      required this.uiElementsCreator,
+      super.key,
       this.canConsiderUiElementForNavigation,
       this.additionalListBuildWhenCondition,
       this.onUiElementPressed,
       this.onUpdatePressed,
       this.onDeletePressed,
       this.canDelete,
-      required this.uiElementsCreator,
       this.errorMessageCreator,
       this.additionalListItemBuildWhenCondition});
 
@@ -91,6 +92,7 @@ class _TripEntityListViewState<T extends TripEntity>
   var _uiElements = <UiElement<T>>[];
   final ListController _listController = ListController();
   var _isListVisible = false;
+  final _headerContext = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -110,6 +112,7 @@ class _TripEntityListViewState<T extends TripEntity>
             return SliverMainAxisGroup(
               slivers: [
                 SliverAppBar(
+                  key: _headerContext,
                   flexibleSpace: _createHeaderTile(),
                   pinned: true,
                 ),
@@ -119,7 +122,7 @@ class _TripEntityListViewState<T extends TripEntity>
                             child: _createEmptyMessagePane(),
                           )
                         : _createSliverList())
-                    : SliverToBoxAdapter(
+                    : const SliverToBoxAdapter(
                         child: SizedBox.shrink(),
                       ),
               ],
@@ -134,7 +137,7 @@ class _TripEntityListViewState<T extends TripEntity>
         } else if (state is ProcessSectionNavigation) {
           if (state.section.toLowerCase() == widget.section.toLowerCase()) {
             if (state.dateTime == null) {
-              RepositoryProvider.of<TripNavigator>(context).jumpToList(context);
+              unawaited(context.tripNavigator.jumpToList(context));
             } else {
               _setListVisibility(true);
               Future.delayed(
@@ -192,8 +195,13 @@ class _TripEntityListViewState<T extends TripEntity>
 
   void _toggleListVisibilityOnOpenClose() {
     if (_isListVisible) {
-      RepositoryProvider.of<TripNavigator>(context)
-          .jumpToList(context, alignment: 0.0);
+      if (context.tripNavigator.isSliverAppBarPinned(_headerContext)) {
+        unawaited(
+            context.tripNavigator.jumpToList(context, alignment: 0.0).then((_) {
+          _toggleListVisibility();
+        }));
+        return;
+      }
     }
 
     _toggleListVisibility();
@@ -205,7 +213,7 @@ class _TripEntityListViewState<T extends TripEntity>
       if (widget.canConsiderUiElementForNavigation != null &&
           widget.canConsiderUiElementForNavigation!(
               uiElement.element, state.dateTime!)) {
-        RepositoryProvider.of<TripNavigator>(context)
+        context.tripNavigator
             .animateToListItem(context, _listController, index);
         break;
       }
@@ -336,7 +344,8 @@ class _TripEntityListViewState<T extends TripEntity>
     if (state.isTripEntityUpdated<T>()) {
       var updatedTripEntityState = state as UpdatedTripEntity;
       var updatedTripEntityDataState = updatedTripEntityState.dataState;
-      if (updatedTripEntityState.tripEntityModificationData.isFromEvent) {
+      if (updatedTripEntityState
+          .tripEntityModificationData.isFromExplicitAction) {
         switch (updatedTripEntityDataState) {
           case DataState.create:
             {

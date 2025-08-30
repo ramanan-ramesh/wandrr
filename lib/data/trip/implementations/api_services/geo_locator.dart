@@ -14,16 +14,14 @@ class GeoLocator implements ApiService<String, Iterable<LocationFacade>> {
   static const _typeField = 'type';
   static const _apiKeyField = 'key';
   static const _apiIdentifier = 'geoLocator';
-  late String _apiKey;
   static const _latitudeField = 'lat';
   static const _longitudeField = 'lon';
+
+  late String _apiKey;
   String _lastExecutedQuery = '';
   List<LocationFacade> _lastQueriedLocations = [];
 
   GeoLocator() : apiIdentifier = _apiIdentifier;
-
-  @override
-  final String apiIdentifier;
 
   @override
   Future<void> initialize() async {
@@ -36,6 +34,9 @@ class GeoLocator implements ApiService<String, Iterable<LocationFacade>> {
   }
 
   @override
+  final String apiIdentifier;
+
+  @override
   Future<Iterable<LocationFacade>> queryData(String query) async {
     if (_lastExecutedQuery != query && query.length >= 2) {
       var queryUrl = _constructQuery(query);
@@ -44,8 +45,7 @@ class GeoLocator implements ApiService<String, Iterable<LocationFacade>> {
         if (queryResponse.statusCode == 200) {
           _lastExecutedQuery = query;
           var locations = _convertResponse(queryResponse.body);
-          _lastQueriedLocations = locations;
-          return _lastQueriedLocations;
+          return _lastQueriedLocations = locations;
         }
       } finally {}
     }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:wandrr/data/app/app_data_repository_extensions.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -15,7 +15,7 @@ class ReadonlyTransitPlan extends StatelessWidget {
   final TransitFacade transitFacade;
   final AirlineData? airlineData;
 
-  ReadonlyTransitPlan({super.key, required this.transitFacade})
+  ReadonlyTransitPlan({required this.transitFacade, super.key})
       : airlineData = (transitFacade.transitOption == TransitOption.flight &&
                 transitFacade.operator != null)
             ? (AirlineData(transitFacade.operator!))

@@ -4,26 +4,14 @@ import 'package:wandrr/data/trip/implementations/api_services/currency_converter
 import 'package:wandrr/data/trip/implementations/api_services/geo_locator.dart';
 import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
-import 'package:wandrr/data/trip/models/money.dart';
 
 import 'airlines_data.dart';
 import 'airports_data.dart';
 
-class ApiServicesRepositoryImpl implements ApiServicesRepository {
-  @override
-  final ApiService<String, Iterable<(String, String)>> airlinesDataService;
-
-  @override
-  final ApiService<String, Iterable<LocationFacade>> airportsDataService;
-
-  @override
-  final ApiService<(Money, String), double?> currencyConverter;
-
-  @override
-  final ApiService<String, Iterable<LocationFacade>> geoLocator;
-
-  static Future<ApiServicesRepository> createInstance() async {
+class ApiServicesRepositoryImpl implements ApiServicesRepositoryModifier {
+  static Future<ApiServicesRepositoryModifier> createInstance() async {
     var geoLocator = GeoLocator();
     await geoLocator.initialize();
     var currencyConverter = CurrencyConverter();
@@ -40,12 +28,17 @@ class ApiServicesRepositoryImpl implements ApiServicesRepository {
     );
   }
 
-  ApiServicesRepositoryImpl._({
-    required this.airlinesDataService,
-    required this.airportsDataService,
-    required this.currencyConverter,
-    required this.geoLocator,
-  });
+  @override
+  final ApiService<String, Iterable<(String, String)>> airlinesDataService;
+
+  @override
+  final ApiService<String, Iterable<LocationFacade>> airportsDataService;
+
+  @override
+  final ApiService<(Money, String), double?> currencyConverter;
+
+  @override
+  final ApiService<String, Iterable<LocationFacade>> geoLocator;
 
   @override
   FutureOr<void> dispose() async {
@@ -54,4 +47,11 @@ class ApiServicesRepositoryImpl implements ApiServicesRepository {
     await currencyConverter.dispose();
     await geoLocator.dispose();
   }
+
+  ApiServicesRepositoryImpl._({
+    required this.airlinesDataService,
+    required this.airportsDataService,
+    required this.currencyConverter,
+    required this.geoLocator,
+  });
 }
