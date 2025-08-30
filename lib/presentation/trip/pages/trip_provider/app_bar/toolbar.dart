@@ -24,13 +24,7 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
   late final Animation<double> _settingsTurnAnimation = CurvedAnimation(
       parent: _settingsAnimationController, curve: Curves.easeOut);
 
-  late final _MenuControllerWrapper _mainMenuWrapper;
-
-  @override
-  void initState() {
-    super.initState();
-    _mainMenuWrapper = _MenuControllerWrapper();
-  }
+  final MenuController _menuController = MenuController();
 
   @override
   void dispose() {
@@ -41,7 +35,7 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return MenuAnchor(
-      controller: _mainMenuWrapper.controller,
+      controller: _menuController,
       alignmentOffset: Offset(0, 7),
       style: const MenuStyle(
         padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
@@ -77,7 +71,7 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
 
   _MenuItem _createLogoutMenuEntry(BuildContext context) {
     return _MenuItem(
-      milliseconds: 500,
+      animationDurationMs: 500,
       child: MenuItemButton(
         leadingIcon: const Icon(Icons.logout),
         onPressed: () {
@@ -90,7 +84,7 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
 
   _MenuItem _createLanguageSwitcherMenuEntry() {
     return _MenuItem(
-      milliseconds: 400,
+      animationDurationMs: 400,
       child: _LanguageSubmenu(),
     );
   }
@@ -98,7 +92,7 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
   _MenuItem _createThemeSwitcherMenuEntry(BuildContext context) {
     final onSurfaceColor = Theme.of(context).colorScheme.onSurface;
     return _MenuItem(
-      milliseconds: 300,
+      animationDurationMs: 300,
       child: MenuItemButton(
         style: ButtonStyle(
           foregroundColor: WidgetStatePropertyAll<Color>(onSurfaceColor),
@@ -130,7 +124,7 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
 
   _MenuItem _createDeleteTripMenuEntry(BuildContext context) {
     return _MenuItem(
-      milliseconds: 200,
+      animationDurationMs: 200,
       child: MenuItemButton(
         leadingIcon: Icon(Icons.delete_rounded),
         child: Text(context.localizations.deleteTrip),
@@ -147,18 +141,17 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
   }
 
   void _openMenuAfterFrame() {
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _mainMenuWrapper.open());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _menuController.open());
   }
 
   void _closeMenuAfterFrame() {
     WidgetsBinding.instance
-        .addPostFrameCallback((_) => _mainMenuWrapper.close());
+        .addPostFrameCallback((_) => _menuController.close());
   }
 
   void _toggleMainMenu() {
     _settingsAnimationController.forward(from: 0.0);
-    if (_mainMenuWrapper.isOpen) {
+    if (_menuController.isOpen) {
       _closeMenuAfterFrame();
     } else {
       _openMenuAfterFrame();
@@ -168,18 +161,18 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
 
 class _MenuItem extends StatelessWidget {
   const _MenuItem({
-    required this.milliseconds,
+    required this.animationDurationMs,
     required this.child,
   });
 
-  final int milliseconds;
+  final int animationDurationMs;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: 1),
-      duration: Duration(milliseconds: milliseconds),
+      duration: Duration(milliseconds: animationDurationMs),
       curve: Curves.easeOut,
       builder: (BuildContext context, double t, Widget? _) => Opacity(
         opacity: t,
@@ -212,17 +205,28 @@ class _LanguageSubmenu extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: List<Widget>.generate(
               languageMetadatas.length,
-              (index) => _createLanguageEntry(
-                  languageMetadatas.elementAt(index), context, index),
+              (index) => _LanguageSubMenuEntry(
+                  languageMetadata: languageMetadatas.elementAt(index),
+                  index: index),
             ),
           ),
         )
       ],
     );
   }
+}
 
-  Widget _createLanguageEntry(
-      LanguageMetadata languageMetadata, BuildContext context, int index) {
+class _LanguageSubMenuEntry extends StatelessWidget {
+  const _LanguageSubMenuEntry({
+    required this.languageMetadata,
+    required this.index,
+  });
+
+  final LanguageMetadata languageMetadata;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
     var masterPageBloc = context.read<MasterPageBloc>();
     final delay = Duration(milliseconds: 100 * index);
     final isCurrentLocale =
@@ -271,21 +275,5 @@ class _LanguageSubmenu extends StatelessWidget {
         );
       },
     );
-  }
-}
-
-class _MenuControllerWrapper {
-  final MenuController _internalController = MenuController();
-
-  _MenuControllerWrapper();
-
-  MenuController get controller => _internalController;
-
-  void open() => _internalController.open();
-
-  bool get isOpen => _internalController.isOpen;
-
-  void close() {
-    _internalController.close();
   }
 }
