@@ -96,14 +96,21 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
   }
 
   _MenuItem _createThemeSwitcherMenuEntry(BuildContext context) {
+    final onSurfaceColor = Theme.of(context).colorScheme.onSurface;
     return _MenuItem(
       milliseconds: 300,
       child: MenuItemButton(
+        style: ButtonStyle(
+          foregroundColor: WidgetStatePropertyAll<Color>(onSurfaceColor),
+        ),
         child: Row(
           children: <Widget>[
-            Icon(context.appDataRepository.activeThemeMode == ThemeMode.light
-                ? Icons.brightness_6
-                : Icons.brightness_6_outlined),
+            Icon(
+              context.appDataRepository.activeThemeMode == ThemeMode.light
+                  ? Icons.brightness_6
+                  : Icons.brightness_6_outlined,
+              color: onSurfaceColor,
+            ),
             const SizedBox(width: 12),
             Text(context.localizations.darkTheme),
             const Spacer(),
@@ -113,7 +120,6 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
                 context.addMasterPageEvent(ChangeTheme(
                     themeModeToChangeTo:
                         value ? ThemeMode.dark : ThemeMode.light));
-                _closeMenuAfterFrame();
               },
             ),
           ],
@@ -191,6 +197,7 @@ class _LanguageSubmenu extends StatelessWidget {
       menuStyle: const MenuStyle(
         alignment: Alignment.centerRight,
         elevation: WidgetStatePropertyAll<double>(14),
+        padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(EdgeInsets.zero),
         shape: WidgetStatePropertyAll<OutlinedBorder>(
           RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(12))),
@@ -203,10 +210,11 @@ class _LanguageSubmenu extends StatelessWidget {
           textDirection: TextDirection.rtl,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: languageMetadatas
-                .map((languageMetadata) =>
-                    _createLanguageEntry(languageMetadata, context))
-                .toList(),
+            children: List<Widget>.generate(
+              languageMetadatas.length,
+              (index) => _createLanguageEntry(
+                  languageMetadatas.elementAt(index), context, index),
+            ),
           ),
         )
       ],
@@ -214,26 +222,54 @@ class _LanguageSubmenu extends StatelessWidget {
   }
 
   Widget _createLanguageEntry(
-      LanguageMetadata languageMetadata, BuildContext context) {
+      LanguageMetadata languageMetadata, BuildContext context, int index) {
     var masterPageBloc = context.read<MasterPageBloc>();
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: MenuItemButton(
-        leadingIcon: ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(20)),
-          child: Image.asset(
-            languageMetadata.flagAssetLocation,
-            width: 35,
-            height: 35,
-            fit: BoxFit.fill,
+    final delay = Duration(milliseconds: 100 * index);
+    final isCurrentLocale =
+        Localizations.localeOf(context).languageCode == languageMetadata.locale;
+    return FutureBuilder(
+      future: Future.delayed(delay),
+      builder: (context, snapshot) {
+        final shouldAnimate = snapshot.connectionState == ConnectionState.done;
+        return TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0, end: shouldAnimate ? 1 : 0),
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.elasticOut,
+          builder: (context, t, child) => Opacity(
+            opacity: t.clamp(0.0, 1.0),
+            child: Transform.scale(
+              scale: 0.85 + 0.15 * t,
+              child: child,
+            ),
           ),
-        ),
-        onPressed: () {
-          masterPageBloc
-              .add(ChangeLanguage(languageToChangeTo: languageMetadata.locale));
-        },
-        child: Text(languageMetadata.name),
-      ),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: MenuItemButton(
+              leadingIcon: ClipRRect(
+                borderRadius: const BorderRadius.all(Radius.circular(20)),
+                child: Image.asset(
+                  languageMetadata.flagAssetLocation,
+                  width: 35,
+                  height: 35,
+                  fit: BoxFit.fill,
+                ),
+              ),
+              style: isCurrentLocale
+                  ? ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll<Color>(
+                          Theme.of(context).colorScheme.primary.withValues(
+                              alpha: context.isLightTheme ? 0.7 : 0.4)),
+                    )
+                  : null,
+              onPressed: () {
+                masterPageBloc.add(ChangeLanguage(
+                    languageToChangeTo: languageMetadata.locale));
+              },
+              child: Text(languageMetadata.name),
+            ),
+          ),
+        );
+      },
     );
   }
 }
