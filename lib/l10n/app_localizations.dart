@@ -580,6 +580,12 @@ abstract class AppLocalizations {
   /// **'Add a title'**
   String get addATitle;
 
+  /// No description provided for @deleteTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete trip'**
+  String get deleteTrip;
+
   /// No description provided for @deleteTripConfirmation.
   ///
   /// In en, this message translates to:
@@ -795,6 +801,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Launching trip'**
   String get launchingTrip;
+
+  /// No description provided for @darkTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Theme'**
+  String get darkTheme;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
 }
 
 class _AppLocalizationsDelegate

@@ -253,6 +253,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get addATitle => 'शीर्षक जोड़ें';
 
   @override
+  String get deleteTrip => 'यात्रा हटाएं';
+
+  @override
   String get deleteTripConfirmation =>
       'क्या आप सचमुच इस यात्रा को हटाना चाहते हैं?';
 
@@ -370,4 +373,10 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get launchingTrip => 'यात्रा लॉन्च हो रही है';
+
+  @override
+  String get darkTheme => 'डार्क थीम';
+
+  @override
+  String get language => 'भाषा';
 }

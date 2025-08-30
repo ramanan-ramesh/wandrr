@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 
 import 'login_page.dart';
-import 'onboarding_page.dart';
+import 'onboarding/onboarding_page.dart';
 
 class StartupPage extends StatefulWidget {
   const StartupPage({Key? key}) : super(key: key);
