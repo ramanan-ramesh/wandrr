@@ -14,7 +14,7 @@ import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/pages/home/home_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_planner_page.dart';
-import 'package:wandrr/presentation/trip/pages/trip_provider/app_bar.dart';
+import 'package:wandrr/presentation/trip/pages/trip_provider/app_bar/app_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_provider/constants.dart';
 
 class TripProvider extends StatelessWidget {
@@ -87,6 +87,10 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
       listener: (context, state) {
         if (state.isTripEntityUpdated<TripMetadataFacade>()) {
           var tripMetadataUpdatedState = state as UpdatedTripEntity;
+          if (!tripMetadataUpdatedState
+              .tripEntityModificationData.isFromExplicitAction) {
+            return;
+          }
           if (tripMetadataUpdatedState.dataState == DataState.create) {
             context.addTripManagementEvent(LoadTrip(
                 tripMetadata: tripMetadataUpdatedState

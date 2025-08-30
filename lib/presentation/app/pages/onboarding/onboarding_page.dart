@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/onboarding_image.dart';
+
+import 'language_switcher.dart';
 
 class OnBoardingPage extends StatelessWidget {
   final VoidCallback? onNavigateToNextPage;

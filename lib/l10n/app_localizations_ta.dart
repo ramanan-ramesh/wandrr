@@ -253,6 +253,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get addATitle => 'ஒரு தலைப்பைச் சேர்க்கவும்';
 
   @override
+  String get deleteTrip => 'பயணத்தை நீக்கு';
+
+  @override
   String get deleteTripConfirmation => 'இந்த பயணத்தை நீக்க வேண்டுமா?';
 
   @override
@@ -371,4 +374,10 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get launchingTrip => 'பயணத்தை ஏற்றுகிறது';
+
+  @override
+  String get darkTheme => 'இருண்ட தீம்';
+
+  @override
+  String get language => 'மொழி';
 }

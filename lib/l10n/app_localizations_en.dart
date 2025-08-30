@@ -252,6 +252,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addATitle => 'Add a title';
 
   @override
+  String get deleteTrip => 'Delete trip';
+
+  @override
   String get deleteTripConfirmation =>
       'Do you really want to delete this trip?';
 
@@ -369,4 +372,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get launchingTrip => 'Launching trip';
+
+  @override
+  String get darkTheme => 'Dark Theme';
+
+  @override
+  String get language => 'Language';
 }
