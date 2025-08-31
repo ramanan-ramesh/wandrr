@@ -117,5 +117,7 @@
   "loadingTripData": "Loading trip data",
   "launchingTrip": "Launching trip",
   "darkTheme": "Dark Theme",
-  "language": "Language"
+  "language": "Language",
+  "chooseTripThumbnail": "Choose a thumbnail",
+  "select": "Select"
 }

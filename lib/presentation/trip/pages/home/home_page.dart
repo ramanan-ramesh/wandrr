@@ -56,7 +56,7 @@ class HomePage extends StatelessWidget {
         onPressed: () {
           PlatformDialogElements.showGeneralDialog(
             pageContext,
-            TripCreatorDialog(
+            (dialogContext) => TripCreatorDialog(
               widgetContext: pageContext,
             ),
           );

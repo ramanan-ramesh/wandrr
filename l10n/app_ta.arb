@@ -120,5 +120,7 @@
   "loadingTripData": "பயணத் தரவை ஏற்றுகிறது",
   "launchingTrip": "பயணத்தை ஏற்றுகிறது",
   "darkTheme": "இருண்ட தீம்",
-  "language": "மொழி"
+  "language": "மொழி",
+  "chooseTripThumbnail": "சிறுபடம் தேர்ந்தெடுக்கவும்",
+  "select": "தேர்வு செய்"
 }

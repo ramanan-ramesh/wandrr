@@ -379,4 +379,10 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get language => 'भाषा';
+
+  @override
+  String get chooseTripThumbnail => 'लघुचित्र चुनें';
+
+  @override
+  String get select => 'चुनें';
 }

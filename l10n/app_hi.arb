@@ -120,5 +120,7 @@
   "loadingTripData": "यात्रा डेटा लोड हो रहा है",
   "launchingTrip": "यात्रा लॉन्च हो रही है",
   "darkTheme": "डार्क थीम",
-  "language": "भाषा"
+  "language": "भाषा",
+  "chooseTripThumbnail": "लघुचित्र चुनें",
+  "select": "चुनें"
 }

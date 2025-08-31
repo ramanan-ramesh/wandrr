@@ -15,6 +15,8 @@ class TripMetadataFacade extends Equatable implements TripEntity {
 
   String name;
 
+  String thumbnailTag;
+
   List<String> contributors;
 
   Money budget;
@@ -25,9 +27,11 @@ class TripMetadataFacade extends Equatable implements TripEntity {
       required this.endDate,
       required this.name,
       required this.contributors,
+      required this.thumbnailTag,
       required this.budget});
 
-  TripMetadataFacade.newUiEntry({required String defaultCurrency})
+  TripMetadataFacade.newUiEntry(
+      {required String defaultCurrency, required this.thumbnailTag})
       : name = '',
         contributors = [],
         budget = Money(currency: defaultCurrency, amount: 0);
@@ -58,6 +62,7 @@ class TripMetadataFacade extends Equatable implements TripEntity {
           : null,
       name: name,
       contributors: contributors,
+      thumbnailTag: thumbnailTag,
       budget: budget);
 
   bool validate() {

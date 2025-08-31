@@ -49,6 +49,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/flags/
+    - assets/images/tripThumbnails/
     - assets/
 
 flutter_gen:
@@ -56,6 +57,3 @@ flutter_gen:
   line_length: 80
   integrations:
     flutter_svg: true
-  assets:
-    exclude:
-      - assets/l10n/**
