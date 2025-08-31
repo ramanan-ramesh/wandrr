@@ -85,8 +85,12 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   Future loadTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository) async {
     await _activeTrip?.dispose();
-    _activeTrip = await TripDataModelImplementation.createInstance(tripMetadata,
-        apiServicesRepository, _appLocalizations, currentUserName);
+    _activeTrip = await TripDataModelImplementation.createInstance(
+        tripMetadata,
+        apiServicesRepository,
+        _appLocalizations,
+        currentUserName,
+        supportedCurrencies);
   }
 
   @override

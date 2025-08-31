@@ -22,14 +22,18 @@ class _BudgetEditTileState extends State<BudgetEditTile> {
   final _amountEditingController = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
     var currentBudget = context.activeTrip.tripMetadata.budget;
     _currentBudget =
         Money(currency: currentBudget.currency, amount: currentBudget.amount);
-    var currentCurrency = _currentBudget.currency;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     var allCurrencies = context.supportedCurrencies;
-    var currencyInfo =
-        allCurrencies.firstWhere((element) => element.code == currentCurrency);
+    var currencyInfo = allCurrencies
+        .firstWhere((element) => element.code == _currentBudget.currency);
     _amountEditingController.text = _currentBudget.amount.toString();
     return SliverToBoxAdapter(
       child: PlatformCard(
@@ -46,6 +50,7 @@ class _BudgetEditTileState extends State<BudgetEditTile> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 3.0),
                 child: PlatformMoneyEditField(
+                  key: ValueKey(_currentBudget.currency),
                   allCurrencies: context.supportedCurrencies,
                   selectedCurrencyData: currencyInfo,
                   initialAmount: _currentBudget.amount,
@@ -63,7 +68,6 @@ class _BudgetEditTileState extends State<BudgetEditTile> {
                   },
                   isAmountEditable: true,
                 ),
-                // child: Row(
               ),
             ),
             Padding(

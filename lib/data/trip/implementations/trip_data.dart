@@ -11,6 +11,7 @@ import 'package:wandrr/data/trip/implementations/itinerary_model_collection.dart
 import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
+import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
@@ -36,7 +37,8 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository,
       AppLocalizations appLocalizations,
-      String currentUserName) async {
+      String currentUserName,
+      Iterable<CurrencyData> supportedCurrencies) async {
     var tripMetadataModelImplementation =
         TripMetadataModelImplementation.fromModelFacade(
             tripMetadataModelFacade: tripMetadata);
@@ -83,6 +85,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         expenseModelCollection,
         apiServicesRepository.currencyConverter,
         tripMetadataModelImplementation.budget.currency,
+        supportedCurrencies,
         tripMetadataModelImplementation.contributors,
         currentUserName);
 

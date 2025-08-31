@@ -7,6 +7,7 @@ import 'debt_data.dart';
 import 'expense.dart';
 import 'expense_category.dart';
 import 'expense_sort_options.dart';
+import 'money.dart';
 
 abstract class BudgetingModuleFacade {
   Future<List<DebtData>> retrieveDebtDataList();
@@ -23,6 +24,8 @@ abstract class BudgetingModuleFacade {
   Stream<double> get totalExpenditureStream;
 
   double get totalExpenditure;
+
+  String formatCurrency(Money money);
 }
 
 abstract class BudgetingModuleEventHandler extends BudgetingModuleFacade

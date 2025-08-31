@@ -32,7 +32,7 @@ class TripNavigator {
   }
 
   bool isSliverAppBarPinned(GlobalKey headerKey) {
-    if (headerKey.currentContext == null || !_scrollController.hasClients) {
+    if (headerKey.currentContext == null) {
       return false;
     }
     final renderObject =
