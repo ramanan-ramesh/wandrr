@@ -14,6 +14,7 @@ class TripMetadataModelImplementation extends TripMetadataFacade
   static const String _endDateField = 'endDate';
   static const String _nameField = 'name';
   static const String _contributorsField = 'contributors';
+  static const String _thumbnailTagField = 'thumbnailTag';
   static const _budgetField = 'budget';
   static const _defaultCurrency = 'INR';
 
@@ -25,6 +26,7 @@ class TripMetadataModelImplementation extends TripMetadataFacade
             endDate: tripMetadataModelFacade.endDate,
             name: tripMetadataModelFacade.name,
             contributors: List.from(tripMetadataModelFacade.contributors),
+            thumbnailTag: tripMetadataModelFacade.thumbnailTag,
             budget: tripMetadataModelFacade.budget);
 
   static TripMetadataModelImplementation fromDocumentSnapshot(
@@ -34,6 +36,7 @@ class TripMetadataModelImplementation extends TripMetadataFacade
     var endDateTime = (documentData[_endDateField] as Timestamp).toDate();
     var contributors = List<String>.from(documentData[_contributorsField]);
     var budgetValue = documentData[_budgetField] as String?;
+    var thumbNailTag = documentData[_thumbnailTagField] as String;
     Money budget;
     if (budgetValue != null && budgetValue.isNotEmpty) {
       budget = Money.fromDocumentData(budgetValue);
@@ -47,6 +50,7 @@ class TripMetadataModelImplementation extends TripMetadataFacade
         endDate: endDateTime,
         name: documentData[_nameField],
         contributors: contributors,
+        thumbnailTag: thumbNailTag,
         budget: budget);
   }
 
@@ -62,7 +66,8 @@ class TripMetadataModelImplementation extends TripMetadataFacade
         _endDateField: Timestamp.fromDate(endDate!),
         _contributorsField: contributors,
         _nameField: name,
-        _budgetField: budget.toString()
+        _budgetField: budget.toString(),
+        _thumbnailTagField: thumbnailTag
       };
 
   @override
@@ -75,6 +80,8 @@ class TripMetadataModelImplementation extends TripMetadataFacade
     FirestoreHelpers.updateJson(
         contributors, toUpdate.contributors, _contributorsField, json);
     FirestoreHelpers.updateJson(name, toUpdate.name, _nameField, json);
+    FirestoreHelpers.updateJson(
+        thumbnailTag, toUpdate.thumbnailTag, _thumbnailTagField, json);
     return FirestoreHelpers.tryUpdateDocumentField(
         documentReference: documentReference,
         json: json,
@@ -92,5 +99,6 @@ class TripMetadataModelImplementation extends TripMetadataFacade
       required super.endDate,
       required super.name,
       required super.contributors,
+      required super.thumbnailTag,
       required super.budget});
 }

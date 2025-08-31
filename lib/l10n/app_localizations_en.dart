@@ -378,4 +378,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get language => 'Language';
+
+  @override
+  String get chooseTripThumbnail => 'Choose a thumbnail';
+
+  @override
+  String get select => 'Select';
 }

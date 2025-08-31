@@ -380,4 +380,10 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get language => 'மொழி';
+
+  @override
+  String get chooseTripThumbnail => 'சிறுபடம் தேர்ந்தெடுக்கவும்';
+
+  @override
+  String get select => 'தேர்வு செய்';
 }

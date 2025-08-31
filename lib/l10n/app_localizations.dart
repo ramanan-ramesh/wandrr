@@ -813,6 +813,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get language;
+
+  /// No description provided for @chooseTripThumbnail.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a thumbnail'**
+  String get chooseTripThumbnail;
+
+  /// No description provided for @select.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get select;
 }
 
 class _AppLocalizationsDelegate

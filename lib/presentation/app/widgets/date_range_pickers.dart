@@ -26,7 +26,7 @@ abstract class DateRangePickerBase extends StatefulWidget {
     var isLightTheme = context.isLightTheme;
     PlatformDialogElements.showAlignedDialog(
         context: context,
-        widgetBuilder: (dialogContext) {
+        dialogContentCreator: (dialogContext) {
           var dateRangePickerButtonRenderBox =
               widgetKey.currentContext!.findRenderObject() as RenderBox;
           double width;

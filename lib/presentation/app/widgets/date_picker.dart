@@ -15,7 +15,7 @@ abstract class AbstractPlatformDatePicker extends StatefulWidget {
           calendarConfigCreator}) {
     return PlatformDialogElements.showAlignedDialog(
       context: widgetContext,
-      widgetBuilder: (dialogContext) => SizedBox(
+      dialogContentCreator: (dialogContext) => SizedBox(
         width: _calculateDialogWidth(widgetContext),
         child: Material(
           elevation: 5.0,
