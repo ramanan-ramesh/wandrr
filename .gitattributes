@@ -1,0 +1,5 @@
+# Set default behavior, in case users don't have core.autocrlf set.
+* text=auto
+
+*.dart text eol=lf
+*.arb text eol=lf

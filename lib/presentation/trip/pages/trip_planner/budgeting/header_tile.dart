@@ -254,8 +254,9 @@ class BudgetingHeaderTile extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: expenseRatio,
                       color: Colors.green,
-                      backgroundColor:
-                          totalExpense > budget.amount ? Colors.red : null,
+                      backgroundColor: totalExpense > budget.amount
+                          ? Colors.red
+                          : Colors.black,
                     ),
                   )
               ],

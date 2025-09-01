@@ -7,6 +7,39 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
+import 'package:wandrr/presentation/trip/pages/trip_provider/constants.dart';
+
+const double _kSelectedImageScaleFactor = 1.18;
+const double _kThumbnailBorderRadius = 14.0;
+const double _kThumbnailContainerBorderRadius = 18.0;
+const double _kThumbnailSelectedVerticalMargin = 0.0;
+const double _kThumbnailUnselectedVerticalMargin = 12.0;
+
+extension _SizingExt on BuildContext {
+  static const double _kBigLayoutUnselectedImageSize = 120.0;
+  static const double _kSmallLayoutUnselectedImageSize = 80.0;
+  static const double _kCarouselHeightMultiplier = 1.25;
+  static const double _kCarouselHeightExtraPadding = 32.0;
+  static const double _kBigLayoutViewportFraction = 0.35;
+  static const double _kSmallLayoutViewportFraction = 0.5;
+  static const double _kBigLayoutHorizontalSpacing = 32.0;
+  static const double _kSmallLayoutHorizontalSpacing = 16.0;
+
+  double get unselectedImageSize => isBigLayout
+      ? _kBigLayoutUnselectedImageSize
+      : _kSmallLayoutUnselectedImageSize;
+
+  double get carouselHeight =>
+      unselectedImageSize * _kCarouselHeightMultiplier +
+      _kCarouselHeightExtraPadding;
+
+  double get viewportFraction =>
+      isBigLayout ? _kBigLayoutViewportFraction : _kSmallLayoutViewportFraction;
+
+  double get horizontalSpacing => isBigLayout
+      ? _kBigLayoutHorizontalSpacing
+      : _kSmallLayoutHorizontalSpacing;
+}
 
 class TripThumbnailCarouselSelector extends StatefulWidget {
   final String selectedThumbnailTag;
@@ -34,14 +67,19 @@ class _TripThumbnailCarouselSelectorState
   void initState() {
     super.initState();
     _selectedTag = widget.selectedThumbnailTag;
+
     var initialIndex = thumbnails
         .indexWhere((img) => img.fileName == widget.selectedThumbnailTag);
     if (initialIndex < 0) {
-      _selectedTag = thumbnails.first.fileName;
+      if (thumbnails.isNotEmpty) {
+        _selectedTag = thumbnails.first.fileName;
+        initialIndex = 0;
+      }
     }
+
     _pageController = PageController(
-      initialPage: initialIndex < 0 ? 0 : initialIndex,
-      viewportFraction: context.isBigLayout ? 0.35 : 0.5,
+      initialPage: initialIndex,
+      viewportFraction: context.viewportFraction,
     );
   }
 
@@ -53,10 +91,9 @@ class _TripThumbnailCarouselSelectorState
 
   @override
   Widget build(BuildContext context) {
-    var isBigLayout = context.isBigLayout;
-    double unselectedImageSize = isBigLayout ? 120 : 80;
+    final unselectedImageSize = context.unselectedImageSize;
     return SizedBox(
-      height: unselectedImageSize * 1.25 + 32,
+      height: context.carouselHeight,
       child: PageView.builder(
         controller: _pageController,
         scrollDirection: Axis.horizontal,
@@ -64,7 +101,7 @@ class _TripThumbnailCarouselSelectorState
         onPageChanged: onPageChanged,
         itemBuilder: (context, index) {
           final selected = thumbnails[index].fileName == _selectedTag;
-          final scale = selected ? 1.18 : 1.0;
+          final scale = selected ? _kSelectedImageScaleFactor : 1.0;
           return GestureDetector(
             onTap: () {
               var thumbnailTag = thumbnails[index].fileName;
@@ -91,14 +128,17 @@ class _TripThumbnailCarouselSelectorState
 
   Widget _createThumbnail(
       bool selected, int index, double unselectedImageSize) {
-    var horizontalSpacing = context.isBigLayout ? 32 : 16;
+    final horizontalSpacing = context.horizontalSpacing;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       margin: EdgeInsets.symmetric(
-          horizontal: horizontalSpacing / 2, vertical: selected ? 0 : 12),
+          horizontal: horizontalSpacing / 2,
+          vertical: selected
+              ? _kThumbnailSelectedVerticalMargin
+              : _kThumbnailUnselectedVerticalMargin),
       decoration: _createImageDecoration(selected),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(_kThumbnailBorderRadius),
         child: thumbnails[index].image(
           width: unselectedImageSize,
           height: unselectedImageSize,
@@ -117,7 +157,7 @@ class _TripThumbnailCarouselSelectorState
         color: borderColor,
         width: 4,
       ),
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(_kThumbnailContainerBorderRadius),
       boxShadow: isSelected
           ? [
               BoxShadow(
@@ -128,11 +168,13 @@ class _TripThumbnailCarouselSelectorState
   }
 
   void onPageChanged(int index) {
-    final keyName = thumbnails[index].fileName;
-    setState(() {
-      _selectedTag = keyName;
-    });
-    widget.onChanged(keyName);
+    if (thumbnails.isNotEmpty && index >= 0 && index < thumbnails.length) {
+      final keyName = thumbnails[index].fileName;
+      setState(() {
+        _selectedTag = keyName;
+      });
+      widget.onChanged(keyName);
+    }
   }
 }
 
@@ -155,45 +197,57 @@ class ThumbnailPicker extends StatelessWidget {
         borderRadius: _circularBorderRadius,
         onTap: () async {
           var selectedThumbnailTag = tripMetaDataFacade.thumbnailTag;
-          PlatformDialogElements.showGeneralDialog<String>(context,
-              (dialogContext) {
-            final isBig = dialogContext.isBigLayout;
-            return AlertDialog(
-              title: Text(dialogContext.localizations.chooseTripThumbnail),
-              content: SizedBox(
-                width: isBig ? 500 : 350,
-                height: isBig ? 200 : 150,
-                child: TripThumbnailCarouselSelector(
-                  selectedThumbnailTag: selectedThumbnailTag,
-                  onChanged: (thumbnailTag) {
-                    selectedThumbnailTag = thumbnailTag;
-                    (dialogContext as Element).markNeedsBuild();
-                  },
+          PlatformDialogElements.showGeneralDialog<String>(
+            context,
+            (dialogContext) {
+              return Container(
+                constraints: BoxConstraints(
+                  maxWidth: TripProviderPageConstants.maximumPageWidth,
                 ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: Text(dialogContext.localizations.cancel),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _createAppBar(dialogContext),
+                    const SizedBox(height: 16),
+                    TripThumbnailCarouselSelector(
+                      selectedThumbnailTag: selectedThumbnailTag,
+                      onChanged: (thumbnailTag) {
+                        selectedThumbnailTag = thumbnailTag;
+                        (dialogContext as Element).markNeedsBuild();
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.of(dialogContext).pop();
+                            },
+                            child: Text(context.localizations.cancel),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.of(dialogContext)
+                                  .pop(selectedThumbnailTag);
+                            },
+                            child: Text(context.localizations.select),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                TextButton(
-                  onPressed: () =>
-                      Navigator.of(dialogContext).pop(selectedThumbnailTag),
-                  child: Text(dialogContext.localizations.select),
-                ),
-              ],
-            );
-          }, onDialogResult: (selectedThumbnailTag) {
-            if (selectedThumbnailTag != null &&
-                selectedThumbnailTag != tripMetaDataFacade.thumbnailTag) {
-              var clonedTripMetadataFacade = tripMetaDataFacade.clone();
-              clonedTripMetadataFacade.thumbnailTag = selectedThumbnailTag;
-              context.addTripManagementEvent(
-                UpdateTripEntity<TripMetadataFacade>.update(
-                    tripEntity: clonedTripMetadataFacade),
               );
-            }
-          });
+            },
+            onDialogResult: _onDialogResult,
+          );
         },
         child: Container(
           padding: const EdgeInsets.all(4),
@@ -202,6 +256,34 @@ class ThumbnailPicker extends StatelessWidget {
             borderRadius: _circularBorderRadius,
           ),
           child: const Icon(Icons.image, color: Colors.white, size: 25),
+        ),
+      ),
+    );
+  }
+
+  void _onDialogResult(String? selectedThumbnailTag) {
+    if (selectedThumbnailTag != null &&
+        selectedThumbnailTag != tripMetaDataFacade.thumbnailTag) {
+      var clonedTripMetadataFacade = tripMetaDataFacade.clone();
+      clonedTripMetadataFacade.thumbnailTag = selectedThumbnailTag;
+      widgetContext.addTripManagementEvent(
+        UpdateTripEntity<TripMetadataFacade>.update(
+            tripEntity: clonedTripMetadataFacade),
+      );
+    }
+  }
+
+  Material _createAppBar(BuildContext dialogContext) {
+    return Material(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: AppBar(
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+        title: FittedBox(
+          child: Text(dialogContext.localizations.chooseTripThumbnail),
         ),
       ),
     );
