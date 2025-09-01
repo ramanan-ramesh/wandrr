@@ -72,10 +72,6 @@
     "iata": "4R"
   },
   {
-    "name": "Air Montenegro",
-    "iata": "4O"
-  },
-  {
     "name": "Wizz Air Abu Dhabi",
     "iata": "5W"
   },
@@ -1816,6 +1812,10 @@
     "iata": "AW"
   },
   {
+    "name": "Discover Airlines",
+    "iata": "4Y"
+  },
+  {
     "name": "Discovery Airways",
     "iata": "DH"
   },
@@ -2038,10 +2038,6 @@
   {
     "name": "Eurowings",
     "iata": "EW"
-  },
-  {
-    "name": "Eurowings Discover",
-    "iata": "4Y"
   },
   {
     "name": "Eurowings Europe",
@@ -2336,8 +2332,12 @@
     "iata": "QB"
   },
   {
-    "name": "German Airways",
+    "name": "Luftfahrtgesellschaft Walter",
     "iata": "HE"
+  },
+  {
+    "name": "German Airways",
+    "iata": "ZQ"
   },
   {
     "name": "Germania",
@@ -2792,7 +2792,7 @@
     "iata": "NU"
   },
   {
-    "name": "JetSMART",
+    "name": "JetSmart",
     "iata": "JA"
   },
   {
@@ -2836,7 +2836,7 @@
     "iata": "PP"
   },
   {
-    "name": "Jetstar Asia Airways",
+    "name": "Jetstar Asia",
     "iata": "3K"
   },
   {
@@ -2868,7 +2868,7 @@
     "iata": "GK"
   },
   {
-    "name": "Jetstar Hong Kong Airways",
+    "name": "Jetstar Hong Kong",
     "iata": "JM"
   },
   {
@@ -3262,6 +3262,10 @@
   {
     "name": "Lynden Air Cargo",
     "iata": "L2"
+  },
+  {
+    "name": "Luxwing",
+    "iata": "BN"
   },
   {
     "name": "Lynx Air",
@@ -4044,10 +4048,6 @@
     "iata": "QF"
   },
   {
-    "name": "QantasLink",
-    "iata": "QF"
-  },
-  {
     "name": "Qatar Airways",
     "iata": "QR"
   },
@@ -4352,7 +4352,7 @@
     "iata": "JX"
   },
   {
-    "name": "SASQUATCH",
+    "name": "SeaPort Airlines (2008–2016)",
     "iata": "K5"
   },
   {
@@ -5216,7 +5216,7 @@
     "iata": "UH"
   },
   {
-    "name": "Skyline Express (airline)",
+    "name": "Skyline Express",
     "iata": "QU"
   },
   {
