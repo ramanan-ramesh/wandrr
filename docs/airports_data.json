@@ -896,6 +896,13 @@
     "iata": "ALZ"
   },
   {
+    "name": "Syunik Airport",
+    "city": "Kapan",
+    "lat": 39.202272,
+    "lon": 46.455204,
+    "iata": "YUK"
+  },
+  {
     "name": "Alto Molocue Airport",
     "city": "Alto Molocue",
     "lat": -15.6102777778,
@@ -3808,6 +3815,13 @@
     "iata": "VDC"
   },
   {
+    "name": "Santana do Araguaia Airport",
+    "city": "Santana do Araguaia",
+    "lat": -9.319906,
+    "lon": -50.328536,
+    "iata": "CMP"
+  },
+  {
     "name": "Arraias Airport",
     "city": "Arraias",
     "lat": -13.025154,
@@ -3845,8 +3859,8 @@
   {
     "name": "Alto Parnaíba Airport",
     "city": "Alto Parnaíba",
-    "lat": -9.083611,
-    "lon": -45.950558,
+    "lat": -9.08533,
+    "lon": -45.955603,
     "iata": "APY"
   },
   {
@@ -4723,13 +4737,6 @@
     "lat": -17.8331,
     "lon": 35.3341,
     "iata": "CMZ"
-  },
-  {
-    "name": "Tangshan Sannühe Airport",
-    "city": "Tangshan (Fengrun)",
-    "lat": 39.7178,
-    "lon": 118.002625,
-    "iata": "TVS"
   },
   {
     "name": "Zigong Fengming Airport",
@@ -8048,13 +8055,6 @@
     "lat": 7.8604,
     "lon": 80.6304,
     "iata": "DBU"
-  },
-  {
-    "name": "Dubai Creek SPB",
-    "city": "Dubai",
-    "lat": 25.2422222222,
-    "lon": 55.3313888889,
-    "iata": "DCG"
   },
   {
     "name": "Dahl Creek Airport",
@@ -11671,8 +11671,8 @@
   {
     "name": "Riga International Airport",
     "city": "Riga",
-    "lat": 56.923599,
-    "lon": 23.9711,
+    "lat": 56.920752,
+    "lon": 23.970711,
     "iata": "RIX"
   },
   {
@@ -13652,8 +13652,8 @@
   {
     "name": "Lucapa Airport",
     "city": "Lucapa",
-    "lat": -8.445727348330001,
-    "lon": 20.7320861816,
+    "lat": -8.442339,
+    "lon": 20.732701,
     "iata": "LBZ"
   },
   {
@@ -15059,8 +15059,8 @@
   {
     "name": "Kasenga Airport",
     "city": "Kasenga",
-    "lat": -10.35,
-    "lon": 28.632999,
+    "lat": -10.355228,
+    "lon": 28.617243,
     "iata": "KEC"
   },
   {
@@ -16079,13 +16079,6 @@
     "iata": "BVC"
   },
   {
-    "name": "Esperadinha Airport",
-    "city": "Brava Island",
-    "lat": 14.864306,
-    "lon": -24.746,
-    "iata": "BVR"
-  },
-  {
     "name": "Maio Airport",
     "city": "Vila do Maio",
     "lat": 15.155900001525879,
@@ -16807,7 +16800,7 @@
     "iata": "SKV"
   },
   {
-    "name": "Suhaj Mubarak International Airport",
+    "name": "Sohag International Airport",
     "city": "Suhaj",
     "lat": 26.342515,
     "lon": 31.743017,
@@ -16837,8 +16830,8 @@
   {
     "name": "Sphinx International Airport",
     "city": "Al Jiza",
-    "lat": 30.108078,
-    "lon": 30.889252,
+    "lat": 30.108179,
+    "lon": 30.895728,
     "iata": "SPX"
   },
   {
@@ -17801,13 +17794,6 @@
     "iata": "IBL"
   },
   {
-    "name": "tylekeonhacaibuzz",
-    "city": "hồ chí minh",
-    "lat": 13.0,
-    "lon": 15.0,
-    "iata": "LHB"
-  },
-  {
     "name": "Sicogon Airstrip",
     "city": "Carles",
     "lat": 11.4595,
@@ -17820,6 +17806,13 @@
     "lat": -5.644444,
     "lon": 106.5625,
     "iata": "PPJ"
+  },
+  {
+    "name": "Kuala Kurun Airport",
+    "city": "Kuala Kurun",
+    "lat": -1.128903,
+    "lon": 113.873075,
+    "iata": "GXM"
   },
   {
     "name": "Enggano Airport",
@@ -17848,6 +17841,13 @@
     "lat": 0.789936,
     "lon": 108.960395,
     "iata": "SKJ"
+  },
+  {
+    "name": "Yuruf Airport [UNUSABLE]",
+    "city": "Amgotro",
+    "lat": -3.628919,
+    "lon": 140.953689,
+    "iata": "RUF"
   },
   {
     "name": "Kota Mobagu/Mopait Airport",
@@ -17962,8 +17962,8 @@
     "iata": "TMY"
   },
   {
-    "name": "Bilogai-Sugapa Airport",
-    "city": "Sugapa",
+    "name": "Bilorai Airport",
+    "city": "Bilogai",
     "lat": -3.739503,
     "lon": 137.031183,
     "iata": "UGU"
@@ -20078,15 +20078,15 @@
   {
     "name": "Plymouth Municipal Airport",
     "city": "Plymouth",
-    "lat": 41.365100860596,
-    "lon": -86.300498962402,
+    "lat": 41.365101,
+    "lon": -86.300499,
     "iata": "PLY"
   },
   {
     "name": "New Coalinga Municipal Airport",
     "city": "Coalinga",
-    "lat": 36.16310119628906,
-    "lon": -120.29399871826172,
+    "lat": 36.163101,
+    "lon": -120.293999,
     "iata": "CLG"
   },
   {
@@ -29745,8 +29745,8 @@
   {
     "name": "Willow Run Airport",
     "city": "Detroit",
-    "lat": 42.23789978,
-    "lon": -83.53040314,
+    "lat": 42.2379,
+    "lon": -83.530403,
     "iata": "YIP"
   },
   {
@@ -30310,15 +30310,15 @@
     "iata": "DPE"
   },
   {
-    "name": "Calais-Dunkerque Airport",
-    "city": "Marck",
+    "name": "Calais Marck Airport",
+    "city": "Calais",
     "lat": 50.962101,
     "lon": 1.95476,
     "iata": "CQF"
   },
   {
-    "name": "Albert-Picardie Airport",
-    "city": "Méaulte, Somme",
+    "name": "Albert Bray airport",
+    "city": "Albert",
     "lat": 49.970049,
     "lon": 2.693939,
     "iata": "BYF"
@@ -30331,22 +30331,22 @@
     "iata": "LTQ"
   },
   {
-    "name": "Agen-La Garenne Airport",
-    "city": "Agen/La Garenne",
+    "name": "Agen La Garenne airport",
+    "city": "Agen",
     "lat": 44.174171,
     "lon": 0.59309,
     "iata": "AGF"
   },
   {
-    "name": "Bordeaux-Mérignac Airport",
-    "city": "Bordeaux/Mérignac",
-    "lat": 44.8283,
-    "lon": -0.715556,
+    "name": "Bordeaux–Mérignac Airport",
+    "city": "Bordeaux",
+    "lat": 44.82865,
+    "lon": -0.715356,
     "iata": "BOD"
   },
   {
-    "name": "Bergerac Dordogne Périgord Airport",
-    "city": "Bergerac/Roumanière",
+    "name": "Bergerac Dordogne-Périgord airport",
+    "city": "Bergerac",
     "lat": 44.825298,
     "lon": 0.518611,
     "iata": "EGC"
@@ -30359,8 +30359,8 @@
     "iata": "CNG"
   },
   {
-    "name": "La Rochelle-Île de Ré Airport",
-    "city": "La Rochelle/Île de Ré",
+    "name": "La Rochelle Île de Ré Airport",
+    "city": "La Rochelle",
     "lat": 46.179199,
     "lon": -1.19528,
     "iata": "LRH"
@@ -30415,8 +30415,8 @@
     "iata": "LDE"
   },
   {
-    "name": "Angoulême-Brie-Champniers Airport",
-    "city": "Angoulême/Brie/Champniers",
+    "name": "Angoulême Brie-Champniers airport",
+    "city": "Angoulême",
     "lat": 45.729198,
     "lon": 0.221456,
     "iata": "ANG"
@@ -30429,29 +30429,29 @@
     "iata": "PGX"
   },
   {
-    "name": "Biarritz-Anglet-Bayonne Airport",
-    "city": "Biarritz/Anglet/Bayonne",
-    "lat": 43.468333,
-    "lon": -1.531111,
+    "name": "Biarritz Pays Basque airport",
+    "city": "Biarritz",
+    "lat": 43.468372,
+    "lon": -1.523223,
     "iata": "BIQ"
   },
   {
-    "name": "Aérodrome de Cahors-Lalbenque",
-    "city": "Cahors/Lalbenque",
+    "name": "Cahors Lalbenque airport",
+    "city": "Cahors",
     "lat": 44.351398,
     "lon": 1.47528,
     "iata": "ZAO"
   },
   {
-    "name": "Albi-Le Séquestre Airport",
-    "city": "Albi/Le Séquestre",
+    "name": "Albi Le Sequestre airport",
+    "city": "Albi",
     "lat": 43.913898,
     "lon": 2.11306,
     "iata": "LBI"
   },
   {
-    "name": "Castres-Mazamet Airport",
-    "city": "Castres/Mazamet",
+    "name": "Castres Mazamet Airport",
+    "city": "Castres",
     "lat": 43.556301,
     "lon": 2.28918,
     "iata": "DCM"
@@ -30499,15 +30499,15 @@
     "iata": "IDY"
   },
   {
-    "name": "Colmar-Houssen Airport",
-    "city": "Colmar, Haut-Rhin",
+    "name": "Colmar Houssen airport",
+    "city": "Colmar",
     "lat": 48.109901,
     "lon": 7.35901,
     "iata": "CMR"
   },
   {
-    "name": "Dole-Jura Airport",
-    "city": "Tavaux, Jura",
+    "name": "Dole Tavaux Airport",
+    "city": "Dole",
     "lat": 47.038955,
     "lon": 5.427589,
     "iata": "DLE"
@@ -30548,38 +30548,38 @@
     "iata": "ETZ"
   },
   {
-    "name": "Angers-Loire Airport",
-    "city": "Marcé, Maine-et-Loire",
+    "name": "Angers Marcé airport",
+    "city": "Angers",
     "lat": 47.560299,
     "lon": -0.312222,
     "iata": "ANE"
   },
   {
-    "name": "Bastia-Poretta Airport",
-    "city": "Bastia/Poretta",
-    "lat": 42.55270004272461,
-    "lon": 9.48373031616211,
+    "name": "Bastia Poretta airport",
+    "city": "Bastia",
+    "lat": 42.5527,
+    "lon": 9.48373,
     "iata": "BIA"
   },
   {
-    "name": "Calvi-Sainte-Catherine Airport",
-    "city": "Calvi/Sainte-Catherine",
-    "lat": 42.524444,
-    "lon": 8.793056,
+    "name": "Calvi Sainte Catherine Airport",
+    "city": "Calvi",
+    "lat": 42.530422,
+    "lon": 8.792984,
     "iata": "CLY"
   },
   {
     "name": "Figari Sud-Corse Airport",
-    "city": "Figari Sud-Corse",
+    "city": "Figari",
     "lat": 41.500599,
     "lon": 9.09778,
     "iata": "FSC"
   },
   {
-    "name": "Ajaccio-Napoléon Bonaparte Airport",
-    "city": "Ajaccio/Napoléon Bonaparte",
-    "lat": 41.92359924316406,
-    "lon": 8.8029203414917,
+    "name": "Ajaccio Napoléon Bonaparte airport",
+    "city": "Ajaccio",
+    "lat": 41.923599,
+    "lon": 8.80292,
     "iata": "AJA"
   },
   {
@@ -30604,29 +30604,29 @@
     "iata": "MFX"
   },
   {
-    "name": "Auxerre-Branches Airport",
-    "city": "Appoigny, Yonne",
+    "name": "Auxerre Branches airport",
+    "city": "Auxerre",
     "lat": 47.850201,
     "lon": 3.49711,
     "iata": "AUF"
   },
   {
-    "name": "Chambéry Savoie Mont Blanc Airport",
-    "city": "Viviers-du-Lac",
+    "name": "Chambéry Aix les Bains airport",
+    "city": "Chambéry",
     "lat": 45.6381,
     "lon": 5.88023,
     "iata": "CMF"
   },
   {
-    "name": "Clermont-Ferrand Auvergne Airport",
-    "city": "Aulnat, Puy-de-Dôme",
+    "name": "Clermont-Ferrand Auvergne airport",
+    "city": "Clermont-Ferrand",
     "lat": 45.786701,
     "lon": 3.16917,
     "iata": "CFE"
   },
   {
-    "name": "Bourges Airport",
-    "city": "Bourges, Cher",
+    "name": "Bourges airport",
+    "city": "Bourges",
     "lat": 47.060158,
     "lon": 2.369633,
     "iata": "BOU"
@@ -30660,15 +30660,15 @@
     "iata": "RNE"
   },
   {
-    "name": "Annecy Haute-Savoie Mont Blanc Airport",
-    "city": "Epagny Metz-Tessy",
+    "name": "Annecy Meythet airport",
+    "city": "Annecy",
     "lat": 45.928947,
     "lon": 6.0987,
     "iata": "NCY"
   },
   {
     "name": "Grenoble Alpes Isère Airport",
-    "city": "Saint-Étienne-de-Saint-Geoirs, Isère",
+    "city": "Grenoble",
     "lat": 45.3629,
     "lon": 5.32937,
     "iata": "GNB"
@@ -30688,15 +30688,15 @@
     "iata": "VHY"
   },
   {
-    "name": "Aurillac Airport",
+    "name": "Aurillac airport",
     "city": "Aurillac",
-    "lat": 44.89139938354492,
-    "lon": 2.4219400882720947,
+    "lat": 44.891399,
+    "lon": 2.42194,
     "iata": "AUR"
   },
   {
-    "name": "Châteauroux-Déols Marcel Dassault Airport",
-    "city": "Déols, Indre",
+    "name": "Châteauroux Déols airport",
+    "city": "Châteauroux",
     "lat": 46.860221,
     "lon": 1.728326,
     "iata": "CHR"
@@ -30709,8 +30709,8 @@
     "iata": "LYN"
   },
   {
-    "name": "Cannes-Mandelieu Airport",
-    "city": "Cannes, Alpes-Maritimes",
+    "name": "Cannes Mandelieu Airport",
+    "city": "Cannes",
     "lat": 43.547998,
     "lon": 6.955176,
     "iata": "CEQ"
@@ -30723,8 +30723,8 @@
     "iata": "EBU"
   },
   {
-    "name": "Carcassonne Airport",
-    "city": "Carcassonne/Salvaza",
+    "name": "Carcassonne Salvaza Airport",
+    "city": "Carcassonne",
     "lat": 43.216,
     "lon": 2.30632,
     "iata": "CCF"
@@ -30772,15 +30772,15 @@
     "iata": "MPL"
   },
   {
-    "name": "Béziers-Vias Airport",
-    "city": "Béziers/Vias",
+    "name": "Béziers Vias airport",
+    "city": "Béziers",
     "lat": 43.323502,
     "lon": 3.3539,
     "iata": "BZR"
   },
   {
-    "name": "Avignon-Caumont Airport",
-    "city": "Avignon, Vaucluse",
+    "name": "Avignon Caumont airport",
+    "city": "Avignon",
     "lat": 43.907299,
     "lon": 4.90183,
     "iata": "AVN"
@@ -30807,8 +30807,8 @@
     "iata": "SCP"
   },
   {
-    "name": "Paris-Beauvais Airport",
-    "city": "Tillé",
+    "name": "Beauvais Tillé airport",
+    "city": "Beauvais",
     "lat": 49.454399,
     "lon": 2.11278,
     "iata": "BVA"
@@ -30828,8 +30828,8 @@
     "iata": "LEH"
   },
   {
-    "name": "Châlons-Vatry Airport",
-    "city": "Bussy-Lettrée",
+    "name": "Chalons Vatry airport",
+    "city": "Chalons en Champagne",
     "lat": 48.77333,
     "lon": 4.20611,
     "iata": "XCR"
@@ -30856,8 +30856,8 @@
     "iata": "TUF"
   },
   {
-    "name": "Cholet Le Pontreau Airfield",
-    "city": "Cholet/Le Pontreau",
+    "name": "Cholet Le Pontreau airfield",
+    "city": "Cholet",
     "lat": 47.0821,
     "lon": -0.877064,
     "iata": "CET"
@@ -30878,7 +30878,7 @@
   },
   {
     "name": "Paris-Le Bourget Airport",
-    "city": "Paris (Le Bourget, Seine-Saint-Denis)",
+    "city": "Paris",
     "lat": 48.969398,
     "lon": 2.44139,
     "iata": "LBG"
@@ -30947,22 +30947,22 @@
     "iata": "HZB"
   },
   {
-    "name": "Brest Bretagne Airport",
-    "city": "Brest/Guipavas",
+    "name": "Brest Bretagne airport",
+    "city": "Brest",
     "lat": 48.447899,
     "lon": -4.41854,
     "iata": "BES"
   },
   {
-    "name": "Cherbourg-Maupertus Airport",
-    "city": "Gonneville-Le Theil, Manche",
+    "name": "Cherbourg Manche airport",
+    "city": "Cherbourg",
     "lat": 49.650101,
     "lon": -1.47028,
     "iata": "CER"
   },
   {
-    "name": "Dinard-Pleurtuit-Saint-Malo Airport",
-    "city": "Pleurtuit, Ille-et-Vilaine",
+    "name": "Dinard Pleurtuit Saint-Malo airport",
+    "city": "Dinard",
     "lat": 48.5877,
     "lon": -2.07996,
     "iata": "DNR"
@@ -30982,8 +30982,8 @@
     "iata": "GFR"
   },
   {
-    "name": "Deauville-Normandie Airport",
-    "city": "Deauville, Calvados",
+    "name": "Deauville Normandie airport",
+    "city": "Deauville",
     "lat": 49.365237,
     "lon": 0.154481,
     "iata": "DOL"
@@ -30996,8 +30996,8 @@
     "iata": "LRT"
   },
   {
-    "name": "La Roche-sur-Yon Airport",
-    "city": "La Roche-sur-Yon/Les Ajoncs",
+    "name": "La Roche-sur-Yon Les Ajoncs Airport",
+    "city": "La Roche-sur-Yon",
     "lat": 46.7019,
     "lon": -1.37863,
     "iata": "EDM"
@@ -31010,8 +31010,8 @@
     "iata": "LDV"
   },
   {
-    "name": "Caen-Carpiquet Airport",
-    "city": "Carpiquet, Calvados",
+    "name": "Caen Carpiquet airport",
+    "city": "Caen",
     "lat": 49.17678,
     "lon": -0.454883,
     "iata": "CFR"
@@ -31031,7 +31031,7 @@
     "iata": "RNS"
   },
   {
-    "name": "Lannion-Côte de Granit Airport",
+    "name": "Lannion Airport",
     "city": "Lannion",
     "lat": 48.754398,
     "lon": -3.47166,
@@ -31080,29 +31080,29 @@
     "iata": "SNR"
   },
   {
-    "name": "EuroAirport Basel-Mulhouse-Freiburg",
-    "city": "Saint-Louis",
+    "name": "EuroAirport Basel–Mulhouse–Freiburg",
+    "city": "Bâle / Mulhouse",
     "lat": 47.60068,
     "lon": 7.521117,
     "iata": "BSL"
   },
   {
-    "name": "Dijon-Bourgogne Airport",
-    "city": "Ouges, Côte-d'Or",
+    "name": "Dijon Longvic airport",
+    "city": "Dijon",
     "lat": 47.268902,
     "lon": 5.09,
     "iata": "DIJ"
   },
   {
-    "name": "Épinal-Mirecourt Airport",
-    "city": "Juvaincourt, Vosges",
+    "name": "Épinal Mirecourt Airport",
+    "city": "Épinal",
     "lat": 48.325001,
     "lon": 6.06998,
     "iata": "EPL"
   },
   {
-    "name": "Brive-Souillac Airport",
-    "city": "Brive la Gaillarde",
+    "name": "Brive Souillac airport",
+    "city": "Brive",
     "lat": 45.039722,
     "lon": 1.485556,
     "iata": "BVE"
@@ -31136,8 +31136,8 @@
     "iata": "FNI"
   },
   {
-    "name": "La Môle-Saint-Tropez Airport",
-    "city": "La Môle, Var",
+    "name": "La Môle Airport",
+    "city": "Saint-Tropez",
     "lat": 43.205399,
     "lon": 6.482,
     "iata": "LTT"
@@ -34930,6 +34930,13 @@
     "iata": "ILS"
   },
   {
+    "name": "Comino Heliport",
+    "city": "Comino",
+    "lat": 36.01007,
+    "lon": 14.347306,
+    "iata": "JCO"
+  },
+  {
     "name": "Antoine-Simon International Airport",
     "city": "Les Cayes",
     "lat": 18.271099,
@@ -36197,6 +36204,13 @@
     "iata": "FGU"
   },
   {
+    "name": "Tikehau Airport",
+    "city": "Tuherahera",
+    "lat": -15.1196,
+    "lon": -148.231003,
+    "iata": "TIH"
+  },
+  {
     "name": "Apataki Airport",
     "city": "Apataki",
     "lat": -15.5736,
@@ -36794,8 +36808,8 @@
   {
     "name": "Dargaville Aerodrome",
     "city": "Dargaville",
-    "lat": -35.939701,
-    "lon": 173.893997,
+    "lat": -35.939304,
+    "lon": 173.892862,
     "iata": "DGR"
   },
   {
@@ -37032,8 +37046,8 @@
   {
     "name": "Wanganui Airport",
     "city": "Wanganui",
-    "lat": -39.96220016479492,
-    "lon": 175.02499389648438,
+    "lat": -39.963467,
+    "lon": 175.02444,
     "iata": "WAG"
   },
   {
@@ -38388,7 +38402,7 @@
     "iata": "DEA"
   },
   {
-    "name": "Dera Ismael Khan Airport",
+    "name": "Dera Ismael Khan Airport [IN-ACTIVE]",
     "city": "Dera Ismael Khan",
     "lat": 31.909401,
     "lon": 70.896599,
@@ -42072,8 +42086,8 @@
   {
     "name": "Balesin Island Airport",
     "city": "Balesin",
-    "lat": 14.419365,
-    "lon": 122.039402,
+    "lat": 14.418624,
+    "lon": 122.03923,
     "iata": "BSI"
   },
   {
@@ -44772,7 +44786,7 @@
     "iata": "REZ"
   },
   {
-    "name": "Mário Pereira Lopes–São Carlos Airport",
+    "name": "Mário Pereira Lopes–São Carlos International Airport",
     "city": "São Carlos",
     "lat": -21.875032,
     "lon": -47.903851,
@@ -44812,6 +44826,13 @@
     "lat": -5.9334,
     "lon": -40.2975,
     "iata": "JTA"
+  },
+  {
+    "name": "Hudiksvall Airport",
+    "city": "Hudiksvall",
+    "lat": 61.768087,
+    "lon": 17.080715,
+    "iata": "HUV"
   },
   {
     "name": "Chachoán Regional Airport",
@@ -45115,10 +45136,10 @@
     "iata": "LVR"
   },
   {
-    "name": "Fazenda Trêz Irmãos Airport",
-    "city": "Santa Fé Do Sul",
-    "lat": -20.227777,
-    "lon": -50.968334,
+    "name": "Santa Fé do Sul Airport",
+    "city": "Santa Fé do Sul",
+    "lat": -20.228473,
+    "lon": -50.968943,
     "iata": "SFV"
   },
   {
@@ -47818,7 +47839,7 @@
   },
   {
     "name": "Santa Cruz do Sul Airport",
-    "city": "Santa Cruz Do Sul",
+    "city": "Santa Cruz do Sul",
     "lat": -29.684099,
     "lon": -52.412201,
     "iata": "CSU"
@@ -48692,7 +48713,7 @@
     "iata": "SYF"
   },
   {
-    "name": "Eugene F. Correira International Airport",
+    "name": "Eugene F. Correia International Airport",
     "city": "Ogle",
     "lat": 6.80628,
     "lon": -58.1059,
@@ -48708,8 +48729,8 @@
   {
     "name": "Kaieteur International Airport",
     "city": "Kaieteur Falls",
-    "lat": 5.17275476456,
-    "lon": -59.491481781,
+    "lat": 5.177349,
+    "lon": -59.48898,
     "iata": "KAI"
   },
   {
@@ -48729,8 +48750,8 @@
   {
     "name": "Karasabai Airport",
     "city": "Karasabai",
-    "lat": 4.03333,
-    "lon": -59.533298,
+    "lat": 4.03005,
+    "lon": -59.54749,
     "iata": "KRG"
   },
   {
@@ -48778,8 +48799,8 @@
   {
     "name": "Mahdia Airport",
     "city": "Mahdia",
-    "lat": 5.27749,
-    "lon": -59.1511,
+    "lat": 5.272845,
+    "lon": -59.149296,
     "iata": "MHA"
   },
   {
@@ -48792,8 +48813,8 @@
   {
     "name": "Monkey Mountain Airport",
     "city": "Monkey Mountain",
-    "lat": 4.45315,
-    "lon": -59.599596,
+    "lat": 4.452267,
+    "lon": -59.603126,
     "iata": "MYM"
   },
   {
@@ -48834,8 +48855,8 @@
   {
     "name": "Paramakatoi Airport",
     "city": "Paramakatoi",
-    "lat": 4.6975,
-    "lon": -59.7125,
+    "lat": 4.699587,
+    "lon": -59.713841,
     "iata": "PMT"
   },
   {
@@ -49443,9 +49464,9 @@
   {
     "name": "Manas International Airport",
     "city": "Bishkek",
-    "lat": 43.0612983704,
-    "lon": 74.4776000977,
-    "iata": "FRU"
+    "lat": 43.061298,
+    "lon": 74.4776,
+    "iata": "BSZ"
   },
   {
     "name": "Osh Airport",
@@ -49597,8 +49618,8 @@
   {
     "name": "Ganja International Airport",
     "city": "Ganja",
-    "lat": 40.737701,
-    "lon": 46.3176,
+    "lat": 40.738935,
+    "lon": 46.320067,
     "iata": "GNJ"
   },
   {
@@ -52026,8 +52047,8 @@
   {
     "name": "Mondulkiri Airport",
     "city": "Sen Monorom",
-    "lat": 12.463648,
-    "lon": 107.187252,
+    "lat": 12.464562,
+    "lon": 107.188039,
     "iata": "MWV"
   },
   {
@@ -52052,17 +52073,10 @@
     "iata": "SAI"
   },
   {
-    "name": "Stung Treng Airport",
-    "city": "Stung Treng",
-    "lat": 13.5319,
-    "lon": 106.014999,
-    "iata": "TNX"
-  },
-  {
     "name": "Sihanoukville International Airport",
     "city": "Preah Sihanouk",
-    "lat": 10.569498,
-    "lon": 103.631001,
+    "lat": 10.571969,
+    "lon": 103.632689,
     "iata": "KOS"
   },
   {
@@ -52143,10 +52157,10 @@
     "iata": "VNS"
   },
   {
-    "name": "Biju Patnaik Airport",
+    "name": "Biju Patnaik International Airport",
     "city": "Bhubaneswar",
-    "lat": 20.244400024399997,
-    "lon": 85.8178024292,
+    "lat": 20.2444,
+    "lon": 85.817802,
     "iata": "BBI"
   },
   {
@@ -52236,22 +52250,22 @@
   {
     "name": "Jeypore Airport",
     "city": "Jeypore",
-    "lat": 18.879999,
-    "lon": 82.552002,
+    "lat": 18.879549,
+    "lon": 82.552478,
     "iata": "PYB"
   },
   {
     "name": "Sonari Airport",
     "city": "Jamshedpur",
-    "lat": 22.813786,
-    "lon": 86.169739,
+    "lat": 22.813706,
+    "lon": 86.168981,
     "iata": "IXW"
   },
   {
     "name": "Jorhat Airport",
     "city": "Jorhat",
-    "lat": 26.7315006256,
-    "lon": 94.1754989624,
+    "lat": 26.730456,
+    "lon": 94.175416,
     "iata": "JRH"
   },
   {
@@ -52299,8 +52313,8 @@
   {
     "name": "Lilabari North Lakhimpur Airport",
     "city": "Lilabari",
-    "lat": 27.2955,
-    "lon": 94.097603,
+    "lat": 27.295682,
+    "lon": 94.097266,
     "iata": "IXI"
   },
   {
@@ -52397,22 +52411,22 @@
   {
     "name": "Barisal Airport",
     "city": "Barisal",
-    "lat": 22.801000595092773,
-    "lon": 90.30120086669922,
+    "lat": 22.801001,
+    "lon": 90.301201,
     "iata": "BZL"
   },
   {
     "name": "Cox's Bazar Airport",
     "city": "Cox's Bazar",
-    "lat": 21.452199935913086,
-    "lon": 91.96389770507812,
+    "lat": 21.457517,
+    "lon": 91.963263,
     "iata": "CXB"
   },
   {
     "name": "Comilla Airport",
     "city": "Comilla",
-    "lat": 23.437201,
-    "lon": 91.189697,
+    "lat": 23.440133,
+    "lon": 91.188685,
     "iata": "CLA"
   },
   {
@@ -52446,22 +52460,22 @@
   {
     "name": "Shah Mokhdum Airport",
     "city": "Rajshahi",
-    "lat": 24.43720054626465,
-    "lon": 88.61650085449219,
+    "lat": 24.437201,
+    "lon": 88.616501,
     "iata": "RJH"
   },
   {
     "name": "Saidpur Airport",
     "city": "Saidpur",
-    "lat": 25.759199142456055,
-    "lon": 88.90889739990234,
+    "lat": 25.759199,
+    "lon": 88.908897,
     "iata": "SPD"
   },
   {
     "name": "Thakurgaon Airport",
     "city": "Thakurgaon",
-    "lat": 26.016399,
-    "lon": 88.403603,
+    "lat": 26.016378,
+    "lon": 88.402092,
     "iata": "TKR"
   },
   {
@@ -52827,13 +52841,6 @@
     "lat": 22.149599,
     "lon": 113.592003,
     "iata": "MFM"
-  },
-  {
-    "name": "Phu Giao Airport",
-    "city": "Phu Giao",
-    "lat": 11.30034,
-    "lon": 106.79325,
-    "iata": "PHU"
   },
   {
     "name": "Bajhang Airport",
@@ -54574,8 +54581,8 @@
   {
     "name": "Lereh Airport",
     "city": "Lereh-Papua Island",
-    "lat": -3.0795,
-    "lon": 139.952,
+    "lat": -3.080046,
+    "lon": 139.952817,
     "iata": "LHI"
   },
   {
@@ -54819,8 +54826,8 @@
   {
     "name": "Gusti Syamsir Alam Airport",
     "city": "Stagen",
-    "lat": -3.29472,
-    "lon": 116.165001,
+    "lat": -3.294796,
+    "lon": 116.163815,
     "iata": "KBU"
   },
   {
@@ -54847,8 +54854,8 @@
   {
     "name": "Tumbang Samba Airport",
     "city": "Tumbang Samba-Borneo Island",
-    "lat": -1.4694,
-    "lon": 113.0833,
+    "lat": -1.469024,
+    "lon": 113.080984,
     "iata": "TBM"
   },
   {
@@ -55615,7 +55622,7 @@
     "iata": "BDO"
   },
   {
-    "name": "Penggung Airport",
+    "name": "Cakrabhuwana  Airport",
     "city": "Cirebon-Java Island",
     "lat": -6.757,
     "lon": 108.538849,
@@ -55750,8 +55757,8 @@
   {
     "name": "Jenderal Besar Abdul Haris Nasution Airport",
     "city": "Mandailing",
-    "lat": 0.948056,
-    "lon": 99.533333,
+    "lat": 0.943995,
+    "lon": 99.534093,
     "iata": "JHN"
   },
   {
@@ -56198,8 +56205,8 @@
   {
     "name": "Long Apung Airport",
     "city": "Long Apung-Borneo Island",
-    "lat": 1.704486,
-    "lon": 114.970297,
+    "lat": 1.706932,
+    "lon": 114.969934,
     "iata": "LPU"
   },
   {
@@ -56268,8 +56275,8 @@
   {
     "name": "Miami Seaplane Base",
     "city": "Miami",
-    "lat": 25.778299331665,
-    "lon": -80.170303344727,
+    "lat": 25.783075,
+    "lon": -80.177545,
     "iata": "MPB"
   },
   {
@@ -58952,6 +58959,13 @@
     "lat": 38.280701,
     "lon": 114.696999,
     "iata": "SJW"
+  },
+  {
+    "name": "Tangshan Sannühe Airport",
+    "city": "Tangshan (Fengrun)",
+    "lat": 39.7178,
+    "lon": 118.002625,
+    "iata": "TVS"
   },
   {
     "name": "Tianjin Binhai International Airport",
