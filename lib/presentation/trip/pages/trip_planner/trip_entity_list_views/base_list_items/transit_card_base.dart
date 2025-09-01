@@ -114,7 +114,8 @@ class TransitCardBase extends StatelessWidget {
         Expanded(
           flex: 2,
           child: Padding(
-            padding: const EdgeInsets.only(top: 12.0),
+            padding:
+                const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

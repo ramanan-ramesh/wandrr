@@ -68,6 +68,8 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   }
 
   Column _createReadonlyExpenditureTile(BuildContext context) {
+    var formattedText = context.activeTrip.budgetingFacade
+        .formatCurrency(_totalExpenseValueNotifier.value);
     var columnItems = <Widget>[
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 2.0),
@@ -76,7 +78,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
           child: PlatformTextElements.createSubHeader(
               context: context,
               shouldBold: widget.isEditable,
-              text: _totalExpenseValueNotifier.value.toString()),
+              text: formattedText),
         ),
       ),
     ];

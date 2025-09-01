@@ -64,7 +64,7 @@ class DebtSummaryTile extends StatelessWidget {
                               appLocalizations),
                         ),
                         FittedBox(
-                          child: Text('${e.money}'),
+                          child: Text(budgetingModule.formatCurrency(e.money)),
                         ),
                       ],
                     ),

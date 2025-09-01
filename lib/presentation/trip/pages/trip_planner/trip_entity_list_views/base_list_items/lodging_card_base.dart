@@ -48,14 +48,18 @@ class LodgingCardBase extends StatelessWidget {
           ),
           Expanded(
             flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                confirmationId,
-                const SizedBox(height: 4.0),
-                expense,
-              ],
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  confirmationId,
+                  const SizedBox(height: 4.0),
+                  expense,
+                ],
+              ),
             ),
           ),
         ],

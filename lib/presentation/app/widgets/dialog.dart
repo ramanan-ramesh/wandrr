@@ -83,11 +83,10 @@ class PlatformDialogElements {
 
   static void showGeneralDialog<T>(
       BuildContext scaffoldContext, WidgetBuilder dialogContentCreator,
-      {bool isDismissible = false, void Function(T?)? onDialogResult}) {
+      {void Function(T?)? onDialogResult}) {
     unawaited(routes
         .showGeneralDialog(
       context: scaffoldContext,
-      barrierDismissible: isDismissible,
       pageBuilder: (BuildContext context, Animation<double> animation,
           Animation<double> secondaryAnimation) {
         return Material(

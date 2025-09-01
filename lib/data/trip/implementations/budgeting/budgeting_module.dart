@@ -5,6 +5,7 @@ import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
+import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/debt_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
@@ -32,6 +33,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       ModelCollectionFacade<ExpenseFacade> expenseModelCollection,
       ApiService<(Money, String), double?> currencyConverter,
       String defaultCurrency,
+      Iterable<CurrencyData> supportedCurrencies,
       Iterable<String> contributors,
       String currentUserName) async {
     var totalExpenditure = await _calculateTotalExpenseAmount(
@@ -47,10 +49,13 @@ class BudgetingModule implements BudgetingModuleEventHandler {
         expenseModelCollection,
         currencyConverter,
         defaultCurrency,
+        supportedCurrencies,
         contributors,
         totalExpenditure,
         currentUserName);
   }
+
+  final Iterable<CurrencyData> supportedCurrencies;
 
   @override
   Future dispose() async {
@@ -411,6 +416,41 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     this.defaultCurrency = defaultCurrency;
   }
 
+  @override
+  String formatCurrency(Money money) {
+    var currencyData = supportedCurrencies
+        .firstWhere((currency) => currency.code == money.currency);
+    var amountStr = money.amount.toStringAsFixed(2);
+    var parts = amountStr.split('.');
+    var integerPart = parts[0];
+    var decimalPart = parts[1];
+
+    var intBuffer = StringBuffer();
+    for (int i = 0; i < integerPart.length; i++) {
+      if (i != 0 && (integerPart.length - i) % 3 == 0) {
+        intBuffer.write(currencyData.thousandsSeparator);
+      }
+      intBuffer.write(integerPart[i]);
+    }
+    String formattedAmount;
+    if (decimalPart == '00' || decimalPart == '0') {
+      formattedAmount = intBuffer.toString();
+    } else {
+      formattedAmount =
+          intBuffer.toString() + currencyData.decimalSeparator + decimalPart;
+    }
+
+    if (currencyData.symbolOnLeft) {
+      return currencyData.spaceBetweenAmountAndSymbol
+          ? '${currencyData.symbol} $formattedAmount'
+          : '${currencyData.symbol}$formattedAmount';
+    } else {
+      return currencyData.spaceBetweenAmountAndSymbol
+          ? '$formattedAmount ${currencyData.symbol}'
+          : '$formattedAmount${currencyData.symbol}';
+    }
+  }
+
   Future _recalculateExpensesOnContributorsChanged<T>(
       ModelCollectionFacade<T> modelCollection,
       Iterable<String> contributors,
@@ -453,6 +493,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       this._expenseModelCollection,
       this.currencyConverter,
       this.defaultCurrency,
+      this.supportedCurrencies,
       Iterable<String> contributors,
       double totalExpenditure,
       this.currentUserName)
