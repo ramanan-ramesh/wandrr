@@ -10,6 +10,7 @@ import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
@@ -111,12 +112,7 @@ class _TripMetadataGridItem extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16.0, vertical: 3),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: context.isLightTheme
-                                ? [Colors.teal.shade50, Colors.teal.shade500]
-                                : [Colors.white70, Colors.black],
-                            stops: const [0, 1],
-                          ),
+                          gradient: AppColors.brandGradient,
                         ),
                         child: FittedBox(
                           child: Text(

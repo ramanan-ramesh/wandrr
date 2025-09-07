@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 //TODO: Refactor this class and analyze the behaviour. Keep a timer in this class after submitting, so that it takes 1.5 seconds to go from CircularProgressIndicator to Icon.
 class PlatformSubmitterFAB extends StatefulWidget {
@@ -95,10 +96,12 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
           ? Theme.of(context).floatingActionButtonTheme.elevation
           : 0,
       splashColor: !canEnable
-          ? (isLightTheme ? Colors.grey.shade400 : Colors.white30)
+          ? (isLightTheme
+              ? AppColors.neutral400
+              : AppColors.withOpacity(AppColors.neutral100, 0.3))
           : null,
       backgroundColor: !canEnable
-          ? (isLightTheme ? Colors.grey : Colors.grey.shade700)
+          ? (isLightTheme ? AppColors.neutral500 : AppColors.neutral700)
           : null,
       child: widget.isSubmitted
           ? const CircularProgressIndicator()

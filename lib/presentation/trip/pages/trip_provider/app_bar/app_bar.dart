@@ -56,11 +56,12 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       label: Text(
         'wandrr',
         style: TextStyle(
-            fontSize: Theme.of(context).textTheme.titleLarge!.fontSize),
+          fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
+        ),
       ),
       icon: Image(
         image: Assets.images.logo.provider(),
-        color: context.isLightTheme ? Colors.black : Colors.green,
+        color: context.isLightTheme ? Colors.white : Colors.black,
         width: 40,
         height: 40,
       ),

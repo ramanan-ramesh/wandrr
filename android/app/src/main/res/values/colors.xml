@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="splash_dark">#424242</color>
-    <color name="splash_light">#80CBC4</color>
+    <!-- splash_dark: brandSecondary (#2D3748), splash_light: brandPrimaryLight (#4DDBAD) from Flutter AppColors -->
+    <color name="splash_dark">#2D3748</color>
+    <color name="splash_light">#4DDBAD</color>
 </resources>

@@ -8,6 +8,7 @@ import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
@@ -93,7 +94,7 @@ class TripCreatorDialog extends StatelessWidget {
                         order: const NumericFocusOrder(4),
                         child: _buildCreateTripButton(context),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -177,13 +178,28 @@ class TripCreatorDialog extends StatelessWidget {
       ),
       clipBehavior: Clip.hardEdge,
       child: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
+        leading: Builder(
+          builder: (context) {
+            final isLight = Theme.of(context).brightness == Brightness.light;
+            return Align(
+              alignment: Alignment.center,
+              child: IconButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                style: isLight
+                    ? ButtonStyle(
+                        backgroundColor:
+                            WidgetStatePropertyAll(AppColors.brandSecondary),
+                      )
+                    : null,
+                icon: Icon(
+                  Icons.close_rounded,
+                  size: 26,
+                ),
+              ),
+            );
           },
-          icon: const Icon(
-            Icons.close_rounded,
-          ),
         ),
         centerTitle: true,
         title: FittedBox(
@@ -191,15 +207,6 @@ class TripCreatorDialog extends StatelessWidget {
               context: context, text: widgetContext.localizations.planTrip),
         ),
       ),
-    );
-  }
-
-  void _submitTripCreationEvent() {
-    var userName = widgetContext.activeUser!.userName;
-    var tripMetadata = _currentTripMetadata.clone();
-    tripMetadata.contributors = [userName];
-    widgetContext.addTripManagementEvent(
-      UpdateTripEntity<TripMetadataFacade>.create(tripEntity: tripMetadata),
     );
   }
 
@@ -218,6 +225,15 @@ class TripCreatorDialog extends StatelessWidget {
         Navigator.of(context).pop();
       },
       valueNotifier: _tripCreationMetadataValidityNotifier,
+    );
+  }
+
+  void _submitTripCreationEvent() {
+    var userName = widgetContext.activeUser!.userName;
+    var tripMetadata = _currentTripMetadata.clone();
+    tripMetadata.contributors = [userName];
+    widgetContext.addTripManagementEvent(
+      UpdateTripEntity<TripMetadataFacade>.create(tripEntity: tripMetadata),
     );
   }
 }

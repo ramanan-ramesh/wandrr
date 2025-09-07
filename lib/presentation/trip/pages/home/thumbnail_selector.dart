@@ -136,7 +136,9 @@ class _TripThumbnailCarouselSelectorState
           vertical: selected
               ? _kThumbnailSelectedVerticalMargin
               : _kThumbnailUnselectedVerticalMargin),
-      decoration: _createImageDecoration(selected),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(_kThumbnailContainerBorderRadius),
+      ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(_kThumbnailBorderRadius),
         child: thumbnails[index].image(
@@ -145,25 +147,6 @@ class _TripThumbnailCarouselSelectorState
           fit: BoxFit.cover,
         ),
       ),
-    );
-  }
-
-  Decoration _createImageDecoration(bool isSelected) {
-    var borderColor = isSelected
-        ? Theme.of(context).colorScheme.onSecondary
-        : Colors.transparent;
-    return BoxDecoration(
-      border: Border.all(
-        color: borderColor,
-        width: 4,
-      ),
-      borderRadius: BorderRadius.circular(_kThumbnailContainerBorderRadius),
-      boxShadow: isSelected
-          ? [
-              BoxShadow(
-                  color: borderColor.withValues(alpha: 0.18), blurRadius: 10)
-            ]
-          : [],
     );
   }
 

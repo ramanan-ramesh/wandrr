@@ -3,6 +3,7 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/debt_data.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
@@ -23,7 +24,8 @@ class DebtSummaryTile extends StatelessWidget {
     var contributorsVsColors = <String, Color>{};
     for (var index = 0; index < currentContributors.length; index++) {
       var contributor = currentContributors.elementAt(index);
-      contributorsVsColors[contributor] = contributorColors.elementAt(index);
+      contributorsVsColors[contributor] =
+          AppColors.travelAccents.elementAt(index);
     }
     return SliverToBoxAdapter(
       child: FutureBuilder<List<DebtData>>(

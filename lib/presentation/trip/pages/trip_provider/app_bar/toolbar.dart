@@ -6,6 +6,7 @@ import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/data/app/models/language_metadata.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/delete_trip_dialog.dart';
@@ -37,7 +38,10 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
     return MenuAnchor(
       controller: _menuController,
       alignmentOffset: Offset(0, 7),
-      style: const MenuStyle(
+      style: MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(
+          context.isLightTheme ? AppColors.darkSurface : null,
+        ),
         padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
             EdgeInsets.symmetric(vertical: 6)),
         shape: WidgetStatePropertyAll<OutlinedBorder>(
@@ -52,10 +56,18 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
           (BuildContext context, MenuController controller, Widget? child) {
         return IconButton(
           onPressed: _toggleMainMenu,
+          style: context.isLightTheme
+              ? ButtonStyle(
+                  backgroundColor:
+                      WidgetStatePropertyAll(AppColors.brandSecondary),
+                )
+              : null,
           icon: RotationTransition(
             turns:
                 Tween<double>(begin: 0, end: 1).animate(_settingsTurnAnimation),
-            child: const Icon(Icons.settings),
+            child: Icon(
+              Icons.settings,
+            ),
           ),
         );
       },
@@ -187,7 +199,10 @@ class _LanguageSubmenu extends StatelessWidget {
   Widget build(BuildContext context) {
     var languageMetadatas = context.appDataRepository.languageMetadatas;
     return SubmenuButton(
-      menuStyle: const MenuStyle(
+      menuStyle: MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(
+          !context.isLightTheme ? AppColors.darkSurface : null,
+        ),
         alignment: Alignment.centerRight,
         elevation: WidgetStatePropertyAll<double>(14),
         padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(EdgeInsets.zero),
