@@ -40,7 +40,7 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
       alignmentOffset: Offset(0, 7),
       style: MenuStyle(
         backgroundColor: WidgetStatePropertyAll(
-          context.isLightTheme ? AppColors.darkSurface : null,
+          !context.isLightTheme ? AppColors.darkSurface : null,
         ),
         padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
             EdgeInsets.symmetric(vertical: 6)),

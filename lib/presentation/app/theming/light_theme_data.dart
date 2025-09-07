@@ -143,6 +143,10 @@ ThemeData createLightThemeData(BuildContext context) {
         fontSize: 18,
         fontWeight: FontWeight.w700,
       ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(ThemeConstants.appBarBorderRadius)),
+      ),
     ),
     textSelectionTheme: TextSelectionThemeData(
       cursorColor: AppColors.brandPrimary,
@@ -169,7 +173,7 @@ ThemeData createLightThemeData(BuildContext context) {
       filled: true,
       fillColor: AppColors.lightSurfaceVariant,
       floatingLabelStyle: TextStyle(
-        color: AppColors.brandPrimary,
+        color: Colors.black,
         fontWeight: FontWeight.w600,
       ),
       border: OutlineInputBorder(

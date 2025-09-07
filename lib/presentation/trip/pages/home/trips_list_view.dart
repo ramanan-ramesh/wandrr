@@ -122,6 +122,7 @@ class _TripMetadataGridItem extends StatelessWidget {
                                   .textTheme
                                   .labelMedium!
                                   .fontSize,
+                              color: Colors.black,
                             ),
                           ),
                         ),

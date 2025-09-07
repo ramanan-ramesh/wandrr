@@ -73,6 +73,10 @@ ThemeData createDarkThemeData(BuildContext context) {
         fontWeight: FontWeight.bold,
         fontSize: 20,
       ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(ThemeConstants.appBarBorderRadius)),
+      ),
     ),
     cardTheme: CardThemeData(
       clipBehavior: Clip.hardEdge,
@@ -163,7 +167,7 @@ ThemeData createDarkThemeData(BuildContext context) {
       filled: true,
       fillColor: AppColors.darkSurfaceVariant,
       floatingLabelStyle: TextStyle(
-        color: AppColors.brandPrimaryLight,
+        color: Colors.white,
         fontWeight: FontWeight.w600,
       ),
       border: OutlineInputBorder(

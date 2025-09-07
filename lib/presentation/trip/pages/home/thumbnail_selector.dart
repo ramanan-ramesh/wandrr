@@ -266,10 +266,9 @@ class ThumbnailPicker extends StatelessWidget {
 
   Material _createAppBar(BuildContext dialogContext) {
     return Material(
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      shape: Theme.of(dialogContext).appBarTheme.shape,
       clipBehavior: Clip.hardEdge,
+      color: Colors.transparent,
       child: AppBar(
         centerTitle: true,
         automaticallyImplyLeading: false,
