@@ -36,10 +36,14 @@ ThemeData createLightThemeData(BuildContext context) {
       ),
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: AppColors.lightSurface,
-      elevation: 8,
+      backgroundColor: AppColors.neutral400, // Pale mint for strong contrast
+      elevation: 12, // Increased elevation for better prominence
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(ThemeConstants.cardBorderRadius),
+        side: BorderSide(
+          color: AppColors.neutral200, // Subtle border for definition
+          width: 1,
+        ),
       ),
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(

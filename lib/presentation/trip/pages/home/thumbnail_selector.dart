@@ -7,6 +7,7 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_provider/constants.dart';
 
 const double _kSelectedImageScaleFactor = 1.18;
@@ -132,20 +133,27 @@ class _TripThumbnailCarouselSelectorState
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       margin: EdgeInsets.symmetric(
-          horizontal: horizontalSpacing / 2,
-          vertical: selected
-              ? _kThumbnailSelectedVerticalMargin
-              : _kThumbnailUnselectedVerticalMargin),
+        horizontal: horizontalSpacing / 2,
+        vertical: selected
+            ? _kThumbnailSelectedVerticalMargin
+            : _kThumbnailUnselectedVerticalMargin,
+      ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(_kThumbnailContainerBorderRadius),
+        border: selected
+            ? Border.all(
+                color: context.isLightTheme
+                    ? Colors.black
+                    : Colors.white, // Sharp contrast border
+                width: 4,
+              )
+            : null,
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(_kThumbnailBorderRadius),
-        child: thumbnails[index].image(
-          width: unselectedImageSize,
-          height: unselectedImageSize,
-          fit: BoxFit.cover,
-        ),
+      clipBehavior: Clip.hardEdge,
+      child: thumbnails[index].image(
+        width: unselectedImageSize,
+        height: unselectedImageSize,
+        fit: BoxFit.cover,
       ),
     );
   }
