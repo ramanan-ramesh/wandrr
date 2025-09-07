@@ -187,7 +187,7 @@ class ReadonlyTransitPlan extends StatelessWidget {
       padding: const EdgeInsets.all(4.0),
       decoration: BoxDecoration(
         color: context.isLightTheme
-            ? AppColors.brandSecondary.withOpacity(0.9)
+            ? AppColors.brandSecondary.withValues(alpha: 0.9)
             : AppColors.neutral200,
         borderRadius: BorderRadius.circular(8.0),
       ),

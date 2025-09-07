@@ -167,15 +167,15 @@ class _TripEntityListViewState<T extends TripEntity>
                 ? Theme.of(context)
                     .colorScheme
                     .surfaceContainerHighest
-                    .withOpacity(0.96)
+                    .withValues(alpha: 0.96)
                 : Theme.of(context)
                     .colorScheme
                     .surfaceContainerHighest
-                    .withOpacity(0.98),
+                    .withValues(alpha: 0.98),
             elevation: 5,
             borderRadius: BorderRadius.circular(23),
-            shadowColor: AppColors.neutral900.withOpacity(0.10),
-            child: Container(
+            shadowColor: AppColors.neutral900.withValues(alpha: 0.10),
+            child: DecoratedBox(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(23),
                 border: Border.all(

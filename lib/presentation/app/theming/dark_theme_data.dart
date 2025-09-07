@@ -16,13 +16,13 @@ ThemeData createDarkThemeData(BuildContext context) {
       style: ButtonStyle(
         backgroundColor: WidgetStatePropertyAll(AppColors.brandPrimaryLight),
         foregroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.disabled)) {
+          if (states.contains(WidgetState.disabled)) {
             return AppColors.neutral100; // More pronounced for disabled
           }
           return AppColors.brandSecondary;
         }),
         iconColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.disabled)) {
+          if (states.contains(WidgetState.disabled)) {
             return AppColors.neutral100; // More pronounced for disabled
           }
           return AppColors.brandSecondary;
@@ -51,7 +51,7 @@ ThemeData createDarkThemeData(BuildContext context) {
       textColor: AppColors.neutral100,
       iconColor: AppColors.brandPrimaryLight,
       selectedTileColor: AppColors.brandPrimaryLight
-          .withOpacity(0.38), // More pronounced selection
+          .withValues(alpha: 0.38), // More pronounced selection
       selectedColor: Colors.white, // Maximum contrast for selected text/icon
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
@@ -218,10 +218,10 @@ ThemeData createDarkThemeData(BuildContext context) {
         return AppColors.neutral600;
       }),
       overlayColor: WidgetStateProperty.all(
-          AppColors.brandPrimaryLight.withOpacity(0.08)),
+          AppColors.brandPrimaryLight.withValues(alpha: 0.08)),
       splashRadius: 18,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      mouseCursor: MaterialStateMouseCursor.clickable,
+      mouseCursor: WidgetStateMouseCursor.clickable,
       thumbIcon: WidgetStateProperty.resolveWith<Icon?>((states) {
         if (states.contains(WidgetState.selected)) {
           return const Icon(Icons.check, size: 14, color: Colors.white);

@@ -7,11 +7,9 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
-import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_provider/constants.dart';
 
 const double _kSelectedImageScaleFactor = 1.18;
-const double _kThumbnailBorderRadius = 14.0;
 const double _kThumbnailContainerBorderRadius = 18.0;
 const double _kThumbnailSelectedVerticalMargin = 0.0;
 const double _kThumbnailUnselectedVerticalMargin = 12.0;

@@ -135,8 +135,8 @@ class _Badge extends StatelessWidget {
         boxShadow: <BoxShadow>[
           BoxShadow(
             color: context.isLightTheme
-                ? AppColors.brandSecondary.withOpacity(0.3)
-                : Colors.black.withOpacity(0.5),
+                ? AppColors.brandSecondary.withValues(alpha: 0.3)
+                : Colors.black.withValues(alpha: 0.5),
             offset: const Offset(3, 3),
             blurRadius: 3,
           ),

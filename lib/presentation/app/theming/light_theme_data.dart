@@ -15,14 +15,14 @@ ThemeData createLightThemeData(BuildContext context) {
       style: ButtonStyle(
         backgroundColor: WidgetStatePropertyAll(AppColors.brandPrimary),
         foregroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.disabled)) {
+          if (states.contains(WidgetState.disabled)) {
             return AppColors
                 .brandSecondary; // Both text and icon use this when disabled
           }
           return Colors.white;
         }),
         iconColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.disabled)) {
+          if (states.contains(WidgetState.disabled)) {
             return AppColors.brandSecondary;
           }
           return Colors.white;
@@ -56,7 +56,7 @@ ThemeData createLightThemeData(BuildContext context) {
       textColor: AppColors.brandSecondary,
       iconColor: AppColors.brandSecondary, // Dark charcoal for better contrast
       selectedTileColor: AppColors.brandPrimary
-          .withOpacity(0.85), // More vibrant and visible when selected
+          .withValues(alpha: 0.85), // More vibrant and visible when selected
       selectedColor:
           Colors.white, // White for selected icon/text for max contrast
       shape: RoundedRectangleBorder(
@@ -223,11 +223,11 @@ ThemeData createLightThemeData(BuildContext context) {
         }
         return AppColors.neutral400;
       }),
-      overlayColor:
-          WidgetStateProperty.all(AppColors.brandPrimary.withOpacity(0.08)),
+      overlayColor: WidgetStateProperty.all(
+          AppColors.brandPrimary.withValues(alpha: 0.08)),
       splashRadius: 18,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      mouseCursor: MaterialStateMouseCursor.clickable,
+      mouseCursor: WidgetStateMouseCursor.clickable,
       thumbIcon: WidgetStateProperty.resolveWith<Icon?>((states) {
         if (states.contains(WidgetState.selected)) {
           return const Icon(Icons.check, size: 14, color: Colors.white);
