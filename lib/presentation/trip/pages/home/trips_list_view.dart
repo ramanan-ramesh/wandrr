@@ -45,7 +45,7 @@ class TripListView extends StatelessWidget {
             maxCrossAxisExtent: 300,
             mainAxisSpacing: 7,
             crossAxisSpacing: 7,
-            childAspectRatio: 0.7,
+            childAspectRatio: 0.75,
             children: tripMetadatas.map((tripMetadata) {
               return _TripMetadataGridItem(
                 tripMetaDataFacade: tripMetadata,
@@ -131,6 +131,7 @@ class _TripMetadataGridItem extends StatelessWidget {
                 ),
                 Card(
                   shape: const StadiumBorder(),
+                  shadowColor: Colors.transparent,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Row(

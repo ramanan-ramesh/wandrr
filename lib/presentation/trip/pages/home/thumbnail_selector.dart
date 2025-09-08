@@ -6,6 +6,7 @@ import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/constants.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/trip/pages/trip_provider/constants.dart';
 
@@ -268,6 +269,10 @@ class ThumbnailPicker extends StatelessWidget {
       clipBehavior: Clip.hardEdge,
       color: Colors.transparent,
       child: AppBar(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+              top: Radius.circular(ThemeConstants.appBarBorderRadius)),
+        ),
         centerTitle: true,
         automaticallyImplyLeading: false,
         title: FittedBox(

@@ -73,10 +73,6 @@ ThemeData createDarkThemeData(BuildContext context) {
         fontWeight: FontWeight.bold,
         fontSize: 20,
       ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-            top: Radius.circular(ThemeConstants.appBarBorderRadius)),
-      ),
     ),
     cardTheme: CardThemeData(
       clipBehavior: Clip.hardEdge,
@@ -174,31 +170,46 @@ ThemeData createDarkThemeData(BuildContext context) {
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
-        borderSide: BorderSide(color: AppColors.neutral600),
+        borderSide: BorderSide(
+          color: AppColors.neutral600,
+          width: 1.5,
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
-        borderSide: BorderSide(color: AppColors.neutral600),
+        borderSide: BorderSide(
+          color: AppColors.neutral600,
+          width: 1.5,
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
-        borderSide: BorderSide(color: AppColors.brandPrimaryLight, width: 2),
+        borderSide: BorderSide(
+          color: AppColors.brandPrimaryLight,
+          width: 2,
+        ),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
-        borderSide: BorderSide(color: AppColors.errorLight),
+        borderSide: BorderSide(
+          color: AppColors.errorLight,
+          width: 1.5,
+        ),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
-        borderSide: BorderSide(color: AppColors.errorLight, width: 2),
+        borderSide: BorderSide(
+          color: AppColors.errorLight,
+          width: 2,
+        ),
       ),
       iconColor: AppColors.brandPrimaryLight,
       prefixIconColor: AppColors.brandPrimaryLight,

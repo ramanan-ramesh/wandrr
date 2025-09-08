@@ -253,7 +253,6 @@ class _EditableTripEntityButtonBarState<T extends TripEntity>
           child: PlatformSubmitterFAB.conditionallyEnabled(
             valueNotifier: widget._validityNotifier,
             icon: Icons.check_rounded,
-            context: context,
             callback: () {
               if (widget.onUpdatePressed != null) {
                 widget.onUpdatePressed!(widget.uiElement);
@@ -284,7 +283,6 @@ class _EditableTripEntityButtonBarState<T extends TripEntity>
             child: PlatformSubmitterFAB(
               icon: Icons.delete_rounded,
               isEnabledInitially: true,
-              context: context,
               callback: () {
                 if (widget.onDeletePressed != null) {
                   widget.onDeletePressed!(widget.uiElement);

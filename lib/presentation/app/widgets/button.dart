@@ -4,7 +4,6 @@ import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 class PlatformSubmitterFAB extends StatefulWidget {
   final IconData icon;
-  final BuildContext context;
   final VoidCallback? callback;
   final VoidCallback? validationFailureCallback;
   final VoidCallback? validationSuccessCallback;
@@ -19,7 +18,6 @@ class PlatformSubmitterFAB extends StatefulWidget {
 
   const PlatformSubmitterFAB({
     required this.icon,
-    required this.context,
     super.key,
     this.isElevationRequired = true,
     this.callback,
@@ -35,7 +33,6 @@ class PlatformSubmitterFAB extends StatefulWidget {
 
   const PlatformSubmitterFAB.form({
     required this.icon,
-    required this.context,
     super.key,
     this.isElevationRequired = true,
     this.callback,
@@ -51,7 +48,6 @@ class PlatformSubmitterFAB extends StatefulWidget {
 
   const PlatformSubmitterFAB.conditionallyEnabled({
     required this.icon,
-    required this.context,
     required this.valueNotifier,
     super.key,
     this.isElevationRequired = true,

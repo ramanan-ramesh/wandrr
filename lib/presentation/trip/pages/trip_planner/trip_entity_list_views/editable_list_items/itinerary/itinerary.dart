@@ -224,7 +224,6 @@ class _ItineraryListItemState extends State<ItineraryListItem>
         return PlatformSubmitterFAB.conditionallyEnabled(
           icon: Icons.check_rounded,
           isSubmitted: false,
-          context: context,
           valueNotifier: _canUpdateItineraryDataNotifier,
           callback: () {
             context.addTripManagementEvent(UpdateItineraryPlanData(

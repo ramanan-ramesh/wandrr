@@ -143,10 +143,6 @@ ThemeData createLightThemeData(BuildContext context) {
         fontSize: 18,
         fontWeight: FontWeight.w700,
       ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-            top: Radius.circular(ThemeConstants.appBarBorderRadius)),
-      ),
     ),
     textSelectionTheme: TextSelectionThemeData(
       cursorColor: AppColors.brandPrimary,
@@ -173,38 +169,53 @@ ThemeData createLightThemeData(BuildContext context) {
       filled: true,
       fillColor: AppColors.lightSurfaceVariant,
       floatingLabelStyle: TextStyle(
-        color: Colors.black,
+        color: AppColors.brandSecondary,
         fontWeight: FontWeight.w600,
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
-        borderSide: BorderSide(color: AppColors.neutral400),
+        borderSide: BorderSide(
+          color: AppColors.neutral600,
+          width: 1.5,
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
-        borderSide: BorderSide(color: AppColors.neutral400),
+        borderSide: BorderSide(
+          color: AppColors.neutral600,
+          width: 1.5,
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
-        borderSide: BorderSide(color: AppColors.brandPrimary, width: 2),
+        borderSide: BorderSide(
+          color: AppColors.neutral600,
+          width: 2,
+        ),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
-        borderSide: BorderSide(color: AppColors.error),
+        borderSide: BorderSide(
+          color: AppColors.error,
+          width: 1.5,
+        ),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
-        borderSide: BorderSide(color: AppColors.error, width: 2),
+        borderSide: BorderSide(
+          color: AppColors.error,
+          width: 2,
+        ),
       ),
       iconColor: AppColors.brandPrimary,
       prefixIconColor: AppColors.brandPrimary,

@@ -9,6 +9,7 @@ import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/app/theming/constants.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
@@ -178,6 +179,10 @@ class TripCreatorDialog extends StatelessWidget {
       ),
       clipBehavior: Clip.hardEdge,
       child: AppBar(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+              top: Radius.circular(ThemeConstants.appBarBorderRadius)),
+        ),
         leading: Builder(
           builder: (context) {
             final isLight = Theme.of(context).brightness == Brightness.light;
@@ -219,7 +224,6 @@ class TripCreatorDialog extends StatelessWidget {
   Widget _buildCreateTripButton(BuildContext context) {
     return PlatformSubmitterFAB.conditionallyEnabled(
       icon: Icons.done_rounded,
-      context: context,
       callback: () {
         _submitTripCreationEvent();
         Navigator.of(context).pop();

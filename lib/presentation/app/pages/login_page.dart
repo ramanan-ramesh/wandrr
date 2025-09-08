@@ -87,7 +87,6 @@ class _LoginPageState extends State<LoginPage>
       onAuthStateChangeBuilder: (state, {required bool canEnable}) =>
           PlatformSubmitterFAB.form(
         icon: Icons.login_rounded,
-        context: context,
         formState: _formKey,
         isEnabledInitially: canEnable,
         validationSuccessCallback: () {

@@ -253,7 +253,6 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
             padding: const EdgeInsets.symmetric(horizontal: 3.0),
             child: PlatformSubmitterFAB.conditionallyEnabled(
               icon: Icons.check_rounded,
-              context: context,
               isEnabledInitially: false,
               callback: () {
                 if (_planDataUiElement.dataState == DataState.newUiEntry) {
@@ -274,7 +273,6 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
             padding: const EdgeInsets.symmetric(horizontal: 3.0),
             child: PlatformSubmitterFAB(
               icon: Icons.delete_rounded,
-              context: context,
               isEnabledInitially: true,
               callback: () {
                 context.addTripManagementEvent(
