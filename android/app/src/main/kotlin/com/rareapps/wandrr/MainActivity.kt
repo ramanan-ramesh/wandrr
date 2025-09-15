@@ -86,11 +86,13 @@ class MainActivity : Activity() {
         val textView = findViewById<TextView>(R.id.wandrr_text)
 
         if (themeMode == "dark") {
-            rootView.setBackgroundColor(ContextCompat.getColor(this, R.color.splash_dark))
-            textView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
+            // Background: Starry night with brandSecondary base, Text: brandPrimary (#009E6D)
+            rootView.setBackgroundResource(R.drawable.starry_night_background)
+            textView.setTextColor(0xFF009E6D.toInt())
         } else {
+            // Background: brandPrimaryLight (#4DDBAD), Text: brandSecondary (#2D3748)
             rootView.setBackgroundColor(ContextCompat.getColor(this, R.color.splash_light))
-            textView.setTextColor(ContextCompat.getColor(this, android.R.color.black))
+            textView.setTextColor(0xFF2D3748.toInt())
         }
     }
 

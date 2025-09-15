@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 class LodgingCardBase extends StatelessWidget {
   final LodgingFacade lodgingFacade;
@@ -85,7 +86,9 @@ class LodgingCardBase extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
-        color: context.isLightTheme ? Colors.teal : Colors.grey.shade700,
+        color: context.isLightTheme
+            ? AppColors.brandPrimaryLight.withValues(alpha: 0.7)
+            : AppColors.brandPrimaryDark.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 
 abstract class AbstractPlatformDatePicker extends StatefulWidget {
@@ -38,29 +39,42 @@ abstract class AbstractPlatformDatePicker extends StatefulWidget {
 
   CalendarDatePicker2WithActionButtonsConfig createDatePickerConfig(
       BuildContext dialogContext, BuildContext parentContext) {
-    //TODO: Configure for light theme
+    var isLightTheme = parentContext.isLightTheme;
     return CalendarDatePicker2WithActionButtonsConfig(
       calendarType: CalendarDatePicker2Type.single,
       firstDayOfWeek: 1,
       centerAlignModePicker: true,
-      controlsTextStyle: const TextStyle(color: Colors.white),
-      dayTextStyle: const TextStyle(color: Colors.white),
-      selectedDayHighlightColor: Colors.green,
-      selectedDayTextStyle: const TextStyle(color: Colors.black),
-      selectedRangeHighlightColor: Colors.green,
-      selectedRangeDayTextStyle: const TextStyle(color: Colors.black),
-      todayTextStyle: const TextStyle(color: Colors.white),
-      okButtonTextStyle: const TextStyle(color: Colors.black),
-      cancelButtonTextStyle: const TextStyle(color: Colors.black),
+      controlsTextStyle:
+          TextStyle(color: isLightTheme ? Colors.black87 : Colors.white),
+      dayTextStyle:
+          TextStyle(color: isLightTheme ? Colors.black87 : Colors.white),
+      selectedDayHighlightColor: AppColors.brandPrimary,
+      selectedDayTextStyle: const TextStyle(color: Colors.white),
+      selectedRangeHighlightColor: AppColors.brandPrimaryLight,
+      selectedRangeDayTextStyle:
+          TextStyle(color: isLightTheme ? Colors.black87 : Colors.white),
+      todayTextStyle: TextStyle(
+          color: isLightTheme
+              ? AppColors.brandPrimary
+              : AppColors.brandPrimaryLight),
+      okButtonTextStyle: TextStyle(color: AppColors.brandPrimary),
+      cancelButtonTextStyle:
+          TextStyle(color: !isLightTheme ? Colors.black54 : Colors.white70),
       cancelButton: TextButton(
         onPressed: () {
           Navigator.of(dialogContext).pop();
         },
+        style: TextButton.styleFrom(
+          foregroundColor: !isLightTheme ? Colors.black54 : Colors.white70,
+        ),
         child: Text(parentContext.localizations.cancel),
       ),
       okButton: IgnorePointer(
         child: TextButton(
           onPressed: () {},
+          style: TextButton.styleFrom(
+            foregroundColor: !isLightTheme ? Colors.black54 : Colors.white70,
+          ),
           child: const Text('OK'),
         ),
       ),

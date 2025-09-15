@@ -39,7 +39,7 @@ class _PlanDataListItemState extends State<PlanDataListItem> {
   Widget build(BuildContext context) {
     var tripId = context.activeTrip.tripMetadata.id!;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5.0),
+      padding: const EdgeInsets.all(12.0),
       child: Column(
         children: [
           Padding(
@@ -94,26 +94,26 @@ class _PlanDataListItemState extends State<PlanDataListItem> {
 
   Widget _buildCheckListCreator(String tripId) {
     return FloatingActionButton(
-        child: const Icon(Icons.checklist_rounded),
-        onPressed: () {
-          var newCheckListEntry = CheckListFacade.newUiEntry(
-              items: [CheckListItem(item: '', isChecked: false)],
-              tripId: tripId);
-          var isAnyCheckListEmpty = false;
-          for (final checkList in _planDataUiElement.element.checkLists) {
-            if (checkList.items.isEmpty ||
-                checkList.items
-                    .any((checkListItem) => checkListItem.item.isEmpty)) {
-              isAnyCheckListEmpty = true;
-            }
+      child: const Icon(Icons.checklist_rounded),
+      onPressed: () {
+        var newCheckListEntry = CheckListFacade.newUiEntry(
+            items: [CheckListItem(item: '', isChecked: false)], tripId: tripId);
+        var isAnyCheckListEmpty = false;
+        for (final checkList in _planDataUiElement.element.checkLists) {
+          if (checkList.items.isEmpty ||
+              checkList.items
+                  .any((checkListItem) => checkListItem.item.isEmpty)) {
+            isAnyCheckListEmpty = true;
           }
-          if (!isAnyCheckListEmpty) {
-            _planDataUiElement.element.checkLists.add(newCheckListEntry);
-            setState(() {});
+        }
+        if (!isAnyCheckListEmpty) {
+          _planDataUiElement.element.checkLists.add(newCheckListEntry);
+          setState(() {});
 
-            widget.planDataUpdated(_planDataUiElement.element);
-          }
-        });
+          widget.planDataUpdated(_planDataUiElement.element);
+        }
+      },
+    );
   }
 
   Widget _buildNoteCreator(String tripId) {

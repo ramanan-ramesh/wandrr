@@ -4,5 +4,6 @@
 /android/.gradle/
 /android/.idea/
 /build/
+/scripts/__pycache__/
 .flutter-plugins
 .flutter-plugins-dependencies

@@ -7,9 +7,9 @@ import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
@@ -45,7 +45,7 @@ class TripListView extends StatelessWidget {
             maxCrossAxisExtent: 300,
             mainAxisSpacing: 7,
             crossAxisSpacing: 7,
-            childAspectRatio: 0.7,
+            childAspectRatio: 0.75,
             children: tripMetadatas.map((tripMetadata) {
               return _TripMetadataGridItem(
                 tripMetaDataFacade: tripMetadata,
@@ -111,12 +111,7 @@ class _TripMetadataGridItem extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16.0, vertical: 3),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: context.isLightTheme
-                                ? [Colors.teal.shade50, Colors.teal.shade500]
-                                : [Colors.white70, Colors.black],
-                            stops: const [0, 1],
-                          ),
+                          gradient: AppColors.brandGradient,
                         ),
                         child: FittedBox(
                           child: Text(
@@ -126,6 +121,7 @@ class _TripMetadataGridItem extends StatelessWidget {
                                   .textTheme
                                   .labelMedium!
                                   .fontSize,
+                              color: Colors.black,
                             ),
                           ),
                         ),
@@ -135,6 +131,7 @@ class _TripMetadataGridItem extends StatelessWidget {
                 ),
                 Card(
                   shape: const StadiumBorder(),
+                  shadowColor: Colors.transparent,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Row(

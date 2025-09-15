@@ -1,67 +1,88 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
-//TODO: Refactor this class and analyze the behaviour. Keep a timer in this class after submitting, so that it takes 1.5 seconds to go from CircularProgressIndicator to Icon.
 class PlatformSubmitterFAB extends StatefulWidget {
   final IconData icon;
-  final BuildContext context;
   final VoidCallback? callback;
-  VoidCallback? validationFailureCallback;
-  VoidCallback? validationSuccessCallback;
-  GlobalKey<FormState>? formState;
-  bool isSubmitted;
-  ValueNotifier<bool>? valueNotifier;
+  final VoidCallback? validationFailureCallback;
+  final VoidCallback? validationSuccessCallback;
+  final GlobalKey<FormState>? formState;
+  final bool isSubmitted;
+  final ValueNotifier<bool>? valueNotifier;
   final bool isConditionallyVisible;
   final bool isEnabledInitially;
-  VoidCallback? callbackOnClickWhileDisabled;
+  final VoidCallback? callbackOnClickWhileDisabled;
   final bool isElevationRequired;
+  final Duration minimumLoadingDuration;
 
-  PlatformSubmitterFAB(
-      {required this.icon,
-      required this.context,
-      super.key,
-      this.isElevationRequired = true,
-      this.callback,
-      this.isSubmitted = false,
-      this.isEnabledInitially = false})
-      : isConditionallyVisible = false;
+  const PlatformSubmitterFAB({
+    required this.icon,
+    super.key,
+    this.isElevationRequired = true,
+    this.callback,
+    this.isSubmitted = false,
+    this.isEnabledInitially = false,
+    this.minimumLoadingDuration = const Duration(milliseconds: 1500),
+    this.callbackOnClickWhileDisabled,
+  })  : isConditionallyVisible = false,
+        valueNotifier = null,
+        formState = null,
+        validationFailureCallback = null,
+        validationSuccessCallback = null;
 
-  PlatformSubmitterFAB.form(
-      {required this.icon,
-      required this.context,
-      super.key,
-      this.isElevationRequired = true,
-      this.callback,
-      this.formState,
-      this.validationFailureCallback,
-      this.validationSuccessCallback,
-      this.isSubmitted = false,
-      this.isEnabledInitially = false})
-      : isConditionallyVisible = false;
+  const PlatformSubmitterFAB.form({
+    required this.icon,
+    super.key,
+    this.isElevationRequired = true,
+    this.callback,
+    this.formState,
+    this.validationFailureCallback,
+    this.validationSuccessCallback,
+    this.isSubmitted = false,
+    this.isEnabledInitially = false,
+    this.minimumLoadingDuration = const Duration(milliseconds: 1500),
+    this.callbackOnClickWhileDisabled,
+  })  : isConditionallyVisible = false,
+        valueNotifier = null;
 
-  PlatformSubmitterFAB.conditionallyEnabled(
-      {required this.icon,
-      required this.context,
-      required ValueNotifier<bool> this.valueNotifier,
-      super.key,
-      this.isElevationRequired = true,
-      this.callback,
-      this.formState,
-      this.validationFailureCallback,
-      this.validationSuccessCallback,
-      this.isSubmitted = false,
-      this.isConditionallyVisible = false,
-      this.callbackOnClickWhileDisabled,
-      this.isEnabledInitially = false});
+  const PlatformSubmitterFAB.conditionallyEnabled({
+    required this.icon,
+    required this.valueNotifier,
+    super.key,
+    this.isElevationRequired = true,
+    this.callback,
+    this.formState,
+    this.validationFailureCallback,
+    this.validationSuccessCallback,
+    this.isSubmitted = false,
+    this.isConditionallyVisible = false,
+    this.callbackOnClickWhileDisabled,
+    this.isEnabledInitially = false,
+    this.minimumLoadingDuration = const Duration(milliseconds: 1500),
+  });
 
   @override
   State<PlatformSubmitterFAB> createState() => _PlatformSubmitterFABState();
 }
 
 class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
-  bool get _isCallbackNull => widget.formState != null
-      ? (widget.validationSuccessCallback == null)
-      : widget.callback == null;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isLoading = widget.isSubmitted;
+  }
+
+  @override
+  void didUpdateWidget(PlatformSubmitterFAB oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reset to original state when widget rebuilds unless explicitly submitted
+    if (!widget.isSubmitted && _isLoading) {
+      _setLoadingState(false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,14 +100,15 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
         },
       );
     }
-    return _buildFloatingActionButton(
-        !_isCallbackNull && widget.isEnabledInitially);
+    return _buildFloatingActionButton(_isEnabled);
   }
 
   FloatingActionButton _buildFloatingActionButton(bool canEnable) {
     var isLightTheme = context.isLightTheme;
+    final bool isButtonEnabled = canEnable && !_isLoading;
+
     return FloatingActionButton(
-      onPressed: widget.isSubmitted || !canEnable
+      onPressed: _isLoading || !canEnable
           ? () {
               widget.callbackOnClickWhileDisabled?.call();
             }
@@ -94,39 +116,66 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
       elevation: widget.isElevationRequired
           ? Theme.of(context).floatingActionButtonTheme.elevation
           : 0,
-      splashColor: !canEnable
-          ? (isLightTheme ? Colors.grey.shade400 : Colors.white30)
+      splashColor: !isButtonEnabled
+          ? (isLightTheme
+              ? AppColors.neutral400
+              : AppColors.withOpacity(AppColors.neutral100, 0.3))
           : null,
-      backgroundColor: !canEnable
-          ? (isLightTheme ? Colors.grey : Colors.grey.shade700)
+      backgroundColor: !isButtonEnabled
+          ? (isLightTheme ? AppColors.neutral500 : AppColors.neutral700)
           : null,
-      child: widget.isSubmitted
-          ? const CircularProgressIndicator()
-          : Icon(widget.icon),
+      child: _isLoading ? const CircularProgressIndicator() : Icon(widget.icon),
     );
   }
 
-  void _onPressed() {
-    if (_isCallbackNull) {
-      return;
-    }
-    if (widget.formState != null) {
-      if (widget.formState!.currentState != null) {
-        if (widget.formState!.currentState!.validate()) {
-          widget.validationSuccessCallback?.call();
-          widget.isSubmitted = true;
-          setState(() {});
-        } else {
-          widget.validationFailureCallback?.call();
-          widget.isSubmitted = false;
-          setState(() {});
-        }
-      }
-      return;
-    }
+  void _setLoadingState(bool isLoading) {
     setState(() {
-      widget.isSubmitted = true;
-      widget.callback!();
+      _isLoading = isLoading;
     });
+  }
+
+  bool get _isCallbackNull => widget.formState != null
+      ? (widget.validationSuccessCallback == null)
+      : widget.callback == null;
+
+  bool get _isEnabled {
+    if (widget.valueNotifier != null) {
+      return widget.valueNotifier!.value;
+    }
+    return !_isCallbackNull && widget.isEnabledInitially;
+  }
+
+  Future<void> _onPressed() async {
+    if (_isCallbackNull || _isLoading) {
+      return;
+    }
+
+    // Start loading state
+    _setLoadingState(true);
+
+    // Start the minimum duration timer
+    final minimumDurationFuture = Future.delayed(widget.minimumLoadingDuration);
+
+    try {
+      if (widget.formState != null) {
+        if (widget.formState!.currentState != null) {
+          if (widget.formState!.currentState!.validate()) {
+            widget.validationSuccessCallback?.call();
+
+            await minimumDurationFuture;
+          } else {
+            widget.validationFailureCallback?.call();
+            await minimumDurationFuture;
+          }
+        }
+      } else {
+        widget.callback?.call();
+        await minimumDurationFuture;
+      }
+    } finally {
+      if (mounted) {
+        _setLoadingState(false);
+      }
+    }
   }
 }

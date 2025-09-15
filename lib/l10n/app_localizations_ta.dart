@@ -244,7 +244,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get checkOut => 'சரிபார்க்கவும்';
 
   @override
-  String get newList => 'புதிய பட்டியல்';
+  String get newPlanData => 'புதிய திட்டம்';
 
   @override
   String get dayByDay => 'நாளுக்கு நாள்';
@@ -347,6 +347,9 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get noteCannotBeEmpty => 'குறிப்பு காலியாக இருக்க கூடாது';
+
+  @override
+  String get checkListTitle => 'செக்கிலிஸ்ட் தலைப்பு';
 
   @override
   String get checkListTitleMustBeAtleast3Characters =>

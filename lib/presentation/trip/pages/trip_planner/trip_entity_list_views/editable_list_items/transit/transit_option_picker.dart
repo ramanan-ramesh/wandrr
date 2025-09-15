@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 class TransitOptionPicker extends StatefulWidget {
   final Iterable<TransitOptionMetadata> options;
@@ -214,6 +216,8 @@ class _TransitOptionPickerState extends State<TransitOptionPicker>
         onTap: onTap,
         selected: isSelected,
         leading: Icon(metadata.icon),
+        shape:
+            const RoundedRectangleBorder(), // Override theme's rounded border
         title: Text(
           metadata.name,
           style: TextStyle(
@@ -240,7 +244,12 @@ class _TransitOptionPickerState extends State<TransitOptionPicker>
           child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8.0),
-              border: Border.all(color: Colors.grey[400]!),
+              border: Border.all(
+                color: context.isLightTheme
+                    ? AppColors.brandSecondary
+                    : AppColors.neutral400,
+                width: 1.5,
+              ),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,

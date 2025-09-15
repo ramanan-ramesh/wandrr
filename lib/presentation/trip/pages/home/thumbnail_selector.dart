@@ -6,11 +6,11 @@ import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/constants.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/trip/pages/trip_provider/constants.dart';
 
 const double _kSelectedImageScaleFactor = 1.18;
-const double _kThumbnailBorderRadius = 14.0;
 const double _kThumbnailContainerBorderRadius = 18.0;
 const double _kThumbnailSelectedVerticalMargin = 0.0;
 const double _kThumbnailUnselectedVerticalMargin = 12.0;
@@ -132,38 +132,28 @@ class _TripThumbnailCarouselSelectorState
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       margin: EdgeInsets.symmetric(
-          horizontal: horizontalSpacing / 2,
-          vertical: selected
-              ? _kThumbnailSelectedVerticalMargin
-              : _kThumbnailUnselectedVerticalMargin),
-      decoration: _createImageDecoration(selected),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(_kThumbnailBorderRadius),
-        child: thumbnails[index].image(
-          width: unselectedImageSize,
-          height: unselectedImageSize,
-          fit: BoxFit.cover,
-        ),
+        horizontal: horizontalSpacing / 2,
+        vertical: selected
+            ? _kThumbnailSelectedVerticalMargin
+            : _kThumbnailUnselectedVerticalMargin,
       ),
-    );
-  }
-
-  Decoration _createImageDecoration(bool isSelected) {
-    var borderColor = isSelected
-        ? Theme.of(context).colorScheme.onSecondary
-        : Colors.transparent;
-    return BoxDecoration(
-      border: Border.all(
-        color: borderColor,
-        width: 4,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(_kThumbnailContainerBorderRadius),
+        border: selected
+            ? Border.all(
+                color: context.isLightTheme
+                    ? Colors.black
+                    : Colors.white, // Sharp contrast border
+                width: 4,
+              )
+            : null,
       ),
-      borderRadius: BorderRadius.circular(_kThumbnailContainerBorderRadius),
-      boxShadow: isSelected
-          ? [
-              BoxShadow(
-                  color: borderColor.withValues(alpha: 0.18), blurRadius: 10)
-            ]
-          : [],
+      clipBehavior: Clip.hardEdge,
+      child: thumbnails[index].image(
+        width: unselectedImageSize,
+        height: unselectedImageSize,
+        fit: BoxFit.cover,
+      ),
     );
   }
 
@@ -275,11 +265,14 @@ class ThumbnailPicker extends StatelessWidget {
 
   Material _createAppBar(BuildContext dialogContext) {
     return Material(
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      shape: Theme.of(dialogContext).appBarTheme.shape,
       clipBehavior: Clip.hardEdge,
+      color: Colors.transparent,
       child: AppBar(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+              top: Radius.circular(ThemeConstants.appBarBorderRadius)),
+        ),
         centerTitle: true,
         automaticallyImplyLeading: false,
         title: FittedBox(

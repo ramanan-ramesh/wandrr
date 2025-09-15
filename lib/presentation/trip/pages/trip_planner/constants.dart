@@ -1,16 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 
-const List<Color> contributorColors = [
-  Colors.white,
-  Colors.pink,
-  Colors.blue,
-  Colors.yellow,
-  Colors.redAccent,
-  Colors.deepPurple,
-  Colors.cyanAccent
-];
-
 const Map<ExpenseCategory, IconData> iconsForCategories = {
   ExpenseCategory.flights: Icons.flight_rounded,
   ExpenseCategory.lodging: Icons.hotel_rounded,

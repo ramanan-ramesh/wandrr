@@ -8,10 +8,12 @@ import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/ui_element.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/constants.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/jump_to_date.dart';
@@ -160,19 +162,41 @@ class _TripEntityListViewState<T extends TripEntity>
       itemBuilder: (BuildContext context, int index) {
         var uiElement = _uiElements.elementAt(index);
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 3.0),
-          child: TripEntityListElement<T>(
-            uiElement: uiElement,
-            onPressed: widget.onUiElementPressed,
-            canDelete: widget.canDelete,
-            additionalListItemBuildWhenCondition:
-                widget.additionalListItemBuildWhenCondition,
-            onUpdatePressed: widget.onUpdatePressed,
-            onDeletePressed: widget.onDeletePressed,
-            openedListElementCreator: widget.openedListElementCreator,
-            closedElementCreator: (uiElement) =>
-                widget.closedListElementCreator(uiElement),
-            errorMessageCreator: widget.errorMessageCreator,
+          padding: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 4.0),
+          child: Material(
+            color: context.isLightTheme
+                ? Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withValues(alpha: 0.96)
+                : Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withValues(alpha: 0.98),
+            elevation: 5,
+            borderRadius: BorderRadius.circular(23),
+            shadowColor: AppColors.neutral900.withValues(alpha: 0.10),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(23),
+                border: Border.all(
+                  width: 2.2,
+                ),
+              ),
+              child: TripEntityListElement<T>(
+                uiElement: uiElement,
+                onPressed: widget.onUiElementPressed,
+                canDelete: widget.canDelete,
+                additionalListItemBuildWhenCondition:
+                    widget.additionalListItemBuildWhenCondition,
+                onUpdatePressed: widget.onUpdatePressed,
+                onDeletePressed: widget.onDeletePressed,
+                openedListElementCreator: widget.openedListElementCreator,
+                closedElementCreator: (uiElement) =>
+                    widget.closedListElementCreator(uiElement),
+                errorMessageCreator: widget.errorMessageCreator,
+              ),
+            ),
           ),
         );
       },
@@ -263,33 +287,36 @@ class _TripEntityListViewState<T extends TripEntity>
   }
 
   Widget _createHeaderTile() {
-    return ListTile(
-      //TODO: Fix this for tamil, the trailing widget consumes entire space in case of expenses
-      leading:
-          Icon(_isListVisible ? Icons.list_rounded : Icons.menu_open_rounded),
-      title: Text(
-        widget.headerTileLabel,
-      ),
-      onTap: _toggleListVisibilityOnOpenClose,
-      trailing: Container(
-        constraints: const BoxConstraints(
-          maxWidth: 200,
+    return Material(
+      child: ListTile(
+        //TODO: Fix this for tamil, the trailing widget consumes entire space in case of expenses
+        leading:
+            Icon(_isListVisible ? Icons.list_rounded : Icons.menu_open_rounded),
+        title: Text(
+          widget.headerTileLabel,
         ),
-        child: FittedBox(
-          child: widget.headerTileButton != null
-              ? widget.headerTileButton!
-              : Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                      child: _createJumpToDateNavigator(),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                      child: _buildCreateTripEntityButton(),
-                    ),
-                  ],
-                ),
+        onTap: _toggleListVisibilityOnOpenClose,
+        selected: true,
+        trailing: Container(
+          constraints: const BoxConstraints(
+            maxWidth: 200,
+          ),
+          child: FittedBox(
+            child: widget.headerTileButton != null
+                ? widget.headerTileButton!
+                : Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                        child: _createJumpToDateNavigator(),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                        child: _buildCreateTripEntityButton(),
+                      ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );

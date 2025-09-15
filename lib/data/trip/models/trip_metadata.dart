@@ -61,7 +61,7 @@ class TripMetadataFacade extends Equatable implements TripEntity {
           ? DateTime(endDate!.year, endDate!.month, endDate!.day)
           : null,
       name: name,
-      contributors: contributors,
+      contributors: List.from(contributors),
       thumbnailTag: thumbnailTag,
       budget: budget);
 

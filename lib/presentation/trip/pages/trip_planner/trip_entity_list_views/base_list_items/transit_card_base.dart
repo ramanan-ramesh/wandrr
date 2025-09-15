@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 class TransitCardBase extends StatelessWidget {
   final Widget transitOption;
@@ -169,7 +170,9 @@ class TransitCardBase extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4.0),
       decoration: BoxDecoration(
-        color: context.isLightTheme ? Colors.teal : Colors.grey.shade700,
+        color: context.isLightTheme
+            ? AppColors.brandPrimaryLight.withValues(alpha: 0.7)
+            : AppColors.brandPrimaryDark.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Row(

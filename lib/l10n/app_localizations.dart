@@ -562,11 +562,11 @@ abstract class AppLocalizations {
   /// **'Check-Out'**
   String get checkOut;
 
-  /// No description provided for @newList.
+  /// No description provided for @newPlanData.
   ///
   /// In en, this message translates to:
-  /// **'New List'**
-  String get newList;
+  /// **'New Plan Data'**
+  String get newPlanData;
 
   /// No description provided for @dayByDay.
   ///
@@ -753,6 +753,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Note cannot be empty'**
   String get noteCannotBeEmpty;
+
+  /// No description provided for @checkListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CheckList title'**
+  String get checkListTitle;
 
   /// No description provided for @checkListTitleMustBeAtleast3Characters.
   ///

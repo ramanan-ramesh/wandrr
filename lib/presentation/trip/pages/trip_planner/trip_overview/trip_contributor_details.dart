@@ -1,12 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/blocs/trip/bloc.dart';
-import 'package:wandrr/blocs/trip/states.dart';
-import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
-import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 import 'add_tripmate_button.dart';
@@ -25,44 +18,20 @@ class ContributorDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<TripManagementBloc, TripManagementState>(
-      buildWhen: _shouldBuildContributorDetails,
-      builder: (BuildContext context, TripManagementState state) {
-        var contributorWidgets = _createContributorWidgets(context);
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3.0),
-              child: SizedBox(
-                height: maxOverviewElementHeight,
-                child: const AddTripMateField(),
-              ),
-            ),
-            ...contributorWidgets
-          ],
-        );
-      },
-      listener: (BuildContext context, TripManagementState state) {},
+    var contributorWidgets = _createContributorWidgets(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3.0),
+          child: SizedBox(
+            height: maxOverviewElementHeight,
+            child: const AddTripMateField(),
+          ),
+        ),
+        ...contributorWidgets
+      ],
     );
-  }
-
-  bool _shouldBuildContributorDetails(
-      TripManagementState previousState, TripManagementState currentState) {
-    if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
-      var updatedTripEntity = currentState as UpdatedTripEntity;
-      if (updatedTripEntity.dataState == DataState.update) {
-        var tripMetadataModificationData =
-            updatedTripEntity.tripEntityModificationData
-                as CollectionItemChangeMetadata<TripMetadataFacade>;
-        var latestContributors =
-            tripMetadataModificationData.modifiedCollectionItem.contributors;
-        if (!listEquals(latestContributors, contributors)) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   Iterable<Widget> _createContributorWidgets(BuildContext context) {
@@ -72,7 +41,8 @@ class ContributorDetails extends StatelessWidget {
     var contributorsVsColors = <String, Color>{};
     for (var index = 0; index < contributors.length; index++) {
       var contributor = contributors.elementAt(index);
-      contributorsVsColors[contributor] = contributorColors.elementAt(index);
+      contributorsVsColors[contributor] =
+          AppColors.travelAccents.elementAt(index);
     }
     return contributorsVsColors.entries.map(
       (e) => Padding(
