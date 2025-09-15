@@ -39,42 +39,25 @@ class _ItineraryListItemState extends State<ItineraryListItem>
   String? _errorMessage;
   bool _showErrorMessage = false;
 
-  late AnimationController _animationController;
-  late Animation<Offset> _animation;
+  late AnimationController _errorAnimationController;
+  late Animation<Offset> _errorAnimation;
 
   @override
   void initState() {
     super.initState();
     _planDataUiElement = UiElement<PlanDataFacade>(
         element: widget.itineraryFacade.planData, dataState: DataState.none);
-    _animationController = AnimationController(
+    _errorAnimationController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
 
-    _animation = TweenSequence<Offset>([
-      TweenSequenceItem(
-          tween: Tween(begin: Offset.zero, end: const Offset(0.1, 0)),
-          weight: 1),
-      TweenSequenceItem(
-          tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
-          weight: 1),
-      TweenSequenceItem(
-          tween: Tween(begin: const Offset(-0.1, 0), end: const Offset(0.1, 0)),
-          weight: 1),
-      TweenSequenceItem(
-          tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
-          weight: 1),
-      TweenSequenceItem(
-          tween: Tween(begin: const Offset(-0.1, 0), end: Offset.zero),
-          weight: 1),
-    ]).animate(CurvedAnimation(
-        parent: _animationController, curve: Curves.easeInOutCirc));
+    _createErrorAnimation();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _errorAnimationController.dispose();
     super.dispose();
   }
 
@@ -82,32 +65,14 @@ class _ItineraryListItemState extends State<ItineraryListItem>
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ListTile(
-          leading:
-              Icon(_isCollapsed ? Icons.menu_open_rounded : Icons.list_rounded),
-          title: Align(
-            alignment: Alignment.centerLeft,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: PlatformTextElements.createSubHeader(
-                  context: context,
-                  text: DateFormat('EEE, MMM d').format(widget.day)),
-            ),
-          ),
-          trailing: !_isCollapsed ? _buildUpdateItineraryDataButton() : null,
-          onTap: () {
-            setState(() {
-              _isCollapsed = !_isCollapsed;
-            });
-          },
-        ),
+        _createHeader(context),
         if (_showErrorMessage && _errorMessage != null)
           Padding(
             padding: const EdgeInsets.all(3.0),
             child: Visibility(
               visible: _showErrorMessage,
               child: SlideTransition(
-                position: _animation,
+                position: _errorAnimation,
                 child: Text(
                   _errorMessage!,
                   style: const TextStyle(color: Colors.red),
@@ -115,26 +80,36 @@ class _ItineraryListItemState extends State<ItineraryListItem>
               ),
             ),
           ),
-        if (!_isCollapsed) ItineraryStayAndTransits(itineraryDay: widget.day),
+        if (!_isCollapsed)
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: ItineraryStayAndTransits(itineraryDay: widget.day),
+          ),
         if (!_isCollapsed) _buildPlanData()
       ],
     );
   }
 
-  void _showError(String message) {
-    Future.delayed(const Duration(seconds: 3), () {
-      _animationController.stop();
-    });
-    Future.delayed(const Duration(seconds: 5), () {
-      setState(() {
-        _showErrorMessage = false;
-      });
-    });
-    setState(() {
-      _errorMessage = message;
-      _showErrorMessage = true;
-    });
-    unawaited(_animationController.repeat(reverse: true));
+  ListTile _createHeader(BuildContext context) {
+    return ListTile(
+      leading:
+          Icon(_isCollapsed ? Icons.menu_open_rounded : Icons.list_rounded),
+      title: Align(
+        alignment: Alignment.centerLeft,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: PlatformTextElements.createSubHeader(
+              context: context,
+              text: DateFormat('EEE, MMM d').format(widget.day)),
+        ),
+      ),
+      trailing: !_isCollapsed ? _buildUpdateItineraryDataButton() : null,
+      onTap: () {
+        setState(() {
+          _isCollapsed = !_isCollapsed;
+        });
+      },
+    );
   }
 
   Widget _buildPlanData() {
@@ -168,6 +143,43 @@ class _ItineraryListItemState extends State<ItineraryListItem>
       },
       listener: (BuildContext context, TripManagementState state) {},
     );
+  }
+
+  void _createErrorAnimation() {
+    _errorAnimation = TweenSequence<Offset>([
+      TweenSequenceItem(
+          tween: Tween(begin: Offset.zero, end: const Offset(0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(-0.1, 0), end: const Offset(0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(-0.1, 0), end: Offset.zero),
+          weight: 1),
+    ]).animate(CurvedAnimation(
+        parent: _errorAnimationController, curve: Curves.easeInOutCirc));
+  }
+
+  void _showError(String message) {
+    Future.delayed(const Duration(seconds: 3), () {
+      _errorAnimationController.stop();
+    });
+    Future.delayed(const Duration(seconds: 5), () {
+      setState(() {
+        _showErrorMessage = false;
+      });
+    });
+    setState(() {
+      _errorMessage = message;
+      _showErrorMessage = true;
+    });
+    unawaited(_errorAnimationController.repeat(reverse: true));
   }
 
   void _tryShowError() {

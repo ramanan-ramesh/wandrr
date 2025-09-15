@@ -64,7 +64,7 @@ class _CheckListState extends State<_CheckList> {
   Widget build(BuildContext context) {
     _titleEditingController =
         TextEditingController(text: widget.checkList.title);
-    return PlatformCard(
+    return Card(
       child: Column(
         children: [
           Row(
@@ -73,35 +73,12 @@ class _CheckListState extends State<_CheckList> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                    minLines: 1,
-                    maxLines: 1,
-                    onChanged: (newValue) {
-                      if (newValue != widget.checkList.title) {
-                        widget.checkList.title = newValue;
-                        widget.checkListChanged();
-                      }
-                    },
-                    controller: _titleEditingController,
-                    decoration: const InputDecoration(
-                      focusedBorder: InputBorder.none,
-                      border: InputBorder.none,
-                    ),
-                  ),
+                  child: _createTitle(),
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                child: TextButton.icon(
-                  onPressed: () {
-                    widget.checkList.items
-                        .add(CheckListItem(item: '', isChecked: false));
-                    widget.checkListChanged();
-                    setState(() {});
-                  },
-                  label: Text(context.localizations.addItem),
-                  icon: const Icon(Icons.add_rounded),
-                ),
+                child: _createAddButton(context),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 3.0),
@@ -112,6 +89,7 @@ class _CheckListState extends State<_CheckList> {
               ),
             ],
           ),
+          Divider(),
           _ReOrderableCheckListItems(
             checkList: widget.checkList,
             checkListItemsChanged: () {
@@ -119,6 +97,37 @@ class _CheckListState extends State<_CheckList> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  TextButton _createAddButton(BuildContext context) {
+    return TextButton.icon(
+      onPressed: () {
+        widget.checkList.items.add(CheckListItem(item: '', isChecked: false));
+        widget.checkListChanged();
+        setState(() {});
+      },
+      label: Text(context.localizations.addItem),
+      icon: const Icon(Icons.add_rounded),
+    );
+  }
+
+  TextField _createTitle() {
+    return TextField(
+      minLines: 1,
+      maxLines: 1,
+      onChanged: (newValue) {
+        if (newValue != widget.checkList.title) {
+          widget.checkList.title = newValue;
+          widget.checkListChanged();
+        }
+      },
+      controller: _titleEditingController,
+      decoration: InputDecoration(
+        focusedBorder: InputBorder.none,
+        border: InputBorder.none,
+        hintText: context.localizations.checkListTitle,
       ),
     );
   }
@@ -147,22 +156,29 @@ class _ReOrderableCheckListItemsState
         widget.checkList.items.length,
         (index) {
           var checkListItem = widget.checkList.items.elementAt(index);
-          return _CheckListItem(
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
             key: GlobalKey(),
-            checkListItem: checkListItem,
-            callback: (checkListItem) {
-              widget.checkList.items[index] = checkListItem;
-              widget.checkListItemsChanged();
-            },
-            onDeleted: () {
-              setState(() {
-                widget.checkList.items.removeAt(index);
-              });
-              widget.checkListItemsChanged();
-            },
+            child: _createCheckListItem(checkListItem, index),
           );
         },
       ),
+    );
+  }
+
+  _CheckListItem _createCheckListItem(CheckListItem checkListItem, int index) {
+    return _CheckListItem(
+      checkListItem: checkListItem,
+      callback: (checkListItem) {
+        widget.checkList.items[index] = checkListItem;
+        widget.checkListItemsChanged();
+      },
+      onDeleted: () {
+        setState(() {
+          widget.checkList.items.removeAt(index);
+        });
+        widget.checkListItemsChanged();
+      },
     );
   }
 
@@ -209,37 +225,53 @@ class _CheckListItemState extends State<_CheckListItem> {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 3.0),
-          child: IconButton(
-            onPressed: widget.onDeleted,
-            icon: const Icon(Icons.remove_rounded),
-          ),
-        ),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 3.0),
-            child: CheckboxListTile(
-              title: TextFormField(
-                maxLines: null,
-                controller: _itemEditingController,
-                onChanged: (newValue) {
-                  if (newValue != _checkListItem.item) {
-                    _checkListItem.item = newValue;
-                    widget.callback(_checkListItem);
-                  }
-                },
-              ),
-              value: _checkListItem.isChecked,
-              onChanged: (value) {
-                setState(() {
-                  _checkListItem.isChecked = !_checkListItem.isChecked;
+            child: TextField(
+              controller: _itemEditingController,
+              decoration: const InputDecoration(border: InputBorder.none),
+              onChanged: (newValue) {
+                if (newValue != _checkListItem.item) {
+                  _checkListItem.item = newValue;
                   widget.callback(_checkListItem);
-                });
+                }
               },
             ),
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3.0),
+          child: Checkbox.adaptive(
+              value: _checkListItem.isChecked,
+              onChanged: (value) {
+                setState(() {
+                  _checkListItem.isChecked = value ?? false;
+                  widget.callback(_checkListItem);
+                });
+              }),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3.0),
+          child: SizedBox(
+            height: 25,
+            width: 25,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              style: ButtonStyle(
+                shape: WidgetStateProperty.all<CircleBorder>(
+                  CircleBorder(
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ),
+              onPressed: widget.onDeleted,
+              icon: const Icon(Icons.remove_rounded),
+            ),
+          ),
+        )
       ],
     );
   }

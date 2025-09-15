@@ -87,8 +87,8 @@ class LodgingCardBase extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
         color: context.isLightTheme
-            ? AppColors.brandPrimaryLight
-            : AppColors.brandPrimaryDark,
+            ? AppColors.brandPrimaryLight.withValues(alpha: 0.7)
+            : AppColors.brandPrimaryDark.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(

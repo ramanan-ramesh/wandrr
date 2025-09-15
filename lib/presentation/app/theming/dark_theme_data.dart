@@ -60,7 +60,6 @@ ThemeData createDarkThemeData(BuildContext context) {
           width: 2.0,
         ),
       ),
-      // style: ListTileStyle.drawer,
     ),
     appBarTheme: const AppBarTheme(
       backgroundColor:

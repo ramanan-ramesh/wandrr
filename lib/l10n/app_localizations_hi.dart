@@ -244,7 +244,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get checkOut => 'चेक आउट';
 
   @override
-  String get newList => 'नई सूची';
+  String get newPlanData => 'नई योजना';
 
   @override
   String get dayByDay => 'दिन-प्रतिदिन';
@@ -347,6 +347,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get noteCannotBeEmpty => 'टिप्पणी खाली नहीं हो सकती';
+
+  @override
+  String get checkListTitle => 'चेकलिस्ट शीर्षक';
 
   @override
   String get checkListTitleMustBeAtleast3Characters =>

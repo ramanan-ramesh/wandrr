@@ -46,24 +46,24 @@ class TripPlannerPage extends StatelessWidget {
         Expanded(
           child: CustomScrollView(
             controller: _scrollController,
-            slivers: const [
-              SliverToBoxAdapter(
+            slivers: [
+              const SliverToBoxAdapter(
                 child: TripOverviewTile(),
               ),
-              SliverPadding(
+              const SliverPadding(
                 sliver: TransitListView(),
                 padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
               ),
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: Divider(
                   height: 25,
                 ),
               ),
-              SliverPadding(
+              const SliverPadding(
                 sliver: LodgingListView(),
                 padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
               ),
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: Divider(
                   height: 25,
                 ),
@@ -72,7 +72,7 @@ class TripPlannerPage extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
                 sliver: PlanDataListView(),
               ),
-              SliverPadding(
+              const SliverPadding(
                 padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
                 sliver: ItineraryListView(),
               ),
@@ -122,7 +122,7 @@ class TripPlannerPage extends StatelessWidget {
             height: 25,
           ),
         ),
-        const SliverPadding(
+        SliverPadding(
           padding: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
           sliver: PlanDataListView(),
         ),

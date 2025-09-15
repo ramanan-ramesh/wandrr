@@ -8,6 +8,7 @@ import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/ui_element.dart';
@@ -163,7 +164,7 @@ class _TripEntityListViewState<T extends TripEntity>
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 4.0),
           child: Material(
-            color: Theme.of(context).brightness == Brightness.light
+            color: context.isLightTheme
                 ? Theme.of(context)
                     .colorScheme
                     .surfaceContainerHighest

@@ -185,14 +185,13 @@ class TripCreatorDialog extends StatelessWidget {
         ),
         leading: Builder(
           builder: (context) {
-            final isLight = Theme.of(context).brightness == Brightness.light;
             return Align(
               alignment: Alignment.center,
               child: IconButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                style: isLight
+                style: context.isLightTheme
                     ? ButtonStyle(
                         backgroundColor:
                             WidgetStatePropertyAll(AppColors.brandSecondary),

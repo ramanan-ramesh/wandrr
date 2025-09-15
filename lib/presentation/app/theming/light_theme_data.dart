@@ -65,7 +65,6 @@ ThemeData createLightThemeData(BuildContext context) {
             color: AppColors.brandPrimary,
             width: 2.0), // More pronounced border for selected
       ),
-      style: ListTileStyle.drawer,
     ),
     cardTheme: CardThemeData(
       clipBehavior: Clip.hardEdge,
@@ -77,7 +76,7 @@ ThemeData createLightThemeData(BuildContext context) {
           Radius.circular(ThemeConstants.cardBorderRadius),
         ),
         side: BorderSide(
-          color: AppColors.neutral200,
+          color: AppColors.neutral500,
           width: 2,
         ),
       ),
