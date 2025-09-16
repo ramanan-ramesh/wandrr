@@ -59,8 +59,8 @@ class _FlightDetailsEditor extends StatefulWidget {
 }
 
 class _FlightDetailsEditorState extends State<_FlightDetailsEditor> {
-  late AirlineData airlineData;
-  late TextEditingController flightNumberEditingController;
+  late final AirlineData airlineData;
+  late final TextEditingController flightNumberEditingController;
 
   @override
   void initState() {

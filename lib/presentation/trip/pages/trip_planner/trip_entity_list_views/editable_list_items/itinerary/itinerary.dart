@@ -32,15 +32,15 @@ class ItineraryListItem extends StatefulWidget {
 
 class _ItineraryListItemState extends State<ItineraryListItem>
     with SingleTickerProviderStateMixin {
-  late UiElement<PlanDataFacade> _planDataUiElement;
+  late final UiElement<PlanDataFacade> _planDataUiElement;
   bool _isCollapsed = true;
   final _canUpdateItineraryDataNotifier = ValueNotifier(false);
 
   String? _errorMessage;
   bool _showErrorMessage = false;
 
-  late AnimationController _errorAnimationController;
-  late Animation<Offset> _errorAnimation;
+  late final AnimationController _errorAnimationController;
+  late final Animation<Offset> _errorAnimation;
 
   @override
   void initState() {

@@ -11,7 +11,7 @@ class FirestoreModelCollection<Model>
     implements ModelCollectionModifier<Model> {
   final CollectionReference<Object?> _collectionReference;
   bool _shouldListenToUpdates = false;
-  late StreamSubscription _collectionStreamSubscription;
+  late final StreamSubscription _collectionStreamSubscription;
   final FutureOr<LeafRepositoryItem<Model>?> Function(
       DocumentSnapshot documentSnapshot) _fromDocumentSnapshot;
 

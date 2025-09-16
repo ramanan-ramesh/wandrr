@@ -58,12 +58,18 @@ class _CheckList extends StatefulWidget {
 }
 
 class _CheckListState extends State<_CheckList> {
-  late TextEditingController _titleEditingController;
+  late final TextEditingController _titleEditingController;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleEditingController =
+        TextEditingController(text: widget.checkList.title);
+  }
 
   @override
   Widget build(BuildContext context) {
-    _titleEditingController =
-        TextEditingController(text: widget.checkList.title);
+    _titleEditingController.text = widget.checkList.title ?? '';
     return Card(
       child: Column(
         children: [
@@ -208,8 +214,8 @@ class _CheckListItem extends StatefulWidget {
 }
 
 class _CheckListItemState extends State<_CheckListItem> {
-  late TextEditingController _itemEditingController;
-  late CheckListItem _checkListItem;
+  late final TextEditingController _itemEditingController;
+  late final CheckListItem _checkListItem;
 
   @override
   void initState() {

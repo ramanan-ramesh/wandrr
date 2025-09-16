@@ -132,16 +132,16 @@ class _PlanDataListItemViewer extends StatefulWidget {
 
 class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
     with SingleTickerProviderStateMixin {
-  late TextEditingController _titleEditingController;
+  late final TextEditingController _titleEditingController;
   final ValueNotifier<bool> _canUpdatePlanDataNotifier = ValueNotifier(false);
   bool _isCollapsed = false;
-  late UiElement<PlanDataFacade> _planDataUiElement;
+  late final UiElement<PlanDataFacade> _planDataUiElement;
 
   String? _errorMessage;
   bool _showErrorMessage = false;
 
-  late AnimationController _errorAnimationController;
-  late Animation<Offset> _errorAnimation;
+  late final AnimationController _errorAnimationController;
+  late final Animation<Offset> _errorAnimation;
 
   @override
   void initState() {
@@ -150,8 +150,14 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
       duration: const Duration(seconds: 3),
       vsync: this,
     );
-
     _createErrorAnimation();
+
+    _planDataUiElement = widget.initialPlanDataUiElement.clone();
+    _planDataUiElement.element =
+        widget.initialPlanDataUiElement.element.clone();
+
+    _titleEditingController =
+        TextEditingController(text: _planDataUiElement.element.title);
   }
 
   @override
@@ -162,9 +168,10 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
 
   @override
   Widget build(BuildContext context) {
-    _initializePlanData();
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       builder: (BuildContext context, TripManagementState state) {
+        _titleEditingController.text = _planDataUiElement.element.title ?? '';
+        _canUpdatePlanDataNotifier.value = false;
         return Column(
           children: [
             _buildPlanDataHeaderTile(),
@@ -213,15 +220,6 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
           weight: 1),
     ]).animate(CurvedAnimation(
         parent: _errorAnimationController, curve: Curves.easeInOutCirc));
-  }
-
-  void _initializePlanData() {
-    _planDataUiElement = widget.initialPlanDataUiElement.clone();
-    _planDataUiElement.element =
-        widget.initialPlanDataUiElement.element.clone();
-    _titleEditingController =
-        TextEditingController(text: _planDataUiElement.element.title);
-    _canUpdatePlanDataNotifier.value = false;
   }
 
   ListTile _buildPlanDataHeaderTile() {

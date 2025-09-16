@@ -190,8 +190,8 @@ class _EditableTripEntityButtonBarState<T extends TripEntity>
   String? _errorMessage;
   bool _showErrorMessage = false;
 
-  late AnimationController _animationController;
-  late Animation<Offset> _animation;
+  late final AnimationController _animationController;
+  late final Animation<Offset> _animation;
 
   @override
   void initState() {

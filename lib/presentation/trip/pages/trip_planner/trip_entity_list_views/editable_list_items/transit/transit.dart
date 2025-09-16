@@ -27,7 +27,7 @@ class EditableTransitPlan extends StatefulWidget {
 }
 
 class _EditableTransitPlanState extends State<EditableTransitPlan> {
-  late UiElement<TransitFacade> _transitUiElement;
+  late final UiElement<TransitFacade> _transitUiElement;
 
   TransitFacade get _transitFacade => _transitUiElement.element;
 

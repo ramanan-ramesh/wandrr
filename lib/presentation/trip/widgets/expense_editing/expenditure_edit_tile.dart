@@ -39,11 +39,11 @@ class ExpenditureEditTile extends StatefulWidget {
 
 class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  late final TabController _tabController;
   late CurrencyData _currentCurrencyInfo;
   final Map<String, Color> _contributorsVsColors = {};
   static const double _heightPerItem = 40;
-  late ValueNotifier<Money> _totalExpenseValueNotifier;
+  late final ValueNotifier<Money> _totalExpenseValueNotifier;
   late Map<String, double> _currentPaidBy;
   late List<String> _currentSplitBy;
 

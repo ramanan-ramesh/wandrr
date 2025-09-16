@@ -22,8 +22,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
 
   AppLocalizations _appLocalizations;
 
-  late StreamSubscription _tripMetadataUpdatedEventSubscription;
-  late StreamSubscription _tripMetadataDeletedEventSubscription;
+  late final StreamSubscription _tripMetadataUpdatedEventSubscription;
+  late final StreamSubscription _tripMetadataDeletedEventSubscription;
 
   static Future<TripRepositoryImplementation> createInstance(
       {required String userName,

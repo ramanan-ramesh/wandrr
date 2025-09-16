@@ -24,7 +24,7 @@ class TransitOptionPicker extends StatefulWidget {
 
 class _TransitOptionPickerState extends State<TransitOptionPicker>
     with TickerProviderStateMixin {
-  late AnimationController _animationController;
+  late final AnimationController _animationController;
   bool _isDropdownOpen = false;
   TransitOption? _selectedValue;
   final LayerLink _layerLink = LayerLink();

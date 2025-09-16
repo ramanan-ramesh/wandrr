@@ -60,7 +60,7 @@ class _NoteListItem extends StatefulWidget {
 }
 
 class _NoteListItemState extends State<_NoteListItem> {
-  late TextEditingController _noteEditingController;
+  late final TextEditingController _noteEditingController;
 
   @override
   void initState() {

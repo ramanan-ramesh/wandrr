@@ -25,7 +25,7 @@ class PlanDataListItem extends StatefulWidget {
 }
 
 class _PlanDataListItemState extends State<PlanDataListItem> {
-  late UiElement<PlanDataFacade> _planDataUiElement;
+  late final UiElement<PlanDataFacade> _planDataUiElement;
 
   @override
   void initState() {

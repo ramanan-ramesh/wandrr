@@ -17,7 +17,7 @@ class GeoLocator implements ApiService<String, Iterable<LocationFacade>> {
   static const _latitudeField = 'lat';
   static const _longitudeField = 'lon';
 
-  late String _apiKey;
+  late final String _apiKey;
   String _lastExecutedQuery = '';
   List<LocationFacade> _lastQueriedLocations = [];
 
