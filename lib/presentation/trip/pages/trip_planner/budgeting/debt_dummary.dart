@@ -16,7 +16,7 @@ class DebtSummaryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     var activeTrip = context.activeTrip;
     var currentUserName = context.activeUser!.userName;
-    var budgetingModule = activeTrip.budgetingFacade;
+    var budgetingModule = activeTrip.budgetingModule;
     var appLocalizations = context.localizations;
     var currentContributors = activeTrip.tripMetadata.contributors;
     currentContributors.sort((a, b) => a.compareTo(b));

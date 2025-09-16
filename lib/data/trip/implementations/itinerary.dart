@@ -11,8 +11,8 @@ import 'plan_data/plan_data_model_implementation.dart';
 
 class ItineraryModelImplementation extends ItineraryModelEventHandler {
   ItineraryModelImplementation(
-      String tripId,
-      DateTime day,
+      this.tripId,
+      this.day,
       PlanDataModelImplementation planDataModelImplementation,
       List<TransitFacade> transits,
       {LodgingFacade? checkinLodging,
@@ -22,8 +22,7 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
         _transits = transits,
         _checkinLodging = checkinLodging,
         _checkoutLodging = checkoutLodging,
-        _fullDayLodging = fullDayLodging,
-        super(tripId, day);
+        _fullDayLodging = fullDayLodging;
 
   static Future<ItineraryModelImplementation> createInstance(
       {required String tripId,
@@ -56,6 +55,10 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
     return itineraryModelImplementation;
   }
 
+  final String tripId;
+
+  final DateTime day;
+
   @override
   LodgingFacade? get checkoutLodging => _checkoutLodging?.clone();
   LodgingFacade? _checkoutLodging;
@@ -83,25 +86,6 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
   static final _dateFormat = DateFormat('ddMMyyyy');
 
   @override
-  void setCheckinLodging(LodgingFacade? lodging) {
-    _checkinLodging = lodging;
-    _fullDayLodging = null;
-  }
-
-  @override
-  void setCheckoutLodging(LodgingFacade? lodging) {
-    _checkoutLodging = lodging;
-    _fullDayLodging = null;
-  }
-
-  @override
-  void setFullDayLodging(LodgingFacade? lodging) {
-    _fullDayLodging = lodging;
-    _checkinLodging = null;
-    _checkoutLodging = null;
-  }
-
-  @override
   void addTransit(TransitFacade transitToAdd) {
     if (!_transits.any((transit) => transit.id == transitToAdd.id)) {
       _transits.add(transitToAdd);
@@ -111,5 +95,24 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
   @override
   void removeTransit(TransitFacade transit) {
     _transits.removeWhere((transit) => transit.id == transit.id);
+  }
+
+  @override
+  set checkInLodging(LodgingFacade? lodging) {
+    _checkinLodging = lodging;
+    _fullDayLodging = null;
+  }
+
+  @override
+  set checkoutLodging(LodgingFacade? lodging) {
+    _checkoutLodging = lodging;
+    _fullDayLodging = null;
+  }
+
+  @override
+  set fullDayLodging(LodgingFacade? lodging) {
+    _fullDayLodging = lodging;
+    _checkinLodging = null;
+    _checkoutLodging = null;
   }
 }

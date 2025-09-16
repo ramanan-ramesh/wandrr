@@ -38,6 +38,7 @@ class TripListView extends StatelessWidget {
       listener: (context, state) {},
       builder: (context, state) {
         var tripMetadatas = context.tripRepository.tripMetadatas
+            .toList(growable: false)
           ..sort((tripMetadata1, tripMetadata2) =>
               tripMetadata1.startDate!.compareTo(tripMetadata2.startDate!));
         if (tripMetadatas.isNotEmpty) {

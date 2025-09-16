@@ -18,13 +18,13 @@ abstract class ModelCollectionFacade<T> {
   Stream<CollectionItemChangeMetadata<LeafRepositoryItem<T>>>
       get onDocumentDeleted;
 
-  LeafRepositoryItem<T> Function(T) get leafRepositoryItemCreator;
-
   Iterable<LeafRepositoryItem<T>> get collectionItems;
 }
 
 abstract class ModelCollectionModifier<T> extends ModelCollectionFacade<T>
     implements Dispose {
+  LeafRepositoryItem<T> Function(T) get leafRepositoryItemCreator;
+
   Future<LeafRepositoryItem<T>?> tryAdd(T toAdd);
 
   FutureOr<bool> tryDeleteItem(T toDelete);

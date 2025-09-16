@@ -8,11 +8,11 @@ import 'lodging.dart';
 import 'transit.dart';
 
 abstract class ItineraryFacade extends TripEntity {
-  final String tripId;
+  String get tripId;
 
-  final DateTime day;
+  DateTime get day;
 
-  List<TransitFacade> get transits;
+  Iterable<TransitFacade> get transits;
 
   LodgingFacade? get checkinLodging;
 
@@ -22,26 +22,22 @@ abstract class ItineraryFacade extends TripEntity {
 
   PlanDataFacade get planData;
 
-  ItineraryFacade(this.tripId, this.day);
-
   @override
   String get id => day.toIso8601String();
 }
 
 abstract class ItineraryModelEventHandler extends ItineraryFacade {
-  ItineraryModelEventHandler(super.tripId, super.day);
-
   LeafRepositoryItem<PlanDataFacade> get planDataEventHandler;
 
   void addTransit(TransitFacade transitToAdd);
 
   void removeTransit(TransitFacade transit);
 
-  void setCheckinLodging(LodgingFacade? lodging);
+  set checkInLodging(LodgingFacade? lodging);
 
-  void setCheckoutLodging(LodgingFacade? lodging);
+  set checkoutLodging(LodgingFacade? lodging);
 
-  void setFullDayLodging(LodgingFacade? lodging);
+  set fullDayLodging(LodgingFacade? lodging);
 }
 
 abstract class ItineraryFacadeCollection extends ListBase<ItineraryFacade> {

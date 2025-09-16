@@ -127,13 +127,13 @@ class TripManagementBloc
         .firstOrNull;
     if (tripMetadata != null) {
       emit(LoadingTrip(tripMetadata));
-      if (_tripRepository!.activeTripEventHandler != null) {
+      if (_tripRepository!.activeTrip != null) {
         await _clearTripSubscriptions();
       }
       _apiServicesRepository = await ApiServicesRepositoryImpl.createInstance();
       await _tripRepository!
           .loadTrip(event.tripMetadata, _apiServicesRepository!);
-      var activeTrip = _tripRepository!.activeTripEventHandler!;
+      var activeTrip = _tripRepository!.activeTrip!;
       _subscribeToCollectionUpdatesForTripEntity<TransitFacade>(
           activeTrip.transitsModelCollection, emit);
       _subscribeToCollectionUpdatesForTripEntity<LodgingFacade>(
@@ -149,7 +149,7 @@ class TripManagementBloc
   FutureOr<void> _onUpdateTransit(UpdateTripEntity<TransitFacade> event,
       Emitter<TripManagementState> emit) async {
     if (event.dataState == DataState.newUiEntry) {
-      var activeTrip = _tripRepository!.activeTripEventHandler!;
+      var activeTrip = _tripRepository!.activeTrip!;
       var transit = TransitFacade.newUiEntry(
           tripId: activeTrip.tripMetadata.id!,
           transitOption: TransitOption.publicTransport,
@@ -162,7 +162,7 @@ class TripManagementBloc
     await _tryUpdateTripEntityAndEmitState<TransitFacade>(
         event.tripEntity!,
         event.dataState,
-        _tripRepository!.activeTripEventHandler!.transitsModelCollection,
+        _tripRepository!.activeTrip!.transitsModelCollection,
         event.tripEntity!.id,
         emit);
   }
@@ -170,7 +170,7 @@ class TripManagementBloc
   FutureOr<void> _onUpdateLodging(UpdateTripEntity<LodgingFacade> event,
       Emitter<TripManagementState> emit) async {
     if (event.dataState == DataState.newUiEntry) {
-      var activeTrip = _tripRepository!.activeTripEventHandler!;
+      var activeTrip = _tripRepository!.activeTrip!;
       var lodgingModelFacade = LodgingFacade.newUiEntry(
           tripId: activeTrip.tripMetadata.id!,
           allTripContributors: activeTrip.tripMetadata.contributors,
@@ -182,7 +182,7 @@ class TripManagementBloc
     await _tryUpdateTripEntityAndEmitState<LodgingFacade>(
         event.tripEntity!,
         event.dataState,
-        _tripRepository!.activeTripEventHandler!.lodgingModelCollection,
+        _tripRepository!.activeTrip!.lodgingModelCollection,
         event.tripEntity!.id,
         emit);
   }
@@ -193,7 +193,7 @@ class TripManagementBloc
       return;
     }
     if (event.dataState == DataState.newUiEntry) {
-      var activeTrip = _tripRepository!.activeTripEventHandler!;
+      var activeTrip = _tripRepository!.activeTrip!;
       var newExpense = ExpenseFacade.newUiEntry(
           tripId: activeTrip.tripMetadata.id!,
           allTripContributors: activeTrip.tripMetadata.contributors,
@@ -205,7 +205,7 @@ class TripManagementBloc
     await _tryUpdateTripEntityAndEmitState<ExpenseFacade>(
         event.tripEntity!,
         event.dataState,
-        _tripRepository!.activeTripEventHandler!.expenseModelCollection,
+        _tripRepository!.activeTrip!.expenseModelCollection,
         event.tripEntity!.id,
         emit);
   }
@@ -213,7 +213,7 @@ class TripManagementBloc
   FutureOr<void> _onUpdatePlanData(UpdateTripEntity<PlanDataFacade> event,
       Emitter<TripManagementState> emit) async {
     if (event.dataState == DataState.newUiEntry) {
-      var activeTrip = _tripRepository!.activeTripEventHandler!;
+      var activeTrip = _tripRepository!.activeTrip!;
       var planDataModelFacade = PlanDataFacade.newUiEntry(
           id: null, tripId: activeTrip.tripMetadata.id!);
       emit(UpdatedTripEntity<PlanDataFacade>.createdNewUiEntry(
@@ -223,14 +223,14 @@ class TripManagementBloc
     await _tryUpdateTripEntityAndEmitState<PlanDataFacade>(
         event.tripEntity!,
         event.dataState,
-        _tripRepository!.activeTripEventHandler!.planDataModelCollection,
+        _tripRepository!.activeTrip!.planDataModelCollection,
         event.tripEntity!.id,
         emit);
   }
 
   FutureOr<void> _onItineraryDataUpdated(
       UpdateItineraryPlanData event, Emitter<TripManagementState> emit) async {
-    var activeTrip = _tripRepository!.activeTripEventHandler!;
+    var activeTrip = _tripRepository!.activeTrip!;
     var itinerary =
         activeTrip.itineraryCollection.getItineraryForDay(event.day);
     var didUpdate =

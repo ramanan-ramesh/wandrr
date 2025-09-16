@@ -237,14 +237,14 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
   void _addOrRemoveLodgingToItinerary(LodgingFacade lodging, bool toDelete) {
     for (final itinerary in _allItineraries) {
       if (itinerary.day.isOnSameDayAs(lodging.checkinDateTime!)) {
-        itinerary.setCheckinLodging(toDelete ? null : lodging);
+        itinerary.checkInLodging = toDelete ? null : lodging;
       }
       if (itinerary.day.isOnSameDayAs(lodging.checkoutDateTime!)) {
-        itinerary.setCheckoutLodging(toDelete ? null : lodging);
+        itinerary.checkoutLodging = toDelete ? null : lodging;
       }
       if (itinerary.day.isAfter(lodging.checkinDateTime!) &&
           itinerary.day.isBefore(lodging.checkoutDateTime!)) {
-        itinerary.setFullDayLodging(toDelete ? null : lodging);
+        itinerary.fullDayLodging = toDelete ? null : lodging;
       }
     }
   }

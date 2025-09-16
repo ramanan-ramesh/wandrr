@@ -17,7 +17,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
   @override
   Widget build(BuildContext context) {
     var activeTrip = context.activeTrip;
-    var budgetingModule = activeTrip.budgetingFacade;
+    var budgetingModule = activeTrip.budgetingModule;
     var tripMetadata = activeTrip.tripMetadata;
     var budgetCurrency = tripMetadata.budget.currency;
     return FutureBuilder<Map<DateTime, double>>(
@@ -66,7 +66,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
                             ),
                           ),
                           Text(
-                            activeTrip.budgetingFacade.formatCurrency(Money(
+                            activeTrip.budgetingModule.formatCurrency(Money(
                                 currency: budgetCurrency,
                                 amount: dailyExpense.value)),
                             style: const TextStyle(

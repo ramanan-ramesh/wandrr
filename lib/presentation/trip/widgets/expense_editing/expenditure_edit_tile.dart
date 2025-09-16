@@ -68,7 +68,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   }
 
   Column _createReadonlyExpenditureTile(BuildContext context) {
-    var formattedText = context.activeTrip.budgetingFacade
+    var formattedText = context.activeTrip.budgetingModule
         .formatCurrency(_totalExpenseValueNotifier.value);
     var columnItems = <Widget>[
       Padding(

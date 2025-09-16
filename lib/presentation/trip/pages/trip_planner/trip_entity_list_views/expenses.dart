@@ -64,7 +64,7 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
             categoryNames: _categoryNames);
       },
       uiElementsSorter: (List<UiElement<ExpenseFacade>> uiElements) {
-        var budgetingModuleFacade = context.activeTrip.budgetingFacade;
+        var budgetingModuleFacade = context.activeTrip.budgetingModule;
         return budgetingModuleFacade.sortExpenseElements(
             uiElements, _selectedSortOption);
       },

@@ -19,7 +19,7 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
 
   @override
   Widget build(BuildContext context) {
-    var budgetingModule = context.activeTrip.budgetingFacade;
+    var budgetingModule = context.activeTrip.budgetingModule;
     return FutureBuilder<Map<ExpenseCategory, double>>(
         future: budgetingModule.retrieveTotalExpensePerCategory(),
         builder: (BuildContext context,

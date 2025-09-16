@@ -17,9 +17,9 @@ import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/ui_element.dart';
 
 class BudgetingModule implements BudgetingModuleEventHandler {
-  final ModelCollectionFacade<TransitFacade> _transitModelCollection;
-  final ModelCollectionFacade<LodgingFacade> _lodgingModelCollection;
-  final ModelCollectionFacade<ExpenseFacade> _expenseModelCollection;
+  final ModelCollectionModifier<TransitFacade> _transitModelCollection;
+  final ModelCollectionModifier<LodgingFacade> _lodgingModelCollection;
+  final ModelCollectionModifier<ExpenseFacade> _expenseModelCollection;
   final ApiService<(Money, String), double?> currencyConverter;
   String defaultCurrency;
   final String currentUserName;
@@ -28,9 +28,9 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   final _subscriptions = <StreamSubscription>[];
 
   static Future<BudgetingModuleEventHandler> createInstance(
-      ModelCollectionFacade<TransitFacade> transitModelCollection,
-      ModelCollectionFacade<LodgingFacade> lodgingModelCollection,
-      ModelCollectionFacade<ExpenseFacade> expenseModelCollection,
+      ModelCollectionModifier<TransitFacade> transitModelCollection,
+      ModelCollectionModifier<LodgingFacade> lodgingModelCollection,
+      ModelCollectionModifier<ExpenseFacade> expenseModelCollection,
       ApiService<(Money, String), double?> currencyConverter,
       String defaultCurrency,
       Iterable<CurrencyData> supportedCurrencies,
@@ -452,7 +452,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   }
 
   Future _recalculateExpensesOnContributorsChanged<T>(
-      ModelCollectionFacade<T> modelCollection,
+      ModelCollectionModifier<T> modelCollection,
       Iterable<String> contributors,
       WriteBatch writeBatch,
       {bool isLinkedExpense = false}) async {

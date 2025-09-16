@@ -3,7 +3,7 @@ import 'package:wandrr/data/app/models/language_metadata.dart';
 import 'package:wandrr/data/auth/models/user_management.dart';
 
 abstract class AppDataFacade {
-  UserManagementFacade get userManagementFacade;
+  UserManagementFacade get userManagement;
 
   String get activeLanguage;
 
@@ -15,7 +15,7 @@ abstract class AppDataFacade {
 }
 
 abstract class AppDataModifier extends AppDataFacade {
-  UserManagementModifier get userManagementModifier;
+  UserManagementModifier get userManagement;
 
   Future setActiveLanguage(String language);
 

@@ -146,13 +146,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   final ModelCollectionModifier<PlanDataFacade> _planDataModelCollection;
 
   @override
-  ItineraryFacadeCollection get itineraryCollection =>
-      _itineraryModelCollection;
-
-  @override
-  ItineraryFacadeCollectionEventHandler get itineraryCollectionEventHandler =>
-      _itineraryModelCollection;
-  final ItineraryModelCollection _itineraryModelCollection;
+  final ItineraryModelCollection itineraryCollection;
 
   ApiService<(Money, String), double?> currencyConverter;
 
@@ -160,13 +154,10 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   TripMetadataFacade get tripMetadata =>
       _tripMetadataModelImplementation.clone();
 
-  @override
-  LeafRepositoryItem<TripMetadataFacade> get tripMetadataModelEventHandler =>
-      _tripMetadataModelImplementation;
   final TripMetadataModelImplementation _tripMetadataModelImplementation;
 
   @override
-  BudgetingModuleFacade get budgetingFacade => _budgetingModuleEventHandler;
+  BudgetingModuleFacade get budgetingModule => _budgetingModuleEventHandler;
   final BudgetingModuleEventHandler _budgetingModuleEventHandler;
 
   @override
@@ -178,7 +169,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     await _lodgingModelCollection.dispose();
     await _planDataModelCollection.dispose();
     await _expenseModelCollection.dispose();
-    await _itineraryModelCollection.dispose();
+    await itineraryCollection.dispose();
     await _budgetingModuleEventHandler.dispose();
   }
 
@@ -205,7 +196,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     var deletedLodgings = <LodgingFacade>[];
     var deletedTransits = <TransitFacade>[];
     if (haveTripDatesChanged) {
-      await _itineraryModelCollection.updateTripDays(
+      await itineraryCollection.updateTripDays(
           updatedTripMetadata.startDate!, updatedTripMetadata.endDate!);
       var oldDates = _createDateRange(
           _tripMetadataModelImplementation.startDate!,
@@ -328,7 +319,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       ModelCollectionModifier<LodgingFacade> lodgingModelCollection,
       ModelCollectionModifier<ExpenseFacade> expenseModelCollection,
       ModelCollectionModifier<PlanDataFacade> planDataModelCollection,
-      ItineraryModelCollection itineraryModelCollection,
+      this.itineraryCollection,
       this.currencyConverter,
       BudgetingModuleEventHandler budgetingModuleEventHandler,
       AppLocalizations appLocalisations)
@@ -338,7 +329,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         _planDataModelCollection = planDataModelCollection,
         _tripMetadataModelImplementation = tripMetadata,
         _budgetingModuleEventHandler = budgetingModuleEventHandler,
-        _itineraryModelCollection = itineraryModelCollection,
         _transitOptionMetadatas =
             _initializeIconsAndTransitOptions(appLocalisations);
 }

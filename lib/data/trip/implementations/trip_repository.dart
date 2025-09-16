@@ -10,7 +10,6 @@ import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
-import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
@@ -67,25 +66,21 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
       _tripMetadataModelCollection;
 
   @override
-  TripDataFacade? get activeTrip => _activeTrip;
-  TripDataModelImplementation? _activeTrip;
-
-  @override
-  TripDataModelEventHandler? get activeTripEventHandler => _activeTrip;
+  TripDataModelImplementation? activeTrip;
 
   final String currentUserName;
 
   @override
   Future unloadActiveTrip() async {
-    await _activeTrip?.dispose();
-    _activeTrip = null;
+    await activeTrip?.dispose();
+    activeTrip = null;
   }
 
   @override
   Future loadTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository) async {
-    await _activeTrip?.dispose();
-    _activeTrip = await TripDataModelImplementation.createInstance(
+    await activeTrip?.dispose();
+    activeTrip = await TripDataModelImplementation.createInstance(
         tripMetadata,
         apiServicesRepository,
         _appLocalizations,
@@ -106,8 +101,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     await _tripMetadataUpdatedEventSubscription.cancel();
     await _tripMetadataDeletedEventSubscription.cancel();
     await _tripMetadataModelCollection.dispose();
-    await _activeTrip?.dispose();
-    _activeTrip = null;
+    await activeTrip?.dispose();
+    activeTrip = null;
   }
 
   TripRepositoryImplementation._(
@@ -118,10 +113,10 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   ) {
     _tripMetadataUpdatedEventSubscription =
         tripMetadataModelCollection.onDocumentUpdated.listen((eventData) async {
-      if (_activeTrip == null) {
+      if (activeTrip == null) {
         return;
       }
-      await _activeTrip!
+      await activeTrip!
           .updateTripMetadata(eventData.modifiedCollectionItem.afterUpdate);
     });
     _tripMetadataDeletedEventSubscription = _tripMetadataModelCollection

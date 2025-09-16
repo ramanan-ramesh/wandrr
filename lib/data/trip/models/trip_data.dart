@@ -14,29 +14,27 @@ import 'trip_metadata.dart';
 abstract class TripDataFacade {
   TripMetadataFacade get tripMetadata;
 
-  List<TransitFacade> get transits;
+  Iterable<TransitFacade> get transits;
 
-  List<LodgingFacade> get lodgings;
+  Iterable<LodgingFacade> get lodgings;
 
-  List<ExpenseFacade> get expenses;
+  Iterable<ExpenseFacade> get expenses;
 
-  List<PlanDataFacade> get planDataList;
+  Iterable<PlanDataFacade> get planDataList;
 
   ItineraryFacadeCollection get itineraryCollection;
 
-  BudgetingModuleFacade get budgetingFacade;
+  BudgetingModuleFacade get budgetingModule;
 
   Iterable<TransitOptionMetadata> get transitOptionMetadatas;
 }
 
 abstract class TripDataModelEventHandler extends TripDataFacade
     implements Dispose {
-  ItineraryFacadeCollectionEventHandler get itineraryCollectionEventHandler;
-
   Future updateTripMetadata(
       LeafRepositoryItem<TripMetadataFacade> tripMetadataLeafRepositoryItem);
 
-  LeafRepositoryItem<TripMetadataFacade> get tripMetadataModelEventHandler;
+  ItineraryFacadeCollectionEventHandler get itineraryCollection;
 
   ModelCollectionModifier<TransitFacade> get transitsModelCollection;
 
