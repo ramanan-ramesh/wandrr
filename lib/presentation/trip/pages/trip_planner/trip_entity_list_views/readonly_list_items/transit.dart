@@ -6,6 +6,7 @@ import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/airline_data.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/base_list_items/transit_card_base.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
@@ -185,7 +186,9 @@ class ReadonlyTransitPlan extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4.0),
       decoration: BoxDecoration(
-        color: context.isLightTheme ? Colors.teal : Colors.grey.shade700,
+        color: context.isLightTheme
+            ? AppColors.brandSecondary.withValues(alpha: 0.9)
+            : AppColors.neutral200,
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
@@ -195,11 +198,18 @@ class ReadonlyTransitPlan extends StatelessWidget {
             '@ ${DateFormat('hh:mm a').format(dateTime)}',
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: context.isLightTheme
+                      ? Colors.white
+                      : AppColors.brandSecondary,
                 ),
           ),
           Text(
             DateFormat('dd MMM').format(dateTime),
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: context.isLightTheme
+                      ? Colors.white
+                      : AppColors.brandSecondary,
+                ),
           ),
         ],
       ),

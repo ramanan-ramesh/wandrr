@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/plan_data/note.dart';
-import 'package:wandrr/presentation/app/widgets/card.dart';
 
 class NotesListView extends StatefulWidget {
   const NotesListView(
@@ -72,7 +71,7 @@ class _NoteListItemState extends State<_NoteListItem> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        PlatformCard(
+        Card(
           child: TextFormField(
             maxLines: null,
             controller: _noteEditingController,

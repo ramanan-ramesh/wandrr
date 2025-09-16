@@ -9,6 +9,7 @@ import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
@@ -215,7 +216,6 @@ class BudgetingHeaderTile extends StatelessWidget {
         return StreamBuilder(
           stream: activeTrip.budgetingFacade.totalExpenditureStream,
           builder: (BuildContext context, AsyncSnapshot<double> snapshot) {
-            var tripMetadata = activeTrip.tripMetadata;
             double currentTotalExpenditure;
             if (snapshot.data == null) {
               currentTotalExpenditure =
@@ -226,18 +226,20 @@ class BudgetingHeaderTile extends StatelessWidget {
             var totalExpense = snapshot.data ?? currentTotalExpenditure;
             var expenseRatio =
                 _calculateExpenseRatio(totalExpense, budget.amount);
-            var currencyInfo = context.supportedCurrencies.firstWhere(
-                (element) => element.code == tripMetadata.budget.currency);
-            var budgetText = '${context.localizations.budget}: $budget';
-            var totalExpenseText =
-                '${currencyInfo.symbol} ${totalExpense.toStringAsFixed(2)}';
+            var formattedBudget =
+                activeTrip.budgetingFacade.formatCurrency(budget);
+            var budgetText =
+                '${context.localizations.budget}: $formattedBudget';
+            var formattedTotalExpense = activeTrip.budgetingFacade
+                .formatCurrency(
+                    Money(currency: budget.currency, amount: totalExpense));
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 FittedBox(
                   child: PlatformTextElements.createHeader(
                     context: context,
-                    text: totalExpenseText,
+                    text: formattedTotalExpense,
                   ),
                 ),
                 Align(
@@ -252,8 +254,9 @@ class BudgetingHeaderTile extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: expenseRatio,
                       color: Colors.green,
-                      backgroundColor:
-                          totalExpense > budget.amount ? Colors.red : null,
+                      backgroundColor: totalExpense > budget.amount
+                          ? Colors.red
+                          : Colors.black,
                     ),
                   )
               ],

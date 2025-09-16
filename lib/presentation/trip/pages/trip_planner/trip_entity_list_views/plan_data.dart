@@ -14,14 +14,7 @@ import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/editable_list_items/plan_data/plan_data.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
-class PlanDataListView extends StatefulWidget {
-  const PlanDataListView({super.key});
-
-  @override
-  State<PlanDataListView> createState() => _PlanDataListViewState();
-}
-
-class _PlanDataListViewState extends State<PlanDataListView> {
+class PlanDataListView extends StatelessWidget {
   final List<UiElement<PlanDataFacade>> _planDataUiElements = [];
 
   @override
@@ -54,12 +47,13 @@ class _PlanDataListViewState extends State<PlanDataListView> {
 
   Widget _buildPlanDataCreatorButton(BuildContext context) {
     return FloatingActionButton.extended(
-        onPressed: () {
-          context.addTripManagementEvent(
-              UpdateTripEntity<PlanDataFacade>.createNewUiEntry());
-        },
-        label: Text(context.localizations.newList),
-        icon: const Icon(Icons.add_rounded));
+      onPressed: () {
+        context.addTripManagementEvent(
+            UpdateTripEntity<PlanDataFacade>.createNewUiEntry());
+      },
+      label: Text(context.localizations.newPlanData),
+      icon: const Icon(Icons.add_rounded),
+    );
   }
 
   bool _shouldBuildPlanDataList(
@@ -146,40 +140,23 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
   String? _errorMessage;
   bool _showErrorMessage = false;
 
-  late AnimationController _animationController;
-  late Animation<Offset> _animation;
+  late AnimationController _errorAnimationController;
+  late Animation<Offset> _errorAnimation;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
+    _errorAnimationController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
 
-    _animation = TweenSequence<Offset>([
-      TweenSequenceItem(
-          tween: Tween(begin: Offset.zero, end: const Offset(0.1, 0)),
-          weight: 1),
-      TweenSequenceItem(
-          tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
-          weight: 1),
-      TweenSequenceItem(
-          tween: Tween(begin: const Offset(-0.1, 0), end: const Offset(0.1, 0)),
-          weight: 1),
-      TweenSequenceItem(
-          tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
-          weight: 1),
-      TweenSequenceItem(
-          tween: Tween(begin: const Offset(-0.1, 0), end: Offset.zero),
-          weight: 1),
-    ]).animate(CurvedAnimation(
-        parent: _animationController, curve: Curves.easeInOutCirc));
+    _createErrorAnimation();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _errorAnimationController.dispose();
     super.dispose();
   }
 
@@ -197,7 +174,7 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
                 child: Visibility(
                   visible: _showErrorMessage,
                   child: SlideTransition(
-                    position: _animation,
+                    position: _errorAnimation,
                     child: Text(
                       _errorMessage!,
                       style: const TextStyle(color: Colors.red),
@@ -217,16 +194,39 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
     );
   }
 
+  void _createErrorAnimation() {
+    _errorAnimation = TweenSequence<Offset>([
+      TweenSequenceItem(
+          tween: Tween(begin: Offset.zero, end: const Offset(0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(-0.1, 0), end: const Offset(0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(0.1, 0), end: const Offset(-0.1, 0)),
+          weight: 1),
+      TweenSequenceItem(
+          tween: Tween(begin: const Offset(-0.1, 0), end: Offset.zero),
+          weight: 1),
+    ]).animate(CurvedAnimation(
+        parent: _errorAnimationController, curve: Curves.easeInOutCirc));
+  }
+
   void _initializePlanData() {
     _planDataUiElement = widget.initialPlanDataUiElement.clone();
     _planDataUiElement.element =
         widget.initialPlanDataUiElement.element.clone();
     _titleEditingController =
         TextEditingController(text: _planDataUiElement.element.title);
+    _canUpdatePlanDataNotifier.value = false;
   }
 
   ListTile _buildPlanDataHeaderTile() {
     return ListTile(
+      selected: true,
       leading:
           Icon(_isCollapsed ? Icons.menu_open_rounded : Icons.list_rounded),
       title: TextField(
@@ -253,7 +253,6 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
             padding: const EdgeInsets.symmetric(horizontal: 3.0),
             child: PlatformSubmitterFAB.conditionallyEnabled(
               icon: Icons.check_rounded,
-              context: context,
               isEnabledInitially: false,
               callback: () {
                 if (_planDataUiElement.dataState == DataState.newUiEntry) {
@@ -274,7 +273,6 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
             padding: const EdgeInsets.symmetric(horizontal: 3.0),
             child: PlatformSubmitterFAB(
               icon: Icons.delete_rounded,
-              context: context,
               isEnabledInitially: true,
               callback: () {
                 context.addTripManagementEvent(
@@ -335,8 +333,8 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
 
   void _showError(String message) {
     Future.delayed(const Duration(seconds: 3), () {
-      if (_animationController.isAnimating && mounted) {
-        _animationController.stop();
+      if (_errorAnimationController.isAnimating && mounted) {
+        _errorAnimationController.stop();
       }
     });
     Future.delayed(const Duration(seconds: 5), () {
@@ -350,7 +348,7 @@ class _PlanDataListItemViewerState extends State<_PlanDataListItemViewer>
       _errorMessage = message;
       _showErrorMessage = true;
     });
-    unawaited(_animationController.repeat(reverse: true));
+    unawaited(_errorAnimationController.repeat(reverse: true));
   }
 
   void _tryUpdatePlanData(PlanDataFacade newPlanData) {

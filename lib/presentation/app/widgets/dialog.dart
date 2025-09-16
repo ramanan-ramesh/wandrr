@@ -8,7 +8,7 @@ import 'package:flutter/widgets.dart' as routes show showGeneralDialog;
 class PlatformDialogElements {
   static void showAlignedDialog(
       {required BuildContext context,
-      required Widget Function(BuildContext context) widgetBuilder,
+      required WidgetBuilder dialogContentCreator,
       double width = 200,
       Function(dynamic)? onDialogResult}) {
     if (!context.mounted) {
@@ -65,7 +65,7 @@ class PlatformDialogElements {
             constraints: BoxConstraints(
               maxHeight: screenSize.height * 0.8,
             ),
-            child: widgetBuilder(context),
+            child: dialogContentCreator(context),
           ),
         );
       },
@@ -81,17 +81,17 @@ class PlatformDialogElements {
     }));
   }
 
-  static void showGeneralDialog(
-      BuildContext scaffoldContext, Widget dialogContent,
-      {bool isDismissible = false}) {
-    unawaited(routes.showGeneralDialog(
+  static void showGeneralDialog<T>(
+      BuildContext scaffoldContext, WidgetBuilder dialogContentCreator,
+      {void Function(T?)? onDialogResult}) {
+    unawaited(routes
+        .showGeneralDialog(
       context: scaffoldContext,
-      barrierDismissible: isDismissible,
       pageBuilder: (BuildContext context, Animation<double> animation,
           Animation<double> secondaryAnimation) {
         return Material(
           child: Dialog(
-            child: dialogContent,
+            child: dialogContentCreator(context),
           ),
         );
       },
@@ -105,13 +105,19 @@ class PlatformDialogElements {
           child: child,
         ),
       ),
-    ));
+    )
+        .then((value) {
+      if (onDialogResult != null) {
+        onDialogResult(value as T?);
+      }
+    }));
   }
 
-  static void showAlertDialog(
+  static void showAlertDialog<T>(
       BuildContext scaffoldContext, WidgetBuilder dialogContentCreator,
-      {bool isDismissible = false}) {
-    unawaited(routes.showGeneralDialog(
+      {bool isDismissible = false, void Function(T?)? onDialogResult}) {
+    unawaited(routes
+        .showGeneralDialog(
       context: scaffoldContext,
       barrierDismissible: isDismissible,
       pageBuilder: (BuildContext context, Animation<double> animation,
@@ -129,6 +135,11 @@ class PlatformDialogElements {
           ),
         );
       },
-    ));
+    )
+        .then((value) {
+      if (onDialogResult != null) {
+        onDialogResult(value as T?);
+      }
+    }));
   }
 }

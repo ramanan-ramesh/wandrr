@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
@@ -18,6 +19,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
     var activeTrip = context.activeTrip;
     var budgetingModule = activeTrip.budgetingFacade;
     var tripMetadata = activeTrip.tripMetadata;
+    var budgetCurrency = tripMetadata.budget.currency;
     return FutureBuilder<Map<DateTime, double>>(
       future: budgetingModule.retrieveTotalExpensePerDay(
           tripMetadata.startDate!, tripMetadata.endDate!),
@@ -64,7 +66,9 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
                             ),
                           ),
                           Text(
-                            '${dailyExpense.value.toStringAsFixed(2)} ${tripMetadata.budget.currency.toUpperCase()}',
+                            activeTrip.budgetingFacade.formatCurrency(Money(
+                                currency: budgetCurrency,
+                                amount: dailyExpense.value)),
                             style: const TextStyle(
                               color: Colors.white,
                             ),

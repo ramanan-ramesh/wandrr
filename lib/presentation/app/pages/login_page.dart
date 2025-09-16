@@ -87,7 +87,6 @@ class _LoginPageState extends State<LoginPage>
       onAuthStateChangeBuilder: (state, {required bool canEnable}) =>
           PlatformSubmitterFAB.form(
         icon: Icons.login_rounded,
-        context: context,
         formState: _formKey,
         isEnabledInitially: canEnable,
         validationSuccessCallback: () {
@@ -125,7 +124,6 @@ class _LoginPageState extends State<LoginPage>
           clipBehavior: Clip.hardEdge,
           color: Colors.transparent,
           child: InkWell(
-            splashColor: Colors.white30,
             onTap: canEnable
                 ? () {
                     context.addAuthenticationEvent(
@@ -287,7 +285,7 @@ class _PasswordFieldState extends State<_PasswordField> {
             icon: const Icon(Icons.password_rounded),
             labelText: context.localizations.password,
             suffixIcon: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 3.0),
+              padding: const EdgeInsets.only(left: 3.0),
               child: IconButton(
                 icon: Icon(
                     _obscurePassword ? Icons.visibility_off : Icons.visibility),

@@ -244,13 +244,16 @@ class AppLocalizationsTa extends AppLocalizations {
   String get checkOut => 'சரிபார்க்கவும்';
 
   @override
-  String get newList => 'புதிய பட்டியல்';
+  String get newPlanData => 'புதிய திட்டம்';
 
   @override
   String get dayByDay => 'நாளுக்கு நாள்';
 
   @override
   String get addATitle => 'ஒரு தலைப்பைச் சேர்க்கவும்';
+
+  @override
+  String get deleteTrip => 'பயணத்தை நீக்கு';
 
   @override
   String get deleteTripConfirmation => 'இந்த பயணத்தை நீக்க வேண்டுமா?';
@@ -346,6 +349,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get noteCannotBeEmpty => 'குறிப்பு காலியாக இருக்க கூடாது';
 
   @override
+  String get checkListTitle => 'செக்கிலிஸ்ட் தலைப்பு';
+
+  @override
   String get checkListTitleMustBeAtleast3Characters =>
       'செக்கிலிஸ்ட் தலைப்பு குறைந்தது 3 எழுத்துகள் இருக்க வேண்டும்';
 
@@ -371,4 +377,16 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get launchingTrip => 'பயணத்தை ஏற்றுகிறது';
+
+  @override
+  String get darkTheme => 'இருண்ட தீம்';
+
+  @override
+  String get language => 'மொழி';
+
+  @override
+  String get chooseTripThumbnail => 'சிறுபடம் தேர்ந்தெடுக்கவும்';
+
+  @override
+  String get select => 'தேர்வு செய்';
 }

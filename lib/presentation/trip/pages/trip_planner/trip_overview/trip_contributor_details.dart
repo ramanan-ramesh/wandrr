@@ -6,7 +6,7 @@ import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 import 'add_tripmate_button.dart';
@@ -72,7 +72,8 @@ class ContributorDetails extends StatelessWidget {
     var contributorsVsColors = <String, Color>{};
     for (var index = 0; index < contributors.length; index++) {
       var contributor = contributors.elementAt(index);
-      contributorsVsColors[contributor] = contributorColors.elementAt(index);
+      contributorsVsColors[contributor] =
+          AppColors.travelAccents.elementAt(index);
     }
     return contributorsVsColors.entries.map(
       (e) => Padding(

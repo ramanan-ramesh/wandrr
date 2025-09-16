@@ -243,13 +243,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkOut => 'Check-Out';
 
   @override
-  String get newList => 'New List';
+  String get newPlanData => 'New Plan Data';
 
   @override
   String get dayByDay => 'Day by day';
 
   @override
   String get addATitle => 'Add a title';
+
+  @override
+  String get deleteTrip => 'Delete trip';
 
   @override
   String get deleteTripConfirmation =>
@@ -345,6 +348,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noteCannotBeEmpty => 'Note cannot be empty';
 
   @override
+  String get checkListTitle => 'CheckList title';
+
+  @override
   String get checkListTitleMustBeAtleast3Characters =>
       'Checklist title must be at least 3 characters';
 
@@ -369,4 +375,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get launchingTrip => 'Launching trip';
+
+  @override
+  String get darkTheme => 'Dark Theme';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get chooseTripThumbnail => 'Choose a thumbnail';
+
+  @override
+  String get select => 'Select';
 }

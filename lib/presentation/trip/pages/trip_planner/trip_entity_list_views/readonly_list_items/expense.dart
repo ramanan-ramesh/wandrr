@@ -32,32 +32,33 @@ class ReadonlyExpenseListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IntrinsicHeight(
-      child: Row(
-        children: [
-          SizedBox(
-            width: 70,
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 3.0, vertical: 2.0),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: _createExpenseCategory(),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 70,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 3.0),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: _createExpenseCategory(),
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 3.0, vertical: 2.0),
-              child: _createExpenseTitleSubtitle(context),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                child: _createExpenseTitleSubtitle(context),
+              ),
             ),
-          ),
-          ExpenditureEditTile(
-            expenseUpdator: expenseModelFacade,
-            isEditable: false,
-            callback: null,
-          ),
-        ],
+            ExpenditureEditTile(
+              expenseUpdator: expenseModelFacade,
+              isEditable: false,
+              callback: null,
+            ),
+          ],
+        ),
       ),
     );
   }

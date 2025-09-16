@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -9,21 +7,17 @@ import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/delete_trip_dialog.dart';
 
-class TripListView extends StatelessWidget {
-  final List<AssetGenImage> _tripPlanningImageAssets = [
-    Assets.images.tripPlanning1,
-    Assets.images.tripPlanning2,
-    Assets.images.tripPlanning3,
-  ];
+import 'thumbnail_selector.dart';
 
+class TripListView extends StatelessWidget {
   TripListView({
     super.key,
   });
@@ -47,7 +41,17 @@ class TripListView extends StatelessWidget {
           ..sort((tripMetadata1, tripMetadata2) =>
               tripMetadata1.startDate!.compareTo(tripMetadata2.startDate!));
         if (tripMetadatas.isNotEmpty) {
-          return _generateTripMetadataGrid(context, tripMetadatas);
+          return GridView.extent(
+            maxCrossAxisExtent: 300,
+            mainAxisSpacing: 7,
+            crossAxisSpacing: 7,
+            childAspectRatio: 0.75,
+            children: tripMetadatas.map((tripMetadata) {
+              return _TripMetadataGridItem(
+                tripMetaDataFacade: tripMetadata,
+              );
+            }).toList(growable: false),
+          );
         } else {
           return Align(
             alignment: Alignment.center,
@@ -60,48 +64,14 @@ class TripListView extends StatelessWidget {
       },
     );
   }
-
-  Widget _generateTripMetadataGrid(
-      BuildContext context, List<TripMetadataFacade> tripMetadatas) {
-    var imageAssets = _generateRandomImages(tripMetadatas.length);
-    var tripMetadataGridItems = <_TripMetadataGridItem>[];
-    for (var index = 0; index < tripMetadatas.length; index++) {
-      var imageAsset = imageAssets[index];
-      var tripMetadataFacade = tripMetadatas[index];
-      tripMetadataGridItems.add(_TripMetadataGridItem(
-        tripMetaDataFacade: tripMetadataFacade,
-        imageAsset: imageAsset,
-      ));
-    }
-    return GridView.extent(
-      maxCrossAxisExtent: 300,
-      mainAxisSpacing: 7,
-      crossAxisSpacing: 7,
-      childAspectRatio: 0.7,
-      children: tripMetadataGridItems,
-    );
-  }
-
-  List<AssetGenImage> _generateRandomImages(int numberOfTripMetadatas) {
-    var tempImages = List<AssetGenImage>.from(_tripPlanningImageAssets);
-    var random = Random();
-    var gridImages = <AssetGenImage>[];
-    for (var i = 0; i < numberOfTripMetadatas; i++) {
-      tempImages.shuffle(random);
-      gridImages.add(tempImages[i % 3]);
-    }
-    return gridImages;
-  }
 }
 
 class _TripMetadataGridItem extends StatelessWidget {
   final _dateFormat = DateFormat.MMMEd();
 
-  _TripMetadataGridItem(
-      {required this.tripMetaDataFacade, required this.imageAsset});
+  _TripMetadataGridItem({required this.tripMetaDataFacade});
 
   TripMetadataFacade tripMetaDataFacade;
-  final AssetGenImage imageAsset;
 
   @override
   Widget build(BuildContext context) {
@@ -109,6 +79,10 @@ class _TripMetadataGridItem extends StatelessWidget {
       builder: (BuildContext context, TripManagementState state) {
         var subTitle =
             '${_dateFormat.format(tripMetaDataFacade.startDate!)} to ${_dateFormat.format(tripMetaDataFacade.endDate!)}';
+        var currentThumbnail = Assets.images.tripThumbnails.values.firstWhere(
+            (element) =>
+                element.keyName.split('/').last.split('.').first ==
+                tripMetaDataFacade.thumbnailTag);
         return ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: InkWell(
@@ -121,7 +95,14 @@ class _TripMetadataGridItem extends StatelessWidget {
               children: [
                 Stack(
                   children: [
-                    imageAsset.image(fit: BoxFit.cover),
+                    currentThumbnail.image(fit: BoxFit.cover),
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: ThumbnailPicker(
+                          tripMetaDataFacade: tripMetaDataFacade,
+                          widgetContext: context),
+                    ),
                     Positioned(
                       bottom: 0,
                       left: 0,
@@ -130,12 +111,7 @@ class _TripMetadataGridItem extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16.0, vertical: 3),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: context.isLightTheme
-                                ? [Colors.teal.shade50, Colors.teal.shade500]
-                                : [Colors.white70, Colors.black],
-                            stops: const [0, 1],
-                          ),
+                          gradient: AppColors.brandGradient,
                         ),
                         child: FittedBox(
                           child: Text(
@@ -145,6 +121,7 @@ class _TripMetadataGridItem extends StatelessWidget {
                                   .textTheme
                                   .labelMedium!
                                   .fontSize,
+                              color: Colors.black,
                             ),
                           ),
                         ),
@@ -154,6 +131,7 @@ class _TripMetadataGridItem extends StatelessWidget {
                 ),
                 Card(
                   shape: const StadiumBorder(),
+                  shadowColor: Colors.transparent,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Row(
@@ -192,9 +170,10 @@ class _TripMetadataGridItem extends StatelessWidget {
       buildWhen: (previousState, currentState) {
         if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
           var tripMetadataUpdatedState = currentState as UpdatedTripEntity;
-          if (tripMetadataUpdatedState
-                  .tripEntityModificationData.modifiedCollectionItem.id ==
-              tripMetaDataFacade.id) {
+          if (currentState.dataState == DataState.update &&
+              tripMetadataUpdatedState
+                      .tripEntityModificationData.modifiedCollectionItem.id ==
+                  tripMetaDataFacade.id) {
             tripMetaDataFacade = tripMetadataUpdatedState
                 .tripEntityModificationData.modifiedCollectionItem;
             return true;

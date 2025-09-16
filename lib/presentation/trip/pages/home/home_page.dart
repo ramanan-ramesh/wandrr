@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
@@ -17,10 +16,6 @@ class HomePage extends StatelessWidget {
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 5.0),
-            child: LanguageSwitcher(),
-          ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 5.0),
             child: _buildCreateTripButton(context),
@@ -61,7 +56,7 @@ class HomePage extends StatelessWidget {
         onPressed: () {
           PlatformDialogElements.showGeneralDialog(
             pageContext,
-            TripCreatorDialog(
+            (dialogContext) => TripCreatorDialog(
               widgetContext: pageContext,
             ),
           );

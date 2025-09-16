@@ -80,7 +80,7 @@ class _JumpToDateNavigatorState<T extends TripEntity>
                   ),
         );
       },
-      child: const Icon(Icons.assistant_navigation),
+      child: const Icon(Icons.calendar_month_rounded),
     );
   }
 

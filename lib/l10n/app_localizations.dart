@@ -562,11 +562,11 @@ abstract class AppLocalizations {
   /// **'Check-Out'**
   String get checkOut;
 
-  /// No description provided for @newList.
+  /// No description provided for @newPlanData.
   ///
   /// In en, this message translates to:
-  /// **'New List'**
-  String get newList;
+  /// **'New Plan Data'**
+  String get newPlanData;
 
   /// No description provided for @dayByDay.
   ///
@@ -579,6 +579,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add a title'**
   String get addATitle;
+
+  /// No description provided for @deleteTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete trip'**
+  String get deleteTrip;
 
   /// No description provided for @deleteTripConfirmation.
   ///
@@ -748,6 +754,12 @@ abstract class AppLocalizations {
   /// **'Note cannot be empty'**
   String get noteCannotBeEmpty;
 
+  /// No description provided for @checkListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CheckList title'**
+  String get checkListTitle;
+
   /// No description provided for @checkListTitleMustBeAtleast3Characters.
   ///
   /// In en, this message translates to:
@@ -795,6 +807,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Launching trip'**
   String get launchingTrip;
+
+  /// No description provided for @darkTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Theme'**
+  String get darkTheme;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @chooseTripThumbnail.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a thumbnail'**
+  String get chooseTripThumbnail;
+
+  /// No description provided for @select.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get select;
 }
 
 class _AppLocalizationsDelegate

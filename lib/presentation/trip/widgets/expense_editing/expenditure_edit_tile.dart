@@ -4,10 +4,10 @@ import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/tab_bar.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
-import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/currency_drop_down.dart';
 import 'package:wandrr/presentation/trip/widgets/money_edit_field.dart';
@@ -68,6 +68,8 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   }
 
   Column _createReadonlyExpenditureTile(BuildContext context) {
+    var formattedText = context.activeTrip.budgetingFacade
+        .formatCurrency(_totalExpenseValueNotifier.value);
     var columnItems = <Widget>[
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 2.0),
@@ -76,7 +78,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
           child: PlatformTextElements.createSubHeader(
               context: context,
               shouldBold: widget.isEditable,
-              text: _totalExpenseValueNotifier.value.toString()),
+              text: formattedText),
         ),
       ),
     ];
@@ -195,7 +197,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     allContributors.sort();
     for (var index = 0; index < allContributors.length; index++) {
       var contributor = allContributors.elementAt(index);
-      _contributorsVsColors[contributor] = contributorColors[index];
+      _contributorsVsColors[contributor] = AppColors.travelAccents[index];
     }
     _currentCurrencyInfo = context.supportedCurrencies.firstWhere(
         (element) => element.code == _totalExpenseValueNotifier.value.currency);

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/auto_complete.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/airline_data.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
@@ -78,7 +79,9 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor> {
     return Container(
       padding: const EdgeInsets.all(4.0),
       decoration: BoxDecoration(
-        color: context.isLightTheme ? Colors.teal : Colors.grey.shade700,
+        color: context.isLightTheme
+            ? AppColors.brandPrimaryLight
+            : AppColors.brandPrimaryDark,
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(

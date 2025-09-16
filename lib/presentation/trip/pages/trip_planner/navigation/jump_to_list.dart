@@ -97,7 +97,8 @@ class _FloatingJumpToListNavigatorState
                   duration: const Duration(milliseconds: 300),
                   child: isOpen
                       ? const Icon(Icons.close, key: ValueKey('close'))
-                      : const Icon(Icons.menu, key: ValueKey('menu')),
+                      : const Icon(Icons.navigation_rounded,
+                          key: ValueKey('menu')),
                 ),
               ),
               childWhenDragging: Container(),
@@ -140,7 +141,8 @@ class _FloatingJumpToListNavigatorState
                   duration: const Duration(milliseconds: 300),
                   child: isOpen
                       ? const Icon(Icons.close, key: ValueKey('close'))
-                      : const Icon(Icons.menu, key: ValueKey('menu')),
+                      : const Icon(Icons.navigation_rounded,
+                          key: ValueKey('menu')),
                 ),
               ),
             ),

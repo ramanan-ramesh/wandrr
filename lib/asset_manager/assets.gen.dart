@@ -32,28 +32,13 @@ class $AssetsImagesGen {
   AssetGenImage get planningTheTrip =>
       const AssetGenImage('assets/images/planning_the_trip.jpg');
 
-  /// File path: assets/images/trip_planning_1.jpg
-  AssetGenImage get tripPlanning1 =>
-      const AssetGenImage('assets/images/trip_planning_1.jpg');
-
-  /// File path: assets/images/trip_planning_2.jpg
-  AssetGenImage get tripPlanning2 =>
-      const AssetGenImage('assets/images/trip_planning_2.jpg');
-
-  /// File path: assets/images/trip_planning_3.jpg
-  AssetGenImage get tripPlanning3 =>
-      const AssetGenImage('assets/images/trip_planning_3.jpg');
+  /// Directory path: assets/images/tripThumbnails
+  $AssetsImagesTripThumbnailsGen get tripThumbnails =>
+      const $AssetsImagesTripThumbnailsGen();
 
   /// List of all assets
-  List<AssetGenImage> get values => [
-        googleLogo,
-        logo,
-        planItinerary,
-        planningTheTrip,
-        tripPlanning1,
-        tripPlanning2,
-        tripPlanning3
-      ];
+  List<AssetGenImage> get values =>
+      [googleLogo, logo, planItinerary, planningTheTrip];
 }
 
 class $AssetsImagesFlagsGen {
@@ -69,6 +54,38 @@ class $AssetsImagesFlagsGen {
 
   /// List of all assets
   List<AssetGenImage> get values => [britain, india];
+}
+
+class $AssetsImagesTripThumbnailsGen {
+  const $AssetsImagesTripThumbnailsGen();
+
+  /// File path: assets/images/tripThumbnails/beach.png
+  AssetGenImage get beach =>
+      const AssetGenImage('assets/images/tripThumbnails/beach.png');
+
+  /// File path: assets/images/tripThumbnails/hills.png
+  AssetGenImage get hills =>
+      const AssetGenImage('assets/images/tripThumbnails/hills.png');
+
+  /// File path: assets/images/tripThumbnails/mountains.png
+  AssetGenImage get mountains =>
+      const AssetGenImage('assets/images/tripThumbnails/mountains.png');
+
+  /// File path: assets/images/tripThumbnails/roadTrip.png
+  AssetGenImage get roadTrip =>
+      const AssetGenImage('assets/images/tripThumbnails/roadTrip.png');
+
+  /// File path: assets/images/tripThumbnails/urban.png
+  AssetGenImage get urban =>
+      const AssetGenImage('assets/images/tripThumbnails/urban.png');
+
+  /// File path: assets/images/tripThumbnails/work.png
+  AssetGenImage get work =>
+      const AssetGenImage('assets/images/tripThumbnails/work.png');
+
+  /// List of all assets
+  List<AssetGenImage> get values =>
+      [beach, hills, mountains, roadTrip, urban, work];
 }
 
 class Assets {

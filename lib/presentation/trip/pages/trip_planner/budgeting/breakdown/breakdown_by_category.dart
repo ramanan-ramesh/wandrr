@@ -1,8 +1,10 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 class BreakdownByCategoryChart extends StatefulWidget {
   const BreakdownByCategoryChart({super.key});
@@ -56,7 +58,7 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
                             show: false,
                           ),
                           sectionsSpace: 0,
-                          centerSpaceRadius: 35,
+                          centerSpaceRadius: 30,
                           sections:
                               _createExpenseCategorySections(snapshot.data!),
                         ),
@@ -68,17 +70,8 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
         });
   }
 
-  static const _expenseChartSectionColors = [
-    Colors.black,
-    Colors.green,
-    Colors.blue,
-    Colors.yellow,
-    Colors.white,
-    Colors.brown,
-    Colors.pink,
-    Colors.cyanAccent,
-    Colors.deepOrange
-  ];
+  // Updated expense chart colors using the vibrant travel-themed palette
+  static const _expenseChartSectionColors = AppColors.travelAccents;
 
   List<PieChartSectionData> _createExpenseCategorySections(
       Map<ExpenseCategory, double> totalExpensesPerExpenseCategory) {
@@ -100,7 +93,7 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
         titleStyle: TextStyle(
           fontSize: fontSize,
           fontWeight: FontWeight.bold,
-          color: const Color(0xffffffff),
+          color: Theme.of(context).colorScheme.onPrimary,
           shadows: shadows,
         ),
         badgeWidget: _Badge(
@@ -129,15 +122,21 @@ class _Badge extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Colors.black,
+        color: context.isLightTheme
+            ? AppColors.brandSecondary
+            : AppColors.neutral200,
         shape: BoxShape.circle,
         border: Border.all(
-          color: Colors.white,
+          color: context.isLightTheme
+              ? AppColors.brandPrimary
+              : AppColors.brandSecondary,
           width: 2,
         ),
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.5),
+            color: context.isLightTheme
+                ? AppColors.brandSecondary.withValues(alpha: 0.3)
+                : Colors.black.withValues(alpha: 0.5),
             offset: const Offset(3, 3),
             blurRadius: 3,
           ),
@@ -147,7 +146,7 @@ class _Badge extends StatelessWidget {
       child: Center(
         child: Icon(
           icon,
-          color: Colors.white,
+          color: context.isLightTheme ? Colors.white : AppColors.brandSecondary,
         ),
       ),
     );

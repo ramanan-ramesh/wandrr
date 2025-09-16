@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 import 'dialog.dart';
 
@@ -26,7 +27,7 @@ abstract class DateRangePickerBase extends StatefulWidget {
     var isLightTheme = context.isLightTheme;
     PlatformDialogElements.showAlignedDialog(
         context: context,
-        widgetBuilder: (dialogContext) {
+        dialogContentCreator: (dialogContext) {
           var dateRangePickerButtonRenderBox =
               widgetKey.currentContext!.findRenderObject() as RenderBox;
           double width;
@@ -61,31 +62,38 @@ abstract class DateRangePickerBase extends StatefulWidget {
                   calendarType: CalendarDatePicker2Type.range,
                   centerAlignModePicker: true,
                   controlsTextStyle: TextStyle(
-                      color: isLightTheme ? Colors.black : Colors.white),
+                      color: isLightTheme ? Colors.black87 : Colors.white),
                   dayTextStyle: TextStyle(
-                      color: isLightTheme ? Colors.black : Colors.white),
-                  selectedDayHighlightColor: Colors.green,
-                  selectedDayTextStyle: const TextStyle(color: Colors.black),
-                  selectedRangeHighlightColor: Colors.green,
-                  selectedRangeDayTextStyle:
-                      const TextStyle(color: Colors.black),
-                  todayTextStyle: const TextStyle(color: Colors.white),
-                  okButtonTextStyle: const TextStyle(color: Colors.black),
-                  cancelButtonTextStyle: const TextStyle(color: Colors.black),
-                  cancelButton: const IgnorePointer(
+                      color: isLightTheme ? Colors.black87 : Colors.white),
+                  selectedDayHighlightColor: AppColors.brandPrimary,
+                  selectedDayTextStyle: const TextStyle(color: Colors.white),
+                  selectedRangeHighlightColor: AppColors.brandPrimaryLight,
+                  selectedRangeDayTextStyle: TextStyle(
+                      color: isLightTheme ? Colors.black87 : Colors.white),
+                  todayTextStyle: TextStyle(
+                      color: isLightTheme
+                          ? AppColors.brandPrimary
+                          : AppColors.brandPrimaryLight),
+                  okButtonTextStyle: TextStyle(color: AppColors.brandPrimary),
+                  cancelButtonTextStyle: TextStyle(
+                      color: !isLightTheme ? Colors.black54 : Colors.white70),
+                  cancelButton: IgnorePointer(
                     child: IconButton(
                       onPressed: null,
-                      icon: Icon(Icons.cancel_rounded),
+                      icon: Icon(Icons.cancel_rounded,
+                          color:
+                              !isLightTheme ? Colors.black54 : Colors.white70),
                     ),
                   ),
-                  okButton: const IgnorePointer(
+                  okButton: IgnorePointer(
                     child: IconButton(
                       onPressed: null,
-                      icon: Icon(Icons.done_rounded),
+                      icon: Icon(Icons.done_rounded,
+                          color:
+                              !isLightTheme ? Colors.black54 : Colors.white70),
                     ),
                   ),
                 ),
-                // value: _dates,
                 onValueChanged: (dates) => _tryUpdateDateRange(dates, setState),
                 value: [startDate, endDate],
               ),

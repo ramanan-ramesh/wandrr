@@ -14,7 +14,6 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
   final String? hintText;
   final String? labelText;
   final double? optionsViewWidth;
-  final TextStyle? textStyle;
   final String Function(T)? displayTextCreator;
   T? selectedItem;
 
@@ -31,7 +30,6 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
       this.labelText,
       this.displayTextCreator,
       this.hintText,
-      this.textStyle,
       this.suffix,
       this.optionsViewWidth,
       this.customPrefix,

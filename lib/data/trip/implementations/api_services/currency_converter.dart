@@ -14,14 +14,14 @@ class CurrencyConverter implements ApiService<(Money, String), double?> {
   @override
   Future<double?> queryData(
       (Money moneyToConvert, String currencyToConvertTo) query) async {
-    var currencyAmount = query.$1;
+    var amountToConvert = query.$1;
     var currencyToConvertTo = query.$2;
-    if (currencyAmount.amount == 0) {
+    if (amountToConvert.amount == 0) {
       return 0;
     }
 
-    if (currencyAmount.currency == currencyToConvertTo) {
-      return currencyAmount.amount;
+    if (amountToConvert.currency == currencyToConvertTo) {
+      return amountToConvert.amount;
     }
 
     //expectation : 80 eur to inr= 92eur/inr * 80 (7362)
@@ -30,23 +30,23 @@ class CurrencyConverter implements ApiService<(Money, String), double?> {
     //eur/inr (= 92) present in cache
     var cachedForwardExchangeRate = _exchangeRates
         .where((element) =>
-            element.currency == currencyAmount.currency &&
+            element.currency == amountToConvert.currency &&
             element.currencyToConvertTo == currencyToConvertTo)
         .firstOrNull;
     if (cachedForwardExchangeRate != null) {
       return cachedForwardExchangeRate.exchangeRate *
-          currencyAmount.amount; // 92 * 80 = 7362
+          amountToConvert.amount; // 92 * 80 = 7362
     }
 
     //inr/eur (=0.011) present in cache
     var cachedReverseExchangeRate = _exchangeRates
         .where((element) =>
-            element.currencyToConvertTo == currencyAmount.currency &&
+            element.currencyToConvertTo == amountToConvert.currency &&
             element.currency == currencyToConvertTo)
         .firstOrNull;
     if (cachedReverseExchangeRate != null) {
       return (1.0 / cachedReverseExchangeRate.exchangeRate) *
-          currencyAmount.amount;
+          amountToConvert.amount;
     }
 
     var queryUrl = _constructQuery(currencyToConvertTo);
@@ -66,7 +66,7 @@ class CurrencyConverter implements ApiService<(Money, String), double?> {
         }
         exchangeRate = _exchangeRates
             .where((element) =>
-                element.currency == currencyAmount.currency &&
+                element.currency == amountToConvert.currency &&
                 element.currencyToConvertTo == currencyToConvertTo)
             .firstOrNull;
       }
@@ -74,7 +74,7 @@ class CurrencyConverter implements ApiService<(Money, String), double?> {
       return null;
     }
     return exchangeRate != null
-        ? exchangeRate.exchangeRate * currencyAmount.amount
+        ? exchangeRate.exchangeRate * amountToConvert.amount
         : null;
   }
 

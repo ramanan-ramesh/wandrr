@@ -244,13 +244,16 @@ class AppLocalizationsHi extends AppLocalizations {
   String get checkOut => 'चेक आउट';
 
   @override
-  String get newList => 'नई सूची';
+  String get newPlanData => 'नई योजना';
 
   @override
   String get dayByDay => 'दिन-प्रतिदिन';
 
   @override
   String get addATitle => 'शीर्षक जोड़ें';
+
+  @override
+  String get deleteTrip => 'यात्रा हटाएं';
 
   @override
   String get deleteTripConfirmation =>
@@ -346,6 +349,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get noteCannotBeEmpty => 'टिप्पणी खाली नहीं हो सकती';
 
   @override
+  String get checkListTitle => 'चेकलिस्ट शीर्षक';
+
+  @override
   String get checkListTitleMustBeAtleast3Characters =>
       'चेकलिस्ट शीर्षक कम से कम 3 अक्षर होना चाहिए';
 
@@ -370,4 +376,16 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get launchingTrip => 'यात्रा लॉन्च हो रही है';
+
+  @override
+  String get darkTheme => 'डार्क थीम';
+
+  @override
+  String get language => 'भाषा';
+
+  @override
+  String get chooseTripThumbnail => 'लघुचित्र चुनें';
+
+  @override
+  String get select => 'चुनें';
 }

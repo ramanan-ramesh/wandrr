@@ -7,11 +7,10 @@ import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/ui_element.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
-import 'package:wandrr/presentation/app/widgets/card.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 class TripEntityListElement<T extends TripEntity> extends StatefulWidget {
   final UiElement<T> uiElement;
@@ -93,31 +92,22 @@ class _TripEntityListElementState<T extends TripEntity>
 
   Widget _createTripEntityListElement(
       BuildContext context, Widget listElement) {
-    return PlatformCard(
-      child: InkWell(
-        onTap: () {
-          if (widget.onPressed != null) {
-            widget.onPressed?.call(context, widget.uiElement);
-            return;
-          }
-          if (widget.uiElement.dataState != DataState.newUiEntry) {
-            context.addTripManagementEvent(
-                UpdateTripEntity.select(tripEntity: widget.uiElement.element));
-          }
-        },
-        child: Ink(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).cardTheme.color!,
-                context.isLightTheme ? Colors.white12 : Colors.grey.shade800
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-          ),
-          child: listElement,
+    return InkWell(
+      onTap: () {
+        if (widget.onPressed != null) {
+          widget.onPressed?.call(context, widget.uiElement);
+          return;
+        }
+        if (widget.uiElement.dataState != DataState.newUiEntry) {
+          context.addTripManagementEvent(
+              UpdateTripEntity.select(tripEntity: widget.uiElement.element));
+        }
+      },
+      child: Ink(
+        decoration: BoxDecoration(
+          color: Colors.transparent,
         ),
+        child: listElement,
       ),
     );
   }
@@ -252,7 +242,7 @@ class _EditableTripEntityButtonBarState<T extends TripEntity>
                   position: _animation,
                   child: Text(
                     _errorMessage!,
-                    style: const TextStyle(color: Colors.red),
+                    style: TextStyle(color: AppColors.error),
                   ),
                 ),
               ),
@@ -263,7 +253,6 @@ class _EditableTripEntityButtonBarState<T extends TripEntity>
           child: PlatformSubmitterFAB.conditionallyEnabled(
             valueNotifier: widget._validityNotifier,
             icon: Icons.check_rounded,
-            context: context,
             callback: () {
               if (widget.onUpdatePressed != null) {
                 widget.onUpdatePressed!(widget.uiElement);
@@ -294,7 +283,6 @@ class _EditableTripEntityButtonBarState<T extends TripEntity>
             child: PlatformSubmitterFAB(
               icon: Icons.delete_rounded,
               isEnabledInitially: true,
-              context: context,
               callback: () {
                 if (widget.onDeletePressed != null) {
                   widget.onDeletePressed!(widget.uiElement);
