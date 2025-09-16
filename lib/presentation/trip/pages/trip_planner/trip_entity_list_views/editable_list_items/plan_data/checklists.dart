@@ -19,6 +19,7 @@ class _CheckListsViewState extends State<CheckListsView> {
   Widget build(BuildContext context) {
     return ListView.separated(
       shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (BuildContext context, int index) {
         var checkList = widget.checkLists.elementAt(index);
         return _CheckList(

@@ -17,6 +17,7 @@ class NotesListViewState extends State<NotesListView> {
   Widget build(BuildContext context) {
     return ListView.separated(
       shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (BuildContext context, int index) {
         var noteUpdator = widget.notes.elementAt(index);
         return Row(
