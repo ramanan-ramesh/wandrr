@@ -159,7 +159,7 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
     var writeBatch = FirebaseFirestore.instance.batch();
     for (final date in datesToRemove) {
       var itineraryIndex =
-          indexWhere((itinerary) => itinerary.day.isOnSameDayAs(date));
+          _indexWhere((itinerary) => itinerary.day.isOnSameDayAs(date));
       var itinerary = this[itineraryIndex];
       writeBatch.delete(itinerary.planDataEventHandler.documentReference);
     }
@@ -192,21 +192,14 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
   }
 
   @override
-  int get length => _allItineraries.length;
+  Iterator<ItineraryFacade> get iterator => _allItineraries.iterator;
 
-  @override
-  set length(int newLength) {}
-
-  @override
   ItineraryModelImplementation operator [](int index) => _allItineraries[index];
 
   @override
   ItineraryModelEventHandler getItineraryForDay(DateTime dateTime) =>
       _allItineraries
           .singleWhere((itinerary) => itinerary.day.isOnSameDayAs(dateTime));
-
-  @override
-  void operator []=(int index, ItineraryFacade value) {}
 
   @override
   Future dispose() async {
@@ -306,5 +299,14 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
       _addOrRemoveLodgingToItinerary(lodgingBeforeUpdate, true);
       _addOrRemoveLodgingToItinerary(lodgingAfterUpdate, false);
     }));
+  }
+
+  int _indexWhere(bool Function(ItineraryFacade itinerary) predicate) {
+    for (var i = 0; i < _allItineraries.length; i++) {
+      if (predicate(_allItineraries[i])) {
+        return i;
+      }
+    }
+    return -1;
   }
 }

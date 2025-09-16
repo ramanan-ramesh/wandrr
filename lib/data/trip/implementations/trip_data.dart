@@ -15,7 +15,6 @@ import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
-import 'package:wandrr/data/trip/models/itinerary.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 import 'package:wandrr/data/trip/models/transit.dart';

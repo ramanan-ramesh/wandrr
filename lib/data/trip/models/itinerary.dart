@@ -40,7 +40,7 @@ abstract class ItineraryModelEventHandler extends ItineraryFacade {
   set fullDayLodging(LodgingFacade? lodging);
 }
 
-abstract class ItineraryFacadeCollection extends ListBase<ItineraryFacade> {
+abstract class ItineraryFacadeCollection extends IterableBase<ItineraryFacade> {
   ItineraryModelEventHandler getItineraryForDay(DateTime dateTime);
 }
 
