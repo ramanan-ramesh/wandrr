@@ -59,41 +59,41 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
       transitsPerDay[currentTripDay] = [];
     }
     for (final transitItem in transitModelCollection.collectionItems) {
-      var transit = transitItem.facade;
-      var totalDaysOfTransit = transit.departureDateTime!
-          .calculateDaysInBetween(transit.arrivalDateTime!,
+      var totalDaysOfTransit = transitItem.departureDateTime!
+          .calculateDaysInBetween(transitItem.arrivalDateTime!,
               includeExtraDay: false);
       for (var dayCounter = 0; dayCounter <= totalDaysOfTransit; dayCounter++) {
         var currentTripDay =
-            transit.departureDateTime!.add(Duration(days: dayCounter));
+            transitItem.departureDateTime!.add(Duration(days: dayCounter));
         var matchingTransitEntry = transitsPerDay.entries
             .where((element) => element.key.isOnSameDayAs(currentTripDay))
             .firstOrNull;
         if (matchingTransitEntry != null) {
-          transitsPerDay[matchingTransitEntry.key]!.add(transit);
+          transitsPerDay[matchingTransitEntry.key]!.add(transitItem);
         }
       }
     }
 
     var lodgingEventsPerDay = <DateTime, List<LodgingFacade>>{};
     for (final lodgingItem in lodgingModelCollection.collectionItems) {
-      var lodging = lodgingItem.facade;
-      var totalStayTimeInDays = lodging.checkinDateTime!.calculateDaysInBetween(
-          lodging.checkoutDateTime!,
-          includeExtraDay: false);
+      var totalStayTimeInDays = lodgingItem.checkinDateTime!
+          .calculateDaysInBetween(lodgingItem.checkoutDateTime!,
+              includeExtraDay: false);
       for (var dayCounter = 0;
           dayCounter <= totalStayTimeInDays;
           dayCounter++) {
-        var currentTripDay = DateTime(lodging.checkinDateTime!.year,
-                lodging.checkinDateTime!.month, lodging.checkinDateTime!.day)
+        var currentTripDay = DateTime(
+                lodgingItem.checkinDateTime!.year,
+                lodgingItem.checkinDateTime!.month,
+                lodgingItem.checkinDateTime!.day)
             .add(Duration(days: dayCounter));
         var lodgingEventOnSameDay = lodgingEventsPerDay.entries
             .where((mapElement) => mapElement.key.isOnSameDayAs(currentTripDay))
             .firstOrNull;
         if (lodgingEventOnSameDay != null) {
-          lodgingEventsPerDay[lodgingEventOnSameDay.key]!.add(lodging);
+          lodgingEventsPerDay[lodgingEventOnSameDay.key]!.add(lodgingItem);
         } else {
-          lodgingEventsPerDay[currentTripDay] = [lodging];
+          lodgingEventsPerDay[currentTripDay] = [lodgingItem];
         }
       }
     }
@@ -268,34 +268,30 @@ class ItineraryModelCollection extends ItineraryFacadeCollectionEventHandler
         _endDate = endDate {
     _subscriptions
         .add(_transitModelCollection.onDocumentAdded.listen((eventData) async {
-      var transitAdded = eventData.modifiedCollectionItem.facade;
+      var transitAdded = eventData.modifiedCollectionItem;
       _addOrRemoveTransitToItinerary(transitAdded, false);
     }));
     _subscriptions.add(
         _transitModelCollection.onDocumentDeleted.listen((eventData) async {
-      var transitDeleted = eventData.modifiedCollectionItem.facade;
+      var transitDeleted = eventData.modifiedCollectionItem;
       _addOrRemoveTransitToItinerary(transitDeleted, true);
     }));
     _subscriptions.add(
         _transitModelCollection.onDocumentUpdated.listen((eventData) async {
-      var transitBeforeUpdate =
-          eventData.modifiedCollectionItem.beforeUpdate.facade;
-      var transitAfterUpdate =
-          eventData.modifiedCollectionItem.afterUpdate.facade;
+      var transitBeforeUpdate = eventData.modifiedCollectionItem.beforeUpdate;
+      var transitAfterUpdate = eventData.modifiedCollectionItem.afterUpdate;
       _addOrRemoveTransitToItinerary(transitBeforeUpdate, true);
       _addOrRemoveTransitToItinerary(transitAfterUpdate, false);
     }));
     _subscriptions
         .add(_lodgingModelCollection.onDocumentAdded.listen((eventData) async {
-      var lodgingAdded = eventData.modifiedCollectionItem.facade;
+      var lodgingAdded = eventData.modifiedCollectionItem;
       _addOrRemoveLodgingToItinerary(lodgingAdded, false);
     }));
     _subscriptions.add(
         _lodgingModelCollection.onDocumentUpdated.listen((eventData) async {
-      var lodgingBeforeUpdate =
-          eventData.modifiedCollectionItem.beforeUpdate.facade;
-      var lodgingAfterUpdate =
-          eventData.modifiedCollectionItem.afterUpdate.facade;
+      var lodgingBeforeUpdate = eventData.modifiedCollectionItem.beforeUpdate;
+      var lodgingAfterUpdate = eventData.modifiedCollectionItem.afterUpdate;
       _addOrRemoveLodgingToItinerary(lodgingBeforeUpdate, true);
       _addOrRemoveLodgingToItinerary(lodgingAfterUpdate, false);
     }));

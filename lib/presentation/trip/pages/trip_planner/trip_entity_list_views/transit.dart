@@ -34,7 +34,7 @@ class TransitListView extends StatelessWidget {
           ReadonlyTransitPlan(transitFacade: uiElement.element),
       uiElementsCreator: (TripDataFacade tripDataModelFacade) =>
           tripDataModelFacade
-              .transits
+              .transitCollection.collectionItems
               .map((transit) =>
                   UiElement(element: transit, dataState: DataState.none))
               .toList(),

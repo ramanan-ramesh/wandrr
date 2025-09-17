@@ -54,16 +54,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   }
 
   @override
-  List<TripMetadataFacade> get tripMetadatas =>
-      List.from(_tripMetadataModelCollection.collectionItems
-          .cast<TripMetadataFacade>()
-          .map<TripMetadataFacade>((facade) => facade.clone()));
-
-  @override
-  ModelCollectionModifier<TripMetadataFacade> get tripMetadataModelCollection =>
-      _tripMetadataModelCollection;
-  final ModelCollectionModifier<TripMetadataFacade>
-      _tripMetadataModelCollection;
+  final ModelCollectionModifier<TripMetadataFacade> tripMetadataCollection;
 
   @override
   TripDataModelImplementation? activeTrip;
@@ -100,28 +91,27 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   Future dispose() async {
     await _tripMetadataUpdatedEventSubscription.cancel();
     await _tripMetadataDeletedEventSubscription.cancel();
-    await _tripMetadataModelCollection.dispose();
+    await tripMetadataCollection.dispose();
     await activeTrip?.dispose();
     activeTrip = null;
   }
 
   TripRepositoryImplementation._(
-    this._tripMetadataModelCollection,
+    this.tripMetadataCollection,
     this._appLocalizations,
     this.currentUserName,
     this.supportedCurrencies,
   ) {
     _tripMetadataUpdatedEventSubscription =
-        tripMetadataModelCollection.onDocumentUpdated.listen((eventData) async {
+        tripMetadataCollection.onDocumentUpdated.listen((eventData) async {
       if (activeTrip == null) {
         return;
       }
       await activeTrip!
           .updateTripMetadata(eventData.modifiedCollectionItem.afterUpdate);
     });
-    _tripMetadataDeletedEventSubscription = _tripMetadataModelCollection
-        .onDocumentDeleted
-        .listen((eventData) async {
+    _tripMetadataDeletedEventSubscription =
+        tripMetadataCollection.onDocumentDeleted.listen((eventData) async {
       var deletedTripId = eventData.modifiedCollectionItem.id;
       await FirebaseFirestore.instance
           .collection(FirestoreCollections.tripCollectionName)

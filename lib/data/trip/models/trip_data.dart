@@ -1,5 +1,4 @@
 import 'package:wandrr/data/app/models/dispose.dart';
-import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/itinerary.dart';
 import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
@@ -14,13 +13,13 @@ import 'trip_metadata.dart';
 abstract class TripDataFacade {
   TripMetadataFacade get tripMetadata;
 
-  Iterable<TransitFacade> get transits;
+  ModelCollectionFacade<TransitFacade> get transitCollection;
 
-  Iterable<LodgingFacade> get lodgings;
+  ModelCollectionFacade<LodgingFacade> get lodgingCollection;
 
-  Iterable<ExpenseFacade> get expenses;
+  ModelCollectionFacade<ExpenseFacade> get expenseCollection;
 
-  Iterable<PlanDataFacade> get planDataList;
+  ModelCollectionFacade<PlanDataFacade> get planDataCollection;
 
   ItineraryFacadeCollection get itineraryCollection;
 
@@ -31,16 +30,15 @@ abstract class TripDataFacade {
 
 abstract class TripDataModelEventHandler extends TripDataFacade
     implements Dispose {
-  Future updateTripMetadata(
-      LeafRepositoryItem<TripMetadataFacade> tripMetadataLeafRepositoryItem);
+  Future updateTripMetadata(TripMetadataFacade tripMetadata);
 
   ItineraryFacadeCollectionEventHandler get itineraryCollection;
 
-  ModelCollectionModifier<TransitFacade> get transitsModelCollection;
+  ModelCollectionModifier<TransitFacade> get transitCollection;
 
-  ModelCollectionModifier<LodgingFacade> get lodgingModelCollection;
+  ModelCollectionModifier<LodgingFacade> get lodgingCollection;
 
-  ModelCollectionModifier<ExpenseFacade> get expenseModelCollection;
+  ModelCollectionModifier<ExpenseFacade> get expenseCollection;
 
-  ModelCollectionModifier<PlanDataFacade> get planDataModelCollection;
+  ModelCollectionModifier<PlanDataFacade> get planDataCollection;
 }

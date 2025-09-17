@@ -269,7 +269,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     var expensesToConsider = <ExpenseFacade>[];
     for (final transit in transitModelCollection.collectionItems) {
       if (!transitsToExclude.any((e) => e.id == transit.id)) {
-        var expense = transit.facade.expense;
+        var expense = transit.expense;
         if (expense.splitBy.contains(currentUserName)) {
           expensesToConsider.add(expense);
         }
@@ -277,16 +277,15 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     }
     for (final lodging in lodgingModelCollection.collectionItems) {
       if (!lodgingsToExclude.any((e) => e.id == lodging.id)) {
-        var expense = lodging.facade.expense;
+        var expense = lodging.expense;
         if (expense.splitBy.contains(currentUserName)) {
           expensesToConsider.add(expense);
         }
       }
     }
     for (final expense in expenseModelCollection.collectionItems) {
-      var expenseFacade = expense.facade;
-      if (expenseFacade.splitBy.contains(currentUserName)) {
-        expensesToConsider.add(expenseFacade);
+      if (expense.splitBy.contains(currentUserName)) {
+        expensesToConsider.add(expense);
       }
     }
     if (expensesToConsider.isNotEmpty) {
@@ -339,12 +338,12 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     }));
   }
 
-  Iterable<ExpenseFacade> _getAllExpenses() => _transitModelCollection
-      .collectionItems
-      .map((e) => e.facade.expense)
-      .followedBy(
-          _lodgingModelCollection.collectionItems.map((e) => e.facade.expense))
-      .followedBy(_expenseModelCollection.collectionItems.map((e) => e.facade));
+  Iterable<ExpenseFacade> _getAllExpenses() =>
+      _transitModelCollection.collectionItems
+          .map((transit) => transit.expense)
+          .followedBy(_lodgingModelCollection.collectionItems
+              .map((lodging) => lodging.expense))
+          .followedBy(_expenseModelCollection.collectionItems);
 
   Iterable<UiElement<ExpenseFacade>> _sortOnDateTime(
       List<UiElement<ExpenseFacade>> expenseUiElements,
@@ -456,13 +455,12 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       Iterable<String> contributors,
       WriteBatch writeBatch,
       {bool isLinkedExpense = false}) async {
-    for (final collectionItem in modelCollection.collectionItems) {
-      dynamic collectionItemFacade = collectionItem.facade;
+    for (final dynamic collectionItem in modelCollection.collectionItems) {
       ExpenseFacade expenseModelFacade;
       if (isLinkedExpense) {
-        expenseModelFacade = collectionItemFacade.expense;
+        expenseModelFacade = collectionItem.expense;
       } else {
-        expenseModelFacade = collectionItemFacade;
+        expenseModelFacade = collectionItem;
       }
 
       for (final contributor in contributors) {
@@ -480,10 +478,8 @@ class BudgetingModule implements BudgetingModuleEventHandler {
           expenseModelFacade.paidBy.remove(contributorThatPayed);
         }
       }
-      var itemToUpdate =
-          modelCollection.leafRepositoryItemCreator(collectionItemFacade as T);
-      writeBatch.update(
-          collectionItem.documentReference, itemToUpdate.toJson());
+      var itemToUpdate = modelCollection.repositoryItemCreator(collectionItem);
+      writeBatch.update(itemToUpdate.documentReference, itemToUpdate.toJson());
     }
   }
 

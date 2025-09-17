@@ -35,7 +35,7 @@ class LodgingListView extends StatelessWidget {
           ReadonlyLodgingPlan(lodgingModelFacade: uiElement.element),
       uiElementsCreator: (TripDataFacade tripDataModelFacade) =>
           tripDataModelFacade
-              .lodgings
+              .lodgingCollection.collectionItems
               .map((lodging) =>
                   UiElement(element: lodging, dataState: DataState.none))
               .toList(),

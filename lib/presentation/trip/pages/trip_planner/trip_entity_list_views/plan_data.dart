@@ -115,8 +115,9 @@ class PlanDataListView extends StatelessWidget {
         }
       }
     }
-    _planDataUiElements.addAll(activeTrip.planDataList.map((e) =>
-        UiElement<PlanDataFacade>(element: e, dataState: DataState.none)));
+    _planDataUiElements.addAll(activeTrip.planDataCollection.collectionItems
+        .map((e) =>
+            UiElement<PlanDataFacade>(element: e, dataState: DataState.none)));
   }
 }
 

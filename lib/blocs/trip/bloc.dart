@@ -65,10 +65,10 @@ class TripManagementBloc
           userName: currentUserName, appLocalizations: appLocalizations);
 
       var tripMetadataUpdatedSubscription = _tripRepository!
-          .tripMetadataModelCollection.onDocumentUpdated
+          .tripMetadataCollection.onDocumentUpdated
           .listen((eventData) {
         var collectionModificationData = CollectionItemChangeMetadata(
-            eventData.modifiedCollectionItem.afterUpdate.facade,
+            eventData.modifiedCollectionItem.afterUpdate,
             isFromExplicitAction: false);
         if (!isClosed) {
           add(_UpdateTripEntityInternalEvent.updated(collectionModificationData,
@@ -76,11 +76,11 @@ class TripManagementBloc
         }
       });
       var tripMetadataAddedSubscription = _tripRepository!
-          .tripMetadataModelCollection.onDocumentAdded
+          .tripMetadataCollection.onDocumentAdded
           .listen((eventData) {
         if (!eventData.isFromExplicitAction) {
           var collectionModificationData = CollectionItemChangeMetadata(
-              eventData.modifiedCollectionItem.facade,
+              eventData.modifiedCollectionItem,
               isFromExplicitAction: false);
           if (!isClosed) {
             add(_UpdateTripEntityInternalEvent.created(
@@ -90,11 +90,11 @@ class TripManagementBloc
         }
       });
       var tripMetadataDeletedSubscription = _tripRepository!
-          .tripMetadataModelCollection.onDocumentDeleted
+          .tripMetadataCollection.onDocumentDeleted
           .listen((eventData) {
         if (!eventData.isFromExplicitAction) {
           var collectionModificationData = CollectionItemChangeMetadata(
-              eventData.modifiedCollectionItem.facade,
+              eventData.modifiedCollectionItem,
               isFromExplicitAction: false);
           if (!isClosed) {
             add(_UpdateTripEntityInternalEvent.deleted(
@@ -122,7 +122,7 @@ class TripManagementBloc
 
   FutureOr<void> _onLoadTrip(
       LoadTrip event, Emitter<TripManagementState> emit) async {
-    var tripMetadata = _tripRepository!.tripMetadatas
+    var tripMetadata = _tripRepository!.tripMetadataCollection.collectionItems
         .where((element) => element.id == event.tripMetadata.id)
         .firstOrNull;
     if (tripMetadata != null) {
@@ -135,13 +135,13 @@ class TripManagementBloc
           .loadTrip(event.tripMetadata, _apiServicesRepository!);
       var activeTrip = _tripRepository!.activeTrip!;
       _subscribeToCollectionUpdatesForTripEntity<TransitFacade>(
-          activeTrip.transitsModelCollection, emit);
+          activeTrip.transitCollection, emit);
       _subscribeToCollectionUpdatesForTripEntity<LodgingFacade>(
-          activeTrip.lodgingModelCollection, emit);
+          activeTrip.lodgingCollection, emit);
       _subscribeToCollectionUpdatesForTripEntity<ExpenseFacade>(
-          activeTrip.expenseModelCollection, emit);
+          activeTrip.expenseCollection, emit);
       _subscribeToCollectionUpdatesForTripEntity<PlanDataFacade>(
-          activeTrip.planDataModelCollection, emit);
+          activeTrip.planDataCollection, emit);
       emit(ActivatedTrip(apiServicesRepository: _apiServicesRepository!));
     }
   }
@@ -162,7 +162,7 @@ class TripManagementBloc
     await _tryUpdateTripEntityAndEmitState<TransitFacade>(
         event.tripEntity!,
         event.dataState,
-        _tripRepository!.activeTrip!.transitsModelCollection,
+        _tripRepository!.activeTrip!.transitCollection,
         event.tripEntity!.id,
         emit);
   }
@@ -182,7 +182,7 @@ class TripManagementBloc
     await _tryUpdateTripEntityAndEmitState<LodgingFacade>(
         event.tripEntity!,
         event.dataState,
-        _tripRepository!.activeTrip!.lodgingModelCollection,
+        _tripRepository!.activeTrip!.lodgingCollection,
         event.tripEntity!.id,
         emit);
   }
@@ -205,7 +205,7 @@ class TripManagementBloc
     await _tryUpdateTripEntityAndEmitState<ExpenseFacade>(
         event.tripEntity!,
         event.dataState,
-        _tripRepository!.activeTrip!.expenseModelCollection,
+        _tripRepository!.activeTrip!.expenseCollection,
         event.tripEntity!.id,
         emit);
   }
@@ -223,7 +223,7 @@ class TripManagementBloc
     await _tryUpdateTripEntityAndEmitState<PlanDataFacade>(
         event.tripEntity!,
         event.dataState,
-        _tripRepository!.activeTrip!.planDataModelCollection,
+        _tripRepository!.activeTrip!.planDataCollection,
         event.tripEntity!.id,
         emit);
   }
@@ -244,7 +244,7 @@ class TripManagementBloc
     await _tryUpdateTripEntityAndEmitState<TripMetadataFacade>(
         event.tripEntity!,
         event.dataState,
-        _tripRepository!.tripMetadataModelCollection,
+        _tripRepository!.tripMetadataCollection,
         event.tripEntity!.id,
         emit);
   }
@@ -330,8 +330,9 @@ class TripManagementBloc
       case DataState.delete:
         {
           if (tripEntityId != null && tripEntityId.isNotEmpty) {
-            if (modelCollection.collectionItems.any(
-                (element) => element.documentReference.id == tripEntityId)) {
+            if (modelCollection.collectionItems
+                .whereType<TripEntity>()
+                .any((element) => element.id == tripEntityId)) {
               var didDelete = await modelCollection.tryDeleteItem(tripEntity);
               emit(UpdatedTripEntity<E>.deleted(
                   tripEntityModificationData: CollectionItemChangeMetadata(
@@ -352,13 +353,12 @@ class TripManagementBloc
         {
           if (tripEntityId != null && tripEntityId.isNotEmpty) {
             var collectionItem = modelCollection.collectionItems
+                .whereType<TripEntity>()
                 .where((element) => element.id == tripEntityId)
                 .firstOrNull;
             if (collectionItem != null) {
               var didUpdate = false;
-              await modelCollection.runUpdateTransaction(() async {
-                didUpdate = await collectionItem.tryUpdate(tripEntity);
-              });
+              await modelCollection.tryUpdateItem(tripEntity);
               emit(UpdatedTripEntity<E>.updated(
                   tripEntityModificationData: CollectionItemChangeMetadata(
                       tripEntity,
@@ -371,9 +371,9 @@ class TripManagementBloc
       case DataState.select:
         {
           var originalTripEntity = modelCollection.collectionItems
+              .whereType<TripEntity>()
               .where((e) => e.id == tripEntityId)
-              .firstOrNull
-              ?.facade;
+              .firstOrNull as E?;
           emit(UpdatedTripEntity<E>.selected(
               tripEntity: originalTripEntity ?? tripEntity));
         }
@@ -391,7 +391,7 @@ class TripManagementBloc
         modelCollection.onDocumentAdded.listen((eventData) {
       if (!eventData.isFromExplicitAction) {
         var collectionModificationData = CollectionItemChangeMetadata(
-            eventData.modifiedCollectionItem.facade,
+            eventData.modifiedCollectionItem,
             isFromExplicitAction: false);
         if (!isClosed) {
           add(_UpdateTripEntityInternalEvent<T>.created(
@@ -404,7 +404,7 @@ class TripManagementBloc
         modelCollection.onDocumentDeleted.listen((eventData) {
       if (!eventData.isFromExplicitAction) {
         var collectionModificationData = CollectionItemChangeMetadata(
-            eventData.modifiedCollectionItem.facade,
+            eventData.modifiedCollectionItem,
             isFromExplicitAction: false);
         if (!isClosed) {
           add(_UpdateTripEntityInternalEvent<T>.deleted(
@@ -417,7 +417,7 @@ class TripManagementBloc
         modelCollection.onDocumentUpdated.listen((eventData) {
       if (!eventData.isFromExplicitAction) {
         var collectionModificationData = CollectionItemChangeMetadata(
-            eventData.modifiedCollectionItem.afterUpdate.facade,
+            eventData.modifiedCollectionItem.afterUpdate,
             isFromExplicitAction: false);
         if (!isClosed) {
           add(_UpdateTripEntityInternalEvent<T>.updated(

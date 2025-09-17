@@ -241,15 +241,19 @@ class _ExpenseListViewNewState extends State<ExpenseListViewNew> {
   List<UiElement<ExpenseFacade>> expenseUiElementsCreator(
       TripDataFacade tripDataModelFacade) {
     var expenseUiElements = <UiElement<ExpenseFacade>>[];
-    expenseUiElements.addAll(tripDataModelFacade.expenses.map((element) =>
-        UiElement<ExpenseFacade>(element: element, dataState: DataState.none)));
-    expenseUiElements.addAll(tripDataModelFacade.transits.map((element) =>
-        UiElementWithMetadata<ExpenseFacade, TransitFacade>(
+    expenseUiElements.addAll(tripDataModelFacade
+        .expenseCollection.collectionItems
+        .map((element) => UiElement<ExpenseFacade>(
+            element: element, dataState: DataState.none)));
+    expenseUiElements.addAll(tripDataModelFacade
+        .transitCollection.collectionItems
+        .map((element) => UiElementWithMetadata<ExpenseFacade, TransitFacade>(
             element: element.expense,
             dataState: DataState.none,
             metadata: element)));
-    expenseUiElements.addAll(tripDataModelFacade.lodgings.map((element) =>
-        UiElementWithMetadata<ExpenseFacade, LodgingFacade>(
+    expenseUiElements.addAll(tripDataModelFacade
+        .lodgingCollection.collectionItems
+        .map((element) => UiElementWithMetadata<ExpenseFacade, LodgingFacade>(
             element: element.expense,
             dataState: DataState.none,
             metadata: element)));
