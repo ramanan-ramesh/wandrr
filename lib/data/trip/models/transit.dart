@@ -76,9 +76,14 @@ class TransitFacade extends Equatable implements TripEntity {
 
   @override
   String toString() {
-    var dateTime =
-        '${DateFormat.MMMM().format(departureDateTime!).substring(0, 3)} ${departureDateTime!.day}';
-    return '${departureLocation!} to ${arrivalLocation!} on $dateTime';
+    if (departureDateTime != null &&
+        departureLocation != null &&
+        arrivalLocation != null) {
+      var dateTime =
+          '${DateFormat.MMMM().format(departureDateTime!).substring(0, 3)} ${departureDateTime!.day}';
+      return '${departureLocation!} to ${arrivalLocation!} on $dateTime';
+    }
+    return 'Unnamed Entry';
   }
 
   TransitFacade clone() => TransitFacade(

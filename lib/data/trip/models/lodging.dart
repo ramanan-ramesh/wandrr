@@ -88,11 +88,16 @@ class LodgingFacade extends Equatable implements TripEntity {
 
   @override
   String toString() {
-    var checkInDayDescription =
-        '${DateFormat.MMMM().format(checkinDateTime!).substring(0, 3)} ${checkinDateTime!.day}';
-    var checkOutDayDescription =
-        '${DateFormat.MMMM().format(checkoutDateTime!).substring(0, 3)} ${checkoutDateTime!.day}';
-    return 'Stay at ${location!} from $checkInDayDescription to $checkOutDayDescription';
+    if (checkinDateTime != null &&
+        checkoutDateTime != null &&
+        location != null) {
+      var checkInDayDescription =
+          '${DateFormat.MMMM().format(checkinDateTime!).substring(0, 3)} ${checkinDateTime!.day}';
+      var checkOutDayDescription =
+          '${DateFormat.MMMM().format(checkoutDateTime!).substring(0, 3)} ${checkoutDateTime!.day}';
+      return 'Stay at ${location!} from $checkInDayDescription to $checkOutDayDescription';
+    }
+    return 'Unnamed Entry';
   }
 
   @override
