@@ -45,7 +45,10 @@ class _JumpToDateNavigatorState<T extends TripEntity>
       },
       listener: (context, state) {},
       builder: (context, state) {
-        var areThereTripEntities = widget.tripEntitiesGetter().isNotEmpty;
+        var areThereTripEntities = widget
+            .tripEntitiesGetter()
+            .where((tripEntity) => tripEntity.id != null)
+            .isNotEmpty;
         if (areThereTripEntities) {
           return _createActionButton(context);
         } else {
