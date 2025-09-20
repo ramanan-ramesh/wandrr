@@ -102,34 +102,15 @@ class _TripEntityListViewState<T extends TripEntity>
       buildWhen: _shouldBuildList,
       builder: (BuildContext context, TripManagementState state) {
         _updateListElementsOnBuild(state);
-        return FutureBuilder<Iterable<UiElement<T>>>(
-          future:
-              _uiElementsSorterWrapper(widget.uiElementsSorter, _uiElements),
-          builder: (BuildContext context,
-              AsyncSnapshot<Iterable<UiElement<T>>> snapshot) {
-            if (snapshot.connectionState == ConnectionState.done &&
-                snapshot.hasData) {
-              _uiElements = snapshot.data!.toList();
-            }
-            return SliverMainAxisGroup(
-              slivers: [
-                SliverAppBar(
-                  key: _headerContext,
-                  flexibleSpace: _createHeaderTile(),
-                  pinned: true,
-                ),
-                _isListVisible
-                    ? (_uiElements.isEmpty
-                        ? SliverToBoxAdapter(
-                            child: _createEmptyMessagePane(),
-                          )
-                        : _createSliverList())
-                    : const SliverToBoxAdapter(
-                        child: SizedBox.shrink(),
-                      ),
-              ],
-            );
-          },
+        return SliverMainAxisGroup(
+          slivers: [
+            SliverAppBar(
+              key: _headerContext,
+              flexibleSpace: _createHeaderTile(),
+              pinned: true,
+            ),
+            _createListViewingArea(),
+          ],
         );
       },
       listener: (BuildContext context, TripManagementState state) {
@@ -153,6 +134,31 @@ class _TripEntityListViewState<T extends TripEntity>
         }
       },
     );
+  }
+
+  Widget _createListViewingArea() {
+    if (_isListVisible) {
+      if (_uiElements.isEmpty) {
+        return SliverToBoxAdapter(child: _createEmptyMessagePane());
+      } else {
+        return FutureBuilder<Iterable<UiElement<T>>>(
+          future:
+              _uiElementsSorterWrapper(widget.uiElementsSorter, _uiElements),
+          builder: (BuildContext context,
+              AsyncSnapshot<Iterable<UiElement<T>>> snapshot) {
+            if (snapshot.connectionState == ConnectionState.done &&
+                snapshot.hasData) {
+              _uiElements = snapshot.data!.toList();
+              return _createSliverList();
+            }
+            return SliverToBoxAdapter(
+                child: Center(child: CircularProgressIndicator()));
+          },
+        );
+      }
+    } else {
+      return SliverToBoxAdapter(child: const SizedBox.shrink());
+    }
   }
 
   Widget _createSliverList() {
@@ -323,43 +329,18 @@ class _TripEntityListViewState<T extends TripEntity>
   }
 
   Widget _buildCreateTripEntityButton() {
-    return BlocConsumer<TripManagementBloc, TripManagementState>(
-      builder: (BuildContext context, TripManagementState state) {
-        var shouldEnableButton = !_uiElements
-            .any((element) => element.dataState == DataState.newUiEntry);
-        if (state.isTripEntityUpdated<T>()) {
-          var updatedTripEntityState = state as UpdatedTripEntity;
-          if (updatedTripEntityState.dataState == DataState.newUiEntry) {
-            shouldEnableButton = false;
-          } else if (updatedTripEntityState.dataState == DataState.delete &&
-              updatedTripEntityState
-                      .tripEntityModificationData.modifiedCollectionItem.id ==
-                  null) {
-            shouldEnableButton = true;
-          }
-        }
-        return FloatingActionButton.extended(
-          onPressed: !shouldEnableButton
-              ? null
-              : () {
-                  context.addTripManagementEvent(
-                      UpdateTripEntity<T>.createNewUiEntry());
-                },
-          label: Text(context.localizations.addNew),
-          icon: const Icon(Icons.add_rounded),
-          elevation: 0,
-        );
-      },
-      buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntityUpdated<T>()) {
-          var updatedTripEntityState = currentState as UpdatedTripEntity;
-          return updatedTripEntityState.dataState == DataState.create ||
-              updatedTripEntityState.dataState == DataState.newUiEntry ||
-              updatedTripEntityState.dataState == DataState.delete;
-        }
-        return false;
-      },
-      listener: (BuildContext context, TripManagementState state) {},
+    var shouldEnableButton = !_uiElements
+        .any((element) => element.dataState == DataState.newUiEntry);
+    return FloatingActionButton.extended(
+      onPressed: !shouldEnableButton
+          ? null
+          : () {
+              context.addTripManagementEvent(
+                  UpdateTripEntity<T>.createNewUiEntry());
+            },
+      label: Text(context.localizations.addNew),
+      icon: const Icon(Icons.add_rounded),
+      elevation: 0,
     );
   }
 
