@@ -97,6 +97,12 @@ class _TripEntityListViewState<T extends TripEntity>
   final _headerContext = GlobalKey();
 
   @override
+  void dispose() {
+    _listController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       buildWhen: _shouldBuildList,
@@ -162,9 +168,60 @@ class _TripEntityListViewState<T extends TripEntity>
   }
 
   Widget _createSliverList() {
-    return SuperSliverList.builder(
+    if (widget.canConsiderUiElementForNavigation != null &&
+        _uiElements
+            .where((uiElement) =>
+                uiElement.dataState == DataState.none &&
+                uiElement.element.id != null)
+            .isNotEmpty) {
+      return SuperSliverList.builder(
+        itemCount: _uiElements.length,
+        listController: _listController,
+        itemBuilder: (BuildContext context, int index) {
+          var uiElement = _uiElements.elementAt(index);
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 4.0),
+            child: Material(
+              color: context.isLightTheme
+                  ? Theme.of(context)
+                      .colorScheme
+                      .surfaceContainerHighest
+                      .withValues(alpha: 0.96)
+                  : Theme.of(context)
+                      .colorScheme
+                      .surfaceContainerHighest
+                      .withValues(alpha: 0.98),
+              elevation: 5,
+              borderRadius: BorderRadius.circular(23),
+              shadowColor: AppColors.neutral900.withValues(alpha: 0.10),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(23),
+                  border: Border.all(
+                    width: 2.2,
+                  ),
+                ),
+                child: TripEntityListElement<T>(
+                  uiElement: uiElement,
+                  onPressed: widget.onUiElementPressed,
+                  canDelete: widget.canDelete,
+                  additionalListItemBuildWhenCondition:
+                      widget.additionalListItemBuildWhenCondition,
+                  onUpdatePressed: widget.onUpdatePressed,
+                  onDeletePressed: widget.onDeletePressed,
+                  openedListElementCreator: widget.openedListElementCreator,
+                  closedElementCreator: (uiElement) =>
+                      widget.closedListElementCreator(uiElement),
+                  errorMessageCreator: widget.errorMessageCreator,
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
+    return SliverList.builder(
       itemCount: _uiElements.length,
-      listController: _listController,
       itemBuilder: (BuildContext context, int index) {
         var uiElement = _uiElements.elementAt(index);
         return Padding(
