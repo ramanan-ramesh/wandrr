@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/ui_element.dart';
@@ -16,10 +15,6 @@ class TransitListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TripEntityListView<TransitFacade>(
-      canConsiderUiElementForNavigation: (transit, dateTime) {
-        return transit.departureDateTime!.isOnSameDayAs(dateTime) ||
-            transit.arrivalDateTime!.isOnSameDayAs(dateTime);
-      },
       section: NavigationSections.transit,
       emptyListMessage: context.localizations.noTransitsCreated,
       headerTileLabel: context.localizations.transit,

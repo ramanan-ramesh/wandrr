@@ -24,7 +24,7 @@ class TripPlannerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RepositoryProvider<TripNavigator>(
-      create: (context) => TripNavigator(scrollController: _scrollController),
+      create: (context) => const TripNavigator(),
       child: context.isBigLayout
           ? _createForBigLayout()
           : Stack(

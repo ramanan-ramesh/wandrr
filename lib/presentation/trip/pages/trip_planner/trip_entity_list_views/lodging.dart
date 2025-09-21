@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/ui_element.dart';
@@ -17,10 +16,6 @@ class LodgingListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TripEntityListView<LodgingFacade>(
-      canConsiderUiElementForNavigation: (lodging, dateTime) {
-        return lodging.checkinDateTime!.isOnSameDayAs(dateTime) ||
-            lodging.checkoutDateTime!.isOnSameDayAs(dateTime);
-      },
       section: NavigationSections.lodging,
       emptyListMessage: context.localizations.noLodgingCreated,
       headerTileLabel: context.localizations.lodging,
