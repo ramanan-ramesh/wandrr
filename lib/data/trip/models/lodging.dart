@@ -8,7 +8,7 @@ import 'budgeting/expense_category.dart';
 import 'budgeting/money.dart';
 
 // ignore: must_be_immutable
-class LodgingFacade extends Equatable implements TripEntity {
+class LodgingFacade extends Equatable implements TripEntity<LodgingFacade> {
   LocationFacade? location;
 
   DateTime? checkinDateTime;
@@ -53,6 +53,19 @@ class LodgingFacade extends Equatable implements TripEntity {
                 List.filled(allTripContributors.length, 0)),
             splitBy: allTripContributors.toList());
 
+  @override
+  LodgingFacade clone() => LodgingFacade(
+      location: location?.clone(),
+      checkinDateTime: DateTime(
+          checkinDateTime!.year, checkinDateTime!.month, checkinDateTime!.day),
+      checkoutDateTime: DateTime(checkoutDateTime!.year,
+          checkoutDateTime!.month, checkoutDateTime!.day),
+      id: id,
+      tripId: tripId,
+      confirmationId: confirmationId,
+      expense: expense.clone(),
+      notes: notes);
+
   void copyWith(LodgingFacade lodgingModelFacade) {
     location = lodgingModelFacade.location;
     checkinDateTime = DateTime(
@@ -67,18 +80,6 @@ class LodgingFacade extends Equatable implements TripEntity {
     expense = lodgingModelFacade.expense;
     notes = lodgingModelFacade.notes;
   }
-
-  LodgingFacade clone() => LodgingFacade(
-      location: location?.clone(),
-      checkinDateTime: DateTime(
-          checkinDateTime!.year, checkinDateTime!.month, checkinDateTime!.day),
-      checkoutDateTime: DateTime(checkoutDateTime!.year,
-          checkoutDateTime!.month, checkoutDateTime!.day),
-      id: id,
-      tripId: tripId,
-      confirmationId: confirmationId,
-      expense: expense.clone(),
-      notes: notes);
 
   bool validate() =>
       location != null &&

@@ -8,7 +8,7 @@ import 'budgeting/expense_category.dart';
 import 'budgeting/money.dart';
 
 // ignore: must_be_immutable
-class TransitFacade extends Equatable implements TripEntity {
+class TransitFacade extends Equatable implements TripEntity<TransitFacade> {
   final String tripId;
 
   @override
@@ -62,6 +62,20 @@ class TransitFacade extends Equatable implements TripEntity {
                 List.filled(allTripContributors.length, 0)),
             splitBy: allTripContributors.toList());
 
+  @override
+  TransitFacade clone() => TransitFacade(
+      tripId: tripId,
+      transitOption: transitOption,
+      departureDateTime: departureDateTime,
+      arrivalDateTime: arrivalDateTime,
+      departureLocation: departureLocation?.clone(),
+      arrivalLocation: arrivalLocation?.clone(),
+      expense: expense.clone(),
+      confirmationId: confirmationId,
+      id: id,
+      operator: operator,
+      notes: notes);
+
   void copyWith(TransitFacade transitModelFacade) {
     transitOption = transitModelFacade.transitOption;
     departureDateTime = transitModelFacade.departureDateTime;
@@ -85,19 +99,6 @@ class TransitFacade extends Equatable implements TripEntity {
     }
     return 'Unnamed Entry';
   }
-
-  TransitFacade clone() => TransitFacade(
-      tripId: tripId,
-      transitOption: transitOption,
-      departureDateTime: departureDateTime,
-      arrivalDateTime: arrivalDateTime,
-      departureLocation: departureLocation?.clone(),
-      arrivalLocation: arrivalLocation?.clone(),
-      expense: expense.clone(),
-      confirmationId: confirmationId,
-      id: id,
-      operator: operator,
-      notes: notes);
 
   static ExpenseCategory getExpenseCategory(TransitOption transitOptions) {
     switch (transitOptions) {

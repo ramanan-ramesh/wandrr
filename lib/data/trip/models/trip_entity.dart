@@ -1,3 +1,4 @@
-abstract class TripEntity {
+abstract class TripEntity<T> {
   String? get id;
+  T clone();
 }

@@ -4,7 +4,7 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'expense_category.dart';
 import 'money.dart';
 
-class ExpenseFacade implements TripEntity {
+class ExpenseFacade implements TripEntity<ExpenseFacade> {
   String tripId;
 
   String title;
@@ -49,20 +49,7 @@ class ExpenseFacade implements TripEntity {
             allTripContributors, List.filled(allTripContributors.length, 0)),
         splitBy = allTripContributors.toList();
 
-  void copyWith(ExpenseFacade expenseModelFacade) {
-    tripId = expenseModelFacade.tripId;
-    title = expenseModelFacade.title;
-    description = expenseModelFacade.description;
-    id = expenseModelFacade.id;
-    totalExpense = expenseModelFacade.totalExpense;
-    category = expenseModelFacade.category;
-    paidBy = expenseModelFacade.paidBy;
-    splitBy = expenseModelFacade.splitBy;
-    location = expenseModelFacade.location;
-    dateTime = DateTime(expenseModelFacade.dateTime!.year,
-        expenseModelFacade.dateTime!.month, expenseModelFacade.dateTime!.day);
-  }
-
+  @override
   ExpenseFacade clone() => ExpenseFacade(
       tripId: tripId,
       title: title,
@@ -76,6 +63,20 @@ class ExpenseFacade implements TripEntity {
       dateTime: dateTime != null
           ? DateTime(dateTime!.year, dateTime!.month, dateTime!.day)
           : null);
+
+  void copyWith(ExpenseFacade expenseModelFacade) {
+    tripId = expenseModelFacade.tripId;
+    title = expenseModelFacade.title;
+    description = expenseModelFacade.description;
+    id = expenseModelFacade.id;
+    totalExpense = expenseModelFacade.totalExpense;
+    category = expenseModelFacade.category;
+    paidBy = expenseModelFacade.paidBy;
+    splitBy = expenseModelFacade.splitBy;
+    location = expenseModelFacade.location;
+    dateTime = DateTime(expenseModelFacade.dateTime!.year,
+        expenseModelFacade.dateTime!.month, expenseModelFacade.dateTime!.day);
+  }
 
   bool validate() => paidBy.isNotEmpty && splitBy.isNotEmpty;
 }
