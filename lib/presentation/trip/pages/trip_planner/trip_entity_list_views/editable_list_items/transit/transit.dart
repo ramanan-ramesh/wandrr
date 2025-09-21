@@ -111,6 +111,7 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
               } else {
                 _transitFacade.departureLocation = newLocation;
               }
+              _calculateTransitValidity();
             },
           )
         : PlatformGeoLocationAutoComplete(
@@ -120,6 +121,7 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
               } else {
                 _transitFacade.departureLocation = newLocation;
               }
+              _calculateTransitValidity();
             },
             selectedLocation: locationToConsider,
           );
@@ -133,6 +135,7 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
         } else {
           _transitFacade.departureDateTime = updatedDateTime;
         }
+        _calculateTransitValidity();
         setState(() {});
       },
       startDateTime: isArrival
