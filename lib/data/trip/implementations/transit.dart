@@ -49,17 +49,13 @@ class TransitImplementation extends TransitFacade
     return TransitImplementation._(
         id: documentSnapshot.id,
         tripId: tripId,
-        notes: documentData.containsKey(_notesField)
-            ? documentData[_notesField]
-            : null,
+        notes: documentData[_notesField],
         transitOption: TransitOption.values.firstWhere(
             (element) => element.name == documentData[_transitOptionField]),
         expense: ExpenseModelImplementation.fromJson(
             tripId: tripId,
             json: documentData[_expenseField] as Map<String, dynamic>),
-        confirmationId: documentData.containsKey(_confirmationIdField)
-            ? documentData[_confirmationIdField]
-            : null,
+        confirmationId: documentData[_confirmationIdField],
         departureDateTime:
             (documentData[_departureDateTimeField] as Timestamp).toDate(),
         arrivalDateTime:
@@ -68,9 +64,7 @@ class TransitImplementation extends TransitFacade
             json: documentData[_arrivalLocationField], tripId: tripId),
         departureLocation: LocationModelImplementation.fromJson(
             json: documentData[_departureLocationField], tripId: tripId),
-        operator: documentData.containsKey(_operatorField)
-            ? documentData[_operatorField]
-            : null);
+        operator: documentData[_operatorField]);
   }
 
   @override

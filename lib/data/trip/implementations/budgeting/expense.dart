@@ -46,9 +46,7 @@ class ExpenseModelImplementation extends ExpenseFacade
     var category = ExpenseCategory.values
         .firstWhere((element) => documentData[_categoryField] == element.name);
 
-    var dateTimeValue = documentData.containsKey(_dateTimeField)
-        ? documentData[_dateTimeField] as Timestamp
-        : null;
+    Timestamp? dateTimeValue = documentData[_dateTimeField];
 
     var splitBy = List<String>.from(documentData[_splitByField]);
 
@@ -73,9 +71,7 @@ class ExpenseModelImplementation extends ExpenseFacade
         id: documentSnapshot.id,
         title: documentData[_titleField],
         location: location,
-        description: documentData.containsKey(_descriptionField)
-            ? documentData[_descriptionField]
-            : null);
+        description: documentData[_descriptionField]);
   }
 
   @override

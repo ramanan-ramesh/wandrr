@@ -45,15 +45,11 @@ class LodgingModelImplementation extends LodgingFacade
             (documentData[_checkoutDateTimeField] as Timestamp).toDate(),
         location: LocationModelImplementation.fromJson(
             json: documentData[_locationField], tripId: tripId),
-        notes: documentData.containsKey(_notesField)
-            ? documentData[_notesField]
-            : null,
+        notes: documentData[_notesField],
         expense: ExpenseModelImplementation.fromJson(
             tripId: tripId,
             json: documentData[_expenseField] as Map<String, dynamic>),
-        confirmationId: documentData.containsKey(_confirmationIdField)
-            ? documentData[_confirmationIdField]
-            : null);
+        confirmationId: documentData[_confirmationIdField]);
   }
 
   @override
