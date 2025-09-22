@@ -49,7 +49,7 @@ class TransitFacade extends Equatable implements TripEntity<TransitFacade> {
   TransitFacade.newUiEntry(
       {required this.tripId,
       required this.transitOption,
-      required List<String> allTripContributors,
+      required Iterable<String> allTripContributors,
       required String defaultCurrency,
       String? notes})
       : notes = notes ?? '',

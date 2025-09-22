@@ -27,10 +27,10 @@ class DebtSummaryTile extends StatelessWidget {
           AppColors.travelAccents.elementAt(index);
     }
     return SliverToBoxAdapter(
-      child: FutureBuilder<List<DebtData>>(
+      child: FutureBuilder<Iterable<DebtData>>(
         future: budgetingModule.retrieveDebtDataList(),
         builder:
-            (BuildContext context, AsyncSnapshot<List<DebtData>> snapshot) {
+            (BuildContext context, AsyncSnapshot<Iterable<DebtData>> snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.hasData) {
             var debtDataList = snapshot.data!;

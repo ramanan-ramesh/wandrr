@@ -65,7 +65,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   }
 
   @override
-  Future<List<DebtData>> retrieveDebtDataList() async {
+  Future<Iterable<DebtData>> retrieveDebtDataList() async {
     var allExpenses = _getAllExpenses();
     var allDebtDataList = <DebtData>[];
     if (_contributors.length == 1 || allExpenses.isEmpty) {
@@ -207,7 +207,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
 
   @override
   Future<Iterable<UiElement<ExpenseFacade>>> sortExpenseElements(
-      List<UiElement<ExpenseFacade>> expenseUiElements,
+      Iterable<UiElement<ExpenseFacade>> expenseUiElements,
       ExpenseSortOption expenseSortOption) async {
     var expenseUiElementsToSort =
         List<UiElement<ExpenseFacade>>.from(expenseUiElements);
@@ -394,7 +394,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
 
   @override
   Future<void> balanceExpensesOnContributorsChanged(
-      List<String> contributors) async {
+      Iterable<String> contributors) async {
     var writeBatch = FirebaseFirestore.instance.batch();
     _contributors = contributors;
     await _recalculateExpensesOnContributorsChanged<TransitFacade>(

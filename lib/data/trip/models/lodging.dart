@@ -40,7 +40,7 @@ class LodgingFacade extends Equatable implements TripEntity<LodgingFacade> {
 
   LodgingFacade.newUiEntry(
       {required this.tripId,
-      required List<String> allTripContributors,
+      required Iterable<String> allTripContributors,
       required String defaultCurrency,
       String? notes})
       : notes = notes ?? '',

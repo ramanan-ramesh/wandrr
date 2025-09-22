@@ -14,12 +14,12 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
       this.tripId,
       this.day,
       PlanDataModelImplementation planDataModelImplementation,
-      List<TransitFacade> transits,
+      Iterable<TransitFacade> transits,
       {LodgingFacade? checkinLodging,
       LodgingFacade? checkoutLodging,
       LodgingFacade? fullDayLodging})
       : _planDataModelImplementation = planDataModelImplementation,
-        _transits = transits,
+        _transits = transits.toList(),
         _checkinLodging = checkinLodging,
         _checkoutLodging = checkoutLodging,
         _fullDayLodging = fullDayLodging;
@@ -27,7 +27,7 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
   static Future<ItineraryModelImplementation> createInstance(
       {required String tripId,
       required DateTime day,
-      required List<TransitFacade> transits,
+      required Iterable<TransitFacade> transits,
       LodgingFacade? checkinLodging,
       LodgingFacade? checkoutLodging,
       LodgingFacade? fullDayLodging}) async {
@@ -80,7 +80,7 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
   PlanDataFacade get planData => _planDataModelImplementation;
 
   @override
-  List<TransitFacade> get transits => List.from(_transits);
+  Iterable<TransitFacade> get transits => List.from(_transits);
   final List<TransitFacade> _transits;
 
   static final _dateFormat = DateFormat('ddMMyyyy');

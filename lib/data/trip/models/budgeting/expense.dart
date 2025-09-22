@@ -40,7 +40,7 @@ class ExpenseFacade implements TripEntity<ExpenseFacade> {
 
   ExpenseFacade.newUiEntry(
       {required this.tripId,
-      required List<String> allTripContributors,
+      required Iterable<String> allTripContributors,
       required String defaultCurrency})
       : title = '',
         totalExpense = Money(currency: defaultCurrency, amount: 0),
