@@ -61,6 +61,7 @@ class _EditableLodgingPlanState extends State<EditableLodgingPlan> {
           decoration: InputDecoration(
             labelText: context.localizations.notes,
           ),
+          maxLines: null,
         ),
         confirmationId: TextField(
           controller: TextEditingController(

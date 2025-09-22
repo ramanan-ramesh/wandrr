@@ -16,7 +16,8 @@ class ReadonlyLodgingPlan extends StatelessWidget {
   Widget build(BuildContext context) {
     var isConfirmationIdValid = lodgingModelFacade.confirmationId != null &&
         lodgingModelFacade.confirmationId!.isNotEmpty;
-    var isNotesValid = lodgingModelFacade.notes.isNotEmpty;
+    var isNotesValid = lodgingModelFacade.notes != null &&
+        lodgingModelFacade.notes!.isNotEmpty;
     return LodgingCardBase(
         lodgingFacade: lodgingModelFacade,
         location: Column(
@@ -36,8 +37,8 @@ class ReadonlyLodgingPlan extends StatelessWidget {
         dateTime: _buildDateTimeDetails(),
         notes: isNotesValid
             ? _createTitleSubText(
-                context.localizations.notes, lodgingModelFacade.notes,
-                maxLines: null)
+                context.localizations.notes, lodgingModelFacade.notes!,
+                maxLines: 5)
             : const SizedBox.shrink(),
         confirmationId: isConfirmationIdValid
             ? _createTitleSubText('${context.localizations.confirmation} #',

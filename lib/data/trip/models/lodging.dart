@@ -24,7 +24,7 @@ class LodgingFacade extends Equatable implements TripEntity<LodgingFacade> {
 
   ExpenseFacade expense;
 
-  String notes;
+  String? notes;
 
   LodgingFacade(
       {required this.location,
@@ -32,19 +32,16 @@ class LodgingFacade extends Equatable implements TripEntity<LodgingFacade> {
       required this.checkoutDateTime,
       required this.tripId,
       required this.expense,
-      String? id,
+      this.id,
       this.confirmationId,
-      String? notes})
-      : id = id ?? '',
-        notes = notes ?? '';
+      this.notes});
 
   LodgingFacade.newUiEntry(
       {required this.tripId,
       required Iterable<String> allTripContributors,
       required String defaultCurrency,
-      String? notes})
-      : notes = notes ?? '',
-        expense = ExpenseFacade(
+      this.notes})
+      : expense = ExpenseFacade(
             tripId: tripId,
             title: ' ',
             totalExpense: Money(currency: defaultCurrency, amount: 0),

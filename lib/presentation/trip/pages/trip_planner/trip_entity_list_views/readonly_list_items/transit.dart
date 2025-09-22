@@ -142,7 +142,7 @@ class ReadonlyTransitPlan extends StatelessWidget {
           padding: const EdgeInsets.all(2.0),
           child: Text(
             transitFacade.notes!,
-            maxLines: 1,
+            maxLines: 5,
           ),
         ),
       ],
