@@ -37,34 +37,28 @@ class ExpenseModelImplementation extends ExpenseFacade
 
   static ExpenseModelImplementation fromDocumentSnapshot(
       {required String tripId, required DocumentSnapshot documentSnapshot}) {
-    var expenseValue = documentSnapshot[_totalExpenseField] as String;
+    var documentData = documentSnapshot.data() as Map<String, dynamic>;
+    var expenseValue = documentData[_totalExpenseField] as String;
     var expenseValues = expenseValue.split(' ');
     var cost = double.parse(expenseValues.first);
     var currency = expenseValues.elementAt(1);
 
-    var category = ExpenseCategory.values.firstWhere(
-        (element) => documentSnapshot[_categoryField] == element.name);
+    var category = ExpenseCategory.values
+        .firstWhere((element) => documentData[_categoryField] == element.name);
 
-    Timestamp? dateTimeValue;
-    var documentData = documentSnapshot.data() as Map<String, dynamic>;
-    if (documentData.containsKey(_dateTimeField)) {
-      if (documentSnapshot[_dateTimeField] != null) {
-        dateTimeValue = documentSnapshot[_dateTimeField] as Timestamp;
-      }
-    }
+    var dateTimeValue = documentData.containsKey(_dateTimeField)
+        ? documentData[_dateTimeField] as Timestamp
+        : null;
 
-    var splitBy = List<String>.from(documentSnapshot[_splitByField]);
+    var splitBy = List<String>.from(documentData[_splitByField]);
 
-    LocationModelImplementation? location;
-    if (documentData.containsKey(_locationField)) {
-      if (documentSnapshot[_locationField] != null) {
-        location = LocationModelImplementation.fromJson(
-            json: documentSnapshot[_locationField], tripId: tripId);
-      }
-    }
+    var location = documentData.containsKey(_locationField)
+        ? null
+        : LocationModelImplementation.fromJson(
+            json: documentData[_locationField], tripId: tripId);
 
     var paidBy = <String, double>{};
-    for (final paidByEntry in documentSnapshot[_paidByField].entries) {
+    for (final paidByEntry in documentData[_paidByField].entries) {
       var amount = paidByEntry.value;
       paidBy[paidByEntry.key] = double.parse(amount.toString());
     }
@@ -77,9 +71,11 @@ class ExpenseModelImplementation extends ExpenseFacade
         category: category,
         splitBy: splitBy,
         id: documentSnapshot.id,
-        title: documentSnapshot[_titleField],
+        title: documentData[_titleField],
         location: location,
-        description: documentSnapshot[_descriptionField]);
+        description: documentData.containsKey(_descriptionField)
+            ? documentData[_descriptionField]
+            : null);
   }
 
   @override
@@ -189,7 +185,6 @@ class ExpenseModelImplementation extends ExpenseFacade
       required super.splitBy,
       super.description,
       super.id,
-      LocationModelImplementation? location,
-      super.dateTime})
-      : super(location: location);
+      super.location,
+      super.dateTime});
 }

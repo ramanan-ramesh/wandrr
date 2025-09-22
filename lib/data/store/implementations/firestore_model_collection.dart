@@ -137,7 +137,13 @@ class FirestoreModelCollection<Model>
         return;
       }
       var collectionItemBeforeUpdate = _collectionItems[matchingElementIndex];
-      didUpdate = await collectionItemBeforeUpdate.tryUpdate(toUpdate);
+      didUpdate = await leafRepositoryItem.documentReference
+          .set(leafRepositoryItem.toJson(), SetOptions(merge: true))
+          .then((value) {
+        return true;
+      }).catchError((error, stackTrace) {
+        return false;
+      });
       if (didUpdate) {
         _collectionItems[matchingElementIndex] = leafRepositoryItem;
         _updationStreamController.add(CollectionItemChangeMetadata(

@@ -10,6 +10,9 @@ import 'package:wandrr/data/trip/models/transit.dart';
 import 'plan_data/plan_data_model_implementation.dart';
 
 class ItineraryModelImplementation extends ItineraryModelEventHandler {
+  final String tripId;
+  final DateTime day;
+
   ItineraryModelImplementation(
       this.tripId,
       this.day,
@@ -40,10 +43,14 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
 
     var itineraryDocumentReference = await itineraryDataCollection.get();
 
-    var planDataModelImplementation =
-        PlanDataModelImplementation.fromDocumentSnapshot(
+    var planDataModelImplementation = itineraryDocumentReference.exists
+        ? PlanDataModelImplementation.fromDocumentSnapshot(
             tripId: tripId,
             documentSnapshot: itineraryDocumentReference,
+            collectionName: FirestoreCollections.itineraryDataCollectionName)
+        : PlanDataModelImplementation.empty(
+            tripId: tripId,
+            id: itineraryDataDocumentId,
             collectionName: FirestoreCollections.itineraryDataCollectionName);
 
     var itineraryModelImplementation = ItineraryModelImplementation(
@@ -55,9 +62,18 @@ class ItineraryModelImplementation extends ItineraryModelEventHandler {
     return itineraryModelImplementation;
   }
 
-  final String tripId;
-
-  final DateTime day;
+  @override
+  ItineraryFacade clone() {
+    return ItineraryModelImplementation(
+      tripId,
+      day,
+      _planDataModelImplementation.clone() as PlanDataModelImplementation,
+      transits.map((transit) => transit.clone()).toList(),
+      checkinLodging: _checkinLodging?.clone(),
+      checkoutLodging: _checkoutLodging?.clone(),
+      fullDayLodging: _fullDayLodging?.clone(),
+    );
+  }
 
   @override
   LodgingFacade? get checkoutLodging => _checkoutLodging?.clone();

@@ -31,31 +31,29 @@ class LodgingModelImplementation extends LodgingFacade
                 expenseModelFacade: lodgingModelFacade.expense),
             confirmationId: lodgingModelFacade.confirmationId,
             id: lodgingModelFacade.id,
-            notes: lodgingModelFacade.notes) {
-    expense.dateTime = checkinDateTime;
-  }
+            notes: lodgingModelFacade.notes);
 
   static LodgingModelImplementation fromDocumentSnapshot(
       {required String tripId, required DocumentSnapshot documentSnapshot}) {
     var documentData = documentSnapshot.data() as Map<String, dynamic>;
-    var checkinDateTime =
-        (documentData[_checkinDateTimeField] as Timestamp).toDate();
-    var checkoutDateTime =
-        (documentData[_checkoutDateTimeField] as Timestamp).toDate();
-    var location = LocationModelImplementation.fromJson(
-        json: documentData[_locationField], tripId: tripId);
-    var expense = ExpenseModelImplementation.fromJson(
-        tripId: tripId,
-        json: documentSnapshot[_expenseField] as Map<String, dynamic>);
     return LodgingModelImplementation._(
         tripId: tripId,
         id: documentSnapshot.id,
-        checkinDateTime: checkinDateTime,
-        checkoutDateTime: checkoutDateTime,
-        location: location,
-        notes: documentData[_notesField],
-        expense: expense,
-        confirmationId: documentData[_confirmationIdField]);
+        checkinDateTime:
+            (documentData[_checkinDateTimeField] as Timestamp).toDate(),
+        checkoutDateTime:
+            (documentData[_checkoutDateTimeField] as Timestamp).toDate(),
+        location: LocationModelImplementation.fromJson(
+            json: documentData[_locationField], tripId: tripId),
+        notes: documentData.containsKey(_notesField)
+            ? documentData[_notesField]
+            : null,
+        expense: ExpenseModelImplementation.fromJson(
+            tripId: tripId,
+            json: documentData[_expenseField] as Map<String, dynamic>),
+        confirmationId: documentData.containsKey(_confirmationIdField)
+            ? documentData[_confirmationIdField]
+            : null);
   }
 
   @override
@@ -66,14 +64,17 @@ class LodgingModelImplementation extends LodgingFacade
       .doc(id);
 
   @override
-  Map<String, dynamic> toJson() => {
-        _locationField: (location as LeafRepositoryItem).toJson(),
-        _expenseField: (expense as LeafRepositoryItem).toJson(),
-        _checkinDateTimeField: Timestamp.fromDate(checkinDateTime!),
-        _checkoutDateTimeField: Timestamp.fromDate(checkoutDateTime!),
+  Map<String, dynamic> toJson() {
+    return {
+      _locationField: (location as LeafRepositoryItem).toJson(),
+      _expenseField: (expense as LeafRepositoryItem).toJson(),
+      _checkinDateTimeField: Timestamp.fromDate(checkinDateTime!),
+      _checkoutDateTimeField: Timestamp.fromDate(checkoutDateTime!),
+      if (confirmationId != null && confirmationId!.isNotEmpty)
         _confirmationIdField: confirmationId,
-        _notesField: notes
-      };
+      if (notes != null && notes!.isNotEmpty) _notesField: notes
+    };
+  }
 
   @override
   Future<bool> tryUpdate(LodgingFacade toUpdate) async {
@@ -102,14 +103,12 @@ class LodgingModelImplementation extends LodgingFacade
 
   LodgingModelImplementation._(
       {required LocationModelImplementation location,
-      required super.checkinDateTime,
-      required super.checkoutDateTime,
+      required DateTime super.checkinDateTime,
+      required DateTime super.checkoutDateTime,
       required super.tripId,
       required ExpenseModelImplementation expense,
+      required String super.id,
       super.confirmationId,
-      super.id,
       super.notes})
-      : super(location: location, expense: expense) {
-    expense.dateTime = checkinDateTime;
-  }
+      : super(location: location, expense: expense);
 }

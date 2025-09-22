@@ -44,26 +44,34 @@ class TransitImplementation extends TransitFacade
   }
 
   static TransitImplementation fromDocumentSnapshot(
-          String tripId, DocumentSnapshot documentSnapshot) =>
-      TransitImplementation._(
-          id: documentSnapshot.id,
-          tripId: tripId,
-          notes: documentSnapshot[_notesField],
-          transitOption: TransitOption.values.firstWhere((element) =>
-              element.name == documentSnapshot[_transitOptionField]),
-          expense: ExpenseModelImplementation.fromJson(
-              tripId: tripId,
-              json: documentSnapshot[_expenseField] as Map<String, dynamic>),
-          confirmationId: documentSnapshot[_confirmationIdField],
-          departureDateTime:
-              (documentSnapshot[_departureDateTimeField] as Timestamp).toDate(),
-          arrivalDateTime:
-              (documentSnapshot[_arrivalDateTimeField] as Timestamp).toDate(),
-          arrivalLocation: LocationModelImplementation.fromJson(
-              json: documentSnapshot[_arrivalLocationField], tripId: tripId),
-          departureLocation: LocationModelImplementation.fromJson(
-              json: documentSnapshot[_departureLocationField], tripId: tripId),
-          operator: documentSnapshot[_operatorField]);
+      String tripId, DocumentSnapshot documentSnapshot) {
+    var documentData = documentSnapshot.data() as Map<String, dynamic>;
+    return TransitImplementation._(
+        id: documentSnapshot.id,
+        tripId: tripId,
+        notes: documentData.containsKey(_notesField)
+            ? documentData[_notesField]
+            : null,
+        transitOption: TransitOption.values.firstWhere(
+            (element) => element.name == documentData[_transitOptionField]),
+        expense: ExpenseModelImplementation.fromJson(
+            tripId: tripId,
+            json: documentData[_expenseField] as Map<String, dynamic>),
+        confirmationId: documentData.containsKey(_confirmationIdField)
+            ? documentData[_confirmationIdField]
+            : null,
+        departureDateTime:
+            (documentData[_departureDateTimeField] as Timestamp).toDate(),
+        arrivalDateTime:
+            (documentData[_arrivalDateTimeField] as Timestamp).toDate(),
+        arrivalLocation: LocationModelImplementation.fromJson(
+            json: documentData[_arrivalLocationField], tripId: tripId),
+        departureLocation: LocationModelImplementation.fromJson(
+            json: documentData[_departureLocationField], tripId: tripId),
+        operator: documentData.containsKey(_operatorField)
+            ? documentData[_operatorField]
+            : null);
+  }
 
   @override
   DocumentReference<Object?> get documentReference => FirebaseFirestore.instance
@@ -73,19 +81,21 @@ class TransitImplementation extends TransitFacade
       .doc(id);
 
   @override
-  Map<String, dynamic> toJson() => {
-        _transitOptionField: transitOption.name,
-        _expenseField: (expense as LeafRepositoryItem?)?.toJson(),
-        _departureDateTimeField: Timestamp.fromDate(departureDateTime!),
-        _arrivalDateTimeField: Timestamp.fromDate(arrivalDateTime!),
-        _departureLocationField:
-            (departureLocation as LeafRepositoryItem?)?.toJson(),
-        _arrivalLocationField:
-            (arrivalLocation as LeafRepositoryItem?)?.toJson(),
+  Map<String, dynamic> toJson() {
+    return {
+      _transitOptionField: transitOption.name,
+      _expenseField: (expense as LeafRepositoryItem).toJson(),
+      _departureDateTimeField: Timestamp.fromDate(departureDateTime!),
+      _arrivalDateTimeField: Timestamp.fromDate(arrivalDateTime!),
+      _departureLocationField:
+          (departureLocation as LeafRepositoryItem?)?.toJson(),
+      _arrivalLocationField: (arrivalLocation as LeafRepositoryItem?)?.toJson(),
+      if (confirmationId != null && confirmationId!.isNotEmpty)
         _confirmationIdField: confirmationId,
-        _operatorField: operator,
-        _notesField: notes
-      };
+      if (operator != null && operator!.isNotEmpty) _operatorField: operator,
+      if (notes != null && notes!.isNotEmpty) _notesField: notes
+    };
+  }
 
   @override
   Future<bool> tryUpdate(TransitFacade toUpdate) async {
@@ -120,13 +130,13 @@ class TransitImplementation extends TransitFacade
   TransitImplementation._(
       {required super.tripId,
       required super.transitOption,
-      required super.departureDateTime,
-      required super.arrivalDateTime,
+      required DateTime super.departureDateTime,
+      required DateTime super.arrivalDateTime,
       required LocationModelImplementation departureLocation,
       required LocationModelImplementation arrivalLocation,
       required ExpenseModelImplementation expense,
+      required String super.id,
       super.confirmationId,
-      super.id,
       super.operator,
       super.notes})
       : super(
