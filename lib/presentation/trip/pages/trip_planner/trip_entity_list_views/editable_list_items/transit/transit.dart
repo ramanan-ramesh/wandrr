@@ -128,6 +128,18 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
   }
 
   Widget _buildDateTimePicker(bool isArrival, TripMetadataFacade tripMetadata) {
+    var startDateTime = isArrival
+        ? (_transitFacade.departureDateTime
+              ?..add(const Duration(minutes: 1))) ??
+            tripMetadata.startDate!
+        : tripMetadata.startDate!;
+    var endDateTime = DateTime(
+      tripMetadata.endDate!.year,
+      tripMetadata.endDate!.month,
+      tripMetadata.endDate!.day,
+      23,
+      59,
+    );
     return PlatformDateTimePicker(
       dateTimeUpdated: (updatedDateTime) {
         if (isArrival) {
@@ -138,12 +150,8 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
         _calculateTransitValidity();
         setState(() {});
       },
-      startDateTime: isArrival
-          ? (_transitFacade.departureDateTime
-                ?..add(const Duration(minutes: 1))) ??
-              tripMetadata.startDate!
-          : tripMetadata.startDate!,
-      endDateTime: tripMetadata.endDate!,
+      startDateTime: startDateTime,
+      endDateTime: endDateTime,
       currentDateTime: isArrival
           ? _transitFacade.arrivalDateTime
           : _transitFacade.departureDateTime,

@@ -74,8 +74,15 @@ class _EditableLodgingPlanState extends State<EditableLodgingPlan> {
           ),
         ),
         expense: ExpenditureEditTile(
-            expenseUpdator: widget.lodgingUiElement.element.expense,
-            isEditable: true),
+          expenseUpdator: widget.lodgingUiElement.element.expense,
+          isEditable: true,
+          callback: (paidBy, splitBy, totalExpense) {
+            widget.lodgingUiElement.element.expense.paidBy = Map.from(paidBy);
+            widget.lodgingUiElement.element.expense.splitBy =
+                List.from(splitBy);
+            widget.lodgingUiElement.element.expense.totalExpense = totalExpense;
+          },
+        ),
         isEditable: true);
   }
 
