@@ -5,6 +5,7 @@ import 'package:wandrr/presentation/trip/pages/trip_planner/expense_view_adapter
 import 'package:wandrr/presentation/trip/pages/trip_planner/navigation/trip_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/itinerary.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/lodging.dart';
+import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/plan_data/plan_data_list_item.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_entity_list_views/transit.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/trip_overview/trip_overview_tile.dart';
 
@@ -12,7 +13,6 @@ import 'budgeting/header_tile.dart';
 import 'expense_view_type.dart';
 import 'navigation/jump_to_list.dart';
 import 'navigation/nav_rail.dart';
-import 'trip_entity_list_views/plan_data.dart';
 
 class TripPlannerPage extends StatelessWidget {
   final _expenseViewTypeNotifier =
