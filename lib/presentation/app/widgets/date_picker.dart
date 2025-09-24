@@ -1,7 +1,7 @@
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' as intl;
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
@@ -111,7 +111,6 @@ class PlatformDatePicker extends AbstractPlatformDatePicker {
 }
 
 class _PlatformDatePickerState extends State<PlatformDatePicker> {
-  final _dateFormat = intl.DateFormat.yMMMd();
   late DateTime? _dateTime;
 
   final GlobalKey _widgetKey = GlobalKey();
@@ -125,7 +124,7 @@ class _PlatformDatePickerState extends State<PlatformDatePicker> {
   @override
   Widget build(BuildContext context) {
     var buttonText =
-        _dateTime != null ? _dateFormat.format(_dateTime!) : 'Date:       ';
+        _dateTime != null ? _dateTime!.monthDateYearFormat : 'Date:       ';
     return TextButton.icon(
       onPressed: () {
         widget.showDatePickerDialog(context, _updateDate);

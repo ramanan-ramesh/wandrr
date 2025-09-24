@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:intl/intl.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
@@ -94,7 +94,7 @@ class TransitFacade extends Equatable implements TripEntity<TransitFacade> {
         departureLocation != null &&
         arrivalLocation != null) {
       var dateTime =
-          '${DateFormat.MMMM().format(departureDateTime!).substring(0, 3)} ${departureDateTime!.day}';
+          '${departureDateTime!.monthFormat} ${departureDateTime!.day}';
       return '${departureLocation!} to ${arrivalLocation!} on $dateTime';
     }
     return 'Unnamed Entry';

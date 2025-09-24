@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
@@ -69,8 +69,6 @@ class TripListView extends StatelessWidget {
 }
 
 class _TripMetadataGridItem extends StatelessWidget {
-  final _dateFormat = DateFormat.MMMEd();
-
   _TripMetadataGridItem({required this.tripMetaDataFacade});
 
   TripMetadataFacade tripMetaDataFacade;
@@ -80,7 +78,7 @@ class _TripMetadataGridItem extends StatelessWidget {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       builder: (BuildContext context, TripManagementState state) {
         var subTitle =
-            '${_dateFormat.format(tripMetaDataFacade.startDate!)} to ${_dateFormat.format(tripMetaDataFacade.endDate!)}';
+            '${tripMetaDataFacade.startDate!.dayDateMonthFormat} to ${tripMetaDataFacade.endDate!.dayDateMonthFormat}';
         var currentThumbnail = Assets.images.tripThumbnails.values.firstWhere(
             (element) =>
                 element.keyName.split('/').last.split('.').first ==

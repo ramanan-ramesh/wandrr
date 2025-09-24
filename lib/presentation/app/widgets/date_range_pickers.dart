@@ -1,14 +1,13 @@
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' as intl;
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 import 'dialog.dart';
 
 abstract class DateRangePickerBase extends StatefulWidget {
-  final dateFormat = intl.DateFormat.MMMEd();
   DateTime? startDate, endDate;
   final DateTime? firstDate, lastDate;
   final Function(DateTime? start, DateTime? end)? callback;
@@ -141,11 +140,11 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
     //TODO: Track focus and then decide whether to overlay the date range picker
     var startDateTime = '';
     if (widget.startDate != null) {
-      startDateTime = widget.dateFormat.format(widget.startDate!);
+      startDateTime = widget.startDate!.dayDateMonthFormat;
     }
     var endDateTime = '';
     if (widget.endDate != null) {
-      endDateTime = widget.dateFormat.format(widget.endDate!);
+      endDateTime = widget.endDate!.dayDateMonthFormat;
     }
     return TextButton(
       key: _dateRangePickerKey,
@@ -204,11 +203,11 @@ class _PlatformFABDateRangePickerState
   Widget build(BuildContext context) {
     var startDateTime = context.localizations.dateRangePickerStart;
     if (widget.startDate != null) {
-      startDateTime = widget.dateFormat.format(widget.startDate!);
+      startDateTime = widget.startDate!.dayDateMonthFormat;
     }
     var endDateTime = context.localizations.dateRangePickerEnd;
     if (widget.endDate != null) {
-      endDateTime = widget.dateFormat.format(widget.endDate!);
+      endDateTime = widget.endDate!.dayDateMonthFormat;
     }
     var dateRangeText = '$startDateTime to $endDateTime';
     return FloatingActionButton.extended(

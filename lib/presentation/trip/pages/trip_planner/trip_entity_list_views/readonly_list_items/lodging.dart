@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/location/geo_location_api_context.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/l10n/extension.dart';
@@ -51,7 +51,7 @@ class ReadonlyLodgingPlan extends StatelessWidget {
 
   Text _buildDateTimeDetails() {
     var dateTime =
-        '${DateFormat.MMMEd().format(lodgingModelFacade.checkinDateTime!)} - ${DateFormat.MMMEd().format(lodgingModelFacade.checkoutDateTime!)}';
+        '${lodgingModelFacade.checkinDateTime!.dayDateMonthFormat} - ${lodgingModelFacade.checkoutDateTime!.dayDateMonthFormat}';
     return Text(
       dateTime,
       style: const TextStyle(fontWeight: FontWeight.bold),

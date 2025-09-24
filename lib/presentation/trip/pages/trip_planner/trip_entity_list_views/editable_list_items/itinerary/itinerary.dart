@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
@@ -99,8 +98,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: PlatformTextElements.createSubHeader(
-              context: context,
-              text: DateFormat('EEE, MMM d').format(widget.day)),
+              context: context, text: widget.day.dayDateMonthFormat),
         ),
       ),
       trailing: !_isCollapsed ? _buildUpdateItineraryDataButton() : null,

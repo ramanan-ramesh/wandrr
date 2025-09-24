@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:intl/intl.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
@@ -90,9 +90,9 @@ class LodgingFacade extends Equatable implements TripEntity<LodgingFacade> {
         checkoutDateTime != null &&
         location != null) {
       var checkInDayDescription =
-          '${DateFormat.MMMM().format(checkinDateTime!).substring(0, 3)} ${checkinDateTime!.day}';
+          '${checkinDateTime!.monthFormat} ${checkinDateTime!.day}';
       var checkOutDayDescription =
-          '${DateFormat.MMMM().format(checkoutDateTime!).substring(0, 3)} ${checkoutDateTime!.day}';
+          '${checkoutDateTime!.monthFormat} ${checkoutDateTime!.day}';
       return 'Stay at ${location!} from $checkInDayDescription to $checkOutDayDescription';
     }
     return 'Unnamed Entry';
