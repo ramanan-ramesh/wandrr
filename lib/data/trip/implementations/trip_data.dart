@@ -6,7 +6,7 @@ import 'package:wandrr/data/store/implementations/firestore_model_collection.dar
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/budgeting/budgeting_module.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
-import 'package:wandrr/data/trip/implementations/itinerary_model_collection.dart';
+import 'package:wandrr/data/trip/implementations/itinerary_collection.dart';
 import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
@@ -72,8 +72,10 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         (planDataModelFacade) => PlanDataModelImplementation.fromModelFacade(
             planDataFacade: planDataModelFacade));
 
-    var itineraries = await ItineraryModelCollection.createInstance(
-        transitModelCollection, lodgingModelCollection, tripMetadata);
+    var itineraries = await ItineraryCollection.createInstance(
+        transitCollection: transitModelCollection,
+        lodgingCollection: lodgingModelCollection,
+        tripMetadata: tripMetadata);
 
     var budgetingModule = await BudgetingModule.createInstance(
         transitModelCollection,
@@ -110,7 +112,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   final ModelCollectionModifier<PlanDataFacade> planDataCollection;
 
   @override
-  final ItineraryModelCollection itineraryCollection;
+  final ItineraryCollection itineraryCollection;
 
   ApiService<(Money, String), double?> currencyConverter;
 

@@ -83,8 +83,8 @@ class FirestoreModelCollection<Model>
     _collectionStreamSubscription.pause();
     _shouldListenToUpdates = false;
     await updateTransaction();
-    _shouldListenToUpdates = true;
     _collectionStreamSubscription.resume();
+    _shouldListenToUpdates = true;
   }
 
   @override
@@ -125,9 +125,9 @@ class FirestoreModelCollection<Model>
   }
 
   @override
-  FutureOr<bool> tryUpdateItem(Model toUpdate) {
+  FutureOr<bool> tryUpdateItem(Model toUpdate) async {
     var didUpdate = false;
-    runUpdateTransaction(() async {
+    await runUpdateTransaction(() async {
       var leafRepositoryItem = repositoryItemCreator(toUpdate);
       var matchingElementIndex = _collectionItems.indexWhere((element) =>
           element.documentReference.id ==
