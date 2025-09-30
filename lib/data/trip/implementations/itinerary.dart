@@ -220,4 +220,10 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
   }) : _planData = planData {
     _listenToPlanDataChanges();
   }
+
+  @override
+  List<Object?> get props => [tripId, day, planData, transits, checkinLodging];
+
+  @override
+  bool? get stringify => true;
 }

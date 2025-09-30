@@ -30,6 +30,14 @@ class _AirportsDataEditorState extends State<AirportsDataEditor> {
   }
 
   @override
+  void didUpdateWidget(covariant AirportsDataEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialLocation != widget.initialLocation) {
+      _location = widget.initialLocation?.clone();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return PlatformAutoComplete<LocationFacade>(
       optionsViewWidth: widget.locationOptionsViewWidth,

@@ -51,9 +51,15 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _currentPaidBy = Map.from(widget.paidBy);
-    _currentSplitBy = List.from(widget.splitBy);
-    _totalExpenseValueNotifier = ValueNotifier(widget.totalExpense);
+    _initializeExpense();
+  }
+
+  @override
+  void didUpdateWidget(covariant ExpenditureEditTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.totalExpense != widget.totalExpense) {
+      setState(_initializeExpense);
+    }
   }
 
   @override
@@ -65,6 +71,12 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     } else {
       return _createReadonlyExpenditureTile(context);
     }
+  }
+
+  void _initializeExpense() {
+    _currentPaidBy = Map.from(widget.paidBy);
+    _currentSplitBy = List.from(widget.splitBy);
+    _totalExpenseValueNotifier = ValueNotifier(widget.totalExpense);
   }
 
   Column _createReadonlyExpenditureTile(BuildContext context) {

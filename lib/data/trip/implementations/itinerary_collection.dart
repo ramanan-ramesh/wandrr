@@ -74,12 +74,14 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
               collectionName: FirestoreCollections.itineraryDataCollectionName);
       writeBatch.delete(planDataModelImplementation.documentReference);
     }
-    await writeBatch.commit();
 
     _itineraries
         .removeWhere((itinerary) => datesToRemove.contains(itinerary.day));
 
     for (final date in datesToAdd) {
+      if (_itineraries.any((itinerary) => itinerary.day.isOnSameDayAs(date))) {
+        continue;
+      }
       var itinerary = await ItineraryModelImplementation.createInstance(
           tripId: tripId,
           day: date,
@@ -97,6 +99,7 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
     _itineraries.sort((a, b) => a.day.compareTo(b.day));
     _startDate = startDate;
     _endDate = endDate;
+    await writeBatch.commit();
   }
 
   @override

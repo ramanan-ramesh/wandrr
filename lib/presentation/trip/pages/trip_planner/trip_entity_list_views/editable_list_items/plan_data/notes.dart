@@ -69,6 +69,14 @@ class _NoteListItemState extends State<_NoteListItem> {
   }
 
   @override
+  void didUpdateWidget(covariant _NoteListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.note.note != widget.note.note) {
+      _noteEditingController.text = widget.note.note;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       children: [

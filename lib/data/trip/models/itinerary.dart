@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
@@ -9,12 +10,13 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'lodging.dart';
 import 'transit.dart';
 
-abstract class ItineraryFacade extends TripEntity {
+abstract class ItineraryFacade extends Equatable implements TripEntity {
   String get tripId;
   DateTime get day;
   PlanDataFacade get planData;
   Iterable<TransitFacade> get transits;
   LodgingFacade? get checkinLodging;
+
   LodgingFacade? get checkoutLodging;
   LodgingFacade? get fullDayLodging;
 

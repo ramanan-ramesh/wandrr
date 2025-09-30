@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -53,6 +54,20 @@ class _TransitOptionPickerState extends State<TransitOptionPicker>
     _animationController.dispose();
     _overlayEntry?.remove();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant TransitOptionPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!listEquals(widget.options.toList(), oldWidget.options.toList())) {
+      setState(() {
+        transitOptionMetadatas.clear();
+        transitOptionMetadatas.addAll(widget.options);
+        _calculateMaxTriggerWidth();
+        _shuffleMetadataListOnSelection();
+        _updateSelectedIndex(_selectedValue);
+      });
+    }
   }
 
   void _shuffleMetadataListOnSelection() {

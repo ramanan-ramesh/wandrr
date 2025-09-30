@@ -65,13 +65,16 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialOperator != null && widget.initialOperator!.isNotEmpty) {
-      airlineData = AirlineData(widget.initialOperator!);
-    } else {
-      airlineData = AirlineData.empty();
+    _initializeFromOperator();
+  }
+
+  @override
+  void didUpdateWidget(covariant _FlightDetailsEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialOperator != widget.initialOperator) {
+      _initializeFromOperator();
+      setState(() {});
     }
-    flightNumberEditingController =
-        TextEditingController(text: airlineData.airLineNumber ?? '');
   }
 
   @override
@@ -94,6 +97,16 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor> {
         ],
       ),
     );
+  }
+
+  void _initializeFromOperator() {
+    if (widget.initialOperator != null && widget.initialOperator!.isNotEmpty) {
+      airlineData = AirlineData(widget.initialOperator!);
+    } else {
+      airlineData = AirlineData.empty();
+    }
+    flightNumberEditingController =
+        TextEditingController(text: airlineData.airLineNumber ?? '');
   }
 
   Widget _createAirlineEditor(BuildContext context) {

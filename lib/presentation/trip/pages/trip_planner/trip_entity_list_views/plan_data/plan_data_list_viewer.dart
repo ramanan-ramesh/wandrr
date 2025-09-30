@@ -44,18 +44,21 @@ class _PlanDataListItemViewerState extends State<PlanDataListItemViewer>
     );
     _createErrorAnimation();
 
-    _planDataUiElement = widget.initialPlanDataUiElement.clone();
-    _planDataUiElement.element =
-        widget.initialPlanDataUiElement.element.clone();
-
-    _titleEditingController =
-        TextEditingController(text: _planDataUiElement.element.title);
+    _initializePlanData();
   }
 
   @override
   void dispose() {
     _errorAnimationController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant PlanDataListItemViewer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialPlanDataUiElement != oldWidget.initialPlanDataUiElement) {
+      setState(_initializePlanData);
+    }
   }
 
   @override
@@ -91,6 +94,15 @@ class _PlanDataListItemViewerState extends State<PlanDataListItemViewer>
       buildWhen: _shouldBuildPlanDataListItem,
       listener: (BuildContext context, TripManagementState state) {},
     );
+  }
+
+  void _initializePlanData() {
+    _planDataUiElement = widget.initialPlanDataUiElement.clone();
+    _planDataUiElement.element =
+        widget.initialPlanDataUiElement.element.clone();
+    _titleEditingController =
+        TextEditingController(text: _planDataUiElement.element.title);
+    _canUpdatePlanDataNotifier.value = false;
   }
 
   void _createErrorAnimation() {

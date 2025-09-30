@@ -106,6 +106,9 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
         tripMetadataCollection.onDocumentUpdated.listen((eventData) async {
       if (activeTrip == null) {
         return;
+      } else if (activeTrip!.tripMetadata.id !=
+          eventData.modifiedCollectionItem.afterUpdate.id) {
+        return;
       }
       await activeTrip!
           .updateTripMetadata(eventData.modifiedCollectionItem.afterUpdate);

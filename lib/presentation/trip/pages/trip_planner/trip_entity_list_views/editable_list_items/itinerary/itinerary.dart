@@ -44,8 +44,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
   @override
   void initState() {
     super.initState();
-    _planDataUiElement = UiElement<PlanDataFacade>(
-        element: widget.itineraryFacade.planData, dataState: DataState.none);
+    _intializePlanDataUiElement();
     _errorAnimationController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
@@ -58,6 +57,19 @@ class _ItineraryListItemState extends State<ItineraryListItem>
   void dispose() {
     _errorAnimationController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant ItineraryListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.itineraryFacade != oldWidget.itineraryFacade) {
+      setState(_intializePlanDataUiElement);
+    }
+  }
+
+  void _intializePlanDataUiElement() {
+    _planDataUiElement = UiElement<PlanDataFacade>(
+        element: widget.itineraryFacade.planData, dataState: DataState.none);
   }
 
   @override

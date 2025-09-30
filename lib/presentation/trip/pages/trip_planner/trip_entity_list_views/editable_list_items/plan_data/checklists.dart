@@ -68,8 +68,15 @@ class _CheckListState extends State<_CheckList> {
   }
 
   @override
+  void didUpdateWidget(covariant _CheckList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.checkList.title != oldWidget.checkList.title) {
+      _titleEditingController.text = widget.checkList.title ?? '';
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    _titleEditingController.text = widget.checkList.title ?? '';
     return Card(
       child: Column(
         children: [
@@ -220,10 +227,15 @@ class _CheckListItemState extends State<_CheckListItem> {
   @override
   void initState() {
     super.initState();
-    _checkListItem = CheckListItem(
-        item: widget.checkListItem.item,
-        isChecked: widget.checkListItem.isChecked);
-    _itemEditingController = TextEditingController(text: _checkListItem.item);
+    _initializeCheckListItem();
+  }
+
+  @override
+  void didUpdateWidget(covariant _CheckListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.checkListItem != oldWidget.checkListItem) {
+      setState(_initializeCheckListItem);
+    }
   }
 
   @override
@@ -279,5 +291,12 @@ class _CheckListItemState extends State<_CheckListItem> {
         )
       ],
     );
+  }
+
+  void _initializeCheckListItem() {
+    _checkListItem = CheckListItem(
+        item: widget.checkListItem.item,
+        isChecked: widget.checkListItem.isChecked);
+    _itemEditingController = TextEditingController(text: _checkListItem.item);
   }
 }

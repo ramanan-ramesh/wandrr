@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
@@ -36,6 +37,17 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
     super.initState();
     _transitUiElement = widget.transitUiElement.clone();
     _calculateTransitValidity();
+  }
+
+  @override
+  void didUpdateWidget(covariant EditableTransitPlan oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.transitUiElement != widget.transitUiElement) {
+      setState(() {
+        _transitUiElement = widget.transitUiElement.clone();
+        _calculateTransitValidity();
+      });
+    }
   }
 
   @override

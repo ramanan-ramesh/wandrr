@@ -30,9 +30,15 @@ class _PlanDataListItemState extends State<PlanDataListItem> {
   @override
   void initState() {
     super.initState();
-    _planDataUiElement = widget.initialPlanDataUiElement.clone();
-    _planDataUiElement.element =
-        widget.initialPlanDataUiElement.element.clone();
+    _initializePlanData();
+  }
+
+  @override
+  void didUpdateWidget(covariant PlanDataListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialPlanDataUiElement != oldWidget.initialPlanDataUiElement) {
+      setState(_initializePlanData);
+    }
   }
 
   @override
@@ -90,6 +96,12 @@ class _PlanDataListItemState extends State<PlanDataListItem> {
         ],
       ),
     );
+  }
+
+  void _initializePlanData() {
+    _planDataUiElement = widget.initialPlanDataUiElement.clone();
+    _planDataUiElement.element =
+        widget.initialPlanDataUiElement.element.clone();
   }
 
   Widget _buildCheckListCreator(String tripId) {

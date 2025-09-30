@@ -384,8 +384,7 @@ class TripManagementBloc
                 .where((element) => element.id == tripEntityId)
                 .firstOrNull;
             if (collectionItem != null) {
-              var didUpdate = false;
-              await modelCollection.tryUpdateItem(tripEntity);
+              var didUpdate = await modelCollection.tryUpdateItem(tripEntity);
               emit(UpdatedTripEntity<E>.updated(
                   tripEntityModificationData: CollectionItemChangeMetadata(
                       tripEntity,

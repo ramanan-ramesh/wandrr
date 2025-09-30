@@ -79,7 +79,6 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
   @override
   void didUpdateWidget(PlatformSubmitterFAB oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Reset to original state when widget rebuilds unless explicitly submitted
     if (!widget.isSubmitted && _isLoading) {
       _setLoadingState(false);
     }
