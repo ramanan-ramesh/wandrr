@@ -3,3 +3,6 @@
 
 *.dart text eol=lf
 *.arb text eol=lf
+
+# Ignore all files for language statistics
+* linguist-vendored
