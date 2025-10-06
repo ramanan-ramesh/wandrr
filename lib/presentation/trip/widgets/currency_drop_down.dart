@@ -236,7 +236,7 @@ class _SearchableCurrencyDropDown extends StatefulWidget {
 
 class _SearchableCurrencyDropDownState
     extends State<_SearchableCurrencyDropDown> {
-  late List<CurrencyData> _currencies;
+  late final List<CurrencyData> _currencies;
 
   @override
   void initState() {
@@ -272,7 +272,7 @@ class _SearchableCurrencyDropDownState
       onChanged: (searchText) {
         _currencies.clear();
         if (searchText.isEmpty) {
-          _currencies = widget.allCurrencies.toList();
+          _currencies.addAll(widget.allCurrencies);
         } else {
           var searchResultsForCurrencyName = widget.allCurrencies.where(
               (currencyInfo) => currencyInfo.name

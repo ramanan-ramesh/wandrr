@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/pages/trip_planner/constants.dart';
@@ -17,7 +17,7 @@ class ReadonlyExpenseListItem extends StatelessWidget {
     }
     if (expenseModelFacade.dateTime != null) {
       subTitle +=
-          ' on ${DateFormat.MMMM().format(expenseModelFacade.dateTime!).substring(0, 3)} ${expenseModelFacade.dateTime!.day}';
+          ' on ${expenseModelFacade.dateTime!.monthFormat} ${expenseModelFacade.dateTime!.day}';
     }
     return subTitle;
   }

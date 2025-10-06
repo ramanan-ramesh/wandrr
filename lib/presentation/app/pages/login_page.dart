@@ -24,7 +24,7 @@ class _LoginPageState extends State<LoginPage>
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  late TabController _tabController;
+  late final TabController _tabController;
   static const double _roundedCornerRadius = 25.0;
 
   @override
@@ -240,7 +240,7 @@ class _PasswordField extends StatefulWidget {
 class _PasswordFieldState extends State<_PasswordField> {
   bool _obscurePassword = true;
   String? _errorText;
-  late FocusNode focusNode;
+  late final FocusNode focusNode;
 
   @override
   void initState() {

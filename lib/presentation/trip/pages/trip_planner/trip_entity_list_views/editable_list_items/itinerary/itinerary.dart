@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
@@ -32,21 +31,20 @@ class ItineraryListItem extends StatefulWidget {
 
 class _ItineraryListItemState extends State<ItineraryListItem>
     with SingleTickerProviderStateMixin {
-  late UiElement<PlanDataFacade> _planDataUiElement;
+  late final UiElement<PlanDataFacade> _planDataUiElement;
   bool _isCollapsed = true;
   final _canUpdateItineraryDataNotifier = ValueNotifier(false);
 
   String? _errorMessage;
   bool _showErrorMessage = false;
 
-  late AnimationController _errorAnimationController;
-  late Animation<Offset> _errorAnimation;
+  late final AnimationController _errorAnimationController;
+  late final Animation<Offset> _errorAnimation;
 
   @override
   void initState() {
     super.initState();
-    _planDataUiElement = UiElement<PlanDataFacade>(
-        element: widget.itineraryFacade.planData, dataState: DataState.none);
+    _intializePlanDataUiElement();
     _errorAnimationController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
@@ -59,6 +57,19 @@ class _ItineraryListItemState extends State<ItineraryListItem>
   void dispose() {
     _errorAnimationController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant ItineraryListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.itineraryFacade != oldWidget.itineraryFacade) {
+      setState(_intializePlanDataUiElement);
+    }
+  }
+
+  void _intializePlanDataUiElement() {
+    _planDataUiElement = UiElement<PlanDataFacade>(
+        element: widget.itineraryFacade.planData, dataState: DataState.none);
   }
 
   @override
@@ -99,8 +110,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: PlatformTextElements.createSubHeader(
-              context: context,
-              text: DateFormat('EEE, MMM d').format(widget.day)),
+              context: context, text: widget.day.dayDateMonthFormat),
         ),
       ),
       trailing: !_isCollapsed ? _buildUpdateItineraryDataButton() : null,

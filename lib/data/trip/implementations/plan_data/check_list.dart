@@ -15,7 +15,7 @@ class CheckListModelImplementation extends CheckListFacade
       {required CheckListFacade checkListModelFacade})
       : super(
             items: List.from(checkListModelFacade.items),
-            title: checkListModelFacade.title,
+            title: checkListModelFacade.title!,
             tripId: checkListModelFacade.tripId);
 
   static CheckListModelImplementation fromDocumentData(
@@ -40,19 +40,22 @@ class CheckListModelImplementation extends CheckListFacade
       throw UnimplementedError();
 
   @override
-  Map<String, dynamic> toJson() => {
-        _titleField: title,
-        _itemsField: items
-            .map((checkListItem) => {
-                  _itemField: checkListItem.item,
-                  _isCheckedField: checkListItem.isChecked
-                })
-            .toList()
-      };
+  Map<String, dynamic> toJson() {
+    return {
+      _titleField: title!,
+      _itemsField: items.where((item) => item.item.isNotEmpty).map(
+          (checkListItem) => <String, dynamic>{
+                _itemField: checkListItem.item,
+                _isCheckedField: checkListItem.isChecked
+              })
+    };
+  }
 
   @override
   Future<bool> tryUpdate(CheckListFacade toUpdate) async => true;
 
   CheckListModelImplementation._(
-      {required super.items, required super.tripId, super.title});
+      {required super.items,
+      required super.tripId,
+      required String super.title});
 }

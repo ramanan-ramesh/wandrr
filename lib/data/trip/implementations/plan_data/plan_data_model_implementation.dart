@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/firestore_helpers.dart';
@@ -14,7 +13,7 @@ import 'check_list.dart';
 
 // ignore: must_be_immutable
 class PlanDataModelImplementation extends PlanDataFacade
-    implements LeafRepositoryItem<PlanDataFacade>, Dispose {
+    implements LeafRepositoryItem<PlanDataFacade> {
   static const _titleField = 'title';
   final String _collectionName;
 
@@ -47,27 +46,33 @@ class PlanDataModelImplementation extends PlanDataFacade
       {required String tripId,
       required DocumentSnapshot documentSnapshot,
       String collectionName = FirestoreCollections.planDataCollectionName}) {
-    var documentData = documentSnapshot.data() as Map<String, dynamic>? ?? {};
+    var documentData = documentSnapshot.data() as Map<String, dynamic>;
     var title = documentData[_titleField];
 
     var checkLists = <CheckListModelImplementation>[];
     var notes = <NoteFacade>[];
     var places = <LocationModelImplementation>[];
     for (final checkListDocumentData in List<Map<String, dynamic>>.from(
-        documentData[_checkListsField] ?? [])) {
+        documentData.containsKey(_checkListsField)
+            ? documentData[_checkListsField]
+            : [])) {
       var checkList = CheckListModelImplementation.fromDocumentData(
           documentData: checkListDocumentData, tripId: tripId);
       checkLists.add(checkList);
     }
 
-    for (final noteDocumentData
-        in List<String>.from(documentData[_notesField] ?? [])) {
+    for (final noteDocumentData in List<String>.from(
+        documentData.containsKey(_notesField)
+            ? documentData[_notesField]
+            : [])) {
       var note = NoteFacade(note: noteDocumentData, tripId: tripId);
       notes.add(note);
     }
 
-    for (final placesDocumentData
-        in List<Map<String, dynamic>>.from(documentData[_placesField] ?? [])) {
+    for (final placesDocumentData in List<Map<String, dynamic>>.from(
+        documentData.containsKey(_placesField)
+            ? documentData[_placesField]
+            : [])) {
       var place = LocationModelImplementation.fromJson(
           json: placesDocumentData, tripId: tripId);
       places.add(place);
@@ -120,14 +125,40 @@ class PlanDataModelImplementation extends PlanDataFacade
       .doc(id);
 
   @override
-  Map<String, dynamic> toJson() => {
-        _titleField: title,
-        _notesField: List<String>.from(_notes.map((note) => note.note)),
-        _checkListsField: List<Map<String, dynamic>>.from(
-            _checkLists.map((checkList) => checkList.toJson())),
-        _placesField: List<Map<String, dynamic>>.from(
-            _places.map((place) => place.toJson()))
-      };
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    if (title != null && title!.isNotEmpty) {
+      json[_titleField] = title;
+    }
+    if (_notes.isNotEmpty) {
+      var validNotes = _notes.where((note) => note.note.isNotEmpty).toList();
+      if (validNotes.isNotEmpty) {
+        json[_notesField] =
+            List<String>.from(validNotes.map((note) => note.note));
+      }
+    }
+    if (_checkLists.isNotEmpty) {
+      var validChecklists = <CheckListModelImplementation>[];
+      for (var checkListImplementation in _checkLists) {
+        var checkList = checkListImplementation.facade;
+        var isTitleValid =
+            checkList.title != null && checkList.title!.isNotEmpty;
+        var areItemsValid = checkList.items.isNotEmpty;
+        if (isTitleValid && areItemsValid) {
+          validChecklists.add(checkListImplementation);
+        }
+      }
+      if (validChecklists.isNotEmpty) {
+        json[_checkListsField] = List<Map<String, dynamic>>.from(
+            validChecklists.map((checkList) => checkList.toJson()));
+      }
+    }
+    if (_places.isNotEmpty) {
+      json[_placesField] = List<Map<String, dynamic>>.from(
+          _places.map((place) => place.toJson()));
+    }
+    return json;
+  }
 
   @override
   Future<bool> tryUpdate(PlanDataFacade toUpdate) async {
@@ -185,9 +216,6 @@ class PlanDataModelImplementation extends PlanDataFacade
 
   @override
   PlanDataFacade get facade => clone();
-
-  @override
-  Future dispose() async {}
 
   PlanDataModelImplementation._(
       {required String tripId,

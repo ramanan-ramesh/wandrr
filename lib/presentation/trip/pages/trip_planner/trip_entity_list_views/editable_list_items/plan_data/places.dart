@@ -35,6 +35,7 @@ class _PlacesReOrderableListViewState
     return ReorderableListView(
       shrinkWrap: true,
       onReorder: _onReorder,
+      physics: const NeverScrollableScrollPhysics(),
       children: List.generate(
         widget.placesList.length,
         (index) {

@@ -10,7 +10,7 @@ import 'expense_sort_options.dart';
 import 'money.dart';
 
 abstract class BudgetingModuleFacade {
-  Future<List<DebtData>> retrieveDebtDataList();
+  Future<Iterable<DebtData>> retrieveDebtDataList();
 
   Future<Map<ExpenseCategory, double>> retrieveTotalExpensePerCategory();
 
@@ -18,7 +18,7 @@ abstract class BudgetingModuleFacade {
       DateTime startDay, DateTime endDay);
 
   Future<Iterable<UiElement<ExpenseFacade>>> sortExpenseElements(
-      List<UiElement<ExpenseFacade>> expenseUiElements,
+      Iterable<UiElement<ExpenseFacade>> expenseUiElements,
       ExpenseSortOption expenseSortOption);
 
   Stream<double> get totalExpenditureStream;

@@ -45,8 +45,7 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
   }
 
   FutureOr<void> _onLogout(Logout event, Emitter<MasterPageState> emit) async {
-    var didSignOut =
-        await _appDataRepository!.userManagementModifier.trySignOut();
+    var didSignOut = await _appDataRepository!.userManagement.trySignOut();
     if (didSignOut) {
       emit(AuthStateChanged(authStatus: AuthStatus.loggedOut));
     }
@@ -58,11 +57,11 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
     emit(AuthStateChanged(authStatus: AuthStatus.authenticating));
     var authStatus = AuthStatus.undefined;
     if (event.shouldRegister) {
-      authStatus = await _appDataRepository!.userManagementModifier
+      authStatus = await _appDataRepository!.userManagement
           .trySignUpWithUsernamePassword(
               userName: event.userName, password: event.password);
     } else {
-      authStatus = await _appDataRepository!.userManagementModifier
+      authStatus = await _appDataRepository!.userManagement
           .trySignInWithUsernamePassword(
               userName: event.userName, password: event.password);
     }
@@ -76,7 +75,7 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
   FutureOr<void> _onAuthenticateWithThirdParty(
       AuthenticateWithThirdParty event, Emitter<MasterPageState> emit) async {
     emit(AuthStateChanged(authStatus: AuthStatus.authenticating));
-    var authStatus = await _appDataRepository!.userManagementModifier
+    var authStatus = await _appDataRepository!.userManagement
         .trySignInWithThirdParty(event.authenticationType);
     if (authStatus == AuthStatus.loggedIn) {
       emit(AuthStateChanged(authStatus: AuthStatus.loggedIn));

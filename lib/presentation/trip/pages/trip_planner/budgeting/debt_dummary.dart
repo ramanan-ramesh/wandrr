@@ -16,7 +16,7 @@ class DebtSummaryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     var activeTrip = context.activeTrip;
     var currentUserName = context.activeUser!.userName;
-    var budgetingModule = activeTrip.budgetingFacade;
+    var budgetingModule = activeTrip.budgetingModule;
     var appLocalizations = context.localizations;
     var currentContributors = activeTrip.tripMetadata.contributors;
     currentContributors.sort((a, b) => a.compareTo(b));
@@ -27,10 +27,10 @@ class DebtSummaryTile extends StatelessWidget {
           AppColors.travelAccents.elementAt(index);
     }
     return SliverToBoxAdapter(
-      child: FutureBuilder<List<DebtData>>(
+      child: FutureBuilder<Iterable<DebtData>>(
         future: budgetingModule.retrieveDebtDataList(),
         builder:
-            (BuildContext context, AsyncSnapshot<List<DebtData>> snapshot) {
+            (BuildContext context, AsyncSnapshot<Iterable<DebtData>> snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
               snapshot.hasData) {
             var debtDataList = snapshot.data!;

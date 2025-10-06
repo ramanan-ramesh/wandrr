@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/plan_data/check_list.dart';
 import 'package:wandrr/data/trip/models/plan_data/check_list_item.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/widgets/card.dart';
 
 class CheckListsView extends StatefulWidget {
   const CheckListsView(
@@ -20,6 +19,7 @@ class _CheckListsViewState extends State<CheckListsView> {
   Widget build(BuildContext context) {
     return ListView.separated(
       shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (BuildContext context, int index) {
         var checkList = widget.checkLists.elementAt(index);
         return _CheckList(
@@ -58,12 +58,25 @@ class _CheckList extends StatefulWidget {
 }
 
 class _CheckListState extends State<_CheckList> {
-  late TextEditingController _titleEditingController;
+  late final TextEditingController _titleEditingController;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleEditingController =
+        TextEditingController(text: widget.checkList.title);
+  }
+
+  @override
+  void didUpdateWidget(covariant _CheckList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.checkList.title != oldWidget.checkList.title) {
+      _titleEditingController.text = widget.checkList.title ?? '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    _titleEditingController =
-        TextEditingController(text: widget.checkList.title);
     return Card(
       child: Column(
         children: [
@@ -201,24 +214,28 @@ class _CheckListItem extends StatefulWidget {
   const _CheckListItem(
       {required this.checkListItem,
       required this.callback,
-      required this.onDeleted,
-      super.key});
+      required this.onDeleted});
 
   @override
   State<_CheckListItem> createState() => _CheckListItemState();
 }
 
 class _CheckListItemState extends State<_CheckListItem> {
-  late TextEditingController _itemEditingController;
-  late CheckListItem _checkListItem;
+  late final TextEditingController _itemEditingController;
+  late final CheckListItem _checkListItem;
 
   @override
   void initState() {
     super.initState();
-    _checkListItem = CheckListItem(
-        item: widget.checkListItem.item,
-        isChecked: widget.checkListItem.isChecked);
-    _itemEditingController = TextEditingController(text: _checkListItem.item);
+    _initializeCheckListItem();
+  }
+
+  @override
+  void didUpdateWidget(covariant _CheckListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.checkListItem != oldWidget.checkListItem) {
+      setState(_initializeCheckListItem);
+    }
   }
 
   @override
@@ -274,5 +291,12 @@ class _CheckListItemState extends State<_CheckListItem> {
         )
       ],
     );
+  }
+
+  void _initializeCheckListItem() {
+    _checkListItem = CheckListItem(
+        item: widget.checkListItem.item,
+        isChecked: widget.checkListItem.isChecked);
+    _itemEditingController = TextEditingController(text: _checkListItem.item);
   }
 }

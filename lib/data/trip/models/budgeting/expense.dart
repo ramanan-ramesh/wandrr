@@ -4,7 +4,7 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'expense_category.dart';
 import 'money.dart';
 
-class ExpenseFacade implements TripEntity {
+class ExpenseFacade implements TripEntity<ExpenseFacade> {
   String tripId;
 
   String title;
@@ -40,7 +40,7 @@ class ExpenseFacade implements TripEntity {
 
   ExpenseFacade.newUiEntry(
       {required this.tripId,
-      required List<String> allTripContributors,
+      required Iterable<String> allTripContributors,
       required String defaultCurrency})
       : title = '',
         totalExpense = Money(currency: defaultCurrency, amount: 0),
@@ -48,6 +48,21 @@ class ExpenseFacade implements TripEntity {
         paidBy = Map.fromIterables(
             allTripContributors, List.filled(allTripContributors.length, 0)),
         splitBy = allTripContributors.toList();
+
+  @override
+  ExpenseFacade clone() => ExpenseFacade(
+      tripId: tripId,
+      title: title,
+      description: description,
+      id: id,
+      totalExpense: totalExpense,
+      category: category,
+      paidBy: paidBy,
+      splitBy: splitBy,
+      location: location?.clone(),
+      dateTime: dateTime != null
+          ? DateTime(dateTime!.year, dateTime!.month, dateTime!.day)
+          : null);
 
   void copyWith(ExpenseFacade expenseModelFacade) {
     tripId = expenseModelFacade.tripId;
@@ -62,20 +77,6 @@ class ExpenseFacade implements TripEntity {
     dateTime = DateTime(expenseModelFacade.dateTime!.year,
         expenseModelFacade.dateTime!.month, expenseModelFacade.dateTime!.day);
   }
-
-  ExpenseFacade clone() => ExpenseFacade(
-      tripId: tripId,
-      title: title,
-      description: description,
-      id: id,
-      totalExpense: totalExpense,
-      category: category,
-      paidBy: paidBy,
-      splitBy: splitBy,
-      location: location?.clone(),
-      dateTime: dateTime != null
-          ? DateTime(dateTime!.year, dateTime!.month, dateTime!.day)
-          : null);
 
   bool validate() => paidBy.isNotEmpty && splitBy.isNotEmpty;
 }

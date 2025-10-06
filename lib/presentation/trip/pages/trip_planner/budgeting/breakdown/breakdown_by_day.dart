@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
@@ -17,7 +17,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
   @override
   Widget build(BuildContext context) {
     var activeTrip = context.activeTrip;
-    var budgetingModule = activeTrip.budgetingFacade;
+    var budgetingModule = activeTrip.budgetingModule;
     var tripMetadata = activeTrip.tripMetadata;
     var budgetCurrency = tripMetadata.budget.currency;
     return FutureBuilder<Map<DateTime, double>>(
@@ -42,8 +42,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
           for (final dailyExpense in expensesPerDay.entries) {
             var percentageOfTotalExpense =
                 totalExpense == 0 ? 0.0 : dailyExpense.value / totalExpense;
-            var date = DateFormat('EEE, MMM d').format(dailyExpense.key);
-            date = date.substring(date.indexOf(',') + 1);
+            var date = dailyExpense.key.dayFormat;
             if (percentageOfTotalExpense == 0.0) {
               continue;
             }
@@ -66,7 +65,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
                             ),
                           ),
                           Text(
-                            activeTrip.budgetingFacade.formatCurrency(Money(
+                            activeTrip.budgetingModule.formatCurrency(Money(
                                 currency: budgetCurrency,
                                 amount: dailyExpense.value)),
                             style: const TextStyle(

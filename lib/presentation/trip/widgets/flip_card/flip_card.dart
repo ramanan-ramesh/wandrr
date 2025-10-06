@@ -137,7 +137,7 @@ class FlipCard extends StatefulWidget {
 /// or [hint] the associated [FlipCard]
 class FlipCardState extends State<FlipCard>
     with SingleTickerProviderStateMixin {
-  late AnimationController controller;
+  late final AnimationController controller;
 
   @override
   void didUpdateWidget(FlipCard oldWidget) {

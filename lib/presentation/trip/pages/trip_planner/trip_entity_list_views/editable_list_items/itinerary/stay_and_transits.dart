@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
@@ -219,18 +218,17 @@ class ItineraryStayAndTransits extends StatelessWidget {
 
   String _getTransitDateTimeDetail(
       TransitFacade transitFacade, AppLocalizations appLocalizations) {
-    var dateTimeFormat = DateFormat('h:mm a');
     var departureDateTime = transitFacade.departureDateTime!;
     var arrivalDateTime = transitFacade.arrivalDateTime!;
     if (departureDateTime.isOnSameDayAs(arrivalDateTime)) {
-      return '${dateTimeFormat.format(departureDateTime)} - ${dateTimeFormat.format(arrivalDateTime)}';
+      return '${departureDateTime.hourMinuteAmPmFormat} - ${arrivalDateTime.hourMinuteAmPmFormat}';
     } else {
       if (departureDateTime.isOnSameDayAs(itineraryDay) &&
           !arrivalDateTime.isOnSameDayAs(itineraryDay)) {
-        return '${appLocalizations.departAt} ${dateTimeFormat.format(departureDateTime)}';
+        return '${appLocalizations.departAt} ${departureDateTime.hourMinuteAmPmFormat}';
       } else if (!departureDateTime.isOnSameDayAs(itineraryDay) &&
           arrivalDateTime.isOnSameDayAs(itineraryDay)) {
-        return '${appLocalizations.arriveAt} ${dateTimeFormat.format(arrivalDateTime)}';
+        return '${appLocalizations.arriveAt} ${arrivalDateTime.hourMinuteAmPmFormat}';
       } else {
         return appLocalizations.allDayTravel;
       }

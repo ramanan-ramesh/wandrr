@@ -5,7 +5,7 @@ import 'airport_location_context.dart';
 import 'location_context.dart';
 
 // ignore: must_be_immutable
-class LocationFacade extends Equatable implements TripEntity {
+class LocationFacade extends Equatable implements TripEntity<LocationFacade> {
   final String tripId;
 
   final double latitude;
@@ -23,6 +23,7 @@ class LocationFacade extends Equatable implements TripEntity {
       required this.tripId,
       this.id});
 
+  @override
   LocationFacade clone() => LocationFacade(
       latitude: latitude,
       longitude: longitude,

@@ -15,6 +15,5 @@ extension RepositoryExt on BuildContext {
 
   bool get isLightTheme => appDataRepository.activeThemeMode == ThemeMode.light;
 
-  PlatformUser? get activeUser =>
-      appDataRepository.userManagementFacade.activeUser;
+  PlatformUser? get activeUser => appDataRepository.userManagement.activeUser;
 }
