@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -142,7 +142,7 @@ class ReadonlyTransitPlan extends StatelessWidget {
           padding: const EdgeInsets.all(2.0),
           child: Text(
             transitFacade.notes!,
-            maxLines: 1,
+            maxLines: 5,
           ),
         ),
       ],
@@ -195,7 +195,7 @@ class ReadonlyTransitPlan extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '@ ${DateFormat('hh:mm a').format(dateTime)}',
+            '@ ${dateTime.hourMinuteAmPmFormat}',
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   fontWeight: FontWeight.bold,
                   color: context.isLightTheme
@@ -204,7 +204,7 @@ class ReadonlyTransitPlan extends StatelessWidget {
                 ),
           ),
           Text(
-            DateFormat('dd MMM').format(dateTime),
+            dateTime.dateMonthFormat,
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   color: context.isLightTheme
                       ? Colors.white

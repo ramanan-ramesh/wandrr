@@ -19,7 +19,7 @@ class PlatformTabBar extends StatefulWidget {
 
 class _PlatformTabBarState extends State<PlatformTabBar>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  late final TabController _tabController;
 
   @override
   void initState() {

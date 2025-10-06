@@ -14,21 +14,6 @@ class LanguageSwitcher extends StatefulWidget {
 class _LanguageSwitcherState extends State<LanguageSwitcher> {
   bool _isExpanded = false;
 
-  void _toggleExpand() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-    });
-  }
-
-  List<Widget> _buildLanguageButtons() {
-    return context.appDataRepository.languageMetadatas
-        .map((e) => _LanguageButton(
-            languageMetadata: e,
-            visible: _isExpanded,
-            onLanguageSelected: _toggleExpand))
-        .toList();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -48,6 +33,21 @@ class _LanguageSwitcherState extends State<LanguageSwitcher> {
         ),
       ],
     );
+  }
+
+  void _toggleExpand() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+  }
+
+  List<Widget> _buildLanguageButtons() {
+    return context.appDataRepository.languageMetadatas
+        .map((e) => _LanguageButton(
+            languageMetadata: e,
+            visible: _isExpanded,
+            onLanguageSelected: _toggleExpand))
+        .toList();
   }
 }
 

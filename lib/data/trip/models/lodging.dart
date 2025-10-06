@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:intl/intl.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
@@ -8,7 +8,7 @@ import 'budgeting/expense_category.dart';
 import 'budgeting/money.dart';
 
 // ignore: must_be_immutable
-class LodgingFacade extends Equatable implements TripEntity {
+class LodgingFacade extends Equatable implements TripEntity<LodgingFacade> {
   LocationFacade? location;
 
   DateTime? checkinDateTime;
@@ -24,7 +24,7 @@ class LodgingFacade extends Equatable implements TripEntity {
 
   ExpenseFacade expense;
 
-  String notes;
+  String? notes;
 
   LodgingFacade(
       {required this.location,
@@ -32,19 +32,16 @@ class LodgingFacade extends Equatable implements TripEntity {
       required this.checkoutDateTime,
       required this.tripId,
       required this.expense,
-      String? id,
+      this.id,
       this.confirmationId,
-      String? notes})
-      : id = id ?? '',
-        notes = notes ?? '';
+      this.notes});
 
   LodgingFacade.newUiEntry(
       {required this.tripId,
-      required List<String> allTripContributors,
+      required Iterable<String> allTripContributors,
       required String defaultCurrency,
-      String? notes})
-      : notes = notes ?? '',
-        expense = ExpenseFacade(
+      this.notes})
+      : expense = ExpenseFacade(
             tripId: tripId,
             title: ' ',
             totalExpense: Money(currency: defaultCurrency, amount: 0),
@@ -52,6 +49,19 @@ class LodgingFacade extends Equatable implements TripEntity {
             paidBy: Map.fromIterables(allTripContributors,
                 List.filled(allTripContributors.length, 0)),
             splitBy: allTripContributors.toList());
+
+  @override
+  LodgingFacade clone() => LodgingFacade(
+      location: location?.clone(),
+      checkinDateTime: DateTime(
+          checkinDateTime!.year, checkinDateTime!.month, checkinDateTime!.day),
+      checkoutDateTime: DateTime(checkoutDateTime!.year,
+          checkoutDateTime!.month, checkoutDateTime!.day),
+      id: id,
+      tripId: tripId,
+      confirmationId: confirmationId,
+      expense: expense.clone(),
+      notes: notes);
 
   void copyWith(LodgingFacade lodgingModelFacade) {
     location = lodgingModelFacade.location;
@@ -68,18 +78,6 @@ class LodgingFacade extends Equatable implements TripEntity {
     notes = lodgingModelFacade.notes;
   }
 
-  LodgingFacade clone() => LodgingFacade(
-      location: location?.clone(),
-      checkinDateTime: DateTime(
-          checkinDateTime!.year, checkinDateTime!.month, checkinDateTime!.day),
-      checkoutDateTime: DateTime(checkoutDateTime!.year,
-          checkoutDateTime!.month, checkoutDateTime!.day),
-      id: id,
-      tripId: tripId,
-      confirmationId: confirmationId,
-      expense: expense.clone(),
-      notes: notes);
-
   bool validate() =>
       location != null &&
       checkinDateTime != null &&
@@ -88,11 +86,16 @@ class LodgingFacade extends Equatable implements TripEntity {
 
   @override
   String toString() {
-    var checkInDayDescription =
-        '${DateFormat.MMMM().format(checkinDateTime!).substring(0, 3)} ${checkinDateTime!.day}';
-    var checkOutDayDescription =
-        '${DateFormat.MMMM().format(checkoutDateTime!).substring(0, 3)} ${checkoutDateTime!.day}';
-    return 'Stay at ${location!} from $checkInDayDescription to $checkOutDayDescription';
+    if (checkinDateTime != null &&
+        checkoutDateTime != null &&
+        location != null) {
+      var checkInDayDescription =
+          '${checkinDateTime!.monthFormat} ${checkinDateTime!.day}';
+      var checkOutDayDescription =
+          '${checkoutDateTime!.monthFormat} ${checkoutDateTime!.day}';
+      return 'Stay at ${location!} from $checkInDayDescription to $checkOutDayDescription';
+    }
+    return 'Unnamed Entry';
   }
 
   @override

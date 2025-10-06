@@ -50,7 +50,6 @@ android {
 
     buildTypes {
         debug {
-            minifyEnabled true // fix Failed to transform firebase-auth-22.3.1.aar
             debuggable true
             signingConfig = signingConfigs.debug
             jniDebuggable true

@@ -6,28 +6,26 @@ import 'collection_item_change_metadata.dart';
 import 'collection_item_change_set.dart';
 import 'leaf_repository_item.dart';
 
-abstract class ModelCollectionFacade<T> {
-  Stream<CollectionItemChangeMetadata<LeafRepositoryItem<T>>>
-      get onDocumentAdded;
+abstract class ModelCollectionFacade<Model> {
+  Stream<CollectionItemChangeMetadata<Model>> get onDocumentAdded;
 
-  Stream<
-          CollectionItemChangeMetadata<
-              CollectionItemChangeSet<LeafRepositoryItem<T>>>>
+  Stream<CollectionItemChangeMetadata<CollectionItemChangeSet<Model>>>
       get onDocumentUpdated;
 
-  Stream<CollectionItemChangeMetadata<LeafRepositoryItem<T>>>
-      get onDocumentDeleted;
+  Stream<CollectionItemChangeMetadata<Model>> get onDocumentDeleted;
 
-  LeafRepositoryItem<T> Function(T) get leafRepositoryItemCreator;
-
-  Iterable<LeafRepositoryItem<T>> get collectionItems;
+  Iterable<Model> get collectionItems;
 }
 
-abstract class ModelCollectionModifier<T> extends ModelCollectionFacade<T>
-    implements Dispose {
-  Future<LeafRepositoryItem<T>?> tryAdd(T toAdd);
+abstract class ModelCollectionModifier<Model>
+    extends ModelCollectionFacade<Model> implements Dispose {
+  LeafRepositoryItem<Model> Function(Model) get repositoryItemCreator;
 
-  FutureOr<bool> tryDeleteItem(T toDelete);
+  Future<LeafRepositoryItem<Model>?> tryAdd(Model toAdd);
+
+  FutureOr<bool> tryDeleteItem(Model toDelete);
+
+  FutureOr<bool> tryUpdateItem(Model toUpdate);
 
   Future<void> runUpdateTransaction(Future<void> Function() updateTransaction);
 }

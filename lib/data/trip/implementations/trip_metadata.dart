@@ -16,7 +16,6 @@ class TripMetadataModelImplementation extends TripMetadataFacade
   static const String _contributorsField = 'contributors';
   static const String _thumbnailTagField = 'thumbnailTag';
   static const _budgetField = 'budget';
-  static const _defaultCurrency = 'INR';
 
   TripMetadataModelImplementation.fromModelFacade(
       {required TripMetadataFacade tripMetadataModelFacade})
@@ -35,14 +34,9 @@ class TripMetadataModelImplementation extends TripMetadataFacade
     var startDateTime = (documentData[_startDateField] as Timestamp).toDate();
     var endDateTime = (documentData[_endDateField] as Timestamp).toDate();
     var contributors = List<String>.from(documentData[_contributorsField]);
-    var budgetValue = documentData[_budgetField] as String?;
+    var budgetValue = documentData[_budgetField] as String;
     var thumbNailTag = documentData[_thumbnailTagField] as String;
-    Money budget;
-    if (budgetValue != null && budgetValue.isNotEmpty) {
-      budget = Money.fromDocumentData(budgetValue);
-    } else {
-      budget = Money(currency: _defaultCurrency, amount: 0);
-    }
+    var budget = Money.fromDocumentData(budgetValue);
 
     return TripMetadataModelImplementation._(
         id: documentSnapshot.id,
@@ -94,9 +88,9 @@ class TripMetadataModelImplementation extends TripMetadataFacade
   TripMetadataFacade get facade => clone();
 
   TripMetadataModelImplementation._(
-      {required super.id,
-      required super.startDate,
-      required super.endDate,
+      {required String super.id,
+      required DateTime super.startDate,
+      required DateTime super.endDate,
       required super.name,
       required super.contributors,
       required super.thumbnailTag,

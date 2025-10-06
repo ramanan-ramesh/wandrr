@@ -1,5 +1,4 @@
 import 'package:wandrr/data/app/models/dispose.dart';
-import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/itinerary.dart';
 import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
@@ -14,35 +13,32 @@ import 'trip_metadata.dart';
 abstract class TripDataFacade {
   TripMetadataFacade get tripMetadata;
 
-  List<TransitFacade> get transits;
+  ModelCollectionFacade<TransitFacade> get transitCollection;
 
-  List<LodgingFacade> get lodgings;
+  ModelCollectionFacade<LodgingFacade> get lodgingCollection;
 
-  List<ExpenseFacade> get expenses;
+  ModelCollectionFacade<ExpenseFacade> get expenseCollection;
 
-  List<PlanDataFacade> get planDataList;
+  ModelCollectionFacade<PlanDataFacade> get planDataCollection;
 
   ItineraryFacadeCollection get itineraryCollection;
 
-  BudgetingModuleFacade get budgetingFacade;
+  BudgetingModuleFacade get budgetingModule;
 
   Iterable<TransitOptionMetadata> get transitOptionMetadatas;
 }
 
 abstract class TripDataModelEventHandler extends TripDataFacade
     implements Dispose {
-  ItineraryFacadeCollectionEventHandler get itineraryCollectionEventHandler;
+  Future updateTripMetadata(TripMetadataFacade tripMetadata);
 
-  Future updateTripMetadata(
-      LeafRepositoryItem<TripMetadataFacade> tripMetadataLeafRepositoryItem);
+  ItineraryFacadeCollectionEventHandler get itineraryCollection;
 
-  LeafRepositoryItem<TripMetadataFacade> get tripMetadataModelEventHandler;
+  ModelCollectionModifier<TransitFacade> get transitCollection;
 
-  ModelCollectionModifier<TransitFacade> get transitsModelCollection;
+  ModelCollectionModifier<LodgingFacade> get lodgingCollection;
 
-  ModelCollectionModifier<LodgingFacade> get lodgingModelCollection;
+  ModelCollectionModifier<ExpenseFacade> get expenseCollection;
 
-  ModelCollectionModifier<ExpenseFacade> get expenseModelCollection;
-
-  ModelCollectionModifier<PlanDataFacade> get planDataModelCollection;
+  ModelCollectionModifier<PlanDataFacade> get planDataCollection;
 }

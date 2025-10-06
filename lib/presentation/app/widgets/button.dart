@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
+//TODO: Refactor this class and analyze the behaviour. Keep a timer in this class after submitting, so that it takes 1.5 seconds to go from CircularProgressIndicator to Icon.
 class PlatformSubmitterFAB extends StatefulWidget {
   final IconData icon;
   final VoidCallback? callback;
@@ -78,7 +79,6 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
   @override
   void didUpdateWidget(PlatformSubmitterFAB oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Reset to original state when widget rebuilds unless explicitly submitted
     if (!widget.isSubmitted && _isLoading) {
       _setLoadingState(false);
     }

@@ -5,7 +5,8 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'budgeting/money.dart';
 
 // ignore: must_be_immutable
-class TripMetadataFacade extends Equatable implements TripEntity {
+class TripMetadataFacade extends Equatable
+    implements TripEntity<TripMetadataFacade> {
   @override
   String? id;
 
@@ -36,6 +37,20 @@ class TripMetadataFacade extends Equatable implements TripEntity {
         contributors = [],
         budget = Money(currency: defaultCurrency, amount: 0);
 
+  @override
+  TripMetadataFacade clone() => TripMetadataFacade(
+      id: id,
+      startDate: startDate != null
+          ? DateTime(startDate!.year, startDate!.month, startDate!.day)
+          : null,
+      endDate: endDate != null
+          ? DateTime(endDate!.year, endDate!.month, endDate!.day)
+          : null,
+      name: name,
+      contributors: List.from(contributors),
+      thumbnailTag: thumbnailTag,
+      budget: budget);
+
   void copyWith(TripMetadataFacade tripMetadataModel) {
     startDate = tripMetadataModel.startDate != null
         ? DateTime(
@@ -51,19 +66,6 @@ class TripMetadataFacade extends Equatable implements TripEntity {
     contributors = List.from(tripMetadataModel.contributors);
     budget = tripMetadataModel.budget;
   }
-
-  TripMetadataFacade clone() => TripMetadataFacade(
-      id: id,
-      startDate: startDate != null
-          ? DateTime(startDate!.year, startDate!.month, startDate!.day)
-          : null,
-      endDate: endDate != null
-          ? DateTime(endDate!.year, endDate!.month, endDate!.day)
-          : null,
-      name: name,
-      contributors: List.from(contributors),
-      thumbnailTag: thumbnailTag,
-      budget: budget);
 
   bool validate() {
     var hasValidName = name.isNotEmpty;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/location/geo_location_api_context.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/l10n/extension.dart';
@@ -16,7 +16,8 @@ class ReadonlyLodgingPlan extends StatelessWidget {
   Widget build(BuildContext context) {
     var isConfirmationIdValid = lodgingModelFacade.confirmationId != null &&
         lodgingModelFacade.confirmationId!.isNotEmpty;
-    var isNotesValid = lodgingModelFacade.notes.isNotEmpty;
+    var isNotesValid = lodgingModelFacade.notes != null &&
+        lodgingModelFacade.notes!.isNotEmpty;
     return LodgingCardBase(
         lodgingFacade: lodgingModelFacade,
         location: Column(
@@ -36,8 +37,8 @@ class ReadonlyLodgingPlan extends StatelessWidget {
         dateTime: _buildDateTimeDetails(),
         notes: isNotesValid
             ? _createTitleSubText(
-                context.localizations.notes, lodgingModelFacade.notes,
-                maxLines: null)
+                context.localizations.notes, lodgingModelFacade.notes!,
+                maxLines: 5)
             : const SizedBox.shrink(),
         confirmationId: isConfirmationIdValid
             ? _createTitleSubText('${context.localizations.confirmation} #',
@@ -50,7 +51,7 @@ class ReadonlyLodgingPlan extends StatelessWidget {
 
   Text _buildDateTimeDetails() {
     var dateTime =
-        '${DateFormat.MMMEd().format(lodgingModelFacade.checkinDateTime!)} - ${DateFormat.MMMEd().format(lodgingModelFacade.checkoutDateTime!)}';
+        '${lodgingModelFacade.checkinDateTime!.dayDateMonthFormat} - ${lodgingModelFacade.checkoutDateTime!.dayDateMonthFormat}';
     return Text(
       dateTime,
       style: const TextStyle(fontWeight: FontWeight.bold),

@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:intl/intl.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
@@ -8,7 +8,7 @@ import 'budgeting/expense_category.dart';
 import 'budgeting/money.dart';
 
 // ignore: must_be_immutable
-class TransitFacade extends Equatable implements TripEntity {
+class TransitFacade extends Equatable implements TripEntity<TransitFacade> {
   final String tripId;
 
   @override
@@ -49,7 +49,7 @@ class TransitFacade extends Equatable implements TripEntity {
   TransitFacade.newUiEntry(
       {required this.tripId,
       required this.transitOption,
-      required List<String> allTripContributors,
+      required Iterable<String> allTripContributors,
       required String defaultCurrency,
       String? notes})
       : notes = notes ?? '',
@@ -61,6 +61,20 @@ class TransitFacade extends Equatable implements TripEntity {
             paidBy: Map.fromIterables(allTripContributors,
                 List.filled(allTripContributors.length, 0)),
             splitBy: allTripContributors.toList());
+
+  @override
+  TransitFacade clone() => TransitFacade(
+      tripId: tripId,
+      transitOption: transitOption,
+      departureDateTime: departureDateTime,
+      arrivalDateTime: arrivalDateTime,
+      departureLocation: departureLocation?.clone(),
+      arrivalLocation: arrivalLocation?.clone(),
+      expense: expense.clone(),
+      confirmationId: confirmationId,
+      id: id,
+      operator: operator,
+      notes: notes);
 
   void copyWith(TransitFacade transitModelFacade) {
     transitOption = transitModelFacade.transitOption;
@@ -76,23 +90,15 @@ class TransitFacade extends Equatable implements TripEntity {
 
   @override
   String toString() {
-    var dateTime =
-        '${DateFormat.MMMM().format(departureDateTime!).substring(0, 3)} ${departureDateTime!.day}';
-    return '${departureLocation!} to ${arrivalLocation!} on $dateTime';
+    if (departureDateTime != null &&
+        departureLocation != null &&
+        arrivalLocation != null) {
+      var dateTime =
+          '${departureDateTime!.monthFormat} ${departureDateTime!.day}';
+      return '${departureLocation!} to ${arrivalLocation!} on $dateTime';
+    }
+    return 'Unnamed Entry';
   }
-
-  TransitFacade clone() => TransitFacade(
-      tripId: tripId,
-      transitOption: transitOption,
-      departureDateTime: departureDateTime,
-      arrivalDateTime: arrivalDateTime,
-      departureLocation: departureLocation?.clone(),
-      arrivalLocation: arrivalLocation?.clone(),
-      expense: expense.clone(),
-      confirmationId: confirmationId,
-      id: id,
-      operator: operator,
-      notes: notes);
 
   static ExpenseCategory getExpenseCategory(TransitOption transitOptions) {
     switch (transitOptions) {

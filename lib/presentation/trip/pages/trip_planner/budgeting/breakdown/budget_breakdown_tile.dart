@@ -20,7 +20,7 @@ class BudgetBreakdownTile extends StatefulWidget {
 
 class _BudgetBreakdownTileState extends State<BudgetBreakdownTile>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  late final TabController _tabController;
   int touchedIndex = -1;
 
   @override

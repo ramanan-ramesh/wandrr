@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
@@ -27,7 +28,7 @@ class EditableTransitPlan extends StatefulWidget {
 }
 
 class _EditableTransitPlanState extends State<EditableTransitPlan> {
-  late UiElement<TransitFacade> _transitUiElement;
+  late final UiElement<TransitFacade> _transitUiElement;
 
   TransitFacade get _transitFacade => _transitUiElement.element;
 
@@ -36,6 +37,17 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
     super.initState();
     _transitUiElement = widget.transitUiElement.clone();
     _calculateTransitValidity();
+  }
+
+  @override
+  void didUpdateWidget(covariant EditableTransitPlan oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.transitUiElement != widget.transitUiElement) {
+      setState(() {
+        _transitUiElement = widget.transitUiElement.clone();
+        _calculateTransitValidity();
+      });
+    }
   }
 
   @override
@@ -111,6 +123,7 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
               } else {
                 _transitFacade.departureLocation = newLocation;
               }
+              _calculateTransitValidity();
             },
           )
         : PlatformGeoLocationAutoComplete(
@@ -120,12 +133,25 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
               } else {
                 _transitFacade.departureLocation = newLocation;
               }
+              _calculateTransitValidity();
             },
             selectedLocation: locationToConsider,
           );
   }
 
   Widget _buildDateTimePicker(bool isArrival, TripMetadataFacade tripMetadata) {
+    var startDateTime = isArrival
+        ? (_transitFacade.departureDateTime
+              ?..add(const Duration(minutes: 1))) ??
+            tripMetadata.startDate!
+        : tripMetadata.startDate!;
+    var endDateTime = DateTime(
+      tripMetadata.endDate!.year,
+      tripMetadata.endDate!.month,
+      tripMetadata.endDate!.day,
+      23,
+      59,
+    );
     return PlatformDateTimePicker(
       dateTimeUpdated: (updatedDateTime) {
         if (isArrival) {
@@ -133,14 +159,11 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
         } else {
           _transitFacade.departureDateTime = updatedDateTime;
         }
+        _calculateTransitValidity();
         setState(() {});
       },
-      startDateTime: isArrival
-          ? (_transitFacade.departureDateTime
-                ?..add(const Duration(minutes: 1))) ??
-              tripMetadata.startDate!
-          : tripMetadata.startDate!,
-      endDateTime: tripMetadata.endDate!,
+      startDateTime: startDateTime,
+      endDateTime: endDateTime,
       currentDateTime: isArrival
           ? _transitFacade.arrivalDateTime
           : _transitFacade.departureDateTime,

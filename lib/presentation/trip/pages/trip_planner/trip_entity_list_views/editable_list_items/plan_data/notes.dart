@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/plan_data/note.dart';
-import 'package:wandrr/presentation/app/widgets/card.dart';
 
 class NotesListView extends StatefulWidget {
   const NotesListView(
@@ -19,6 +17,7 @@ class NotesListViewState extends State<NotesListView> {
   Widget build(BuildContext context) {
     return ListView.separated(
       shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (BuildContext context, int index) {
         var noteUpdator = widget.notes.elementAt(index);
         return Row(
@@ -61,12 +60,20 @@ class _NoteListItem extends StatefulWidget {
 }
 
 class _NoteListItemState extends State<_NoteListItem> {
-  late TextEditingController _noteEditingController;
+  late final TextEditingController _noteEditingController;
 
   @override
   void initState() {
     super.initState();
     _noteEditingController = TextEditingController(text: widget.note.note);
+  }
+
+  @override
+  void didUpdateWidget(covariant _NoteListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.note.note != widget.note.note) {
+      _noteEditingController.text = widget.note.note;
+    }
   }
 
   @override

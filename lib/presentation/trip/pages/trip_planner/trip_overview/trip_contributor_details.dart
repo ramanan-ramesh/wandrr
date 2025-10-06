@@ -1,4 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/states.dart';
+import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
@@ -18,20 +25,44 @@ class ContributorDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var contributorWidgets = _createContributorWidgets(context);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3.0),
-          child: SizedBox(
-            height: maxOverviewElementHeight,
-            child: const AddTripMateField(),
-          ),
-        ),
-        ...contributorWidgets
-      ],
+    return BlocConsumer<TripManagementBloc, TripManagementState>(
+      buildWhen: _shouldBuildContributorDetails,
+      builder: (BuildContext context, TripManagementState state) {
+        var contributorWidgets = _createContributorWidgets(context);
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3.0),
+              child: SizedBox(
+                height: maxOverviewElementHeight,
+                child: const AddTripMateField(),
+              ),
+            ),
+            ...contributorWidgets
+          ],
+        );
+      },
+      listener: (BuildContext context, TripManagementState state) {},
     );
+  }
+
+  bool _shouldBuildContributorDetails(
+      TripManagementState previousState, TripManagementState currentState) {
+    if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
+      var updatedTripEntity = currentState as UpdatedTripEntity;
+      if (updatedTripEntity.dataState == DataState.update) {
+        var tripMetadataModificationData =
+            updatedTripEntity.tripEntityModificationData
+                as CollectionItemChangeMetadata<TripMetadataFacade>;
+        var latestContributors =
+            tripMetadataModificationData.modifiedCollectionItem.contributors;
+        if (!listEquals(latestContributors, contributors)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   Iterable<Widget> _createContributorWidgets(BuildContext context) {

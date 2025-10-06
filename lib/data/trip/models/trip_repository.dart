@@ -8,7 +8,7 @@ import 'trip_data.dart';
 import 'trip_metadata.dart';
 
 abstract class TripRepositoryFacade {
-  List<TripMetadataFacade> get tripMetadatas;
+  ModelCollectionFacade<TripMetadataFacade> get tripMetadataCollection;
 
   TripDataFacade? get activeTrip;
 
@@ -17,14 +17,14 @@ abstract class TripRepositoryFacade {
 
 abstract class TripRepositoryEventHandler extends TripRepositoryFacade
     implements Dispose {
-  ModelCollectionModifier<TripMetadataFacade> get tripMetadataModelCollection;
+  ModelCollectionModifier<TripMetadataFacade> get tripMetadataCollection;
 
-  TripDataModelEventHandler? get activeTripEventHandler;
-
-  Future unloadActiveTrip();
+  TripDataModelEventHandler? get activeTrip;
 
   Future loadTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository);
+
+  Future unloadActiveTrip();
 
   void updateLocalizations(AppLocalizations appLocalizations);
 }

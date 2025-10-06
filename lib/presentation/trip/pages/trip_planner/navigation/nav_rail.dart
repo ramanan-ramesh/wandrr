@@ -37,10 +37,7 @@ class JumpToListNavigationRail extends StatelessWidget {
         onTap: () {
           context.addTripManagementEvent(NavigateToSection(section: section));
         },
-        child: CircleAvatar(
-            foregroundColor: Colors.black,
-            backgroundColor: Colors.green,
-            child: Icon(icon)),
+        child: CircleAvatar(child: Icon(icon)),
       ),
     );
   }

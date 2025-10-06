@@ -6,7 +6,7 @@ import 'check_list.dart';
 import 'note.dart';
 
 // ignore: must_be_immutable
-class PlanDataFacade extends Equatable implements TripEntity {
+class PlanDataFacade extends Equatable implements TripEntity<PlanDataFacade> {
   final String tripId;
 
   @override
@@ -34,6 +34,7 @@ class PlanDataFacade extends Equatable implements TripEntity {
       this.id,
       this.title});
 
+  @override
   PlanDataFacade clone() => PlanDataFacade(
       tripId: tripId,
       id: id,

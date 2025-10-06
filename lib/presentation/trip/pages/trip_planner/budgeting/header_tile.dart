@@ -214,12 +214,12 @@ class BudgetingHeaderTile extends StatelessWidget {
       },
       builder: (BuildContext context, TripManagementState state) {
         return StreamBuilder(
-          stream: activeTrip.budgetingFacade.totalExpenditureStream,
+          stream: activeTrip.budgetingModule.totalExpenditureStream,
           builder: (BuildContext context, AsyncSnapshot<double> snapshot) {
             double currentTotalExpenditure;
             if (snapshot.data == null) {
               currentTotalExpenditure =
-                  activeTrip.budgetingFacade.totalExpenditure;
+                  activeTrip.budgetingModule.totalExpenditure;
             } else {
               currentTotalExpenditure = snapshot.data!;
             }
@@ -227,10 +227,10 @@ class BudgetingHeaderTile extends StatelessWidget {
             var expenseRatio =
                 _calculateExpenseRatio(totalExpense, budget.amount);
             var formattedBudget =
-                activeTrip.budgetingFacade.formatCurrency(budget);
+                activeTrip.budgetingModule.formatCurrency(budget);
             var budgetText =
                 '${context.localizations.budget}: $formattedBudget';
-            var formattedTotalExpense = activeTrip.budgetingFacade
+            var formattedTotalExpense = activeTrip.budgetingModule
                 .formatCurrency(
                     Money(currency: budget.currency, amount: totalExpense));
             return Column(
@@ -262,7 +262,7 @@ class BudgetingHeaderTile extends StatelessWidget {
               ],
             );
           },
-          initialData: activeTrip.budgetingFacade.totalExpenditure,
+          initialData: activeTrip.budgetingModule.totalExpenditure,
         );
       },
       listener: (BuildContext context, TripManagementState state) {},

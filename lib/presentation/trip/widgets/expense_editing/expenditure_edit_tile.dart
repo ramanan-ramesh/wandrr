@@ -39,11 +39,11 @@ class ExpenditureEditTile extends StatefulWidget {
 
 class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  late final TabController _tabController;
   late CurrencyData _currentCurrencyInfo;
   final Map<String, Color> _contributorsVsColors = {};
   static const double _heightPerItem = 40;
-  late ValueNotifier<Money> _totalExpenseValueNotifier;
+  late final ValueNotifier<Money> _totalExpenseValueNotifier;
   late Map<String, double> _currentPaidBy;
   late List<String> _currentSplitBy;
 
@@ -51,9 +51,15 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _currentPaidBy = Map.from(widget.paidBy);
-    _currentSplitBy = List.from(widget.splitBy);
-    _totalExpenseValueNotifier = ValueNotifier(widget.totalExpense);
+    _initializeExpense();
+  }
+
+  @override
+  void didUpdateWidget(covariant ExpenditureEditTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.totalExpense != widget.totalExpense) {
+      setState(_initializeExpense);
+    }
   }
 
   @override
@@ -67,8 +73,14 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     }
   }
 
+  void _initializeExpense() {
+    _currentPaidBy = Map.from(widget.paidBy);
+    _currentSplitBy = List.from(widget.splitBy);
+    _totalExpenseValueNotifier = ValueNotifier(widget.totalExpense);
+  }
+
   Column _createReadonlyExpenditureTile(BuildContext context) {
-    var formattedText = context.activeTrip.budgetingFacade
+    var formattedText = context.activeTrip.budgetingModule
         .formatCurrency(_totalExpenseValueNotifier.value);
     var columnItems = <Widget>[
       Padding(

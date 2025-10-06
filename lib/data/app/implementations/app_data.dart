@@ -21,12 +21,7 @@ class AppDataRepository extends AppDataModifier {
   final SharedPreferences _localStorage;
 
   @override
-  UserManagementFacade get userManagementFacade => _userManagement;
-
-  @override
-  UserManagementModifier get userManagementModifier => _userManagement;
-  final UserManagementModifier _userManagement;
-
+  final UserManagementModifier userManagement;
   @override
   String activeLanguage;
 
@@ -81,10 +76,9 @@ class AppDataRepository extends AppDataModifier {
   AppDataRepository._(
       {required String initialLanguage,
       required ThemeMode initialThemeMode,
-      required UserManagementModifier userManagement,
+      required this.userManagement,
       required SharedPreferences localStorage})
       : _localStorage = localStorage,
-        _userManagement = userManagement,
         activeThemeMode = initialThemeMode,
         activeLanguage = initialLanguage,
         isBigLayout = false,
