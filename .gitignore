@@ -7,3 +7,4 @@
 /scripts/__pycache__/
 .flutter-plugins
 .flutter-plugins-dependencies
+/.vscode/
