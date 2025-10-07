@@ -23,11 +23,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r scripts/requirements.txt
+          pip install -r scripts/data_management/requirements.txt
 
       - name: Upload Airports and Airlines data to Firestore
         env:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN  }}
         run: |
-          python scripts/update_air_data_main.py
+          python scripts/data_management/update_air_data_main.py
