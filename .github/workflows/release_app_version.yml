@@ -74,15 +74,11 @@ jobs:
           git commit -m "Release version ${{ github.event.inputs.version }}: ${{ github.event.inputs.updates }}"
           git push origin "${GITHUB_REF_NAME}"
 
-      - name: Install Python
-        run: brew install python3
-
-      - name: Install Python dependencies
+      - name: Install Node.js dependencies for Firebase
         run: |
           cd scripts
-          python3 -m venv firebase_env
-          source firebase_env/bin/activate
-          pip install -r release_firebase_remoteconfig_requirements.txt
+          cp release_firebase_remoteconfig_requirements.json package.json
+          npm install
 
       - name: Update Firebase RemoteConfig
         env:
@@ -92,5 +88,4 @@ jobs:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: |
           cd scripts
-          source firebase_env/bin/activate
-          python update_firebase_remote_config.py
+          node update_firebase_remote_config.js

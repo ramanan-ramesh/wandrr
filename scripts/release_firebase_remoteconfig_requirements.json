@@ -1,0 +1,17 @@
+{
+  "name": "firebase-remote-config-updater",
+  "version": "1.0.0",
+  "description": "Scripts to generate and update Firebase Remote Config",
+  "main": "update_firebase_remote_config.js",
+  "scripts": {
+    "generate": "node generate_firebase_config.js",
+    "update": "node update_firebase_remote_config.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
+
