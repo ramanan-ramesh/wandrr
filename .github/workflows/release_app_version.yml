@@ -51,6 +51,14 @@ jobs:
         run: |
           sed -i '' "s/^version: .*/version: ${{ github.event.inputs.version }}/" pubspec.yaml
 
+      - name: Generate Android debug keystore if missing
+        run: |
+          if [ ! -f ~/.android/debug.keystore ]; then
+            mkdir -p ~/.android
+            keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -keypass android -alias androiddebugkey -dname "CN=RareApps Debug,O=RareApps,C=IN" -keyalg RSA -keysize 2048 -validity 1
+          fi
+          echo "Debug keystore ensured."
+
       - name: Build Flutter APK (Android)
         run: flutter build apk --debug
 
