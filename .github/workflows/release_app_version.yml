@@ -36,23 +36,29 @@ jobs:
         run: |
           brew install node
 
+      - name: Clean up CocoaPods files before install
+        run: |
+          rm -f ios/Podfile.lock
+          rm -rf ios/Pods
+          echo "Cleaned Podfile.lock and Pods directory."
+
       - name: Install dependencies
         run: |
           flutter pub get
-          pod install --project-directory=ios
+          pod install --project-directory=ios --repo-update
 
       - name: Update pubspec.yaml version
         run: |
           sed -i '' "s/^version: .*/version: ${{ github.event.inputs.version }}/" pubspec.yaml
 
       - name: Build Flutter APK (Android)
-        run: flutter build apk --release
+        run: flutter build apk --debug
 
       - name: Build Flutter IPA (iOS)
-        run: flutter build ios --release
+        run: flutter build ios --debug
 
       - name: Build Flutter Web
-        run: flutter build web --release
+        run: flutter build web --debug
 
       - name: Update ReleaseHistory.md with new version and updates
         run: |
@@ -90,8 +96,15 @@ jobs:
           # Remove build metadata (+...) from version
           VERSION=$(echo "$RAW_VERSION" | cut -d'+' -f1)
           UPDATES="${{ github.event.inputs.updates }}"
-          # Format updates as markdown list
-          UPDATE_LIST=$(echo "$UPDATES" | awk '{print "  - "$0}' )
+          # Split updates on '||', trim whitespace, and format as markdown list
+          UPDATE_LIST=""
+          IFS='||' read -ra UPDATE_ITEMS <<< "$UPDATES"
+          for item in "${UPDATE_ITEMS[@]}"; do
+            TRIMMED_ITEM=$(echo "$item" | xargs)
+            if [ -n "$TRIMMED_ITEM" ]; then
+              UPDATE_LIST+="  - $TRIMMED_ITEM\n"
+            fi
+          done
           ENTRY="- Version $VERSION (Commit: $COMMIT_HASH)\n$UPDATE_LIST"
           if [ ! -f ReleaseHistory.md ]; then
             echo -e "$SECTION_HEADER\n$ENTRY" > ReleaseHistory.md
