@@ -88,7 +88,10 @@ jobs:
               },
               "min_version": {
                 "defaultValue": { "value": "${{ github.event.inputs.min_version || github.event.inputs.version }}" }
+              },
+              "release_notes": {
+                "defaultValue": { "value": "${{ github.event.inputs.updates }}" }
               }
             }
-          }' > remoteconfig.json
-          firebase remoteconfig:template:publish --project wandrr-15f70 --file remoteconfig.json --token "$FIREBASE_TOKEN"
+          }' > firebase_release_config.json
+          firebase remoteconfig:template:publish --project wandrr-15f70 --file firebase_release_config.json --token "$FIREBASE_TOKEN"
