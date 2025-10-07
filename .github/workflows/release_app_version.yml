@@ -28,42 +28,46 @@ jobs:
         with:
           channel: stable
 
-      - name: Install CocoaPods
+      - name: Generate Android debug keystore if missing
         run: |
-          sudo gem install cocoapods
+          if [ ! -f ~/.android/debug.keystore ]; then
+            mkdir -p ~/.android
+            keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -keypass android -alias androiddebugkey -dname "CN=RareApps Debug,O=RareApps,C=IN" -keyalg RSA -keysize 2048 -validity 1
+          fi
+          echo "Debug keystore ensured."
+
+      - name: Build Flutter APK (Android)
+        run: flutter build apk --debug
+
+      - name: Build Flutter Web
+        run: flutter build web --debug
 
       - name: Install npm
         run: |
           brew install node
 
-      - name: Clean up CocoaPods files before install
+      - name: Update pubspec.yaml version and ReleaseHistory.md
         run: |
-          rm -f ios/Podfile.lock
-          rm -rf ios/Pods
-          echo "Cleaned Podfile.lock and Pods directory."
-
-      - name: Install dependencies
-        run: |
-          flutter pub get
-          pod install --project-directory=ios --repo-update
-
-      - name: Update pubspec.yaml version
-        run: |
+          # Update pubspec.yaml version
           sed -i '' "s/^version: .*/version: ${{ github.event.inputs.version }}/" pubspec.yaml
 
-      - name: Build Flutter APK (Android)
-        run: flutter build apk --debug
-
-      - name: Build Flutter IPA (iOS)
-        run: flutter build ios --debug
-
-      - name: Build Flutter Web
-        run: flutter build web --debug
-
-      - name: Update ReleaseHistory.md with new version and updates
-        run: |
+          # Prepare ReleaseHistory.md entry
           SECTION_HEADER="## Release History"
-          ENTRY="- Version ${{ github.event.inputs.version }}: ${{ github.event.inputs.updates }}"
+          RAW_VERSION="${{ github.event.inputs.version }}"
+          VERSION=$(echo "$RAW_VERSION" | cut -d'+' -f1)
+          UPDATES="${{ github.event.inputs.updates }}"
+          # Split updates on '||', trim whitespace, and format as markdown list
+          UPDATE_LIST=""
+          IFS='||' read -ra UPDATE_ITEMS <<< "$UPDATES"
+          for item in "${UPDATE_ITEMS[@]}"; do
+            TRIMMED_ITEM=$(echo "$item" | awk '{$1=$1;print}')
+            if [ -n "$TRIMMED_ITEM" ]; then
+              UPDATE_LIST+="  - $TRIMMED_ITEM\n"
+            fi
+          done
+          # Get latest commit hash
+          COMMIT_HASH=$(git rev-parse HEAD)
+          ENTRY="- Version $VERSION (Commit: $COMMIT_HASH)\n$UPDATE_LIST"
           if [ ! -f ReleaseHistory.md ]; then
             echo -e "$SECTION_HEADER\n$ENTRY" > ReleaseHistory.md
           elif ! grep -q "$SECTION_HEADER" ReleaseHistory.md; then
@@ -81,61 +85,37 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git add pubspec.yaml ReleaseHistory.md
-          git commit -m "Release version ${{ github.event.inputs.version }}: ${{ github.event.inputs.updates }}"
-          git push origin master
-
-      - name: Get latest commit hash
-        id: get_commit
-        run: echo "commit_hash=$(git rev-parse HEAD)" >> $GITHUB_ENV
-
-      - name: Update ReleaseHistory.md with commit hash and updates list
-        run: |
-          SECTION_HEADER="## Release History"
-          COMMIT_HASH="${{ env.commit_hash }}"
-          RAW_VERSION="${{ github.event.inputs.version }}"
-          # Remove build metadata (+...) from version
-          VERSION=$(echo "$RAW_VERSION" | cut -d'+' -f1)
+          
+          # Format updates for commit message
           UPDATES="${{ github.event.inputs.updates }}"
-          # Split updates on '||', trim whitespace, and format as markdown list
-          UPDATE_LIST=""
+          FORMATTED_UPDATES=""
           IFS='||' read -ra UPDATE_ITEMS <<< "$UPDATES"
           for item in "${UPDATE_ITEMS[@]}"; do
-            TRIMMED_ITEM=$(echo "$item" | xargs)
+            TRIMMED_ITEM=$(echo "$item" | awk '{$1=$1;print}')
             if [ -n "$TRIMMED_ITEM" ]; then
-              UPDATE_LIST+="  - $TRIMMED_ITEM\n"
+              if [ -n "$FORMATTED_UPDATES" ]; then
+                FORMATTED_UPDATES="${FORMATTED_UPDATES}\n- ${TRIMMED_ITEM}"
+              else
+                FORMATTED_UPDATES="- ${TRIMMED_ITEM}"
+              fi
             fi
           done
-          ENTRY="- Version $VERSION (Commit: $COMMIT_HASH)\n$UPDATE_LIST"
-          if [ ! -f ReleaseHistory.md ]; then
-            echo -e "$SECTION_HEADER\n$ENTRY" > ReleaseHistory.md
-          elif ! grep -q "$SECTION_HEADER" ReleaseHistory.md; then
-            echo -e "\n$SECTION_HEADER\n$ENTRY" >> ReleaseHistory.md
-          else
-            awk -v entry="$ENTRY" -v header="$SECTION_HEADER" '
-              BEGIN {added=0}
-              {print}
-              $0==header && !added {print entry; added=1}
-            ' ReleaseHistory.md > ReleaseHistory.tmp && mv ReleaseHistory.tmp ReleaseHistory.md
-          fi
-          git add ReleaseHistory.md
-          git commit -m "Update ReleaseHistory.md with commit hash and updates list for version $VERSION"
-          git push origin master
+          
+          COMMIT_MSG=$(printf "Release version ${{ github.event.inputs.version }}\n\n%b" "$FORMATTED_UPDATES")
+          git commit -m "$COMMIT_MSG"
+          git push origin "${GITHUB_REF_NAME}"
 
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
+      - name: Install Node.js dependencies for Firebase
+        run: |
+          cd scripts/release_management
+          npm install
 
       - name: Update Firebase RemoteConfig
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          VERSION: ${{ github.event.inputs.version }}
+          MIN_VERSION: ${{ github.event.inputs.min_version || github.event.inputs.version }}
+          UPDATES: ${{ github.event.inputs.updates }}
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: |
-          echo '{
-            "parameters": {
-              "latest_version": {
-                "defaultValue": { "value": "${{ github.event.inputs.version }}" }
-              },
-              "min_version": {
-                "defaultValue": { "value": "${{ github.event.inputs.min_version || github.event.inputs.version }}" }
-              }
-            }
-          }' > remoteconfig.json
-          firebase remoteconfig:template:publish --project <your-firebase-project-id> --file remoteconfig.json --token "$FIREBASE_TOKEN"
+          cd scripts/release_management
+          node update_firebase_remote_config.js
