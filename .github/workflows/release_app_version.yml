@@ -77,23 +77,19 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
+      - name: Install Python
+        run: brew install python3
+
+      - name: Generate Firebase RemoteConfig JSON
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+          MIN_VERSION: ${{ github.event.inputs.min_version || github.event.inputs.version }}
+          UPDATES: ${{ github.event.inputs.updates }}
+        run: |
+          python3 scripts/generate_firebase_config.py
+
       - name: Update Firebase RemoteConfig
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          cat <<EOF > firebase_release_config.json
-          {
-            "parameters": {
-              "latest_version": {
-                "defaultValue": { "value": "${{ github.event.inputs.version }}" }
-              },
-              "min_version": {
-                "defaultValue": { "value": "${{ github.event.inputs.min_version || github.event.inputs.version }}" }
-              },
-              "release_notes": {
-                "defaultValue": { "value": "${{ github.event.inputs.updates }}" }
-              }
-            }
-          }
-          EOF
-          firebase remoteconfig:template:publish --project wandrr-15f70 --file firebase_release_config.json --token "$FIREBASE_TOKEN"
+          firebase remoteconfig:template:publish --project wandrr-15f70 --template-file firebase_release_config.json --token "$FIREBASE_TOKEN"
