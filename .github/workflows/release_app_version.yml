@@ -72,7 +72,7 @@ jobs:
           git config --global user.email "github-actions@github.com"
           git add pubspec.yaml ReleaseHistory.md
           git commit -m "Release version ${{ github.event.inputs.version }}: ${{ github.event.inputs.updates }}"
-          git push origin master
+          git push origin "${GITHUB_REF_NAME}"
 
       - name: Get latest commit hash
         id: get_commit
@@ -109,7 +109,7 @@ jobs:
           fi
           git add ReleaseHistory.md
           git commit -m "Update ReleaseHistory.md with commit hash and updates list for version $VERSION"
-          git push origin master
+          git push origin "${GITHUB_REF_NAME}"
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
