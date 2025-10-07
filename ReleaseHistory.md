@@ -1,4 +1,17 @@
 ## Release History
+- Version 2.0.5 (Commit: b8ea2224951715c88767f5f2b893f810009bd420)
+  - Migrated gradle to work with Android Studio N and android's 16 KB page requirement
+  - Bump android gradle and pubspec versions
+  - Make TripCreatorDialog scrollable to avoid bottom overflow
+  - Added iOS configuration support
+  - Navigate to Transits/Lodgings/Expenses/Itineraries
+  - Introduce a type of APIService CachedDataService and decouple ApiServices from TripRepository, to lazily initialize them in Trip layer instead
+  - Revamp and introduce consistent app theming
+  - Split lib/data layer into app/auth/store/trip and introduce lib/blocs folder
+  - Format currency display according to locale
+  - Consolidate actions and migrate them to HomeAppBar toolbar
+  - Add multi-platform release and version management
+
 - Version 2.0.4 (Commit: 97ee7ad107387735ab6f6ff9965a7b02791e3f1d)
   - Migrated gradle to work with Android Studio N and android's 16 KB page requirement
   - Bump android gradle and pubspec versions
