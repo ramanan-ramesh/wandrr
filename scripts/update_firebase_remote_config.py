@@ -33,8 +33,11 @@ def main():
         cred = credentials.Certificate(service_account)
         app = initialize_app(cred)
 
+        # Get Remote Config client
+        rc = remote_config.get_remote_config(app)
+
         # Get current Remote Config template
-        template = remote_config.get_template()
+        template = rc.get_template()
 
         # Update parameters
         template.parameters['latest_version'] = remote_config.Parameter(
@@ -50,8 +53,8 @@ def main():
         )
 
         # Validate and publish the template
-        validated_template = remote_config.validate_template(template)
-        published_template = remote_config.publish_template(validated_template)
+        validated_template = rc.validate_template(template)
+        published_template = rc.publish_template(validated_template)
 
         print(f"Successfully updated Firebase Remote Config!")
         print(f"New template version: {published_template.version}")
