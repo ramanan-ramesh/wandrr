@@ -74,22 +74,19 @@ jobs:
           git commit -m "Release version ${{ github.event.inputs.version }}: ${{ github.event.inputs.updates }}"
           git push origin "${GITHUB_REF_NAME}"
 
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
-
       - name: Install Python
         run: brew install python3
 
-      - name: Generate Firebase RemoteConfig JSON
+      - name: Install Python dependencies
+        run: |
+          cd scripts
+          pip3 install -r release_firebase_remoteconfig_requirements.txt
+
+      - name: Update Firebase RemoteConfig
         env:
           VERSION: ${{ github.event.inputs.version }}
           MIN_VERSION: ${{ github.event.inputs.min_version || github.event.inputs.version }}
           UPDATES: ${{ github.event.inputs.updates }}
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: |
-          python3 scripts/generate_firebase_config.py
-
-      - name: Update Firebase RemoteConfig
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-        run: |
-          firebase remoteconfig:template:publish --project wandrr-15f70 --template-file firebase_release_config.json --token "$FIREBASE_TOKEN"
+          python3 scripts/update_firebase_remote_config.py
