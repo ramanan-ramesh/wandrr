@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
@@ -18,10 +17,9 @@ class EditableTransitPlan extends StatefulWidget {
   final UiElement<TransitFacade> transitUiElement;
   final ValueNotifier<bool> validityNotifier;
 
-  const EditableTransitPlan(
-      {required this.transitUiElement,
-      required this.validityNotifier,
-      super.key});
+  const EditableTransitPlan({required this.transitUiElement,
+    required this.validityNotifier,
+    super.key});
 
   @override
   State<EditableTransitPlan> createState() => _EditableTransitPlanState();
@@ -94,7 +92,7 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
             _transitFacade.operator = null;
           }
           if ((transitOption == TransitOption.flight &&
-                  _transitFacade.transitOption != TransitOption.flight) ||
+              _transitFacade.transitOption != TransitOption.flight) ||
               (_transitFacade.transitOption == TransitOption.flight &&
                   transitOption != TransitOption.flight)) {
             _transitFacade.operator = null;
@@ -116,34 +114,34 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
         : _transitFacade.departureLocation;
     return _transitFacade.transitOption == TransitOption.flight
         ? AirportsDataEditor(
-            initialLocation: locationToConsider,
-            onLocationSelected: (newLocation) {
-              if (isArrival) {
-                _transitFacade.arrivalLocation = newLocation;
-              } else {
-                _transitFacade.departureLocation = newLocation;
-              }
-              _calculateTransitValidity();
-            },
-          )
+      initialLocation: locationToConsider,
+      onLocationSelected: (newLocation) {
+        if (isArrival) {
+          _transitFacade.arrivalLocation = newLocation;
+        } else {
+          _transitFacade.departureLocation = newLocation;
+        }
+        _calculateTransitValidity();
+      },
+    )
         : PlatformGeoLocationAutoComplete(
-            onLocationSelected: (newLocation) {
-              if (isArrival) {
-                _transitFacade.arrivalLocation = newLocation;
-              } else {
-                _transitFacade.departureLocation = newLocation;
-              }
-              _calculateTransitValidity();
-            },
-            selectedLocation: locationToConsider,
-          );
+      onLocationSelected: (newLocation) {
+        if (isArrival) {
+          _transitFacade.arrivalLocation = newLocation;
+        } else {
+          _transitFacade.departureLocation = newLocation;
+        }
+        _calculateTransitValidity();
+      },
+      selectedLocation: locationToConsider,
+    );
   }
 
   Widget _buildDateTimePicker(bool isArrival, TripMetadataFacade tripMetadata) {
     var startDateTime = isArrival
         ? (_transitFacade.departureDateTime
-              ?..add(const Duration(minutes: 1))) ??
-            tripMetadata.startDate!
+      ?..add(const Duration(minutes: 1))) ??
+        tripMetadata.startDate!
         : tripMetadata.startDate!;
     var endDateTime = DateTime(
       tripMetadata.endDate!.year,
@@ -185,7 +183,10 @@ class _EditableTransitPlanState extends State<EditableTransitPlan> {
 
   Widget _buildNotesField(BuildContext context) {
     return TextFormField(
-      style: Theme.of(context).textTheme.labelLarge,
+      style: Theme
+          .of(context)
+          .textTheme
+          .labelLarge,
       decoration: InputDecoration(
         labelText: context.localizations.notes,
       ),
