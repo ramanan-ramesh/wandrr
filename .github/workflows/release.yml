@@ -36,10 +36,16 @@ jobs:
         run: |
           brew install node
 
+      - name: Clean up CocoaPods files before install
+        run: |
+          rm -f ios/Podfile.lock
+          rm -rf ios/Pods
+          echo "Cleaned Podfile.lock and Pods directory."
+
       - name: Install dependencies
         run: |
           flutter pub get
-          pod install --project-directory=ios
+          pod install --project-directory=ios --repo-update
 
       - name: Update pubspec.yaml version
         run: |
