@@ -80,7 +80,9 @@ jobs:
       - name: Install Python dependencies
         run: |
           cd scripts
-          pip3 install -r release_firebase_remoteconfig_requirements.txt
+          python3 -m venv firebase_env
+          source firebase_env/bin/activate
+          pip install -r release_firebase_remoteconfig_requirements.txt
 
       - name: Update Firebase RemoteConfig
         env:
@@ -89,4 +91,6 @@ jobs:
           UPDATES: ${{ github.event.inputs.updates }}
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: |
-          python3 scripts/update_firebase_remote_config.py
+          cd scripts
+          source firebase_env/bin/activate
+          python update_firebase_remote_config.py
