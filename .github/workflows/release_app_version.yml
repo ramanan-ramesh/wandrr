@@ -91,4 +91,4 @@ jobs:
               }
             }
           }' > remoteconfig.json
-          firebase remoteconfig:template:publish --project <your-firebase-project-id> --file remoteconfig.json --token "$FIREBASE_TOKEN"
+          firebase remoteconfig:template:publish --project wandrr-15f70 --file remoteconfig.json --token "$FIREBASE_TOKEN"
