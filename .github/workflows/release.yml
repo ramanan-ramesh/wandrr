@@ -90,8 +90,15 @@ jobs:
           # Remove build metadata (+...) from version
           VERSION=$(echo "$RAW_VERSION" | cut -d'+' -f1)
           UPDATES="${{ github.event.inputs.updates }}"
-          # Format updates as markdown list
-          UPDATE_LIST=$(echo "$UPDATES" | awk '{print "  - "$0}' )
+          # Split updates on '||', trim whitespace, and format as markdown list
+          UPDATE_LIST=""
+          IFS='||' read -ra UPDATE_ITEMS <<< "$UPDATES"
+          for item in "${UPDATE_ITEMS[@]}"; do
+            TRIMMED_ITEM=$(echo "$item" | xargs)
+            if [ -n "$TRIMMED_ITEM" ]; then
+              UPDATE_LIST+="  - $TRIMMED_ITEM\n"
+            fi
+          done
           ENTRY="- Version $VERSION (Commit: $COMMIT_HASH)\n$UPDATE_LIST"
           if [ ! -f ReleaseHistory.md ]; then
             echo -e "$SECTION_HEADER\n$ENTRY" > ReleaseHistory.md
