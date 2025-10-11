@@ -1,4 +1,11 @@
 ## Release History
+- Version 2.0.1 (Commit: d7a14c7eeb6970390bbc7d4bdd6b380ec5759acc)
+  - Make TripCreatorDialog scrollable
+  - Navigate to Transits/Lodgings/Expenses/Itineraries with ease
+  - Revamp and introduce consistent app theming
+  - Format currency display according to locale
+  - Consolidate actions and migrate them to HomeAppBar toolbar
+
 - Version 2.0.0 (Commit: 4f19f210159ffe98ccf9ce91ddc0cc6af3366741)
   - Migrated gradle to work with Android Studio N and android's 16 KB page requirement
   - Bump android gradle and pubspec versions
