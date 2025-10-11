@@ -389,4 +389,24 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get select => 'தேர்வு செய்';
+
+  @override
+  String get updateDialogCriticalTitle => 'முக்கியமான புதுப்பிப்பு தேவை';
+
+  @override
+  String get updateDialogAvailableTitle => 'ஒரு புதுப்பிப்பு கிடைக்கிறது';
+
+  @override
+  String get updateDialogCriticalMessage =>
+      'ஆப்ஸைத் தொடர்ந்து பயன்படுத்த இந்தப் புதுப்பிப்பு தேவை';
+
+  @override
+  String get updateDialogAvailableMessage =>
+      'உங்கள் பயண அனுபவத்தை மேம்படுத்த புதிய அம்சங்களைக் கண்டறியுங்கள்';
+
+  @override
+  String get updateDialogWhatsNew => 'புதியது என்ன';
+
+  @override
+  String get updateDialogUpdateNow => 'இப்போது புதுப்பிக்கவும்';
 }

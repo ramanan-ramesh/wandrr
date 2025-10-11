@@ -388,4 +388,24 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get select => 'चुनें';
+
+  @override
+  String get updateDialogCriticalTitle => 'महत्वपूर्ण अपडेट आवश्यक';
+
+  @override
+  String get updateDialogAvailableTitle => 'एक अपडेट उपलब्ध है';
+
+  @override
+  String get updateDialogCriticalMessage =>
+      'ऐप का उपयोग जारी रखने के लिए यह अपडेट आवश्यक है';
+
+  @override
+  String get updateDialogAvailableMessage =>
+      'अपने यात्रा अनुभव को बेहतर बनाने के लिए नई सुविधाओं की खोज करें';
+
+  @override
+  String get updateDialogWhatsNew => 'नया क्या है';
+
+  @override
+  String get updateDialogUpdateNow => 'अभी अपडेट करें';
 }

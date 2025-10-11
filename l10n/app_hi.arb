@@ -123,5 +123,11 @@
   "darkTheme": "डार्क थीम",
   "language": "भाषा",
   "chooseTripThumbnail": "लघुचित्र चुनें",
-  "select": "चुनें"
+  "select": "चुनें",
+  "updateDialogCriticalTitle": "महत्वपूर्ण अपडेट आवश्यक",
+  "updateDialogAvailableTitle": "एक अपडेट उपलब्ध है",
+  "updateDialogCriticalMessage": "ऐप का उपयोग जारी रखने के लिए यह अपडेट आवश्यक है",
+  "updateDialogAvailableMessage": "अपने यात्रा अनुभव को बेहतर बनाने के लिए नई सुविधाओं की खोज करें",
+  "updateDialogWhatsNew": "नया क्या है",
+  "updateDialogUpdateNow": "अभी अपडेट करें"
 }

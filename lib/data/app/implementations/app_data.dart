@@ -36,8 +36,7 @@ class AppDataRepository extends AppDataModifier {
 
   static Future<AppDataModifier> createInstance() async {
     await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+        options: DefaultFirebaseOptions.currentPlatform);
 
     var userManagement = await UserManagement.createInstance();
     var localStorage = await SharedPreferences.getInstance();

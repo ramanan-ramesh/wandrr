@@ -2,7 +2,7 @@ name: wandrr
 description: A new Flutter project.
 publish_to: 'none'
 
-version: 2.0.0+12
+version: 2.0.1+13
 
 environment:
   sdk: '>=3.0.5 <4.0.0'
@@ -30,6 +30,9 @@ dependencies:
   flutter_datetime_picker_plus: ^2.2.0
   rive: ^0.13.20
   shared_preferences: ^2.5.2
+  package_info_plus: ^9.0.0
+  firebase_remote_config: ^5.1.1
+  url_launcher: ^6.1.11
 
 dev_dependencies:
   flutter_test:
