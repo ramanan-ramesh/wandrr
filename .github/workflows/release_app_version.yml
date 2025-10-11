@@ -117,8 +117,12 @@ jobs:
           COMMIT_MSG=$(printf "Release version ${{ github.event.inputs.version }}\n\n%b" "$FORMATTED_UPDATES")
           git commit -m "$COMMIT_MSG"
           VERSION="${{ github.event.inputs.version }}"
-          git tag "$VERSION"
-          git push origin "${GITHUB_REF_NAME}" --follow-tags
+          # Create annotated tag with message
+          git tag -a "$VERSION" -m "${VERSION}"
+          # Push branch first
+          git push origin "${GITHUB_REF_NAME}"
+          # Push tag explicitly
+          git push origin "$VERSION"
 
       - name: Install Node.js dependencies for Firebase
         run: |
