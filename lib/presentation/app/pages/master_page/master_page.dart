@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:rive/rive.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/blocs/app/master_page_bloc.dart';
 import 'package:wandrr/blocs/app/master_page_states.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
-import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/data/auth/models/status.dart';
-import 'package:wandrr/l10n/app_localizations.dart';
-import 'package:wandrr/presentation/app/pages/startup_page.dart';
-import 'package:wandrr/presentation/app/theming/dark_theme_data.dart';
-import 'package:wandrr/presentation/app/theming/light_theme_data.dart';
-import 'package:wandrr/presentation/trip/pages/trip_provider/trip_provider.dart';
+
+import 'wandrr_app.dart';
 
 class MasterPage extends StatelessWidget {
   const MasterPage({super.key});
@@ -47,7 +41,7 @@ class _MasterContentPageLoader extends State<_ContentPageRouter> {
         if (state is LoadedRepository && _hasMinimumWalkAnimationTimePassed) {
           return RepositoryProvider<AppDataFacade>(
             create: (BuildContext context) => state.appData,
-            child: const _ContentPage(),
+            child: WandrrApp(),
           );
         }
         return _createAnimatedLoadingScreen(context);
@@ -98,50 +92,4 @@ class _MasterContentPageLoader extends State<_ContentPageRouter> {
       }
     });
   }
-}
-
-class _ContentPage extends StatelessWidget {
-  static const String _appTitle = 'Wandrr';
-
-  const _ContentPage();
-
-  @override
-  Widget build(BuildContext context) =>
-      BlocConsumer<MasterPageBloc, MasterPageState>(
-        builder: (BuildContext context, MasterPageState state) {
-          var appLevelData = context.appDataRepository;
-          var currentTheme = appLevelData.activeThemeMode;
-          return MaterialApp(
-            locale: Locale(appLevelData.activeLanguage),
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: AppLocalizations.supportedLocales,
-            title: _appTitle,
-            debugShowCheckedModeBanner: false,
-            darkTheme: createDarkThemeData(context),
-            themeMode: currentTheme,
-            theme: createLightThemeData(context),
-            home: Material(
-              child: DropdownButtonHideUnderline(
-                child: SafeArea(
-                  child: context.activeUser == null
-                      ? const StartupPage()
-                      : const TripProvider(),
-                ),
-              ),
-            ),
-          );
-        },
-        buildWhen: (previousState, currentState) =>
-            currentState is ActiveLanguageChanged ||
-            currentState is ActiveThemeModeChanged ||
-            (currentState is AuthStateChanged &&
-                (currentState.authStatus == AuthStatus.loggedIn ||
-                    currentState.authStatus == AuthStatus.loggedOut)),
-        listener: (BuildContext context, MasterPageState state) {},
-      );
 }

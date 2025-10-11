@@ -831,6 +831,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select'**
   String get select;
+
+  /// No description provided for @updateDialogCriticalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical Update Required'**
+  String get updateDialogCriticalTitle;
+
+  /// No description provided for @updateDialogAvailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'An update is available'**
+  String get updateDialogAvailableTitle;
+
+  /// No description provided for @updateDialogCriticalMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This update is required to continue using the app'**
+  String get updateDialogCriticalMessage;
+
+  /// No description provided for @updateDialogAvailableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover new features to enhance your travel experience'**
+  String get updateDialogAvailableMessage;
+
+  /// No description provided for @updateDialogWhatsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s New'**
+  String get updateDialogWhatsNew;
+
+  /// No description provided for @updateDialogUpdateNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Now'**
+  String get updateDialogUpdateNow;
 }
 
 class _AppLocalizationsDelegate

@@ -120,5 +120,11 @@
   "darkTheme": "Dark Theme",
   "language": "Language",
   "chooseTripThumbnail": "Choose a thumbnail",
-  "select": "Select"
+  "select": "Select",
+  "updateDialogCriticalTitle": "Critical Update Required",
+  "updateDialogAvailableTitle": "An update is available",
+  "updateDialogCriticalMessage": "This update is required to continue using the app",
+  "updateDialogAvailableMessage": "Discover new features to enhance your travel experience",
+  "updateDialogWhatsNew": "What's New",
+  "updateDialogUpdateNow": "Update Now"
 }

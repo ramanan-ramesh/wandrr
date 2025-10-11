@@ -387,4 +387,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get select => 'Select';
+
+  @override
+  String get updateDialogCriticalTitle => 'Critical Update Required';
+
+  @override
+  String get updateDialogAvailableTitle => 'An update is available';
+
+  @override
+  String get updateDialogCriticalMessage =>
+      'This update is required to continue using the app';
+
+  @override
+  String get updateDialogAvailableMessage =>
+      'Discover new features to enhance your travel experience';
+
+  @override
+  String get updateDialogWhatsNew => 'What\'s New';
+
+  @override
+  String get updateDialogUpdateNow => 'Update Now';
 }

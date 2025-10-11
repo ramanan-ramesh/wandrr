@@ -51,9 +51,22 @@ jobs:
           # Update pubspec.yaml version
           sed -i '' "s/^version: .*/version: ${{ github.event.inputs.version }}/" pubspec.yaml
 
+          # Ensure min_version includes build number
+          RAW_MIN_VERSION="${{ github.event.inputs.min_version }}"
+          RAW_VERSION="${{ github.event.inputs.version }}"
+          if [[ "$RAW_MIN_VERSION" == *+* ]]; then
+            MIN_VERSION="$RAW_MIN_VERSION"
+          else
+            BUILD_NUMBER="$(echo "$RAW_VERSION" | awk -F'+' '{print $2}')"
+            if [ -n "$BUILD_NUMBER" ]; then
+              MIN_VERSION="$RAW_MIN_VERSION+$BUILD_NUMBER"
+            else
+              MIN_VERSION="$RAW_MIN_VERSION"
+            fi
+          fi
+
           # Prepare ReleaseHistory.md entry
           SECTION_HEADER="## Release History"
-          RAW_VERSION="${{ github.event.inputs.version }}"
           VERSION=$(echo "$RAW_VERSION" | cut -d'+' -f1)
           UPDATES="${{ github.event.inputs.updates }}"
           # Split updates on '||', trim whitespace, and format as markdown list
@@ -80,7 +93,7 @@ jobs:
             ' ReleaseHistory.md > ReleaseHistory.tmp && mv ReleaseHistory.tmp ReleaseHistory.md
           fi
 
-      - name: Commit and push changes
+      - name: Commit, tag, and push changes
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
@@ -103,7 +116,9 @@ jobs:
           
           COMMIT_MSG=$(printf "Release version ${{ github.event.inputs.version }}\n\n%b" "$FORMATTED_UPDATES")
           git commit -m "$COMMIT_MSG"
-          git push origin "${GITHUB_REF_NAME}"
+          VERSION="${{ github.event.inputs.version }}"
+          git tag "$VERSION"
+          git push origin "${GITHUB_REF_NAME}" --follow-tags
 
       - name: Install Node.js dependencies for Firebase
         run: |
