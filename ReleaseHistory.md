@@ -1,4 +1,11 @@
 ## Release History
+- Version 2.0.1 (Commit: 0f2c744d8b395fed34794230e74ce62859613d02)
+  - Make TripCreatorDialog scrollable
+  - Navigate to Transits/Lodgings/Expenses/Itineraries with ease
+  - Revamp and introduce consistent app theming
+  - Format currency display according to locale
+  - Consolidate actions and migrate them to HomeAppBar toolbar
+
 - Version 2.0.1 (Commit: dcbbac095e6d7f660cd3ae90a527c079aeab89c7)
   - Make TripCreatorDialog scrollable
   - Navigate to Transits/Lodgings/Expenses/Itineraries with ease
