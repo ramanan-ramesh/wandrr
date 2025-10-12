@@ -1,4 +1,7 @@
 ## Release History
+- Version 2.0.2 (Commit: ca7b51af2493dfbea522340cc17a326899a6023d)
+  - Fixed a bug where theme and locale changes were not updating the app
+
 - Version 2.0.1 (Commit: d7a14c7eeb6970390bbc7d4bdd6b380ec5759acc)
   - Make TripCreatorDialog scrollable
   - Navigate to Transits/Lodgings/Expenses/Itineraries with ease
