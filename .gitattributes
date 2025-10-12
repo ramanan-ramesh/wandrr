@@ -1,6 +1,7 @@
 # Set default behavior, in case users don't have core.autocrlf set.
 * text=auto
 
+# Enforce LF line endings for Dart and localization files
 *.dart text eol=lf
 *.arb text eol=lf
 
