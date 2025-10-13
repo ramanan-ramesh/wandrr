@@ -66,7 +66,7 @@ class _AddTripMateTextFieldButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PlatformSubmitterFAB.conditionallyEnabled(
-      icon: Icons.add,
+      child: Icon(Icons.add),
       valueNotifier: addTripEditingValueNotifier,
       isSubmitted: false,
       isElevationRequired: false,

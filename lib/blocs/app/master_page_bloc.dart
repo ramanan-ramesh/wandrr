@@ -26,6 +26,13 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
     on<ChangeLanguage>(_onLanguageChange);
     on<AuthenticateWithUsernamePassword>(_onAuthenticateWithUsernamePassword);
     on<AuthenticateWithThirdParty>(_onAuthenticateWithThirdParty);
+    on<ResendEmailVerification>((event, emit) async {
+      var didResendVerificationEmail = await _appDataRepository!.userManagement
+          .resendVerificationEmail(event.userName, event.password);
+      if (didResendVerificationEmail) {
+        emit(AuthStateChanged(authStatus: AuthStatus.verificationResent));
+      }
+    });
     on<Logout>(_onLogout);
     on<_LoadRepository>(_onLoadRepository);
     on<_UpdateAvailableInternal>((event, emit) {

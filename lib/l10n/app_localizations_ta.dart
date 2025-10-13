@@ -42,6 +42,14 @@ class AppLocalizationsTa extends AppLocalizations {
   String get enterValidEmail => 'சரியான மின்னஞ்சலை உள்ளிடவும்';
 
   @override
+  String get verificationPending =>
+      'சரிபார்ப்பு அஞ்சல் இணைப்பு அனுப்பப்பட்டது. சரிபார்ப்பை முடித்த பிறகு உள்நுழையவும்.';
+
+  @override
+  String get resendVerificationMail =>
+      'சரிபார்ப்பு மின்னஞ்சலை மீண்டும் அனுப்பவும்';
+
+  @override
   String get viewRecentTrips => 'வரவிருக்கும் பயணங்களைக் காண்க';
 
   @override

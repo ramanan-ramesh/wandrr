@@ -41,6 +41,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterValidEmail => 'Enter a valid email';
 
   @override
+  String get verificationPending =>
+      'Verification mail link sent. Please login after completing verification.';
+
+  @override
+  String get resendVerificationMail => 'Resend verification mail';
+
+  @override
   String get viewRecentTrips => 'View upcoming trips';
 
   @override

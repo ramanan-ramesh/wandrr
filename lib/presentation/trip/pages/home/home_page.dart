@@ -23,28 +23,7 @@ class HomePage extends StatelessWidget {
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      body: _buildLayoutContent(context),
-    );
-  }
-
-  Widget _buildLayoutContent(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10, left: 10, right: 10, bottom: 10),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Text(
-              context.localizations.viewRecentTrips,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-          ),
-          Expanded(
-            child: TripListView(),
-          ),
-        ],
-      ),
+      body: TripListView(),
     );
   }
 

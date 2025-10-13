@@ -160,6 +160,18 @@ abstract class AppLocalizations {
   /// **'Enter a valid email'**
   String get enterValidEmail;
 
+  /// No description provided for @verificationPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification mail link sent. Please login after completing verification.'**
+  String get verificationPending;
+
+  /// No description provided for @resendVerificationMail.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend verification mail'**
+  String get resendVerificationMail;
+
   /// No description provided for @viewRecentTrips.
   ///
   /// In en, this message translates to:

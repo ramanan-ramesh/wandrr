@@ -47,6 +47,13 @@ class AuthenticateWithThirdParty extends AuthenticationEvent {
   AuthenticateWithThirdParty(this.authenticationType);
 }
 
+class ResendEmailVerification extends AuthenticationEvent {
+  final String userName;
+  final String password;
+
+  ResendEmailVerification({required this.userName, required this.password});
+}
+
 class Logout extends AuthenticationEvent {
   Logout();
 }
