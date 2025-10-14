@@ -7,5 +7,7 @@ enum AuthStatus {
   weakPassword,
   authenticating,
   loggedIn,
-  loggedOut
+  loggedOut,
+  verificationPending,
+  verificationResent
 }

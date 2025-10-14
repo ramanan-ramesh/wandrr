@@ -24,46 +24,65 @@ class TripListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<TripManagementBloc, TripManagementState>(
-      buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
-          var tripMetadataUpdatedState = currentState as UpdatedTripEntity;
-          if (tripMetadataUpdatedState.dataState == DataState.delete ||
-              tripMetadataUpdatedState.dataState == DataState.create) {
-            return true;
-          }
-        }
-        return false;
-      },
-      listener: (context, state) {},
-      builder: (context, state) {
-        var tripMetadatas = context
-            .tripRepository.tripMetadataCollection.collectionItems
-            .toList(growable: false)
-          ..sort((tripMetadata1, tripMetadata2) =>
-              tripMetadata1.startDate!.compareTo(tripMetadata2.startDate!));
-        if (tripMetadatas.isNotEmpty) {
-          return GridView.extent(
-            maxCrossAxisExtent: 300,
-            mainAxisSpacing: 7,
-            crossAxisSpacing: 7,
-            childAspectRatio: 0.75,
-            children: tripMetadatas.map((tripMetadata) {
-              return _TripMetadataGridItem(
-                tripMetaDataFacade: tripMetadata,
-              );
-            }).toList(growable: false),
-          );
-        } else {
-          return Align(
-            alignment: Alignment.center,
-            child: PlatformTextElements.createSubHeader(
-              context: context,
-              text: context.localizations.noTripsCreated,
+    return Padding(
+      padding: const EdgeInsets.only(top: 10, left: 10, right: 10, bottom: 10),
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Text(
+              context.localizations.viewRecentTrips,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
-          );
-        }
-      },
+          ),
+          Expanded(
+            child: BlocConsumer<TripManagementBloc, TripManagementState>(
+              buildWhen: (previousState, currentState) {
+                if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
+                  var tripMetadataUpdatedState =
+                      currentState as UpdatedTripEntity;
+                  if (tripMetadataUpdatedState.dataState == DataState.delete ||
+                      tripMetadataUpdatedState.dataState == DataState.create) {
+                    return true;
+                  }
+                }
+                return false;
+              },
+              listener: (context, state) {},
+              builder: (context, state) {
+                var tripMetadatas = context
+                    .tripRepository.tripMetadataCollection.collectionItems
+                    .toList(growable: false)
+                  ..sort((tripMetadata1, tripMetadata2) => tripMetadata1
+                      .startDate!
+                      .compareTo(tripMetadata2.startDate!));
+                if (tripMetadatas.isNotEmpty) {
+                  return GridView.extent(
+                    maxCrossAxisExtent: 300,
+                    mainAxisSpacing: 7,
+                    crossAxisSpacing: 7,
+                    childAspectRatio: 0.75,
+                    children: tripMetadatas.map((tripMetadata) {
+                      return _TripMetadataGridItem(
+                        tripMetaDataFacade: tripMetadata,
+                      );
+                    }).toList(growable: false),
+                  );
+                } else {
+                  return Align(
+                    alignment: Alignment.center,
+                    child: PlatformTextElements.createSubHeader(
+                      context: context,
+                      text: context.localizations.noTripsCreated,
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

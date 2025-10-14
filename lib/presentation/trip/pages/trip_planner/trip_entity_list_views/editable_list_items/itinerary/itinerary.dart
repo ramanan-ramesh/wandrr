@@ -244,7 +244,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
       builder: (BuildContext context, TripManagementState state) {
         _canUpdateItineraryDataNotifier.value = false;
         return PlatformSubmitterFAB.conditionallyEnabled(
-          icon: Icons.check_rounded,
+          child: Icon(Icons.check_rounded),
           isSubmitted: false,
           valueNotifier: _canUpdateItineraryDataNotifier,
           callback: () {

@@ -9,6 +9,8 @@
   "userNameAlreadyExists": "This username is already registered. You can login with it instead",
   "noSuchUserExists": "No such username exists. You can register with it instead",
   "enterValidEmail": "Enter a valid email",
+  "verificationPending": "Verification mail link sent. Please login after completing verification.",
+  "resendVerificationMail": "Resend verification mail",
   "viewRecentTrips": "View upcoming trips",
   "noTripsCreated": "No upcoming trips? Have fun creating a new one!",
   "planTrip": "Plan a trip!",

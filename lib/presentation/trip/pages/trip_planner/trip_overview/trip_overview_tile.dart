@@ -193,7 +193,7 @@ class _OverviewTile extends StatelessWidget {
         suffixIcon: Padding(
           padding: const EdgeInsets.all(3.0),
           child: PlatformSubmitterFAB.conditionallyEnabled(
-            icon: Icons.check_rounded,
+            child: Icon(Icons.check_rounded),
             isSubmitted: false,
             isElevationRequired: false,
             callback: () {

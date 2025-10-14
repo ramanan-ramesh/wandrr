@@ -16,5 +16,7 @@ abstract interface class UserManagementModifier extends UserManagementFacade {
   Future<AuthStatus> trySignUpWithUsernamePassword(
       {required String userName, required String password});
 
+  Future<bool> resendVerificationEmail(String email, String password);
+
   Future<bool> trySignOut();
 }

@@ -42,10 +42,6 @@ jobs:
       - name: Build Flutter Web
         run: flutter build web --debug
 
-      - name: Install npm
-        run: |
-          brew install node
-
       - name: Update pubspec.yaml version and ReleaseHistory.md
         run: |
           # Update pubspec.yaml version
@@ -123,6 +119,10 @@ jobs:
           git push origin "${GITHUB_REF_NAME}"
           # Push tag explicitly
           git push origin "$VERSION"
+
+      - name: Install npm
+        run: |
+          brew install node
 
       - name: Install Node.js dependencies for Firebase
         run: |

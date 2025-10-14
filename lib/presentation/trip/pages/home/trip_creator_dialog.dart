@@ -222,7 +222,7 @@ class TripCreatorDialog extends StatelessWidget {
 
   Widget _buildCreateTripButton(BuildContext context) {
     return PlatformSubmitterFAB.conditionallyEnabled(
-      icon: Icons.done_rounded,
+      child: Icon(Icons.done_rounded),
       callback: () {
         _submitTripCreationEvent();
         Navigator.of(context).pop();

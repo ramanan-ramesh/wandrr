@@ -9,8 +9,8 @@ import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/ui_element.dart';
-import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/app/widgets/button.dart';
 
 class TripEntityListElement<T extends TripEntity> extends StatefulWidget {
   final UiElement<T> uiElement;
@@ -252,7 +252,7 @@ class _EditableTripEntityButtonBarState<T extends TripEntity>
           padding: const EdgeInsets.all(3.0),
           child: PlatformSubmitterFAB.conditionallyEnabled(
             valueNotifier: widget._validityNotifier,
-            icon: Icons.check_rounded,
+            child: Icon(Icons.check_rounded),
             callback: () {
               if (widget.onUpdatePressed != null) {
                 widget.onUpdatePressed!(widget.uiElement);
@@ -281,7 +281,7 @@ class _EditableTripEntityButtonBarState<T extends TripEntity>
           Padding(
             padding: const EdgeInsets.all(3.0),
             child: PlatformSubmitterFAB(
-              icon: Icons.delete_rounded,
+              child: Icon(Icons.delete_rounded),
               isEnabledInitially: true,
               callback: () {
                 if (widget.onDeletePressed != null) {

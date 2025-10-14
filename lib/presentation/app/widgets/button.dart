@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
-//TODO: Refactor this class and analyze the behaviour. Keep a timer in this class after submitting, so that it takes 1.5 seconds to go from CircularProgressIndicator to Icon.
+// TODO: Split into text button submitter and icon button submitter
 class PlatformSubmitterFAB extends StatefulWidget {
-  final IconData icon;
+  final Widget child;
   final VoidCallback? callback;
   final VoidCallback? validationFailureCallback;
   final VoidCallback? validationSuccessCallback;
@@ -18,7 +18,7 @@ class PlatformSubmitterFAB extends StatefulWidget {
   final Duration minimumLoadingDuration;
 
   const PlatformSubmitterFAB({
-    required this.icon,
+    required this.child,
     super.key,
     this.isElevationRequired = true,
     this.callback,
@@ -33,7 +33,7 @@ class PlatformSubmitterFAB extends StatefulWidget {
         validationSuccessCallback = null;
 
   const PlatformSubmitterFAB.form({
-    required this.icon,
+    required this.child,
     super.key,
     this.isElevationRequired = true,
     this.callback,
@@ -48,7 +48,7 @@ class PlatformSubmitterFAB extends StatefulWidget {
         valueNotifier = null;
 
   const PlatformSubmitterFAB.conditionallyEnabled({
-    required this.icon,
+    required this.child,
     required this.valueNotifier,
     super.key,
     this.isElevationRequired = true,
@@ -124,7 +124,7 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
       backgroundColor: !isButtonEnabled
           ? (isLightTheme ? AppColors.neutral500 : AppColors.neutral700)
           : null,
-      child: _isLoading ? const CircularProgressIndicator() : Icon(widget.icon),
+      child: _isLoading ? const CircularProgressIndicator() : widget.child,
     );
   }
 

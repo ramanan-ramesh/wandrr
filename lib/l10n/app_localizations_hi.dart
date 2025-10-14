@@ -42,6 +42,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get enterValidEmail => 'मान्य ईमेल दर्ज करें';
 
   @override
+  String get verificationPending =>
+      'सत्यापन मेल लिंक भेजा गया। कृपया सत्यापन पूरा करने के बाद लॉगिन करें।';
+
+  @override
+  String get resendVerificationMail => 'सत्यापन मेल पुनः भेजें';
+
+  @override
   String get viewRecentTrips => 'आगामी यात्राएं देखें';
 
   @override

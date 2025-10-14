@@ -72,6 +72,14 @@ class _LoginPageState extends State<LoginPage>
                     ),
                   ),
                   const SizedBox(height: 24.0),
+                  FocusTraversalOrder(
+                    order: const NumericFocusOrder(3),
+                    child: _ResendVerificationMailButton(
+                      userNameController: _usernameController,
+                      passwordController: _passwordController,
+                    ),
+                  ),
+                  const SizedBox(height: 24.0),
                   _createAlternateLoginMethods(context),
                 ],
               ),
@@ -84,11 +92,11 @@ class _LoginPageState extends State<LoginPage>
 
   Widget _createSubmitButton(BuildContext context) {
     return _AuthStateObserver(
-      onAuthStateChangeBuilder: (state, {required bool canEnable}) =>
+      onAuthStateChangeBuilder: (state, canEnableFormElement) =>
           PlatformSubmitterFAB.form(
-        icon: Icons.login_rounded,
+        child: Icon(Icons.login_rounded),
         formState: _formKey,
-        isEnabledInitially: canEnable,
+        isEnabledInitially: canEnableFormElement,
         validationSuccessCallback: () {
           var username = _usernameController.text;
           var password = _passwordController.text;
@@ -118,13 +126,12 @@ class _LoginPageState extends State<LoginPage>
   Widget _createAlternateAuthProviderButton(AuthenticationType thirdParty,
           AssetGenImage thirdPartyLogoAsset, BuildContext context) =>
       _AuthStateObserver(
-        onAuthStateChangeBuilder: (state, {required bool canEnable}) =>
-            Material(
+        onAuthStateChangeBuilder: (state, canEnableFormElement) => Material(
           shape: const CircleBorder(),
           clipBehavior: Clip.hardEdge,
           color: Colors.transparent,
           child: InkWell(
-            onTap: canEnable
+            onTap: canEnableFormElement
                 ? () {
                     context.addAuthenticationEvent(
                         AuthenticateWithThirdParty(thirdParty));
@@ -172,11 +179,72 @@ class _LoginPageState extends State<LoginPage>
                   controller: _passwordController,
                   textInputAction: TextInputAction.done,
                 ),
-              )
+              ),
+              _EmailVerificationStatusMessage(tabController: _tabController),
             ],
           ),
         ),
       );
+}
+
+class _EmailVerificationStatusMessage extends StatelessWidget {
+  final TabController tabController;
+
+  const _EmailVerificationStatusMessage({required this.tabController});
+
+  @override
+  Widget build(BuildContext context) {
+    return _AuthStateObserver(
+      onAuthStateChangeBuilder: (state, canEnableFormElement) {
+        if (state is AuthStateChanged &&
+            (state.authStatus == AuthStatus.verificationPending ||
+                state.authStatus == AuthStatus.verificationResent)) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(
+              context.localizations.verificationPending,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium!
+                  .copyWith(color: Colors.red),
+            ),
+          );
+        }
+        return SizedBox.shrink();
+      },
+    );
+  }
+}
+
+class _ResendVerificationMailButton extends StatelessWidget {
+  final TextEditingController userNameController;
+  final TextEditingController passwordController;
+
+  const _ResendVerificationMailButton(
+      {required this.userNameController, required this.passwordController});
+
+  @override
+  Widget build(BuildContext context) {
+    return _AuthStateObserver(
+      onAuthStateChangeBuilder: (state, canEnableFormElement) {
+        var isVisible = state is AuthStateChanged &&
+            (state.authStatus == AuthStatus.verificationPending ||
+                state.authStatus == AuthStatus.verificationResent);
+        return AnimatedOpacity(
+          opacity: isVisible ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 1500),
+          child: TextButton(
+            child: Text(context.localizations.resendVerificationMail),
+            onPressed: () {
+              context.addAuthenticationEvent(ResendEmailVerification(
+                  userName: userNameController.text,
+                  password: passwordController.text));
+            },
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _UserNameField extends StatefulWidget {
@@ -200,14 +268,16 @@ class _UserNameFieldState extends State<_UserNameField> {
             _errorText = context.localizations.userNameAlreadyExists;
           } else if (state.authStatus == AuthStatus.noSuchUsernameExists) {
             _errorText = context.localizations.noSuchUserExists;
+          } else {
+            _errorText = null;
           }
         },
-        onAuthStateChangeBuilder: (state, {required bool canEnable}) =>
+        onAuthStateChangeBuilder: (state, canEnableFormElement) =>
             PlatformTextElements.createUsernameFormField(
           context: context,
           controller: widget.textEditingController,
           textInputAction: widget.textInputAction,
-          readonly: !canEnable,
+          readonly: !canEnableFormElement,
           inputDecoration: InputDecoration(
             icon: const Icon(Icons.person_2_rounded),
             labelText: context.localizations.userName,
@@ -265,11 +335,13 @@ class _PasswordFieldState extends State<_PasswordField> {
         onAuthStateChangeListener: (state) {
           if (state.authStatus == AuthStatus.wrongPassword) {
             _errorText = context.localizations.wrong_password_entered;
+          } else {
+            _errorText = null;
           }
         },
-        onAuthStateChangeBuilder: (state, {required bool canEnable}) =>
+        onAuthStateChangeBuilder: (state, canEnableFormElement) =>
             TextFormField(
-          readOnly: !canEnable,
+          readOnly: !canEnableFormElement,
           focusNode: focusNode,
           controller: widget.controller,
           obscureText: _obscurePassword,
@@ -308,7 +380,7 @@ class _PasswordFieldState extends State<_PasswordField> {
 
 class _AuthStateObserver extends StatelessWidget {
   final void Function(AuthStateChanged state)? onAuthStateChangeListener;
-  final Widget Function(MasterPageState state, {required bool canEnable})
+  final Widget Function(MasterPageState state, bool canEnableFormElement)
       onAuthStateChangeBuilder;
 
   const _AuthStateObserver({
@@ -328,7 +400,7 @@ class _AuthStateObserver extends StatelessWidget {
           var canEnable = !(state is AuthStateChanged &&
               (state.authStatus == AuthStatus.authenticating ||
                   state.authStatus == AuthStatus.loggedIn));
-          return onAuthStateChangeBuilder(state, canEnable: canEnable);
+          return onAuthStateChangeBuilder(state, canEnable);
         },
         buildWhen: (previousState, currentState) =>
             currentState is AuthStateChanged,
