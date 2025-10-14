@@ -268,6 +268,8 @@ class _UserNameFieldState extends State<_UserNameField> {
             _errorText = context.localizations.userNameAlreadyExists;
           } else if (state.authStatus == AuthStatus.noSuchUsernameExists) {
             _errorText = context.localizations.noSuchUserExists;
+          } else {
+            _errorText = null;
           }
         },
         onAuthStateChangeBuilder: (state, canEnableFormElement) =>
@@ -333,6 +335,8 @@ class _PasswordFieldState extends State<_PasswordField> {
         onAuthStateChangeListener: (state) {
           if (state.authStatus == AuthStatus.wrongPassword) {
             _errorText = context.localizations.wrong_password_entered;
+          } else {
+            _errorText = null;
           }
         },
         onAuthStateChangeBuilder: (state, canEnableFormElement) =>
