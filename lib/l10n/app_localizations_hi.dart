@@ -188,7 +188,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get wrong_password_entered => 'ग़लत पासवर्ड दर्ज किया गया';
 
   @override
-  String get password_short => 'पारण शब्द बहुत छोटा है';
+  String get password_policy =>
+      'पासवर्ड 8-20 अक्षरों का होना चाहिए और इसमें एक बड़ा अक्षर, एक छोटा अक्षर, एक अंक और एक विशेष वर्ण शामिल होना चाहिए।';
 
   @override
   String get noTransitsCreated => 'आपने अभी तक कोई ट्रांज़िट नहीं जोड़ा है.';

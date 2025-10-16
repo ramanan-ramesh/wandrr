@@ -448,11 +448,11 @@ abstract class AppLocalizations {
   /// **'Wrong password entered'**
   String get wrong_password_entered;
 
-  /// No description provided for @password_short.
+  /// No description provided for @password_policy.
   ///
   /// In en, this message translates to:
-  /// **'Password is too short'**
-  String get password_short;
+  /// **'Password must be 8-20 characters long and include an uppercase letter, a lowercase letter, a digit, and a special character.'**
+  String get password_policy;
 
   /// No description provided for @noTransitsCreated.
   ///
