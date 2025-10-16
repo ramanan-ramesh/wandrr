@@ -368,8 +368,21 @@ class _PasswordFieldState extends State<_PasswordField> {
           ),
           validator: (password) {
             if (password != null) {
-              if (password.length <= 6) {
-                return context.localizations.password_short;
+              var passwordPolicy = context.localizations.password_policy;
+              if (password.length < 8 || password.length > 20) {
+                return passwordPolicy;
+              }
+              if (!RegExp('[A-Z]').hasMatch(password)) {
+                return passwordPolicy;
+              }
+              if (!RegExp('[a-z]').hasMatch(password)) {
+                return passwordPolicy;
+              }
+              if (!RegExp('[0-9]').hasMatch(password)) {
+                return passwordPolicy;
+              }
+              if (!RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(password)) {
+                return passwordPolicy;
               }
             }
             return null;

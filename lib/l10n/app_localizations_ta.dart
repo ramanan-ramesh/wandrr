@@ -189,7 +189,8 @@ class AppLocalizationsTa extends AppLocalizations {
   String get wrong_password_entered => 'தவறான கடவுச்சொல் உள்ளிடப்பட்டுள்ளது';
 
   @override
-  String get password_short => 'கடவுச்சொல் குறுகியது';
+  String get password_policy =>
+      'கடவுச்சொல் 8-20 எழுத்துகள் நீளமாக இருக்க வேண்டும், ஒரு பெரிய எழுத்து, ஒரு சிறிய எழுத்து, ஒரு எண் மற்றும் ஒரு சிறப்பு எழுத்து இருக்க வேண்டும்.';
 
   @override
   String get noTransitsCreated => 'போக்குவரத்துகள் உருவாக்கப்படவில்லை';

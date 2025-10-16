@@ -57,7 +57,7 @@
   "title": "Title",
   "view_expenses": "View Expenses",
   "wrong_password_entered": "Wrong password entered",
-  "password_short": "Password is too short",
+  "password_policy": "Password must be 8-20 characters long and include an uppercase letter, a lowercase letter, a digit, and a special character.",
   "noTransitsCreated": "You haven't added any transit yet.",
   "notes": "Notes",
   "transitCarrier": "Transit Carrier",

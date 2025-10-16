@@ -187,7 +187,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wrong_password_entered => 'Wrong password entered';
 
   @override
-  String get password_short => 'Password is too short';
+  String get password_policy =>
+      'Password must be 8-20 characters long and include an uppercase letter, a lowercase letter, a digit, and a special character.';
 
   @override
   String get noTransitsCreated => 'You haven\'t added any transit yet.';
