@@ -13,9 +13,9 @@ import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/pages/home/home_page.dart';
-import 'package:wandrr/presentation/trip/pages/trip_planner/trip_planner_page.dart';
-import 'package:wandrr/presentation/trip/pages/trip_provider/app_bar/app_bar.dart';
-import 'package:wandrr/presentation/trip/pages/trip_provider/constants.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
+
+import 'constants.dart';
 
 class TripProvider extends StatelessWidget {
   const TripProvider({super.key});
@@ -40,9 +40,9 @@ class _TripProviderContentPage extends StatefulWidget {
 }
 
 class _TripProviderContentPageState extends State<_TripProviderContentPage> {
-  TripRepositoryFacade? _tripRepository;
   static const _minimumAnimationTime = Duration(seconds: 2);
   final _minimumWalkTimeCompletionNotifier = ValueNotifier(false);
+  TripRepositoryFacade? _tripRepository;
   static final _walkAnimation = SimpleAnimation('Walk');
   final _waveAnimation = SimpleAnimation('Wave');
 
@@ -69,7 +69,7 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
             !_waveAnimation.isActive) {
           return RepositoryProvider<ApiServicesRepositoryFacade>(
             create: (context) => state.apiServicesRepository,
-            child: _createTripContentPage(TripPlannerPage()),
+            child: _createTripContentPage(TripEditorPage()),
           );
         }
         return _createAnimatedLoadingScreen(context);
@@ -155,37 +155,13 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
   Widget _createTripContentPage(Widget contentPage) {
     return RepositoryProvider(
       create: (BuildContext context) => _tripRepository!,
-      child: LayoutBuilder(builder: (context, constraints) {
-        var contentPageLayoutConstraints =
-            _calculateLayoutConstraints(constraints, context);
-        return Scaffold(
-          appBar: HomeAppBar(
-            contentWidth: context.isBigLayout
-                ? TripProviderPageConstants.maximumPageWidth
-                : null,
-          ),
-          body: Center(
-            child: Container(
-              constraints: contentPageLayoutConstraints,
-              child: contentPage,
-            ),
-          ),
-        );
+      child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+        context.isBigLayout =
+            constraints.maxWidth >= TripProviderPageConstants.cutOffPageWidth;
+        return contentPage;
       }),
     );
-  }
-
-  BoxConstraints? _calculateLayoutConstraints(
-      BoxConstraints constraints, BuildContext context) {
-    BoxConstraints? contentPageLayoutConstraints;
-    if (constraints.maxWidth > TripProviderPageConstants.cutOffPageWidth) {
-      context.isBigLayout = true;
-    } else {
-      context.isBigLayout = false;
-      contentPageLayoutConstraints = const BoxConstraints(
-          minWidth: 500, maxWidth: TripProviderPageConstants.maximumPageWidth);
-    }
-    return contentPageLayoutConstraints;
   }
 
   void _tryStartWalkAnimation() {

@@ -108,7 +108,6 @@ class BudgetingHeaderTile extends StatelessWidget {
                             ExpenseViewType.debtSummary,
                             context.localizations.debt_summary,
                             Icons.money_rounded),
-                        // ),
                       ),
                     ),
                     Expanded(

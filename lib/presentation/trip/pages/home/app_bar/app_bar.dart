@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
-import 'package:wandrr/blocs/trip/bloc.dart';
-import 'package:wandrr/blocs/trip/events.dart';
-import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/presentation/trip/pages/trip_provider/app_bar/toolbar.dart';
+import 'package:wandrr/presentation/trip/pages/home/app_bar/toolbar.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final double? contentWidth;
@@ -25,21 +20,12 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: Center(
           child: SizedBox(
             width: contentWidth,
-            child: BlocConsumer<TripManagementBloc, TripManagementState>(
-              builder: (BuildContext context, TripManagementState state) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _createHomeButton(context),
-                    Toolbar(),
-                  ],
-                );
-              },
-              listener: (BuildContext context, TripManagementState state) {},
-              buildWhen: (previousState, currentState) {
-                return currentState is ActivatedTrip ||
-                    currentState is NavigateToHome;
-              },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _createHomeButton(context),
+                Toolbar(),
+              ],
             ),
           ),
         ),
@@ -50,9 +36,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget _createHomeButton(BuildContext context) {
     return FloatingActionButton.extended(
       elevation: 0,
-      onPressed: () {
-        context.addTripManagementEvent(GoToHome());
-      },
+      onPressed: null,
       label: Text(
         'wandrr',
         style: TextStyle(
