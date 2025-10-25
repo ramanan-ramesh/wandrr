@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'constants.dart';
 import 'app_colors.dart';
+import 'constants.dart';
 
 ThemeData createDarkThemeData(BuildContext context) {
   return ThemeData(
@@ -42,6 +42,15 @@ ThemeData createDarkThemeData(BuildContext context) {
         borderRadius: BorderRadius.circular(ThemeConstants.cardBorderRadius),
       ),
     ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: AppColors.darkSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(ThemeConstants.cardBorderRadius),
+        ),
+      ),
+      elevation: 10,
+    ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: AppColors.brandPrimaryLight,
       circularTrackColor: AppColors.neutral600,
@@ -50,9 +59,10 @@ ThemeData createDarkThemeData(BuildContext context) {
       tileColor: AppColors.darkSurface,
       textColor: AppColors.neutral100,
       iconColor: AppColors.brandPrimaryLight,
-      selectedTileColor: AppColors.brandPrimaryLight
-          .withValues(alpha: 0.38), // More pronounced selection
-      selectedColor: Colors.white, // Maximum contrast for selected text/icon
+      selectedTileColor: AppColors.brandPrimaryLight.withValues(alpha: 0.38),
+      // More pronounced selection
+      selectedColor: Colors.white,
+      // Maximum contrast for selected text/icon
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: BorderSide(
@@ -62,8 +72,8 @@ ThemeData createDarkThemeData(BuildContext context) {
       ),
     ),
     appBarTheme: const AppBarTheme(
-      backgroundColor:
-          AppColors.darkSurface, // More pronounced, lighter dark shade
+      backgroundColor: AppColors.darkSurfaceHeader,
+      // More pronounced, lighter dark shade
       foregroundColor: Colors.white,
       elevation: 6,
       iconTheme: IconThemeData(color: Colors.white),
@@ -75,8 +85,10 @@ ThemeData createDarkThemeData(BuildContext context) {
     ),
     cardTheme: CardThemeData(
       clipBehavior: Clip.hardEdge,
-      color: AppColors.darkSurface, // Explicit color for better contrast
-      elevation: 10, // Match light theme elevation
+      color: AppColors.darkSurface,
+      // Explicit color for better contrast
+      elevation: 10,
+      // Match light theme elevation
       shadowColor: AppColors.withOpacity(Colors.black, 0.5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(

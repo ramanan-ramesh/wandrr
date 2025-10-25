@@ -294,7 +294,13 @@ class BudgetingHeaderTile extends StatelessWidget {
               ? null
               : () {
                   context.addTripManagementEvent(
-                      UpdateTripEntity<ExpenseFacade>.createNewUiEntry());
+                      UpdateTripEntity<ExpenseFacade>.createNewUiEntry(
+                          tripEntity: ExpenseFacade.newUiEntry(
+                              tripId: context.activeTrip.tripMetadata.id!,
+                              allTripContributors:
+                                  context.activeTrip.tripMetadata.contributors,
+                              defaultCurrency: context
+                                  .activeTrip.tripMetadata.budget.currency)));
                 },
           label: Text(context.localizations.add_expense),
           icon: const Icon(Icons.add_circle),

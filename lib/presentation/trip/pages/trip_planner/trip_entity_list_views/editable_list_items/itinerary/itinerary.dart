@@ -141,8 +141,8 @@ class _ItineraryListItemState extends State<ItineraryListItem>
           initialPlanDataUiElement: _planDataUiElement,
           planDataUpdated: (newPlanData) {
             _planDataUiElement.element = newPlanData;
-            var planValidationResult =
-                _planDataUiElement.element.validate(isTitleRequired: false);
+            var planValidationResult = _planDataUiElement.element
+                .getValidationResult(isTitleRequired: false);
             if (planValidationResult == PlanDataValidationResult.valid) {
               _canUpdateItineraryDataNotifier.value = true;
             } else {
@@ -194,7 +194,7 @@ class _ItineraryListItemState extends State<ItineraryListItem>
 
   void _tryShowError() {
     var planDataValidationResult =
-        _planDataUiElement.element.validate(isTitleRequired: false);
+        _planDataUiElement.element.getValidationResult(isTitleRequired: false);
     switch (planDataValidationResult) {
       case PlanDataValidationResult.checkListItemEmpty:
         {

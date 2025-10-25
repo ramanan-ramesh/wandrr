@@ -46,7 +46,9 @@ class PlanDataListView extends StatelessWidget {
     return FloatingActionButton.extended(
       onPressed: () {
         context.addTripManagementEvent(
-            UpdateTripEntity<PlanDataFacade>.createNewUiEntry());
+            UpdateTripEntity<PlanDataFacade>.createNewUiEntry(
+                tripEntity: PlanDataFacade.newEntry(
+                    tripId: context.activeTrip.tripMetadata.id!)));
       },
       label: Text(context.localizations.newPlanData),
       icon: const Icon(Icons.add_rounded),

@@ -12,12 +12,17 @@ import 'transit.dart';
 
 abstract class ItineraryFacade extends Equatable implements TripEntity {
   String get tripId;
+
   DateTime get day;
+
   PlanDataFacade get planData;
+
   Iterable<TransitFacade> get transits;
+
   LodgingFacade? get checkinLodging;
 
   LodgingFacade? get checkoutLodging;
+
   LodgingFacade? get fullDayLodging;
 
   @override

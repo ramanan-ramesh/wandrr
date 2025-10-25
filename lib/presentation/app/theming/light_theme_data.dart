@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/presentation/app/theming/constants.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/app/theming/constants.dart';
 
 ThemeData createLightThemeData(BuildContext context) {
   return ThemeData(
@@ -46,19 +46,29 @@ ThemeData createLightThemeData(BuildContext context) {
         ),
       ),
     ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: AppColors.lightSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(ThemeConstants.cardBorderRadius),
+        ),
+      ),
+      elevation: 10,
+    ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: AppColors.brandPrimary,
       circularTrackColor: AppColors.neutral300,
     ),
     listTileTheme: ListTileThemeData(
-      tileColor:
-          Colors.transparent, // Transparent to avoid background bleed-through
+      tileColor: Colors.transparent,
+      // Transparent to avoid background bleed-through
       textColor: AppColors.brandSecondary,
-      iconColor: AppColors.brandSecondary, // Dark charcoal for better contrast
-      selectedTileColor: AppColors.brandPrimary
-          .withValues(alpha: 0.85), // More vibrant and visible when selected
-      selectedColor:
-          Colors.white, // White for selected icon/text for max contrast
+      iconColor: AppColors.brandSecondary,
+      // Dark charcoal for better contrast
+      selectedTileColor: AppColors.brandPrimary.withValues(alpha: 0.85),
+      // More vibrant and visible when selected
+      selectedColor: Colors.white,
+      // White for selected icon/text for max contrast
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: BorderSide(
@@ -68,8 +78,10 @@ ThemeData createLightThemeData(BuildContext context) {
     ),
     cardTheme: CardThemeData(
       clipBehavior: Clip.hardEdge,
-      color: AppColors.brandPrimaryLight, // Vibrant light emerald for cards
-      elevation: 10, // Even higher elevation for more shadow
+      color: AppColors.brandPrimaryLight,
+      // Vibrant light emerald for cards
+      elevation: 10,
+      // Even higher elevation for more shadow
       shadowColor: AppColors.withOpacity(AppColors.brandSecondary, 0.22),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(
@@ -99,12 +111,14 @@ ThemeData createLightThemeData(BuildContext context) {
         ),
       ),
     ),
-    iconTheme: const IconThemeData(
-        color: AppColors.brandSecondary), // Dark charcoal for better contrast
+    iconTheme: const IconThemeData(color: AppColors.brandSecondary),
+    // Dark charcoal for better contrast
     floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: AppColors.brandSecondary, // Dark charcoal background
+      backgroundColor: AppColors.brandSecondary,
+      // Dark charcoal background
       foregroundColor: Colors.white,
-      elevation: 6, // Higher elevation for better visibility
+      elevation: 6,
+      // Higher elevation for better visibility
       focusElevation: 8,
       hoverElevation: 8,
       splashColor: AppColors.withOpacity(Colors.white, 0.3),

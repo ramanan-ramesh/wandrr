@@ -195,7 +195,7 @@ class _PlanDataListItemViewerState extends State<PlanDataListItemViewer>
 
   void _tryShowError() {
     var planDataValidationResult =
-        _planDataUiElement.element.validate(isTitleRequired: true);
+        _planDataUiElement.element.getValidationResult(isTitleRequired: true);
     switch (planDataValidationResult) {
       case PlanDataValidationResult.checkListItemEmpty:
         {
@@ -259,7 +259,7 @@ class _PlanDataListItemViewerState extends State<PlanDataListItemViewer>
     _planDataUiElement.element.title = title;
 
     var planValidationResult =
-        _planDataUiElement.element.validate(isTitleRequired: true);
+        _planDataUiElement.element.getValidationResult(isTitleRequired: true);
     if (planValidationResult == PlanDataValidationResult.valid) {
       _canUpdatePlanDataNotifier.value = true;
     } else {

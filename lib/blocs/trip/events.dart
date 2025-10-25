@@ -12,7 +12,8 @@ class UpdateTripEntity<T extends TripEntity> extends TripManagementEvent {
   T? tripEntity;
   final DataState dataState;
 
-  UpdateTripEntity.createNewUiEntry() : dataState = DataState.newUiEntry;
+  UpdateTripEntity.createNewUiEntry({this.tripEntity})
+      : dataState = DataState.newUiEntry;
 
   UpdateTripEntity.create({required this.tripEntity})
       : dataState = DataState.create;

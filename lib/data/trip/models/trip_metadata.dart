@@ -67,6 +67,7 @@ class TripMetadataFacade extends Equatable
     budget = tripMetadataModel.budget;
   }
 
+  @override
   bool validate() {
     var hasValidName = name.isNotEmpty;
     var hasValidDateRange = endDate != null &&

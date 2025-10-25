@@ -8,7 +8,8 @@ import 'budgeting/expense_category.dart';
 import 'budgeting/money.dart';
 
 // ignore: must_be_immutable
-class TransitFacade extends Equatable implements TripEntity<TransitFacade> {
+class TransitFacade extends Equatable
+    implements TripEntity<TransitFacade>, ExpenseLinkedTripEntity {
   final String tripId;
 
   @override
@@ -30,6 +31,7 @@ class TransitFacade extends Equatable implements TripEntity<TransitFacade> {
 
   String? notes;
 
+  @override
   ExpenseFacade expense;
 
   TransitFacade(
@@ -129,6 +131,7 @@ class TransitFacade extends Equatable implements TripEntity<TransitFacade> {
     }
   }
 
+  @override
   bool validate() {
     var areLocationsValid =
         departureLocation != null && arrivalLocation != null;

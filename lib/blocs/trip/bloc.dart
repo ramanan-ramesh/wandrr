@@ -114,11 +114,12 @@ class TripManagementBloc
   FutureOr<void> _onUpdateTransit(UpdateTripEntity<TransitFacade> event,
       Emitter<TripManagementState> emit) async {
     if (event.dataState == DataState.newUiEntry) {
-      var transit = TransitFacade.newUiEntry(
-          tripId: _activeTrip!.tripMetadata.id!,
-          transitOption: TransitOption.publicTransport,
-          allTripContributors: _activeTrip!.tripMetadata.contributors,
-          defaultCurrency: _activeTrip!.tripMetadata.budget.currency);
+      var transit = event.tripEntity ??
+          TransitFacade.newUiEntry(
+              tripId: _activeTrip!.tripMetadata.id!,
+              transitOption: TransitOption.publicTransport,
+              allTripContributors: _activeTrip!.tripMetadata.contributors,
+              defaultCurrency: _activeTrip!.tripMetadata.budget.currency);
       emit(UpdatedTripEntity<TransitFacade>.createdNewUiEntry(
           tripEntity: transit, isOperationSuccess: true));
       return;
@@ -134,10 +135,11 @@ class TripManagementBloc
   FutureOr<void> _onUpdateLodging(UpdateTripEntity<LodgingFacade> event,
       Emitter<TripManagementState> emit) async {
     if (event.dataState == DataState.newUiEntry) {
-      var lodgingModelFacade = LodgingFacade.newUiEntry(
-          tripId: _activeTrip!.tripMetadata.id!,
-          allTripContributors: _activeTrip!.tripMetadata.contributors,
-          defaultCurrency: _activeTrip!.tripMetadata.budget.currency);
+      var lodgingModelFacade = event.tripEntity ??
+          LodgingFacade.newUiEntry(
+              tripId: _activeTrip!.tripMetadata.id!,
+              allTripContributors: _activeTrip!.tripMetadata.contributors,
+              defaultCurrency: _activeTrip!.tripMetadata.budget.currency);
       emit(UpdatedTripEntity<LodgingFacade>.createdNewUiEntry(
           tripEntity: lodgingModelFacade, isOperationSuccess: true));
       return;
@@ -156,10 +158,11 @@ class TripManagementBloc
       return;
     }
     if (event.dataState == DataState.newUiEntry) {
-      var newExpense = ExpenseFacade.newUiEntry(
-          tripId: _activeTrip!.tripMetadata.id!,
-          allTripContributors: _activeTrip!.tripMetadata.contributors,
-          defaultCurrency: _activeTrip!.tripMetadata.budget.currency);
+      var newExpense = event.tripEntity ??
+          ExpenseFacade.newUiEntry(
+              tripId: _activeTrip!.tripMetadata.id!,
+              allTripContributors: _activeTrip!.tripMetadata.contributors,
+              defaultCurrency: _activeTrip!.tripMetadata.budget.currency);
       emit(UpdatedTripEntity<ExpenseFacade>.createdNewUiEntry(
           tripEntity: newExpense, isOperationSuccess: true));
       return;
@@ -175,8 +178,8 @@ class TripManagementBloc
   FutureOr<void> _onUpdatePlanData(UpdateTripEntity<PlanDataFacade> event,
       Emitter<TripManagementState> emit) async {
     if (event.dataState == DataState.newUiEntry) {
-      var planDataModelFacade = PlanDataFacade.newUiEntry(
-          id: null, tripId: _activeTrip!.tripMetadata.id!);
+      var planDataModelFacade = event.tripEntity ??
+          PlanDataFacade.newEntry(tripId: _activeTrip!.tripMetadata.id!);
       emit(UpdatedTripEntity<PlanDataFacade>.createdNewUiEntry(
           tripEntity: planDataModelFacade, isOperationSuccess: true));
       return;

@@ -229,5 +229,13 @@ class PlanDataModelImplementation extends PlanDataFacade
         _notes = notes,
         _places = places,
         _collectionName = collectionName,
-        super.newUiEntry(id: id, tripId: tripId, title: title);
+        super(
+            id: id,
+            tripId: tripId,
+            title: title,
+            places: places,
+            notes: notes,
+            checkLists: checkLists,
+            isForItinerary: collectionName ==
+                FirestoreCollections.itineraryDataCollectionName);
 }

@@ -78,5 +78,6 @@ class ExpenseFacade implements TripEntity<ExpenseFacade> {
         expenseModelFacade.dateTime!.month, expenseModelFacade.dateTime!.day);
   }
 
+  @override
   bool validate() => paidBy.isNotEmpty && splitBy.isNotEmpty;
 }

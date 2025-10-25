@@ -226,4 +226,11 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
 
   @override
   bool? get stringify => true;
+
+  @override
+  bool validate() {
+    return planData.validate() &&
+        !(fullDayLodging != null &&
+            (checkinLodging != null || checkoutLodging != null));
+  }
 }

@@ -20,17 +20,26 @@ class PlanDataFacade extends Equatable implements TripEntity<PlanDataFacade> {
 
   List<CheckListFacade> checkLists;
 
-  PlanDataFacade.newUiEntry(
-      {required this.id, required this.tripId, this.title})
+  bool isForItinerary;
+
+  PlanDataFacade.newEntry({required this.tripId})
       : places = [],
         notes = [],
-        checkLists = [];
+        checkLists = [],
+        isForItinerary = false;
+
+  PlanDataFacade.newEntryForItinerary({required this.tripId})
+      : places = [],
+        notes = [],
+        checkLists = [],
+        isForItinerary = true;
 
   PlanDataFacade(
       {required this.tripId,
       required this.places,
       required this.notes,
       required this.checkLists,
+      required this.isForItinerary,
       this.id,
       this.title});
 
@@ -41,9 +50,17 @@ class PlanDataFacade extends Equatable implements TripEntity<PlanDataFacade> {
       title: title,
       places: List.from(places.map((place) => place.clone())),
       notes: List.from(notes.map((note) => note.clone())),
-      checkLists: List.from(checkLists.map((checkList) => checkList.clone())));
+      checkLists: List.from(checkLists.map((checkList) => checkList.clone())),
+      isForItinerary: isForItinerary);
 
-  PlanDataValidationResult validate({required bool isTitleRequired}) {
+  @override
+  bool validate() {
+    return getValidationResult(isTitleRequired: !isForItinerary) ==
+        PlanDataValidationResult.valid;
+  }
+
+  PlanDataValidationResult getValidationResult(
+      {required bool isTitleRequired}) {
     if (isTitleRequired) {
       if (title == null || title!.isEmpty) {
         return PlanDataValidationResult.titleEmpty;
