@@ -5,8 +5,9 @@ import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/auto_complete.dart';
-import 'package:wandrr/presentation/trip/pages/trip_planner/airline_data.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+
+import 'airline_data.dart';
 
 class TransitOperatorEditor extends StatelessWidget {
   final TransitOption transitOption;

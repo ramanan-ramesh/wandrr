@@ -9,7 +9,7 @@ import 'budgeting/money.dart';
 
 // ignore: must_be_immutable
 class LodgingFacade extends Equatable
-    implements TripEntity<LodgingFacade>, ExpenseLinkedTripEntity {
+    implements ExpenseLinkedTripEntity<LodgingFacade> {
   LocationFacade? location;
 
   DateTime? checkinDateTime;

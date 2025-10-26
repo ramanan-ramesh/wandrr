@@ -4,7 +4,7 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'expense_category.dart';
 import 'money.dart';
 
-class ExpenseFacade implements TripEntity<ExpenseFacade> {
+class ExpenseFacade implements ExpenseLinkedTripEntity<ExpenseFacade> {
   String tripId;
 
   String title;
@@ -80,4 +80,12 @@ class ExpenseFacade implements TripEntity<ExpenseFacade> {
 
   @override
   bool validate() => paidBy.isNotEmpty && splitBy.isNotEmpty;
+
+  @override
+  ExpenseFacade get expense => this;
+
+  @override
+  set expense(ExpenseFacade expense) {
+    copyWith(expense);
+  }
 }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/app_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/bottom_nav_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_page.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/creator_bottom_sheet.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/editing/creator_bottom_sheet.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
@@ -20,7 +20,7 @@ class TripEditorPage extends StatelessWidget {
       return _TripEditorPageInternal(
         body: Row(
           children: [
-            Expanded(child: Container(color: Colors.red)),
+            Expanded(child: const ItineraryPage()),
             Expanded(child: BudgetingPage()),
           ],
         ),
@@ -46,7 +46,7 @@ class _TripEditorSmallLayoutPageState extends State<_TripEditorSmallLayout> {
   void initState() {
     super.initState();
     _pages = [
-      Container(color: Colors.green),
+      const ItineraryPage(),
       BudgetingPage(),
     ];
   }
@@ -96,30 +96,14 @@ class _TripEditorPageInternal extends StatelessWidget {
       child: FittedBox(
         child: FloatingActionButton(
           onPressed: () {
-            showModalBottomSheet(
-                context: pageContext,
-                isScrollControlled: true,
-                builder: (dialogContext) => MultiRepositoryProvider(
-                      providers: [
-                        RepositoryProvider(
-                            create: (context) => pageContext.appDataRepository),
-                        RepositoryProvider(
-                            create: (context) => pageContext.tripRepository),
-                        RepositoryProvider(
-                            create: (context) =>
-                                pageContext.apiServicesRepository),
-                      ],
-                      child: BlocProvider(
-                        create: (context) =>
-                            BlocProvider.of<TripManagementBloc>(pageContext),
-                        child: TripEntityCreatorBottomSheet(supportedActions: [
-                          TripEditorAction.expense,
-                          TripEditorAction.travel,
-                          TripEditorAction.stay,
-                          TripEditorAction.tripData,
-                        ]),
-                      ),
-                    ));
+            _showModalBottomSheet(
+                TripEntityCreatorBottomSheet(supportedActions: [
+                  TripEditorAction.expense,
+                  TripEditorAction.travel,
+                  TripEditorAction.stay,
+                  TripEditorAction.tripData,
+                ]),
+                pageContext);
           },
           child: const Icon(Icons.add),
         ),
@@ -132,5 +116,22 @@ class _TripEditorPageInternal extends StatelessWidget {
       );
     }
     return button;
+  }
+
+  void _showModalBottomSheet(Widget child, BuildContext pageContext) {
+    showModalBottomSheet(
+        context: pageContext,
+        isScrollControlled: true,
+        builder: (dialogContext) => MultiRepositoryProvider(
+              providers: [
+                RepositoryProvider(
+                    create: (context) => pageContext.appDataRepository),
+                RepositoryProvider(
+                    create: (context) => pageContext.tripRepository),
+                RepositoryProvider(
+                    create: (context) => pageContext.apiServicesRepository),
+              ],
+              child: child,
+            ));
   }
 }

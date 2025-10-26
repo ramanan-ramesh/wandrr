@@ -8,8 +8,9 @@ import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/tab_bar.dart';
-import 'package:wandrr/presentation/trip/pages/trip_planner/budgeting/breakdown/breakdown_by_category.dart';
-import 'package:wandrr/presentation/trip/pages/trip_planner/budgeting/breakdown/breakdown_by_day.dart';
+
+import 'breakdown_by_category.dart';
+import 'breakdown_by_day.dart';
 
 class BudgetBreakdownTile extends StatefulWidget {
   const BudgetBreakdownTile({super.key});

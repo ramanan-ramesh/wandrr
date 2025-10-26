@@ -10,8 +10,8 @@ import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/plan_data/plan_data.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
-import 'action_page.dart';
 import 'budgeting/expense_editor.dart';
+import 'editing/action_page.dart';
 import 'lodging/lodging_editor.dart';
 import 'transit/transit.dart';
 

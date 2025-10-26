@@ -11,10 +11,13 @@ abstract class TripManagementState {
       if (this is UpdatedTripEntity<T> &&
           (this as UpdatedTripEntity<T>).isOperationSuccess) {
         return true;
-      } else if ((this as UpdatedTripEntity).tripEntityModificationData
-              is CollectionItemChangeMetadata<T> &&
-          (this as UpdatedTripEntity).isOperationSuccess) {
-        return true;
+      } else {
+        var collectionItemChangeMetadata =
+            (this as UpdatedTripEntity).tripEntityModificationData;
+        if (collectionItemChangeMetadata is CollectionItemChangeMetadata<T> ||
+            collectionItemChangeMetadata.modifiedCollectionItem is T) {
+          return (this as UpdatedTripEntity).isOperationSuccess;
+        }
       }
     }
     return false;

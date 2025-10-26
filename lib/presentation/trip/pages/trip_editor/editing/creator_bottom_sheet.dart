@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
@@ -19,7 +18,9 @@ class TripEntityCreatorBottomSheet extends StatefulWidget {
 class _TripEntityCreatorBottomSheetState
     extends State<TripEntityCreatorBottomSheet> {
   TripEditorAction? selectedAction;
-  TripEntity? tripEntityToUpdate;
+
+  // Store controllers here if needed for textfields in action pages
+  // Example: final TextEditingController _controller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -33,18 +34,18 @@ class _TripEntityCreatorBottomSheetState
       maxChildSize: 0.8,
       minChildSize: 0.4,
       builder: (context, scrollController) {
+        // Only use state from the State class, never reinitialize here
         if (selectedAction == null) {
           return _createSupportedActionsListView(
               scrollController, _bottomPadding);
         }
-        tripEntityToUpdate ??= selectedAction!.createTripEntity(context);
+        var tripEntityToAdd = selectedAction!.createTripEntity(context);
         return selectedAction!.createActionPage(
-            tripEntity: tripEntityToUpdate!,
+            tripEntity: tripEntityToAdd,
             tripDay: widget.tripDay,
             isEditing: false,
             onClosePressed: (context) => setState(() {
                   selectedAction = null;
-                  tripEntityToUpdate = null;
                 }),
             scrollController: scrollController,
             title:
@@ -81,7 +82,6 @@ class _TripEntityCreatorBottomSheetState
 
         setState(() {
           selectedAction = action;
-          tripEntityToUpdate = null;
         });
       },
       leading: Container(

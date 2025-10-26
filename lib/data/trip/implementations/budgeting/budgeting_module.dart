@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
@@ -14,7 +13,7 @@ import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/ui_element.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 class BudgetingModule implements BudgetingModuleEventHandler {
   final ModelCollectionModifier<TransitFacade> _transitModelCollection;
@@ -206,16 +205,11 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   }
 
   @override
-  Future<Iterable<UiElement<ExpenseFacade>>> sortExpenseElements(
-      Iterable<UiElement<ExpenseFacade>> expenseUiElements,
+  Future<Iterable<ExpenseLinkedTripEntity>> sortExpenses(
+      Iterable<ExpenseLinkedTripEntity> expenseUiElements,
       ExpenseSortOption expenseSortOption) async {
     var expenseUiElementsToSort =
-        List<UiElement<ExpenseFacade>>.from(expenseUiElements);
-    var newUiEntry = expenseUiElementsToSort
-        .where((element) => element.dataState == DataState.newUiEntry)
-        .firstOrNull;
-    expenseUiElementsToSort
-        .removeWhere((element) => element.dataState == DataState.newUiEntry);
+        List<ExpenseLinkedTripEntity>.from(expenseUiElements);
     switch (expenseSortOption) {
       case ExpenseSortOption.oldToNew:
         {
@@ -233,7 +227,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       case ExpenseSortOption.category:
         {
           expenseUiElementsToSort.sort((a, b) =>
-              a.element.category.name.compareTo(b.element.category.name));
+              a.expense.category.name.compareTo(b.expense.category.name));
           break;
         }
       case ExpenseSortOption.lowToHighCost:
@@ -249,9 +243,6 @@ class BudgetingModule implements BudgetingModuleEventHandler {
               .toList();
           break;
         }
-    }
-    if (newUiEntry != null) {
-      expenseUiElementsToSort.insert(0, newUiEntry);
     }
     return expenseUiElementsToSort;
   }
@@ -345,13 +336,13 @@ class BudgetingModule implements BudgetingModuleEventHandler {
               .map((lodging) => lodging.expense))
           .followedBy(_expenseModelCollection.collectionItems);
 
-  Iterable<UiElement<ExpenseFacade>> _sortOnDateTime(
-      List<UiElement<ExpenseFacade>> expenseUiElements,
+  Iterable<ExpenseLinkedTripEntity> _sortOnDateTime(
+      List<ExpenseLinkedTripEntity> expenseUiElements,
       {bool isAscendingOrder = true}) {
-    var expensesWithDateTime = <UiElement<ExpenseFacade>>[];
-    var expensesWithoutDateTime = <UiElement<ExpenseFacade>>[];
+    var expensesWithDateTime = <ExpenseLinkedTripEntity>[];
+    var expensesWithoutDateTime = <ExpenseLinkedTripEntity>[];
     for (final expenseUiElement in expenseUiElements) {
-      var expense = expenseUiElement.element;
+      var expense = expenseUiElement.expense;
       if (expense.dateTime != null) {
         expensesWithDateTime.add(expenseUiElement);
       } else {
@@ -359,27 +350,27 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       }
     }
     expenseUiElements =
-        List<UiElement<ExpenseFacade>>.from(expensesWithDateTime);
+        List<ExpenseLinkedTripEntity>.from(expensesWithDateTime);
     if (isAscendingOrder) {
       expenseUiElements
-          .sort((a, b) => a.element.dateTime!.compareTo(b.element.dateTime!));
+          .sort((a, b) => a.expense.dateTime!.compareTo(b.expense.dateTime!));
     } else {
       expenseUiElements
-          .sort((a, b) => b.element.dateTime!.compareTo(a.element.dateTime!));
+          .sort((a, b) => b.expense.dateTime!.compareTo(a.expense.dateTime!));
     }
     expenseUiElements.insertAll(0, expensesWithoutDateTime);
     return expenseUiElements;
   }
 
-  Future<Iterable<UiElement<ExpenseFacade>>> _sortOnCost(
-      List<UiElement<ExpenseFacade>> expenseUiElements,
+  Future<Iterable<ExpenseLinkedTripEntity>> _sortOnCost(
+      List<ExpenseLinkedTripEntity> expenseUiElements,
       {bool isAscendingOrder = true}) async {
     var expenseElementsWithConvertedCurrency =
-        <UiElement<ExpenseFacade>, double>{};
+        <ExpenseLinkedTripEntity, double>{};
 
     for (final expenseUiElement in expenseUiElements) {
       var expenseValue = await currencyConverter
-          .queryData((expenseUiElement.element.totalExpense, defaultCurrency));
+          .queryData((expenseUiElement.expense.totalExpense, defaultCurrency));
       expenseElementsWithConvertedCurrency[expenseUiElement] = expenseValue!;
     }
 

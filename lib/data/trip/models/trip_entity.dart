@@ -8,6 +8,8 @@ abstract class TripEntity<T> {
   bool validate();
 }
 
-abstract class ExpenseLinkedTripEntity {
-  ExpenseFacade get expense;
+abstract class ExpenseLinkedTripEntity<T> implements TripEntity<T> {
+  ExpenseFacade expense;
+
+  ExpenseLinkedTripEntity(this.expense);
 }

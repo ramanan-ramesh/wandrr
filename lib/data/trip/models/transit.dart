@@ -9,7 +9,7 @@ import 'budgeting/money.dart';
 
 // ignore: must_be_immutable
 class TransitFacade extends Equatable
-    implements TripEntity<TransitFacade>, ExpenseLinkedTripEntity {
+    implements ExpenseLinkedTripEntity<TransitFacade> {
   final String tripId;
 
   @override
