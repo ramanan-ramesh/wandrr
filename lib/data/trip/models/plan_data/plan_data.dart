@@ -55,13 +55,11 @@ class PlanDataFacade extends Equatable implements TripEntity<PlanDataFacade> {
 
   @override
   bool validate() {
-    return getValidationResult(isTitleRequired: !isForItinerary) ==
-        PlanDataValidationResult.valid;
+    return getValidationResult() == PlanDataValidationResult.valid;
   }
 
-  PlanDataValidationResult getValidationResult(
-      {required bool isTitleRequired}) {
-    if (isTitleRequired) {
+  PlanDataValidationResult getValidationResult() {
+    if (!isForItinerary) {
       if (title == null || title!.isEmpty) {
         return PlanDataValidationResult.titleEmpty;
       }

@@ -12,7 +12,7 @@ import 'places.dart';
 
 class PlanDataListItem extends StatefulWidget {
   final PlanDataFacade planData;
-  final VoidCallback planDataUpdated;
+  final Function(PlanDataFacade) planDataUpdated;
 
   const PlanDataListItem(
       {required this.planData, required this.planDataUpdated, super.key});
@@ -44,7 +44,7 @@ class _PlanDataListItemState extends State<PlanDataListItem> {
             child: NotesListView(
               notes: _planData.notes,
               onNotesChanged: () {
-                widget.planDataUpdated();
+                widget.planDataUpdated(_planData);
               },
             ),
           ),
@@ -53,7 +53,7 @@ class _PlanDataListItemState extends State<PlanDataListItem> {
             child: CheckListsView(
               checkLists: _planData.checkLists,
               onCheckListsChanged: () {
-                widget.planDataUpdated();
+                widget.planDataUpdated(_planData);
               },
             ),
           ),
@@ -62,7 +62,7 @@ class _PlanDataListItemState extends State<PlanDataListItem> {
             child: PlacesListView(
               places: _planData.places,
               onPlacesChanged: () {
-                widget.planDataUpdated();
+                widget.planDataUpdated(_planData);
               },
             ),
           ),
@@ -107,7 +107,7 @@ class _PlanDataListItemState extends State<PlanDataListItem> {
           _planData.checkLists.add(newCheckListEntry);
           setState(() {});
 
-          widget.planDataUpdated();
+          widget.planDataUpdated(_planData);
         }
       },
     );
@@ -122,7 +122,7 @@ class _PlanDataListItemState extends State<PlanDataListItem> {
         if (!isAnyNoteEmpty) {
           _planData.notes.add(newNoteEntry);
           setState(() {});
-          widget.planDataUpdated();
+          widget.planDataUpdated(_planData);
         }
       },
       child: const Icon(Icons.note_rounded),
@@ -134,7 +134,7 @@ class _PlanDataListItemState extends State<PlanDataListItem> {
       onLocationSelected: (location) {
         if (!_planData.places.contains(location)) {
           _planData.places.add(location);
-          widget.planDataUpdated();
+          widget.planDataUpdated(_planData);
           setState(() {});
         }
       },

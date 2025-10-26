@@ -143,8 +143,8 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
         };
         pageContentCreator = (validityNotifier) => PlanDataListItem(
               planData: tripEntity,
-              planDataUpdated: () {
-                validityNotifier.value = tripEntity.validate();
+              planDataUpdated: (newPlanData) {
+                validityNotifier.value = newPlanData.validate();
               },
             );
       } else {
@@ -155,8 +155,8 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
       }
       pageContentCreator = (validityNotifier) => PlanDataListItem(
             planData: tripEntity,
-            planDataUpdated: () {
-              validityNotifier.value = tripEntity.validate();
+            planDataUpdated: (newPlanData) {
+              validityNotifier.value = newPlanData.validate();
             },
           );
     }
