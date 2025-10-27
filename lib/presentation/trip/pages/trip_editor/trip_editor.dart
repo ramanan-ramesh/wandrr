@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/states.dart';
+import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/creator_bottom_sheet.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/editor_bottom_sheet.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/app_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/bottom_nav_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/default_page.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/editing/creator_bottom_sheet.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
@@ -78,14 +84,39 @@ class _TripEditorPageInternal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: TripEditorAppBar(),
-      extendBody: true,
-      floatingActionButton: _createAddButton(context),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      body: body,
-      bottomNavigationBar: bottomNavigationBar,
+    return BlocListener<TripManagementBloc, TripManagementState>(
+      listener: _onBlocStateChanged,
+      child: Scaffold(
+        appBar: TripEditorAppBar(),
+        extendBody: true,
+        floatingActionButton: _createAddButton(context),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        body: body,
+        bottomNavigationBar: bottomNavigationBar,
+      ),
     );
+  }
+
+  void _onBlocStateChanged(BuildContext context, TripManagementState state) {
+    if (state is UpdatedTripEntity) {
+      if (state.dataState == DataState.select) {
+        var tripEntity =
+            state.tripEntityModificationData.modifiedCollectionItem;
+        if (tripEntity is TransitFacade) {
+          _showModalBottomSheet(
+              TripEntityEditorBottomSheet<TransitFacade>(
+                  tripEditorAction: TripEditorAction.travel,
+                  tripEntity: tripEntity),
+              context);
+        } else if (tripEntity is LodgingFacade) {
+          _showModalBottomSheet(
+              TripEntityEditorBottomSheet<LodgingFacade>(
+                  tripEditorAction: TripEditorAction.stay,
+                  tripEntity: tripEntity),
+              context);
+        }
+      }
+    }
   }
 
   Widget _createAddButton(BuildContext pageContext) {

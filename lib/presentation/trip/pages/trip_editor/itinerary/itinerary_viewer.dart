@@ -53,13 +53,15 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     return Column(
       children: [
         _buildNavigationBar(context),
-        FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: Itinerary(itineraryDay: _currentDate),
+        Expanded(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: Itinerary(itineraryDay: _currentDate),
+            ),
           ),
-        )
+        ),
       ],
     );
   }

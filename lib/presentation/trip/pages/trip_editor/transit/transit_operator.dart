@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
@@ -32,18 +31,46 @@ class TransitOperatorEditor extends StatelessWidget {
   }
 
   Widget _createTransitOperatorEditingField(BuildContext context) {
+    final theme = Theme.of(context);
+    final isLightTheme = theme.brightness == Brightness.light;
+    final textColor =
+        isLightTheme ? AppColors.brandSecondary : AppColors.neutral100;
+    final borderColor =
+        isLightTheme ? AppColors.neutral400 : AppColors.neutral600;
+    final iconColor =
+        isLightTheme ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
+
     var transitOperatorEditingController =
         TextEditingController(text: initialOperator ?? '');
-    return TextField(
-      minLines: 1,
-      maxLines: 1,
-      style: Theme.of(context).textTheme.labelLarge,
-      controller: transitOperatorEditingController,
-      decoration: InputDecoration(
-        labelText: context
-            .localizations.carrierName, //TODO: This gets cut off for Tamil
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: borderColor,
+          width: 1,
+        ),
       ),
-      onChanged: onOperatorChanged,
+      child: TextField(
+        minLines: 1,
+        maxLines: 1,
+        style: theme.textTheme.labelLarge?.copyWith(
+          color: textColor,
+        ),
+        controller: transitOperatorEditingController,
+        decoration: InputDecoration(
+          labelText: context.localizations.carrierName,
+          labelStyle: TextStyle(color: textColor),
+          prefixIcon: Icon(Icons.directions_bus, color: iconColor),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+        onChanged: onOperatorChanged,
+      ),
     );
   }
 }
@@ -59,14 +86,40 @@ class _FlightDetailsEditor extends StatefulWidget {
   State<_FlightDetailsEditor> createState() => _FlightDetailsEditorState();
 }
 
-class _FlightDetailsEditorState extends State<_FlightDetailsEditor> {
+class _FlightDetailsEditorState extends State<_FlightDetailsEditor>
+    with SingleTickerProviderStateMixin {
   late final AirlineData airlineData;
   late final TextEditingController flightNumberEditingController;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutBack,
+      ),
+    );
     _initializeFromOperator();
+    _updateAnimation();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    flightNumberEditingController.dispose();
+    super.dispose();
   }
 
   @override
@@ -74,27 +127,77 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.initialOperator != widget.initialOperator) {
       _initializeFromOperator();
+      _updateAnimation();
       setState(() {});
     }
   }
 
+  void _updateAnimation() {
+    if (_isAirlineValid()) {
+      _animationController.forward();
+    } else {
+      _animationController.reverse();
+    }
+  }
+
+  bool _isAirlineValid() {
+    return airlineData.airLineName != null &&
+        airlineData.airLineName!.isNotEmpty &&
+        airlineData.airLineCode != null &&
+        airlineData.airLineCode!.isNotEmpty;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(4.0),
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final containerColor1 = isLightTheme
+        ? AppColors.lightSurface.withValues(alpha: 0.95)
+        : AppColors.darkSurfaceVariant.withValues(alpha: 0.6);
+    final containerColor2 = isLightTheme
+        ? AppColors.neutral200.withValues(alpha: 0.8)
+        : AppColors.darkSurface.withValues(alpha: 0.4);
+    final borderColor = isLightTheme
+        ? AppColors.brandPrimary.withValues(alpha: 0.3)
+        : AppColors.brandPrimaryLight.withValues(alpha: 0.3);
+
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: context.isLightTheme
-            ? AppColors.brandPrimaryLight
-            : AppColors.brandPrimaryDark,
-        borderRadius: BorderRadius.circular(8.0),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [containerColor1, containerColor2],
+        ),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: borderColor,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isLightTheme
+                ? AppColors.brandPrimary.withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 4),
           _createAirlineEditor(context),
-          const SizedBox(height: 12),
-          _buildAirlineNumberField(context),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+            child: _isAirlineValid()
+                ? Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      _buildFlightNumberSection(context, isLightTheme),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+          ),
         ],
       ),
     );
@@ -111,7 +214,8 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor> {
   }
 
   Widget _createAirlineEditor(BuildContext context) {
-    return PlatformAutoComplete<(String airLineName, String airLineCode)>(
+    final autoComplete =
+        PlatformAutoComplete<(String airLineName, String airLineCode)>(
       labelText: context.localizations.flightCarrierName,
       selectedItem:
           (airlineData.airLineName != null && airlineData.airLineCode != null)
@@ -123,6 +227,7 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor> {
       onSelected: (selectedAirlineData) {
         airlineData.airLineName = selectedAirlineData.$1;
         airlineData.airLineCode = selectedAirlineData.$2;
+        _updateAnimation();
         if (airlineData.airLineNumber != null &&
             airlineData.airLineName != null &&
             airlineData.airLineCode != null) {
@@ -133,61 +238,188 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor> {
       listItem: (airlineData) {
         return ListTile(
           selected: this.airlineData.airLineName == airlineData.$1,
-          leading: Text(
-            airlineData.$2,
+          leading: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              airlineData.$2,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
           ),
           title: Text(
             airlineData.$1,
+            style: const TextStyle(fontWeight: FontWeight.w500),
           ),
         );
       },
     );
+    return SizedBox(width: double.infinity, child: autoComplete);
   }
 
-  Widget _buildAirlineNumberField(BuildContext context) {
-    final textStyle = Theme.of(context).textTheme.bodyMedium!;
-    final textPainter = TextPainter(
-      text: TextSpan(text: '0' * 13, style: textStyle),
-      textDirection: TextDirection.ltr,
-    )..layout();
+  Widget _buildFlightNumberSection(BuildContext context, bool isLightTheme) {
+    final sectionBgColor1 = isLightTheme
+        ? AppColors.neutral200.withValues(alpha: 0.9)
+        : AppColors.darkSurface.withValues(alpha: 0.7);
+    final sectionBgColor2 = isLightTheme
+        ? AppColors.lightSurface.withValues(alpha: 0.7)
+        : AppColors.darkSurfaceVariant.withValues(alpha: 0.5);
+    final sectionBorderColor = isLightTheme
+        ? AppColors.brandPrimary.withValues(alpha: 0.4)
+        : AppColors.brandPrimaryLight.withValues(alpha: 0.4);
+    final codeContainerBg =
+        isLightTheme ? AppColors.neutral300 : AppColors.darkSurfaceVariant;
+    final codeBorderColor = isLightTheme
+        ? AppColors.brandPrimary.withValues(alpha: 0.5)
+        : AppColors.brandPrimaryLight.withValues(alpha: 0.5);
+    final textColor =
+        isLightTheme ? AppColors.brandSecondary : AppColors.neutral100;
+    final labelColor =
+        isLightTheme ? AppColors.neutral600 : AppColors.neutral400;
+    final separatorColor =
+        isLightTheme ? AppColors.neutral500 : AppColors.neutral500;
+    final checkColor =
+        isLightTheme ? AppColors.success : AppColors.successLight;
 
-    return Row(
-      children: [
-        Text(
-          ' ${airlineData.airLineCode ?? '  '}  ',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        Flexible(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: textPainter.width + 10),
-            child: TextField(
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(4),
-              ],
-              maxLines: 1,
-              minLines: 1,
-              decoration: InputDecoration(
-                labelText: context.localizations.flightNumber,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 3.0),
-              ),
-              style: Theme.of(context).textTheme.labelLarge,
-              controller: flightNumberEditingController,
-              onChanged: (newFlightNumber) {
-                airlineData.airLineNumber = newFlightNumber;
-                if (airlineData.airLineNumber != null &&
-                    airlineData.airLineName != null &&
-                    airlineData.airLineCode != null) {
-                  widget.onOperatorChanged(airlineData.toString());
-                } else {
-                  widget.onOperatorChanged(null);
-                }
-              },
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [sectionBgColor1, sectionBgColor2],
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: sectionBorderColor,
+              width: 1.5,
             ),
           ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: codeContainerBg,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: codeBorderColor,
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      airlineData.airLineCode ?? '',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: textColor,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '-',
+                    style: TextStyle(
+                      color: separatorColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: codeContainerBg,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: codeBorderColor,
+                          width: 1,
+                        ),
+                      ),
+                      child: TextField(
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(4),
+                        ],
+                        maxLines: 1,
+                        minLines: 1,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: textColor,
+                          letterSpacing: 1.2,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: context.localizations.flightNumber,
+                          labelStyle: TextStyle(color: labelColor),
+                          hintText: '0000',
+                          hintStyle: TextStyle(
+                            color: labelColor,
+                            letterSpacing: 1.2,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 10),
+                        ),
+                        controller: flightNumberEditingController,
+                        onChanged: (newFlightNumber) {
+                          airlineData.airLineNumber = newFlightNumber;
+                          if (airlineData.airLineNumber != null &&
+                              airlineData.airLineNumber!.isNotEmpty &&
+                              airlineData.airLineName != null &&
+                              airlineData.airLineCode != null) {
+                            widget.onOperatorChanged(airlineData.toString());
+                          } else {
+                            widget.onOperatorChanged(null);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (airlineData.airLineNumber != null &&
+                  airlineData.airLineNumber!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      color: checkColor,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${airlineData.airLineCode}-${airlineData.airLineNumber}',
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
         ),
-      ],
+      ),
     );
   }
 }

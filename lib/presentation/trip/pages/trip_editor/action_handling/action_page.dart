@@ -55,7 +55,7 @@ class TripEditorActionPage<T extends TripEntity> extends StatelessWidget {
             Expanded(
               child: SingleChildScrollView(
                 controller: scrollController,
-                padding: EdgeInsets.fromLTRB(16.0, 0, 16.0, _bottomPadding),
+                padding: EdgeInsets.fromLTRB(0, 0, 0, _bottomPadding),
                 child: pageContentCreator(validityNotifier),
               ),
             ),

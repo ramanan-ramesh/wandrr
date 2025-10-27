@@ -20,8 +20,10 @@ class TripEntityEditorBottomSheet<T extends TripEntity>
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
       expand: false,
-      maxChildSize: 0.8,
-      minChildSize: 0.4,
+      shouldCloseOnMinExtent: false,
+      initialChildSize: 0.8,
+      maxChildSize: 0.85,
+      minChildSize: 0.5,
       builder: (context, scrollController) {
         return tripEditorAction.createActionPage(
             tripEntity: tripEntity!,

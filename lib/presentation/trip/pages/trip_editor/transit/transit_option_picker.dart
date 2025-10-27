@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
@@ -231,8 +230,8 @@ class _TransitOptionPickerState extends State<TransitOptionPicker>
         onTap: onTap,
         selected: isSelected,
         leading: Icon(metadata.icon),
-        shape:
-            const RoundedRectangleBorder(), // Override theme's rounded border
+        shape: const RoundedRectangleBorder(),
+        // Override theme's rounded border
         title: Text(
           metadata.name,
           style: TextStyle(
@@ -249,6 +248,18 @@ class _TransitOptionPickerState extends State<TransitOptionPicker>
       orElse: () => transitOptionMetadatas.first,
     );
 
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final triggerBgColor = isLightTheme
+        ? AppColors.lightSurface.withValues(alpha: 0.95)
+        : AppColors.darkSurfaceVariant.withValues(alpha: 0.8);
+    final borderColor = isLightTheme
+        ? AppColors.brandPrimary.withValues(alpha: 0.4)
+        : AppColors.brandPrimaryLight.withValues(alpha: 0.4);
+    final textColor =
+        isLightTheme ? AppColors.brandSecondary : AppColors.neutral100;
+    final iconColor =
+        isLightTheme ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
+
     return CompositedTransformTarget(
       link: _layerLink,
       child: SizedBox(
@@ -258,37 +269,44 @@ class _TransitOptionPickerState extends State<TransitOptionPicker>
           onTap: _toggleDropdown,
           child: DecoratedBox(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8.0),
+              color: triggerBgColor,
+              borderRadius: BorderRadius.circular(12.0),
               border: Border.all(
-                color: context.isLightTheme
-                    ? AppColors.brandSecondary
-                    : AppColors.neutral400,
+                color: borderColor,
                 width: 1.5,
               ),
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Icon(
-                  selectedOption.icon,
-                ),
-                const SizedBox(width: 12.0),
-                Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    selectedOption.icon,
+                    color: iconColor,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12.0),
+                  Expanded(
                     child: Text(
                       selectedOption.name,
-                      style: const TextStyle(fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: textColor,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8.0),
-                RotationTransition(
-                  turns: _animationController,
-                  child: const Icon(Icons.arrow_drop_down_rounded),
-                ),
-              ],
+                  const SizedBox(width: 8.0),
+                  RotationTransition(
+                    turns: _animationController,
+                    child: Icon(
+                      Icons.arrow_drop_down_rounded,
+                      color: iconColor,
+                      size: 28,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
