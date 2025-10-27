@@ -77,9 +77,6 @@ class LocationModelImplementation extends LocationFacade
   }
 
   @override
-  Future<bool> tryUpdate(LocationFacade toUpdate) async => true;
-
-  @override
   LocationFacade get facade => clone();
 
   LocationModelImplementation._(

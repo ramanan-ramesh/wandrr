@@ -30,9 +30,6 @@ class NoteModelImplementation extends NoteFacade
   @override
   Map<String, dynamic> toJson() => {_noteField: note};
 
-  @override
-  Future<bool> tryUpdate(NoteFacade toUpdate) async => true;
-
   NoteModelImplementation._({
     required super.note,
     required super.tripId,

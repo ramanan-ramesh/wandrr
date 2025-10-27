@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
-import 'package:wandrr/data/trip/implementations/firestore_helpers.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
@@ -96,31 +95,6 @@ class ExpenseModelImplementation extends ExpenseFacade
       json[_dateTimeField] = Timestamp.fromDate(dateTime!);
     }
     return json;
-  }
-
-  @override
-  Future<bool> tryUpdate(ExpenseFacade toUpdate) async {
-    var json = <String, dynamic>{};
-    FirestoreHelpers.updateJson(
-        totalExpense, toUpdate.totalExpense, _totalExpenseField, json);
-    FirestoreHelpers.updateJson(paidBy, toUpdate.paidBy, _paidByField, json);
-    FirestoreHelpers.updateJson(
-        dateTime, toUpdate.dateTime, _dateTimeField, json);
-    FirestoreHelpers.updateJson(
-        category.name, toUpdate.category.name, _categoryField, json);
-    FirestoreHelpers.updateJson(splitBy, toUpdate.splitBy, _splitByField, json);
-    FirestoreHelpers.updateJson(title, toUpdate.title, _titleField, json);
-    FirestoreHelpers.updateJson(
-        location, toUpdate.location, _locationField, json);
-    FirestoreHelpers.updateJson(
-        description, toUpdate.description, _descriptionField, json);
-
-    return await FirestoreHelpers.tryUpdateDocumentField(
-        documentReference: documentReference,
-        json: json,
-        onSuccess: () {
-          copyWith(toUpdate);
-        });
   }
 
   static ExpenseModelImplementation fromJson(

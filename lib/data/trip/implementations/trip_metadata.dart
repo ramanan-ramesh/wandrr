@@ -1,9 +1,6 @@
-import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
-import 'package:wandrr/data/trip/implementations/firestore_helpers.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
@@ -63,26 +60,6 @@ class TripMetadataModelImplementation extends TripMetadataFacade
         _budgetField: budget.toString(),
         _thumbnailTagField: thumbnailTag
       };
-
-  @override
-  Future<bool> tryUpdate(TripMetadataFacade toUpdate) async {
-    var json = <String, dynamic>{};
-    FirestoreHelpers.updateJson(endDate, toUpdate.endDate, _endDateField, json);
-    FirestoreHelpers.updateJson(
-        startDate, toUpdate.startDate, _startDateField, json);
-    FirestoreHelpers.updateJson(budget, toUpdate.budget, _budgetField, json);
-    FirestoreHelpers.updateJson(
-        contributors, toUpdate.contributors, _contributorsField, json);
-    FirestoreHelpers.updateJson(name, toUpdate.name, _nameField, json);
-    FirestoreHelpers.updateJson(
-        thumbnailTag, toUpdate.thumbnailTag, _thumbnailTagField, json);
-    return FirestoreHelpers.tryUpdateDocumentField(
-        documentReference: documentReference,
-        json: json,
-        onSuccess: () {
-          copyWith(toUpdate);
-        });
-  }
 
   @override
   TripMetadataFacade get facade => clone();

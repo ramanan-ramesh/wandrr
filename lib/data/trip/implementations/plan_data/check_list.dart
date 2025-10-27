@@ -51,9 +51,6 @@ class CheckListModelImplementation extends CheckListFacade
     };
   }
 
-  @override
-  Future<bool> tryUpdate(CheckListFacade toUpdate) async => true;
-
   CheckListModelImplementation._(
       {required super.items,
       required super.tripId,
