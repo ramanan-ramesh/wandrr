@@ -12,25 +12,14 @@ class SightModelImplementation extends SightFacade
   static const String _expenseField = 'expense';
   static const String _descriptionField = 'description';
 
-  SightModelImplementation({
-    required super.tripId,
-    required super.name,
-    required super.day,
-    super.id,
-    super.location,
-    super.visitTime,
-    super.expense,
-    super.description,
-  });
-
   factory SightModelImplementation.fromModelFacade(SightFacade facade) {
-    return SightModelImplementation(
+    return SightModelImplementation._(
       tripId: facade.tripId,
       id: facade.id,
       name: facade.name,
       location: facade.location?.clone(),
       visitTime: facade.visitTime?.copyWith(),
-      expense: facade.expense?.clone(),
+      expense: facade.expense.clone(),
       description: facade.description,
       day: facade.day,
     );
@@ -41,7 +30,7 @@ class SightModelImplementation extends SightFacade
     DateTime day,
     String tripId,
   ) {
-    return SightModelImplementation(
+    return SightModelImplementation._(
       tripId: tripId,
       name: json[_nameField] as String,
       day: day,
@@ -54,12 +43,10 @@ class SightModelImplementation extends SightFacade
       visitTime: json[_visitTimeField] != null
           ? (json[_visitTimeField] as Timestamp).toDate()
           : null,
-      expense: json[_expenseField] != null
-          ? ExpenseModelImplementation.fromJson(
-              json: json[_expenseField] as Map<String, dynamic>,
-              tripId: tripId,
-            )
-          : null,
+      expense: ExpenseModelImplementation.fromJson(
+        json: json[_expenseField] as Map<String, dynamic>,
+        tripId: tripId,
+      ),
       description: json[_descriptionField] as String?,
     );
   }
@@ -69,7 +56,7 @@ class SightModelImplementation extends SightFacade
       _nameField: name,
       _locationField: (location as LocationModelImplementation?)?.toJson(),
       _visitTimeField: visitTime?.toIso8601String(),
-      _expenseField: (expense as ExpenseModelImplementation?)?.toJson(),
+      _expenseField: (expense as ExpenseModelImplementation).toJson(),
       _descriptionField: description,
     };
   }
@@ -80,4 +67,15 @@ class SightModelImplementation extends SightFacade
   @override
   DocumentReference<Object?> get documentReference =>
       throw UnimplementedError();
+
+  SightModelImplementation._({
+    required super.tripId,
+    required super.name,
+    required super.day,
+    required super.expense,
+    super.id,
+    super.location,
+    super.visitTime,
+    super.description,
+  });
 }

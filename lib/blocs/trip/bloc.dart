@@ -49,8 +49,6 @@ class TripManagementBloc
     on<UpdateTripEntity<TransitFacade>>(_onUpdateTransit);
     on<UpdateTripEntity<LodgingFacade>>(_onUpdateLodging);
     on<GoToHome>(_onGoToHome);
-    on<UpdateLinkedExpense<TransitFacade>>(_onTransitExpenseUpdated);
-    on<UpdateLinkedExpense<LodgingFacade>>(_onLodgingExpenseUpdated);
     on<UpdateTripEntity<ExpenseFacade>>(_onUpdateExpense);
     on<UpdateTripEntity<TripMetadataFacade>>(_onUpdateTripMetadata);
     on<UpdateTripEntity<PlanDataFacade>>(_onUpdatePlanData);
@@ -153,9 +151,6 @@ class TripManagementBloc
 
   FutureOr<void> _onUpdateExpense(UpdateTripEntity<ExpenseFacade> event,
       Emitter<TripManagementState> emit) async {
-    if (event is UpdateLinkedExpense) {
-      return;
-    }
     if (event.dataState == DataState.newUiEntry) {
       var newExpense = event.tripEntity ??
           ExpenseFacade.newUiEntry(
@@ -217,52 +212,6 @@ class TripManagementBloc
         _tripRepository!.tripMetadataCollection,
         event.tripEntity!.id,
         emit);
-  }
-
-  FutureOr<void> _onTransitExpenseUpdated(
-      UpdateLinkedExpense<TransitFacade> event,
-      Emitter<TripManagementState> emit) async {
-    switch (event.dataState) {
-      case DataState.select:
-        {
-          emit(UpdatedLinkedExpense.selected(
-              link: event.link, expense: event.tripEntity!));
-          break;
-        }
-      case DataState.update:
-        {
-          event.link.expense = event.tripEntity!;
-          add(UpdateTripEntity<TransitFacade>.update(tripEntity: event.link));
-          break;
-        }
-      default:
-        {
-          break;
-        }
-    }
-  }
-
-  FutureOr<void> _onLodgingExpenseUpdated(
-      UpdateLinkedExpense<LodgingFacade> event,
-      Emitter<TripManagementState> emit) async {
-    switch (event.dataState) {
-      case DataState.select:
-        {
-          emit(UpdatedLinkedExpense.selected(
-              link: event.link, expense: event.tripEntity!));
-          break;
-        }
-      case DataState.update:
-        {
-          event.link.expense = event.tripEntity!;
-          add(UpdateTripEntity<LodgingFacade>.update(tripEntity: event.link));
-          break;
-        }
-      default:
-        {
-          break;
-        }
-    }
   }
 
   void _createTripMetadataCollectionSubscriptions() {

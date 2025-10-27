@@ -3,34 +3,46 @@ import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
-class SightFacade extends Equatable implements TripEntity<SightFacade> {
+class SightFacade extends Equatable
+    implements ExpenseLinkedTripEntity<SightFacade> {
   final String tripId;
 
   @override
   String? id;
+
+  @override
+  ExpenseFacade expense;
 
   final DateTime day;
   String name;
 
   LocationFacade? location;
   DateTime? visitTime;
-  ExpenseFacade? expense;
   String? description;
 
   SightFacade({
     required this.tripId,
     required this.name,
     required this.day,
+    required this.expense,
     this.id,
     this.location,
     this.visitTime,
-    this.expense,
     this.description,
   });
 
-  SightFacade.newEntry({required this.tripId, required this.day})
+  SightFacade.newEntry(
+      {required this.tripId,
+      required this.day,
+      required String defaultCurrency,
+      required Iterable<String> contributors})
       : name = '',
-        id = '';
+        id = '',
+        expense = ExpenseFacade.newUiEntry(
+          tripId: tripId,
+          defaultCurrency: defaultCurrency,
+          allTripContributors: contributors,
+        );
 
   @override
   SightFacade clone() => SightFacade(
@@ -39,7 +51,7 @@ class SightFacade extends Equatable implements TripEntity<SightFacade> {
         name: name,
         location: location?.clone(),
         visitTime: visitTime?.copyWith(),
-        expense: expense?.clone(),
+        expense: expense.clone(),
         description: description,
         day: day,
       );
@@ -48,7 +60,7 @@ class SightFacade extends Equatable implements TripEntity<SightFacade> {
   bool validate() {
     return name.isNotEmpty &&
         name.length >= 3 &&
-        (location != null || visitTime != null || expense != null);
+        (location != null || visitTime != null);
   }
 
   @override

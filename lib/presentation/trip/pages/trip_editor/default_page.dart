@@ -4,8 +4,8 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/plan_data_l
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/collapsible_section.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/collapsible_sections_page.dart';
 
-class ItineraryPage extends StatelessWidget {
-  const ItineraryPage({super.key});
+class DefaultPage extends StatelessWidget {
+  const DefaultPage({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/stay_and_transits.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class ItineraryViewer extends StatefulWidget {
@@ -57,7 +57,7 @@ class _ItineraryViewerState extends State<ItineraryViewer>
           opacity: _fadeAnimation,
           child: SlideTransition(
             position: _slideAnimation,
-            child: ItineraryStayAndTransits(itineraryDay: _currentDate),
+            child: Itinerary(itineraryDay: _currentDate),
           ),
         )
       ],

@@ -1,7 +1,6 @@
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
-import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 
@@ -78,24 +77,6 @@ class UpdatedTripEntity<T> extends TripManagementState {
         isOperationSuccess = true,
         tripEntityModificationData = CollectionItemChangeMetadata(tripEntity,
             isFromExplicitAction: true);
-}
-
-class UpdatedLinkedExpense<T> extends UpdatedTripEntity<ExpenseFacade> {
-  final T link;
-
-  UpdatedLinkedExpense.updated(
-      {required ExpenseFacade expense,
-      required this.link,
-      required bool isFromEvent,
-      required bool isOperationSuccess})
-      : super.updated(
-            tripEntityModificationData: CollectionItemChangeMetadata(expense,
-                isFromExplicitAction: isFromEvent),
-            isOperationSuccess: isOperationSuccess);
-
-  UpdatedLinkedExpense.selected(
-      {required ExpenseFacade expense, required this.link})
-      : super.selected(tripEntity: expense);
 }
 
 class ProcessSectionNavigation extends TripManagementState {

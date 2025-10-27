@@ -1,5 +1,4 @@
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
@@ -31,22 +30,6 @@ class LoadTrip extends TripManagementEvent {
   final TripMetadataFacade tripMetadata;
 
   LoadTrip({required this.tripMetadata});
-}
-
-class UpdateLinkedExpense<T> extends UpdateTripEntity<ExpenseFacade> {
-  final T link;
-
-  UpdateLinkedExpense.update(
-      {required this.link, required ExpenseFacade expense})
-      : super.update(tripEntity: expense);
-
-  UpdateLinkedExpense.delete(
-      {required this.link, required ExpenseFacade expense})
-      : super.delete(tripEntity: expense);
-
-  UpdateLinkedExpense.select(
-      {required this.link, required ExpenseFacade expense})
-      : super.select(tripEntity: expense);
 }
 
 class NavigateToSection extends TripManagementEvent {

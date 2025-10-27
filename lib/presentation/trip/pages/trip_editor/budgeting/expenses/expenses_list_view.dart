@@ -111,6 +111,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
 
   bool _shouldBuildList(
       TripManagementState previousState, TripManagementState currentState) {
+    //TODO: The list should rebuild for updates to Trip Start/End dates
     if (currentState.isTripEntityUpdated<ExpenseLinkedTripEntity>()) {
       var updatedTripEntityState = currentState as UpdatedTripEntity;
       if (updatedTripEntityState.dataState == DataState.delete ||
@@ -129,6 +130,14 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     expenseUiElements.addAll(activeTrip.expenseCollection.collectionItems);
     expenseUiElements.addAll(activeTrip.transitCollection.collectionItems);
     expenseUiElements.addAll(activeTrip.lodgingCollection.collectionItems);
+    for (var itineraryPlanData in activeTrip.itineraryCollection) {
+      for (var sight in itineraryPlanData.planData.sights) {
+        var totalExpense = sight.expense.totalExpense.amount;
+        if (totalExpense > 0) {
+          expenseUiElements.add(sight.expense);
+        }
+      }
+    }
     _expenses = expenseUiElements.toList();
   }
 
