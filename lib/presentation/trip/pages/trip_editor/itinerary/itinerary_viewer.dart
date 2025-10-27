@@ -39,6 +39,7 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     ));
 
     _animationController.forward();
+    _currentDate = context.activeTrip.tripMetadata.startDate!;
   }
 
   @override
@@ -49,7 +50,6 @@ class _ItineraryViewerState extends State<ItineraryViewer>
 
   @override
   Widget build(BuildContext context) {
-    _currentDate = context.activeTrip.tripMetadata.startDate!;
     return Column(
       children: [
         _buildNavigationBar(context),

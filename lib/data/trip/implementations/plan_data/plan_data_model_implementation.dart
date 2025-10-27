@@ -30,8 +30,7 @@ class PlanDataModelImplementation extends PlanDataFacade
         List<NoteFacade>.from(planDataFacade.notes.map((note) => note.clone()));
     var checkLists = List<CheckListModelImplementation>.from(planDataFacade
         .checkLists
-        .map((checkList) => CheckListModelImplementation.fromModelFacade(
-            checkListModelFacade: checkList)));
+        .map(CheckListModelImplementation.fromModelFacade));
     return PlanDataModelImplementation._(
         id: planDataId,
         tripId: planDataFacade.tripId,
@@ -169,11 +168,10 @@ class PlanDataModelImplementation extends PlanDataFacade
       json[_titleField] = toUpdate.title;
     }
     if (!listEquals(checkLists, toUpdate.checkLists)) {
-      json[_checkListsField] = List<Map<String, dynamic>>.from(toUpdate
-          .checkLists
-          .map((checkList) => CheckListModelImplementation.fromModelFacade(
-                  checkListModelFacade: checkList)
-              .toJson()));
+      json[_checkListsField] = List<Map<String, dynamic>>.from(
+          toUpdate.checkLists.map((checkList) =>
+              CheckListModelImplementation.fromModelFacade(checkList)
+                  .toJson()));
       shouldUpdate = true;
     }
 
@@ -202,8 +200,7 @@ class PlanDataModelImplementation extends PlanDataFacade
           title = planData.title;
           _notes = toUpdate.notes.map((e) => e.clone()).toList();
           _checkLists = toUpdate.checkLists
-              .map((e) => CheckListModelImplementation.fromModelFacade(
-                  checkListModelFacade: e))
+              .map(CheckListModelImplementation.fromModelFacade)
               .toList();
           _places = toUpdate.places
               .map((e) => LocationModelImplementation.fromModelFacade(

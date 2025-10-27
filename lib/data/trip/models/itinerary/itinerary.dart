@@ -4,18 +4,18 @@ import 'dart:collection';
 import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
-import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
+import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
-import 'lodging.dart';
-import 'transit.dart';
+import 'itinerary_plan_data.dart';
 
 abstract class ItineraryFacade extends Equatable implements TripEntity {
   String get tripId;
 
   DateTime get day;
 
-  PlanDataFacade get planData;
+  ItineraryPlanData get planData;
 
   Iterable<TransitFacade> get transits;
 
@@ -24,16 +24,13 @@ abstract class ItineraryFacade extends Equatable implements TripEntity {
   LodgingFacade? get checkoutLodging;
 
   LodgingFacade? get fullDayLodging;
-
-  @override
-  String get id => day.toIso8601String();
 }
 
 abstract class ItineraryModelEventHandler extends ItineraryFacade
     implements Dispose {
-  Stream<CollectionItemChangeMetadata<PlanDataFacade>> get planDataStream;
+  Stream<CollectionItemChangeMetadata<ItineraryPlanData>> get planDataStream;
 
-  Future<bool> updatePlanData(PlanDataFacade planData);
+  Future<bool> updatePlanData(ItineraryPlanData planData);
 
   void addTransit(TransitFacade transitToAdd);
 

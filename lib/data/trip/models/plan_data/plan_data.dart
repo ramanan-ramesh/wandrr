@@ -79,7 +79,10 @@ class PlanDataFacade extends Equatable implements TripEntity<PlanDataFacade> {
       }
       if (checkLists.any((checkList) =>
           checkList.items.isEmpty ||
-          checkList.items.any((checkListItem) => checkListItem.item.isEmpty))) {
+          checkList.items
+                  .where((checkListItem) => !checkListItem.item.isEmpty)
+                  .length >=
+              1)) {
         return PlanDataValidationResult.checkListItemEmpty;
       }
     }

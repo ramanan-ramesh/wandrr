@@ -9,6 +9,7 @@ import 'package:wandrr/data/trip/implementations/trip_repository.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -53,10 +54,8 @@ class TripManagementBloc
     on<UpdateTripEntity<ExpenseFacade>>(_onUpdateExpense);
     on<UpdateTripEntity<TripMetadataFacade>>(_onUpdateTripMetadata);
     on<UpdateTripEntity<PlanDataFacade>>(_onUpdatePlanData);
-    on<UpdateItineraryPlanData>(_onUpdateItineraryData);
+    on<UpdateTripEntity<ItineraryPlanData>>(_onUpdateItineraryData);
     on<_UpdateTripEntityInternalEvent>(_onTripEntityUpdateInternal);
-    on<_UpdateItineraryPlanDataInternalEvent>(
-        _onItineraryPlanDataUpdateInternal);
     on<NavigateToSection>((event, emit) {
       emit(ProcessSectionNavigation(
           section: event.section, dateTime: event.dateTime));
@@ -193,11 +192,20 @@ class TripManagementBloc
   }
 
   FutureOr<void> _onUpdateItineraryData(
-      UpdateItineraryPlanData event, Emitter<TripManagementState> emit) async {
+      UpdateTripEntity<ItineraryPlanData> event,
+      Emitter<TripManagementState> emit) async {
+    if (event.tripEntity == null) {
+      return;
+    }
+    var itineraryDay = event.tripEntity!.day;
     var itinerary =
-        _activeTrip!.itineraryCollection.getItineraryForDay(event.day);
-    var didUpdate = await itinerary.updatePlanData(event.planData);
-    emit(ItineraryDataUpdated(day: event.day, isOperationSuccess: didUpdate));
+        _activeTrip!.itineraryCollection.getItineraryForDay(itineraryDay);
+    var didUpdate = await itinerary.updatePlanData(event.tripEntity!);
+    emit(UpdatedTripEntity<ItineraryPlanData>.updated(
+        tripEntityModificationData: CollectionItemChangeMetadata(
+            event.tripEntity!,
+            isFromExplicitAction: true),
+        isOperationSuccess: didUpdate));
   }
 
   FutureOr<void> _onUpdateTripMetadata(
@@ -504,7 +512,10 @@ class TripManagementBloc
       var planDataSubscription = itinerary.planDataStream.listen((eventData) {
         if (!eventData.isFromExplicitAction) {
           if (!isClosed) {
-            add(_UpdateItineraryPlanDataInternalEvent(itinerary.day));
+            add(_UpdateTripEntityInternalEvent<ItineraryPlanData>.updated(
+                CollectionItemChangeMetadata(eventData.modifiedCollectionItem,
+                    isFromExplicitAction: false),
+                isOperationSuccess: true));
           }
         }
       });
@@ -517,12 +528,6 @@ class TripManagementBloc
       await subscription.cancel();
     }
     _itineraryPlanDataSubscriptions.clear();
-  }
-
-  FutureOr<void> _onItineraryPlanDataUpdateInternal(
-      _UpdateItineraryPlanDataInternalEvent event,
-      Emitter<TripManagementState> emit) {
-    emit(ItineraryDataUpdated(day: event.day, isOperationSuccess: true));
   }
 }
 
@@ -543,12 +548,6 @@ class _UpdateTripEntityInternalEvent<T extends TripEntity>
   _UpdateTripEntityInternalEvent.deleted(this.updateData,
       {required this.isOperationSuccess})
       : dateState = DataState.delete;
-}
-
-class _UpdateItineraryPlanDataInternalEvent extends TripManagementEvent {
-  DateTime day;
-
-  _UpdateItineraryPlanDataInternalEvent(this.day);
 }
 
 class _OnStartup extends TripManagementEvent {}

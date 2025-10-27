@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -19,6 +20,7 @@ enum TripEditorAction {
   travel,
   stay,
   tripData,
+  itineraryData,
   expense,
 }
 
@@ -31,6 +33,8 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
         return 'Stay Entry';
       case TripEditorAction.tripData:
         return 'Trip Data Entry';
+      case TripEditorAction.itineraryData:
+        return 'Itinerary Data Entry';
       case TripEditorAction.expense:
         return 'Expense Entry';
     }
@@ -48,6 +52,8 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
         return isEditing
             ? 'Edit trip notes and checklist'
             : 'Add trip notes and checklist';
+      case TripEditorAction.itineraryData:
+        return isEditing ? 'Edit itinerary details' : 'Add itinerary details';
       case TripEditorAction.expense:
         return isEditing ? 'Edit expense details' : 'Add expense details';
     }
@@ -63,6 +69,8 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
         return Icons.note;
       case TripEditorAction.expense:
         return Icons.money;
+      case TripEditorAction.itineraryData:
+        return Icons.travel_explore_rounded;
     }
   }
 
@@ -87,11 +95,13 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
             tripId: activeTrip.tripMetadata.id!,
             allTripContributors: activeTrip.tripMetadata.contributors,
             defaultCurrency: activeTrip.tripMetadata.budget.currency);
+      case TripEditorAction.itineraryData:
+        throw UnimplementedError(); //TODO: Remove UnimplementedError in general
     }
   }
 
-  TripEditorActionPage? createActionPage<T extends TripEntity>({
-    required T tripEntity,
+  TripEditorActionPage? createActionPage({
+    required TripEntity tripEntity,
     required String title,
     DateTime? tripDay,
     required bool isEditing,
@@ -102,21 +112,11 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
     void Function(BuildContext context)? onActionInvoked;
     Widget Function(ValueNotifier<bool> validityNotifier)? pageContentCreator;
     if (tripEntity is ExpenseFacade) {
-      onActionInvoked = (context) {
-        context.addTripManagementEvent(isEditing
-            ? UpdateTripEntity<ExpenseFacade>.update(tripEntity: tripEntity)
-            : UpdateTripEntity<ExpenseFacade>.create(tripEntity: tripEntity));
-      };
       pageContentCreator = (validityNotifier) => ExpenseEditor(
             expense: tripEntity,
             validityNotifier: validityNotifier,
           );
     } else if (tripEntity is TransitFacade) {
-      onActionInvoked = (context) {
-        context.addTripManagementEvent(isEditing
-            ? UpdateTripEntity<TransitFacade>.update(tripEntity: tripEntity)
-            : UpdateTripEntity<TransitFacade>.create(tripEntity: tripEntity));
-      };
       pageContentCreator = (validityNotifier) => TravelEditor(
             transitFacade: tripEntity,
             onTransitUpdated: () {
@@ -124,11 +124,6 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
             },
           );
     } else if (tripEntity is LodgingFacade) {
-      onActionInvoked = (context) {
-        context.addTripManagementEvent(isEditing
-            ? UpdateTripEntity<LodgingFacade>.update(tripEntity: tripEntity)
-            : UpdateTripEntity<LodgingFacade>.create(tripEntity: tripEntity));
-      };
       pageContentCreator = (validityNotifier) => LodgingEditor(
             lodging: tripEntity,
             onLodgingUpdated: () {
@@ -136,32 +131,21 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
             },
           );
     } else if (tripEntity is PlanDataFacade) {
-      if (tripDay != null) {
-        onActionInvoked = (context) {
-          context.addTripManagementEvent(
-              UpdateItineraryPlanData(planData: tripEntity, day: tripDay));
-        };
-        pageContentCreator = (validityNotifier) => PlanDataListItem(
-              planData: tripEntity,
-              planDataUpdated: (newPlanData) {
-                validityNotifier.value = newPlanData.validate();
-              },
-            );
-      } else {
-        onActionInvoked = (context) {
-          context.addTripManagementEvent(
-              UpdateTripEntity<PlanDataFacade>.update(tripEntity: tripEntity));
-        };
-      }
       pageContentCreator = (validityNotifier) => PlanDataListItem(
             planData: tripEntity,
-            planDataUpdated: (newPlanData) {
-              validityNotifier.value = newPlanData.validate();
-            },
+            planDataUpdated: (newPlanData) =>
+                validityNotifier.value = newPlanData.validate(),
           );
+    } else if (tripEntity is ItineraryPlanData) {
+      pageContentCreator = (validityNotifier) => Container();
     }
 
-    if (onActionInvoked != null) {
+    if (pageContentCreator != null) {
+      onActionInvoked = (context) => context.addTripManagementEvent(isEditing
+          ? _eventEmittersPerUpdateActions[this]!(tripEntity)
+          : _eventEmittersPerAddActions[this]!(tripEntity));
+    }
+    if (pageContentCreator != null && onActionInvoked != null) {
       return TripEditorActionPage(
         tripEntity: tripEntity,
         title: title,
@@ -176,4 +160,44 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
     }
     return null;
   }
+
+  Map<TripEditorAction, TripManagementEvent Function(TripEntity<dynamic>)>
+      get _eventEmittersPerAddActions =>
+          <TripEditorAction, TripManagementEvent Function(TripEntity)>{
+            TripEditorAction.travel: (entity) =>
+                UpdateTripEntity<TransitFacade>.create(
+                    tripEntity: entity as TransitFacade),
+            TripEditorAction.stay: (entity) =>
+                UpdateTripEntity<LodgingFacade>.create(
+                    tripEntity: entity as LodgingFacade),
+            TripEditorAction.tripData: (entity) =>
+                UpdateTripEntity<PlanDataFacade>.create(
+                    tripEntity: entity as PlanDataFacade),
+            TripEditorAction.itineraryData: (entity) =>
+                UpdateTripEntity<ItineraryPlanData>.create(
+                    tripEntity: entity as ItineraryPlanData),
+            TripEditorAction.expense: (entity) =>
+                UpdateTripEntity<ExpenseFacade>.create(
+                    tripEntity: entity as ExpenseFacade),
+          };
+
+  Map<TripEditorAction, TripManagementEvent Function(TripEntity<dynamic>)>
+      get _eventEmittersPerUpdateActions =>
+          <TripEditorAction, TripManagementEvent Function(TripEntity)>{
+            TripEditorAction.travel: (entity) =>
+                UpdateTripEntity<TransitFacade>.update(
+                    tripEntity: entity as TransitFacade),
+            TripEditorAction.stay: (entity) =>
+                UpdateTripEntity<LodgingFacade>.update(
+                    tripEntity: entity as LodgingFacade),
+            TripEditorAction.tripData: (entity) =>
+                UpdateTripEntity<PlanDataFacade>.update(
+                    tripEntity: entity as PlanDataFacade),
+            TripEditorAction.itineraryData: (entity) =>
+                UpdateTripEntity<ItineraryPlanData>.update(
+                    tripEntity: entity as ItineraryPlanData),
+            TripEditorAction.expense: (entity) =>
+                UpdateTripEntity<ExpenseFacade>.update(
+                    tripEntity: entity as ExpenseFacade),
+          };
 }

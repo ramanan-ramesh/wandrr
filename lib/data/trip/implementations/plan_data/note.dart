@@ -7,9 +7,9 @@ class NoteModelImplementation extends NoteFacade
     implements LeafRepositoryItem<NoteFacade> {
   static const _noteField = 'note';
 
-  NoteModelImplementation.fromModelFacade({
-    required NoteFacade noteModelFacade,
-  }) : super(note: noteModelFacade.note, tripId: noteModelFacade.tripId);
+  NoteModelImplementation.fromModelFacade(
+    NoteFacade noteModelFacade,
+  ) : super(note: noteModelFacade.note, tripId: noteModelFacade.tripId);
 
   static NoteModelImplementation fromDocumentSnapshot(
           {required DocumentSnapshot documentSnapshot,

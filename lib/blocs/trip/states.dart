@@ -98,13 +98,6 @@ class UpdatedLinkedExpense<T> extends UpdatedTripEntity<ExpenseFacade> {
       : super.selected(tripEntity: expense);
 }
 
-class ItineraryDataUpdated extends TripManagementState {
-  final DateTime day;
-  final bool isOperationSuccess;
-
-  ItineraryDataUpdated({required this.day, required this.isOperationSuccess});
-}
-
 class ProcessSectionNavigation extends TripManagementState {
   DateTime? dateTime;
   final String section;

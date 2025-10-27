@@ -12,7 +12,7 @@ class CheckListModelImplementation extends CheckListFacade
   static const _isCheckedField = 'status';
 
   CheckListModelImplementation.fromModelFacade(
-      {required CheckListFacade checkListModelFacade})
+      CheckListFacade checkListModelFacade)
       : super(
             items: List.from(checkListModelFacade.items),
             title: checkListModelFacade.title!,
