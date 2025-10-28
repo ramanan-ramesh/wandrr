@@ -153,8 +153,8 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
   }
 
   Widget _createTripContentPage(Widget contentPage) {
-    return RepositoryProvider(
-      create: (BuildContext context) => _tripRepository!,
+    return RepositoryProvider.value(
+      value: _tripRepository!,
       child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
         context.isBigLayout =

@@ -8,6 +8,7 @@ import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/date_time_picker.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 import 'package:wandrr/presentation/trip/widgets/geo_location_auto_complete.dart';
@@ -66,99 +67,19 @@ class _TravelEditorState extends State<TravelEditor>
     final activeTrip = context.activeTrip;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final isBigLayout = context.isBigLayout;
-    final cardBorderRadius = _getCardBorderRadius(isBigLayout);
+    final cardBorderRadius = EditorTheme.getCardBorderRadius(isBigLayout);
 
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: _buildTransitCard(
-        context,
-        activeTrip,
-        isLightTheme,
-        isBigLayout,
-        cardBorderRadius,
-      ),
-    );
-  }
-
-  double _getCardBorderRadius(bool isBigLayout) {
-    return isBigLayout ? 28.0 : 24.0;
-  }
-
-  Widget _buildTransitCard(
-    BuildContext context,
-    TripDataFacade activeTrip,
-    bool isLightTheme,
-    bool isBigLayout,
-    double cardBorderRadius,
-  ) {
-    return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: isBigLayout ? 24 : 16,
-        vertical: isBigLayout ? 16 : 12,
-      ),
-      constraints: isBigLayout ? const BoxConstraints(maxWidth: 1200) : null,
-      decoration:
-          _buildCardDecoration(isLightTheme, isBigLayout, cardBorderRadius),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(cardBorderRadius - 2),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildTransitTypeBadge(
-                context, activeTrip, isLightTheme, cardBorderRadius),
-            if (_needsPriorBooking) _buildOperatorSection(context),
-            _buildJourneyTimeline(context, activeTrip.tripMetadata),
-            if (_needsPriorBooking) _buildConfirmationIdSection(context),
-            _buildExpenseSection(context),
-            _buildNotesSection(context),
-          ],
-        ),
-      ),
-    );
-  }
-
-  BoxDecoration _buildCardDecoration(
-      bool isLightTheme, bool isBigLayout, double borderRadius) {
-    return BoxDecoration(
-      gradient: _buildCardGradient(isLightTheme),
-      borderRadius: BorderRadius.circular(borderRadius),
-      border: _buildCardBorder(isLightTheme),
-      boxShadow: [_buildCardShadow(isLightTheme, isBigLayout)],
-    );
-  }
-
-  LinearGradient _buildCardGradient(bool isLightTheme) {
-    return LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: isLightTheme
-          ? [
-              AppColors.brandPrimaryLight.withValues(alpha: 0.15),
-              AppColors.brandAccent.withValues(alpha: 0.08),
-            ]
-          : [
-              AppColors.darkSurface,
-              AppColors.darkSurfaceVariant,
-            ],
-    );
-  }
-
-  Border _buildCardBorder(bool isLightTheme) {
-    return Border.all(
-      color: isLightTheme
-          ? AppColors.brandPrimary.withValues(alpha: 0.3)
-          : AppColors.brandPrimaryLight.withValues(alpha: 0.3),
-      width: 2,
-    );
-  }
-
-  BoxShadow _buildCardShadow(bool isLightTheme, bool isBigLayout) {
-    return BoxShadow(
-      color: isLightTheme
-          ? AppColors.brandPrimary.withValues(alpha: 0.15)
-          : Colors.black.withValues(alpha: 0.3),
-      blurRadius: isBigLayout ? 20 : 16,
-      offset: Offset(0, isBigLayout ? 10 : 8),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildTransitTypeBadge(
+            context, activeTrip, isLightTheme, cardBorderRadius),
+        if (_needsPriorBooking) _buildOperatorSection(context),
+        _buildJourneyTimeline(context, activeTrip.tripMetadata),
+        if (_needsPriorBooking) _buildConfirmationIdSection(context),
+        _buildExpenseSection(context),
+        _buildNotesSection(context),
+      ],
     );
   }
 
@@ -194,32 +115,12 @@ class _TravelEditorState extends State<TravelEditor>
   BoxDecoration _buildBadgeDecoration(
       bool isLightTheme, double cardBorderRadius) {
     return BoxDecoration(
-      gradient: _buildPrimaryGradient(isLightTheme),
+      gradient: EditorTheme.buildPrimaryGradient(isLightTheme),
       borderRadius: BorderRadius.only(
         topLeft: Radius.circular(cardBorderRadius - 2),
         bottomRight: const Radius.circular(16),
       ),
-      boxShadow: [_buildBadgeShadow(isLightTheme)],
-    );
-  }
-
-  LinearGradient _buildPrimaryGradient(bool isLightTheme) {
-    return LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: isLightTheme
-          ? [AppColors.brandPrimary, AppColors.brandPrimaryDark]
-          : [AppColors.brandPrimaryLight, AppColors.brandPrimaryDark],
-    );
-  }
-
-  BoxShadow _buildBadgeShadow(bool isLightTheme) {
-    return BoxShadow(
-      color: isLightTheme
-          ? AppColors.brandPrimary.withValues(alpha: 0.3)
-          : Colors.black.withValues(alpha: 0.4),
-      blurRadius: 8,
-      offset: const Offset(2, 2),
+      boxShadow: [EditorTheme.buildBadgeShadow(isLightTheme)],
     );
   }
 
@@ -265,31 +166,10 @@ class _TravelEditorState extends State<TravelEditor>
   }
 
   Widget _buildOperatorSection(BuildContext context) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: _buildPrimaryGradient(isLightTheme),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [_buildStandardShadow(isLightTheme)],
-      ),
-      child: TransitOperatorEditor(
-        transitOption: _transitFacade.transitOption,
-        initialOperator: _transitFacade.operator,
-        onOperatorChanged: _handleOperatorChanged,
-      ),
-    );
-  }
-
-  BoxShadow _buildStandardShadow(bool isLightTheme) {
-    return BoxShadow(
-      color: isLightTheme
-          ? AppColors.brandPrimary.withValues(alpha: 0.3)
-          : Colors.black.withValues(alpha: 0.3),
-      blurRadius: 8,
-      offset: const Offset(0, 4),
+    return TransitOperatorEditor(
+      transitOption: _transitFacade.transitOption,
+      initialOperator: _transitFacade.operator,
+      onOperatorChanged: _handleOperatorChanged,
     );
   }
 

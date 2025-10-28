@@ -113,6 +113,7 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
           locationType: LocationType.city,
           nodeClass: locationClass,
           nodeType: locationType,
+          city: city,
           address: locationJson[_displayAddress]);
     } else if (locationType == _station) {
       if (locationClass == _railway) {

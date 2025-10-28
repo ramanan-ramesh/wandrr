@@ -28,7 +28,7 @@ class TripEntityEditorBottomSheet<T extends TripEntity>
         return tripEditorAction.createActionPage(
             tripEntity: tripEntity!,
             tripDay: tripDay,
-            isEditing: false,
+            isEditing: true,
             onClosePressed: (context) => Navigator.of(context).pop(),
             scrollController: scrollController,
             title:

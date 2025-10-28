@@ -4,6 +4,7 @@ import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/creator_bottom_sheet.dart';
@@ -114,6 +115,12 @@ class _TripEditorPageInternal extends StatelessWidget {
                   tripEditorAction: TripEditorAction.stay,
                   tripEntity: tripEntity),
               context);
+        } else if (tripEntity is ExpenseFacade) {
+          _showModalBottomSheet(
+              TripEntityEditorBottomSheet<ExpenseFacade>(
+                  tripEditorAction: TripEditorAction.expense,
+                  tripEntity: tripEntity),
+              context);
         }
       }
     }
@@ -155,14 +162,15 @@ class _TripEditorPageInternal extends StatelessWidget {
         isScrollControlled: true,
         builder: (dialogContext) => MultiRepositoryProvider(
               providers: [
-                RepositoryProvider(
-                    create: (context) => pageContext.appDataRepository),
-                RepositoryProvider(
-                    create: (context) => pageContext.tripRepository),
-                RepositoryProvider(
-                    create: (context) => pageContext.apiServicesRepository),
+                RepositoryProvider.value(value: pageContext.appDataRepository),
+                RepositoryProvider.value(value: pageContext.tripRepository),
+                RepositoryProvider.value(
+                    value: pageContext.apiServicesRepository),
               ],
-              child: child,
+              child: BlocProvider.value(
+                value: BlocProvider.of<TripManagementBloc>(pageContext),
+                child: child,
+              ),
             ));
   }
 }

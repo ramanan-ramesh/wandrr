@@ -4,6 +4,7 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 
 class TripEditorActionPage<T extends TripEntity> extends StatelessWidget {
@@ -15,7 +16,7 @@ class TripEditorActionPage<T extends TripEntity> extends StatelessWidget {
       pageContentCreator;
   final TripEditorAction tripEditorAction;
   final String title;
-  final ValueNotifier<bool> validityNotifier = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> validityNotifier;
   final T tripEntity;
 
   TripEditorActionPage(
@@ -27,7 +28,8 @@ class TripEditorActionPage<T extends TripEntity> extends StatelessWidget {
       required this.scrollController,
       required this.tripEditorAction,
       required this.pageContentCreator,
-      required this.actionIcon});
+      required this.actionIcon})
+      : validityNotifier = ValueNotifier<bool>(tripEntity.validate());
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +58,9 @@ class TripEditorActionPage<T extends TripEntity> extends StatelessWidget {
               child: SingleChildScrollView(
                 controller: scrollController,
                 padding: EdgeInsets.fromLTRB(0, 0, 0, _bottomPadding),
-                child: pageContentCreator(validityNotifier),
+                child: _AnimatedActionPage(
+                  child: pageContentCreator(validityNotifier),
+                ),
               ),
             ),
           ],
@@ -84,7 +88,76 @@ class TripEditorActionPage<T extends TripEntity> extends StatelessWidget {
           valueNotifier: validityNotifier,
           callback: () => onActionInvoked(context),
         ),
-        duration: Duration(milliseconds: 800),
+        duration: Duration(milliseconds: 3000),
+      ),
+    );
+  }
+}
+
+class _AnimatedActionPage extends StatefulWidget {
+  final Widget child;
+
+  const _AnimatedActionPage({super.key, required this.child});
+
+  @override
+  State<_AnimatedActionPage> createState() => _AnimatedActionPageState();
+}
+
+class _AnimatedActionPageState extends State<_AnimatedActionPage>
+    with SingleTickerProviderStateMixin {
+  late Animation<double> _fadeAnimation;
+  late AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: _buildEditorCard(context, widget.child),
+    );
+  }
+
+  Widget _buildEditorCard(BuildContext context, Widget child) {
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final isBigLayout = context.isBigLayout;
+    final cardBorderRadius = EditorTheme.getCardBorderRadius(isBigLayout);
+    return Container(
+      margin: EdgeInsets.symmetric(
+        horizontal: isBigLayout
+            ? EditorTheme.cardMarginHorizontalBig
+            : EditorTheme.cardMarginHorizontalSmall,
+        vertical: isBigLayout
+            ? EditorTheme.cardMarginVerticalBig
+            : EditorTheme.cardMarginVerticalSmall,
+      ),
+      constraints: isBigLayout ? const BoxConstraints(maxWidth: 1200) : null,
+      decoration: EditorTheme.buildCardDecoration(
+        isLightTheme: isLightTheme,
+        isBigLayout: isBigLayout,
+        borderRadius: cardBorderRadius,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(cardBorderRadius - 2),
+        child: child,
       ),
     );
   }
