@@ -9,18 +9,23 @@ import 'package:wandrr/presentation/trip/repository_extensions.dart';
 class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
   static const double _kAvatarRadius = 14;
   static const double _kAvatarOffset = 18.0;
+  final VoidCallback onTitleClicked;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
-  const TripEditorAppBar({Key? key}) : super(key: key);
+  const TripEditorAppBar({Key? key, required this.onTitleClicked})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       leading: _createHomeButton(context),
       centerTitle: false,
-      title: _createTripDetails(context),
+      title: GestureDetector(
+        onTap: onTitleClicked,
+        child: _createTripDetails(context),
+      ),
       actions: !context.isBigLayout
           ? [
               Padding(

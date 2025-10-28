@@ -31,28 +31,6 @@ class TravelEditor extends StatefulWidget {
 class _TravelEditorState extends State<TravelEditor>
     with SingleTickerProviderStateMixin {
   TransitFacade get _transitFacade => widget.transitFacade;
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
 
   @override
   void didUpdateWidget(covariant TravelEditor oldWidget) {

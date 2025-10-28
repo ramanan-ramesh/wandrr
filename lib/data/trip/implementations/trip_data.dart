@@ -85,7 +85,8 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         tripMetadataModelImplementation.budget.currency,
         supportedCurrencies,
         tripMetadataModelImplementation.contributors,
-        currentUserName);
+        currentUserName,
+        itineraries);
 
     return TripDataModelImplementation._(
         tripMetadataModelImplementation,

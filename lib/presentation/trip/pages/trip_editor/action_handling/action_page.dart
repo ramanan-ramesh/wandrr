@@ -104,27 +104,44 @@ class _AnimatedActionPage extends StatefulWidget {
 }
 
 class _AnimatedActionPageState extends State<_AnimatedActionPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late Animation<double> _fadeAnimation;
-  late AnimationController _animationController;
+  late Animation<Offset> _slideAnimation;
+  late AnimationController _fadeAnimationController;
+  late AnimationController _slideController;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
+    _fadeAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
     _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
+      parent: _fadeAnimationController,
       curve: Curves.easeInOut,
     );
-    _animationController.forward();
+
+    _slideController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 50),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _fadeAnimationController.forward();
+    _slideController.forward();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _fadeAnimationController.dispose();
+    _slideController.dispose();
     super.dispose();
   }
 
@@ -132,7 +149,10 @@ class _AnimatedActionPageState extends State<_AnimatedActionPage>
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: _fadeAnimation,
-      child: _buildEditorCard(context, widget.child),
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: _buildEditorCard(context, widget.child),
+      ),
     );
   }
 
@@ -141,13 +161,10 @@ class _AnimatedActionPageState extends State<_AnimatedActionPage>
     final isBigLayout = context.isBigLayout;
     final cardBorderRadius = EditorTheme.getCardBorderRadius(isBigLayout);
     return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: isBigLayout
+      margin: EdgeInsets.all(
+        isBigLayout
             ? EditorTheme.cardMarginHorizontalBig
             : EditorTheme.cardMarginHorizontalSmall,
-        vertical: isBigLayout
-            ? EditorTheme.cardMarginVerticalBig
-            : EditorTheme.cardMarginVerticalSmall,
       ),
       constraints: isBigLayout ? const BoxConstraints(maxWidth: 1200) : null,
       decoration: EditorTheme.buildCardDecoration(

@@ -7,6 +7,7 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/creator_bottom_sheet.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/editor_bottom_sheet.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/app_bar.dart';
@@ -88,7 +89,15 @@ class _TripEditorPageInternal extends StatelessWidget {
     return BlocListener<TripManagementBloc, TripManagementState>(
       listener: _onBlocStateChanged,
       child: Scaffold(
-        appBar: TripEditorAppBar(),
+        appBar: TripEditorAppBar(
+          onTitleClicked: () {
+            _showModalBottomSheet(
+                TripEntityEditorBottomSheet<TripMetadataFacade>(
+                    tripEditorAction: TripEditorAction.tripDetails,
+                    tripEntity: context.activeTrip.tripMetadata),
+                context);
+          },
+        ),
         extendBody: true,
         floatingActionButton: _createAddButton(context),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

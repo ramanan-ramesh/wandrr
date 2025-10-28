@@ -9,14 +9,14 @@ import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edi
 
 class ExpenseEditor extends StatelessWidget {
   final ExpenseFacade expense;
-  final ValueNotifier<bool> validityNotifier;
+  final VoidCallback onExpenseUpdated;
   final Map<ExpenseCategory, String> _categoryNames = {};
   final TextEditingController _descriptionFieldController =
       TextEditingController();
   final TextEditingController _titleEditingController = TextEditingController();
 
   ExpenseEditor(
-      {super.key, required this.expense, required this.validityNotifier});
+      {super.key, required this.expense, required this.onExpenseUpdated});
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +117,7 @@ class ExpenseEditor extends StatelessWidget {
         expense.splitBy = List.from(splitBy);
         expense.totalExpense =
             Money(currency: totalExpense.currency, amount: totalExpense.amount);
-        _calculateExpenseUpdatePossibility();
+        onExpenseUpdated();
       },
       expenseUpdator: expense,
       isEditable: true,
@@ -128,6 +128,7 @@ class ExpenseEditor extends StatelessWidget {
     return PlatformDatePicker(
       callBack: (dateTime) {
         expense.dateTime = dateTime;
+        onExpenseUpdated();
       },
       initialDateTime: expense.dateTime,
     );
@@ -140,6 +141,7 @@ class ExpenseEditor extends StatelessWidget {
       decoration: InputDecoration(labelText: context.localizations.description),
       onChanged: (updatedDescription) {
         expense.description = updatedDescription;
+        onExpenseUpdated();
       },
     );
   }
@@ -148,7 +150,7 @@ class ExpenseEditor extends StatelessWidget {
     return _CategoryPicker(
       callback: (category) {
         expense.category = category;
-        _calculateExpenseUpdatePossibility();
+        onExpenseUpdated();
       },
       category: expense.category,
       categories: _categoryNames,
@@ -178,16 +180,10 @@ class ExpenseEditor extends StatelessWidget {
       controller: _titleEditingController,
       onChanged: (newTitle) {
         expense.title = newTitle;
-        _calculateExpenseUpdatePossibility();
+        onExpenseUpdated();
       },
       decoration: InputDecoration(labelText: context.localizations.title),
     );
-  }
-
-  void _calculateExpenseUpdatePossibility() {
-    var isTitleValid = expense.title.isNotEmpty;
-    var isExpenseValid = isTitleValid && expense.validate();
-    validityNotifier.value = isExpenseValid;
   }
 }
 

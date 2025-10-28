@@ -7,14 +7,16 @@ import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/plan_data/plan_data.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/trip_details_editor.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 import 'action_handling/action_page.dart';
 import 'budgeting/expense_editor.dart';
 import 'lodging/lodging_editor.dart';
-import 'transit/transit.dart';
+import 'transit/travel_editor.dart';
 
 enum TripEditorAction {
   travel,
@@ -22,6 +24,7 @@ enum TripEditorAction {
   tripData,
   itineraryData,
   expense,
+  tripDetails,
 }
 
 extension TripEditorSupportedActionExtension on TripEditorAction {
@@ -37,6 +40,8 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
         return 'Itinerary Data Entry';
       case TripEditorAction.expense:
         return 'Expense Entry';
+      case TripEditorAction.tripDetails:
+        return 'Trip Details Entry';
     }
   }
 
@@ -56,6 +61,8 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
         return isEditing ? 'Edit itinerary details' : 'Add itinerary details';
       case TripEditorAction.expense:
         return isEditing ? 'Edit expense details' : 'Add expense details';
+      case TripEditorAction.tripDetails:
+        return 'Edit trip details';
     }
   }
 
@@ -71,6 +78,8 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
         return Icons.money;
       case TripEditorAction.itineraryData:
         return Icons.travel_explore_rounded;
+      case TripEditorAction.tripDetails:
+        return Icons.card_travel_rounded;
     }
   }
 
@@ -97,6 +106,8 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
             defaultCurrency: activeTrip.tripMetadata.budget.currency);
       case TripEditorAction.itineraryData:
         throw UnimplementedError(); //TODO: Remove UnimplementedError in general
+      case TripEditorAction.tripDetails:
+        throw UnimplementedError(); //TODO: Remove UnimplementedError in general
     }
   }
 
@@ -114,21 +125,20 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
     if (tripEntity is ExpenseFacade) {
       pageContentCreator = (validityNotifier) => ExpenseEditor(
             expense: tripEntity,
-            validityNotifier: validityNotifier,
+            onExpenseUpdated: () => validityNotifier.value =
+                tripEntity.validate() && tripEntity.title.isNotEmpty,
           );
     } else if (tripEntity is TransitFacade) {
       pageContentCreator = (validityNotifier) => TravelEditor(
             transitFacade: tripEntity,
-            onTransitUpdated: () {
-              validityNotifier.value = tripEntity.validate();
-            },
+            onTransitUpdated: () =>
+                validityNotifier.value = tripEntity.validate(),
           );
     } else if (tripEntity is LodgingFacade) {
       pageContentCreator = (validityNotifier) => LodgingEditor(
             lodging: tripEntity,
-            onLodgingUpdated: () {
-              validityNotifier.value = tripEntity.validate();
-            },
+            onLodgingUpdated: () =>
+                validityNotifier.value = tripEntity.validate(),
           );
     } else if (tripEntity is PlanDataFacade) {
       pageContentCreator = (validityNotifier) => PlanDataListItem(
@@ -138,6 +148,12 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
           );
     } else if (tripEntity is ItineraryPlanData) {
       pageContentCreator = (validityNotifier) => Container();
+    } else if (tripEntity is TripMetadataFacade) {
+      pageContentCreator = (validityNotifier) => TripDetailsEditor(
+            tripMetadataFacade: tripEntity,
+            onTripMetadataUpdated: () =>
+                validityNotifier.value = tripEntity.validate(),
+          );
     }
 
     if (pageContentCreator != null) {

@@ -115,11 +115,14 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     });
     _tripMetadataDeletedEventSubscription =
         tripMetadataCollection.onDocumentDeleted.listen((eventData) async {
-      var deletedTripId = eventData.modifiedCollectionItem.id;
+      var tripId = eventData.modifiedCollectionItem.id;
       await FirebaseFirestore.instance
           .collection(FirestoreCollections.tripCollectionName)
-          .doc(deletedTripId)
+          .doc(tripId)
           .delete();
+      if (tripId == activeTrip?.tripMetadata.id) {
+        await unloadActiveTrip();
+      }
     });
   }
 }

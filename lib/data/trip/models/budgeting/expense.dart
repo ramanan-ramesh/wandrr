@@ -79,7 +79,9 @@ class ExpenseFacade implements ExpenseLinkedTripEntity<ExpenseFacade> {
   }
 
   @override
-  bool validate() => paidBy.isNotEmpty && splitBy.isNotEmpty;
+  bool validate() {
+    return paidBy.isNotEmpty && splitBy.isNotEmpty && title.isNotEmpty;
+  }
 
   @override
   ExpenseFacade get expense => this;
