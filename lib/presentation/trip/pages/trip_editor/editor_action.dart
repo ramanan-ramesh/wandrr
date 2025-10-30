@@ -14,7 +14,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/trip_det
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 import 'action_handling/action_page.dart';
-import 'budgeting/expense_editor.dart';
+import 'budgeting/expenses/expense_editor.dart';
 import 'lodging/lodging_editor.dart';
 import 'transit/travel_editor.dart';
 
@@ -122,36 +122,40 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
     var actionIcon = isEditing ? Icons.check_rounded : Icons.add_rounded;
     void Function(BuildContext context)? onActionInvoked;
     Widget Function(ValueNotifier<bool> validityNotifier)? pageContentCreator;
-    if (tripEntity is ExpenseFacade) {
-      pageContentCreator = (validityNotifier) => ExpenseEditor(
-            expense: tripEntity,
-            onExpenseUpdated: () => validityNotifier.value =
-                tripEntity.validate() && tripEntity.title.isNotEmpty,
+    if (this == TripEditorAction.tripDetails &&
+        tripEntity is TripMetadataFacade) {
+      pageContentCreator = (validityNotifier) => TripDetailsEditor(
+            tripMetadataFacade: tripEntity,
+            onTripMetadataUpdated: () =>
+                validityNotifier.value = tripEntity.validate(),
           );
-    } else if (tripEntity is TransitFacade) {
+    } else if (this == TripEditorAction.itineraryData &&
+        tripEntity is ItineraryPlanData) {
+      pageContentCreator = (validityNotifier) => Container();
+    } else if (this == TripEditorAction.travel && tripEntity is TransitFacade) {
       pageContentCreator = (validityNotifier) => TravelEditor(
             transitFacade: tripEntity,
             onTransitUpdated: () =>
                 validityNotifier.value = tripEntity.validate(),
           );
-    } else if (tripEntity is LodgingFacade) {
+    } else if (this == TripEditorAction.stay && tripEntity is LodgingFacade) {
       pageContentCreator = (validityNotifier) => LodgingEditor(
             lodging: tripEntity,
             onLodgingUpdated: () =>
                 validityNotifier.value = tripEntity.validate(),
           );
-    } else if (tripEntity is PlanDataFacade) {
+    } else if (this == TripEditorAction.tripData &&
+        tripEntity is PlanDataFacade) {
       pageContentCreator = (validityNotifier) => PlanDataListItem(
             planData: tripEntity,
             planDataUpdated: (newPlanData) =>
                 validityNotifier.value = newPlanData.validate(),
           );
-    } else if (tripEntity is ItineraryPlanData) {
-      pageContentCreator = (validityNotifier) => Container();
-    } else if (tripEntity is TripMetadataFacade) {
-      pageContentCreator = (validityNotifier) => TripDetailsEditor(
-            tripMetadataFacade: tripEntity,
-            onTripMetadataUpdated: () =>
+    } else if (this == TripEditorAction.expense &&
+        tripEntity is ExpenseLinkedTripEntity) {
+      pageContentCreator = (validityNotifier) => ExpenseEditor(
+            expenseLinkedTripEntity: tripEntity,
+            onExpenseUpdated: () =>
                 validityNotifier.value = tripEntity.validate(),
           );
     }
@@ -215,5 +219,8 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
             TripEditorAction.expense: (entity) =>
                 UpdateTripEntity<ExpenseFacade>.update(
                     tripEntity: entity as ExpenseFacade),
+            TripEditorAction.tripDetails: (entity) =>
+                UpdateTripEntity<TripMetadataFacade>.update(
+                    tripEntity: entity as TripMetadataFacade),
           };
 }

@@ -7,12 +7,10 @@ class PaidByTab extends StatelessWidget {
   final Map<String, double> paidBy;
   final void Function(Map<String, double> paidBy) callback;
   final Map<String, Color> contributorsVsColors;
-  final double heightPerItem;
   final String defaultCurrencySymbol;
 
   const PaidByTab(
-      {required this.heightPerItem,
-      required this.callback,
+      {required this.callback,
       required this.contributorsVsColors,
       required this.defaultCurrencySymbol,
       required this.paidBy,
@@ -22,19 +20,16 @@ class PaidByTab extends StatelessWidget {
   Widget build(BuildContext context) {
     var currentUserName = context.activeUser!.userName;
     var allContributions = _createContributions(context, currentUserName);
-    var widgets = allContributions
-        .map((contributorVsColor) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3.0),
-              child: SizedBox(
-                height: heightPerItem,
-                child: _buildPaidByContributor(
-                    contributorVsColor, context, currentUserName),
-              ),
-            ))
-        .toList();
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: widgets,
+    return ListView.builder(
+      itemCount: allContributions.length,
+      itemBuilder: (context, index) {
+        var contributorVsColor = allContributions[index];
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3.0),
+          child: _buildPaidByContributor(
+              contributorVsColor, context, currentUserName),
+        );
+      },
     );
   }
 
@@ -56,7 +51,16 @@ class PaidByTab extends StatelessWidget {
     } else {
       contribution = 0;
     }
-    return _ExpenseEditField(
+
+    String displayName = contributorVsColor.key;
+
+    return ListTile(
+      isThreeLine: true,
+      leading: CircleAvatar(
+        backgroundColor: contributorVsColor.value,
+        radius: context.isBigLayout ? 24 : 20,
+      ),
+      title: _ExpenseEditField(
         onChanged: (amountValue) {
           if (amountValue.isEmpty) {
             paidBy[contributorVsColor.key] = 0;
@@ -66,18 +70,30 @@ class PaidByTab extends StatelessWidget {
             callback(paidBy);
           }
         },
-        prefixText: contributorVsColor.key == currentUserName
-            ? context.localizations.you
-            : null,
         initialExpense: contribution.toStringAsFixed(2),
         contributorColor: contributorVsColor.value,
-        currencySymbol: defaultCurrencySymbol);
+        currencySymbol: defaultCurrencySymbol,
+      ),
+      subtitle: Text(
+        displayName == currentUserName
+            ? context.localizations.you
+            : displayName,
+        softWrap: true,
+        maxLines: 2,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: displayName == currentUserName
+              ? FontWeight.w600
+              : FontWeight.normal,
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
   }
 }
 
 class _ExpenseEditField extends StatefulWidget {
   final Function(String) onChanged;
-  final String? prefixText;
   final Color contributorColor;
   final String currencySymbol;
   final String initialExpense;
@@ -86,8 +102,7 @@ class _ExpenseEditField extends StatefulWidget {
       {required this.onChanged,
       required this.initialExpense,
       required this.contributorColor,
-      required this.currencySymbol,
-      this.prefixText});
+      required this.currencySymbol});
 
   @override
   State<_ExpenseEditField> createState() => _ExpenseEditFieldState();
@@ -98,31 +113,19 @@ class _ExpenseEditFieldState extends State<_ExpenseEditField> {
   Widget build(BuildContext context) {
     return PlatformExpenseAmountEditField(
       amount: widget.initialExpense,
-      textColor: Colors.white,
+      textColor: Theme.of(context).colorScheme.onSurface,
       onExpenseAmountChanged: (newValue) {
         var newExpenseStringValue = newValue.toStringAsFixed(2);
         widget.onChanged(newExpenseStringValue);
       },
       inputDecoration: InputDecoration(
-        labelText: widget.prefixText,
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-        icon: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2.0),
-          child: Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              color: widget.contributorColor,
-              shape: BoxShape.circle,
-            ),
-          ),
-        ),
-        suffix: CircleAvatar(
-          radius: 17,
-          child: Text(
-            widget.currencySymbol,
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold),
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        suffix: Text(
+          widget.currencySymbol,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: widget.contributorColor,
           ),
         ),
       ),

@@ -26,6 +26,12 @@ class UpdateTripEntity<T extends TripEntity> extends TripManagementEvent {
       : dataState = DataState.select;
 }
 
+class SelectExpenseLinkedTripEntity
+    extends UpdateTripEntity<ExpenseLinkedTripEntity> {
+  SelectExpenseLinkedTripEntity({required ExpenseLinkedTripEntity tripEntity})
+      : super.select(tripEntity: tripEntity);
+}
+
 class LoadTrip extends TripManagementEvent {
   final TripMetadataFacade tripMetadata;
 

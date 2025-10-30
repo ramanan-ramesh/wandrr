@@ -1,6 +1,7 @@
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 
@@ -77,6 +78,12 @@ class UpdatedTripEntity<T> extends TripManagementState {
         isOperationSuccess = true,
         tripEntityModificationData = CollectionItemChangeMetadata(tripEntity,
             isFromExplicitAction: true);
+}
+
+class SelectedExpenseLinkedTripEntity
+    extends UpdatedTripEntity<ExpenseLinkedTripEntity> {
+  SelectedExpenseLinkedTripEntity({required ExpenseLinkedTripEntity tripEntity})
+      : super.selected(tripEntity: tripEntity);
 }
 
 class ProcessSectionNavigation extends TripManagementState {

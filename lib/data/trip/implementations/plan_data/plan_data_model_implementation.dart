@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
-import 'package:wandrr/data/trip/implementations/firestore_helpers.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/plan_data/check_list.dart';
@@ -157,58 +155,6 @@ class PlanDataModelImplementation extends PlanDataFacade
           _places.map((place) => place.toJson()));
     }
     return json;
-  }
-
-  @override
-  Future<bool> tryUpdate(PlanDataFacade toUpdate) async {
-    var json = <String, dynamic>{};
-    var shouldUpdate = false;
-    if (title != toUpdate.title) {
-      shouldUpdate = true;
-      json[_titleField] = toUpdate.title;
-    }
-    if (!listEquals(checkLists, toUpdate.checkLists)) {
-      json[_checkListsField] = List<Map<String, dynamic>>.from(
-          toUpdate.checkLists.map((checkList) =>
-              CheckListModelImplementation.fromModelFacade(checkList)
-                  .toJson()));
-      shouldUpdate = true;
-    }
-
-    if (!listEquals(places, toUpdate.places)) {
-      json[_placesField] = List<Map<String, dynamic>>.from(toUpdate.places.map(
-          (place) => LocationModelImplementation.fromModelFacade(
-                  locationModelFacade: place)
-              .toJson()));
-      shouldUpdate = true;
-    }
-    if (!listEquals(_notes, toUpdate.notes)) {
-      json[_notesField] =
-          List<String>.from(toUpdate.notes.map((note) => note.note));
-      shouldUpdate = true;
-    }
-
-    if (!shouldUpdate) {
-      return false;
-    }
-
-    return await FirestoreHelpers.tryUpdateDocumentField(
-        documentReference: documentReference,
-        json: json,
-        onSuccess: () {
-          var planData = toUpdate.clone();
-          title = planData.title;
-          _notes = toUpdate.notes.map((e) => e.clone()).toList();
-          _checkLists = toUpdate.checkLists
-              .map(CheckListModelImplementation.fromModelFacade)
-              .toList();
-          _places = toUpdate.places
-              .map((e) => LocationModelImplementation.fromModelFacade(
-                  locationModelFacade: e,
-                  collectionName: _collectionName,
-                  parentId: id))
-              .toList();
-        });
   }
 
   @override

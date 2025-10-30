@@ -4,9 +4,9 @@ import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/creator_bottom_sheet.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/editor_bottom_sheet.dart';
@@ -98,7 +98,7 @@ class _TripEditorPageInternal extends StatelessWidget {
                 context);
           },
         ),
-        extendBody: true,
+        extendBody: bottomNavigationBar == null,
         floatingActionButton: _createAddButton(context),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         body: body,
@@ -108,7 +108,14 @@ class _TripEditorPageInternal extends StatelessWidget {
   }
 
   void _onBlocStateChanged(BuildContext context, TripManagementState state) {
-    if (state is UpdatedTripEntity) {
+    if (state is SelectedExpenseLinkedTripEntity) {
+      _showModalBottomSheet(
+          TripEntityEditorBottomSheet<ExpenseLinkedTripEntity>(
+              tripEditorAction: TripEditorAction.expense,
+              tripEntity:
+                  state.tripEntityModificationData.modifiedCollectionItem),
+          context);
+    } else if (state is UpdatedTripEntity) {
       if (state.dataState == DataState.select) {
         var tripEntity =
             state.tripEntityModificationData.modifiedCollectionItem;
@@ -122,12 +129,6 @@ class _TripEditorPageInternal extends StatelessWidget {
           _showModalBottomSheet(
               TripEntityEditorBottomSheet<LodgingFacade>(
                   tripEditorAction: TripEditorAction.stay,
-                  tripEntity: tripEntity),
-              context);
-        } else if (tripEntity is ExpenseFacade) {
-          _showModalBottomSheet(
-              TripEntityEditorBottomSheet<ExpenseFacade>(
-                  tripEditorAction: TripEditorAction.expense,
                   tripEntity: tripEntity),
               context);
         }

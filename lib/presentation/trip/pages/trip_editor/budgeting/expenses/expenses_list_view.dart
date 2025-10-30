@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
@@ -66,31 +68,9 @@ class _ExpenseListViewState extends State<ExpenseListView> {
         var uiElement = _expenses.elementAt(index);
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 4.0),
-          child: Material(
-            color: context.isLightTheme
-                ? Theme.of(context)
-                    .colorScheme
-                    .surfaceContainerHighest
-                    .withValues(alpha: 0.96)
-                : Theme.of(context)
-                    .colorScheme
-                    .surfaceContainerHighest
-                    .withValues(alpha: 0.98),
-            elevation: 5,
-            borderRadius: BorderRadius.circular(23),
-            shadowColor: AppColors.neutral900.withValues(alpha: 0.10),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(23),
-                border: Border.all(
-                  width: 2.2,
-                ),
-              ),
-              child: _ExpenseListItem(
-                  expenseLinkedTripEntity: uiElement,
-                  categoryNames: _categoryNames),
-            ),
-          ),
+          child: _ExpenseListItem(
+              expenseLinkedTripEntity: uiElement,
+              categoryNames: _categoryNames),
         );
       },
     );
@@ -171,19 +151,44 @@ class _ExpenseListItem extends StatelessWidget {
   final Map<ExpenseCategory, String> categoryNames;
 
   _ExpenseListItem(
-      {super.key,
-      required this.expenseLinkedTripEntity,
-      required this.categoryNames});
+      {required this.expenseLinkedTripEntity, required this.categoryNames});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TripManagementBloc, TripManagementState>(
-      buildWhen: _shouldBuildListElement,
-      builder: (BuildContext context, TripManagementState state) {
-        return ReadonlyExpenseListItem(
-            expenseModelFacade: expenseLinkedTripEntity.expense,
-            categoryNames: categoryNames);
-      },
+    return GestureDetector(
+      onTap: () => context.addTripManagementEvent(
+          SelectExpenseLinkedTripEntity(tripEntity: expenseLinkedTripEntity)),
+      child: Material(
+        color: context.isLightTheme
+            ? Theme.of(context)
+                .colorScheme
+                .surfaceContainerHighest
+                .withValues(alpha: 0.96)
+            : Theme.of(context)
+                .colorScheme
+                .surfaceContainerHighest
+                .withValues(alpha: 0.98),
+        elevation: 5,
+        borderRadius: BorderRadius.circular(23),
+        shadowColor: AppColors.neutral900.withValues(alpha: 0.10),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(23),
+            border: Border.all(
+              width: 2.2,
+            ),
+          ),
+          child: BlocBuilder<TripManagementBloc, TripManagementState>(
+            buildWhen: _shouldBuildListElement,
+            builder: (BuildContext context, TripManagementState state) {
+              return ReadonlyExpenseListItem(
+                categoryNames: categoryNames,
+                expenseLinkedTripEntity: expenseLinkedTripEntity,
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 

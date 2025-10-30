@@ -46,6 +46,7 @@ class TripManagementBloc
       : super(LoadingTripManagement()) {
     on<_OnStartup>(_onStartup);
     on<LoadTrip>(_onLoadTrip);
+    on<SelectExpenseLinkedTripEntity>(_onSelectExpenseLinkedTripEntity);
     on<UpdateTripEntity<TransitFacade>>(_onUpdateTransit);
     on<UpdateTripEntity<LodgingFacade>>(_onUpdateLodging);
     on<GoToHome>(_onGoToHome);
@@ -477,6 +478,11 @@ class TripManagementBloc
       await subscription.cancel();
     }
     _itineraryPlanDataSubscriptions.clear();
+  }
+
+  FutureOr<void> _onSelectExpenseLinkedTripEntity(
+      SelectExpenseLinkedTripEntity event, Emitter<TripManagementState> emit) {
+    emit(SelectedExpenseLinkedTripEntity(tripEntity: event.tripEntity!));
   }
 }
 

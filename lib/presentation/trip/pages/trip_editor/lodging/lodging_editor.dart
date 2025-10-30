@@ -130,7 +130,14 @@ class _LodgingEditorState extends State<LodgingEditor>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildExpenseHeader(context, isLightTheme),
+          EditorTheme.buildSectionHeader(
+            context,
+            icon: Icons.account_balance_wallet,
+            title: context.localizations.expenses,
+            iconColor: isLightTheme
+                ? AppColors.brandPrimary
+                : AppColors.brandPrimaryLight,
+          ),
           const SizedBox(height: 12),
           ExpenditureEditTile(
             expenseUpdator: _lodging.expense,
@@ -144,28 +151,6 @@ class _LodgingEditorState extends State<LodgingEditor>
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildExpenseHeader(BuildContext context, bool isLightTheme) {
-    return Row(
-      children: [
-        EditorTheme.buildIconContainer(
-          icon: Icons.account_balance_wallet,
-          gradientColors: [AppColors.warning, AppColors.warningLight],
-          size: EditorTheme.iconSizeSmall,
-        ),
-        const SizedBox(width: 12),
-        Text(
-          context.localizations.expenses,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: isLightTheme
-                    ? AppColors.brandSecondary
-                    : AppColors.neutral100,
-              ),
-        ),
-      ],
     );
   }
 

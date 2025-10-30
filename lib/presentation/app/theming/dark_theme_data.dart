@@ -59,10 +59,8 @@ ThemeData createDarkThemeData(BuildContext context) {
       tileColor: AppColors.darkSurface,
       textColor: AppColors.neutral100,
       iconColor: AppColors.brandPrimaryLight,
-      selectedTileColor: AppColors.brandPrimaryLight.withValues(alpha: 0.38),
-      // More pronounced selection
+      selectedTileColor: AppColors.brandPrimaryLight.withValues(alpha: 0.85),
       selectedColor: Colors.white,
-      // Maximum contrast for selected text/icon
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: BorderSide(

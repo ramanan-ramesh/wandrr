@@ -58,20 +58,24 @@ class EditorTheme {
     );
   }
 
-  static BoxDecoration buildSectionDecoration(bool isLightTheme) {
-    return _buildSectionDecoration(isLightTheme);
-  }
-
   static LinearGradient buildPrimaryGradient(bool isLightTheme) {
-    return _buildPrimaryGradient(isLightTheme);
-  }
-
-  static BoxShadow buildStandardShadow(bool isLightTheme) {
-    return _buildStandardShadow(isLightTheme);
+    return LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: isLightTheme
+          ? [AppColors.brandPrimary, AppColors.brandPrimaryDark]
+          : [AppColors.brandPrimaryLight, AppColors.brandPrimaryDark],
+    );
   }
 
   static BoxShadow buildBadgeShadow(bool isLightTheme) {
-    return _buildBadgeShadow(isLightTheme);
+    return BoxShadow(
+      color: isLightTheme
+          ? AppColors.brandPrimary.withValues(alpha: 0.3)
+          : Colors.black.withValues(alpha: 0.4),
+      blurRadius: _standardShadowBlur,
+      offset: _badgeShadowOffset,
+    );
   }
 
   /// Build section container with standard styling
@@ -111,55 +115,6 @@ class EditorTheme {
               ?.copyWith(
             fontWeight: FontWeight.bold,
           ),
-        ),
-      ],
-    );
-  }
-
-  /// Build icon container with gradient background
-  static Widget buildIconContainer({
-    required IconData icon,
-    required List<Color> gradientColors,
-    double size = iconSize,
-    double padding = _iconContainerPadding,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(padding),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: gradientColors),
-        borderRadius: BorderRadius.circular(_innerBorderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: gradientColors[0].withValues(alpha: 0.3),
-            blurRadius: _standardShadowBlur,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Icon(icon, color: Colors.white, size: size),
-    );
-  }
-
-  /// Build journey point decoration (for location/time cards)
-  static BoxDecoration buildJourneyPointDecoration(bool isLightTheme) {
-    return BoxDecoration(
-      color: isLightTheme
-          ? Colors.white.withValues(alpha: 0.9)
-          : AppColors.darkSurface.withValues(alpha: 0.6),
-      borderRadius: BorderRadius.circular(_sectionBorderRadius),
-      border: Border.all(
-        color: isLightTheme
-            ? AppColors.brandPrimary.withValues(alpha: 0.3)
-            : AppColors.brandPrimaryLight.withValues(alpha: 0.3),
-        width: _sectionBorderWidth,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: isLightTheme
-              ? AppColors.brandPrimary.withValues(alpha: 0.1)
-              : Colors.black.withValues(alpha: 0.2),
-          blurRadius: _standardShadowBlur,
-          offset: _standardShadowOffset,
         ),
       ],
     );
@@ -233,36 +188,6 @@ class EditorTheme {
             : AppColors.brandPrimaryLight.withValues(alpha: 0.2),
         width: _sectionBorderWidth,
       ),
-    );
-  }
-
-  static LinearGradient _buildPrimaryGradient(bool isLightTheme) {
-    return LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: isLightTheme
-          ? [AppColors.brandPrimary, AppColors.brandPrimaryDark]
-          : [AppColors.brandPrimaryLight, AppColors.brandPrimaryDark],
-    );
-  }
-
-  static BoxShadow _buildStandardShadow(bool isLightTheme) {
-    return BoxShadow(
-      color: isLightTheme
-          ? AppColors.brandPrimary.withValues(alpha: 0.3)
-          : Colors.black.withValues(alpha: 0.3),
-      blurRadius: _standardShadowBlur,
-      offset: _standardShadowOffset,
-    );
-  }
-
-  static BoxShadow _buildBadgeShadow(bool isLightTheme) {
-    return BoxShadow(
-      color: isLightTheme
-          ? AppColors.brandPrimary.withValues(alpha: 0.3)
-          : Colors.black.withValues(alpha: 0.4),
-      blurRadius: _standardShadowBlur,
-      offset: _badgeShadowOffset,
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -95,7 +97,7 @@ class UserManagement implements UserManagementModifier {
       }
       var userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: userName, password: password);
-      userCredential.user?.sendEmailVerification();
+      unawaited(userCredential.user?.sendEmailVerification());
       await FirebaseAuth.instance.signOut();
       return AuthStatus.verificationPending;
     } on FirebaseAuthException catch (exception) {
@@ -156,7 +158,7 @@ class UserManagement implements UserManagementModifier {
           .signInWithEmailAndPassword(email: email, password: password);
       if (userCredential.user != null) {
         if (!userCredential.user!.emailVerified) {
-          userCredential.user!.sendEmailVerification();
+          unawaited(userCredential.user!.sendEmailVerification());
           await FirebaseAuth.instance.signOut();
           return true;
         } else {

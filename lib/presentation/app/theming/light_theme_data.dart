@@ -60,20 +60,17 @@ ThemeData createLightThemeData(BuildContext context) {
       circularTrackColor: AppColors.neutral300,
     ),
     listTileTheme: ListTileThemeData(
-      tileColor: Colors.transparent,
-      // Transparent to avoid background bleed-through
+      tileColor: AppColors.neutral200,
       textColor: AppColors.brandSecondary,
-      iconColor: AppColors.brandSecondary,
-      // Dark charcoal for better contrast
+      iconColor: AppColors.brandPrimary,
       selectedTileColor: AppColors.brandPrimary.withValues(alpha: 0.85),
-      // More vibrant and visible when selected
       selectedColor: Colors.white,
-      // White for selected icon/text for max contrast
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: BorderSide(
-            color: AppColors.brandPrimary,
-            width: 2.0), // More pronounced border for selected
+          color: AppColors.brandPrimary,
+          width: 2.0,
+        ),
       ),
     ),
     cardTheme: CardThemeData(

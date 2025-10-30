@@ -15,7 +15,7 @@ import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
-import 'tab_indicator.dart';
+import '../../../widgets/chrome_tab.dart';
 import 'timeline_event.dart';
 
 class Itinerary extends StatefulWidget {
@@ -113,72 +113,14 @@ class _ItineraryState extends State<Itinerary>
     bool isLightTheme,
     itinerary,
   ) {
-    final selectedColor =
-        isLightTheme ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
-    final unselectedColor =
-        isLightTheme ? AppColors.neutral600 : AppColors.neutral400;
-    final tabBgColor =
-        isLightTheme ? AppColors.neutral200 : AppColors.darkSurface;
-    final contentBgColor =
-        isLightTheme ? Colors.white : AppColors.darkSurfaceVariant;
-    final sideBorderColor =
-        isLightTheme ? AppColors.neutral400 : AppColors.neutral600;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: tabBgColor,
-        border: Border(
-          bottom: BorderSide(
-            color: isLightTheme ? AppColors.neutral300 : AppColors.neutral700,
-            width: 1,
-          ),
-        ),
-      ),
-      child: TabBar(
-        controller: _tabController,
-        labelColor: selectedColor,
-        unselectedLabelColor: unselectedColor,
-        indicator: ItineraryTabIndicator(
-          backgroundColor: contentBgColor,
-          topBorderColor: selectedColor,
-          sideBorderColor: sideBorderColor,
-        ),
-        indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor:
-            isLightTheme ? AppColors.neutral300 : AppColors.neutral700,
-        dividerHeight: 1,
-        labelStyle: const TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 14,
-        ),
-        unselectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.normal,
-          fontSize: 14,
-        ),
-        labelPadding: EdgeInsets.zero,
-        tabs: const [
-          Tab(
-            icon: Icon(Icons.timeline, size: 20),
-            text: 'Timeline',
-            height: 72,
-          ),
-          Tab(
-            icon: Icon(Icons.note_outlined, size: 20),
-            text: 'Notes',
-            height: 72,
-          ),
-          Tab(
-            icon: Icon(Icons.checklist_outlined, size: 20),
-            text: 'Checklists',
-            height: 72,
-          ),
-          Tab(
-            icon: Icon(Icons.place_outlined, size: 20),
-            text: 'Places',
-            height: 72,
-          ),
-        ],
-      ),
+    return ChromeTabBar(
+      iconsAndTitles: {
+        Icons.timeline: 'Timeline',
+        Icons.note_outlined: 'Notes',
+        Icons.checklist_outlined: 'Checklists',
+        Icons.place_outlined: 'Places',
+      },
+      tabController: _tabController,
     );
   }
 

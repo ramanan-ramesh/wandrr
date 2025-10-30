@@ -19,7 +19,7 @@ abstract class CurrencyDropDownField extends StatefulWidget {
 
   Widget buildCurrencyListTile(CurrencyData currency, BuildContext context,
       void Function(VoidCallback) setState,
-      {required bool isDropDownButton}) {
+      {required bool isDropDownButton, required double width}) {
     var textColor = Theme.of(context).listTileTheme.textColor;
     var isEqualToCurrentlySelectedItem = currency == selectedCurrencyData;
     if (isDropDownButton || isEqualToCurrentlySelectedItem) {
@@ -27,6 +27,7 @@ abstract class CurrencyDropDownField extends StatefulWidget {
     }
     return SizedBox(
       height: 60,
+      width: width, // Use passed width
       child: Container(
         color: isEqualToCurrentlySelectedItem
             ? Theme.of(context).listTileTheme.selectedTileColor
@@ -70,13 +71,15 @@ abstract class CurrencyDropDownField extends StatefulWidget {
                         fit: BoxFit.scaleDown,
                         child: Text(
                           currency.name,
-                          style: TextStyle(
-                              color:
-                                  textColor), //TODO: This should also be scaled down. But it makes text center in the ListTile. How to avoid this?
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: textColor),
                         ),
                       ),
                       Text(
                         currency.code,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: textColor),
                       ),
                     ],
@@ -164,7 +167,8 @@ abstract class CurrencyDropDownField extends StatefulWidget {
                         currencyListTileBuilder: (CurrencyData currency) {
                           return buildCurrencyListTile(
                               currency, context, setState,
-                              isDropDownButton: false);
+                              isDropDownButton: false,
+                              width: clickedRenderBoxSize.width);
                         },
                       ),
                     ),
@@ -209,7 +213,7 @@ class _PlatformCurrencyDropDownState extends State<PlatformCurrencyDropDown> {
         onTap: () => widget.toggleDropdown(context, setState),
         child: widget.buildCurrencyListTile(
             widget.selectedCurrencyData, context, setState,
-            isDropDownButton: true),
+            isDropDownButton: true, width: 100),
       ),
     );
   }

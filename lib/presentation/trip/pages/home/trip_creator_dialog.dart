@@ -148,27 +148,23 @@ class TripCreatorDialog extends StatelessWidget {
   }
 
   Widget _createBudgetEditingField(CurrencyData currencyInfo) {
-    return Column(
-      children: [
-        PlatformMoneyEditField(
-          textInputAction: TextInputAction.done,
-          allCurrencies: widgetContext.supportedCurrencies,
-          selectedCurrencyData: currencyInfo,
-          onAmountUpdatedCallback: (updatedAmount) {
-            _currentTripMetadata.budget = Money(
-                currency: _currentTripMetadata.budget.currency,
-                amount: updatedAmount);
-          },
-          currencySelectedCallback: (selectedCurrency) {
-            _currentTripMetadata.budget = Money(
-                currency: selectedCurrency.code,
-                amount: _currentTripMetadata.budget.amount);
-            _tripCreationMetadataValidityNotifier.value =
-                _currentTripMetadata.validate();
-          },
-          isAmountEditable: true,
-        ),
-      ],
+    return PlatformMoneyEditField(
+      textInputAction: TextInputAction.done,
+      allCurrencies: widgetContext.supportedCurrencies,
+      selectedCurrencyData: currencyInfo,
+      onAmountUpdatedCallback: (updatedAmount) {
+        _currentTripMetadata.budget = Money(
+            currency: _currentTripMetadata.budget.currency,
+            amount: updatedAmount);
+      },
+      currencySelectedCallback: (selectedCurrency) {
+        _currentTripMetadata.budget = Money(
+            currency: selectedCurrency.code,
+            amount: _currentTripMetadata.budget.amount);
+        _tripCreationMetadataValidityNotifier.value =
+            _currentTripMetadata.validate();
+      },
+      isAmountEditable: true,
     );
   }
 

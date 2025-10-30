@@ -1,4 +1,3 @@
-import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 import 'expense_category.dart';
@@ -22,8 +21,6 @@ class ExpenseFacade implements ExpenseLinkedTripEntity<ExpenseFacade> {
 
   List<String> splitBy;
 
-  LocationFacade? location;
-
   DateTime? dateTime;
 
   ExpenseFacade(
@@ -35,7 +32,6 @@ class ExpenseFacade implements ExpenseLinkedTripEntity<ExpenseFacade> {
       required this.splitBy,
       this.description,
       this.id,
-      this.location,
       this.dateTime});
 
   ExpenseFacade.newUiEntry(
@@ -59,7 +55,6 @@ class ExpenseFacade implements ExpenseLinkedTripEntity<ExpenseFacade> {
       category: category,
       paidBy: paidBy,
       splitBy: splitBy,
-      location: location?.clone(),
       dateTime: dateTime != null
           ? DateTime(dateTime!.year, dateTime!.month, dateTime!.day)
           : null);
@@ -73,14 +68,14 @@ class ExpenseFacade implements ExpenseLinkedTripEntity<ExpenseFacade> {
     category = expenseModelFacade.category;
     paidBy = expenseModelFacade.paidBy;
     splitBy = expenseModelFacade.splitBy;
-    location = expenseModelFacade.location;
     dateTime = DateTime(expenseModelFacade.dateTime!.year,
         expenseModelFacade.dateTime!.month, expenseModelFacade.dateTime!.day);
   }
 
+  //TODO: How to validate that title is not empty for pure expenses, and ensure that title for Transits/Stays/Sights are generated each time and not copied to DB/open to updation, and also passing validity API
   @override
   bool validate() {
-    return paidBy.isNotEmpty && splitBy.isNotEmpty && title.isNotEmpty;
+    return paidBy.isNotEmpty && splitBy.isNotEmpty;
   }
 
   @override

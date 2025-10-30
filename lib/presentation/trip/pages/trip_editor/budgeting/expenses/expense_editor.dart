@@ -3,25 +3,34 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/date_picker.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 
 class ExpenseEditor extends StatelessWidget {
-  final ExpenseFacade expense;
+  final ExpenseLinkedTripEntity expenseLinkedTripEntity;
   final VoidCallback onExpenseUpdated;
   final Map<ExpenseCategory, String> _categoryNames = {};
   final TextEditingController _descriptionFieldController =
       TextEditingController();
   final TextEditingController _titleEditingController = TextEditingController();
 
+  ExpenseFacade get _expense => expenseLinkedTripEntity.expense;
+
   ExpenseEditor(
-      {super.key, required this.expense, required this.onExpenseUpdated});
+      {super.key,
+      required this.expenseLinkedTripEntity,
+      required this.onExpenseUpdated});
 
   @override
   Widget build(BuildContext context) {
-    _descriptionFieldController.text = expense.description ?? '';
-    _titleEditingController.text = expense.title;
+    _descriptionFieldController.text = _expense.description ?? '';
+    _titleEditingController.text = expenseLinkedTripEntity is! ExpenseFacade
+        ? expenseLinkedTripEntity.toString()
+        : _expense.title;
     _initializeUIComponentNames(context);
     var isBigLayout = context.isBigLayout;
     if (isBigLayout) {
@@ -32,128 +41,167 @@ class ExpenseEditor extends StatelessWidget {
 
   Column _createSmallLayoutEditor(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(5.0),
+        _buildTransitTypeBadge(context, context.isLightTheme,
+            EditorTheme.getCardBorderRadius(context.isBigLayout)),
+        EditorTheme.buildSection(
+          context: context,
           child: _createExpenseTitle(context),
         ),
-        Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: _createCategoryPicker(),
-              ),
-              Expanded(
-                child: _createDatePicker(),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: _createDescriptionField(context),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: _createExpenditureEditTile(),
-        ),
+        _createPaidOnSection(context),
+        _createDescriptionSection(context),
+        _createPaymentDetailsSection(context),
       ],
     );
   }
 
   Column _createBigLayoutEditor(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(5.0),
+        _buildTransitTypeBadge(context, context.isLightTheme,
+            EditorTheme.getCardBorderRadius(context.isBigLayout)),
+        EditorTheme.buildSection(
+          context: context,
           child: _createExpenseTitle(context),
         ),
-        Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(5.0),
-                        child: _createCategoryPicker(),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(5.0),
-                        child: _createDatePicker(),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(5.0),
-                        child: _createDescriptionField(context),
-                      ),
-                    ],
-                  ),
-                ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Column(
+                children: [
+                  _createPaidOnSection(context),
+                  _createDescriptionSection(context),
+                ],
               ),
-              const VerticalDivider(),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                  child: _createExpenditureEditTile(),
-                ),
-              ),
-            ],
-          ),
-        )
+            ),
+            Expanded(
+              flex: 3,
+              child: _createPaymentDetailsSection(context),
+            ),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _createExpenditureEditTile() {
-    return ExpenditureEditTile(
-      callback: (paidBy, splitBy, totalExpense) {
-        expense.paidBy = Map.from(paidBy);
-        expense.splitBy = List.from(splitBy);
-        expense.totalExpense =
-            Money(currency: totalExpense.currency, amount: totalExpense.amount);
-        onExpenseUpdated();
-      },
-      expenseUpdator: expense,
-      isEditable: true,
+  Widget _buildTransitTypeBadge(
+    BuildContext context,
+    bool isLightTheme,
+    double cardBorderRadius,
+  ) {
+    return Row(
+      children: [
+        Flexible(
+          child: Container(
+            decoration: _buildBadgeDecoration(isLightTheme, cardBorderRadius),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: _CategoryPicker(
+              callback: (category) {
+                _expense.category = category;
+                onExpenseUpdated();
+              },
+              category: _expense.category,
+              categories: _categoryNames,
+            ),
+          ),
+        ),
+        Expanded(child: Container()),
+      ],
     );
   }
 
-  Widget _createDatePicker() {
-    return PlatformDatePicker(
-      callBack: (dateTime) {
-        expense.dateTime = dateTime;
-        onExpenseUpdated();
-      },
-      initialDateTime: expense.dateTime,
+  BoxDecoration _buildBadgeDecoration(
+      bool isLightTheme, double cardBorderRadius) {
+    return BoxDecoration(
+      gradient: EditorTheme.buildPrimaryGradient(isLightTheme),
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(cardBorderRadius - 2),
+        bottomRight: const Radius.circular(16),
+      ),
+      boxShadow: [EditorTheme.buildBadgeShadow(isLightTheme)],
     );
   }
 
-  Widget _createDescriptionField(BuildContext context) {
-    return TextFormField(
-      controller: _descriptionFieldController,
-      maxLines: null,
-      decoration: InputDecoration(labelText: context.localizations.description),
-      onChanged: (updatedDescription) {
-        expense.description = updatedDescription;
-        onExpenseUpdated();
-      },
+  Widget _createPaymentDetailsSection(BuildContext context) {
+    return _createSection(
+      context,
+      EditorTheme.buildSectionHeader(
+        context,
+        icon: Icons.payments_rounded,
+        title: 'Payment Details',
+        iconColor:
+            context.isLightTheme ? AppColors.error : AppColors.errorLight,
+        useLargeText: context.isBigLayout,
+      ),
+      ExpenditureEditTile(
+        callback: (paidBy, splitBy, totalExpense) {
+          _expense.paidBy = Map.from(paidBy);
+          _expense.splitBy = List.from(splitBy);
+          _expense.totalExpense = Money(
+              currency: totalExpense.currency, amount: totalExpense.amount);
+          onExpenseUpdated();
+        },
+        expenseUpdator: _expense,
+        isEditable: true,
+      ),
     );
   }
 
-  Widget _createCategoryPicker() {
-    return _CategoryPicker(
-      callback: (category) {
-        expense.category = category;
-        onExpenseUpdated();
-      },
-      category: expense.category,
-      categories: _categoryNames,
+  Widget _createDescriptionSection(BuildContext context) {
+    return EditorTheme.buildSection(
+      context: context,
+      child: TextFormField(
+        controller: _descriptionFieldController,
+        maxLines: null,
+        decoration: EditorTheme.buildTextFieldDecoration(
+          labelText: context.localizations.description,
+          hintText: 'Enter expense details...',
+          alignLabelWithHint: true,
+        ),
+        onChanged: (updatedDescription) {
+          _expense.description = updatedDescription;
+          onExpenseUpdated();
+        },
+      ),
+    );
+  }
+
+  Widget _createPaidOnSection(BuildContext context) {
+    return _createSection(
+      context,
+      EditorTheme.buildSectionHeader(
+        context,
+        icon: Icons.calendar_today_rounded,
+        title: 'Paid On',
+        iconColor:
+            context.isLightTheme ? AppColors.success : AppColors.successLight,
+      ),
+      PlatformDatePicker(
+        callBack: (dateTime) {
+          _expense.dateTime = dateTime;
+          onExpenseUpdated();
+        },
+        initialDateTime: _expense.dateTime,
+      ),
+    );
+  }
+
+  Widget _createSection(
+      BuildContext context, Widget sectionHeader, Widget child) {
+    return EditorTheme.buildSection(
+      context: context,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          sectionHeader,
+          SizedBox(height: context.isBigLayout ? 16 : 12),
+          child,
+        ],
+      ),
     );
   }
 
@@ -176,13 +224,20 @@ class ExpenseEditor extends StatelessWidget {
   }
 
   Widget _createExpenseTitle(BuildContext context) {
+    final isEditable = expenseLinkedTripEntity is ExpenseFacade;
     return TextField(
       controller: _titleEditingController,
-      onChanged: (newTitle) {
-        expense.title = newTitle;
-        onExpenseUpdated();
-      },
-      decoration: InputDecoration(labelText: context.localizations.title),
+      onChanged: isEditable
+          ? (newTitle) {
+              _expense.title = newTitle;
+              onExpenseUpdated();
+            }
+          : null,
+      decoration: EditorTheme.buildTextFieldDecoration(
+        labelText: context.localizations.title,
+        hintText: 'Enter expense name...',
+      ),
+      enabled: isEditable,
     );
   }
 }
@@ -214,6 +269,8 @@ class _CategoryPickerState extends State<_CategoryPicker> {
   Widget build(BuildContext context) {
     return DropdownButton<ExpenseCategory>(
         value: _category,
+        isExpanded: true,
+        // Fix for RenderFlex overflow
         selectedItemBuilder: (context) => widget.categories.keys
             .map(
               (expenseCategory) => DropdownMenuItem<ExpenseCategory>(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
@@ -9,26 +10,25 @@ import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edi
 import 'expenses_list_view.dart';
 
 class ReadonlyExpenseListItem extends StatelessWidget {
-  final ExpenseFacade expenseModelFacade;
+  final ExpenseLinkedTripEntity expenseLinkedTripEntity;
+  final Map<ExpenseCategory, String> categoryNames;
+
+  ExpenseFacade get _expense => expenseLinkedTripEntity.expense;
+
+  const ReadonlyExpenseListItem({
+    required this.expenseLinkedTripEntity,
+    required this.categoryNames,
+    super.key,
+  });
 
   String get _subTitle {
     var subTitle = '';
-    if (expenseModelFacade.location != null) {
-      subTitle += '@ ${expenseModelFacade.location}';
-    }
-    if (expenseModelFacade.dateTime != null) {
+    if (_expense.dateTime != null) {
       subTitle +=
-          ' on ${expenseModelFacade.dateTime!.monthFormat} ${expenseModelFacade.dateTime!.day}';
+          'on ${_expense.dateTime!.monthFormat} ${_expense.dateTime!.day}';
     }
     return subTitle;
   }
-
-  final Map<ExpenseCategory, String> categoryNames;
-
-  const ReadonlyExpenseListItem(
-      {required this.expenseModelFacade,
-      required this.categoryNames,
-      super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +53,7 @@ class ReadonlyExpenseListItem extends StatelessWidget {
             ),
           ),
           ExpenditureEditTile(
-            expenseUpdator: expenseModelFacade,
+            expenseUpdator: _expense,
             isEditable: false,
             callback: null,
           ),
@@ -69,19 +69,21 @@ class ReadonlyExpenseListItem extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(2.0),
           child: PlatformTextElements.createSubHeader(
-              context: context, text: expenseModelFacade.title),
+              context: context,
+              text: expenseLinkedTripEntity is ExpenseFacade
+                  ? _expense.title
+                  : expenseLinkedTripEntity.toString()),
         ),
         if (_subTitle.isNotEmpty)
           Padding(
             padding: const EdgeInsets.all(2.0),
             child: Text(_subTitle),
           ),
-        if (expenseModelFacade.description != null &&
-            expenseModelFacade.description!.isNotEmpty)
+        if (_expense.description != null && _expense.description!.isNotEmpty)
           Padding(
             padding: const EdgeInsets.all(2.0),
             child: Text(
-              "${context.localizations.description}\n${expenseModelFacade.description!}",
+              "${context.localizations.description}\n${_expense.description!}",
               maxLines: null,
             ),
           )
@@ -97,12 +99,12 @@ class ReadonlyExpenseListItem extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 2.0),
           child: IconButton(
               onPressed: null,
-              icon: Icon(iconsForCategories[expenseModelFacade.category])),
+              icon: Icon(iconsForCategories[_expense.category])),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 2.0),
           child: Text(
-            categoryNames[expenseModelFacade.category]!,
+            categoryNames[_expense.category]!,
             maxLines: null,
             style: const TextStyle(fontSize: 13),
           ),

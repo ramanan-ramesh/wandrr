@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
-import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
@@ -13,7 +12,6 @@ class ExpenseModelImplementation extends ExpenseFacade
   static const _categoryField = 'category';
   static const _paidByField = 'paidBy';
   static const _splitByField = 'splitBy';
-  static const _locationField = 'location';
   static const _totalExpenseField = 'totalExpense';
   static const _dateTimeField = 'dateTime';
 
@@ -27,10 +25,6 @@ class ExpenseModelImplementation extends ExpenseFacade
             splitBy: expenseModelFacade.splitBy,
             description: expenseModelFacade.description,
             id: expenseModelFacade.id,
-            location: expenseModelFacade.location == null
-                ? null
-                : LocationModelImplementation.fromModelFacade(
-                    locationModelFacade: expenseModelFacade.location!),
             dateTime: expenseModelFacade.dateTime,
             category: expenseModelFacade.category);
 
@@ -49,11 +43,6 @@ class ExpenseModelImplementation extends ExpenseFacade
 
     var splitBy = List<String>.from(documentData[_splitByField]);
 
-    var location = documentData.containsKey(_locationField)
-        ? null
-        : LocationModelImplementation.fromJson(
-            json: documentData[_locationField], tripId: tripId);
-
     var paidBy = <String, double>{};
     for (final paidByEntry in documentData[_paidByField].entries) {
       var amount = paidByEntry.value;
@@ -69,7 +58,6 @@ class ExpenseModelImplementation extends ExpenseFacade
         splitBy: splitBy,
         id: documentSnapshot.id,
         title: documentData[_titleField],
-        location: location,
         description: documentData[_descriptionField]);
   }
 
@@ -85,7 +73,6 @@ class ExpenseModelImplementation extends ExpenseFacade
     var json = {
       _totalExpenseField: totalExpense.toString(),
       _paidByField: paidBy,
-      _locationField: (location as LeafRepositoryItem?)?.toJson(),
       _titleField: title,
       _categoryField: category.name,
       _descriptionField: description,
@@ -116,14 +103,6 @@ class ExpenseModelImplementation extends ExpenseFacade
 
     var splitBy = List<String>.from(json[_splitByField]);
 
-    LocationModelImplementation? location;
-    if (json.containsKey(_locationField)) {
-      if (json[_locationField] != null) {
-        location = LocationModelImplementation.fromJson(
-            json: json[_locationField], tripId: tripId);
-      }
-    }
-
     var paidByValue = Map<String, dynamic>.from(json[_paidByField]);
     var paidBy = <String, double>{};
     for (final paidByEntry in paidByValue.entries) {
@@ -139,7 +118,6 @@ class ExpenseModelImplementation extends ExpenseFacade
         category: category,
         splitBy: splitBy,
         title: json[_titleField],
-        location: location,
         description: json[_descriptionField]);
   }
 
@@ -155,6 +133,5 @@ class ExpenseModelImplementation extends ExpenseFacade
       required super.splitBy,
       super.description,
       super.id,
-      super.location,
       super.dateTime});
 }

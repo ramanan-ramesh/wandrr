@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/plan_data/check_list.dart';
 import 'package:wandrr/data/trip/models/plan_data/note.dart';
@@ -93,22 +92,6 @@ class ItineraryPlanData extends Equatable
     }
 
     return ItineraryPlanDataValidationResult.valid;
-  }
-
-  /// Get all expenses associated with sights
-  List<ExpenseFacade> getAllSightExpenses() {
-    return sights
-        .where((sight) => sight.expense != null)
-        .map((sight) => sight.expense!)
-        .toList();
-  }
-
-  /// Get total expense amount for all sights
-  double getTotalSightExpenses() {
-    return getAllSightExpenses().fold(
-      0.0,
-      (sum, expense) => sum + expense.totalExpense.amount,
-    );
   }
 
   @override

@@ -97,7 +97,7 @@ class TripEditorActionPage<T extends TripEntity> extends StatelessWidget {
 class _AnimatedActionPage extends StatefulWidget {
   final Widget child;
 
-  const _AnimatedActionPage({super.key, required this.child});
+  const _AnimatedActionPage({required this.child});
 
   @override
   State<_AnimatedActionPage> createState() => _AnimatedActionPageState();
