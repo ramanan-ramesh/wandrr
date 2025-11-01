@@ -53,12 +53,6 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     _initializeExpense();
   }
 
-  void _initializeExpense() {
-    _currentPaidBy = Map.from(widget.paidBy);
-    _currentSplitBy = List.from(widget.splitBy);
-    _totalExpenseValueNotifier.value = widget.totalExpense;
-  }
-
   @override
   void didUpdateWidget(covariant ExpenditureEditTile oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -81,11 +75,17 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     }
   }
 
+  void _initializeExpense() {
+    _currentPaidBy = Map.from(widget.paidBy);
+    _currentSplitBy = List.from(widget.splitBy);
+    _totalExpenseValueNotifier.value = widget.totalExpense;
+  }
+
   Widget _createEditorForMultipleContributors(BuildContext context) {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          padding: const EdgeInsets.only(bottom: 16.0),
           child: _createTotalExpenseField(context),
         ),
         _buildTabBar(context),
@@ -157,20 +157,25 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   }
 
   Widget _createTotalExpenseField(BuildContext context) {
-    return PlatformMoneyEditField(
-      isAmountEditable: false,
-      initialAmount: _totalExpenseValueNotifier.value.amount,
-      allCurrencies: context.supportedCurrencies,
-      selectedCurrencyData: _currentCurrencyInfo,
-      onAmountUpdatedCallback: (_) {},
-      currencySelectedCallback: (_) {
-        setState(() {
-          _currentCurrencyInfo = _;
-          _totalExpenseValueNotifier.value = Money(
-              currency: _.code,
-              amount: _totalExpenseValueNotifier.value.amount);
-          _invokeUpdatedCallback();
-        });
+    return ValueListenableBuilder<Money>(
+      valueListenable: _totalExpenseValueNotifier,
+      builder: (context, value, _) {
+        return PlatformMoneyEditField(
+          isAmountEditable: false,
+          initialAmount: _totalExpenseValueNotifier.value.amount,
+          allCurrencies: context.supportedCurrencies,
+          selectedCurrencyData: _currentCurrencyInfo,
+          onAmountUpdatedCallback: (_) {},
+          currencySelectedCallback: (_) {
+            setState(() {
+              _currentCurrencyInfo = _;
+              _totalExpenseValueNotifier.value = Money(
+                  currency: _.code,
+                  amount: _totalExpenseValueNotifier.value.amount);
+              _invokeUpdatedCallback();
+            });
+          },
+        );
       },
     );
   }

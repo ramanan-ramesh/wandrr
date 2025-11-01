@@ -1,17 +1,22 @@
 import 'package:equatable/equatable.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 import 'check_list_item.dart';
 
 // ignore: must_be_immutable
-class CheckListFacade extends Equatable {
+class CheckListFacade extends Equatable implements TripEntity<CheckListFacade> {
   String? title;
   final List<CheckListItem> items;
   final String tripId;
 
-  CheckListFacade({required this.items, required this.tripId, this.title});
+  @override
+  String? id;
+
+  CheckListFacade(
+      {required this.items, required this.tripId, this.title, this.id});
 
   CheckListFacade.newUiEntry(
-      {required this.items, required this.tripId, this.title});
+      {required this.items, required this.tripId, this.title, this.id});
 
   CheckListFacade clone() => CheckListFacade(
       items: List.from(items.map((item) => item.clone())),
@@ -20,4 +25,11 @@ class CheckListFacade extends Equatable {
 
   @override
   List<Object?> get props => [title, items, tripId];
+
+  @override
+  bool validate() {
+    return (title?.isNotEmpty ?? false) &&
+        items.isNotEmpty &&
+        items.every((item) => item.item.isNotEmpty);
+  }
 }

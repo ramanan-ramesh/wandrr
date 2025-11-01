@@ -3,7 +3,6 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 
@@ -11,22 +10,20 @@ class TripEditorActionPage<T extends TripEntity> extends StatelessWidget {
   final void Function(BuildContext context) onClosePressed;
   final void Function(BuildContext context) onActionInvoked;
   final IconData actionIcon;
-  final ScrollController scrollController;
   final Widget Function(ValueNotifier<bool> validityNotifier)
       pageContentCreator;
-  final TripEditorAction tripEditorAction;
   final String title;
+  final ScrollController? scrollController;
   final ValueNotifier<bool> validityNotifier;
   final T tripEntity;
 
   TripEditorActionPage(
       {super.key,
       required this.tripEntity,
+      required this.scrollController,
       required this.title,
       required this.onClosePressed,
       required this.onActionInvoked,
-      required this.scrollController,
-      required this.tripEditorAction,
       required this.pageContentCreator,
       required this.actionIcon})
       : validityNotifier = ValueNotifier<bool>(tripEntity.validate());

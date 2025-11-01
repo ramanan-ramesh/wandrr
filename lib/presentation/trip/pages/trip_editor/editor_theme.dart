@@ -102,22 +102,37 @@ class EditorTheme {
     required String title,
     required Color iconColor,
     bool useLargeText = false,
+    Widget? trailing,
+    VoidCallback? onTap,
   }) {
-    return Row(
+    var header = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Icon(icon, color: iconColor, size: iconSize),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: (useLargeText
-                  ? Theme.of(context).textTheme.titleLarge
-                  : Theme.of(context).textTheme.titleMedium)
-              ?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+        Row(
+          children: [
+            Icon(icon, color: iconColor, size: iconSize),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: (useLargeText
+                      ? Theme.of(context).textTheme.titleLarge
+                      : Theme.of(context).textTheme.titleMedium)
+                  ?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
+        if (trailing != null) trailing,
       ],
     );
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        child: header,
+      );
+    }
+    return header;
   }
 
   /// Get text field decoration

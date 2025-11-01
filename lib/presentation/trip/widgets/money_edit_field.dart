@@ -34,6 +34,16 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
   }
 
   @override
+  void didUpdateWidget(covariant PlatformMoneyEditField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialAmount != oldWidget.initialAmount) {
+      setState(() {
+        _currentAmount = widget.initialAmount?.toStringAsFixed(2) ?? '0';
+      });
+    }
+  }
+
+  @override
   void dispose() {
     widget.removeOverlayEntry();
     super.dispose();

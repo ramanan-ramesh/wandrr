@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_viewer.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/plan_data_list.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/collapsible_section.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/collapsible_sections_page.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/plan_data/plan_data_list.dart';
 
 class DefaultPage extends StatelessWidget {
   const DefaultPage({super.key});
@@ -19,7 +19,7 @@ class DefaultPage extends StatelessWidget {
         CollapsibleSection(
           title: 'Itinerary',
           icon: Icons.map_rounded,
-          child: const ItineraryViewer(),
+          child: const ItineraryNavigator(),
         ),
       ],
       initiallyExpandedIndex: 1,

@@ -109,9 +109,37 @@ class _ExpenseEditField extends StatefulWidget {
 }
 
 class _ExpenseEditFieldState extends State<_ExpenseEditField> {
+  late TextEditingController _controller;
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialExpense);
+    _focusNode = FocusNode();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ExpenseEditField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialExpense != oldWidget.initialExpense &&
+        widget.initialExpense != _controller.text) {
+      _controller.text = widget.initialExpense;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return PlatformExpenseAmountEditField(
+      controller: _controller,
+      focusNode: _focusNode,
       amount: widget.initialExpense,
       textColor: Theme.of(context).colorScheme.onSurface,
       onExpenseAmountChanged: (newValue) {

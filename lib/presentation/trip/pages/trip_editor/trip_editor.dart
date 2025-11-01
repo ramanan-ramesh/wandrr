@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/events.dart';
+import 'package:wandrr/blocs/trip/plan_data_edit_context.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
@@ -91,11 +95,9 @@ class _TripEditorPageInternal extends StatelessWidget {
       child: Scaffold(
         appBar: TripEditorAppBar(
           onTitleClicked: () {
-            _showModalBottomSheet(
-                TripEntityEditorBottomSheet<TripMetadataFacade>(
-                    tripEditorAction: TripEditorAction.tripDetails,
-                    tripEntity: context.activeTrip.tripMetadata),
-                context);
+            context.addTripManagementEvent(
+                UpdateTripEntity<TripMetadataFacade>.select(
+                    tripEntity: context.activeTrip.tripMetadata));
           },
         ),
         extendBody: bottomNavigationBar == null,
@@ -109,30 +111,41 @@ class _TripEditorPageInternal extends StatelessWidget {
 
   void _onBlocStateChanged(BuildContext context, TripManagementState state) {
     if (state is SelectedExpenseLinkedTripEntity) {
-      _showModalBottomSheet(
-          TripEntityEditorBottomSheet<ExpenseLinkedTripEntity>(
-              tripEditorAction: TripEditorAction.expense,
-              tripEntity:
-                  state.tripEntityModificationData.modifiedCollectionItem),
-          context);
-    } else if (state is UpdatedTripEntity) {
-      if (state.dataState == DataState.select) {
-        var tripEntity =
-            state.tripEntityModificationData.modifiedCollectionItem;
-        if (tripEntity is TransitFacade) {
-          _showModalBottomSheet(
-              TripEntityEditorBottomSheet<TransitFacade>(
-                  tripEditorAction: TripEditorAction.travel,
-                  tripEntity: tripEntity),
-              context);
-        } else if (tripEntity is LodgingFacade) {
-          _showModalBottomSheet(
-              TripEntityEditorBottomSheet<LodgingFacade>(
-                  tripEditorAction: TripEditorAction.stay,
-                  tripEntity: tripEntity),
-              context);
-        }
+      var expenseLinkedTripEntity =
+          state.tripEntityModificationData.modifiedCollectionItem;
+      _showTripEntityEditorBottomSheet<ExpenseLinkedTripEntity>(
+        tripEditorAction: TripEditorAction.expense,
+        tripEntity: expenseLinkedTripEntity,
+        pageContext: context,
+      );
+    } else if (state is UpdatedTripEntity &&
+        state.dataState == DataState.select) {
+      var tripEntity = state.tripEntityModificationData.modifiedCollectionItem;
+      if (tripEntity is TransitFacade) {
+        _showTripEntityEditorBottomSheet<TransitFacade>(
+          tripEditorAction: TripEditorAction.travel,
+          tripEntity: tripEntity,
+          pageContext: context,
+        );
+      } else if (tripEntity is LodgingFacade) {
+        _showTripEntityEditorBottomSheet<LodgingFacade>(
+          tripEditorAction: TripEditorAction.stay,
+          tripEntity: tripEntity,
+          pageContext: context,
+        );
+      } else if (tripEntity is TripMetadataFacade) {
+        _showTripEntityEditorBottomSheet<TripMetadataFacade>(
+          tripEditorAction: TripEditorAction.tripData,
+          tripEntity: tripEntity,
+          pageContext: context,
+        );
       }
+    } else if (state is SelectedItineraryPlanData) {
+      _showTripEntityEditorBottomSheet<ItineraryPlanData>(
+          tripEditorAction: TripEditorAction.itineraryData,
+          tripEntity: state.planData,
+          pageContext: context,
+          planDataEditorConfig: state.planDataEditorConfig);
     }
   }
 
@@ -164,6 +177,20 @@ class _TripEditorPageInternal extends StatelessWidget {
       );
     }
     return button;
+  }
+
+  void _showTripEntityEditorBottomSheet<T extends TripEntity>(
+      {required T tripEntity,
+      required TripEditorAction tripEditorAction,
+      required BuildContext pageContext,
+      ItineraryPlanDataEditorConfig? planDataEditorConfig}) {
+    _showModalBottomSheet(
+        TripEntityEditorBottomSheet<T>(
+          tripEditorAction: tripEditorAction,
+          tripEntity: tripEntity,
+          planDataEditorConfig: planDataEditorConfig,
+        ),
+        pageContext);
   }
 
   void _showModalBottomSheet(Widget child, BuildContext pageContext) {

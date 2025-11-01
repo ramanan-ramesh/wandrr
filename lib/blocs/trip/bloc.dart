@@ -55,10 +55,7 @@ class TripManagementBloc
     on<UpdateTripEntity<PlanDataFacade>>(_onUpdatePlanData);
     on<UpdateTripEntity<ItineraryPlanData>>(_onUpdateItineraryData);
     on<_UpdateTripEntityInternalEvent>(_onTripEntityUpdateInternal);
-    on<NavigateToSection>((event, emit) {
-      emit(ProcessSectionNavigation(
-          section: event.section, dateTime: event.dateTime));
-    });
+    on<EditItineraryPlanData>(_onEditItineraryPlanData);
 
     add(_OnStartup());
   }
@@ -483,6 +480,17 @@ class TripManagementBloc
   FutureOr<void> _onSelectExpenseLinkedTripEntity(
       SelectExpenseLinkedTripEntity event, Emitter<TripManagementState> emit) {
     emit(SelectedExpenseLinkedTripEntity(tripEntity: event.tripEntity!));
+  }
+
+  FutureOr<void> _onEditItineraryPlanData(
+      EditItineraryPlanData event, Emitter<TripManagementState> emit) {
+    final itinerary =
+        _activeTrip!.itineraryCollection.getItineraryForDay(event.day);
+    final planData = itinerary.planData;
+    emit(SelectedItineraryPlanData(
+      planData: planData,
+      planDataEditorConfig: event.planDataEditorConfig,
+    ));
   }
 }
 

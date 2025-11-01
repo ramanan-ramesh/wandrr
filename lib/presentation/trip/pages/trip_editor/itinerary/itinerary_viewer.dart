@@ -1,10 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/states.dart';
+import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary.dart';
+import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
+import 'package:wandrr/data/trip/models/itinerary/sight.dart';
+import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
+import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
+import 'package:wandrr/l10n/app_localizations.dart';
+import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/checklists.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/notes.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/chrome_tab.dart';
+
+import 'timeline_event.dart';
+import 'viewer/sights.dart' show ItinerarySightsViewer;
 
 class ItineraryViewer extends StatefulWidget {
-  const ItineraryViewer({super.key});
+  final DateTime itineraryDay;
+
+  const ItineraryViewer({required this.itineraryDay, super.key});
 
   @override
   State<ItineraryViewer> createState() => _ItineraryViewerState();
@@ -12,202 +32,551 @@ class ItineraryViewer extends StatefulWidget {
 
 class _ItineraryViewerState extends State<ItineraryViewer>
     with SingleTickerProviderStateMixin {
-  late DateTime _currentDate;
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.1, 0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
-
-    _animationController.forward();
-    _currentDate = context.activeTrip.tripMetadata.startDate!;
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildNavigationBar(context),
-        Expanded(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: Itinerary(itineraryDay: _currentDate),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+    final transitOptionMetadatas = context.activeTrip.transitOptionMetadatas;
+    final appLocalizations = context.localizations;
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
 
-  void _navigateToDate(DateTime newDate) {
-    setState(() {
-      _currentDate = newDate;
-      _animationController.reset();
-      _animationController.forward();
-    });
-  }
+    return BlocConsumer<TripManagementBloc, TripManagementState>(
+      builder: (BuildContext context, TripManagementState state) {
+        final itinerary = context.activeTrip.itineraryCollection
+            .getItineraryForDay(widget.itineraryDay);
 
-  void _goToPreviousDay() {
-    final startDate = context.activeTrip.tripMetadata.startDate;
-    if (startDate == null) return;
+        // Collect all events
+        final timelineEvents = <TimelineEvent>[];
 
-    final previousDate = _currentDate.subtract(const Duration(days: 1));
-    if (!previousDate.isBefore(startDate)) {
-      _navigateToDate(previousDate);
-    }
-  }
+        // Add lodging events
+        timelineEvents
+            .addAll(_createLodgingEvents(itinerary, appLocalizations));
 
-  void _goToNextDay() {
-    final endDate = context.activeTrip.tripMetadata.endDate;
-    if (endDate == null) return;
+        // Add transit events
+        timelineEvents.addAll(_createTransitEvents(itinerary.transits.toList(),
+            transitOptionMetadatas, appLocalizations));
 
-    final nextDate = _currentDate.add(const Duration(days: 1));
-    if (!nextDate.isAfter(endDate)) {
-      _navigateToDate(nextDate);
-    }
-  }
+        // Add only timed sight events to timeline
+        timelineEvents.addAll(_createTimedSightEvents(
+            itinerary.planData.sights, appLocalizations));
 
-  bool _canGoToPreviousDay() {
-    final startDate = context.activeTrip.tripMetadata.startDate;
-    if (startDate == null) return false;
-    return !_currentDate.isAtSameMomentAs(startDate) &&
-        _currentDate.isAfter(startDate);
-  }
+        // Sort timeline events by time
+        timelineEvents.sort((a, b) {
+          if (a.time == null && b.time == null) return 0;
+          if (a.time == null) return 1;
+          if (b.time == null) return -1;
+          return a.time!.compareTo(b.time!);
+        });
 
-  bool _canGoToNextDay() {
-    final endDate = context.activeTrip.tripMetadata.endDate;
-    if (endDate == null) return false;
-    return !_currentDate.isAtSameMomentAs(endDate) &&
-        _currentDate.isBefore(endDate);
-  }
-
-  Widget _buildNavigationBar(BuildContext context) {
-    final canGoPrevious = _canGoToPreviousDay();
-    final canGoNext = _canGoToNextDay();
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(25),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.chevron_left_rounded),
-            tooltip: 'Previous',
-            iconSize: 32,
-            onPressed: canGoPrevious ? _goToPreviousDay : null,
-          ),
-          Expanded(
-            child: Center(
-              child: _buildDatePickerButton(context),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.chevron_right_rounded),
-            tooltip: 'Next',
-            iconSize: 32,
-            onPressed: canGoNext ? _goToNextDay : null,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDatePickerButton(BuildContext context) {
-    return Material(
-      elevation: 2,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          _showDatePickerDialog(context);
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.primaryContainer,
-                Theme.of(context).colorScheme.primaryContainer.withAlpha(200),
-              ],
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.calendar_today_rounded,
-                size: 20,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                _currentDate.dayDateMonthFormat,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+        return Column(
+          children: [
+            _createTabIndicators(context, isLightTheme, itinerary),
+            Expanded(
+              child: ColoredBox(
+                color:
+                    isLightTheme ? Colors.white : AppColors.darkSurfaceVariant,
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildModernTimeline(
+                      context,
+                      timelineEvents,
+                      appLocalizations,
                     ),
+                    _buildNotesTab(context, itinerary, isLightTheme),
+                    _buildChecklistsTab(context, itinerary, isLightTheme),
+                    _buildPlacesTab(
+                        context, itinerary.planData.sights, isLightTheme),
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
+        );
+      },
+      buildWhen: _shouldRebuild,
+      listener: (BuildContext context, TripManagementState state) {},
+    );
+  }
+
+  Widget _createTabIndicators(
+    BuildContext context,
+    bool isLightTheme,
+    itinerary,
+  ) {
+    return ChromeTabBar(
+      iconsAndTitles: {
+        Icons.timeline: 'Timeline',
+        Icons.note_outlined: 'Notes',
+        Icons.checklist_outlined: 'Checklists',
+        Icons.place_outlined: 'Places',
+      },
+      tabController: _tabController,
+    );
+  }
+
+  Widget _buildNotesTab(
+    BuildContext context,
+    itinerary,
+    bool isLightTheme,
+  ) {
+    final notes = itinerary.planData.notes;
+
+    return ItineraryNotesViewer(
+      notes: notes,
+      day: widget.itineraryDay,
+    );
+  }
+
+  Widget _buildChecklistsTab(
+    BuildContext context,
+    itinerary,
+    bool isLightTheme,
+  ) {
+    return ItineraryChecklistTab(
+      isLightTheme: isLightTheme,
+      checklists: itinerary.planData.checkLists,
+      onChanged: () {},
+      day: widget.itineraryDay,
+    );
+  }
+
+  Widget _buildPlacesTab(
+    BuildContext context,
+    List<SightFacade> sights,
+    bool isLightTheme,
+  ) {
+    return ItinerarySightsViewer(
+      sights: sights,
+      isLightTheme: isLightTheme,
+      tripId: context.activeTrip.tripMetadata.id!,
+      day: widget.itineraryDay,
+    );
+  }
+
+  Iterable<TimelineEvent> _createLodgingEvents(
+    ItineraryFacade itinerary,
+    AppLocalizations appLocalizations,
+  ) sync* {
+    if (itinerary.fullDayLodging != null) {
+      final lodging = itinerary.fullDayLodging!;
+      yield TimelineEvent(
+        type: ItineraryEventType.lodging,
+        time: lodging.checkinDateTime,
+        title: appLocalizations.allDayStay,
+        subtitle: _getLodgingLocation(lodging),
+        icon: Icons.hotel_rounded,
+        iconColor: AppColors.brandPrimary,
+        data: lodging,
+      );
+    } else {
+      if (itinerary.checkoutLodging != null) {
+        final lodging = itinerary.checkoutLodging!;
+        yield TimelineEvent(
+          type: ItineraryEventType.lodging,
+          time: lodging.checkoutDateTime,
+          title:
+              '${appLocalizations.checkOut} • ${_formatTime(lodging.checkoutDateTime)}',
+          subtitle: _getLodgingLocation(lodging),
+          icon: Icons.logout,
+          iconColor: AppColors.warning,
+          data: lodging,
+        );
+      }
+
+      if (itinerary.checkinLodging != null) {
+        final lodging = itinerary.checkinLodging!;
+        yield TimelineEvent(
+          type: ItineraryEventType.lodging,
+          time: lodging.checkinDateTime,
+          title:
+              '${appLocalizations.checkIn} • ${_formatTime(lodging.checkinDateTime)}',
+          subtitle: _getLodgingLocation(lodging),
+          icon: Icons.login,
+          iconColor: AppColors.success,
+          data: lodging,
+        );
+      }
+    }
+  }
+
+  Iterable<TimelineEvent> _createTransitEvents(
+    List<TransitFacade> transits,
+    Iterable<TransitOptionMetadata> transitOptionMetadatas,
+    AppLocalizations appLocalizations,
+  ) sync* {
+    for (final transit in transits) {
+      final metadata = transitOptionMetadatas.firstWhere(
+        (e) => e.transitOption == transit.transitOption,
+      );
+
+      final departureDateTime = transit.departureDateTime!;
+      final arrivalDateTime = transit.arrivalDateTime!;
+      final isDepartingToday =
+          departureDateTime.isOnSameDayAs(widget.itineraryDay);
+      final isArrivingToday =
+          arrivalDateTime.isOnSameDayAs(widget.itineraryDay);
+
+      String title;
+      DateTime eventTime;
+
+      if (isDepartingToday && isArrivingToday) {
+        // Same day journey
+        title =
+            '${_getTransitLocationDetail(transit)} • ${_formatTime(departureDateTime)} - ${_formatTime(arrivalDateTime)}';
+        eventTime = departureDateTime;
+      } else if (isDepartingToday && !isArrivingToday) {
+        // Overnight journey departing today
+        title =
+            '${appLocalizations.departAt} ${_formatTime(departureDateTime)} → ${_getDestinationName(transit)}';
+        eventTime = departureDateTime;
+      } else {
+        // Overnight journey arriving today
+        title =
+            '${appLocalizations.arriveAt} ${_formatTime(arrivalDateTime)} from ${_getOriginName(transit)}';
+        eventTime = arrivalDateTime;
+      }
+
+      yield TimelineEvent(
+        type: ItineraryEventType.transit,
+        time: eventTime,
+        title: title,
+        subtitle: _getTransitOperatorInfo(transit),
+        icon: metadata.icon,
+        iconColor: AppColors.info,
+        data: transit,
+      );
+    }
+  }
+
+  Iterable<TimelineEvent> _createTimedSightEvents(
+    List<SightFacade> sights,
+    AppLocalizations appLocalizations,
+  ) sync* {
+    for (final sight in sights) {
+      // Only add sights that have a visit time to the timeline
+      if (sight.visitTime != null) {
+        final subtitle = _getSightSubtitle(sight);
+
+        final event = TimelineEvent(
+          type: ItineraryEventType.sight,
+          time: sight.visitTime,
+          title: '${sight.name} • ${_formatTime(sight.visitTime)}',
+          subtitle: subtitle,
+          icon: Icons.place_rounded,
+          iconColor: AppColors.brandAccent,
+          data: sight,
+        );
+
+        yield event;
+      }
+    }
+  }
+
+  Widget _buildModernTimeline(
+    BuildContext context,
+    List<TimelineEvent> timelineEvents,
+    AppLocalizations appLocalizations,
+  ) {
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+
+    if (timelineEvents.isEmpty) {
+      return _buildEmptyState(context, appLocalizations);
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Timeline events
+          const SizedBox(height: 16),
+          ...timelineEvents.asMap().entries.map((entry) {
+            final index = entry.key;
+            final event = entry.value;
+            final isLast = index == timelineEvents.length - 1;
+            return _buildTimelineItem(context, event, isLast, isLightTheme);
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimelineItem(
+    BuildContext context,
+    TimelineEvent event,
+    bool isLast,
+    bool isLightTheme,
+  ) {
+    final iconBgColor = isLightTheme
+        ? event.iconColor.withValues(alpha: 0.15)
+        : event.iconColor.withValues(alpha: 0.25);
+    final cardBgColor = isLightTheme ? Colors.white : AppColors.darkSurface;
+    final timelineColor = isLightTheme
+        ? AppColors.brandPrimary.withValues(alpha: 0.5)
+        : AppColors.brandPrimaryLight.withValues(alpha: 0.3);
+    final textColor =
+        isLightTheme ? AppColors.brandSecondary : AppColors.neutral100;
+    final subtitleColor =
+        isLightTheme ? AppColors.neutral700 : AppColors.neutral400;
+
+    return IntrinsicHeight(
+      child: GestureDetector(
+        onTap: () => event.onPressed(context),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Timeline connector
+            SizedBox(
+              width: 60,
+              child: Column(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: iconBgColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: event.iconColor,
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: event.iconColor.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      event.icon,
+                      color: event.iconColor,
+                      size: 24,
+                    ),
+                  ),
+                  if (!isLast)
+                    Expanded(
+                      child: Container(
+                        width: isLightTheme ? 4 : 3,
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        decoration: BoxDecoration(
+                          color: timelineColor,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            // Event card
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.only(left: 8, bottom: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: cardBgColor,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isLightTheme
+                        ? AppColors.neutral400
+                        : AppColors.neutral600,
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          (isLightTheme ? AppColors.brandPrimary : Colors.black)
+                              .withValues(alpha: 0.15),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      event.title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: textColor,
+                          ),
+                    ),
+                    if (event.subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        event.subtitle,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: subtitleColor,
+                            ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  void _showDatePickerDialog(BuildContext context) {
-    final startDate = context.activeTrip.tripMetadata.startDate;
-    final endDate = context.activeTrip.tripMetadata.endDate;
+  Widget _buildEmptyState(
+      BuildContext context, AppLocalizations appLocalizations) {
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
 
-    if (startDate == null || endDate == null) return;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.event_available,
+              size: 80,
+              color: isLightTheme ? AppColors.neutral400 : AppColors.neutral600,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No events scheduled for this day',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: isLightTheme
+                        ? AppColors.neutral600
+                        : AppColors.neutral400,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-    showDatePicker(
-      helpText: 'Select a date to view itinerary',
-      context: context,
-      initialDate: _currentDate,
-      firstDate: startDate,
-      lastDate: endDate,
-    ).then((selectedDate) {
-      if (selectedDate != null) {
-        _navigateToDate(selectedDate);
+  // Helper methods
+  String _formatTime(DateTime? dateTime) {
+    if (dateTime == null) return '';
+    return dateTime.hourMinuteAmPmFormat;
+  }
+
+  String _getLodgingLocation(LodgingFacade lodging) {
+    final locationDetail = lodging.location!.context.name;
+    final lodgingCity = lodging.location!.context.city;
+    return lodgingCity != null
+        ? '$locationDetail, $lodgingCity'
+        : locationDetail;
+  }
+
+  String _getTransitLocationDetail(TransitFacade transit) {
+    final departureLocation = transit.transitOption == TransitOption.flight
+        ? (transit.departureLocation!.context as AirportLocationContext).city
+        : transit.departureLocation.toString();
+    final arrivalLocation = transit.transitOption == TransitOption.flight
+        ? (transit.arrivalLocation!.context as AirportLocationContext).city
+        : transit.arrivalLocation.toString();
+    return '$departureLocation → $arrivalLocation';
+  }
+
+  String _getOriginName(TransitFacade transit) {
+    return transit.transitOption == TransitOption.flight
+        ? (transit.departureLocation!.context as AirportLocationContext).city
+        : transit.departureLocation.toString();
+  }
+
+  String _getDestinationName(TransitFacade transit) {
+    return transit.transitOption == TransitOption.flight
+        ? (transit.arrivalLocation!.context as AirportLocationContext).city
+        : transit.arrivalLocation.toString();
+  }
+
+  String _getTransitOperatorInfo(TransitFacade transit) {
+    return transit.operator ?? '';
+  }
+
+  String _getSightSubtitle(SightFacade sight) {
+    final parts = <String>[];
+
+    // Add location if available
+    if (sight.location != null) {
+      final locationName = sight.location!.context.name;
+      final locationCity = sight.location!.context.city;
+      if (locationCity != null) {
+        parts.add('$locationName, $locationCity');
+      } else {
+        parts.add(locationName);
       }
-    });
+    }
+
+    // Add expense if available
+    if (sight.expense.totalExpense.amount > 0) {
+      parts.add(sight.expense.totalExpense.toString());
+    }
+
+    return parts.join(' • ');
+  }
+
+  bool _shouldRebuild(
+    TripManagementState previousState,
+    TripManagementState currentState,
+  ) {
+    if (currentState.isTripEntityUpdated<LodgingFacade>()) {
+      final currentLodgingState = currentState as UpdatedTripEntity;
+      final updatedLodging = currentLodgingState
+          .tripEntityModificationData.modifiedCollectionItem as LodgingFacade;
+
+      if (currentLodgingState.dataState == DataState.create ||
+          currentLodgingState.dataState == DataState.delete ||
+          currentLodgingState.dataState == DataState.update) {
+        return updatedLodging.checkinDateTime!
+                .isOnSameDayAs(widget.itineraryDay) ||
+            updatedLodging.checkoutDateTime!.isOnSameDayAs(widget.itineraryDay);
+      }
+    }
+
+    if (currentState.isTripEntityUpdated<TransitFacade>()) {
+      final currentTransitState = currentState as UpdatedTripEntity;
+      final updatedTransit = currentTransitState
+          .tripEntityModificationData.modifiedCollectionItem as TransitFacade;
+
+      if (currentTransitState.dataState == DataState.create ||
+          currentTransitState.dataState == DataState.delete ||
+          currentTransitState.dataState == DataState.update) {
+        final isItineraryDayOnOrAfterDeparture = widget.itineraryDay
+                .isAtSameMomentAs(updatedTransit.departureDateTime!) ||
+            widget.itineraryDay.isAfter(updatedTransit.departureDateTime!);
+        final isItineraryDayOnOrBeforeArrival = widget.itineraryDay
+                .isAtSameMomentAs(updatedTransit.arrivalDateTime!) ||
+            widget.itineraryDay.isBefore(updatedTransit.arrivalDateTime!);
+        return isItineraryDayOnOrAfterDeparture &&
+            isItineraryDayOnOrBeforeArrival;
+      }
+    }
+
+    if (currentState.isTripEntityUpdated<SightFacade>()) {
+      final currentSightState = currentState as UpdatedTripEntity;
+      final updatedSight = currentSightState
+          .tripEntityModificationData.modifiedCollectionItem as SightFacade;
+
+      if (currentSightState.dataState == DataState.create ||
+          currentSightState.dataState == DataState.delete ||
+          currentSightState.dataState == DataState.update) {
+        // Rebuild if the sight is for this day
+        return updatedSight.day.isOnSameDayAs(widget.itineraryDay);
+      }
+    }
+
+    return false;
   }
 }

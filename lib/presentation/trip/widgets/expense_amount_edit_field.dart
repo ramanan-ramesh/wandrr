@@ -8,30 +8,38 @@ class PlatformExpenseAmountEditField extends StatelessWidget {
   final bool isReadonly;
   final Function(double)? onExpenseAmountChanged;
   String? amount;
-  final TextEditingController _amountEditingController;
+  final TextEditingController? controller;
+  final FocusNode? focusNode;
   final InputDecoration? inputDecoration;
   final Color? textColor;
   final TextInputAction textInputAction;
 
-  PlatformExpenseAmountEditField(
-      {super.key,
-      this.isReadonly = false,
-      this.onExpenseAmountChanged,
-      this.inputDecoration,
-      this.textColor,
-      this.textInputAction = TextInputAction.next,
-      this.amount})
-      : _amountEditingController = TextEditingController(
-            text: amount != null
-                ? (double.parse(amount) == 0 ? null : amount)
-                : amount);
+  PlatformExpenseAmountEditField({
+    super.key,
+    this.isReadonly = false,
+    this.onExpenseAmountChanged,
+    this.inputDecoration,
+    this.textColor,
+    this.textInputAction = TextInputAction.done, // changed default to done
+    this.amount,
+    this.controller,
+    this.focusNode,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final TextEditingController effectiveController = controller ??
+        TextEditingController(
+            text: amount != null
+                ? (double.parse(amount!) == 0 ? '0' : amount)
+                : amount);
+    final FocusNode effectiveFocusNode = focusNode ?? FocusNode();
     return TextField(
       readOnly: isReadonly,
       style: TextStyle(color: textColor),
       textInputAction: textInputAction,
+      controller: effectiveController,
+      focusNode: effectiveFocusNode,
       onChanged: (newValue) {
         if (newValue != amount) {
           amount = newValue;
@@ -40,9 +48,9 @@ class PlatformExpenseAmountEditField extends StatelessWidget {
             onExpenseAmountChanged!(doubleValue);
           }
         }
+        // No focus shifting code here
       },
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      controller: _amountEditingController,
       inputFormatters: [_DecimalTextInputFormatter()],
       decoration: inputDecoration
         ?..copyWith(hintText: context.localizations.enterAmount),

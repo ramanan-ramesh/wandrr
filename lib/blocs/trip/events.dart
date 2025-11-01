@@ -1,3 +1,4 @@
+import 'package:wandrr/blocs/trip/plan_data_edit_context.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
@@ -38,9 +39,12 @@ class LoadTrip extends TripManagementEvent {
   LoadTrip({required this.tripMetadata});
 }
 
-class NavigateToSection extends TripManagementEvent {
-  DateTime? dateTime;
-  String section;
+class EditItineraryPlanData extends TripManagementEvent {
+  final DateTime day;
+  final ItineraryPlanDataEditorConfig planDataEditorConfig;
 
-  NavigateToSection({required this.section, this.dateTime});
+  EditItineraryPlanData({
+    required this.day,
+    required this.planDataEditorConfig,
+  });
 }

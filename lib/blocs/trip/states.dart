@@ -1,6 +1,8 @@
+import 'package:wandrr/blocs/trip/plan_data_edit_context.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
+import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
@@ -86,9 +88,12 @@ class SelectedExpenseLinkedTripEntity
       : super.selected(tripEntity: tripEntity);
 }
 
-class ProcessSectionNavigation extends TripManagementState {
-  DateTime? dateTime;
-  final String section;
+class SelectedItineraryPlanData extends TripManagementState {
+  final ItineraryPlanData planData;
+  final ItineraryPlanDataEditorConfig planDataEditorConfig;
 
-  ProcessSectionNavigation({required this.section, this.dateTime});
+  SelectedItineraryPlanData({
+    required this.planData,
+    required this.planDataEditorConfig,
+  });
 }

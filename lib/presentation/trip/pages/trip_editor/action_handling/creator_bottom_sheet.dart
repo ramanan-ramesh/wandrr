@@ -5,10 +5,8 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants
 
 class TripEntityCreatorBottomSheet extends StatefulWidget {
   final Iterable<TripEditorAction> supportedActions;
-  final DateTime? tripDay;
 
-  TripEntityCreatorBottomSheet(
-      {super.key, required this.supportedActions, this.tripDay});
+  TripEntityCreatorBottomSheet({super.key, required this.supportedActions});
 
   @override
   State<TripEntityCreatorBottomSheet> createState() =>
@@ -24,7 +22,6 @@ class _TripEntityCreatorBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    // Constants for FAB sizing and margin
     const double _fabBottomMargin = 25.0;
     final double _bottomPadding =
         TripEditorPageConstants.fabSize + _fabBottomMargin + 16.0;
@@ -36,7 +33,6 @@ class _TripEntityCreatorBottomSheetState
       maxChildSize: 0.85,
       minChildSize: selectedAction != null ? 0.8 : 0.5,
       builder: (context, scrollController) {
-        // Only use state from the State class, never reinitialize here
         if (selectedAction == null) {
           return _createSupportedActionsListView(
               scrollController, _bottomPadding);
@@ -44,7 +40,6 @@ class _TripEntityCreatorBottomSheetState
         var tripEntityToAdd = selectedAction!.createTripEntity(context);
         return selectedAction!.createActionPage(
             tripEntity: tripEntityToAdd,
-            tripDay: widget.tripDay,
             isEditing: false,
             onClosePressed: (context) => setState(() {
                   selectedAction = null;
@@ -73,7 +68,7 @@ class _TripEntityCreatorBottomSheetState
   Widget _buildSupportedActionTile(
       TripEditorAction action, BuildContext context) {
     final icon = action.icon;
-    final title = action.createTitle(context.localizations);
+    final title = action.getTripEntityCreatorTitle(context.localizations);
     final subtitle = action.createSubtitle(context.localizations, false);
     return ListTile(
       contentPadding: const EdgeInsets.all(20.0),
@@ -97,13 +92,15 @@ class _TripEntityCreatorBottomSheetState
           size: 28.0,
         ),
       ),
-      title: Text(
-        title,
-        style: Theme.of(context)
-            .textTheme
-            .titleLarge
-            ?.copyWith(fontWeight: FontWeight.bold),
-      ),
+      title: title == null
+          ? null
+          : Text(
+              title,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
       subtitle: Text(subtitle),
     );
   }
