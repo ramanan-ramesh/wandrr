@@ -85,6 +85,7 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
             : numberOfContributors;
 
     var avatarPhotos = <Positioned>[];
+    var overlap = _kAvatarRadius;
     avatarPhotos.add(Positioned(
       left: 0,
       child: CircleAvatar(
@@ -105,7 +106,7 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
     avatarPhotos.addAll(List.generate(
       visibleCollaborators - 1,
       (index) => Positioned(
-        left: index * _kAvatarOffset,
+        left: (index + 1) * overlap,
         child: const CircleAvatar(
           radius: _kAvatarRadius,
           child: Icon(Icons.person, size: _kAvatarOffset),
@@ -113,7 +114,7 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
     ).reversed.toList()
       ..add(Positioned(
-        left: visibleCollaborators * _kAvatarOffset,
+        left: visibleCollaborators * overlap,
         child: _createClickableRoundedButton(
             Icon(
               Icons.add_rounded,
@@ -123,7 +124,7 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
       )));
 
     return SizedBox(
-      width: (_kAvatarOffset * visibleCollaborators) + (_kAvatarRadius * 2),
+      width: (overlap * visibleCollaborators) + (_kAvatarRadius * 2),
       height: _kAvatarRadius * 2,
       child: Stack(
         children: avatarPhotos,
