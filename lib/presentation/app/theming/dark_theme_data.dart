@@ -249,5 +249,14 @@ ThemeData createDarkThemeData(BuildContext context) {
         return null;
       }),
     ),
+    toggleButtonsTheme: ToggleButtonsThemeData(
+      color: AppColors.neutral400,
+      selectedColor: AppColors.brandPrimaryLight,
+      fillColor: AppColors.brandPrimaryLight.withValues(alpha: 0.15),
+      splashColor: AppColors.brandPrimaryLight.withValues(alpha: 0.1),
+      borderColor: AppColors.neutral600,
+      selectedBorderColor: AppColors.brandPrimaryLight,
+      borderRadius: BorderRadius.circular(ThemeConstants.cardBorderRadius / 2),
+    ),
   );
 }

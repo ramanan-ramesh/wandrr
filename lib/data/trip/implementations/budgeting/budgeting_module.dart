@@ -441,7 +441,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       expenseUiElements
           .sort((a, b) => b.expense.dateTime!.compareTo(a.expense.dateTime!));
     }
-    expenseUiElements.insertAll(0, expensesWithoutDateTime);
+    expenseUiElements.addAll(expensesWithoutDateTime);
     return expenseUiElements;
   }
 

@@ -23,10 +23,13 @@ class ExpenseListView extends StatefulWidget {
 }
 
 class _ExpenseListViewState extends State<ExpenseListView> {
-  var _selectedSortOption = ExpenseSortOption.oldToNew;
+  var _selectedSortOption = ExpenseSortOption.newToOld;
+  var _costSortAscending = true;
+  var _dateSortNewestFirst = true;
   static late Map<ExpenseCategory, String> _categoryNames;
-  static late Map<ExpenseSortOption, String> _availableSortOptions;
   var _expenses = <ExpenseLinkedTripEntity>[];
+  Future<Iterable<ExpenseLinkedTripEntity>>? _sortingFuture;
+  int _animationToken = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -42,23 +45,208 @@ class _ExpenseListViewState extends State<ExpenseListView> {
   }
 
   Widget _createListViewingArea(BuildContext context) {
+    final sortDropdown = _createSortDropdown(context);
+
     if (_expenses.isEmpty) {
-      return _createEmptyMessagePane(context);
-    } else {
-      return FutureBuilder<Iterable<ExpenseLinkedTripEntity>>(
-        future: context.activeTrip.budgetingModule
-            .sortExpenses(_expenses, _selectedSortOption),
-        builder: (BuildContext context,
-            AsyncSnapshot<Iterable<ExpenseLinkedTripEntity>> snapshot) {
-          if (snapshot.connectionState == ConnectionState.done &&
-              snapshot.hasData) {
-            _expenses = snapshot.data!.toList();
-            return _createSliverList();
-          }
-          return Center(child: CircularProgressIndicator());
-        },
-      );
+      return _createEmptyListMessage(sortDropdown, context);
     }
+
+    _sortingFuture ??= context.activeTrip.budgetingModule
+        .sortExpenses(_expenses, _selectedSortOption);
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: sortDropdown,
+        ),
+        Expanded(
+          child: FutureBuilder<Iterable<ExpenseLinkedTripEntity>>(
+            future: _sortingFuture,
+            builder: (BuildContext context,
+                AsyncSnapshot<Iterable<ExpenseLinkedTripEntity>> snapshot) {
+              Widget child;
+              String childKey;
+              if (snapshot.connectionState != ConnectionState.done ||
+                  !snapshot.hasData) {
+                child = _buildLoadingAnimation(context);
+                childKey = 'loading-$_animationToken';
+              } else {
+                _expenses = snapshot.data!.toList();
+                child = _createSliverList();
+                childKey = 'list-${_selectedSortOption.name}-$_animationToken';
+              }
+              return _createAnimatedList(childKey, child);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _createAnimatedList(String childKey, Widget child) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 350),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      transitionBuilder: (widget, animation) => FadeTransition(
+        opacity: animation,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0.0, 0.06),
+            end: Offset.zero,
+          ).animate(animation),
+          child: widget,
+        ),
+      ),
+      child: KeyedSubtree(
+        key: ValueKey(childKey),
+        child: child,
+      ),
+    );
+  }
+
+  Column _createEmptyListMessage(Widget sortDropdown, BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: sortDropdown,
+        ),
+        Center(
+          child: Container(
+            height: 200,
+            color: Colors.transparent,
+            child: Center(
+              child: PlatformTextElements.createSubHeader(
+                  context: context,
+                  text: context.localizations.noExpensesCreated,
+                  textAlign: TextAlign.center),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _createSortDropdown(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        ToggleButtons(
+          isSelected: [
+            _selectedSortOption == ExpenseSortOption.lowToHighCost ||
+                _selectedSortOption == ExpenseSortOption.highToLowCost,
+            _selectedSortOption == ExpenseSortOption.category,
+            _selectedSortOption == ExpenseSortOption.oldToNew ||
+                _selectedSortOption == ExpenseSortOption.newToOld,
+          ],
+          onPressed: _onToggleSortOption,
+          constraints: const BoxConstraints(minHeight: 40, minWidth: 48),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: Row(
+                children: [
+                  Icon(Icons.attach_money_rounded),
+                  const SizedBox(width: 4),
+                  Icon(
+                    _costSortAscending
+                        ? Icons.arrow_downward_rounded
+                        : Icons.arrow_upward_rounded,
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: Icon(Icons.category_outlined),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: Row(
+                children: [
+                  Icon(Icons.calendar_today_rounded),
+                  const SizedBox(width: 4),
+                  Icon(
+                    _dateSortNewestFirst
+                        ? Icons.arrow_upward_rounded
+                        : Icons.arrow_downward_rounded,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _onToggleSortOption(int index) {
+    ExpenseSortOption newSortOption;
+    if (index == 0) {
+      final isCostActive =
+          _selectedSortOption == ExpenseSortOption.lowToHighCost ||
+              _selectedSortOption == ExpenseSortOption.highToLowCost;
+      if (isCostActive) {
+        newSortOption = _selectedSortOption == ExpenseSortOption.lowToHighCost
+            ? ExpenseSortOption.highToLowCost
+            : ExpenseSortOption.lowToHighCost;
+        _costSortAscending = !_costSortAscending;
+      } else {
+        newSortOption = _costSortAscending
+            ? ExpenseSortOption.lowToHighCost
+            : ExpenseSortOption.highToLowCost;
+      }
+    } else if (index == 1) {
+      newSortOption = ExpenseSortOption.category;
+    } else {
+      final isDateActive = _selectedSortOption == ExpenseSortOption.oldToNew ||
+          _selectedSortOption == ExpenseSortOption.newToOld;
+      if (isDateActive) {
+        newSortOption = _selectedSortOption == ExpenseSortOption.oldToNew
+            ? ExpenseSortOption.newToOld
+            : ExpenseSortOption.oldToNew;
+        _dateSortNewestFirst = !_dateSortNewestFirst;
+      } else {
+        newSortOption = _dateSortNewestFirst
+            ? ExpenseSortOption.newToOld
+            : ExpenseSortOption.oldToNew;
+      }
+    }
+
+    if (newSortOption != _selectedSortOption) {
+      setState(() {
+        _selectedSortOption = newSortOption;
+        _animationToken++;
+        _sortingFuture = context.activeTrip.budgetingModule
+            .sortExpenses(_expenses, _selectedSortOption);
+      });
+    }
+  }
+
+  Widget _buildLoadingAnimation(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 68,
+            height: 68,
+            child: CircularProgressIndicator(
+              strokeWidth: 5,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            context.localizations.loading,
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _createSliverList() {
@@ -69,23 +257,10 @@ class _ExpenseListViewState extends State<ExpenseListView> {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 4.0),
           child: _ExpenseListItem(
-              expenseLinkedTripEntity: uiElement,
+              initialExpenseLinkedTripEntity: uiElement,
               categoryNames: _categoryNames),
         );
       },
-    );
-  }
-
-  Widget _createEmptyMessagePane(BuildContext context) {
-    return Container(
-      height: 200,
-      color: Colors.transparent,
-      child: Center(
-        child: PlatformTextElements.createSubHeader(
-            context: context,
-            text: context.localizations.noExpensesCreated,
-            textAlign: TextAlign.center),
-      ),
     );
   }
 
@@ -119,6 +294,9 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       }
     }
     _expenses = expenseUiElements.toList();
+    _animationToken++;
+    _sortingFuture = context.activeTrip.budgetingModule
+        .sortExpenses(_expenses, _selectedSortOption);
   }
 
   void _initializeUIComponentNames(BuildContext context) {
@@ -136,28 +314,36 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       ExpenseCategory.groceries: context.localizations.groceries,
       ExpenseCategory.other: context.localizations.other
     };
-    _availableSortOptions = {
-      ExpenseSortOption.oldToNew: context.localizations.oldToNew,
-      ExpenseSortOption.newToOld: context.localizations.newToOld,
-      ExpenseSortOption.lowToHighCost: context.localizations.lowToHighCost,
-      ExpenseSortOption.highToLowCost: context.localizations.highToLowCost,
-      ExpenseSortOption.category: context.localizations.category
-    };
   }
 }
 
-class _ExpenseListItem extends StatelessWidget {
-  ExpenseLinkedTripEntity expenseLinkedTripEntity;
+class _ExpenseListItem extends StatefulWidget {
+  final ExpenseLinkedTripEntity initialExpenseLinkedTripEntity;
   final Map<ExpenseCategory, String> categoryNames;
 
-  _ExpenseListItem(
-      {required this.expenseLinkedTripEntity, required this.categoryNames});
+  const _ExpenseListItem({
+    required this.initialExpenseLinkedTripEntity,
+    required this.categoryNames,
+  });
+
+  @override
+  State<_ExpenseListItem> createState() => _ExpenseListItemState();
+}
+
+class _ExpenseListItemState extends State<_ExpenseListItem> {
+  late ExpenseLinkedTripEntity _expenseLinkedTripEntity;
+
+  @override
+  void initState() {
+    super.initState();
+    _expenseLinkedTripEntity = widget.initialExpenseLinkedTripEntity;
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => context.addTripManagementEvent(
-          SelectExpenseLinkedTripEntity(tripEntity: expenseLinkedTripEntity)),
+          SelectExpenseLinkedTripEntity(tripEntity: _expenseLinkedTripEntity)),
       child: Material(
         color: context.isLightTheme
             ? Theme.of(context)
@@ -174,16 +360,14 @@ class _ExpenseListItem extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(23),
-            border: Border.all(
-              width: 2.2,
-            ),
+            border: Border.all(width: 2.2),
           ),
           child: BlocBuilder<TripManagementBloc, TripManagementState>(
             buildWhen: _shouldBuildListElement,
             builder: (BuildContext context, TripManagementState state) {
               return ReadonlyExpenseListItem(
-                categoryNames: categoryNames,
-                expenseLinkedTripEntity: expenseLinkedTripEntity,
+                categoryNames: widget.categoryNames,
+                expenseLinkedTripEntity: _expenseLinkedTripEntity,
               );
             },
           ),
@@ -201,9 +385,11 @@ class _ExpenseListItem extends StatelessWidget {
       var updatedTripElementId = modifiedTransitCollectionItem.id;
       var operationPerformed = transitUpdatedState.dataState;
       if (operationPerformed == DataState.update &&
-          (expenseLinkedTripEntity.expense.id == updatedTripElementId ||
-              expenseLinkedTripEntity.id == updatedTripElementId)) {
-        expenseLinkedTripEntity = modifiedTransitCollectionItem;
+          (_expenseLinkedTripEntity.expense.id == updatedTripElementId ||
+              _expenseLinkedTripEntity.id == updatedTripElementId)) {
+        setState(() {
+          _expenseLinkedTripEntity = modifiedTransitCollectionItem;
+        });
         return true;
       }
     }

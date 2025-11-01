@@ -82,6 +82,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
 
   Widget _createEditorForMultipleContributors(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 16.0),
@@ -89,7 +90,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
         ),
         _buildTabBar(context),
         ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: 400, minHeight: 200),
+          constraints: BoxConstraints(maxHeight: 300, minHeight: 200),
           child: TabBarView(
             controller: _tabController,
             children: [

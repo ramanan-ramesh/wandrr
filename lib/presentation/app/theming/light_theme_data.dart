@@ -255,7 +255,15 @@ ThemeData createLightThemeData(BuildContext context) {
         }
         return null;
       }),
-      // Add a slight shadow to the thumb for a modern look
+    ),
+    toggleButtonsTheme: ToggleButtonsThemeData(
+      color: AppColors.neutral600,
+      selectedColor: AppColors.brandPrimary,
+      fillColor: AppColors.brandPrimary.withValues(alpha: 0.15),
+      splashColor: AppColors.brandPrimary.withValues(alpha: 0.1),
+      borderColor: AppColors.neutral500,
+      selectedBorderColor: AppColors.brandPrimary,
+      borderRadius: BorderRadius.circular(ThemeConstants.cardBorderRadius / 2),
     ),
   );
 }

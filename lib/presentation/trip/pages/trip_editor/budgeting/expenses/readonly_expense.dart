@@ -42,7 +42,9 @@ class ReadonlyExpenseListItem extends StatelessWidget {
               padding: const EdgeInsets.only(right: 3.0),
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: _createExpenseCategory(),
+                child: IconButton(
+                    onPressed: null,
+                    icon: Icon(iconsForCategories[_expense.category])),
               ),
             ),
           ),
@@ -87,28 +89,6 @@ class ReadonlyExpenseListItem extends StatelessWidget {
               maxLines: null,
             ),
           )
-      ],
-    );
-  }
-
-  Widget _createExpenseCategory() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2.0),
-          child: IconButton(
-              onPressed: null,
-              icon: Icon(iconsForCategories[_expense.category])),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2.0),
-          child: Text(
-            categoryNames[_expense.category]!,
-            maxLines: null,
-            style: const TextStyle(fontSize: 13),
-          ),
-        ),
       ],
     );
   }
