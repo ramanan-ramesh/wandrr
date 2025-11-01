@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/plan_data_edit_context.dart';
-import 'package:wandrr/data/trip/models/plan_data/check_list.dart';
+import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 class ItineraryChecklistTab extends StatefulWidget {

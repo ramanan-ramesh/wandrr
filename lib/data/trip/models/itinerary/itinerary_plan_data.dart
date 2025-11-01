@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
+import 'package:wandrr/data/trip/models/itinerary/note.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
-import 'package:wandrr/data/trip/models/plan_data/check_list.dart';
-import 'package:wandrr/data/trip/models/plan_data/note.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 /// Itinerary-specific plan data with sights, notes, and checklists

@@ -1,7 +1,6 @@
 import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
-import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 
 import 'budgeting/budgeting_module.dart';
 import 'budgeting/expense.dart';
@@ -18,8 +17,6 @@ abstract class TripDataFacade {
   ModelCollectionFacade<LodgingFacade> get lodgingCollection;
 
   ModelCollectionFacade<ExpenseFacade> get expenseCollection;
-
-  ModelCollectionFacade<PlanDataFacade> get planDataCollection;
 
   ItineraryFacadeCollection get itineraryCollection;
 
@@ -39,6 +36,4 @@ abstract class TripDataModelEventHandler extends TripDataFacade
   ModelCollectionModifier<LodgingFacade> get lodgingCollection;
 
   ModelCollectionModifier<ExpenseFacade> get expenseCollection;
-
-  ModelCollectionModifier<PlanDataFacade> get planDataCollection;
 }

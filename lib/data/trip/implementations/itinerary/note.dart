@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
-import 'package:wandrr/data/trip/models/plan_data/note.dart';
+import 'package:wandrr/data/trip/models/itinerary/note.dart';
 
 // ignore: must_be_immutable
 class NoteModelImplementation extends NoteFacade

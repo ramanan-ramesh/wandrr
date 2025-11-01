@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
-import 'package:wandrr/data/trip/implementations/plan_data/check_list.dart';
-import 'package:wandrr/data/trip/implementations/plan_data/note.dart';
+import 'package:wandrr/data/trip/implementations/itinerary/check_list.dart';
+import 'package:wandrr/data/trip/implementations/itinerary/note.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 

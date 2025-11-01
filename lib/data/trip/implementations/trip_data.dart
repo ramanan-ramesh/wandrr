@@ -15,7 +15,6 @@ import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
@@ -24,7 +23,6 @@ import 'package:wandrr/l10n/app_localizations.dart';
 
 import 'budgeting/expense.dart';
 import 'lodging.dart';
-import 'plan_data/plan_data_model_implementation.dart';
 import 'transit.dart';
 import 'trip_metadata.dart';
 
@@ -64,13 +62,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
             tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
         (expenseModelFacade) => ExpenseModelImplementation.fromModelFacade(
             expenseModelFacade: expenseModelFacade));
-    var planDataModelCollection = await FirestoreModelCollection.createInstance(
-        tripDocumentReference
-            .collection(FirestoreCollections.planDataCollectionName),
-        (documentSnapshot) => PlanDataModelImplementation.fromDocumentSnapshot(
-            tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
-        (planDataModelFacade) => PlanDataModelImplementation.fromModelFacade(
-            planDataFacade: planDataModelFacade));
 
     var itineraries = await ItineraryCollection.createInstance(
         transitCollection: transitModelCollection,
@@ -93,7 +84,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         transitModelCollection,
         lodgingModelCollection,
         expenseModelCollection,
-        planDataModelCollection,
         itineraries,
         apiServicesRepository.currencyConverter,
         budgetingModule,
@@ -108,9 +98,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
 
   @override
   final ModelCollectionModifier<ExpenseFacade> expenseCollection;
-
-  @override
-  final ModelCollectionModifier<PlanDataFacade> planDataCollection;
 
   @override
   final ItineraryCollection itineraryCollection;
@@ -195,7 +182,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   Future dispose() async {
     await transitCollection.dispose();
     await lodgingCollection.dispose();
-    await planDataCollection.dispose();
     await expenseCollection.dispose();
     await itineraryCollection.dispose();
     await budgetingModule.dispose();
@@ -279,7 +265,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       this.transitCollection,
       this.lodgingCollection,
       this.expenseCollection,
-      this.planDataCollection,
       this.itineraryCollection,
       this.currencyConverter,
       this.budgetingModule,

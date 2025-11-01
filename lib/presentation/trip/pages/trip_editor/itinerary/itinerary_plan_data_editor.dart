@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/trip/plan_data_edit_context.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
+import 'package:wandrr/data/trip/models/itinerary/note.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
-import 'package:wandrr/data/trip/models/plan_data/check_list.dart';
-import 'package:wandrr/data/trip/models/plan_data/note.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';

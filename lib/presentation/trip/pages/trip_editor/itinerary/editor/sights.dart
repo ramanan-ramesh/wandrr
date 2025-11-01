@@ -33,12 +33,16 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
       items: widget.sights,
       addButtonLabel: 'Add Sight',
       addButtonIcon: Icons.add_location_alt_rounded,
-      createItem: () => SightFacade.newEntry(
-        tripId: context.activeTrip.tripMetadata.id!,
-        day: widget.day,
-        defaultCurrency: context.activeTrip.tripMetadata.budget.currency,
-        contributors: context.activeTrip.tripMetadata.contributors,
-      ),
+      createItem: () {
+        var activeTrip = context.activeTrip;
+        var tripMetadata = activeTrip.tripMetadata;
+        return SightFacade.newEntry(
+          tripId: tripMetadata.id!,
+          day: widget.day,
+          defaultCurrency: tripMetadata.budget.currency,
+          contributors: tripMetadata.contributors,
+        );
+      },
       onItemsChanged: widget.onSightsChanged,
       titleBuilder: (s) => s.name.isNotEmpty
           ? s.name

@@ -161,7 +161,7 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     return ItinerarySightsViewer(
       sights: sights,
       isLightTheme: isLightTheme,
-      tripId: context.activeTrip.tripMetadata.id!,
+      tripId: context.activeTripId,
       day: widget.itineraryDay,
     );
   }

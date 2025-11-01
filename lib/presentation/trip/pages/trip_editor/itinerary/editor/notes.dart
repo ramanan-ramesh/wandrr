@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/data/trip/models/plan_data/note.dart';
+import 'package:wandrr/data/trip/models/itinerary/note.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/common_collapsible_tab.dart';
@@ -27,8 +27,7 @@ class _ItineraryNotesEditorState extends State<ItineraryNotesEditor> {
       items: widget.notes,
       addButtonLabel: 'Add Note',
       addButtonIcon: Icons.note_add_rounded,
-      createItem: () =>
-          NoteFacade(note: '', tripId: context.activeTrip.tripMetadata.id!),
+      createItem: () => NoteFacade(note: '', tripId: context.activeTripId),
       onItemsChanged: widget.onNotesChanged,
       titleBuilder: (n) {
         final raw = n.note.trim();
@@ -68,8 +67,7 @@ class _NoteEditor extends StatefulWidget {
   final VoidCallback onChanged;
 
   const _NoteEditor(
-      {super.key,
-      required this.note,
+      {required this.note,
       required this.isLightTheme,
       required this.onChanged});
 

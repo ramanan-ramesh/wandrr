@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/data/trip/models/plan_data/check_list.dart';
-import 'package:wandrr/data/trip/models/plan_data/check_list_item.dart';
+import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
+import 'package:wandrr/data/trip/models/itinerary/check_list_item.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
@@ -29,8 +29,8 @@ class _ItineraryChecklistsEditorState extends State<ItineraryChecklistsEditor> {
       items: widget.checklists,
       addButtonLabel: 'Add Checklist',
       addButtonIcon: Icons.checklist_rounded,
-      createItem: () => CheckListFacade.newUiEntry(
-          tripId: context.activeTrip.tripMetadata.id!, items: []),
+      createItem: () =>
+          CheckListFacade.newUiEntry(tripId: context.activeTripId, items: []),
       onItemsChanged: widget.onChecklistsChanged,
       titleBuilder: (cl) =>
           cl.title?.trim().isEmpty ?? true ? 'Checklist' : cl.title!.trim(),

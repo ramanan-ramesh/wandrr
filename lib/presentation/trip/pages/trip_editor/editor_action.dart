@@ -5,13 +5,11 @@ import 'package:wandrr/blocs/trip/plan_data_edit_context.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_plan_data_editor.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/plan_data/plan_data.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/trip_details_editor.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
@@ -23,7 +21,6 @@ import 'transit/travel_editor.dart';
 enum TripEditorAction {
   travel,
   stay,
-  tripData, //TODO: Remove tripData. ItineraryPlanData is enough. Seems confusing. Itinerary will occupy larger space too.
   itineraryData,
   expense,
   tripDetails,
@@ -36,8 +33,6 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
         return 'Travel Entry';
       case TripEditorAction.stay:
         return 'Stay Entry';
-      case TripEditorAction.tripData:
-        return 'Trip Data Entry';
       case TripEditorAction.expense:
         return 'Expense Entry';
       case TripEditorAction.tripDetails:
@@ -55,10 +50,6 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
             : 'Add transit information';
       case TripEditorAction.stay:
         return isEditing ? 'Edit lodging details' : 'Add lodging details';
-      case TripEditorAction.tripData:
-        return isEditing
-            ? 'Edit trip notes and checklist'
-            : 'Add trip notes and checklist';
       case TripEditorAction.itineraryData:
         return isEditing ? 'Edit itinerary details' : 'Add itinerary details';
       case TripEditorAction.expense:
@@ -74,8 +65,6 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
         return Icons.flight;
       case TripEditorAction.stay:
         return Icons.hotel;
-      case TripEditorAction.tripData:
-        return Icons.note;
       case TripEditorAction.expense:
         return Icons.money;
       case TripEditorAction.itineraryData:
@@ -99,8 +88,6 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
             tripId: activeTrip.tripMetadata.id!,
             allTripContributors: activeTrip.tripMetadata.contributors,
             defaultCurrency: activeTrip.tripMetadata.budget.currency);
-      case TripEditorAction.tripData:
-        return PlanDataFacade.newEntry(tripId: activeTrip.tripMetadata.id!);
       case TripEditorAction.expense:
         return ExpenseFacade.newUiEntry(
             tripId: activeTrip.tripMetadata.id!,
@@ -152,13 +139,6 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
             onLodgingUpdated: () =>
                 validityNotifier.value = tripEntityToEdit.validate(),
           );
-    } else if (this == TripEditorAction.tripData &&
-        tripEntity is PlanDataFacade) {
-      pageContentCreator = (validityNotifier) => PlanDataListItem(
-            planData: tripEntityToEdit,
-            planDataUpdated: (newPlanData) =>
-                validityNotifier.value = newPlanData.validate(),
-          );
     } else if (this == TripEditorAction.expense &&
         tripEntity is ExpenseLinkedTripEntity) {
       pageContentCreator = (validityNotifier) => ExpenseEditor(
@@ -197,9 +177,6 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
             TripEditorAction.stay: (entity) =>
                 UpdateTripEntity<LodgingFacade>.create(
                     tripEntity: entity as LodgingFacade),
-            TripEditorAction.tripData: (entity) =>
-                UpdateTripEntity<PlanDataFacade>.create(
-                    tripEntity: entity as PlanDataFacade),
             TripEditorAction.expense: (entity) =>
                 UpdateTripEntity<ExpenseFacade>.create(
                     tripEntity: entity as ExpenseFacade),
@@ -214,9 +191,6 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
             TripEditorAction.stay: (entity) =>
                 UpdateTripEntity<LodgingFacade>.update(
                     tripEntity: entity as LodgingFacade),
-            TripEditorAction.tripData: (entity) =>
-                UpdateTripEntity<PlanDataFacade>.update(
-                    tripEntity: entity as PlanDataFacade),
             TripEditorAction.itineraryData: (entity) =>
                 UpdateTripEntity<ItineraryPlanData>.update(
                     tripEntity: entity as ItineraryPlanData),

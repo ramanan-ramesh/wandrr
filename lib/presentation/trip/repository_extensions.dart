@@ -18,6 +18,8 @@ extension TripRepositoryExtensions on BuildContext {
 
   TripDataFacade get activeTrip => tripRepository.activeTrip!;
 
+  String get activeTripId => activeTrip.tripMetadata.id!;
+
   void updateLocalizations() {
     (tripRepository as TripRepositoryEventHandler)
         .updateLocalizations(localizations);

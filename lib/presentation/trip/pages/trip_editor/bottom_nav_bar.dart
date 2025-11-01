@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 const double _kNavBarHeight = 80.0;
@@ -9,7 +10,13 @@ const double _kIconSizeUnselected = 28.0;
 extension _NavBarThemeExtension on BuildContext {
   Color get navBarSelectedColor => Theme.of(this).colorScheme.primary;
 
-  Color get navBarUnselectedColor => Colors.transparent;
+  Color get navBarUnselectedColor {
+    final theme = Theme.of(this);
+    final cs = theme.colorScheme;
+    return isLightTheme
+        ? cs.primaryContainer
+        : cs.onSurfaceVariant.withValues(alpha: 0.35);
+  }
 
   Color get navBarIconSelectedColor => Colors.white;
 

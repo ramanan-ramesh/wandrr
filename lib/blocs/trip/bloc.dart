@@ -11,7 +11,6 @@ import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
@@ -52,7 +51,6 @@ class TripManagementBloc
     on<GoToHome>(_onGoToHome);
     on<UpdateTripEntity<ExpenseFacade>>(_onUpdateExpense);
     on<UpdateTripEntity<TripMetadataFacade>>(_onUpdateTripMetadata);
-    on<UpdateTripEntity<PlanDataFacade>>(_onUpdatePlanData);
     on<UpdateTripEntity<ItineraryPlanData>>(_onUpdateItineraryData);
     on<_UpdateTripEntityInternalEvent>(_onTripEntityUpdateInternal);
     on<EditItineraryPlanData>(_onEditItineraryPlanData);
@@ -99,8 +97,6 @@ class TripManagementBloc
           _activeTrip!.lodgingCollection, emit);
       _subscribeToCollectionUpdatesForTripEntity<ExpenseFacade>(
           _activeTrip!.expenseCollection, emit);
-      _subscribeToCollectionUpdatesForTripEntity<PlanDataFacade>(
-          _activeTrip!.planDataCollection, emit);
       await _createItineraryPlanDataSubscriptions();
       emit(ActivatedTrip(apiServicesRepository: _apiServicesRepository!));
     }
@@ -163,23 +159,6 @@ class TripManagementBloc
         event.tripEntity!,
         event.dataState,
         _activeTrip!.expenseCollection,
-        event.tripEntity!.id,
-        emit);
-  }
-
-  FutureOr<void> _onUpdatePlanData(UpdateTripEntity<PlanDataFacade> event,
-      Emitter<TripManagementState> emit) async {
-    if (event.dataState == DataState.newUiEntry) {
-      var planDataModelFacade = event.tripEntity ??
-          PlanDataFacade.newEntry(tripId: _activeTrip!.tripMetadata.id!);
-      emit(UpdatedTripEntity<PlanDataFacade>.createdNewUiEntry(
-          tripEntity: planDataModelFacade, isOperationSuccess: true));
-      return;
-    }
-    await _tryUpdateTripEntityAndEmitState<PlanDataFacade>(
-        event.tripEntity!,
-        event.dataState,
-        _activeTrip!.planDataCollection,
         event.tripEntity!.id,
         emit);
   }

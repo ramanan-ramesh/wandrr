@@ -40,7 +40,6 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   late final TabController _tabController;
   late CurrencyData _currentCurrencyInfo;
   final Map<String, Color> _contributorsVsColors = {};
-  static const double _heightPerItem = 40;
   late final ValueNotifier<Money> _totalExpenseValueNotifier;
   late Map<String, double> _currentPaidBy;
   late List<String> _currentSplitBy;

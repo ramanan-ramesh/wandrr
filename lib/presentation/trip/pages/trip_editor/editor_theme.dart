@@ -19,7 +19,6 @@ class EditorTheme {
   static const double _sectionMarginVertical = 12.0;
   static const double _sectionPadding = 16.0;
 
-  static const double _iconContainerPadding = 8.0;
   static const double iconSize = 24.0;
   static const double iconSizeSmall = 20.0;
 
@@ -35,7 +34,6 @@ class EditorTheme {
   // Shadow offsets
   static Offset _cardShadowOffsetBig = const Offset(0, 10);
   static Offset _cardShadowOffsetSmall = const Offset(0, 8);
-  static Offset _standardShadowOffset = const Offset(0, 4);
   static Offset _badgeShadowOffset = const Offset(2, 2);
 
   /// Get card border radius based on layout size
