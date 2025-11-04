@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
-import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/plan_data_edit_context.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
@@ -23,17 +21,18 @@ import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 import 'itinerary/itinerary_navigator.dart';
 
+/// Main entry point for the trip editor page.
 class TripEditorPage extends StatelessWidget {
   const TripEditorPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final bool isBigLayout = context.isBigLayout;
+    final isBigLayout = context.isBigLayout;
     if (isBigLayout) {
       return _TripEditorPageInternal(
         body: Row(
-          children: [
-            Expanded(child: const ItineraryNavigator()),
+          children: const [
+            Expanded(child: ItineraryNavigator()),
             Expanded(child: BudgetingPage()),
           ],
         ),
@@ -53,16 +52,10 @@ class _TripEditorSmallLayout extends StatefulWidget {
 
 class _TripEditorSmallLayoutPageState extends State<_TripEditorSmallLayout> {
   int _currentPageIndex = 0;
-  late List<Widget> _pages = <Widget>[];
-
-  @override
-  void initState() {
-    super.initState();
-    _pages = [
-      const ItineraryNavigator(),
-      BudgetingPage(),
-    ];
-  }
+  late final List<Widget> _pages = [
+    const ItineraryNavigator(),
+    const BudgetingPage(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -71,9 +64,7 @@ class _TripEditorSmallLayoutPageState extends State<_TripEditorSmallLayout> {
       bottomNavigationBar: BottomNavBar(
         selectedIndex: _currentPageIndex,
         onNavBarItemTapped: (selectedPageIndex) {
-          if (selectedPageIndex == _currentPageIndex) {
-            return;
-          }
+          if (selectedPageIndex == _currentPageIndex) return;
           setState(() {
             _currentPageIndex = selectedPageIndex;
           });
@@ -87,20 +78,17 @@ class _TripEditorPageInternal extends StatelessWidget {
   final Widget body;
   final Widget? bottomNavigationBar;
 
-  const _TripEditorPageInternal({required this.body, this.bottomNavigationBar});
+  const _TripEditorPageInternal({
+    required this.body,
+    this.bottomNavigationBar,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<TripManagementBloc, TripManagementState>(
       listener: _onBlocStateChanged,
       child: Scaffold(
-        appBar: TripEditorAppBar(
-          onTitleClicked: () {
-            context.addTripManagementEvent(
-                UpdateTripEntity<TripMetadataFacade>.select(
-                    tripEntity: context.activeTrip.tripMetadata));
-          },
-        ),
+        appBar: const TripEditorAppBar(),
         extendBody: bottomNavigationBar == null,
         floatingActionButton: _createAddButton(context),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -112,7 +100,7 @@ class _TripEditorPageInternal extends StatelessWidget {
 
   void _onBlocStateChanged(BuildContext context, TripManagementState state) {
     if (state is SelectedExpenseLinkedTripEntity) {
-      var expenseLinkedTripEntity =
+      final expenseLinkedTripEntity =
           state.tripEntityModificationData.modifiedCollectionItem;
       _showTripEntityEditorBottomSheet<ExpenseLinkedTripEntity>(
         tripEditorAction: TripEditorAction.expense,
@@ -121,7 +109,8 @@ class _TripEditorPageInternal extends StatelessWidget {
       );
     } else if (state is UpdatedTripEntity &&
         state.dataState == DataState.select) {
-      var tripEntity = state.tripEntityModificationData.modifiedCollectionItem;
+      final tripEntity =
+          state.tripEntityModificationData.modifiedCollectionItem;
       if (tripEntity is TransitFacade) {
         _showTripEntityEditorBottomSheet<TransitFacade>(
           tripEditorAction: TripEditorAction.travel,
@@ -143,71 +132,84 @@ class _TripEditorPageInternal extends StatelessWidget {
       }
     } else if (state is SelectedItineraryPlanData) {
       _showTripEntityEditorBottomSheet<ItineraryPlanData>(
-          tripEditorAction: TripEditorAction.itineraryData,
-          tripEntity: state.planData,
-          pageContext: context,
-          planDataEditorConfig: state.planDataEditorConfig);
+        tripEditorAction: TripEditorAction.itineraryData,
+        tripEntity: state.planData,
+        pageContext: context,
+        planDataEditorConfig: state.planDataEditorConfig,
+      );
     }
   }
 
   Widget _createAddButton(BuildContext pageContext) {
-    var isBigLayout = pageContext.isBigLayout;
-    var button = SizedBox(
+    if (pageContext.isBigLayout) {
+      return Padding(
+        padding: EdgeInsets.only(bottom: 24.0),
+        child: SizedBox(
+          height: TripEditorPageConstants.fabSize,
+          width: TripEditorPageConstants.fabSize,
+          child: FittedBox(
+            child: FloatingActionButton(
+              onPressed: () => _onAddButtonPressed(pageContext),
+              child: Icon(Icons.add),
+            ),
+          ),
+        ),
+      );
+    }
+    return SizedBox(
       height: TripEditorPageConstants.fabSize,
       width: TripEditorPageConstants.fabSize,
       child: FittedBox(
         child: FloatingActionButton(
-          onPressed: () {
-            _showModalBottomSheet(
-                TripEntityCreatorBottomSheet(supportedActions: [
-                  TripEditorAction.expense,
-                  TripEditorAction.travel,
-                  TripEditorAction.stay,
-                ]),
-                pageContext);
-          },
+          onPressed: () => _onAddButtonPressed(pageContext),
           child: const Icon(Icons.add),
         ),
       ),
     );
-    if (isBigLayout) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 24.0),
-        child: button,
-      );
-    }
-    return button;
   }
 
-  void _showTripEntityEditorBottomSheet<T extends TripEntity>(
-      {required T tripEntity,
-      required TripEditorAction tripEditorAction,
-      required BuildContext pageContext,
-      ItineraryPlanDataEditorConfig? planDataEditorConfig}) {
+  void _onAddButtonPressed(BuildContext pageContext) {
     _showModalBottomSheet(
-        TripEntityEditorBottomSheet<T>(
-          tripEditorAction: tripEditorAction,
-          tripEntity: tripEntity,
-          planDataEditorConfig: planDataEditorConfig,
-        ),
-        pageContext);
+      TripEntityCreatorBottomSheet(supportedActions: [
+        TripEditorAction.expense,
+        TripEditorAction.travel,
+        TripEditorAction.stay,
+      ]),
+      pageContext,
+    );
+  }
+
+  void _showTripEntityEditorBottomSheet<T extends TripEntity>({
+    required T tripEntity,
+    required TripEditorAction tripEditorAction,
+    required BuildContext pageContext,
+    ItineraryPlanDataEditorConfig? planDataEditorConfig,
+  }) {
+    _showModalBottomSheet(
+      TripEntityEditorBottomSheet<T>(
+        tripEditorAction: tripEditorAction,
+        tripEntity: tripEntity,
+        planDataEditorConfig: planDataEditorConfig,
+      ),
+      pageContext,
+    );
   }
 
   void _showModalBottomSheet(Widget child, BuildContext pageContext) {
     showModalBottomSheet(
-        context: pageContext,
-        isScrollControlled: true,
-        builder: (dialogContext) => MultiRepositoryProvider(
-              providers: [
-                RepositoryProvider.value(value: pageContext.appDataRepository),
-                RepositoryProvider.value(value: pageContext.tripRepository),
-                RepositoryProvider.value(
-                    value: pageContext.apiServicesRepository),
-              ],
-              child: BlocProvider.value(
-                value: BlocProvider.of<TripManagementBloc>(pageContext),
-                child: child,
-              ),
-            ));
+      context: pageContext,
+      isScrollControlled: true,
+      builder: (dialogContext) => MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider.value(value: pageContext.appDataRepository),
+          RepositoryProvider.value(value: pageContext.tripRepository),
+          RepositoryProvider.value(value: pageContext.apiServicesRepository),
+        ],
+        child: BlocProvider.value(
+          value: pageContext.read<TripManagementBloc>(),
+          child: child,
+        ),
+      ),
+    );
   }
 }

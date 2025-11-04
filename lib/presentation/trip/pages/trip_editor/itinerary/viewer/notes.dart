@@ -20,6 +20,13 @@ class ItineraryNotesViewer extends StatefulWidget {
 }
 
 class _ItineraryNotesViewerState extends State<ItineraryNotesViewer> {
+  // Layout constants
+  static const double _kPaddingAll = 16.0;
+  static const double _kSpacingSmall = 4.0;
+  static const double _kSpacingMedium = 12.0;
+  static const double _kSpacingLarge = 16.0;
+  static const double _kEmptyIconSize = 48.0;
+
   @override
   Widget build(BuildContext context) {
     // Read-only list
@@ -28,7 +35,7 @@ class _ItineraryNotesViewerState extends State<ItineraryNotesViewer> {
           Icons.note_outlined);
     }
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(_kPaddingAll),
       itemCount: widget.notes.length,
       itemBuilder: (ctx, i) {
         final note = widget.notes[i];
@@ -64,12 +71,12 @@ class _ItineraryNotesViewerState extends State<ItineraryNotesViewer> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 48, color: AppColors.neutral400),
-          const SizedBox(height: 12),
+          Icon(icon, size: _kEmptyIconSize, color: AppColors.neutral400),
+          const SizedBox(height: _kSpacingMedium),
           Text(title, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 4),
+          const SizedBox(height: _kSpacingSmall),
           Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(height: 16),
+          const SizedBox(height: _kSpacingLarge),
           FilledButton.icon(
             icon: const Icon(Icons.add_rounded),
             label: const Text('Add Note'),

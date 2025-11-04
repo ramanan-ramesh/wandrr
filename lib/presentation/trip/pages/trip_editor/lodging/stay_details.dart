@@ -36,7 +36,7 @@ class _StayDetailsState extends State<StayDetails> {
   @override
   Widget build(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
-    return EditorTheme.buildSection(
+    return EditorTheme.createSection(
       context: context,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

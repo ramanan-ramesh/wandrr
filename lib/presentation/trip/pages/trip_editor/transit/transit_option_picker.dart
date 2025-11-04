@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -22,37 +20,22 @@ class TransitOptionPicker extends StatefulWidget {
   _TransitOptionPickerState createState() => _TransitOptionPickerState();
 }
 
-class _TransitOptionPickerState extends State<TransitOptionPicker>
-    with TickerProviderStateMixin {
-  late final AnimationController _animationController;
-  bool _isDropdownOpen = false;
+class _TransitOptionPickerState extends State<TransitOptionPicker> {
+  static const double _kIconSize = 24.0;
+  static const double _kBorderRadius = 12.0;
+  static const double _kBorderWidth = 1.5;
+  static const EdgeInsets _kHorizontalPadding =
+      EdgeInsets.symmetric(horizontal: 12.0);
+
   TransitOption? _selectedValue;
-  final LayerLink _layerLink = LayerLink();
-  OverlayEntry? _overlayEntry;
-  double? _triggerWidth;
-  int? _selectedIndex;
-  final double _itemHeight = 48.0;
   late final List<TransitOptionMetadata> transitOptionMetadatas;
 
   @override
   void initState() {
     super.initState();
     transitOptionMetadatas = widget.options.toList();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _calculateMaxTriggerWidth();
-    _selectedValue = widget.initialTransitOption;
-    _shuffleMetadataListOnSelection();
-    _updateSelectedIndex(_selectedValue);
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    _overlayEntry?.remove();
-    super.dispose();
+    _selectedValue = widget.initialTransitOption ??
+        transitOptionMetadatas.first.transitOption;
   }
 
   @override
@@ -60,198 +43,18 @@ class _TransitOptionPickerState extends State<TransitOptionPicker>
     super.didUpdateWidget(oldWidget);
     if (!listEquals(widget.options.toList(), oldWidget.options.toList())) {
       setState(() {
-        transitOptionMetadatas.clear();
-        transitOptionMetadatas.addAll(widget.options);
-        _calculateMaxTriggerWidth();
-        _shuffleMetadataListOnSelection();
-        _updateSelectedIndex(_selectedValue);
+        transitOptionMetadatas = widget.options.toList();
+        if (!transitOptionMetadatas
+            .any((m) => m.transitOption == _selectedValue)) {
+          _selectedValue = transitOptionMetadatas.first.transitOption;
+        }
       });
     }
   }
 
-  void _shuffleMetadataListOnSelection() {
-    var indexOfCurrentTransitOption = transitOptionMetadatas.indexWhere(
-      (option) => option.transitOption == _selectedValue,
-    );
-    var currentTransitOptionMetadata =
-        transitOptionMetadatas[indexOfCurrentTransitOption];
-    var listWithoutCurrentTransitOption = transitOptionMetadatas
-        .where((option) => option.transitOption != _selectedValue)
-        .toList();
-    transitOptionMetadatas.clear();
-    transitOptionMetadatas.addAll(listWithoutCurrentTransitOption.take(3));
-    transitOptionMetadatas.add(currentTransitOptionMetadata);
-    transitOptionMetadatas.addAll(
-      listWithoutCurrentTransitOption.skip(3),
-    );
-  }
-
-  void _updateSelectedIndex(TransitOption? value) {
-    if (value == null) {
-      _selectedIndex = 0;
-      _selectedValue = transitOptionMetadatas.first.transitOption;
-      return;
-    }
-    final index = transitOptionMetadatas.indexWhere(
-      (option) => option.transitOption == value,
-    );
-    if (index != -1) {
-      _selectedIndex = index;
-      _selectedValue = value;
-    } else {
-      _selectedIndex = 0;
-      _selectedValue = transitOptionMetadatas.first.transitOption;
-    }
-  }
-
-  void _calculateMaxTriggerWidth() {
-    double maxWidth = 0;
-    const textStyle = TextStyle(fontWeight: FontWeight.w500);
-    const iconWidth = 24.0 + 12.0;
-    const arrowWidth = 24.0 + 8.0;
-
-    for (final option in transitOptionMetadatas) {
-      final textPainter = TextPainter(
-        text: TextSpan(text: option.name, style: textStyle),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      maxWidth = maxWidth > textPainter.width ? maxWidth : textPainter.width;
-    }
-
-    setState(() {
-      _triggerWidth = maxWidth + iconWidth + arrowWidth + 32.0;
-    });
-  }
-
-  void _toggleDropdown() {
-    setState(() {
-      _isDropdownOpen = !_isDropdownOpen;
-      if (_isDropdownOpen) {
-        _showOverlay();
-        unawaited(_animationController.forward());
-      } else {
-        unawaited(_animationController.reverse());
-        _hideOverlay();
-      }
-    });
-  }
-
-  void _showOverlay() {
-    if (_triggerWidth == null || _selectedIndex == null) {
-      return;
-    }
-
-    final renderBox = context.findRenderObject() as RenderBox;
-    final triggerOffset = renderBox.localToGlobal(Offset.zero);
-    final dropdownHeight = 7 * _itemHeight;
-    final selectedItemOffset = _selectedIndex! * _itemHeight;
-    var listScrollController = ScrollController();
-    _overlayEntry = OverlayEntry(
-      builder: (context) => GestureDetector(
-        onTap: () {
-          if (_isDropdownOpen) {
-            _toggleDropdown();
-          }
-        },
-        behavior: HitTestBehavior.translucent,
-        child: Stack(
-          children: [
-            Positioned(
-              width: _triggerWidth!,
-              left: triggerOffset.dx,
-              child: CompositedTransformFollower(
-                link: _layerLink,
-                showWhenUnlinked: false,
-                offset: Offset(0, -(triggerOffset.dy - selectedItemOffset)),
-                child: ScaleTransition(
-                  scale: _animationController.drive(
-                    CurveTween(curve: Curves.fastOutSlowIn),
-                  ),
-                  alignment: Alignment.center,
-                  child: Material(
-                    elevation: 4.0,
-                    child: ClipRect(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxHeight: dropdownHeight),
-                        child: Scrollbar(
-                          controller: listScrollController,
-                          thumbVisibility: true,
-                          child: ListView.builder(
-                            controller: listScrollController,
-                            padding: EdgeInsets.zero,
-                            shrinkWrap: true,
-                            itemCount: transitOptionMetadatas.length,
-                            itemBuilder: (context, index) {
-                              final option = transitOptionMetadatas[index];
-                              final isSelected =
-                                  option.transitOption == _selectedValue;
-                              return _buildDropdownItem(option, isSelected,
-                                  onTap: () {
-                                _handleOptionSelected(option.transitOption);
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-    Overlay.of(context).insert(_overlayEntry!);
-  }
-
-  void _hideOverlay() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-  }
-
-  void _handleOptionSelected(TransitOption option) {
-    _selectedValue = option;
-    _shuffleMetadataListOnSelection();
-    _updateSelectedIndex(option);
-    _toggleDropdown();
-    widget.onChanged?.call(option);
-  }
-
-  Widget _buildDropdownItem(
-    TransitOptionMetadata metadata,
-    bool isSelected, {
-    VoidCallback? onTap,
-  }) {
-    return SizedBox(
-      height: _itemHeight,
-      width: _triggerWidth,
-      child: ListTile(
-        onTap: onTap,
-        selected: isSelected,
-        leading: Icon(metadata.icon),
-        shape: const RoundedRectangleBorder(),
-        // Override theme's rounded border
-        title: Text(
-          metadata.name,
-          style: TextStyle(
-            fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTrigger() {
-    final selectedOption = transitOptionMetadatas.firstWhere(
-      (option) => option.transitOption == _selectedValue,
-      orElse: () => transitOptionMetadatas.first,
-    );
-
+  @override
+  Widget build(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
-    final triggerBgColor = isLightTheme
-        ? AppColors.lightSurface.withValues(alpha: 0.95)
-        : AppColors.darkSurfaceVariant.withValues(alpha: 0.8);
     final borderColor = isLightTheme
         ? AppColors.brandPrimary.withValues(alpha: 0.4)
         : AppColors.brandPrimaryLight.withValues(alpha: 0.4);
@@ -259,66 +62,52 @@ class _TransitOptionPickerState extends State<TransitOptionPicker>
         isLightTheme ? AppColors.brandSecondary : AppColors.neutral100;
     final iconColor =
         isLightTheme ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
+    final triggerBgColor = isLightTheme
+        ? AppColors.lightSurface.withValues(alpha: 0.95)
+        : AppColors.darkSurfaceVariant.withValues(alpha: 0.8);
 
-    return CompositedTransformTarget(
-      link: _layerLink,
-      child: SizedBox(
-        width: _triggerWidth,
-        height: _itemHeight,
-        child: InkWell(
-          onTap: _toggleDropdown,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: triggerBgColor,
-              borderRadius: BorderRadius.circular(12.0),
-              border: Border.all(
-                color: borderColor,
-                width: 1.5,
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+    return Container(
+      padding: _kHorizontalPadding,
+      decoration: BoxDecoration(
+        color: triggerBgColor,
+        borderRadius: BorderRadius.circular(_kBorderRadius),
+        border: Border.all(
+          color: borderColor,
+          width: _kBorderWidth,
+        ),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<TransitOption>(
+          value: _selectedValue,
+          icon: Icon(Icons.arrow_drop_down_rounded, color: iconColor),
+          items: transitOptionMetadatas.map((metadata) {
+            return DropdownMenuItem<TransitOption>(
+              value: metadata.transitOption,
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Icon(
-                    selectedOption.icon,
-                    color: iconColor,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12.0),
-                  Expanded(
-                    child: Text(
-                      selectedOption.name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: textColor,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8.0),
-                  RotationTransition(
-                    turns: _animationController,
-                    child: Icon(
-                      Icons.arrow_drop_down_rounded,
-                      color: iconColor,
-                      size: 28,
+                  Icon(metadata.icon, color: iconColor, size: _kIconSize),
+                  SizedBox(width: 12.0),
+                  Text(
+                    metadata.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: textColor,
                     ),
                   ),
                 ],
               ),
-            ),
-          ),
+            );
+          }).toList(),
+          onChanged: (newValue) {
+            setState(() {
+              _selectedValue = newValue;
+            });
+            if (newValue != null) {
+              widget.onChanged?.call(newValue);
+            }
+          },
         ),
       ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [_buildTrigger()],
     );
   }
 }

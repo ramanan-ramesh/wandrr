@@ -12,13 +12,14 @@ abstract class DateRangePickerBase extends StatefulWidget {
   final DateTime? firstDate, lastDate;
   final Function(DateTime? start, DateTime? end)? callback;
 
-  DateRangePickerBase(
-      {super.key,
-      this.startDate,
-      this.endDate,
-      this.callback,
-      this.firstDate,
-      this.lastDate});
+  DateRangePickerBase({
+    super.key,
+    this.startDate,
+    this.endDate,
+    this.callback,
+    this.firstDate,
+    this.lastDate,
+  });
 
   void showDateRangePickerDialog(GlobalKey widgetKey, BuildContext context,
       void Function(VoidCallback fn) setState) {
@@ -28,7 +29,7 @@ abstract class DateRangePickerBase extends StatefulWidget {
         context: context,
         dialogContentCreator: (dialogContext) {
           var dateRangePickerButtonRenderBox =
-              widgetKey.currentContext!.findRenderObject() as RenderBox;
+          widgetKey.currentContext!.findRenderObject() as RenderBox;
           double width;
           if (isBigLayout) {
             width = 400;
@@ -44,7 +45,10 @@ abstract class DateRangePickerBase extends StatefulWidget {
             //TODO: Make this work for android, by setting a max height
             child: Material(
               elevation: 5.0,
-              color: Theme.of(context).dialogTheme.backgroundColor,
+              color: Theme
+                  .of(context)
+                  .dialogTheme
+                  .backgroundColor,
               child: CalendarDatePicker2WithActionButtons(
                 onCancelTapped: () {
                   Navigator.of(dialogContext).pop();
@@ -81,7 +85,7 @@ abstract class DateRangePickerBase extends StatefulWidget {
                       onPressed: null,
                       icon: Icon(Icons.cancel_rounded,
                           color:
-                              !isLightTheme ? Colors.black54 : Colors.white70),
+                          !isLightTheme ? Colors.black54 : Colors.white70),
                     ),
                   ),
                   okButton: IgnorePointer(
@@ -89,7 +93,7 @@ abstract class DateRangePickerBase extends StatefulWidget {
                       onPressed: null,
                       icon: Icon(Icons.done_rounded,
                           color:
-                              !isLightTheme ? Colors.black54 : Colors.white70),
+                          !isLightTheme ? Colors.black54 : Colors.white70),
                     ),
                   ),
                 ),
@@ -101,8 +105,8 @@ abstract class DateRangePickerBase extends StatefulWidget {
         });
   }
 
-  void _tryUpdateDateRange(
-      List<DateTime?> dates, void Function(VoidCallback fn) setState) {
+  void _tryUpdateDateRange(List<DateTime?> dates,
+      void Function(VoidCallback fn) setState) {
     if (dates.length == 1) {
       startDate = dates.first;
       endDate = null;
@@ -118,14 +122,14 @@ abstract class DateRangePickerBase extends StatefulWidget {
   }
 }
 
+//TODO: Add the duration in days indicator as in LodgingEditor and TripDetailsEditor
 class PlatformDateRangePicker extends DateRangePickerBase {
-  PlatformDateRangePicker(
-      {super.key,
-      super.startDate,
-      super.endDate,
-      super.callback,
-      super.firstDate,
-      super.lastDate});
+  PlatformDateRangePicker({super.key,
+    super.startDate,
+    super.endDate,
+    super.callback,
+    super.firstDate,
+    super.lastDate});
 
   @override
   State<PlatformDateRangePicker> createState() =>
@@ -137,58 +141,119 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
 
   @override
   Widget build(BuildContext context) {
-    //TODO: Track focus and then decide whether to overlay the date range picker
-    var startDateTime = '';
-    if (widget.startDate != null) {
-      startDateTime = widget.startDate!.dayDateMonthFormat;
-    }
-    var endDateTime = '';
-    if (widget.endDate != null) {
-      endDateTime = widget.endDate!.dayDateMonthFormat;
-    }
-    return TextButton(
-      key: _dateRangePickerKey,
-      onPressed: () {
-        widget.showDateRangePickerDialog(
-            _dateRangePickerKey, context, setState);
-      },
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(3.0),
-                child: FittedBox(
-                  child: Text(
-                      '${context.localizations.dateRangePickerStart} $startDateTime'),
-                ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(3.0),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                      '${context.localizations.dateRangePickerEnd} $endDateTime'),
-                ),
-              ),
-            ),
-          ],
-        ),
+    final isBigLayout = context.isBigLayout;
+    var startDateText =
+    widget.startDate != null ? widget.startDate!.dayDateMonthFormat : '';
+    var endDateText =
+    widget.endDate != null ? widget.endDate!.dayDateMonthFormat : '';
+    return IntrinsicHeight(
+      child: TextButton(
+        key: _dateRangePickerKey,
+        onPressed: () {
+          widget.showDateRangePickerDialog(
+              _dateRangePickerKey, context, setState);
+        },
+        child: isBigLayout
+            ? _createButtonForBigLayout(context, startDateText, endDateText)
+            : _createButtonForSmallLayout(context, startDateText, endDateText),
       ),
+    );
+  }
+
+  Widget _createButtonForSmallLayout(BuildContext context, String startDateText,
+      String endDateText) {
+    return Row(
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(3.0),
+            child: _createDateForSmallLayout(context,
+                context.localizations.dateRangePickerStart, startDateText),
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(3.0),
+            child: _createDateForSmallLayout(
+                context, context.localizations.dateRangePickerEnd, endDateText),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _createButtonForBigLayout(BuildContext context, String startDateText,
+      String endDateText) {
+    return Row(
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(3.0),
+            child: _createDateForBigLayout(context,
+                context.localizations.dateRangePickerStart, startDateText),
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(3.0),
+            child: _createDateForBigLayout(
+                context, context.localizations.dateRangePickerEnd, endDateText),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _createDateForBigLayout(BuildContext context, String label,
+      String startDateText) {
+    return Container(
+      alignment: Alignment.centerLeft,
+      constraints: const BoxConstraints(minHeight: 24),
+      child: Text(
+        '$label $startDateText',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  Widget _createDateForSmallLayout(BuildContext context, String label,
+      String dateText) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme
+              .of(context)
+              .textTheme
+              .labelLarge,
+        ),
+        Container(
+          alignment: Alignment.centerLeft,
+          constraints: const BoxConstraints(minHeight: 24),
+          child: Text(
+            dateText,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme
+                .of(context)
+                .textTheme
+                .bodyMedium,
+          ),
+        ),
+      ],
     );
   }
 }
 
 class PlatformFABDateRangePicker extends DateRangePickerBase {
-  PlatformFABDateRangePicker(
-      {super.key,
-      super.startDate,
-      super.endDate,
-      super.callback,
-      super.firstDate,
-      super.lastDate});
+  PlatformFABDateRangePicker({super.key,
+    super.startDate,
+    super.endDate,
+    super.callback,
+    super.firstDate,
+    super.lastDate});
 
   @override
   State<PlatformFABDateRangePicker> createState() =>
@@ -211,8 +276,9 @@ class _PlatformFABDateRangePickerState
     }
     var dateRangeText = '$startDateTime to $endDateTime';
     return FloatingActionButton.extended(
-      onPressed: () => widget.showDateRangePickerDialog(
-          _dateRangePickerKey, context, setState),
+      onPressed: () =>
+          widget.showDateRangePickerDialog(
+              _dateRangePickerKey, context, setState),
       key: _dateRangePickerKey,
       icon: const Icon(
         Icons.date_range_rounded,

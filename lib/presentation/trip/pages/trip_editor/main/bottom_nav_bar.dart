@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
-const double _kNavBarHeight = 80.0;
+const double _kNavBarHeight = 70.0;
 const double _kNavBarRadius = 50.0;
 const double _kIconSizeSelected = 36.0;
 const double _kIconSizeUnselected = 28.0;
@@ -41,14 +41,15 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(_kNavBarRadius),
-        topRight: Radius.circular(_kNavBarRadius),
-      ),
-      child: Container(
-        height: _kNavBarHeight,
-        color: Colors.transparent,
+    return Container(
+      height: _kNavBarHeight,
+      color: Colors.transparent,
+      child: ClipRRect(
+        clipBehavior: Clip.hardEdge,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(_kNavBarRadius),
+          topRight: Radius.circular(_kNavBarRadius),
+        ),
         child: Row(
           children: [
             Expanded(

@@ -22,6 +22,7 @@ abstract class TripDataFacade {
 
   BudgetingModuleFacade get budgetingModule;
 
+  //TODO: Is repository the right place for localizations related constants? If so, then create a repository at TripEditor page level only
   Iterable<TransitOptionMetadata> get transitOptionMetadatas;
 }
 

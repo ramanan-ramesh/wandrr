@@ -1,5 +1,6 @@
+import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/presentation/app/widgets/date_picker.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_viewer.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
@@ -12,34 +13,46 @@ class ItineraryNavigator extends StatefulWidget {
 
 class _ItineraryNavigatorState extends State<ItineraryNavigator>
     with SingleTickerProviderStateMixin {
+  static const double _kNavBarHorizontalPadding = 8.0;
+  static const double _kNavBarVerticalPadding = 12.0;
+  static const double _kNavBarIconSize = 32.0;
+  static const Duration _kAnimationDuration = Duration(milliseconds: 400);
+  static const Offset _kSlideBeginOffset = Offset(0.1, 0);
+  static const Curve _kFadeCurve = Curves.easeInOut;
+  static const Curve _kSlideCurve = Curves.easeOutCubic;
+
   late DateTime _currentDate;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
+  DateTime get _startDate => context.activeTrip.tripMetadata.startDate!;
+
+  DateTime get _endDate => context.activeTrip.tripMetadata.endDate!;
+
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 400),
+      duration: _kAnimationDuration,
       vsync: this,
     );
 
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
-      curve: Curves.easeInOut,
+      curve: _kFadeCurve,
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.1, 0),
+      begin: _kSlideBeginOffset,
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _animationController,
-      curve: Curves.easeOutCubic,
+      curve: _kSlideCurve,
     ));
 
+    _currentDate = _startDate;
     _animationController.forward();
-    _currentDate = context.activeTrip.tripMetadata.startDate!;
   }
 
   @override
@@ -52,7 +65,7 @@ class _ItineraryNavigatorState extends State<ItineraryNavigator>
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildNavigationBar(context),
+        _buildNavigationBar(),
         Expanded(
           child: FadeTransition(
             opacity: _fadeAnimation,
@@ -66,63 +79,34 @@ class _ItineraryNavigatorState extends State<ItineraryNavigator>
     );
   }
 
-  void _navigateToDate(DateTime newDate) {
+  bool _isWithinTripDates(DateTime date) =>
+      !date.isBefore(_startDate) && !date.isAfter(_endDate);
+
+  bool _tryNavigateToDate(DateTime newDate) {
+    if (!_isWithinTripDates(newDate)) return false;
     setState(() {
       _currentDate = newDate;
-      _animationController.reset();
-      _animationController.forward();
+      _animationController
+        ..reset()
+        ..forward();
     });
+    return true;
   }
 
-  void _goToPreviousDay() {
-    final startDate = context.activeTrip.tripMetadata.startDate;
-    if (startDate == null) return;
+  void _goToPreviousDay() =>
+      _tryNavigateToDate(_currentDate.subtract(const Duration(days: 1)));
 
-    final previousDate = _currentDate.subtract(const Duration(days: 1));
-    if (!previousDate.isBefore(startDate)) {
-      _navigateToDate(previousDate);
-    }
-  }
+  void _goToNextDay() =>
+      _tryNavigateToDate(_currentDate.add(const Duration(days: 1)));
 
-  void _goToNextDay() {
-    final endDate = context.activeTrip.tripMetadata.endDate;
-    if (endDate == null) return;
-
-    final nextDate = _currentDate.add(const Duration(days: 1));
-    if (!nextDate.isAfter(endDate)) {
-      _navigateToDate(nextDate);
-    }
-  }
-
-  bool _canGoToPreviousDay() {
-    final startDate = context.activeTrip.tripMetadata.startDate;
-    if (startDate == null) return false;
-    return !_currentDate.isAtSameMomentAs(startDate) &&
-        _currentDate.isAfter(startDate);
-  }
-
-  bool _canGoToNextDay() {
-    final endDate = context.activeTrip.tripMetadata.endDate;
-    if (endDate == null) return false;
-    return !_currentDate.isAtSameMomentAs(endDate) &&
-        _currentDate.isBefore(endDate);
-  }
-
-  Widget _buildNavigationBar(BuildContext context) {
-    final canGoPrevious = _canGoToPreviousDay();
-    final canGoNext = _canGoToNextDay();
+  Widget _buildNavigationBar() {
+    final bool canGoPrevious = _currentDate.isAfter(_startDate);
+    final bool canGoNext = _currentDate.isBefore(_endDate);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(25),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+      padding: const EdgeInsets.symmetric(
+        horizontal: _kNavBarHorizontalPadding,
+        vertical: _kNavBarVerticalPadding,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -130,18 +114,16 @@ class _ItineraryNavigatorState extends State<ItineraryNavigator>
           IconButton(
             icon: const Icon(Icons.chevron_left_rounded),
             tooltip: 'Previous',
-            iconSize: 32,
+            iconSize: _kNavBarIconSize,
             onPressed: canGoPrevious ? _goToPreviousDay : null,
           ),
           Expanded(
-            child: Center(
-              child: _buildDatePickerButton(context),
-            ),
+            child: Center(child: _buildDatePickerButton()),
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right_rounded),
             tooltip: 'Next',
-            iconSize: 32,
+            iconSize: _kNavBarIconSize,
             onPressed: canGoNext ? _goToNextDay : null,
           ),
         ],
@@ -149,65 +131,15 @@ class _ItineraryNavigatorState extends State<ItineraryNavigator>
     );
   }
 
-  Widget _buildDatePickerButton(BuildContext context) {
-    return Material(
-      elevation: 2,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          _showDatePickerDialog(context);
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.primaryContainer,
-                Theme.of(context).colorScheme.primaryContainer.withAlpha(200),
-              ],
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.calendar_today_rounded,
-                size: 20,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                _currentDate.dayDateMonthFormat,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-              ),
-            ],
-          ),
-        ),
+  Widget _buildDatePickerButton() {
+    return PlatformDatePicker(
+      onDateSelected: _tryNavigateToDate,
+      selectedDate: _currentDate,
+      calendarConfig: CalendarDatePicker2WithActionButtonsConfig(
+        firstDate: _startDate,
+        lastDate: _endDate,
+        currentDate: _currentDate,
       ),
     );
-  }
-
-  void _showDatePickerDialog(BuildContext context) {
-    final startDate = context.activeTrip.tripMetadata.startDate;
-    final endDate = context.activeTrip.tripMetadata.endDate;
-
-    if (startDate == null || endDate == null) return;
-
-    showDatePicker(
-      helpText: 'Select a date to view itinerary',
-      context: context,
-      initialDate: _currentDate,
-      firstDate: startDate,
-      lastDate: endDate,
-    ).then((selectedDate) {
-      if (selectedDate != null) {
-        _navigateToDate(selectedDate);
-      }
-    });
   }
 }

@@ -12,25 +12,26 @@ class BudgetingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sections = [
+      CollapsibleSection(
+        title: context.localizations.expenses,
+        icon: Icons.wallet_travel_rounded,
+        child: const ExpenseListView(),
+      ),
+      CollapsibleSection(
+        title: 'Debt',
+        icon: Icons.money_off_rounded,
+        child: DebtSummaryTile(),
+      ),
+      CollapsibleSection(
+        title: 'Breakdown',
+        icon: Icons.pie_chart_rounded,
+        child: BudgetBreakdownTile(),
+      ),
+    ];
     return CollapsibleSectionsPage(
-      sections: [
-        CollapsibleSection(
-            title: context.localizations.expenses,
-            icon: Icons.wallet_travel_rounded,
-            child: const ExpenseListView()),
-        CollapsibleSection(
-          title: 'Debt',
-          icon: Icons.money_off_rounded,
-          child: const DebtSummaryTile(),
-        ),
-        CollapsibleSection(
-          title: 'Breakdown',
-          icon: Icons.pie_chart_rounded,
-          child: const BudgetBreakdownTile(),
-        ),
-      ],
-      initiallyExpandedIndex: 1, // Breakdown expanded by default (index 1)
-      isHeightConstrained: true,
+      sections: sections,
+      initiallyExpandedIndex: 0,
     );
   }
 }

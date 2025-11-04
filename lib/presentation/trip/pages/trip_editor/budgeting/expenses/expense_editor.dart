@@ -18,12 +18,19 @@ class ExpenseEditor extends StatelessWidget {
       TextEditingController();
   final TextEditingController _titleEditingController = TextEditingController();
 
+  // UI constants
+  static const double _kBadgeHorizontalPadding = 12.0;
+  static const double _kBadgeVerticalPadding = 8.0;
+  static const double _kSectionSpacingLarge = 16.0;
+  static const double _kSectionSpacingSmall = 12.0;
+
   ExpenseFacade get _expense => expenseLinkedTripEntity.expense;
 
-  ExpenseEditor(
-      {super.key,
-      required this.expenseLinkedTripEntity,
-      required this.onExpenseUpdated});
+  ExpenseEditor({
+    super.key,
+    required this.expenseLinkedTripEntity,
+    required this.onExpenseUpdated,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,40 +38,36 @@ class ExpenseEditor extends StatelessWidget {
     _titleEditingController.text = expenseLinkedTripEntity is! ExpenseFacade
         ? expenseLinkedTripEntity.toString()
         : _expense.title;
-    _initializeUIComponentNames(context);
-    var isBigLayout = context.isBigLayout;
-    if (isBigLayout) {
-      return _createBigLayoutEditor(context);
-    }
-    return _createSmallLayoutEditor(context);
+    _initializeCategoryNames(context);
+    return context.isBigLayout
+        ? _buildBigLayout(context)
+        : _buildSmallLayout(context);
   }
 
-  Column _createSmallLayoutEditor(BuildContext context) {
+  Column _buildSmallLayout(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildTransitTypeBadge(context, context.isLightTheme,
-            EditorTheme.getCardBorderRadius(context.isBigLayout)),
-        EditorTheme.buildSection(
+        _buildCategoryBadge(context),
+        EditorTheme.createSection(
           context: context,
-          child: _createExpenseTitle(context),
+          child: _buildTitleField(context),
         ),
-        _createPaidOnSection(context),
-        _createDescriptionSection(context),
-        _createPaymentDetailsSection(context),
+        _buildPaidOnSection(context),
+        _buildDescriptionSection(context),
+        _buildPaymentDetailsSection(context),
       ],
     );
   }
 
-  Column _createBigLayoutEditor(BuildContext context) {
+  Column _buildBigLayout(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildTransitTypeBadge(context, context.isLightTheme,
-            EditorTheme.getCardBorderRadius(context.isBigLayout)),
-        EditorTheme.buildSection(
+        _buildCategoryBadge(context),
+        EditorTheme.createSection(
           context: context,
-          child: _createExpenseTitle(context),
+          child: _buildTitleField(context),
         ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,14 +76,14 @@ class ExpenseEditor extends StatelessWidget {
               flex: 2,
               child: Column(
                 children: [
-                  _createPaidOnSection(context),
-                  _createDescriptionSection(context),
+                  _buildPaidOnSection(context),
+                  _buildDescriptionSection(context),
                 ],
               ),
             ),
             Expanded(
               flex: 3,
-              child: _createPaymentDetailsSection(context),
+              child: _buildPaymentDetailsSection(context),
             ),
           ],
         ),
@@ -88,17 +91,16 @@ class ExpenseEditor extends StatelessWidget {
     );
   }
 
-  Widget _buildTransitTypeBadge(
-    BuildContext context,
-    bool isLightTheme,
-    double cardBorderRadius,
-  ) {
+  Widget _buildCategoryBadge(BuildContext context) {
     return Row(
       children: [
         Flexible(
           child: Container(
-            decoration: _buildBadgeDecoration(isLightTheme, cardBorderRadius),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: _buildBadgeDecoration(context),
+            padding: const EdgeInsets.symmetric(
+              horizontal: _kBadgeHorizontalPadding,
+              vertical: _kBadgeVerticalPadding,
+            ),
             child: _CategoryPicker(
               callback: (category) {
                 _expense.category = category;
@@ -109,27 +111,29 @@ class ExpenseEditor extends StatelessWidget {
             ),
           ),
         ),
-        Expanded(child: Container()),
+        const Expanded(child: SizedBox()),
       ],
     );
   }
 
-  BoxDecoration _buildBadgeDecoration(
-      bool isLightTheme, double cardBorderRadius) {
+  BoxDecoration _buildBadgeDecoration(BuildContext context) {
+    final isLightTheme = context.isLightTheme;
+    final cardBorderRadius =
+        EditorTheme.getCardBorderRadius(context.isBigLayout);
     return BoxDecoration(
-      gradient: EditorTheme.buildPrimaryGradient(isLightTheme),
+      gradient: EditorTheme.createPrimaryGradient(isLightTheme),
       borderRadius: BorderRadius.only(
         topLeft: Radius.circular(cardBorderRadius - 2),
         bottomRight: const Radius.circular(16),
       ),
-      boxShadow: [EditorTheme.buildBadgeShadow(isLightTheme)],
+      boxShadow: [EditorTheme.createBadgeShadow(isLightTheme)],
     );
   }
 
-  Widget _createPaymentDetailsSection(BuildContext context) {
-    return _createSection(
+  Widget _buildPaymentDetailsSection(BuildContext context) {
+    return _wrapInSection(
       context,
-      EditorTheme.buildSectionHeader(
+      EditorTheme.createSectionHeader(
         context,
         icon: Icons.payments_rounded,
         title: 'Payment Details',
@@ -142,7 +146,9 @@ class ExpenseEditor extends StatelessWidget {
           _expense.paidBy = Map.from(paidBy);
           _expense.splitBy = List.from(splitBy);
           _expense.totalExpense = Money(
-              currency: totalExpense.currency, amount: totalExpense.amount);
+            currency: totalExpense.currency,
+            amount: totalExpense.amount,
+          );
           onExpenseUpdated();
         },
         expenseUpdator: _expense,
@@ -151,13 +157,13 @@ class ExpenseEditor extends StatelessWidget {
     );
   }
 
-  Widget _createDescriptionSection(BuildContext context) {
-    return EditorTheme.buildSection(
+  Widget _buildDescriptionSection(BuildContext context) {
+    return EditorTheme.createSection(
       context: context,
       child: TextFormField(
         controller: _descriptionFieldController,
         maxLines: null,
-        decoration: EditorTheme.buildTextFieldDecoration(
+        decoration: EditorTheme.createTextFieldDecoration(
           labelText: context.localizations.description,
           hintText: 'Enter expense details...',
           alignLabelWithHint: true,
@@ -170,10 +176,10 @@ class ExpenseEditor extends StatelessWidget {
     );
   }
 
-  Widget _createPaidOnSection(BuildContext context) {
-    return _createSection(
+  Widget _buildPaidOnSection(BuildContext context) {
+    return _wrapInSection(
       context,
-      EditorTheme.buildSectionHeader(
+      EditorTheme.createSectionHeader(
         context,
         icon: Icons.calendar_today_rounded,
         title: 'Paid On',
@@ -181,31 +187,33 @@ class ExpenseEditor extends StatelessWidget {
             context.isLightTheme ? AppColors.success : AppColors.successLight,
       ),
       PlatformDatePicker(
-        callBack: (dateTime) {
+        onDateSelected: (dateTime) {
           _expense.dateTime = dateTime;
           onExpenseUpdated();
         },
-        initialDateTime: _expense.dateTime,
+        selectedDate: _expense.dateTime,
       ),
     );
   }
 
-  Widget _createSection(
-      BuildContext context, Widget sectionHeader, Widget child) {
-    return EditorTheme.buildSection(
+  Widget _wrapInSection(BuildContext context, Widget header, Widget child) {
+    return EditorTheme.createSection(
       context: context,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          sectionHeader,
-          SizedBox(height: context.isBigLayout ? 16 : 12),
+          header,
+          SizedBox(
+              height: context.isBigLayout
+                  ? _kSectionSpacingLarge
+                  : _kSectionSpacingSmall),
           child,
         ],
       ),
     );
   }
 
-  void _initializeUIComponentNames(BuildContext context) {
+  void _initializeCategoryNames(BuildContext context) {
     _categoryNames[ExpenseCategory.flights] = context.localizations.flights;
     _categoryNames[ExpenseCategory.lodging] = context.localizations.lodging;
     _categoryNames[ExpenseCategory.carRental] = context.localizations.carRental;
@@ -223,7 +231,7 @@ class ExpenseEditor extends StatelessWidget {
     _categoryNames[ExpenseCategory.other] = context.localizations.other;
   }
 
-  Widget _createExpenseTitle(BuildContext context) {
+  Widget _buildTitleField(BuildContext context) {
     final isEditable = expenseLinkedTripEntity is ExpenseFacade;
     return TextField(
       controller: _titleEditingController,
@@ -233,7 +241,7 @@ class ExpenseEditor extends StatelessWidget {
               onExpenseUpdated();
             }
           : null,
-      decoration: EditorTheme.buildTextFieldDecoration(
+      decoration: EditorTheme.createTextFieldDecoration(
         labelText: context.localizations.title,
         hintText: 'Enter expense name...',
       ),
@@ -247,10 +255,11 @@ class _CategoryPicker extends StatefulWidget {
   final Map<ExpenseCategory, String> categories;
   final ExpenseCategory category;
 
-  const _CategoryPicker(
-      {required this.callback,
-      required this.category,
-      required this.categories});
+  const _CategoryPicker({
+    required this.callback,
+    required this.category,
+    required this.categories,
+  });
 
   @override
   State<_CategoryPicker> createState() => _CategoryPickerState();
@@ -268,62 +277,62 @@ class _CategoryPickerState extends State<_CategoryPicker> {
   @override
   Widget build(BuildContext context) {
     return DropdownButton<ExpenseCategory>(
-        value: _category,
-        isExpanded: true,
-        // Fix for RenderFlex overflow
-        selectedItemBuilder: (context) => widget.categories.keys
-            .map(
-              (expenseCategory) => DropdownMenuItem<ExpenseCategory>(
-                value: expenseCategory,
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                        child: Icon(_iconsForCategories[expenseCategory]!),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                        child: Text(widget.categories[expenseCategory]!),
-                      )
-                    ],
-                  ),
+      value: _category,
+      isExpanded: true,
+      selectedItemBuilder: (context) => widget.categories.keys
+          .map(
+            (expenseCategory) => DropdownMenuItem<ExpenseCategory>(
+              value: expenseCategory,
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: Icon(_iconsForCategories[expenseCategory]!),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: Text(widget.categories[expenseCategory]!),
+                    ),
+                  ],
                 ),
               ),
-            )
-            .toList(),
-        items: widget.categories.keys
-            .map(
-              (expenseCategory) => DropdownMenuItem<ExpenseCategory>(
-                value: expenseCategory,
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                        child: Icon(_iconsForCategories[expenseCategory]!),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                        child: Text(widget.categories[expenseCategory]!),
-                      )
-                    ],
-                  ),
+            ),
+          )
+          .toList(),
+      items: widget.categories.keys
+          .map(
+            (expenseCategory) => DropdownMenuItem<ExpenseCategory>(
+              value: expenseCategory,
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: Icon(_iconsForCategories[expenseCategory]!),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: Text(widget.categories[expenseCategory]!),
+                    ),
+                  ],
                 ),
               ),
-            )
-            .toList(),
-        onChanged: widget.callback == null
-            ? null
-            : (selectedExpenseCategory) {
-                if (selectedExpenseCategory != null) {
-                  _category = selectedExpenseCategory;
-                  setState(() {});
-                  widget.callback!(selectedExpenseCategory);
-                }
-              });
+            ),
+          )
+          .toList(),
+      onChanged: widget.callback == null
+          ? null
+          : (selectedExpenseCategory) {
+              if (selectedExpenseCategory != null) {
+                _category = selectedExpenseCategory;
+                setState(() {});
+                widget.callback!(selectedExpenseCategory);
+              }
+            },
+    );
   }
 }
 
@@ -339,5 +348,5 @@ const Map<ExpenseCategory, IconData> _iconsForCategories = {
   ExpenseCategory.shopping: Icons.shopping_bag_rounded,
   ExpenseCategory.fuel: Icons.local_gas_station_rounded,
   ExpenseCategory.groceries: Icons.local_grocery_store_rounded,
-  ExpenseCategory.other: Icons.feed_rounded
+  ExpenseCategory.other: Icons.feed_rounded,
 };

@@ -3,14 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
-import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/checklists.dart';
@@ -19,7 +18,7 @@ import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/chrome_tab.dart';
 
 import 'timeline_event.dart';
-import 'viewer/sights.dart' show ItinerarySightsViewer;
+import 'viewer/sights.dart';
 
 class ItineraryViewer extends StatefulWidget {
   final DateTime itineraryDay;
@@ -32,7 +31,15 @@ class ItineraryViewer extends StatefulWidget {
 
 class _ItineraryViewerState extends State<ItineraryViewer>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  late final TabController _tabController;
+
+  static const double _kTimelineIconSize = 24;
+  static const double _kTimelineIconContainerSize = 48;
+  static const double _kTimelineConnectorWidth = 4;
+  static const double _kTimelineCardBorderWidth = 1.5;
+  static const double _kTimelineCardRadius = 16;
+  static const double _kTimelineCardPadding = 16;
+  static const double _kTimelineSpacing = 16;
 
   @override
   void initState() {
@@ -48,41 +55,21 @@ class _ItineraryViewerState extends State<ItineraryViewer>
 
   @override
   Widget build(BuildContext context) {
-    final transitOptionMetadatas = context.activeTrip.transitOptionMetadatas;
-    final appLocalizations = context.localizations;
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final isLightTheme = context.isLightTheme;
 
     return BlocConsumer<TripManagementBloc, TripManagementState>(
+      buildWhen: _shouldRebuild,
+      listener: (BuildContext context, TripManagementState state) {},
       builder: (BuildContext context, TripManagementState state) {
         final itinerary = context.activeTrip.itineraryCollection
             .getItineraryForDay(widget.itineraryDay);
 
-        // Collect all events
-        final timelineEvents = <TimelineEvent>[];
+        final timelineEvents = _collectTimelineEvents(itinerary);
 
-        // Add lodging events
-        timelineEvents
-            .addAll(_createLodgingEvents(itinerary, appLocalizations));
-
-        // Add transit events
-        timelineEvents.addAll(_createTransitEvents(itinerary.transits.toList(),
-            transitOptionMetadatas, appLocalizations));
-
-        // Add only timed sight events to timeline
-        timelineEvents.addAll(_createTimedSightEvents(
-            itinerary.planData.sights, appLocalizations));
-
-        // Sort timeline events by time
-        timelineEvents.sort((a, b) {
-          if (a.time == null && b.time == null) return 0;
-          if (a.time == null) return 1;
-          if (b.time == null) return -1;
-          return a.time!.compareTo(b.time!);
-        });
-
+        var itineraryPlanData = itinerary.planData;
         return Column(
           children: [
-            _createTabIndicators(context, isLightTheme, itinerary),
+            _createTabIndicators(),
             Expanded(
               child: ColoredBox(
                 color:
@@ -90,15 +77,21 @@ class _ItineraryViewerState extends State<ItineraryViewer>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildModernTimeline(
-                      context,
-                      timelineEvents,
-                      appLocalizations,
+                    _buildTimeline(timelineEvents),
+                    ItineraryNotesViewer(
+                      notes: itineraryPlanData.notes,
+                      day: widget.itineraryDay,
                     ),
-                    _buildNotesTab(context, itinerary, isLightTheme),
-                    _buildChecklistsTab(context, itinerary, isLightTheme),
-                    _buildPlacesTab(
-                        context, itinerary.planData.sights, isLightTheme),
+                    ItineraryChecklistTab(
+                      checklists: itineraryPlanData.checkLists,
+                      onChanged: () {},
+                      day: widget.itineraryDay,
+                    ),
+                    ItinerarySightsViewer(
+                      sights: itineraryPlanData.sights,
+                      tripId: context.activeTripId,
+                      day: widget.itineraryDay,
+                    ),
                   ],
                 ),
               ),
@@ -106,16 +99,10 @@ class _ItineraryViewerState extends State<ItineraryViewer>
           ],
         );
       },
-      buildWhen: _shouldRebuild,
-      listener: (BuildContext context, TripManagementState state) {},
     );
   }
 
-  Widget _createTabIndicators(
-    BuildContext context,
-    bool isLightTheme,
-    itinerary,
-  ) {
+  Widget _createTabIndicators() {
     return ChromeTabBar(
       iconsAndTitles: {
         Icons.timeline: 'Timeline',
@@ -127,173 +114,11 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     );
   }
 
-  Widget _buildNotesTab(
-    BuildContext context,
-    itinerary,
-    bool isLightTheme,
-  ) {
-    final notes = itinerary.planData.notes;
-
-    return ItineraryNotesViewer(
-      notes: notes,
-      day: widget.itineraryDay,
-    );
-  }
-
-  Widget _buildChecklistsTab(
-    BuildContext context,
-    itinerary,
-    bool isLightTheme,
-  ) {
-    return ItineraryChecklistTab(
-      isLightTheme: isLightTheme,
-      checklists: itinerary.planData.checkLists,
-      onChanged: () {},
-      day: widget.itineraryDay,
-    );
-  }
-
-  Widget _buildPlacesTab(
-    BuildContext context,
-    List<SightFacade> sights,
-    bool isLightTheme,
-  ) {
-    return ItinerarySightsViewer(
-      sights: sights,
-      isLightTheme: isLightTheme,
-      tripId: context.activeTripId,
-      day: widget.itineraryDay,
-    );
-  }
-
-  Iterable<TimelineEvent> _createLodgingEvents(
-    ItineraryFacade itinerary,
-    AppLocalizations appLocalizations,
-  ) sync* {
-    if (itinerary.fullDayLodging != null) {
-      final lodging = itinerary.fullDayLodging!;
-      yield TimelineEvent(
-        type: ItineraryEventType.lodging,
-        time: lodging.checkinDateTime,
-        title: appLocalizations.allDayStay,
-        subtitle: _getLodgingLocation(lodging),
-        icon: Icons.hotel_rounded,
-        iconColor: AppColors.brandPrimary,
-        data: lodging,
-      );
-    } else {
-      if (itinerary.checkoutLodging != null) {
-        final lodging = itinerary.checkoutLodging!;
-        yield TimelineEvent(
-          type: ItineraryEventType.lodging,
-          time: lodging.checkoutDateTime,
-          title:
-              '${appLocalizations.checkOut} • ${_formatTime(lodging.checkoutDateTime)}',
-          subtitle: _getLodgingLocation(lodging),
-          icon: Icons.logout,
-          iconColor: AppColors.warning,
-          data: lodging,
-        );
-      }
-
-      if (itinerary.checkinLodging != null) {
-        final lodging = itinerary.checkinLodging!;
-        yield TimelineEvent(
-          type: ItineraryEventType.lodging,
-          time: lodging.checkinDateTime,
-          title:
-              '${appLocalizations.checkIn} • ${_formatTime(lodging.checkinDateTime)}',
-          subtitle: _getLodgingLocation(lodging),
-          icon: Icons.login,
-          iconColor: AppColors.success,
-          data: lodging,
-        );
-      }
-    }
-  }
-
-  Iterable<TimelineEvent> _createTransitEvents(
-    List<TransitFacade> transits,
-    Iterable<TransitOptionMetadata> transitOptionMetadatas,
-    AppLocalizations appLocalizations,
-  ) sync* {
-    for (final transit in transits) {
-      final metadata = transitOptionMetadatas.firstWhere(
-        (e) => e.transitOption == transit.transitOption,
-      );
-
-      final departureDateTime = transit.departureDateTime!;
-      final arrivalDateTime = transit.arrivalDateTime!;
-      final isDepartingToday =
-          departureDateTime.isOnSameDayAs(widget.itineraryDay);
-      final isArrivingToday =
-          arrivalDateTime.isOnSameDayAs(widget.itineraryDay);
-
-      String title;
-      DateTime eventTime;
-
-      if (isDepartingToday && isArrivingToday) {
-        // Same day journey
-        title =
-            '${_getTransitLocationDetail(transit)} • ${_formatTime(departureDateTime)} - ${_formatTime(arrivalDateTime)}';
-        eventTime = departureDateTime;
-      } else if (isDepartingToday && !isArrivingToday) {
-        // Overnight journey departing today
-        title =
-            '${appLocalizations.departAt} ${_formatTime(departureDateTime)} → ${_getDestinationName(transit)}';
-        eventTime = departureDateTime;
-      } else {
-        // Overnight journey arriving today
-        title =
-            '${appLocalizations.arriveAt} ${_formatTime(arrivalDateTime)} from ${_getOriginName(transit)}';
-        eventTime = arrivalDateTime;
-      }
-
-      yield TimelineEvent(
-        type: ItineraryEventType.transit,
-        time: eventTime,
-        title: title,
-        subtitle: _getTransitOperatorInfo(transit),
-        icon: metadata.icon,
-        iconColor: AppColors.info,
-        data: transit,
-      );
-    }
-  }
-
-  Iterable<TimelineEvent> _createTimedSightEvents(
-    List<SightFacade> sights,
-    AppLocalizations appLocalizations,
-  ) sync* {
-    for (final sight in sights) {
-      // Only add sights that have a visit time to the timeline
-      if (sight.visitTime != null) {
-        final subtitle = _getSightSubtitle(sight);
-
-        final event = TimelineEvent(
-          type: ItineraryEventType.sight,
-          time: sight.visitTime,
-          title: '${sight.name} • ${_formatTime(sight.visitTime)}',
-          subtitle: subtitle,
-          icon: Icons.place_rounded,
-          iconColor: AppColors.brandAccent,
-          data: sight,
-        );
-
-        yield event;
-      }
-    }
-  }
-
-  Widget _buildModernTimeline(
-    BuildContext context,
+  Widget _buildTimeline(
     List<TimelineEvent> timelineEvents,
-    AppLocalizations appLocalizations,
   ) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
-
     if (timelineEvents.isEmpty) {
-      return _buildEmptyState(context, appLocalizations);
+      return _buildEmptyState();
     }
 
     return SingleChildScrollView(
@@ -301,13 +126,15 @@ class _ItineraryViewerState extends State<ItineraryViewer>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Timeline events
-          const SizedBox(height: 16),
+          const SizedBox(height: _kTimelineSpacing),
           ...timelineEvents.asMap().entries.map((entry) {
             final index = entry.key;
             final event = entry.value;
             final isLast = index == timelineEvents.length - 1;
-            return _buildTimelineItem(context, event, isLast, isLightTheme);
+            return _buildTimelineItem(
+              event,
+              isLast,
+            );
           }),
         ],
       ),
@@ -315,21 +142,21 @@ class _ItineraryViewerState extends State<ItineraryViewer>
   }
 
   Widget _buildTimelineItem(
-    BuildContext context,
     TimelineEvent event,
     bool isLast,
-    bool isLightTheme,
   ) {
-    final iconBgColor = isLightTheme
+    final isLightTheme = context.isLightTheme;
+    final Color iconBgColor = isLightTheme
         ? event.iconColor.withValues(alpha: 0.15)
         : event.iconColor.withValues(alpha: 0.25);
-    final cardBgColor = isLightTheme ? Colors.white : AppColors.darkSurface;
-    final timelineColor = isLightTheme
+    final Color cardBgColor =
+        isLightTheme ? Colors.white : AppColors.darkSurface;
+    final Color timelineColor = isLightTheme
         ? AppColors.brandPrimary.withValues(alpha: 0.5)
         : AppColors.brandPrimaryLight.withValues(alpha: 0.3);
-    final textColor =
+    final Color textColor =
         isLightTheme ? AppColors.brandSecondary : AppColors.neutral100;
-    final subtitleColor =
+    final Color subtitleColor =
         isLightTheme ? AppColors.neutral700 : AppColors.neutral400;
 
     return IntrinsicHeight(
@@ -338,14 +165,13 @@ class _ItineraryViewerState extends State<ItineraryViewer>
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Timeline connector
             SizedBox(
               width: 60,
               child: Column(
                 children: [
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: _kTimelineIconContainerSize,
+                    height: _kTimelineIconContainerSize,
                     decoration: BoxDecoration(
                       color: iconBgColor,
                       shape: BoxShape.circle,
@@ -364,13 +190,13 @@ class _ItineraryViewerState extends State<ItineraryViewer>
                     child: Icon(
                       event.icon,
                       color: event.iconColor,
-                      size: 24,
+                      size: _kTimelineIconSize,
                     ),
                   ),
                   if (!isLast)
                     Expanded(
                       child: Container(
-                        width: isLightTheme ? 4 : 3,
+                        width: _kTimelineConnectorWidth,
                         margin: const EdgeInsets.symmetric(vertical: 4),
                         decoration: BoxDecoration(
                           color: timelineColor,
@@ -381,20 +207,19 @@ class _ItineraryViewerState extends State<ItineraryViewer>
                 ],
               ),
             ),
-
-            // Event card
             Expanded(
               child: Container(
-                margin: const EdgeInsets.only(left: 8, bottom: 16),
-                padding: const EdgeInsets.all(16),
+                margin:
+                    const EdgeInsets.only(left: 8, bottom: _kTimelineSpacing),
+                padding: const EdgeInsets.all(_kTimelineCardPadding),
                 decoration: BoxDecoration(
                   color: cardBgColor,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(_kTimelineCardRadius),
                   border: Border.all(
                     color: isLightTheme
                         ? AppColors.neutral400
                         : AppColors.neutral600,
-                    width: 1.5,
+                    width: _kTimelineCardBorderWidth,
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -435,10 +260,8 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     );
   }
 
-  Widget _buildEmptyState(
-      BuildContext context, AppLocalizations appLocalizations) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
-
+  Widget _buildEmptyState() {
+    final bool isLightTheme = context.isLightTheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -465,16 +288,128 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     );
   }
 
-  // Helper methods
-  String _formatTime(DateTime? dateTime) {
-    if (dateTime == null) return '';
-    return dateTime.hourMinuteAmPmFormat;
+  List<TimelineEvent> _collectTimelineEvents(ItineraryFacade itinerary) {
+    final List<TimelineEvent> timelineEvents = [];
+    timelineEvents.addAll(_createLodgingEvents(itinerary));
+    timelineEvents.addAll(
+      _createTransitEvents(
+        itinerary.transits.toList(),
+      ),
+    );
+    timelineEvents.addAll(_createTimedSightEvents(itinerary.planData.sights));
+    timelineEvents
+        .sort((TimelineEvent a, TimelineEvent b) => a.time.compareTo(b.time));
+    return timelineEvents;
   }
 
-  String _getLodgingLocation(LodgingFacade lodging) {
+  Iterable<TimelineEvent> _createLodgingEvents(
+    ItineraryFacade itinerary,
+  ) sync* {
+    final LodgingFacade? fullDay = itinerary.fullDayLodging;
+    var localizations = context.localizations;
+    if (fullDay != null) {
+      yield TimelineEvent<LodgingFacade>(
+        time: fullDay.checkinDateTime!,
+        title: localizations.allDayStay,
+        subtitle: _getLodgingLocationDetail(fullDay),
+        icon: Icons.hotel_rounded,
+        iconColor: AppColors.brandPrimary,
+        data: fullDay,
+      );
+      return;
+    }
+
+    final LodgingFacade? checkout = itinerary.checkoutLodging;
+    if (checkout != null) {
+      yield TimelineEvent<LodgingFacade>(
+        time: checkout.checkoutDateTime!,
+        title:
+            '${localizations.checkOut} • ${checkout.checkoutDateTime!.hourMinuteAmPmFormat}',
+        subtitle: _getLodgingLocationDetail(checkout),
+        icon: Icons.logout,
+        iconColor: AppColors.warning,
+        data: checkout,
+      );
+    }
+
+    final LodgingFacade? checkin = itinerary.checkinLodging;
+    if (checkin != null) {
+      yield TimelineEvent<LodgingFacade>(
+        time: checkin.checkinDateTime!,
+        title:
+            '${localizations.checkIn} • ${checkin.checkinDateTime!.hourMinuteAmPmFormat}',
+        subtitle: _getLodgingLocationDetail(checkin),
+        icon: Icons.login,
+        iconColor: AppColors.success,
+        data: checkin,
+      );
+    }
+  }
+
+  Iterable<TimelineEvent> _createTransitEvents(
+    Iterable<TransitFacade> transits,
+  ) sync* {
+    for (final transit in transits) {
+      final metadata = context.activeTrip.transitOptionMetadatas.firstWhere(
+        (e) => e.transitOption == transit.transitOption,
+      );
+      final departure = transit.departureDateTime!;
+      final arrival = transit.arrivalDateTime!;
+      final isDepartingToday = departure.isOnSameDayAs(widget.itineraryDay);
+      final isArrivingToday = arrival.isOnSameDayAs(widget.itineraryDay);
+      final localizations = context.localizations;
+
+      String title;
+      DateTime eventTime;
+      if (isDepartingToday && isArrivingToday) {
+        title =
+            '${_getTransitLocationDetail(transit)} • ${departure.hourMinuteAmPmFormat} - ${arrival.hourMinuteAmPmFormat}';
+        eventTime = departure;
+      } else if (isDepartingToday) {
+        title =
+            '${localizations.departAt} ${departure.hourMinuteAmPmFormat} → ${_getDestinationName(transit)}';
+        eventTime = departure;
+      } else {
+        title =
+            '${localizations.arriveAt} ${arrival.hourMinuteAmPmFormat} from ${_getOriginName(transit)}';
+        eventTime = arrival;
+      }
+
+      yield TimelineEvent<TransitFacade>(
+        time: eventTime,
+        title: title,
+        subtitle: _getTransitOperatorInfo(transit),
+        icon: metadata.icon,
+        iconColor: AppColors.info,
+        data: transit,
+      );
+    }
+  }
+
+  Iterable<TimelineEvent> _createTimedSightEvents(
+    List<SightFacade> sights,
+  ) sync* {
+    for (final sight in sights) {
+      final visitTime = sight.visitTime;
+      if (visitTime == null) {
+        continue;
+      }
+
+      yield TimelineEvent<SightFacade>(
+        time: visitTime,
+        title: '${sight.name} • ${visitTime.hourMinuteAmPmFormat}',
+        subtitle: _getSightSubtitle(sight),
+        icon: Icons.place_rounded,
+        iconColor: AppColors.brandAccent,
+        data: sight,
+      );
+    }
+  }
+
+  String _getLodgingLocationDetail(LodgingFacade lodging) {
     final locationDetail = lodging.location!.context.name;
     final lodgingCity = lodging.location!.context.city;
-    return lodgingCity != null
+    return (lodgingCity != null && lodgingCity != locationDetail)
         ? '$locationDetail, $lodgingCity'
         : locationDetail;
   }
@@ -489,41 +424,31 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     return '$departureLocation → $arrivalLocation';
   }
 
-  String _getOriginName(TransitFacade transit) {
-    return transit.transitOption == TransitOption.flight
-        ? (transit.departureLocation!.context as AirportLocationContext).city
-        : transit.departureLocation.toString();
-  }
+  String _getOriginName(TransitFacade transit) =>
+      transit.transitOption == TransitOption.flight
+          ? (transit.departureLocation!.context as AirportLocationContext).city
+          : transit.departureLocation.toString();
 
-  String _getDestinationName(TransitFacade transit) {
-    return transit.transitOption == TransitOption.flight
-        ? (transit.arrivalLocation!.context as AirportLocationContext).city
-        : transit.arrivalLocation.toString();
-  }
+  String _getDestinationName(TransitFacade transit) =>
+      transit.transitOption == TransitOption.flight
+          ? (transit.arrivalLocation!.context as AirportLocationContext).city
+          : transit.arrivalLocation.toString();
 
-  String _getTransitOperatorInfo(TransitFacade transit) {
-    return transit.operator ?? '';
-  }
+  String _getTransitOperatorInfo(TransitFacade transit) =>
+      transit.operator ?? '';
 
   String _getSightSubtitle(SightFacade sight) {
     final parts = <String>[];
-
-    // Add location if available
-    if (sight.location != null) {
-      final locationName = sight.location!.context.name;
-      final locationCity = sight.location!.context.city;
-      if (locationCity != null) {
-        parts.add('$locationName, $locationCity');
-      } else {
-        parts.add(locationName);
-      }
+    final location = sight.location?.context;
+    if (location != null) {
+      final locationName = location.name;
+      final locationCity = location.city;
+      parts.add(
+          locationCity != null ? '$locationName, $locationCity' : locationName);
     }
-
-    // Add expense if available
     if (sight.expense.totalExpense.amount > 0) {
       parts.add(sight.expense.totalExpense.toString());
     }
-
     return parts.join(' • ');
   }
 
@@ -532,51 +457,32 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     TripManagementState currentState,
   ) {
     if (currentState.isTripEntityUpdated<LodgingFacade>()) {
-      final currentLodgingState = currentState as UpdatedTripEntity;
-      final updatedLodging = currentLodgingState
-          .tripEntityModificationData.modifiedCollectionItem as LodgingFacade;
-
-      if (currentLodgingState.dataState == DataState.create ||
-          currentLodgingState.dataState == DataState.delete ||
-          currentLodgingState.dataState == DataState.update) {
-        return updatedLodging.checkinDateTime!
-                .isOnSameDayAs(widget.itineraryDay) ||
-            updatedLodging.checkoutDateTime!.isOnSameDayAs(widget.itineraryDay);
-      }
+      return _shouldRebuildForLodging(currentState as UpdatedTripEntity);
     }
-
     if (currentState.isTripEntityUpdated<TransitFacade>()) {
-      final currentTransitState = currentState as UpdatedTripEntity;
-      final updatedTransit = currentTransitState
-          .tripEntityModificationData.modifiedCollectionItem as TransitFacade;
-
-      if (currentTransitState.dataState == DataState.create ||
-          currentTransitState.dataState == DataState.delete ||
-          currentTransitState.dataState == DataState.update) {
-        final isItineraryDayOnOrAfterDeparture = widget.itineraryDay
-                .isAtSameMomentAs(updatedTransit.departureDateTime!) ||
-            widget.itineraryDay.isAfter(updatedTransit.departureDateTime!);
-        final isItineraryDayOnOrBeforeArrival = widget.itineraryDay
-                .isAtSameMomentAs(updatedTransit.arrivalDateTime!) ||
-            widget.itineraryDay.isBefore(updatedTransit.arrivalDateTime!);
-        return isItineraryDayOnOrAfterDeparture &&
-            isItineraryDayOnOrBeforeArrival;
-      }
+      return !_isCrudChange(currentState as UpdatedTripEntity);
     }
-
     if (currentState.isTripEntityUpdated<SightFacade>()) {
-      final currentSightState = currentState as UpdatedTripEntity;
-      final updatedSight = currentSightState
-          .tripEntityModificationData.modifiedCollectionItem as SightFacade;
-
-      if (currentSightState.dataState == DataState.create ||
-          currentSightState.dataState == DataState.delete ||
-          currentSightState.dataState == DataState.update) {
-        // Rebuild if the sight is for this day
-        return updatedSight.day.isOnSameDayAs(widget.itineraryDay);
-      }
+      return !_isCrudChange(currentState as UpdatedTripEntity);
     }
-
     return false;
   }
+
+  bool _shouldRebuildForLodging(UpdatedTripEntity lodgingState) {
+    if (!_isCrudChange(lodgingState)) {
+      return false;
+    }
+
+    final lodging = lodgingState
+        .tripEntityModificationData.modifiedCollectionItem as LodgingFacade;
+    final DateTime checkin = lodging.checkinDateTime!;
+    final DateTime checkout = lodging.checkoutDateTime!;
+    return (checkin.isOnSameDayAs(widget.itineraryDay)) ||
+        (checkout.isOnSameDayAs(widget.itineraryDay));
+  }
+
+  bool _isCrudChange(UpdatedTripEntity state) =>
+      state.dataState == DataState.create ||
+      state.dataState == DataState.delete ||
+      state.dataState == DataState.update;
 }

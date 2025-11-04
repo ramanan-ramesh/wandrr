@@ -7,14 +7,12 @@ import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 class ItineraryChecklistTab extends StatefulWidget {
   final List<CheckListFacade> checklists;
-  final bool isLightTheme;
   final VoidCallback onChanged;
   final DateTime day;
 
   const ItineraryChecklistTab({
     super.key,
     required this.checklists,
-    required this.isLightTheme,
     required this.onChanged,
     required this.day,
   });
@@ -24,13 +22,20 @@ class ItineraryChecklistTab extends StatefulWidget {
 }
 
 class _ItineraryChecklistTabState extends State<ItineraryChecklistTab> {
+  // Layout constants
+  static const double _kPaddingAll = 16.0;
+  static const double _kSpacingSmall = 8.0;
+  static const double _kSpacingMedium = 12.0;
+  static const double _kSpacingLarge = 16.0;
+  static const double _kEmptyIconSize = 48.0;
+
   @override
   Widget build(BuildContext context) {
     if (widget.checklists.isEmpty) {
       return _emptyState(context);
     }
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(_kPaddingAll),
       itemBuilder: (c, i) {
         final cl = widget.checklists[i];
         final title =
@@ -51,7 +56,7 @@ class _ItineraryChecklistTabState extends State<ItineraryChecklistTab> {
           ),
         );
       },
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      separatorBuilder: (_, __) => const SizedBox(height: _kSpacingSmall),
       itemCount: widget.checklists.length,
     );
   }
@@ -62,12 +67,12 @@ class _ItineraryChecklistTabState extends State<ItineraryChecklistTab> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.checklist_outlined,
-              size: 48, color: AppColors.neutral400),
-          const SizedBox(height: 12),
+              size: _kEmptyIconSize, color: AppColors.neutral400),
+          const SizedBox(height: _kSpacingMedium),
           Text('No checklists', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 4),
-          Text('Add a checklist for this day'),
-          const SizedBox(height: 16),
+          const Text('Add a checklist for this day'),
+          const SizedBox(height: _kSpacingLarge),
           FilledButton.icon(
             icon: const Icon(Icons.add_rounded),
             label: const Text('Add Checklist'),

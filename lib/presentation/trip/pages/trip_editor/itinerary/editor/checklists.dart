@@ -23,6 +23,13 @@ class ItineraryChecklistsEditor extends StatefulWidget {
 }
 
 class _ItineraryChecklistsEditorState extends State<ItineraryChecklistsEditor> {
+  // Reused layout constants
+  static const double _kSpacingSmall = 8.0;
+  static const double _kSpacingMedium = 12.0;
+  static const double _kBorderRadiusLarge = 14.0;
+  static const double _kBorderRadiusMedium = 12.0;
+  static const double _kItemVerticalPadding = 4.0;
+
   @override
   Widget build(BuildContext context) {
     return CommonCollapsibleTab(
@@ -32,21 +39,30 @@ class _ItineraryChecklistsEditorState extends State<ItineraryChecklistsEditor> {
       createItem: () =>
           CheckListFacade.newUiEntry(tripId: context.activeTripId, items: []),
       onItemsChanged: widget.onChecklistsChanged,
-      titleBuilder: (cl) =>
-          cl.title?.trim().isEmpty ?? true ? 'Checklist' : cl.title!.trim(),
-      previewBuilder: (ctx, cl) => Text('${cl.items.length} items',
-          style: Theme.of(ctx).textTheme.labelSmall),
+      titleBuilder: _effectiveTitle,
+      previewBuilder: (ctx, cl) => Text(
+        '${cl.items.length} items',
+        style: Theme.of(ctx).textTheme.labelSmall,
+      ),
       accentColorBuilder: (cl) =>
-          cl.title?.isNotEmpty ?? false ? AppColors.success : AppColors.error,
-      isValidBuilder: (cl) =>
-          (cl.title?.isNotEmpty ?? false) && cl.items.isNotEmpty,
+          (cl.title?.isNotEmpty ?? false) ? AppColors.success : AppColors.error,
+      isValidBuilder: _isValid,
       expandedBuilder: (ctx, index, checklist, notifyParent) =>
-          _buildChecklistEditor(ctx, checklist, notifyParent),
+          _buildChecklistEditor(checklist, notifyParent),
     );
   }
 
-  Widget _buildChecklistEditor(BuildContext context, CheckListFacade checklist,
-      VoidCallback notifyParent) {
+  // --- Helpers -----------------------------------------------------------
+  String _effectiveTitle(CheckListFacade cl) =>
+      (cl.title?.trim().isEmpty ?? true) ? 'Checklist' : cl.title!.trim();
+
+  bool _isValid(CheckListFacade cl) =>
+      (cl.title?.isNotEmpty ?? false) && cl.items.isNotEmpty;
+
+  Widget _buildChecklistEditor(
+    CheckListFacade checklist,
+    VoidCallback notifyParent,
+  ) {
     final titleController = TextEditingController(text: checklist.title ?? '');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,7 +74,9 @@ class _ItineraryChecklistsEditorState extends State<ItineraryChecklistsEditor> {
             hintText: 'Enter checklist title',
             border: OutlineInputBorder(
               borderSide: BorderSide.none,
-              borderRadius: BorderRadius.all(Radius.circular(14)),
+              borderRadius: BorderRadius.all(
+                Radius.circular(_kBorderRadiusLarge),
+              ),
             ),
             filled: true,
           ),
@@ -67,53 +85,26 @@ class _ItineraryChecklistsEditorState extends State<ItineraryChecklistsEditor> {
             notifyParent();
           },
         ),
-        const SizedBox(height: 12),
-        EditorTheme.buildSectionHeader(context,
-            icon: Icons.list_rounded,
-            title: 'Items',
-            iconColor: context.isLightTheme
-                ? AppColors.brandPrimary
-                : AppColors.brandPrimaryLight),
-        const SizedBox(height: 8),
-        ...checklist.items.asMap().entries.map((entry) {
-          final idx = entry.key;
-          final item = entry.value;
-          final itemController = TextEditingController(text: item.item);
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: itemController,
-                    decoration: InputDecoration(
-                      hintText: 'Item ${idx + 1}',
-                      border: const OutlineInputBorder(
-                        borderSide: BorderSide.none,
-                        borderRadius: BorderRadius.all(Radius.circular(12)),
-                      ),
-                      filled: true,
-                    ),
-                    onChanged: (val) {
-                      item.item = val.trim();
-                      notifyParent();
-                    },
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_forever_rounded,
-                      color: AppColors.error),
-                  tooltip: 'Delete item',
-                  onPressed: () {
-                    checklist.items.removeAt(idx);
-                    notifyParent();
-                  },
-                ),
-              ],
-            ),
-          );
-        }),
-        const SizedBox(height: 8),
+        const SizedBox(height: _kSpacingMedium),
+        EditorTheme.createSectionHeader(
+          context,
+          icon: Icons.list_rounded,
+          title: 'Items',
+          iconColor: context.isLightTheme
+              ? AppColors.brandPrimary
+              : AppColors.brandPrimaryLight,
+        ),
+        const SizedBox(height: _kSpacingSmall),
+        ...checklist.items
+            .asMap()
+            .entries
+            .map((entry) => _buildChecklistItemRow(
+                  index: entry.key,
+                  item: entry.value,
+                  checklist: checklist,
+                  notifyParent: notifyParent,
+                )),
+        const SizedBox(height: _kSpacingSmall),
         ElevatedButton.icon(
           icon: const Icon(Icons.add_rounded),
           label: const Text('Add Item'),
@@ -122,20 +113,66 @@ class _ItineraryChecklistsEditorState extends State<ItineraryChecklistsEditor> {
             notifyParent();
           },
         ),
-        const SizedBox(height: 8),
-        Text(
-          (checklist.title?.isNotEmpty ?? false) && checklist.items.isNotEmpty
-              ? 'Valid'
-              : 'Incomplete',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: (checklist.title?.isNotEmpty ?? false) &&
-                        checklist.items.isNotEmpty
-                    ? AppColors.success
-                    : AppColors.error,
-                fontWeight: FontWeight.w600,
-              ),
-        ),
+        const SizedBox(height: _kSpacingSmall),
+        _buildValidityIndicator(checklist),
       ],
+    );
+  }
+
+  Widget _buildChecklistItemRow({
+    required int index,
+    required CheckListItem item,
+    required CheckListFacade checklist,
+    required VoidCallback notifyParent,
+  }) {
+    final itemController = TextEditingController(text: item.item);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: _kItemVerticalPadding),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: itemController,
+              decoration: InputDecoration(
+                hintText: 'Item ${index + 1}',
+                border: const OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(_kBorderRadiusMedium),
+                  ),
+                ),
+                filled: true,
+              ),
+              onChanged: (val) {
+                item.item = val.trim();
+                notifyParent();
+              },
+            ),
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.delete_forever_rounded,
+              color: AppColors.error,
+            ),
+            tooltip: 'Delete item',
+            onPressed: () {
+              checklist.items.removeAt(index);
+              notifyParent();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildValidityIndicator(CheckListFacade checklist) {
+    final valid = _isValid(checklist);
+    return Text(
+      valid ? 'Valid' : 'Incomplete',
+      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: valid ? AppColors.success : AppColors.error,
+            fontWeight: FontWeight.w600,
+          ),
     );
   }
 }

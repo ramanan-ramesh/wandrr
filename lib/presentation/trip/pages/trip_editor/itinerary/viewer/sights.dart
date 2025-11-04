@@ -9,14 +9,19 @@ import 'package:wandrr/presentation/app/theming/app_colors.dart';
 /// Allows adding, editing (location/time/description/expense), deleting sights.
 class ItinerarySightsViewer extends StatelessWidget {
   final List<SightFacade> sights;
-  final bool isLightTheme;
   final String tripId;
   final DateTime day;
+
+  // Reused layout constants
+  static const double _kPaddingAll = 16.0;
+  static const double _kSpacingSmall = 8.0;
+  static const double _kSpacingMedium = 12.0;
+  static const double _kSpacingLarge = 16.0;
+  static const double _kEmptyIconSize = 48.0;
 
   const ItinerarySightsViewer({
     super.key,
     required this.sights,
-    required this.isLightTheme,
     required this.tripId,
     required this.day,
   });
@@ -27,7 +32,7 @@ class ItinerarySightsViewer extends StatelessWidget {
       return _emptyState(context);
     }
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(_kPaddingAll),
       itemBuilder: (c, i) {
         final s = sights[i];
         final subtitleParts = <String>[];
@@ -59,7 +64,7 @@ class ItinerarySightsViewer extends StatelessWidget {
           ),
         );
       },
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      separatorBuilder: (_, __) => const SizedBox(height: _kSpacingSmall),
       itemCount: sights.length,
     );
   }
@@ -70,13 +75,13 @@ class ItinerarySightsViewer extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.place_outlined,
-              size: 48, color: AppColors.neutral400),
-          const SizedBox(height: 12),
+              size: _kEmptyIconSize, color: AppColors.neutral400),
+          const SizedBox(height: _kSpacingMedium),
           Text('No sights added',
               style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 4),
-          Text('Add places you plan to visit'),
-          const SizedBox(height: 16),
+          const SizedBox(height: _kSpacingSmall),
+          const Text('Add places you plan to visit'),
+          const SizedBox(height: _kSpacingLarge),
           FilledButton.icon(
             icon: const Icon(Icons.add_location_alt_rounded),
             label: const Text('Add Sight'),

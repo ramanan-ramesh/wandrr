@@ -1,6 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
+const double _kHeaderCornerRadius = 14.0;
+const double _kHeaderIconBorderRadius = 12.0;
+const double _kHeaderIconPadding = 10.0;
+const double _kHeaderChevronSize = 32.0;
+const double _kHeaderChevronPadding = 6.0;
+const double _kHeaderTitleFontSizeExpanded = 20.0;
+const double _kHeaderTitleFontSizeCollapsed = 18.0;
+const double _kHeaderTitleLetterSpacingExpanded = 0.5;
+const double _kHeaderTitleLetterSpacingCollapsed = 0.2;
+const double _kHeaderBoxShadowBlur = 8.0;
+const double _kHeaderBoxShadowOffsetY = 2.0;
+const double _kHeaderHorizontalPadding = 10.0;
+const double _kHeaderVerticalPadding = 10.0;
+const Duration _kChevronAnimationDuration = Duration(milliseconds: 300);
+const double _kHeaderIconSize = 24.0;
+
 class SectionHeader extends StatelessWidget {
   final int index;
   final String title;
@@ -8,7 +24,6 @@ class SectionHeader extends StatelessWidget {
   final bool isExpanded;
   final AnimationController rotationController;
   final VoidCallback onTap;
-  static const double _cornerRadius = 14;
 
   const SectionHeader({
     required this.index,
@@ -28,18 +43,23 @@ class SectionHeader extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(_cornerRadius),
+        borderRadius: BorderRadius.circular(_kHeaderCornerRadius),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+          padding: const EdgeInsets.symmetric(
+            horizontal: _kHeaderHorizontalPadding,
+            vertical: _kHeaderVerticalPadding,
+          ),
           decoration: BoxDecoration(
             gradient: colors.backgroundGradient,
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(_cornerRadius),
-              topRight: Radius.circular(_cornerRadius),
-              bottomLeft:
-                  isExpanded ? Radius.zero : Radius.circular(_cornerRadius),
-              bottomRight:
-                  isExpanded ? Radius.zero : Radius.circular(_cornerRadius),
+              topLeft: Radius.circular(_kHeaderCornerRadius),
+              topRight: Radius.circular(_kHeaderCornerRadius),
+              bottomLeft: isExpanded
+                  ? Radius.zero
+                  : Radius.circular(_kHeaderCornerRadius),
+              bottomRight: isExpanded
+                  ? Radius.zero
+                  : Radius.circular(_kHeaderCornerRadius),
             ),
           ),
           child: Row(
@@ -57,21 +77,21 @@ class SectionHeader extends StatelessWidget {
 
   Widget _buildIcon(_SectionHeaderColors colors) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(_kHeaderIconPadding),
       decoration: BoxDecoration(
         gradient: colors.iconGradient,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(_kHeaderIconBorderRadius),
         boxShadow: [
           BoxShadow(
             color: colors.iconShadowColor,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: _kHeaderBoxShadowBlur,
+            offset: const Offset(0, _kHeaderBoxShadowOffsetY),
           ),
         ],
       ),
       child: Icon(
         icon,
-        size: 24,
+        size: _kHeaderIconSize,
       ),
     );
   }
@@ -81,9 +101,13 @@ class SectionHeader extends StatelessWidget {
       title,
       style: theme.textTheme.titleLarge!.copyWith(
         fontWeight: isExpanded ? FontWeight.bold : FontWeight.w600,
-        fontSize: isExpanded ? 20 : 18,
+        fontSize: isExpanded
+            ? _kHeaderTitleFontSizeExpanded
+            : _kHeaderTitleFontSizeCollapsed,
         color: colors.textColor,
-        letterSpacing: isExpanded ? 0.5 : 0.2,
+        letterSpacing: isExpanded
+            ? _kHeaderTitleLetterSpacingExpanded
+            : _kHeaderTitleLetterSpacingCollapsed,
       ),
     );
   }
@@ -92,15 +116,15 @@ class SectionHeader extends StatelessWidget {
     return RotationTransition(
       turns: rotationController,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.all(6),
+        duration: _kChevronAnimationDuration,
+        padding: const EdgeInsets.all(_kHeaderChevronPadding),
         decoration: BoxDecoration(
           color: colors.chevronBgColor,
           shape: BoxShape.circle,
         ),
         child: Icon(
           Icons.keyboard_arrow_down_rounded,
-          size: 32.0,
+          size: _kHeaderChevronSize,
           color: colors.chevronColor,
         ),
       ),
@@ -155,12 +179,12 @@ class _SectionHeaderColors {
           ? (isDark ? Colors.white : AppColors.brandPrimary)
           : theme.colorScheme.onSurface.withAlpha(isDark ? 230 : 204),
       chevronColor: isExpanded
-          ? (isDark ? Colors.white : AppColors.brandPrimary)
+          ? (isDark ? Colors.white : theme.colorScheme.onPrimary)
           : (isDark ? Colors.white : theme.colorScheme.onSurface),
       chevronBgColor: isExpanded
           ? (isDark
-              ? AppColors.brandPrimary.withAlpha(180)
-              : AppColors.brandPrimary.withAlpha(120))
+              ? Colors.black.withValues(alpha: 0.35)
+              : Colors.grey.shade400)
           : (isDark
               ? theme.colorScheme.surface.withAlpha(220)
               : theme.colorScheme.outline.withAlpha(180)),

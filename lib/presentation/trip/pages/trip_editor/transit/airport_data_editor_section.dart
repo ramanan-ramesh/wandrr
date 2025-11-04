@@ -5,22 +5,27 @@ import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/auto_complete.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
-class AirportsDataEditor extends StatefulWidget {
+class AirportsDataEditorSection extends StatefulWidget {
   final LocationFacade? initialLocation;
   final double? locationOptionsViewWidth;
   final Function(LocationFacade selectedLocation)? onLocationSelected;
 
-  const AirportsDataEditor(
+  const AirportsDataEditorSection(
       {super.key,
       this.initialLocation,
       this.onLocationSelected,
       this.locationOptionsViewWidth});
 
   @override
-  State<AirportsDataEditor> createState() => _AirportsDataEditorState();
+  State<AirportsDataEditorSection> createState() =>
+      _AirportsDataEditorSectionState();
 }
 
-class _AirportsDataEditorState extends State<AirportsDataEditor> {
+class _AirportsDataEditorSectionState extends State<AirportsDataEditorSection> {
+  static const double _kListTileBorderRadius = 6.0;
+  static const double _kListTileHorizontalPadding = 8.0;
+  static const double _kListTileVerticalPadding = 4.0;
+
   LocationFacade? _location;
 
   @override
@@ -30,7 +35,7 @@ class _AirportsDataEditorState extends State<AirportsDataEditor> {
   }
 
   @override
-  void didUpdateWidget(covariant AirportsDataEditor oldWidget) {
+  void didUpdateWidget(covariant AirportsDataEditorSection oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.initialLocation != widget.initialLocation) {
       _location = widget.initialLocation?.clone();
@@ -55,22 +60,36 @@ class _AirportsDataEditorState extends State<AirportsDataEditor> {
       },
       optionsBuilder:
           context.apiServicesRepository.airportsDataService.queryData,
-      listItem: (airportData) {
-        var airportLocationContext =
-            airportData.context as AirportLocationContext;
-        return ListTile(
-          selected: airportData == _location,
-          title: Wrap(
-            children: [Text(airportLocationContext.name)],
+      listItem: (airportData) => _createAirportListItem(
+          context, airportData.context as AirportLocationContext),
+    );
+  }
+
+  Widget _createAirportListItem(
+      BuildContext context, AirportLocationContext airport) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: _kListTileHorizontalPadding,
+          vertical: _kListTileVerticalPadding,
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(_kListTileBorderRadius),
+        ),
+        child: Text(
+          airport.airportCode,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
           ),
-          trailing: Text(
-            airportLocationContext.airportCode,
-          ),
-          subtitle: Text(
-            airportLocationContext.city,
-          ),
-        );
-      },
+        ),
+      ),
+      title: Wrap(
+        children: [Text(airport.name)],
+      ),
+      subtitle: Text(
+        airport.city,
+      ),
     );
   }
 }

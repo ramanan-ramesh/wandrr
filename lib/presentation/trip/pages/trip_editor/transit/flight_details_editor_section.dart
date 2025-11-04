@@ -1,121 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/auto_complete.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 import 'airline_data.dart';
 
-class TransitOperatorEditor extends StatelessWidget {
-  final TransitOption transitOption;
+class FlightDetailsEditor extends StatefulWidget {
   final String? initialOperator;
   final Function(String?) onOperatorChanged;
 
-  const TransitOperatorEditor(
-      {required this.transitOption,
-      required this.onOperatorChanged,
-      super.key,
-      this.initialOperator});
-
-  @override
-  Widget build(BuildContext context) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
-    var icon = transitOption == TransitOption.flight
-        ? Icons.flight
-        : Icons.directions_bus;
-    var iconColor = transitOption == TransitOption.flight
-        ? (isLightTheme ? AppColors.info : AppColors.infoLight)
-        : (isLightTheme ? AppColors.brandPrimary : AppColors.brandPrimaryLight);
-    var title =
-        transitOption == TransitOption.flight ? 'Flight Details' : 'Carrier';
-    var editor = transitOption == TransitOption.flight
-        ? _FlightDetailsEditor(
-            initialOperator: initialOperator,
-            onOperatorChanged: onOperatorChanged,
-          )
-        : _createTransitOperatorEditingField(context);
-
-    return EditorTheme.buildSection(
-      context: context,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          EditorTheme.buildSectionHeader(
-            context,
-            icon: icon,
-            title: title,
-            iconColor: iconColor,
-            useLargeText: true,
-          ),
-          const SizedBox(height: 12),
-          editor,
-        ],
-      ),
-    );
-  }
-
-  Widget _createTransitOperatorEditingField(BuildContext context) {
-    final theme = Theme.of(context);
-    final isLightTheme = theme.brightness == Brightness.light;
-    final textColor =
-        isLightTheme ? AppColors.brandSecondary : AppColors.neutral100;
-    final borderColor =
-        isLightTheme ? AppColors.neutral400 : AppColors.neutral600;
-    final iconColor =
-        isLightTheme ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
-
-    var transitOperatorEditingController =
-        TextEditingController(text: initialOperator ?? '');
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: borderColor,
-          width: 1,
-        ),
-      ),
-      child: TextField(
-        minLines: 1,
-        maxLines: 1,
-        style: theme.textTheme.labelLarge?.copyWith(
-          color: textColor,
-        ),
-        controller: transitOperatorEditingController,
-        decoration: InputDecoration(
-          labelText: context.localizations.carrierName,
-          labelStyle: TextStyle(color: textColor),
-          prefixIcon: Icon(Icons.directions_bus, color: iconColor),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        ),
-        onChanged: onOperatorChanged,
-      ),
-    );
-  }
-}
-
-class _FlightDetailsEditor extends StatefulWidget {
-  final String? initialOperator;
-  final Function(String?) onOperatorChanged;
-
-  const _FlightDetailsEditor(
+  const FlightDetailsEditor(
       {required this.initialOperator, required this.onOperatorChanged});
 
   @override
-  State<_FlightDetailsEditor> createState() => _FlightDetailsEditorState();
+  State<FlightDetailsEditor> createState() => _FlightDetailsEditorState();
 }
 
-class _FlightDetailsEditorState extends State<_FlightDetailsEditor>
+class _FlightDetailsEditorState extends State<FlightDetailsEditor>
     with SingleTickerProviderStateMixin {
+  // UI styling constants (reused only)
+  static const double _kListTileBorderRadius = 6.0;
+  static const double _kListTileHorizontalPadding = 8.0;
+  static const double _kListTileVerticalPadding = 4.0;
+  static const double _kFlightNumberFontSize = 16.0;
+  static const double _kSeparatorFontSize = 18.0;
+  static const double _kFlightNumberLetterSpacing = 1.2;
+  static const double _kFlightNumberInputHorizontalPadding = 12.0;
+  static const double _kFlightNumberInputVerticalPadding = 10.0;
+  static const double _kFlightNumberSectionSpacing = 8.0;
+  static const Duration _kAnimationDuration = Duration(milliseconds: 400);
+
   late final AirlineData airlineData;
   late final TextEditingController flightNumberEditingController;
   late AnimationController _animationController;
@@ -127,7 +44,7 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
+      duration: _kAnimationDuration,
     );
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
@@ -151,7 +68,7 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor>
   }
 
   @override
-  void didUpdateWidget(covariant _FlightDetailsEditor oldWidget) {
+  void didUpdateWidget(covariant FlightDetailsEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.initialOperator != widget.initialOperator) {
       _initializeFromOperator();
@@ -233,9 +150,12 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor>
         return ListTile(
           selected: this.airlineData.airLineName == airlineData.$1,
           leading: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(
+              horizontal: _kListTileHorizontalPadding,
+              vertical: _kListTileVerticalPadding,
+            ),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(_kListTileBorderRadius),
             ),
             child: Text(
               airlineData.$2,
@@ -277,21 +197,21 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor>
                   airlineData.airLineCode ?? '',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: _kFlightNumberFontSize,
                     color: textColor,
-                    letterSpacing: 1.2,
+                    letterSpacing: _kFlightNumberLetterSpacing,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: _kFlightNumberSectionSpacing),
                 Text(
                   '-',
                   style: TextStyle(
                     color: separatorColor,
-                    fontSize: 18,
+                    fontSize: _kSeparatorFontSize,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: _kFlightNumberSectionSpacing),
                 Expanded(
                   child: TextField(
                     keyboardType: TextInputType.number,
@@ -303,9 +223,9 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor>
                     minLines: 1,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: _kFlightNumberFontSize,
                       color: textColor,
-                      letterSpacing: 1.2,
+                      letterSpacing: _kFlightNumberLetterSpacing,
                     ),
                     decoration: InputDecoration(
                       labelText: context.localizations.flightNumber,
@@ -313,11 +233,13 @@ class _FlightDetailsEditorState extends State<_FlightDetailsEditor>
                       hintText: '0000',
                       hintStyle: TextStyle(
                         color: labelColor,
-                        letterSpacing: 1.2,
+                        letterSpacing: _kFlightNumberLetterSpacing,
                       ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: _kFlightNumberInputHorizontalPadding,
+                        vertical: _kFlightNumberInputVerticalPadding,
+                      ),
                     ),
                     controller: flightNumberEditingController,
                     onChanged: (newFlightNumber) {

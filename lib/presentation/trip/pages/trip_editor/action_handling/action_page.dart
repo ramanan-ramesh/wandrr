@@ -154,7 +154,6 @@ class _AnimatedActionPageState extends State<_AnimatedActionPage>
   }
 
   Widget _buildEditorCard(BuildContext context, Widget child) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final isBigLayout = context.isBigLayout;
     final cardBorderRadius = EditorTheme.getCardBorderRadius(isBigLayout);
     return Container(
@@ -163,9 +162,9 @@ class _AnimatedActionPageState extends State<_AnimatedActionPage>
             ? EditorTheme.cardMarginHorizontalBig
             : EditorTheme.cardMarginHorizontalSmall,
       ),
-      constraints: isBigLayout ? const BoxConstraints(maxWidth: 1200) : null,
-      decoration: EditorTheme.buildCardDecoration(
-        isLightTheme: isLightTheme,
+      constraints: isBigLayout ? const BoxConstraints(maxWidth: 800) : null,
+      decoration: EditorTheme.createCardDecoration(
+        isLightTheme: context.isLightTheme,
         isBigLayout: isBigLayout,
         borderRadius: cardBorderRadius,
       ),

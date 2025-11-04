@@ -5,16 +5,18 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/main/section_header.d
 import 'collapsible_section.dart';
 import 'horizontal_sections.dart';
 
+const double _kContainerHorizontalMargin = 8;
+const double _kContainerVerticalMargin = 4;
+const double _kContainerBorderRadius = 16;
+
 class CollapsibleSectionsPage extends StatefulWidget {
   final List<CollapsibleSection> sections;
   final int? initiallyExpandedIndex;
-  final bool isHeightConstrained;
 
   const CollapsibleSectionsPage({
     super.key,
     required this.sections,
     this.initiallyExpandedIndex,
-    this.isHeightConstrained = false,
   });
 
   @override
@@ -25,121 +27,100 @@ class CollapsibleSectionsPage extends StatefulWidget {
 class _CollapsibleSectionsPageState extends State<CollapsibleSectionsPage>
     with TickerProviderStateMixin {
   int? _expandedSectionIndex;
-  final Map<int, AnimationController> _rotationControllers = {};
+  late final List<AnimationController> _rotationControllers;
 
   @override
   void initState() {
     super.initState();
     _expandedSectionIndex = widget.initiallyExpandedIndex;
-    _initializeRotationControllers();
+    _rotationControllers = List.generate(
+      widget.sections.length,
+      (i) => AnimationController(
+        duration: const Duration(milliseconds: 500),
+        vsync: this,
+        value: i == _expandedSectionIndex ? 0.5 : 0.0,
+      ),
+    );
   }
 
   @override
   void dispose() {
-    _disposeRotationControllers();
+    for (final controller in _rotationControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final expandedIndex = _expandedSectionIndex;
-
     if (expandedIndex == null) {
       return _buildAllCollapsedView();
     }
-
     return _buildExpandedView(expandedIndex);
-  }
-
-  void _initializeRotationControllers() {
-    for (int i = 0; i < widget.sections.length; i++) {
-      _rotationControllers[i] = AnimationController(
-        duration: const Duration(milliseconds: 300),
-        vsync: this,
-        value: i == _expandedSectionIndex ? 0.5 : 0.0,
-      );
-    }
-  }
-
-  void _disposeRotationControllers() {
-    for (var controller in _rotationControllers.values) {
-      controller.dispose();
-    }
   }
 
   void _handleSectionTap(int index, bool isCurrentlyExpanded) {
     setState(() {
       final previousExpandedIndex = _expandedSectionIndex;
       _expandedSectionIndex = isCurrentlyExpanded ? null : index;
-
       if (isCurrentlyExpanded) {
-        _animateRotationTo(index, 0.0);
+        _rotationControllers[index].animateTo(0.0, curve: Curves.easeInOut);
       } else {
-        _animateRotationTo(index, 0.5);
+        _rotationControllers[index].animateTo(0.5, curve: Curves.easeInOut);
         if (previousExpandedIndex != null && previousExpandedIndex != index) {
-          _animateRotationTo(previousExpandedIndex, 0.0);
+          _rotationControllers[previousExpandedIndex]
+              .animateTo(0.0, curve: Curves.easeInOut);
         }
       }
     });
   }
 
-  void _animateRotationTo(int index, double value) {
-    _rotationControllers[index]?.animateTo(value, curve: Curves.easeInOut);
-  }
-
   Widget _buildAllCollapsedView() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          for (int i = 0; i < widget.sections.length; i++) _buildSection(i),
-        ],
+    return Center(
+      child: SingleChildScrollView(
+        child: Column(
+          children: List.generate(
+            widget.sections.length,
+            _buildSection,
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildExpandedView(int expandedIndex) {
-    final sectionsAbove = [for (int i = 0; i < expandedIndex; i++) i];
-    final sectionsBelow = [
-      for (int i = expandedIndex + 1; i < widget.sections.length; i++) i
-    ];
-
-    final children = [
+    final sectionsAbove = widget.sections.sublist(0, expandedIndex);
+    final sectionsBelow = widget.sections.sublist(expandedIndex + 1);
+    final children = <Widget>[
       if (sectionsAbove.length > 1)
         HorizontalSectionsList(
-          sectionIndices: sectionsAbove,
-          sections: widget.sections,
+          sections: sectionsAbove,
           onSectionTap: (index) => _handleSectionTap(index, false),
-          rotationControllers: _rotationControllers,
         )
       else if (sectionsAbove.length == 1)
-        _buildSection(sectionsAbove[0]),
+        _buildSection(expandedIndex - 1),
       _buildSection(expandedIndex),
       if (sectionsBelow.length > 1)
         HorizontalSectionsList(
-          sectionIndices: sectionsBelow,
-          sections: widget.sections,
-          onSectionTap: (index) => _handleSectionTap(index, false),
-          rotationControllers: _rotationControllers,
+          sections: sectionsBelow,
+          onSectionTap: (index) =>
+              _handleSectionTap(expandedIndex + 1 + index, false),
         )
       else if (sectionsBelow.length == 1)
-        _buildSection(sectionsBelow[0]),
+        _buildSection(expandedIndex + 1),
     ];
-
-    return widget.isHeightConstrained
-        ? Column(children: children)
-        : SingleChildScrollView(child: Column(children: children));
+    return Column(children: children);
   }
 
   Widget _buildSection(int index) {
     final section = widget.sections[index];
     final isExpanded = _expandedSectionIndex == index;
-
     return _CollapsibleSectionContainer(
       index: index,
       section: section,
       isExpanded: isExpanded,
-      isHeightConstrained: widget.isHeightConstrained,
-      rotationController: _rotationControllers[index]!,
+      rotationController: _rotationControllers[index],
       onTap: () => _handleSectionTap(index, isExpanded),
     );
   }
@@ -149,7 +130,6 @@ class _CollapsibleSectionContainer extends StatelessWidget {
   final int index;
   final CollapsibleSection section;
   final bool isExpanded;
-  final bool isHeightConstrained;
   final AnimationController rotationController;
   final VoidCallback onTap;
 
@@ -157,43 +137,35 @@ class _CollapsibleSectionContainer extends StatelessWidget {
     required this.index,
     required this.section,
     required this.isExpanded,
-    required this.isHeightConstrained,
     required this.rotationController,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final container = _buildSectionContainer(context);
-
-    if (isHeightConstrained && isExpanded) {
-      return Expanded(child: container);
-    }
-    return container;
-  }
-
-  Widget _buildSectionContainer(BuildContext context) {
-    final colors = _SectionContainerColors.fromTheme(context, isExpanded);
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    final theme = Theme.of(context);
+    final expandedColor = AppColors.brandPrimary;
+    final unexpandedColor = theme.colorScheme.surfaceContainerHighest;
+    final sectionColor = isExpanded ? expandedColor : unexpandedColor;
+    final container = Container(
+      margin: const EdgeInsets.symmetric(
+          horizontal: _kContainerHorizontalMargin,
+          vertical: _kContainerVerticalMargin),
       decoration: BoxDecoration(
-        gradient: colors.backgroundGradient,
+        gradient: LinearGradient(
+          colors: [sectionColor.withAlpha(25), sectionColor.withAlpha(51)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         border: Border.all(
-          color: colors.borderColor,
+          color: isExpanded
+              ? expandedColor
+              : theme.colorScheme.outline.withAlpha(102),
           width: 2,
         ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadowColor,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(_kContainerBorderRadius),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
           SectionHeader(
             index: index,
@@ -203,45 +175,13 @@ class _CollapsibleSectionContainer extends StatelessWidget {
             rotationController: rotationController,
             onTap: onTap,
           ),
-          if (isExpanded && isHeightConstrained)
-            Expanded(child: section.child)
-          else if (isExpanded)
-            section.child,
+          if (isExpanded) Expanded(child: section.child)
         ],
       ),
     );
-  }
-}
-
-class _SectionContainerColors {
-  final LinearGradient backgroundGradient;
-  final Color borderColor;
-  final Color shadowColor;
-
-  _SectionContainerColors._({
-    required this.backgroundGradient,
-    required this.borderColor,
-    required this.shadowColor,
-  });
-
-  factory _SectionContainerColors.fromTheme(
-      BuildContext context, bool isExpanded) {
-    final theme = Theme.of(context);
-    final expandedColor = AppColors.brandPrimary;
-    final unexpandedColor = theme.colorScheme.surfaceContainerHighest;
-    final sectionColor = isExpanded ? expandedColor : unexpandedColor;
-
-    return _SectionContainerColors._(
-      backgroundGradient: LinearGradient(
-        colors: [sectionColor.withAlpha(25), sectionColor.withAlpha(51)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      borderColor:
-          isExpanded ? expandedColor : theme.colorScheme.outline.withAlpha(102),
-      shadowColor: isExpanded
-          ? expandedColor.withAlpha(50)
-          : theme.colorScheme.shadow.withAlpha(25),
-    );
+    if (isExpanded) {
+      return Expanded(child: container);
+    }
+    return container;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
@@ -47,24 +48,24 @@ class _LodgingEditorState extends State<LodgingEditor>
         ),
         _buildDatesSection(context, tripMetadata),
         _buildConfirmationSection(context),
-        _buildExpenseSection(context),
         _buildNotesSection(context),
+        _buildPaymentDetailsSection(context),
       ],
     );
   }
 
   Widget _buildDatesSection(BuildContext context, dynamic tripMetadata) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
-    return EditorTheme.buildSection(
+    return EditorTheme.createSection(
       context: context,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          EditorTheme.buildSectionHeader(
+          EditorTheme.createSectionHeader(
             context,
             icon: Icons.calendar_today_rounded,
             title: 'Check-in & Check-out',
-            iconColor: isLightTheme ? AppColors.info : AppColors.infoLight,
+            iconColor:
+                context.isLightTheme ? AppColors.info : AppColors.infoLight,
           ),
           const SizedBox(height: 12),
           PlatformDateRangePicker(
@@ -74,67 +75,97 @@ class _LodgingEditorState extends State<LodgingEditor>
               _lodging.checkinDateTime = newStartDate;
               _lodging.checkoutDateTime = newEndDate;
               widget.onLodgingUpdated();
+              setState(() {});
             },
             firstDate: tripMetadata.startDate!,
             lastDate: tripMetadata.endDate!,
           ),
+          const SizedBox(width: 8),
+          if (_lodging.checkinDateTime != null &&
+              _lodging.checkoutDateTime != null)
+            _buildDurationIndicator(context),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDurationIndicator(BuildContext context) {
+    final startDate = _lodging.checkinDateTime!;
+    final endDate = _lodging.checkoutDateTime!;
+    final days = endDate.difference(startDate).inDays;
+    final isLightTheme = context.isLightTheme;
+
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      child: Container(
+        margin: const EdgeInsets.only(top: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.info.withValues(alpha: 0.2),
+              AppColors.infoLight.withValues(alpha: 0.1),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isLightTheme
+                ? AppColors.info.withValues(alpha: 0.3)
+                : AppColors.infoLight.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.event_available,
+              size: 18,
+              color: isLightTheme ? AppColors.info : AppColors.infoLight,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '$days ${days == 1 ? 'day' : 'days'}',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isLightTheme ? AppColors.info : AppColors.infoLight,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildConfirmationSection(BuildContext context) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
-
-    return EditorTheme.buildSection(
+    return EditorTheme.createSection(
       context: context,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          EditorTheme.buildSectionHeader(
-            context,
-            icon: Icons.confirmation_number_outlined,
-            title: context.localizations.confirmation,
-            iconColor: isLightTheme
-                ? AppColors.brandPrimary
-                : AppColors.brandPrimaryLight,
-          ),
-          const SizedBox(height: 12),
-          _buildConfirmationField(context),
-        ],
+      child: TextFormField(
+        decoration: EditorTheme.createTextFieldDecoration(
+          labelText: '${context.localizations.confirmation} ID',
+          prefixIcon: Icons.tag,
+        ),
+        initialValue: _lodging.confirmationId,
+        textInputAction: TextInputAction.next,
+        onChanged: (confirmationId) {
+          _lodging.confirmationId = confirmationId;
+          widget.onLodgingUpdated();
+        },
       ),
     );
   }
 
-  Widget _buildConfirmationField(BuildContext context) {
-    return TextFormField(
-      decoration: EditorTheme.buildTextFieldDecoration(
-        labelText: '${context.localizations.confirmation} #',
-        hintText: 'Enter confirmation number',
-        prefixIcon: Icons.tag,
-      ),
-      initialValue: _lodging.confirmationId,
-      textInputAction: TextInputAction.next,
-      onChanged: (confirmationId) {
-        _lodging.confirmationId = confirmationId;
-        widget.onLodgingUpdated();
-      },
-    );
-  }
-
-  Widget _buildExpenseSection(BuildContext context) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
-
-    return EditorTheme.buildSection(
+  Widget _buildPaymentDetailsSection(BuildContext context) {
+    return EditorTheme.createSection(
       context: context,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          EditorTheme.buildSectionHeader(
+          EditorTheme.createSectionHeader(
             context,
             icon: Icons.account_balance_wallet,
             title: context.localizations.expenses,
-            iconColor: isLightTheme
+            iconColor: context.isLightTheme
                 ? AppColors.brandPrimary
                 : AppColors.brandPrimaryLight,
           ),
@@ -157,12 +188,12 @@ class _LodgingEditorState extends State<LodgingEditor>
   Widget _buildNotesSection(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
 
-    return EditorTheme.buildSection(
+    return EditorTheme.createSection(
       context: context,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          EditorTheme.buildSectionHeader(
+          EditorTheme.createSectionHeader(
             context,
             icon: Icons.notes_outlined,
             title: context.localizations.notes,
@@ -180,7 +211,7 @@ class _LodgingEditorState extends State<LodgingEditor>
   Widget _buildNotesField(BuildContext context) {
     return TextFormField(
       style: Theme.of(context).textTheme.bodyLarge,
-      decoration: EditorTheme.buildTextFieldDecoration(
+      decoration: EditorTheme.createTextFieldDecoration(
         labelText: context.localizations.notes,
         hintText: 'Add any additional notes...',
         alignLabelWithHint: true,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
@@ -7,7 +8,9 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/money_edit_field.dart';
 
-import 'trip_contributors_editor.dart';
+import 'trip_contributors_section.dart';
+
+const _kSectionHeaderSpacing = SizedBox(height: 12.0);
 
 class TripDetailsEditor extends StatefulWidget {
   final TripMetadataFacade tripMetadataFacade;
@@ -25,7 +28,7 @@ class TripDetailsEditor extends StatefulWidget {
 
 class _TripDetailsEditorState extends State<TripDetailsEditor>
     with TickerProviderStateMixin {
-  late TextEditingController _titleController;
+  late final TextEditingController _titleController;
 
   @override
   void initState() {
@@ -48,11 +51,11 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
         _buildTitleSection(context),
         _buildDatesSection(context),
         _buildBudgetSection(context),
-        TripContributorsEditor(
-          contributors: widget.tripMetadataFacade.contributors,
+        TripContributorsEditorSection(
+          contributors: List.of(widget.tripMetadataFacade.contributors),
           onContributorsChanged: (updatedContributors) {
             widget.tripMetadataFacade.contributors =
-                List.from(updatedContributors);
+                List.of(updatedContributors);
             widget.onTripMetadataUpdated();
           },
         ),
@@ -61,7 +64,7 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
   }
 
   Widget _buildTitleSection(BuildContext context) {
-    return EditorTheme.buildSection(
+    return EditorTheme.createSection(
       context: context,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,14 +74,12 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
-            decoration: EditorTheme.buildTextFieldDecoration(
+            decoration: EditorTheme.createTextFieldDecoration(
               labelText: 'Enter trip title',
-              hintText: 'e.g., Europe 2025, Caribbean Getaway Sep 2026',
-              prefixIcon: Icons.title_rounded,
             ),
             textInputAction: TextInputAction.next,
             onChanged: (value) {
-              widget.tripMetadataFacade.name = value;
+              widget.tripMetadataFacade.name = value.trim();
               widget.onTripMetadataUpdated();
             },
           ),
@@ -88,20 +89,19 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
   }
 
   Widget _buildDatesSection(BuildContext context) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
-
-    return EditorTheme.buildSection(
+    return EditorTheme.createSection(
       context: context,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          EditorTheme.buildSectionHeader(
+          EditorTheme.createSectionHeader(
             context,
             icon: Icons.calendar_month_rounded,
             title: 'Trip Duration',
-            iconColor: isLightTheme ? AppColors.info : AppColors.infoLight,
+            iconColor:
+                context.isLightTheme ? AppColors.info : AppColors.infoLight,
           ),
-          const SizedBox(height: 12),
+          _kSectionHeaderSpacing,
           PlatformDateRangePicker(
             startDate: widget.tripMetadataFacade.startDate,
             endDate: widget.tripMetadataFacade.endDate,
@@ -125,8 +125,7 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
     final startDate = widget.tripMetadataFacade.startDate!;
     final endDate = widget.tripMetadataFacade.endDate!;
     final days = endDate.difference(startDate).inDays + 1;
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
-
+    final isLightTheme = context.isLightTheme;
     return AnimatedSize(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -173,23 +172,22 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final allCurrencies = context.supportedCurrencies.toList();
     final selectedCurrency = allCurrencies.firstWhere(
-      (c) => c.code == widget.tripMetadataFacade.budget.currency,
+      (currency) => currency.code == widget.tripMetadataFacade.budget.currency,
       orElse: () => allCurrencies.first,
     );
-
-    return EditorTheme.buildSection(
+    return EditorTheme.createSection(
       context: context,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          EditorTheme.buildSectionHeader(
+          EditorTheme.createSectionHeader(
             context,
             icon: Icons.account_balance_wallet_rounded,
             title: 'Budget',
             iconColor:
                 isLightTheme ? AppColors.warning : AppColors.warningLight,
           ),
-          const SizedBox(height: 12),
+          _kSectionHeaderSpacing,
           PlatformMoneyEditField(
             selectedCurrencyData: selectedCurrency,
             allCurrencies: allCurrencies,

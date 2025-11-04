@@ -12,15 +12,12 @@ class EditorTheme {
 
   static const double cardMarginHorizontalBig = 24.0;
   static const double cardMarginHorizontalSmall = 16.0;
-  static const double cardMarginVerticalBig = 16.0;
-  static const double cardMarginVerticalSmall = 12.0;
 
   static const double _sectionMarginHorizontal = 20.0;
   static const double _sectionMarginVertical = 12.0;
   static const double _sectionPadding = 16.0;
 
   static const double iconSize = 24.0;
-  static const double iconSizeSmall = 20.0;
 
   // Border widths
   static const double _cardBorderWidth = 2.0;
@@ -42,21 +39,21 @@ class EditorTheme {
   }
 
   /// Build card decoration with gradient and shadows
-  static BoxDecoration buildCardDecoration({
+  static BoxDecoration createCardDecoration({
     required bool isLightTheme,
     required bool isBigLayout,
     double? borderRadius,
   }) {
     final radius = borderRadius ?? getCardBorderRadius(isBigLayout);
     return BoxDecoration(
-      gradient: _buildCardGradient(isLightTheme),
+      gradient: _createCardGradient(isLightTheme),
       borderRadius: BorderRadius.circular(radius),
-      border: _buildCardBorder(isLightTheme),
-      boxShadow: [_buildCardShadow(isLightTheme, isBigLayout)],
+      border: _createCardBorder(isLightTheme),
+      boxShadow: [_createCardShadow(isLightTheme, isBigLayout)],
     );
   }
 
-  static LinearGradient buildPrimaryGradient(bool isLightTheme) {
+  static LinearGradient createPrimaryGradient(bool isLightTheme) {
     return LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
@@ -66,7 +63,7 @@ class EditorTheme {
     );
   }
 
-  static BoxShadow buildBadgeShadow(bool isLightTheme) {
+  static BoxShadow createBadgeShadow(bool isLightTheme) {
     return BoxShadow(
       color: isLightTheme
           ? AppColors.brandPrimary.withValues(alpha: 0.3)
@@ -77,7 +74,7 @@ class EditorTheme {
   }
 
   /// Build section container with standard styling
-  static Widget buildSection({
+  static Widget createSection({
     required BuildContext context,
     required Widget child,
   }) {
@@ -88,13 +85,13 @@ class EditorTheme {
         vertical: _sectionMarginVertical,
       ),
       padding: const EdgeInsets.all(_sectionPadding),
-      decoration: _buildSectionDecoration(isLightTheme),
+      decoration: _createSectionDecoration(isLightTheme),
       child: child,
     );
   }
 
   /// Build section header with icon and title
-  static Widget buildSectionHeader(
+  static Widget createSectionHeader(
     BuildContext context, {
     required IconData icon,
     required String title,
@@ -134,7 +131,7 @@ class EditorTheme {
   }
 
   /// Get text field decoration
-  static InputDecoration buildTextFieldDecoration({
+  static InputDecoration createTextFieldDecoration({
     required String labelText,
     String? hintText,
     IconData? prefixIcon,
@@ -154,7 +151,7 @@ class EditorTheme {
     );
   }
 
-  static LinearGradient _buildCardGradient(bool isLightTheme) {
+  static LinearGradient _createCardGradient(bool isLightTheme) {
     return LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
@@ -170,7 +167,7 @@ class EditorTheme {
     );
   }
 
-  static Border _buildCardBorder(bool isLightTheme) {
+  static Border _createCardBorder(bool isLightTheme) {
     return Border.all(
       color: isLightTheme
           ? AppColors.brandPrimary.withValues(alpha: 0.3)
@@ -179,7 +176,7 @@ class EditorTheme {
     );
   }
 
-  static BoxShadow _buildCardShadow(bool isLightTheme, bool isBigLayout) {
+  static BoxShadow _createCardShadow(bool isLightTheme, bool isBigLayout) {
     return BoxShadow(
       color: isLightTheme
           ? AppColors.brandPrimary.withValues(alpha: 0.15)
@@ -189,7 +186,7 @@ class EditorTheme {
     );
   }
 
-  static BoxDecoration _buildSectionDecoration(bool isLightTheme) {
+  static BoxDecoration _createSectionDecoration(bool isLightTheme) {
     return BoxDecoration(
       color: isLightTheme
           ? Colors.white.withValues(alpha: 0.7)

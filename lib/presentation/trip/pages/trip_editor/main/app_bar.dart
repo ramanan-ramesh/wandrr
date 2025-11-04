@@ -3,38 +3,31 @@ import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
   static const double _kAvatarRadius = 14;
   static const double _kAvatarOffset = 18.0;
-  final VoidCallback onTitleClicked;
+  static const int _maximumNumberOfAvatarsToShow = 3;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
-  const TripEditorAppBar({Key? key, required this.onTitleClicked})
-      : super(key: key);
+  const TripEditorAppBar();
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       leading: _createHomeButton(context),
       centerTitle: false,
-      title: GestureDetector(
-        onTap: onTitleClicked,
-        child: _createTripDetails(context),
-      ),
+      title: _createTripDetails(context),
       actions: !context.isBigLayout
           ? [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 3.0),
                 child: _createCollaboratorsManager(context),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                child: _createShareTripButton(),
               ),
             ]
           : [],
@@ -46,7 +39,24 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
         '${context.activeTrip.tripMetadata.startDate!.dateMonthFormat} - ${context.activeTrip.tripMetadata.endDate!.dateMonthFormat}';
     return Row(
       children: [
-        Column(
+        Flexible(
+          child: _createTitleAndDate(context, tripDateRange),
+        ),
+        if (context.isBigLayout)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3.0),
+            child: _createCollaboratorsManager(context),
+          ),
+      ],
+    );
+  }
+
+  Widget _createTitleAndDate(BuildContext context, String tripDateRange) {
+    return InkWell(
+      onTap: () => _selectTripMetadata(context),
+      child: Padding(
+        padding: const EdgeInsets.all(3.0),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -61,31 +71,19 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ],
         ),
-        if (context.isBigLayout)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3.0),
-            child: _createCollaboratorsManager(context),
-          ),
-        if (context.isBigLayout)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3.0),
-            child: _createShareTripButton(),
-          ),
-      ],
+      ),
     );
   }
 
   Widget _createCollaboratorsManager(BuildContext context) {
     var numberOfContributors =
         context.activeTrip.tripMetadata.contributors.length;
-    var maximumNumberOfAvatarsToShow = 3;
     var visibleCollaborators =
-        numberOfContributors > maximumNumberOfAvatarsToShow
-            ? maximumNumberOfAvatarsToShow
+        numberOfContributors > _maximumNumberOfAvatarsToShow
+            ? _maximumNumberOfAvatarsToShow
             : numberOfContributors;
 
     var avatarPhotos = <Positioned>[];
-    var overlap = _kAvatarRadius;
     avatarPhotos.add(Positioned(
       left: 0,
       child: CircleAvatar(
@@ -106,7 +104,7 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
     avatarPhotos.addAll(List.generate(
       visibleCollaborators - 1,
       (index) => Positioned(
-        left: (index + 1) * overlap,
+        left: (index + 1) * _kAvatarRadius,
         child: const CircleAvatar(
           radius: _kAvatarRadius,
           child: Icon(Icons.person, size: _kAvatarOffset),
@@ -114,31 +112,22 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
     ).reversed.toList()
       ..add(Positioned(
-        left: visibleCollaborators * overlap,
+        left: visibleCollaborators * _kAvatarRadius,
         child: _createClickableRoundedButton(
             Icon(
               Icons.add_rounded,
               color: Colors.black,
             ),
-            () {}),
+            () => _selectTripMetadata(context)),
       )));
 
     return SizedBox(
-      width: (overlap * visibleCollaborators) + (_kAvatarRadius * 2),
+      width: (_kAvatarRadius * visibleCollaborators) + (_kAvatarRadius * 2),
       height: _kAvatarRadius * 2,
       child: Stack(
         children: avatarPhotos,
       ),
     );
-  }
-
-  Widget _createShareTripButton() {
-    return _createClickableRoundedButton(
-        Icon(
-          Icons.ios_share_rounded,
-          color: Colors.black,
-        ),
-        () {});
   }
 
   Widget _createClickableRoundedButton(Widget child, VoidCallback onPressed) {
@@ -174,5 +163,10 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
             )
           : null,
     );
+  }
+
+  void _selectTripMetadata(BuildContext context) {
+    context.addTripManagementEvent(UpdateTripEntity<TripMetadataFacade>.select(
+        tripEntity: context.activeTrip.tripMetadata));
   }
 }

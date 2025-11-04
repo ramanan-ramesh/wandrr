@@ -18,78 +18,77 @@ class BreakdownByCategoryChart extends StatefulWidget {
 class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
   int touchedIndex = -1;
 
+  // UI constants
+  static const double _kMinHeight = 300;
+  static const double _kMaxHeight = 600;
+  static const double _kCenterSpaceRadius = 30.0;
+  static const double _kTouchedRadius = 110.0;
+  static const double _kUntouchedRadius = 100.0;
+  static const double _kTouchedFontSize = 20.0;
+  static const double _kUntouchedFontSize = 16.0;
+  static const double _kBadgeTouchedSize = 55.0;
+  static const double _kBadgeUntouchedSize = 40.0;
+
   @override
   Widget build(BuildContext context) {
-    var budgetingModule = context.activeTrip.budgetingModule;
+    final budgetingModule = context.activeTrip.budgetingModule;
     return FutureBuilder<Map<ExpenseCategory, double>>(
-        future: budgetingModule.retrieveTotalExpensePerCategory(),
-        builder: (BuildContext context,
-            AsyncSnapshot<Map<ExpenseCategory, double>> snapshot) {
-          var isLoadingData =
-              snapshot.connectionState == ConnectionState.waiting ||
-                  snapshot.connectionState == ConnectionState.active;
-          var isSnapshotDataValid = snapshot.hasData &&
-              snapshot.data != null &&
-              snapshot.data!.isNotEmpty;
-          return Container(
-            constraints: const BoxConstraints(minHeight: 300, maxHeight: 600),
-            child: isLoadingData
-                ? const Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : (isSnapshotDataValid
-                    ? PieChart(
-                        PieChartData(
-                          pieTouchData: PieTouchData(
-                            touchCallback:
-                                (FlTouchEvent event, pieTouchResponse) {
-                              setState(() {
-                                if (!event.isInterestedForInteractions ||
-                                    pieTouchResponse == null ||
-                                    pieTouchResponse.touchedSection == null) {
-                                  touchedIndex = -1;
-                                  return;
-                                }
-                                touchedIndex = pieTouchResponse
+      future: budgetingModule.retrieveTotalExpensePerCategory(),
+      builder: (context, snapshot) {
+        final isLoading = snapshot.connectionState == ConnectionState.waiting ||
+            snapshot.connectionState == ConnectionState.active;
+        final data = snapshot.data;
+        final hasValidData = data != null && data.isNotEmpty;
+        return Container(
+          constraints: const BoxConstraints(
+              minHeight: _kMinHeight, maxHeight: _kMaxHeight),
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : hasValidData
+                  ? PieChart(
+                      PieChartData(
+                        pieTouchData: PieTouchData(
+                          touchCallback: (event, pieTouchResponse) {
+                            setState(() {
+                              if (!event.isInterestedForInteractions ||
+                                  pieTouchResponse?.touchedSection == null) {
+                                touchedIndex = -1;
+                              } else {
+                                touchedIndex = pieTouchResponse!
                                     .touchedSection!.touchedSectionIndex;
-                              });
-                            },
-                          ),
-                          borderData: FlBorderData(
-                            show: false,
-                          ),
-                          sectionsSpace: 0,
-                          centerSpaceRadius: 30,
-                          sections:
-                              _createExpenseCategorySections(snapshot.data!),
+                              }
+                            });
+                          },
                         ),
-                      )
-                    : const Center(
-                        child: Text('No expenses created yet.'),
-                      )),
-          );
-        });
+                        borderData: FlBorderData(show: false),
+                        sectionsSpace: 0,
+                        centerSpaceRadius: _kCenterSpaceRadius,
+                        sections: _createExpenseCategorySections(data),
+                      ),
+                    )
+                  : const Center(child: Text('No expenses created yet.')),
+        );
+      },
+    );
   }
 
-  // Updated expense chart colors using the vibrant travel-themed palette
   static const _expenseChartSectionColors = AppColors.travelAccents;
 
   List<PieChartSectionData> _createExpenseCategorySections(
-      Map<ExpenseCategory, double> totalExpensesPerExpenseCategory) {
-    return List.generate(totalExpensesPerExpenseCategory.entries.length, (i) {
+    Map<ExpenseCategory, double> totalExpensesPerExpenseCategory,
+  ) {
+    return List.generate(totalExpensesPerExpenseCategory.length, (i) {
       final isTouched = i == touchedIndex;
-      final fontSize = isTouched ? 20.0 : 16.0;
-      final radius = isTouched ? 110.0 : 100.0;
-      final widgetSize = isTouched ? 55.0 : 40.0;
+      final fontSize = isTouched ? _kTouchedFontSize : _kUntouchedFontSize;
+      final radius = isTouched ? _kTouchedRadius : _kUntouchedRadius;
+      final widgetSize = isTouched ? _kBadgeTouchedSize : _kBadgeUntouchedSize;
       const shadows = [Shadow(color: Colors.black, blurRadius: 2)];
-
-      var totalExpenseAndCategory =
-          totalExpensesPerExpenseCategory.entries.elementAt(i);
+      final entry = totalExpensesPerExpenseCategory.entries.elementAt(i);
       return PieChartSectionData(
-        color: _expenseChartSectionColors
-            .elementAt(i % _expenseChartSectionColors.length),
-        value: totalExpenseAndCategory.value,
-        title: totalExpenseAndCategory.value.toStringAsFixed(2),
+        color:
+            _expenseChartSectionColors[i % _expenseChartSectionColors.length],
+        value: entry.value,
+        title: entry.value.toStringAsFixed(2),
         radius: radius,
         titleStyle: TextStyle(
           fontSize: fontSize,
@@ -98,7 +97,7 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
           shadows: shadows,
         ),
         badgeWidget: _Badge(
-          iconsForCategories[totalExpenseAndCategory.key]!,
+          iconsForCategories[entry.key]!,
           size: widgetSize,
         ),
         badgePositionPercentageOffset: .98,
@@ -108,10 +107,7 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
 }
 
 class _Badge extends StatelessWidget {
-  const _Badge(
-    this.icon, {
-    required this.size,
-  });
+  const _Badge(this.icon, {required this.size});
 
   final IconData icon;
   final double size;

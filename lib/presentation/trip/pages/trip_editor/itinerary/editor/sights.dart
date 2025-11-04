@@ -27,6 +27,12 @@ class ItinerarySightsEditor extends StatefulWidget {
 }
 
 class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
+  // Reused layout constants
+  static const double _kSpacingSmall = 8.0;
+  static const double _kSpacingMedium = 12.0;
+  static const double _kBorderRadiusLarge = 14.0;
+  static const double _kBorderRadiusMedium = 12.0;
+
   @override
   Widget build(BuildContext context) {
     return CommonCollapsibleTab(
@@ -44,22 +50,27 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
         );
       },
       onItemsChanged: widget.onSightsChanged,
-      titleBuilder: (s) => s.name.isNotEmpty
+      titleBuilder: (s) =>
+      s.name.isNotEmpty
           ? s.name
           : (s.location?.context.name ?? 'Untitled Sight'),
-      previewBuilder: (ctx, s) => s.visitTime != null
+      previewBuilder: (ctx, s) =>
+      s.visitTime != null
           ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.access_time, size: 16),
-                const SizedBox(width: 4),
-                Text(_formatTime(s.visitTime!),
-                    style: Theme.of(ctx).textTheme.labelSmall),
-              ],
-            )
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.access_time, size: 16),
+          const SizedBox(width: 4),
+          Text(_formatTime(s.visitTime!),
+              style: Theme
+                  .of(ctx)
+                  .textTheme
+                  .labelSmall),
+        ],
+      )
           : const SizedBox.shrink(),
       accentColorBuilder: (s) =>
-          s.name.isNotEmpty ? AppColors.success : AppColors.error,
+      s.name.isNotEmpty ? AppColors.success : AppColors.error,
       isValidBuilder: (s) => s.validate(),
       expandedBuilder: (ctx, index, sight, notifyParent) =>
           _buildSightEditor(ctx, sight, notifyParent),
@@ -67,29 +78,34 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
   }
 
   String _formatTime(DateTime dt) =>
-      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(
+          2, '0')}';
 
-  Widget _buildSightEditor(
-      BuildContext context, SightFacade sight, VoidCallback notifyParent) {
+  Widget _buildSightEditor(BuildContext context, SightFacade sight,
+      VoidCallback notifyParent) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildTitleField(sight, notifyParent),
-        const SizedBox(height: 12),
+        const SizedBox(height: _kSpacingMedium),
         _buildLocationSection(context, sight, notifyParent),
-        const SizedBox(height: 12),
+        const SizedBox(height: _kSpacingMedium),
         _buildTimeSection(context, sight, notifyParent),
-        const SizedBox(height: 12),
+        const SizedBox(height: _kSpacingMedium),
         _buildExpenseSection(context, sight, notifyParent),
-        const SizedBox(height: 12),
+        const SizedBox(height: _kSpacingMedium),
         _buildDescriptionSection(context, sight, notifyParent),
-        const SizedBox(height: 8),
+        const SizedBox(height: _kSpacingSmall),
         Text(
           sight.validate() ? 'Valid' : 'Incomplete',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: sight.validate() ? AppColors.success : AppColors.error,
-                fontWeight: FontWeight.w600,
-              ),
+          style: Theme
+              .of(context)
+              .textTheme
+              .labelMedium
+              ?.copyWith(
+            color: sight.validate() ? AppColors.success : AppColors.error,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );
@@ -99,12 +115,12 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
     final controller = TextEditingController(text: sight.name);
     return TextField(
       controller: controller,
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         labelText: 'Title',
         hintText: 'Enter sight name',
-        border: OutlineInputBorder(
+        border: const OutlineInputBorder(
           borderSide: BorderSide.none,
-          borderRadius: BorderRadius.all(Radius.circular(14)),
+          borderRadius: BorderRadius.all(Radius.circular(_kBorderRadiusLarge)),
         ),
         filled: true,
       ),
@@ -115,18 +131,18 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
     );
   }
 
-  Widget _buildLocationSection(
-      BuildContext context, SightFacade sight, VoidCallback notifyParent) {
+  Widget _buildLocationSection(BuildContext context, SightFacade sight,
+      VoidCallback notifyParent) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        EditorTheme.buildSectionHeader(context,
+        EditorTheme.createSectionHeader(context,
             icon: Icons.place_rounded,
             title: 'Location',
             iconColor: context.isLightTheme
                 ? AppColors.brandPrimary
                 : AppColors.brandPrimaryLight),
-        const SizedBox(height: 12),
+        const SizedBox(height: _kSpacingMedium),
         PlatformGeoLocationAutoComplete(
           selectedLocation: sight.location,
           onLocationSelected: (loc) {
@@ -139,21 +155,21 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
     );
   }
 
-  Widget _buildTimeSection(
-      BuildContext context, SightFacade sight, VoidCallback notifyParent) {
+  Widget _buildTimeSection(BuildContext context, SightFacade sight,
+      VoidCallback notifyParent) {
     final timeOfDay = sight.visitTime != null
         ? TimeOfDay.fromDateTime(sight.visitTime!)
         : null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        EditorTheme.buildSectionHeader(context,
+        EditorTheme.createSectionHeader(context,
             icon: Icons.access_time_rounded,
             title: 'Visit Time',
             iconColor: context.isLightTheme
                 ? AppColors.brandPrimary
                 : AppColors.brandPrimaryLight),
-        const SizedBox(height: 12),
+        const SizedBox(height: _kSpacingMedium),
         Row(
           children: [
             Expanded(
@@ -165,10 +181,11 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
                   final picked = await showTimePicker(
                     context: context,
                     initialTime: timeOfDay ?? TimeOfDay.now(),
-                    builder: (context, child) => Theme(
-                      data: Theme.of(context),
-                      child: child!,
-                    ),
+                    builder: (context, child) =>
+                        Theme(
+                          data: Theme.of(context),
+                          child: child!,
+                        ),
                   );
                   if (picked != null) {
                     final d = sight.day;
@@ -179,15 +196,15 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
                 },
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: _kSpacingMedium),
             IconButton(
               tooltip: 'Clear time',
               onPressed: timeOfDay == null
                   ? null
                   : () {
-                      sight.visitTime = null;
-                      notifyParent();
-                    },
+                sight.visitTime = null;
+                notifyParent();
+              },
               icon: const Icon(Icons.clear_rounded),
             ),
           ],
@@ -196,18 +213,18 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
     );
   }
 
-  Widget _buildExpenseSection(
-      BuildContext context, SightFacade sight, VoidCallback notifyParent) {
+  Widget _buildExpenseSection(BuildContext context, SightFacade sight,
+      VoidCallback notifyParent) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        EditorTheme.buildSectionHeader(context,
+        EditorTheme.createSectionHeader(context,
             icon: Icons.attach_money_rounded,
             title: 'Expense',
             iconColor: context.isLightTheme
                 ? AppColors.brandPrimary
                 : AppColors.brandPrimaryLight),
-        const SizedBox(height: 12),
+        const SizedBox(height: _kSpacingMedium),
         ExpenditureEditTile(
           expenseUpdator: sight.expense,
           isEditable: true,
@@ -222,19 +239,19 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
     );
   }
 
-  Widget _buildDescriptionSection(
-      BuildContext context, SightFacade sight, VoidCallback notifyParent) {
+  Widget _buildDescriptionSection(BuildContext context, SightFacade sight,
+      VoidCallback notifyParent) {
     final controller = TextEditingController(text: sight.description ?? '');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        EditorTheme.buildSectionHeader(context,
+        EditorTheme.createSectionHeader(context,
             icon: Icons.description_rounded,
             title: 'Description',
             iconColor: context.isLightTheme
                 ? AppColors.brandPrimary
                 : AppColors.brandPrimaryLight),
-        const SizedBox(height: 12),
+        const SizedBox(height: _kSpacingMedium),
         TextField(
           controller: controller,
           maxLines: 3,
@@ -243,7 +260,8 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
             hintText: 'Details about this sight...',
             border: OutlineInputBorder(
               borderSide: BorderSide.none,
-              borderRadius: BorderRadius.all(Radius.circular(12)),
+              borderRadius:
+              BorderRadius.all(Radius.circular(_kBorderRadiusMedium)),
             ),
             filled: true,
           ),

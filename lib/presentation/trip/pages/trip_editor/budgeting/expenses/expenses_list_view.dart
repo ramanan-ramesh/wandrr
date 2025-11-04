@@ -23,32 +23,71 @@ class ExpenseListView extends StatefulWidget {
 }
 
 class _ExpenseListViewState extends State<ExpenseListView> {
-  var _selectedSortOption = ExpenseSortOption.newToOld;
-  var _costSortAscending = true;
-  var _dateSortNewestFirst = true;
+  // State
+  ExpenseSortOption _selectedSortOption = ExpenseSortOption.newToOld;
+  bool _costSortAscending = true;
+  bool _dateSortNewestFirst = true;
   static late Map<ExpenseCategory, String> _categoryNames;
-  var _expenses = <ExpenseLinkedTripEntity>[];
+  List<ExpenseLinkedTripEntity> _expenses = <ExpenseLinkedTripEntity>[];
   Future<Iterable<ExpenseLinkedTripEntity>>? _sortingFuture;
   int _animationToken = 0;
 
+  // UI constants
+  static const Duration _kAnimationDuration = Duration(milliseconds: 350);
+  static const double _kSortRowVerticalPadding = 12.0;
+  static const double _kSortRowHorizontalPadding = 16.0;
+  static const double _kEmptyListHeight = 200.0;
+  static const double _kListItemBorderRadius = 23.0;
+  static const double _kListItemVerticalPadding = 7.0;
+  static const double _kListItemHorizontalPadding = 4.0;
+  static const double _kToggleMinHeight = 40.0;
+  static const double _kToggleMinWidth = 48.0;
+  static const double _kIconSpacing = 4.0;
+  static const double _kLoadingIndicatorSize = 68.0;
+
   @override
   Widget build(BuildContext context) {
-    _initializeUIComponentNames(context);
+    _initializeCategoryNames();
     return BlocConsumer<TripManagementBloc, TripManagementState>(
-      buildWhen: _shouldBuildList,
-      builder: (BuildContext context, TripManagementState state) {
-        _updateListElementsOnBuild(context, state);
-        return _createListViewingArea(context);
+      buildWhen: _shouldRebuildList,
+      builder: (context, state) {
+        _refreshExpenses();
+        return _buildListArea();
       },
-      listener: (BuildContext context, TripManagementState state) {},
+      listener: (context, state) {},
     );
   }
 
-  Widget _createListViewingArea(BuildContext context) {
-    final sortDropdown = _createSortDropdown(context);
+  Widget _buildListArea() {
+    final sortDropdown = _buildSortToggleRow();
 
     if (_expenses.isEmpty) {
-      return _createEmptyListMessage(sortDropdown, context);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              _kSortRowHorizontalPadding,
+              _kSortRowVerticalPadding,
+              _kSortRowHorizontalPadding,
+              0,
+            ),
+            child: sortDropdown,
+          ),
+          Center(
+            child: SizedBox(
+              height: _kEmptyListHeight,
+              child: Center(
+                child: PlatformTextElements.createSubHeader(
+                  context: context,
+                  text: context.localizations.noExpensesCreated,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
     }
 
     _sortingFuture ??= context.activeTrip.budgetingModule
@@ -57,26 +96,27 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          padding: const EdgeInsets.fromLTRB(
+            _kSortRowHorizontalPadding,
+            _kSortRowVerticalPadding,
+            _kSortRowHorizontalPadding,
+            4,
+          ),
           child: sortDropdown,
         ),
         Expanded(
           child: FutureBuilder<Iterable<ExpenseLinkedTripEntity>>(
             future: _sortingFuture,
-            builder: (BuildContext context,
-                AsyncSnapshot<Iterable<ExpenseLinkedTripEntity>> snapshot) {
-              Widget child;
-              String childKey;
-              if (snapshot.connectionState != ConnectionState.done ||
-                  !snapshot.hasData) {
-                child = _buildLoadingAnimation(context);
-                childKey = 'loading-$_animationToken';
-              } else {
-                _expenses = snapshot.data!.toList();
-                child = _createSliverList();
-                childKey = 'list-${_selectedSortOption.name}-$_animationToken';
-              }
-              return _createAnimatedList(childKey, child);
+            builder: (context, snapshot) {
+              final isDone = snapshot.connectionState == ConnectionState.done;
+              final hasData = snapshot.hasData && snapshot.data != null;
+              final child = (!isDone || !hasData)
+                  ? _buildLoading()
+                  : _buildExpenseList(snapshot.data!.toList());
+              final childKey = (!isDone || !hasData)
+                  ? 'loading-$_animationToken'
+                  : 'list-${_selectedSortOption.name}-$_animationToken';
+              return _animatedSwitcher(childKey, child);
             },
           ),
         ),
@@ -84,9 +124,9 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     );
   }
 
-  Widget _createAnimatedList(String childKey, Widget child) {
+  Widget _animatedSwitcher(String keyString, Widget child) {
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 350),
+      duration: _kAnimationDuration,
       switchInCurve: Curves.easeOut,
       switchOutCurve: Curves.easeIn,
       transitionBuilder: (widget, animation) => FadeTransition(
@@ -99,38 +139,54 @@ class _ExpenseListViewState extends State<ExpenseListView> {
           child: widget,
         ),
       ),
-      child: KeyedSubtree(
-        key: ValueKey(childKey),
-        child: child,
+      child: KeyedSubtree(key: ValueKey(keyString), child: child),
+    );
+  }
+
+  Widget _buildLoading() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: _kLoadingIndicatorSize,
+            height: _kLoadingIndicatorSize,
+            child: CircularProgressIndicator(
+              strokeWidth: 5,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            context.localizations.loading,
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+        ],
       ),
     );
   }
 
-  Column _createEmptyListMessage(Widget sortDropdown, BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: sortDropdown,
-        ),
-        Center(
-          child: Container(
-            height: 200,
-            color: Colors.transparent,
-            child: Center(
-              child: PlatformTextElements.createSubHeader(
-                  context: context,
-                  text: context.localizations.noExpensesCreated,
-                  textAlign: TextAlign.center),
-            ),
+  Widget _buildExpenseList(List<ExpenseLinkedTripEntity> sortedExpenses) {
+    _expenses = sortedExpenses;
+    return ListView.builder(
+      itemCount: _expenses.length,
+      itemBuilder: (context, index) {
+        final item = _expenses[index];
+        return Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: _kListItemVerticalPadding,
+            horizontal: _kListItemHorizontalPadding,
           ),
-        ),
-      ],
+          child: _ExpenseListItem(
+            initialExpenseLinkedTripEntity: item,
+            categoryNames: _categoryNames,
+          ),
+        );
+      },
     );
   }
 
-  Widget _createSortDropdown(BuildContext context) {
+  Widget _buildSortToggleRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -143,14 +199,17 @@ class _ExpenseListViewState extends State<ExpenseListView> {
                 _selectedSortOption == ExpenseSortOption.newToOld,
           ],
           onPressed: _onToggleSortOption,
-          constraints: const BoxConstraints(minHeight: 40, minWidth: 48),
+          constraints: const BoxConstraints(
+            minHeight: _kToggleMinHeight,
+            minWidth: _kToggleMinWidth,
+          ),
           children: [
             Padding(
               padding: const EdgeInsets.all(3.0),
               child: Row(
                 children: [
-                  Icon(Icons.attach_money_rounded),
-                  const SizedBox(width: 4),
+                  const Icon(Icons.attach_money_rounded),
+                  const SizedBox(width: _kIconSpacing),
                   Icon(
                     _costSortAscending
                         ? Icons.arrow_downward_rounded
@@ -159,16 +218,16 @@ class _ExpenseListViewState extends State<ExpenseListView> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12.0),
               child: Icon(Icons.category_outlined),
             ),
             Padding(
               padding: const EdgeInsets.all(3.0),
               child: Row(
                 children: [
-                  Icon(Icons.calendar_today_rounded),
-                  const SizedBox(width: 4),
+                  const Icon(Icons.calendar_today_rounded),
+                  const SizedBox(width: _kIconSpacing),
                   Icon(
                     _dateSortNewestFirst
                         ? Icons.arrow_upward_rounded
@@ -186,10 +245,10 @@ class _ExpenseListViewState extends State<ExpenseListView> {
   void _onToggleSortOption(int index) {
     ExpenseSortOption newSortOption;
     if (index == 0) {
-      final isCostActive =
+      final costActive =
           _selectedSortOption == ExpenseSortOption.lowToHighCost ||
               _selectedSortOption == ExpenseSortOption.highToLowCost;
-      if (isCostActive) {
+      if (costActive) {
         newSortOption = _selectedSortOption == ExpenseSortOption.lowToHighCost
             ? ExpenseSortOption.highToLowCost
             : ExpenseSortOption.lowToHighCost;
@@ -202,9 +261,9 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     } else if (index == 1) {
       newSortOption = ExpenseSortOption.category;
     } else {
-      final isDateActive = _selectedSortOption == ExpenseSortOption.oldToNew ||
+      final dateActive = _selectedSortOption == ExpenseSortOption.oldToNew ||
           _selectedSortOption == ExpenseSortOption.newToOld;
-      if (isDateActive) {
+      if (dateActive) {
         newSortOption = _selectedSortOption == ExpenseSortOption.oldToNew
             ? ExpenseSortOption.newToOld
             : ExpenseSortOption.oldToNew;
@@ -226,80 +285,40 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     }
   }
 
-  Widget _buildLoadingAnimation(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 68,
-            height: 68,
-            child: CircularProgressIndicator(
-              strokeWidth: 5,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            context.localizations.loading,
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _createSliverList() {
-    return ListView.builder(
-      itemCount: _expenses.length,
-      itemBuilder: (BuildContext context, int index) {
-        var uiElement = _expenses.elementAt(index);
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 4.0),
-          child: _ExpenseListItem(
-              initialExpenseLinkedTripEntity: uiElement,
-              categoryNames: _categoryNames),
-        );
-      },
-    );
-  }
-
-  bool _shouldBuildList(
-      TripManagementState previousState, TripManagementState currentState) {
-    //TODO: The list should rebuild for updates to Trip Start/End dates
+  bool _shouldRebuildList(
+    TripManagementState previousState,
+    TripManagementState currentState,
+  ) {
     if (currentState.isTripEntityUpdated<ExpenseLinkedTripEntity>()) {
-      var updatedTripEntityState = currentState as UpdatedTripEntity;
-      if (updatedTripEntityState.dataState == DataState.delete ||
-          updatedTripEntityState.dataState == DataState.create) {
+      final updatedState = currentState as UpdatedTripEntity;
+      if (updatedState.dataState == DataState.delete ||
+          updatedState.dataState == DataState.create) {
         return true;
       }
     }
     return false;
   }
 
-  void _updateListElementsOnBuild(
-      BuildContext context, TripManagementState state) {
-    var activeTrip = context.activeTrip;
-    _expenses.clear();
-    var expenseUiElements = <ExpenseLinkedTripEntity>[];
-    expenseUiElements.addAll(activeTrip.expenseCollection.collectionItems);
-    expenseUiElements.addAll(activeTrip.transitCollection.collectionItems);
-    expenseUiElements.addAll(activeTrip.lodgingCollection.collectionItems);
-    for (var itineraryPlanData in activeTrip.itineraryCollection) {
-      for (var sight in itineraryPlanData.planData.sights) {
-        var totalExpense = sight.expense.totalExpense.amount;
-        if (totalExpense > 0) {
-          expenseUiElements.add(sight.expense);
+  void _refreshExpenses() {
+    final activeTrip = context.activeTrip;
+    final list = <ExpenseLinkedTripEntity>[];
+    list.addAll(activeTrip.expenseCollection.collectionItems);
+    list.addAll(activeTrip.transitCollection.collectionItems);
+    list.addAll(activeTrip.lodgingCollection.collectionItems);
+    for (final itineraryPlanData in activeTrip.itineraryCollection) {
+      for (final sight in itineraryPlanData.planData.sights) {
+        if (sight.expense.totalExpense.amount > 0) {
+          list.add(sight.expense);
         }
       }
     }
-    _expenses = expenseUiElements.toList();
+    _expenses = list;
     _animationToken++;
     _sortingFuture = context.activeTrip.budgetingModule
         .sortExpenses(_expenses, _selectedSortOption);
   }
 
-  void _initializeUIComponentNames(BuildContext context) {
+  void _initializeCategoryNames() {
     _categoryNames = {
       ExpenseCategory.flights: context.localizations.flights,
       ExpenseCategory.lodging: context.localizations.lodging,
@@ -312,7 +331,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       ExpenseCategory.shopping: context.localizations.shopping,
       ExpenseCategory.fuel: context.localizations.fuel,
       ExpenseCategory.groceries: context.localizations.groceries,
-      ExpenseCategory.other: context.localizations.other
+      ExpenseCategory.other: context.localizations.other,
     };
   }
 }
@@ -343,28 +362,26 @@ class _ExpenseListItemState extends State<_ExpenseListItem> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => context.addTripManagementEvent(
-          SelectExpenseLinkedTripEntity(tripEntity: _expenseLinkedTripEntity)),
+        SelectExpenseLinkedTripEntity(tripEntity: _expenseLinkedTripEntity),
+      ),
       child: Material(
-        color: context.isLightTheme
-            ? Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withValues(alpha: 0.96)
-            : Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withValues(alpha: 0.98),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: context.isLightTheme ? 0.96 : 0.98),
         elevation: 5,
-        borderRadius: BorderRadius.circular(23),
+        borderRadius:
+            BorderRadius.circular(_ExpenseListViewState._kListItemBorderRadius),
         shadowColor: AppColors.neutral900.withValues(alpha: 0.10),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(23),
+            borderRadius: BorderRadius.circular(
+                _ExpenseListViewState._kListItemBorderRadius),
             border: Border.all(width: 2.2),
           ),
           child: BlocBuilder<TripManagementBloc, TripManagementState>(
-            buildWhen: _shouldBuildListElement,
-            builder: (BuildContext context, TripManagementState state) {
+            buildWhen: _shouldRebuildItem,
+            builder: (context, state) {
               return ReadonlyExpenseListItem(
                 categoryNames: widget.categoryNames,
                 expenseLinkedTripEntity: _expenseLinkedTripEntity,
@@ -376,20 +393,20 @@ class _ExpenseListItemState extends State<_ExpenseListItem> {
     );
   }
 
-  bool _shouldBuildListElement(
-      TripManagementState previousState, TripManagementState currentState) {
+  bool _shouldRebuildItem(
+    TripManagementState previousState,
+    TripManagementState currentState,
+  ) {
     if (currentState.isTripEntityUpdated<ExpenseLinkedTripEntity>()) {
-      var transitUpdatedState = currentState as UpdatedTripEntity;
-      ExpenseLinkedTripEntity modifiedTransitCollectionItem =
-          transitUpdatedState.tripEntityModificationData.modifiedCollectionItem;
-      var updatedTripElementId = modifiedTransitCollectionItem.id;
-      var operationPerformed = transitUpdatedState.dataState;
-      if (operationPerformed == DataState.update &&
-          (_expenseLinkedTripEntity.expense.id == updatedTripElementId ||
-              _expenseLinkedTripEntity.id == updatedTripElementId)) {
-        setState(() {
-          _expenseLinkedTripEntity = modifiedTransitCollectionItem;
-        });
+      final updatedState = currentState as UpdatedTripEntity;
+      final modifiedItem =
+          updatedState.tripEntityModificationData.modifiedCollectionItem;
+      final updatedId = modifiedItem.id;
+      final operation = updatedState.dataState;
+      final matches = _expenseLinkedTripEntity.expense.id == updatedId ||
+          _expenseLinkedTripEntity.id == updatedId;
+      if (operation == DataState.update && matches) {
+        setState(() => _expenseLinkedTripEntity = modifiedItem);
         return true;
       }
     }
@@ -409,5 +426,5 @@ const Map<ExpenseCategory, IconData> iconsForCategories = {
   ExpenseCategory.shopping: Icons.shopping_bag_rounded,
   ExpenseCategory.fuel: Icons.local_gas_station_rounded,
   ExpenseCategory.groceries: Icons.local_grocery_store_rounded,
-  ExpenseCategory.other: Icons.feed_rounded
+  ExpenseCategory.other: Icons.feed_rounded,
 };

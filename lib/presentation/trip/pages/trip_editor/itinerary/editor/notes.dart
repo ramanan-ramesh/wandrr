@@ -32,29 +32,29 @@ class _ItineraryNotesEditorState extends State<ItineraryNotesEditor> {
       titleBuilder: (n) {
         final raw = n.note.trim();
         if (raw.isEmpty) return 'Untitled';
-        return raw.split('\n').first.trim().isEmpty
-            ? 'Untitled'
-            : raw.split('\n').first.trim();
+        final firstLine = raw.split('\n').first.trim();
+        return firstLine.isEmpty ? 'Untitled' : firstLine;
       },
       previewBuilder: (ctx, n) {
         final raw = n.note.replaceAll('\n', ' ').trim();
         final preview =
             raw.length <= 80 ? raw : raw.substring(0, 80).trim() + '…';
-        return Text(preview,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                  color: context.isLightTheme
-                      ? AppColors.neutral600
-                      : AppColors.neutral400,
-                ));
+        return Text(
+          preview,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                color: ctx.isLightTheme
+                    ? AppColors.neutral600
+                    : AppColors.neutral400,
+              ),
+        );
       },
       accentColorBuilder: (n) => n.note.trim().isNotEmpty
           ? AppColors.brandPrimary
           : AppColors.neutral400,
       expandedBuilder: (ctx, index, note, notifyParent) => _NoteEditor(
         note: note,
-        isLightTheme: context.isLightTheme,
         onChanged: notifyParent,
       ),
     );
@@ -63,26 +63,32 @@ class _ItineraryNotesEditorState extends State<ItineraryNotesEditor> {
 
 class _NoteEditor extends StatefulWidget {
   final NoteFacade note;
-  final bool isLightTheme;
   final VoidCallback onChanged;
 
-  const _NoteEditor(
-      {required this.note,
-      required this.isLightTheme,
-      required this.onChanged});
+  const _NoteEditor({
+    required this.note,
+    required this.onChanged,
+  });
 
   @override
   State<_NoteEditor> createState() => _NoteEditorState();
 }
 
 class _NoteEditorState extends State<_NoteEditor> {
+  // Controller & focus management
   late TextEditingController _controller;
   final FocusNode _keyboardFocusNode = FocusNode();
   final FocusNode _textFieldFocusNode = FocusNode();
+
+  // State
   bool _bulletMode = false;
   String _previousText = '';
-  static const String _indentUnit = '  ';
-  static const String _bulletPrefix = '• ';
+
+  // Styling & formatting constants (reused UI values)
+  static const double _kSpacingSmall = 8.0;
+  static const String _kIndentUnit = '  ';
+  static const String _kBulletPrefix = '• ';
+  static const double _kTextFieldBorderRadius = 14.0;
 
   @override
   void initState() {
@@ -109,6 +115,8 @@ class _NoteEditorState extends State<_NoteEditor> {
     super.dispose();
   }
 
+  /// Listener for text changes; updates model, handles bullet continuation,
+  /// and refreshes toolbar state.
   void _onControllerChanged() {
     final newText = _controller.text;
     final caret = _controller.selection.start;
@@ -134,16 +142,18 @@ class _NoteEditorState extends State<_NoteEditor> {
     final prevLineRaw = text.substring(prevLineStart, prevLineEndExclusive);
     final leadingSpacesLen = prevLineRaw.length - prevLineRaw.trimLeft().length;
     final prevLine = prevLineRaw.trimLeft();
-    if (prevLine.startsWith(_bulletPrefix) ||
+    if (prevLine.startsWith(_kBulletPrefix) ||
         prevLine.startsWith('- ') ||
         prevLine.startsWith('* ')) {
       final indentSpaces = prevLineRaw.substring(0, leadingSpacesLen);
-      final newPrefix = indentSpaces + _bulletPrefix;
+      final newPrefix = indentSpaces + _kBulletPrefix;
       final updated =
           text.substring(0, caret) + newPrefix + text.substring(caret);
       final newCaret = caret + newPrefix.length;
       _controller.value = TextEditingValue(
-          text: updated, selection: TextSelection.collapsed(offset: newCaret));
+        text: updated,
+        selection: TextSelection.collapsed(offset: newCaret),
+      );
       _previousText = updated;
       widget.onChanged();
     }
@@ -151,12 +161,12 @@ class _NoteEditorState extends State<_NoteEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final isLightTheme = widget.isLightTheme;
+    final isLightTheme = context.isLightTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildToolbar(context),
-        const SizedBox(height: 8),
+        _buildToolbar(),
+        const SizedBox(height: _kSpacingSmall),
         KeyboardListener(
           focusNode: _keyboardFocusNode,
           onKeyEvent: _handleKeyEvent,
@@ -172,7 +182,7 @@ class _NoteEditorState extends State<_NoteEditor> {
                   ? Colors.white.withValues(alpha: 0.98)
                   : AppColors.darkSurface.withValues(alpha: 0.6),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(_kTextFieldBorderRadius),
                 borderSide: BorderSide.none,
               ),
             ),
@@ -182,7 +192,7 @@ class _NoteEditorState extends State<_NoteEditor> {
     );
   }
 
-  Widget _buildToolbar(BuildContext context) {
+  Widget _buildToolbar() {
     final hasBullet = _currentLineHasBullet();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -191,8 +201,10 @@ class _NoteEditorState extends State<_NoteEditor> {
           children: [
             IconButton(
               tooltip: _bulletMode ? 'Disable bullets' : 'Enable bullets',
-              icon: Icon(Icons.format_list_bulleted,
-                  color: _bulletMode ? AppColors.brandPrimary : null),
+              icon: Icon(
+                Icons.format_list_bulleted,
+                color: _bulletMode ? AppColors.brandPrimary : null,
+              ),
               onPressed: () {
                 setState(() => _bulletMode = !_bulletMode);
                 if (_bulletMode) _toggleBulletForCurrentLine(forceAdd: true);
@@ -206,10 +218,11 @@ class _NoteEditorState extends State<_NoteEditor> {
                   _textFieldFocusNode.requestFocus();
                 },
                 icon: Icon(
-                    hasBullet
-                        ? Icons.remove_circle_outline
-                        : Icons.add_circle_outline,
-                    size: 18),
+                  hasBullet
+                      ? Icons.remove_circle_outline
+                      : Icons.add_circle_outline,
+                  size: 18,
+                ),
                 label: Text(hasBullet ? 'Remove •' : 'Add •'),
               ),
           ],
@@ -239,17 +252,10 @@ class _NoteEditorState extends State<_NoteEditor> {
   }
 
   bool _currentLineHasBullet() {
-    final text = _controller.text;
-    final caret = _controller.selection.start;
-    if (caret < 0) return false;
-    final safeIndex = caret > 0 ? caret - 1 : 0;
-    final prevNewline = safeIndex > 0 ? text.lastIndexOf('\n', safeIndex) : -1;
-    final lineStart = prevNewline + 1;
-    final nextNewline = text.indexOf('\n', caret);
-    final lineEnd = nextNewline == -1 ? text.length : nextNewline;
+    final (lineStart, lineEnd, lineRaw) = _currentLineData();
     if (lineStart >= lineEnd) return false;
-    final line = text.substring(lineStart, lineEnd).trimLeft();
-    return line.startsWith(_bulletPrefix) ||
+    final line = lineRaw.trimLeft();
+    return line.startsWith(_kBulletPrefix) ||
         line.startsWith('- ') ||
         line.startsWith('* ');
   }
@@ -259,16 +265,18 @@ class _NoteEditorState extends State<_NoteEditor> {
     final selection = _controller.selection;
     var caret = selection.start;
     if (caret < 0) return;
-    final safeIndex = caret > 0 ? caret - 1 : 0;
-    final prevNewline = safeIndex > 0 ? text.lastIndexOf('\n', safeIndex) : -1;
+
+    final prevNewline = caret > 0 ? text.lastIndexOf('\n', caret - 1) : -1;
     final lineStart = prevNewline + 1;
     final nextNewline = text.indexOf('\n', caret);
     final lineEnd = nextNewline == -1 ? text.length : nextNewline;
     final line = text.substring(lineStart, lineEnd);
-    const prefix = _bulletPrefix;
+    const prefix = _kBulletPrefix;
     final hasBullet = line.startsWith(prefix);
-    String updated = line;
+
+    String updated;
     int caretAdjust = 0;
+
     if (hasBullet && !forceAdd) {
       updated = line.substring(prefix.length);
       if (caret >= lineStart + prefix.length) caretAdjust = -prefix.length;
@@ -277,14 +285,18 @@ class _NoteEditorState extends State<_NoteEditor> {
       if (caret >= lineStart) caretAdjust = prefix.length;
     } else {
       updated = hasBullet ? line.substring(prefix.length) : prefix + line;
-      if (caret >= lineStart)
+      if (caret >= lineStart) {
         caretAdjust = hasBullet ? -prefix.length : prefix.length;
+      }
     }
+
     final newText =
         text.substring(0, lineStart) + updated + text.substring(lineEnd);
     final newCaret = caret + caretAdjust;
     _controller.value = TextEditingValue(
-        text: newText, selection: TextSelection.collapsed(offset: newCaret));
+      text: newText,
+      selection: TextSelection.collapsed(offset: newCaret),
+    );
     widget.onChanged();
     _previousText = newText;
   }
@@ -303,15 +315,15 @@ class _NoteEditorState extends State<_NoteEditor> {
 
   void _indentCurrentLine() {
     final (lineStart, lineEnd, line) = _currentLineData();
-    final newLine = _indentUnit + line;
-    _replaceLine(lineStart, lineEnd, newLine, _indentUnit.length);
+    final newLine = _kIndentUnit + line;
+    _replaceLine(lineStart, lineEnd, newLine, _kIndentUnit.length);
   }
 
   void _outdentCurrentLine() {
     final (lineStart, lineEnd, line) = _currentLineData();
-    if (line.startsWith(_indentUnit)) {
-      final newLine = line.substring(_indentUnit.length);
-      _replaceLine(lineStart, lineEnd, newLine, -_indentUnit.length);
+    if (line.startsWith(_kIndentUnit)) {
+      final newLine = line.substring(_kIndentUnit.length);
+      _replaceLine(lineStart, lineEnd, newLine, -_kIndentUnit.length);
     }
   }
 
@@ -322,7 +334,9 @@ class _NoteEditorState extends State<_NoteEditor> {
         _controller.text.substring(end);
     final newCaret = (caret + caretDelta).clamp(start, newText.length);
     _controller.value = TextEditingValue(
-        text: newText, selection: TextSelection.collapsed(offset: newCaret));
+      text: newText,
+      selection: TextSelection.collapsed(offset: newCaret),
+    );
     widget.onChanged();
     _previousText = newText;
   }
