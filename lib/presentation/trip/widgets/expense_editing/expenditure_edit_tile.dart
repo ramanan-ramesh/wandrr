@@ -66,7 +66,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     _totalExpenseValueNotifier.value = widget.totalExpense;
     if (widget.isEditable) {
       if (_contributorsVsColors.length == 1) {
-        return _createEditorForSingleContributor(context);
+        return _createTotalExpenseField(context, true);
       }
       return _createEditorForMultipleContributors(context);
     } else {
@@ -86,7 +86,11 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 16.0),
-          child: _createTotalExpenseField(context),
+          child: ValueListenableBuilder(
+              valueListenable: _totalExpenseValueNotifier,
+              builder: (context, value, child) {
+                return _createTotalExpenseField(context, false);
+              }),
         ),
         _buildTabBar(context),
         ConstrainedBox(
@@ -99,22 +103,6 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
             ],
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _createEditorForSingleContributor(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          'Total Amount',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-        ),
-        const SizedBox(height: 12),
-        _createTotalExpenseField(context),
       ],
     );
   }
@@ -156,26 +144,26 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     );
   }
 
-  Widget _createTotalExpenseField(BuildContext context) {
-    return ValueListenableBuilder<Money>(
-      valueListenable: _totalExpenseValueNotifier,
-      builder: (context, value, _) {
-        return PlatformMoneyEditField(
-          isAmountEditable: false,
-          initialAmount: _totalExpenseValueNotifier.value.amount,
-          allCurrencies: context.supportedCurrencies,
-          selectedCurrencyData: _currentCurrencyInfo,
-          onAmountUpdatedCallback: (_) {},
-          currencySelectedCallback: (_) {
-            setState(() {
-              _currentCurrencyInfo = _;
-              _totalExpenseValueNotifier.value = Money(
-                  currency: _.code,
-                  amount: _totalExpenseValueNotifier.value.amount);
-              _invokeUpdatedCallback();
-            });
-          },
-        );
+  Widget _createTotalExpenseField(
+      BuildContext context, bool canEditAmountField) {
+    return PlatformMoneyEditField(
+      isAmountEditable: canEditAmountField,
+      initialAmount: _totalExpenseValueNotifier.value.amount,
+      allCurrencies: context.supportedCurrencies,
+      selectedCurrencyData: _currentCurrencyInfo,
+      onAmountUpdatedCallback: (_) {
+        _totalExpenseValueNotifier.value =
+            Money(currency: _currentCurrencyInfo.code, amount: _);
+        _invokeUpdatedCallback();
+      },
+      currencySelectedCallback: (_) {
+        setState(() {
+          _currentCurrencyInfo = _;
+          _totalExpenseValueNotifier.value = Money(
+              currency: _.code,
+              amount: _totalExpenseValueNotifier.value.amount);
+          _invokeUpdatedCallback();
+        });
       },
     );
   }

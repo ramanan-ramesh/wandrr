@@ -114,6 +114,7 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     );
   }
 
+  //TODO: If there is no activity to display in the timeline, provide options to add a transit/lodging/sight.
   Widget _buildTimeline(
     List<TimelineEvent> timelineEvents,
   ) {
@@ -457,7 +458,7 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     TripManagementState currentState,
   ) {
     if (currentState.isTripEntityUpdated<LodgingFacade>()) {
-      return _shouldRebuildForLodging(currentState as UpdatedTripEntity);
+      return !_isCrudChange(currentState as UpdatedTripEntity);
     }
     if (currentState.isTripEntityUpdated<TransitFacade>()) {
       return !_isCrudChange(currentState as UpdatedTripEntity);
@@ -466,19 +467,6 @@ class _ItineraryViewerState extends State<ItineraryViewer>
       return !_isCrudChange(currentState as UpdatedTripEntity);
     }
     return false;
-  }
-
-  bool _shouldRebuildForLodging(UpdatedTripEntity lodgingState) {
-    if (!_isCrudChange(lodgingState)) {
-      return false;
-    }
-
-    final lodging = lodgingState
-        .tripEntityModificationData.modifiedCollectionItem as LodgingFacade;
-    final DateTime checkin = lodging.checkinDateTime!;
-    final DateTime checkout = lodging.checkoutDateTime!;
-    return (checkin.isOnSameDayAs(widget.itineraryDay)) ||
-        (checkout.isOnSameDayAs(widget.itineraryDay));
   }
 
   bool _isCrudChange(UpdatedTripEntity state) =>

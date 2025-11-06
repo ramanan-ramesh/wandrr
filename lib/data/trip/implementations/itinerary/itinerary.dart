@@ -187,15 +187,15 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
         .collection(FirestoreCollections.itineraryDataCollectionName)
         .doc(planDataId);
 
-    var isFirstEvent = true;
+    var hasHitFirstTime = false;
     _planDataSubscription = planDataDocRef.snapshots().listen((snapshot) {
       if (!_shouldListenToPlanDataChanges) {
         return;
       }
-      if (isFirstEvent) {
-        isFirstEvent = false;
+      if (hasHitFirstTime) {
         return;
       }
+      hasHitFirstTime = true;
       ItineraryPlanDataModelImplementation planDataModelImplementation;
       if (snapshot.exists) {
         planDataModelImplementation =

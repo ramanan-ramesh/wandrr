@@ -13,9 +13,9 @@ class EditorTheme {
   static const double cardMarginHorizontalBig = 24.0;
   static const double cardMarginHorizontalSmall = 16.0;
 
-  static const double _sectionMarginHorizontal = 20.0;
+  static const double _sectionMarginHorizontal = 12.0;
   static const double _sectionMarginVertical = 12.0;
-  static const double _sectionPadding = 16.0;
+  static const double _sectionPadding = 12.0;
 
   static const double iconSize = 24.0;
 

@@ -17,9 +17,6 @@ class _TripEntityCreatorBottomSheetState
     extends State<TripEntityCreatorBottomSheet> {
   TripEditorAction? selectedAction;
 
-  // Store controllers here if needed for textfields in action pages
-  // Example: final TextEditingController _controller = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     const double _fabBottomMargin = 25.0;

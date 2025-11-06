@@ -55,17 +55,17 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
       tripId: tripId,
       id: documentSnapshot.id,
       day: day,
-      sights: (data[_sightsField] as List<dynamic>?)
+      sights: (data[_sightsField] as List?)
               ?.map((json) => SightModelImplementation.fromJson(
                   json as Map<String, dynamic>, day, tripId))
               .toList() ??
           [],
-      notes: (data[_notesField] as List<dynamic>?)
+      notes: (data[_notesField] as List?)
               ?.map((json) => NoteModelImplementation.fromDocumentSnapshot(
                   documentSnapshot: documentSnapshot, tripId: tripId))
               .toList() ??
           [],
-      checkLists: (data[_checkListsField] as List<dynamic>?)
+      checkLists: (data[_checkListsField] as List?)
               ?.map((json) => CheckListModelImplementation.fromDocumentData(
                   documentData: json, tripId: tripId))
               .toList() ??

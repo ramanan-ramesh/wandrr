@@ -71,7 +71,7 @@ class _TravelEditorState extends State<TravelEditor>
           EditorTheme.createSectionHeader(
             context,
             icon: Icons.account_balance_wallet,
-            title: context.localizations.expenses,
+            title: 'Payment Details',
             iconColor: Theme.of(context).brightness == Brightness.light
                 ? AppColors.warning
                 : AppColors.warningLight,
@@ -253,12 +253,13 @@ class _TravelEditorState extends State<TravelEditor>
   }
 
   void _updateDateTime(bool isArrival, DateTime updatedDateTime) {
-    if (isArrival) {
-      _transitFacade.arrivalDateTime = updatedDateTime;
-    } else {
-      _transitFacade.departureDateTime = updatedDateTime;
-    }
-    setState(() {});
+    setState(() {
+      if (isArrival) {
+        _transitFacade.arrivalDateTime = updatedDateTime;
+      } else {
+        _transitFacade.departureDateTime = updatedDateTime;
+      }
+    });
     widget.onTransitUpdated();
   }
 }
@@ -287,10 +288,7 @@ class _JourneySection extends StatelessWidget {
       return Row(
         children: [
           Expanded(child: _buildDeparturePoint(tripMetadata)),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: _buildJourneyConnector(context),
-          ),
+          _buildJourneyConnector(context),
           Expanded(child: _buildArrivalPoint(tripMetadata)),
         ],
       );
@@ -344,9 +342,9 @@ class _JourneySection extends StatelessWidget {
             iconColor: isDeparture ? AppColors.info : AppColors.success,
           ),
           const SizedBox(height: 12),
-          _buildLocationField(isDeparture),
+          _buildLocationField(!isDeparture),
           const SizedBox(height: 12),
-          _buildDateTimeField(isDeparture, tripMetadata),
+          _buildDateTimeField(!isDeparture, tripMetadata),
         ],
       ),
     );

@@ -33,8 +33,8 @@ class _FlightDetailsEditorState extends State<FlightDetailsEditor>
   static const double _kFlightNumberSectionSpacing = 8.0;
   static const Duration _kAnimationDuration = Duration(milliseconds: 400);
 
-  late final AirlineData airlineData;
-  late final TextEditingController flightNumberEditingController;
+  late AirlineData airlineData;
+  late TextEditingController flightNumberEditingController;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
