@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
-import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
@@ -145,13 +144,10 @@ class ExpenseEditor extends StatelessWidget {
         callback: (paidBy, splitBy, totalExpense) {
           _expense.paidBy = Map.from(paidBy);
           _expense.splitBy = List.from(splitBy);
-          _expense.totalExpense = Money(
-            currency: totalExpense.currency,
-            amount: totalExpense.amount,
-          );
+          _expense.currency = totalExpense.currency;
           onExpenseUpdated();
         },
-        expenseUpdator: _expense,
+        expenseFacade: _expense,
         isEditable: true,
       ),
     );

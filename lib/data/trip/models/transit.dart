@@ -5,7 +5,6 @@ import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 import 'budgeting/expense_category.dart';
-import 'budgeting/money.dart';
 
 // ignore: must_be_immutable
 class TransitFacade extends Equatable
@@ -58,7 +57,7 @@ class TransitFacade extends Equatable
         expense = ExpenseFacade(
             tripId: tripId,
             title: '',
-            totalExpense: Money(currency: defaultCurrency, amount: 0),
+            currency: defaultCurrency,
             category: getExpenseCategory(transitOption),
             paidBy: Map.fromIterables(allTripContributors,
                 List.filled(allTripContributors.length, 0)),

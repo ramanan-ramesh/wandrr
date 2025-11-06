@@ -13,7 +13,15 @@ class ExpenseFacade implements ExpenseLinkedTripEntity<ExpenseFacade> {
   @override
   String? id;
 
-  Money totalExpense;
+  String currency;
+
+  Money get totalExpense {
+    double total = 0;
+    paidBy.forEach((key, value) {
+      total += value;
+    });
+    return Money(amount: total, currency: currency);
+  }
 
   ExpenseCategory category;
 
@@ -26,7 +34,7 @@ class ExpenseFacade implements ExpenseLinkedTripEntity<ExpenseFacade> {
   ExpenseFacade(
       {required this.tripId,
       required this.title,
-      required this.totalExpense,
+      required this.currency,
       required this.category,
       required this.paidBy,
       required this.splitBy,
@@ -39,7 +47,7 @@ class ExpenseFacade implements ExpenseLinkedTripEntity<ExpenseFacade> {
       required Iterable<String> allTripContributors,
       required String defaultCurrency})
       : title = '',
-        totalExpense = Money(currency: defaultCurrency, amount: 0),
+        currency = defaultCurrency,
         category = ExpenseCategory.other,
         paidBy = Map.fromIterables(
             allTripContributors, List.filled(allTripContributors.length, 0)),
@@ -51,7 +59,7 @@ class ExpenseFacade implements ExpenseLinkedTripEntity<ExpenseFacade> {
       title: title,
       description: description,
       id: id,
-      totalExpense: totalExpense,
+      currency: currency,
       category: category,
       paidBy: paidBy,
       splitBy: splitBy,
@@ -64,7 +72,7 @@ class ExpenseFacade implements ExpenseLinkedTripEntity<ExpenseFacade> {
     title = expenseModelFacade.title;
     description = expenseModelFacade.description;
     id = expenseModelFacade.id;
-    totalExpense = expenseModelFacade.totalExpense;
+    currency = expenseModelFacade.currency;
     category = expenseModelFacade.category;
     paidBy = expenseModelFacade.paidBy;
     splitBy = expenseModelFacade.splitBy;

@@ -71,14 +71,15 @@ class _LodgingEditorState extends State<LodgingEditor>
           PlatformDateRangePicker(
             startDate: _lodging.checkinDateTime,
             endDate: _lodging.checkoutDateTime,
-            callback: (newStartDate, newEndDate) {
-              _lodging.checkinDateTime = newStartDate;
-              _lodging.checkoutDateTime = newEndDate;
-              widget.onLodgingUpdated();
-              setState(() {});
-            },
             firstDate: tripMetadata.startDate!,
             lastDate: tripMetadata.endDate!,
+            callback: (newStartDate, newEndDate) {
+              setState(() {
+                _lodging.checkinDateTime = newStartDate;
+                _lodging.checkoutDateTime = newEndDate;
+              });
+              widget.onLodgingUpdated();
+            },
           ),
           const SizedBox(width: 8),
           if (_lodging.checkinDateTime != null &&
@@ -171,12 +172,12 @@ class _LodgingEditorState extends State<LodgingEditor>
           ),
           const SizedBox(height: 12),
           ExpenditureEditTile(
-            expenseUpdator: _lodging.expense,
+            expenseFacade: _lodging.expense,
             isEditable: true,
             callback: (paidBy, splitBy, totalExpense) {
               _lodging.expense.paidBy = Map.from(paidBy);
               _lodging.expense.splitBy = List.from(splitBy);
-              _lodging.expense.totalExpense = totalExpense;
+              _lodging.expense.currency = totalExpense.currency;
               widget.onLodgingUpdated();
             },
           ),

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
@@ -16,20 +17,20 @@ import 'split_by_tab.dart';
 class ExpenditureEditTile extends StatefulWidget {
   final Map<String, double> paidBy;
   final List<String> splitBy;
-  final Money totalExpense;
+  final String currency;
   final bool isEditable;
   final void Function(
           Map<String, double> paidBy, List<String> splitBy, Money totalExpense)?
       callback;
 
   ExpenditureEditTile(
-      {required ExpenseFacade expenseUpdator,
+      {required ExpenseFacade expenseFacade,
       required this.isEditable,
       super.key,
       this.callback})
-      : paidBy = expenseUpdator.paidBy,
-        splitBy = expenseUpdator.splitBy,
-        totalExpense = expenseUpdator.totalExpense;
+      : paidBy = expenseFacade.paidBy,
+        splitBy = expenseFacade.splitBy,
+        currency = expenseFacade.totalExpense.currency;
 
   @override
   State<ExpenditureEditTile> createState() => _ExpenditureEditTileState();
@@ -48,14 +49,16 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _totalExpenseValueNotifier = ValueNotifier(widget.totalExpense);
+    _recalculateTotalExpense();
     _initializeExpense();
   }
 
   @override
   void didUpdateWidget(covariant ExpenditureEditTile oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.totalExpense != widget.totalExpense) {
+    if (!mapEquals(oldWidget.paidBy, _currentPaidBy) ||
+        !listEquals(oldWidget.splitBy, _currentSplitBy) ||
+        oldWidget.currency != _currentCurrencyInfo.code) {
       setState(_initializeExpense);
     }
   }
@@ -63,7 +66,6 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   @override
   Widget build(BuildContext context) {
     _initializeContributors(context);
-    _totalExpenseValueNotifier.value = widget.totalExpense;
     if (widget.isEditable) {
       if (_contributorsVsColors.length == 1) {
         return _createTotalExpenseField(context, true);
@@ -77,7 +79,16 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   void _initializeExpense() {
     _currentPaidBy = Map.from(widget.paidBy);
     _currentSplitBy = List.from(widget.splitBy);
-    _totalExpenseValueNotifier.value = widget.totalExpense;
+    _currentCurrencyInfo = context.supportedCurrencies
+        .firstWhere((element) => element.code == widget.currency);
+    _recalculateTotalExpense();
+  }
+
+  void _recalculateTotalExpense() {
+    _totalExpenseValueNotifier.value = Money(
+        currency: _currentCurrencyInfo.code,
+        amount: _currentPaidBy.values
+            .fold(0.0, (previousValue, element) => previousValue + element));
   }
 
   Widget _createEditorForMultipleContributors(BuildContext context) {
@@ -122,10 +133,10 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
         ),
       ),
     ];
-    var shouldHideSplitByData = widget.totalExpense.amount == 0 ||
-        widget.splitBy.isEmpty ||
-        widget.splitBy.length == 1 &&
-            widget.splitBy.single == context.activeUser!.userName;
+    var shouldHideSplitByData = _totalExpenseValueNotifier.value.amount == 0 ||
+        _currentSplitBy.isEmpty ||
+        _currentSplitBy.length == 1 &&
+            _currentSplitBy.single == context.activeUser!.userName;
     if (!shouldHideSplitByData) {
       columnItems.add(Padding(
         padding: const EdgeInsets.symmetric(vertical: 2.0),
@@ -152,16 +163,14 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
       allCurrencies: context.supportedCurrencies,
       selectedCurrencyData: _currentCurrencyInfo,
       onAmountUpdatedCallback: (_) {
-        _totalExpenseValueNotifier.value =
-            Money(currency: _currentCurrencyInfo.code, amount: _);
+        _currentPaidBy[context.activeUser!.userName] = _;
+        _recalculateTotalExpense();
         _invokeUpdatedCallback();
       },
       currencySelectedCallback: (_) {
         setState(() {
           _currentCurrencyInfo = _;
-          _totalExpenseValueNotifier.value = Money(
-              currency: _.code,
-              amount: _totalExpenseValueNotifier.value.amount);
+          _recalculateTotalExpense();
           _invokeUpdatedCallback();
         });
       },
@@ -220,14 +229,8 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
       paidBy: _currentPaidBy,
       callback: (paidBy) {
         _currentPaidBy = Map.from(paidBy);
-        var totalExpenseAmount = _currentPaidBy.values
-            .fold(0.0, (previousValue, element) => previousValue + element);
-        if (totalExpenseAmount != _totalExpenseValueNotifier.value.amount) {
-          _totalExpenseValueNotifier.value = Money(
-              currency: _totalExpenseValueNotifier.value.currency,
-              amount: totalExpenseAmount);
-          _invokeUpdatedCallback();
-        }
+        _recalculateTotalExpense();
+        _invokeUpdatedCallback();
       },
       defaultCurrencySymbol: _currentCurrencyInfo.symbol,
     );

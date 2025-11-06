@@ -57,7 +57,7 @@ class ReadonlyExpenseListItem extends StatelessWidget {
             ),
           ),
           ExpenditureEditTile(
-            expenseUpdator: _expense,
+            expenseFacade: _expense,
             isEditable: false,
             callback: null,
           ),

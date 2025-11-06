@@ -226,12 +226,12 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
                 : AppColors.brandPrimaryLight),
         const SizedBox(height: _kSpacingMedium),
         ExpenditureEditTile(
-          expenseUpdator: sight.expense,
+          expenseFacade: sight.expense,
           isEditable: true,
           callback: (paidBy, splitBy, totalExpense) {
             sight.expense.paidBy = Map.from(paidBy);
             sight.expense.splitBy = List.from(splitBy);
-            sight.expense.totalExpense = totalExpense;
+            sight.expense.currency = totalExpense.currency;
             notifyParent();
           },
         ),

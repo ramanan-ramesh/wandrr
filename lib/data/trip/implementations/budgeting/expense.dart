@@ -3,7 +3,6 @@ import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
-import 'package:wandrr/data/trip/models/budgeting/money.dart';
 
 class ExpenseModelImplementation extends ExpenseFacade
     implements LeafRepositoryItem<ExpenseFacade> {
@@ -12,7 +11,7 @@ class ExpenseModelImplementation extends ExpenseFacade
   static const _categoryField = 'category';
   static const _paidByField = 'paidBy';
   static const _splitByField = 'splitBy';
-  static const _totalExpenseField = 'totalExpense';
+  static const _currencyField = 'currency';
   static const _dateTimeField = 'dateTime';
 
   ExpenseModelImplementation.fromModelFacade(
@@ -20,7 +19,7 @@ class ExpenseModelImplementation extends ExpenseFacade
       : super(
             tripId: expenseModelFacade.tripId,
             title: expenseModelFacade.title,
-            totalExpense: expenseModelFacade.totalExpense,
+            currency: expenseModelFacade.currency,
             paidBy: expenseModelFacade.paidBy,
             splitBy: expenseModelFacade.splitBy,
             description: expenseModelFacade.description,
@@ -31,10 +30,7 @@ class ExpenseModelImplementation extends ExpenseFacade
   static ExpenseModelImplementation fromDocumentSnapshot(
       {required String tripId, required DocumentSnapshot documentSnapshot}) {
     var documentData = documentSnapshot.data() as Map<String, dynamic>;
-    var expenseValue = documentData[_totalExpenseField] as String;
-    var expenseValues = expenseValue.split(' ');
-    var cost = double.parse(expenseValues.first);
-    var currency = expenseValues.elementAt(1);
+    var currency = documentData[_currencyField] as String;
 
     var category = ExpenseCategory.values
         .firstWhere((element) => documentData[_categoryField] == element.name);
@@ -50,7 +46,7 @@ class ExpenseModelImplementation extends ExpenseFacade
     }
 
     return ExpenseModelImplementation._(
-        totalExpense: Money(currency: currency, amount: cost),
+        currency: currency,
         tripId: tripId,
         paidBy: paidBy,
         dateTime: dateTimeValue?.toDate(),
@@ -71,7 +67,7 @@ class ExpenseModelImplementation extends ExpenseFacade
   @override
   Map<String, dynamic> toJson() {
     var json = {
-      _totalExpenseField: totalExpense.toString(),
+      _currencyField: currency,
       _paidByField: paidBy,
       _titleField: title,
       _categoryField: category.name,
@@ -86,10 +82,7 @@ class ExpenseModelImplementation extends ExpenseFacade
 
   static ExpenseModelImplementation fromJson(
       {required String tripId, required Map<String, dynamic> json}) {
-    var expenseValue = json[_totalExpenseField] as String;
-    var expenseValues = expenseValue.split(' ');
-    var cost = double.parse(expenseValues.first);
-    var currency = expenseValues.elementAt(1);
+    var currency = json[_currencyField] as String;
 
     var category = ExpenseCategory.values
         .firstWhere((element) => json[_categoryField] == element.name);
@@ -111,7 +104,7 @@ class ExpenseModelImplementation extends ExpenseFacade
     }
 
     return ExpenseModelImplementation._(
-        totalExpense: Money(currency: currency, amount: cost),
+        currency: currency,
         tripId: tripId,
         paidBy: paidBy,
         dateTime: dateTimeValue?.toDate(),
@@ -127,7 +120,7 @@ class ExpenseModelImplementation extends ExpenseFacade
   ExpenseModelImplementation._(
       {required super.tripId,
       required super.title,
-      required super.totalExpense,
+      required super.currency,
       required super.category,
       required super.paidBy,
       required super.splitBy,

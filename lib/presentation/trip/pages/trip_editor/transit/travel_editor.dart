@@ -78,7 +78,7 @@ class _TravelEditorState extends State<TravelEditor>
           ),
           const SizedBox(height: 12),
           ExpenditureEditTile(
-            expenseUpdator: _transitFacade.expense,
+            expenseFacade: _transitFacade.expense,
             isEditable: true,
             callback: _handleExpenseUpdated,
           ),
@@ -234,7 +234,7 @@ class _TravelEditorState extends State<TravelEditor>
   ) {
     _transitFacade.expense.paidBy = Map.from(paidBy);
     _transitFacade.expense.splitBy = List.from(splitBy);
-    _transitFacade.expense.totalExpense = totalExpense;
+    _transitFacade.expense.currency = totalExpense.currency;
     widget.onTransitUpdated();
   }
 

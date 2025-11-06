@@ -182,23 +182,31 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
                     tripEntity: entity as ExpenseFacade),
           };
 
-  Map<TripEditorAction, TripManagementEvent Function(TripEntity<dynamic>)>
-      get _eventEmittersPerUpdateActions =>
-          <TripEditorAction, TripManagementEvent Function(TripEntity)>{
-            TripEditorAction.travel: (entity) =>
-                UpdateTripEntity<TransitFacade>.update(
-                    tripEntity: entity as TransitFacade),
-            TripEditorAction.stay: (entity) =>
-                UpdateTripEntity<LodgingFacade>.update(
-                    tripEntity: entity as LodgingFacade),
-            TripEditorAction.itineraryData: (entity) =>
-                UpdateTripEntity<ItineraryPlanData>.update(
-                    tripEntity: entity as ItineraryPlanData),
-            TripEditorAction.expense: (entity) =>
-                UpdateTripEntity<ExpenseFacade>.update(
-                    tripEntity: entity as ExpenseFacade),
-            TripEditorAction.tripDetails: (entity) =>
-                UpdateTripEntity<TripMetadataFacade>.update(
-                    tripEntity: entity as TripMetadataFacade),
-          };
+  Map<
+      TripEditorAction,
+      TripManagementEvent Function(
+          TripEntity<dynamic>)> get _eventEmittersPerUpdateActions =>
+      <TripEditorAction, TripManagementEvent Function(TripEntity)>{
+        TripEditorAction.travel: (entity) =>
+            UpdateTripEntity<TransitFacade>.update(
+                tripEntity: entity as TransitFacade),
+        TripEditorAction.stay: (entity) =>
+            UpdateTripEntity<LodgingFacade>.update(
+                tripEntity: entity as LodgingFacade),
+        TripEditorAction.itineraryData: (entity) =>
+            UpdateTripEntity<ItineraryPlanData>.update(
+                tripEntity: entity as ItineraryPlanData),
+        TripEditorAction.expense: (entity) {
+          if (entity is TransitFacade) {
+            return UpdateTripEntity<TransitFacade>.update(tripEntity: entity);
+          } else if (entity is LodgingFacade) {
+            return UpdateTripEntity<LodgingFacade>.update(tripEntity: entity);
+          }
+          return UpdateTripEntity<ExpenseFacade>.update(
+              tripEntity: entity as ExpenseFacade);
+        },
+        TripEditorAction.tripDetails: (entity) =>
+            UpdateTripEntity<TripMetadataFacade>.update(
+                tripEntity: entity as TripMetadataFacade),
+      };
 }
