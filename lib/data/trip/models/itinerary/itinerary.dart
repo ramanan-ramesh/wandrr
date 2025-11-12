@@ -20,9 +20,9 @@ abstract class ItineraryFacade extends Equatable implements TripEntity {
 
   Iterable<TransitFacade> get transits;
 
-  LodgingFacade? get checkinLodging;
+  LodgingFacade? get checkInLodging;
 
-  LodgingFacade? get checkoutLodging;
+  LodgingFacade? get checkOutLodging;
 
   LodgingFacade? get fullDayLodging;
 }
@@ -41,7 +41,7 @@ abstract class ItineraryModelEventHandler extends ItineraryFacade
 
   set checkInLodging(LodgingFacade? lodging);
 
-  set checkoutLodging(LodgingFacade? lodging);
+  set checkOutLodging(LodgingFacade? lodging);
 
   set fullDayLodging(LodgingFacade? lodging);
 }

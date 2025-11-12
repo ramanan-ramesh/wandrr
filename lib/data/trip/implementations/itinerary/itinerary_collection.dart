@@ -224,7 +224,7 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
         itinerary.checkInLodging = toDelete ? null : lodging;
       }
       if (itinerary.day.isOnSameDayAs(lodging.checkoutDateTime!)) {
-        itinerary.checkoutLodging = toDelete ? null : lodging;
+        itinerary.checkOutLodging = toDelete ? null : lodging;
       }
       if (itinerary.day.isAfter(lodging.checkinDateTime!) &&
           itinerary.day.isBefore(lodging.checkoutDateTime!)) {

@@ -23,13 +23,13 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
   final List<TransitFacade> transits;
 
   @override
-  final LodgingFacade? checkinLodging;
+  LodgingFacade? checkInLodging;
 
   @override
-  final LodgingFacade? checkoutLodging;
+  LodgingFacade? checkOutLodging;
 
   @override
-  final LodgingFacade? fullDayLodging;
+  LodgingFacade? fullDayLodging;
 
   @override
   Stream<
@@ -94,8 +94,8 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
       day: day,
       planData: planDataModelImplementation,
       transits: transits.toList(),
-      checkinLodging: checkinLodging,
-      checkoutLodging: checkoutLodging,
+      checkInLodging: checkinLodging,
+      checkOutLodging: checkoutLodging,
       fullDayLodging: fullDayLodging,
     );
   }
@@ -141,8 +141,8 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
       planData: ItineraryPlanDataModelImplementation.fromModelFacade(
           _planData.facade),
       transits: transits.map((e) => e.clone()).toList(),
-      checkinLodging: checkinLodging?.clone(),
-      checkoutLodging: checkoutLodging?.clone(),
+      checkInLodging: checkInLodging?.clone(),
+      checkOutLodging: checkOutLodging?.clone(),
       fullDayLodging: fullDayLodging?.clone(),
     );
   }
@@ -160,20 +160,7 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
   }
 
   @override
-  set checkInLodging(LodgingFacade? lodging) {
-    fullDayLodging = null;
-  }
-
-  @override
-  set checkoutLodging(LodgingFacade? lodging) {
-    fullDayLodging = null;
-  }
-
-  @override
-  set fullDayLodging(LodgingFacade? lodging) {}
-
-  @override
-  List<Object?> get props => [tripId, day, planData, transits, checkinLodging];
+  List<Object?> get props => [tripId, day, planData, transits, checkInLodging];
 
   @override
   bool? get stringify => true;
@@ -182,7 +169,7 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
   bool validate() {
     return planData.validate() &&
         !(fullDayLodging != null &&
-            (checkinLodging != null || checkoutLodging != null));
+            (checkInLodging != null || checkOutLodging != null));
   }
 
   void _listenToPlanDataChanges() {
@@ -233,8 +220,8 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
     required this.day,
     required ItineraryPlanDataModelImplementation planData,
     required this.transits,
-    this.checkinLodging,
-    this.checkoutLodging,
+    this.checkInLodging,
+    this.checkOutLodging,
     this.fullDayLodging,
   }) : _planData = planData {
     _listenToPlanDataChanges();
