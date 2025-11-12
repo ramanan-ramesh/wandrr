@@ -6,6 +6,7 @@ import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_sort_options.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
@@ -14,6 +15,8 @@ import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/readonly_expense.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+
+import 'budget_tile.dart';
 
 class ExpenseListView extends StatefulWidget {
   const ExpenseListView({super.key});
@@ -188,8 +191,12 @@ class _ExpenseListViewState extends State<ExpenseListView> {
 
   Widget _buildSortToggleRow() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        Expanded(
+          child: const BudgetTile(),
+        ),
+        const SizedBox(width: 8),
         ToggleButtons(
           isSelected: [
             _selectedSortOption == ExpenseSortOption.lowToHighCost ||
@@ -399,15 +406,16 @@ class _ExpenseListItemState extends State<_ExpenseListItem> {
   ) {
     if (currentState.isTripEntityUpdated<ExpenseLinkedTripEntity>()) {
       final updatedState = currentState as UpdatedTripEntity;
-      final modifiedItem =
-          updatedState.tripEntityModificationData.modifiedCollectionItem;
-      final updatedId = modifiedItem.id;
-      final operation = updatedState.dataState;
-      final matches = _expenseLinkedTripEntity.expense.id == updatedId ||
-          _expenseLinkedTripEntity.id == updatedId;
-      if (operation == DataState.update && matches) {
-        setState(() => _expenseLinkedTripEntity = modifiedItem);
-        return true;
+      if (updatedState.dataState == DataState.update) {
+        final collectionItemChangeset =
+            updatedState.tripEntityModificationData.modifiedCollectionItem
+                as CollectionItemChangeSet<ExpenseLinkedTripEntity>;
+        if (collectionItemChangeset.afterUpdate.id ==
+            _expenseLinkedTripEntity.id) {
+          setState(() =>
+              _expenseLinkedTripEntity = collectionItemChangeset.afterUpdate);
+          return true;
+        }
       }
     }
     return false;

@@ -49,7 +49,10 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _recalculateTotalExpense();
+    _totalExpenseValueNotifier = ValueNotifier<Money>(Money(
+        currency: widget.currency,
+        amount: widget.paidBy.values
+            .fold(0.0, (previousValue, element) => previousValue + element)));
     _initializeExpense();
   }
 
