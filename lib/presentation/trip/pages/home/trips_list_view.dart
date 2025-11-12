@@ -197,14 +197,14 @@ class _TripMetadataGridItem extends StatelessWidget {
       TripManagementState previousState, TripManagementState currentState) {
     if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
       var tripMetadataUpdatedState = currentState as UpdatedTripEntity;
-      if (currentState.dataState == DataState.update &&
-          tripMetadataUpdatedState
-                  .tripEntityModificationData.modifiedCollectionItem.id ==
-              tripMetaDataFacade.id) {
-        var changeset = tripMetadataUpdatedState.tripEntityModificationData
+      if (currentState.dataState == DataState.update) {
+        var changeset = tripMetadataUpdatedState
+                .tripEntityModificationData.modifiedCollectionItem
             as CollectionItemChangeSet<TripMetadataFacade>;
-        tripMetaDataFacade = changeset.afterUpdate;
-        return true;
+        if (changeset.afterUpdate.id == tripMetaDataFacade.id) {
+          tripMetaDataFacade = changeset.afterUpdate;
+          return true;
+        }
       }
     }
     return false;

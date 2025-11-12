@@ -248,7 +248,7 @@ class TripManagementBloc
           _activeTrip!.tripMetadata.id != updatedTripMetadata.id) {
         return;
       }
-      if (!isClosed) {
+      if (!eventData.isFromExplicitAction && !isClosed) {
         var hasStartDateChanged = !eventData
             .modifiedCollectionItem.beforeUpdate.startDate!
             .isOnSameDayAs(updatedTripMetadata.startDate!);
@@ -258,12 +258,12 @@ class TripManagementBloc
         if (hasStartDateChanged || hasEndDateChanged) {
           _clearItineraryPlanDataSubscriptions()
               .then((value) => _createItineraryPlanDataSubscriptions());
-          var collectionModificationData = CollectionItemChangeMetadata(
-              eventData.modifiedCollectionItem,
-              isFromExplicitAction: false);
-          add(_UpdateTripEntityInternalEvent.updated(collectionModificationData,
-              isOperationSuccess: true));
         }
+        var collectionModificationData = CollectionItemChangeMetadata(
+            eventData.modifiedCollectionItem,
+            isFromExplicitAction: false);
+        add(_UpdateTripEntityInternalEvent.updated(collectionModificationData,
+            isOperationSuccess: true));
       }
     });
     var tripMetadataAddedSubscription = _tripRepository!
