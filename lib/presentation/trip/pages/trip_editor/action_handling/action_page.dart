@@ -83,7 +83,10 @@ class TripEditorActionPage<T extends TripEntity> extends StatelessWidget {
         child: PlatformSubmitterFAB.conditionallyEnabled(
           child: Icon(actionIcon),
           valueNotifier: validityNotifier,
-          callback: () => onActionInvoked(context),
+          callback: () {
+            onActionInvoked(context);
+            Navigator.of(context).pop();
+          },
         ),
         duration: Duration(milliseconds: 3000),
       ),
