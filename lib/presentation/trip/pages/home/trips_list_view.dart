@@ -6,6 +6,7 @@ import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
@@ -38,17 +39,7 @@ class TripListView extends StatelessWidget {
           ),
           Expanded(
             child: BlocConsumer<TripManagementBloc, TripManagementState>(
-              buildWhen: (previousState, currentState) {
-                if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
-                  var tripMetadataUpdatedState =
-                      currentState as UpdatedTripEntity;
-                  if (tripMetadataUpdatedState.dataState == DataState.delete ||
-                      tripMetadataUpdatedState.dataState == DataState.create) {
-                    return true;
-                  }
-                }
-                return false;
-              },
+              buildWhen: _shouldBuildListView,
               listener: (context, state) {},
               builder: (context, state) {
                 var tripMetadatas = context
@@ -84,6 +75,18 @@ class TripListView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  bool _shouldBuildListView(
+      TripManagementState previousState, TripManagementState currentState) {
+    if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
+      var tripMetadataUpdatedState = currentState as UpdatedTripEntity;
+      if (tripMetadataUpdatedState.dataState == DataState.delete ||
+          tripMetadataUpdatedState.dataState == DataState.create) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 
@@ -186,21 +189,25 @@ class _TripMetadataGridItem extends StatelessWidget {
         );
       },
       listener: (BuildContext context, TripManagementState state) {},
-      buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
-          var tripMetadataUpdatedState = currentState as UpdatedTripEntity;
-          if (currentState.dataState == DataState.update &&
-              tripMetadataUpdatedState
-                      .tripEntityModificationData.modifiedCollectionItem.id ==
-                  tripMetaDataFacade.id) {
-            tripMetaDataFacade = tripMetadataUpdatedState
-                .tripEntityModificationData.modifiedCollectionItem;
-            return true;
-          }
-        }
-        return false;
-      },
+      buildWhen: _shouldBuildTripItem,
     );
+  }
+
+  bool _shouldBuildTripItem(
+      TripManagementState previousState, TripManagementState currentState) {
+    if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
+      var tripMetadataUpdatedState = currentState as UpdatedTripEntity;
+      if (currentState.dataState == DataState.update &&
+          tripMetadataUpdatedState
+                  .tripEntityModificationData.modifiedCollectionItem.id ==
+              tripMetaDataFacade.id) {
+        var changeset = tripMetadataUpdatedState.tripEntityModificationData
+            as CollectionItemChangeSet<TripMetadataFacade>;
+        tripMetaDataFacade = changeset.afterUpdate;
+        return true;
+      }
+    }
+    return false;
   }
 
   void _showDeleteTripConfirmationDialog(BuildContext pageContext) {

@@ -4,6 +4,7 @@ import 'dart:collection';
 import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
+import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
@@ -28,7 +29,9 @@ abstract class ItineraryFacade extends Equatable implements TripEntity {
 
 abstract class ItineraryModelEventHandler extends ItineraryFacade
     implements Dispose {
-  Stream<CollectionItemChangeMetadata<ItineraryPlanData>> get planDataStream;
+  Stream<
+      CollectionItemChangeMetadata<
+          CollectionItemChangeSet<ItineraryPlanData>>> get planDataStream;
 
   Future<bool> updatePlanData(ItineraryPlanData planData);
 

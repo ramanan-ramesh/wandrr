@@ -50,27 +50,22 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
         );
       },
       onItemsChanged: widget.onSightsChanged,
-      titleBuilder: (s) =>
-      s.name.isNotEmpty
+      titleBuilder: (s) => s.name.isNotEmpty
           ? s.name
           : (s.location?.context.name ?? 'Untitled Sight'),
-      previewBuilder: (ctx, s) =>
-      s.visitTime != null
+      previewBuilder: (ctx, s) => s.visitTime != null
           ? Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.access_time, size: 16),
-          const SizedBox(width: 4),
-          Text(_formatTime(s.visitTime!),
-              style: Theme
-                  .of(ctx)
-                  .textTheme
-                  .labelSmall),
-        ],
-      )
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.access_time, size: 16),
+                const SizedBox(width: 4),
+                Text(_formatTime(s.visitTime!),
+                    style: Theme.of(ctx).textTheme.labelSmall),
+              ],
+            )
           : const SizedBox.shrink(),
       accentColorBuilder: (s) =>
-      s.name.isNotEmpty ? AppColors.success : AppColors.error,
+          s.name.isNotEmpty ? AppColors.success : AppColors.error,
       isValidBuilder: (s) => s.validate(),
       expandedBuilder: (ctx, index, sight, notifyParent) =>
           _buildSightEditor(ctx, sight, notifyParent),
@@ -78,11 +73,10 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
   }
 
   String _formatTime(DateTime dt) =>
-      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(
-          2, '0')}';
+      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
-  Widget _buildSightEditor(BuildContext context, SightFacade sight,
-      VoidCallback notifyParent) {
+  Widget _buildSightEditor(
+      BuildContext context, SightFacade sight, VoidCallback notifyParent) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -98,14 +92,10 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
         const SizedBox(height: _kSpacingSmall),
         Text(
           sight.validate() ? 'Valid' : 'Incomplete',
-          style: Theme
-              .of(context)
-              .textTheme
-              .labelMedium
-              ?.copyWith(
-            color: sight.validate() ? AppColors.success : AppColors.error,
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: sight.validate() ? AppColors.success : AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
         ),
       ],
     );
@@ -131,8 +121,8 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
     );
   }
 
-  Widget _buildLocationSection(BuildContext context, SightFacade sight,
-      VoidCallback notifyParent) {
+  Widget _buildLocationSection(
+      BuildContext context, SightFacade sight, VoidCallback notifyParent) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -155,8 +145,8 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
     );
   }
 
-  Widget _buildTimeSection(BuildContext context, SightFacade sight,
-      VoidCallback notifyParent) {
+  Widget _buildTimeSection(
+      BuildContext context, SightFacade sight, VoidCallback notifyParent) {
     final timeOfDay = sight.visitTime != null
         ? TimeOfDay.fromDateTime(sight.visitTime!)
         : null;
@@ -181,11 +171,10 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
                   final picked = await showTimePicker(
                     context: context,
                     initialTime: timeOfDay ?? TimeOfDay.now(),
-                    builder: (context, child) =>
-                        Theme(
-                          data: Theme.of(context),
-                          child: child!,
-                        ),
+                    builder: (context, child) => Theme(
+                      data: Theme.of(context),
+                      child: child!,
+                    ),
                   );
                   if (picked != null) {
                     final d = sight.day;
@@ -202,9 +191,9 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
               onPressed: timeOfDay == null
                   ? null
                   : () {
-                sight.visitTime = null;
-                notifyParent();
-              },
+                      sight.visitTime = null;
+                      notifyParent();
+                    },
               icon: const Icon(Icons.clear_rounded),
             ),
           ],
@@ -213,8 +202,8 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
     );
   }
 
-  Widget _buildExpenseSection(BuildContext context, SightFacade sight,
-      VoidCallback notifyParent) {
+  Widget _buildExpenseSection(
+      BuildContext context, SightFacade sight, VoidCallback notifyParent) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -239,8 +228,8 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
     );
   }
 
-  Widget _buildDescriptionSection(BuildContext context, SightFacade sight,
-      VoidCallback notifyParent) {
+  Widget _buildDescriptionSection(
+      BuildContext context, SightFacade sight, VoidCallback notifyParent) {
     final controller = TextEditingController(text: sight.description ?? '');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,7 +250,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
             border: OutlineInputBorder(
               borderSide: BorderSide.none,
               borderRadius:
-              BorderRadius.all(Radius.circular(_kBorderRadiusMedium)),
+                  BorderRadius.all(Radius.circular(_kBorderRadiusMedium)),
             ),
             filled: true,
           ),

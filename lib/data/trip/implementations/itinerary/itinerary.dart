@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
+import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
@@ -31,9 +32,13 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
   final LodgingFacade? fullDayLodging;
 
   @override
-  Stream<CollectionItemChangeMetadata<ItineraryPlanData>> get planDataStream =>
+  Stream<
+      CollectionItemChangeMetadata<
+          CollectionItemChangeSet<ItineraryPlanData>>> get planDataStream =>
       _planDataStreamController.stream;
-  final StreamController<CollectionItemChangeMetadata<ItineraryPlanData>>
+  final StreamController<
+          CollectionItemChangeMetadata<
+              CollectionItemChangeSet<ItineraryPlanData>>>
       _planDataStreamController = StreamController.broadcast();
 
   late final StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>
@@ -110,6 +115,7 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
     _planDataSubscription.pause();
     var leafRepositoryItem =
         ItineraryPlanDataModelImplementation.fromModelFacade(planData);
+    var planDataBeforeUpdate = _planData.facade;
     didUpdate = await _planData.documentReference
         .set(leafRepositoryItem.toJson(), SetOptions(merge: true))
         .then((value) {
@@ -122,7 +128,7 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
     if (didUpdate) {
       _planData = leafRepositoryItem;
       _planDataStreamController.add(CollectionItemChangeMetadata(
-          _planData.facade,
+          CollectionItemChangeSet(planDataBeforeUpdate, _planData.facade),
           isFromExplicitAction: true));
     }
     return didUpdate;
@@ -214,9 +220,10 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
           checkLists: [],
         );
       }
+      var planDataBeforeUpdate = _planData.facade;
       _planData = planDataModelImplementation;
       _planDataStreamController.add(CollectionItemChangeMetadata(
-          _planData.facade,
+          CollectionItemChangeSet(planDataBeforeUpdate, _planData.facade),
           isFromExplicitAction: false));
     });
   }

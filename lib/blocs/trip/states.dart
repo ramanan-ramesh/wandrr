@@ -1,6 +1,7 @@
 import 'package:wandrr/blocs/trip/plan_data_edit_context.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
+import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
@@ -10,15 +11,16 @@ import 'package:wandrr/data/trip/models/trip_repository.dart';
 abstract class TripManagementState {
   bool isTripEntityUpdated<T>() {
     if (this is UpdatedTripEntity) {
-      if (this is UpdatedTripEntity<T> &&
-          (this as UpdatedTripEntity<T>).isOperationSuccess) {
-        return true;
+      var isOperationSuccess = (this as UpdatedTripEntity).isOperationSuccess;
+      if (this is UpdatedTripEntity<T>) {
+        return isOperationSuccess;
       } else {
         var collectionItemChangeMetadata =
             (this as UpdatedTripEntity).tripEntityModificationData;
-        if (collectionItemChangeMetadata is CollectionItemChangeMetadata<T> ||
-            collectionItemChangeMetadata.modifiedCollectionItem is T) {
-          return (this as UpdatedTripEntity).isOperationSuccess;
+        if (collectionItemChangeMetadata.modifiedCollectionItem is T) {
+          return isOperationSuccess;
+        } else if (collectionItemChangeMetadata is CollectionItemChangeSet<T>) {
+          return isOperationSuccess;
         }
       }
     }
