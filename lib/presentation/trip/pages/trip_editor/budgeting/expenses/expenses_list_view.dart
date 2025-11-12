@@ -305,14 +305,14 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     list.addAll(activeTrip.expenseCollection.collectionItems);
     list.addAll(activeTrip.transitCollection.collectionItems);
     list.addAll(activeTrip.lodgingCollection.collectionItems);
-    for (final itineraryPlanData in activeTrip.itineraryCollection) {
-      for (final sight in itineraryPlanData.planData.sights) {
-        if (sight.expense.totalExpense.amount > 0) {
-          list.add(sight.expense);
-        }
-      }
-    }
-    _expenses = list;
+    list.addAll(activeTrip.itineraryCollection
+        .expand((itineraryPlanData) => itineraryPlanData.planData.sights)
+        .map((sight) => sight.expense));
+    _expenses = list
+        .where(
+          (expense) => expense.expense.totalExpense.amount > 0,
+        )
+        .toList();
     _animationToken++;
     _sortingFuture = context.activeTrip.budgetingModule
         .sortExpenses(_expenses, _selectedSortOption);
