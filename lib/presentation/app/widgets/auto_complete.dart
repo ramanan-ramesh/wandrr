@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'text.dart';
 
-class PlatformAutoComplete<T extends Object> extends StatelessWidget {
+class PlatformAutoComplete<T extends Object> extends StatefulWidget {
   final FutureOr<Iterable<T>> Function(String searchValue) optionsBuilder;
   final Widget Function(T value) listItem;
   final Widget? customPrefix;
@@ -15,25 +15,90 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
   final String? labelText;
   final double? optionsViewWidth;
   final String Function(T)? displayTextCreator;
-  T? selectedItem;
+  final T? selectedItem;
 
+  PlatformAutoComplete({
+    required this.optionsBuilder,
+    required this.listItem,
+    super.key,
+    this.selectedItem,
+    this.onSelected,
+    this.labelText,
+    this.displayTextCreator,
+    this.hintText,
+    this.suffix,
+    this.optionsViewWidth,
+    this.customPrefix,
+    this.prefixIcon,
+  });
+
+  @override
+  State<PlatformAutoComplete<T>> createState() =>
+      _PlatformAutoCompleteState<T>();
+}
+
+class _PlatformAutoCompleteState<T extends Object>
+    extends State<PlatformAutoComplete<T>> {
   static const _defaultAutoCompleteHintText = 'e.g. Paris, Hawaii...';
-  late FocusNode? _focusNode;
-  late TextEditingController _textEditingController;
 
-  PlatformAutoComplete(
-      {required this.optionsBuilder,
-      required this.listItem,
-      super.key,
-      this.selectedItem,
-      this.onSelected,
-      this.labelText,
-      this.displayTextCreator,
-      this.hintText,
-      this.suffix,
-      this.optionsViewWidth,
-      this.customPrefix,
-      this.prefixIcon});
+  // --- Debouncer State ---
+  Timer? _debounce;
+  Completer<Iterable<T>>? _completer;
+
+  // --- State variables for managing selection and controllers ---
+  late FocusNode _focusNode;
+  late TextEditingController _textEditingController;
+  T? _internalSelectedItem;
+
+  @override
+  void initState() {
+    super.initState();
+    _internalSelectedItem = widget.selectedItem;
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    if (_completer != null && !_completer!.isCompleted) {
+      // Complete with an empty list to avoid hanging futures
+      _completer!.complete([]);
+    }
+    super.dispose();
+  }
+
+  Future<Iterable<T>> _debouncedOptionsBuilder(
+      TextEditingValue textEditingValue) async {
+    final String query = textEditingValue.text;
+    _debounce?.cancel();
+    if (_completer != null && !_completer!.isCompleted) {
+      _completer!.complete([]);
+    }
+    if (query.isEmpty) {
+      return Future.value([]);
+    }
+
+    _completer = Completer<Iterable<T>>();
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      try {
+        final results = await widget.optionsBuilder(query);
+        if (!(_completer?.isCompleted ?? true)) {
+          _completer?.complete(results);
+        }
+      } catch (e) {
+        if (!(_completer?.isCompleted ?? true)) {
+          _completer?.completeError(e);
+        }
+      }
+    });
+    return _completer!.future;
+  }
+
+  String _getDisplayString(T item) {
+    if (widget.displayTextCreator != null) {
+      return widget.displayTextCreator!(item);
+    }
+    return item.toString();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,14 +107,14 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
         return SizedBox(
           width: constraints.maxWidth,
           child: Autocomplete<T>(
-            optionsBuilder: (textEditingValue) async {
-              return await optionsBuilder(textEditingValue.text);
-            },
+            optionsBuilder: _debouncedOptionsBuilder,
             onSelected: (T selection) {
-              selectedItem = selection;
-              _textEditingController.text = selection.toString();
-              onSelected?.call(selection);
-              _focusNode?.unfocus();
+              setState(() {
+                _internalSelectedItem = selection;
+              });
+              _textEditingController.text = _getDisplayString(selection);
+              widget.onSelected?.call(selection);
+              _focusNode.unfocus();
             },
             fieldViewBuilder: (
               BuildContext context,
@@ -58,31 +123,29 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
               VoidCallback onFieldSubmitted,
             ) {
               _focusNode = focusNode;
+              _textEditingController = textEditingController;
+
               focusNode.addListener(() {
                 if (!focusNode.hasFocus) {
-                  if (selectedItem != null) {
-                    if (displayTextCreator != null) {
-                      _textEditingController.text =
-                          displayTextCreator!(selectedItem!);
-                    } else {
-                      _textEditingController.text = selectedItem.toString();
-                    }
+                  if (_internalSelectedItem != null) {
+                    _textEditingController.text =
+                        _getDisplayString(_internalSelectedItem!);
                   }
                 }
               });
-              _textEditingController = textEditingController;
-              if (selectedItem != null) {
-                _textEditingController.text = displayTextCreator != null
-                    ? displayTextCreator!(selectedItem!)
-                    : selectedItem!.toString();
+
+              if (_internalSelectedItem != null) {
+                _textEditingController.text =
+                    _getDisplayString(_internalSelectedItem!);
               }
+
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (customPrefix != null)
+                  if (widget.customPrefix != null)
                     Padding(
                       padding: const EdgeInsets.all(3.0),
-                      child: customPrefix!,
+                      child: widget.customPrefix!,
                     ),
                   Expanded(
                     child: TextFormField(
@@ -93,11 +156,13 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
                             fontSize: PlatformTextElements.subHeaderSize,
                           ),
                       decoration: InputDecoration(
-                          suffix: suffix,
-                          isDense: true,
-                          prefixIcon: prefixIcon,
-                          hintText: hintText ?? _defaultAutoCompleteHintText,
-                          labelText: labelText),
+                        suffix: widget.suffix,
+                        isDense: true,
+                        prefixIcon: widget.prefixIcon,
+                        hintText:
+                            widget.hintText ?? _defaultAutoCompleteHintText,
+                        labelText: widget.labelText,
+                      ),
                     ),
                   ),
                 ],
@@ -111,25 +176,26 @@ class PlatformAutoComplete<T extends Object> extends StatelessWidget {
                   elevation: 4.0,
                   child: Container(
                     color: Theme.of(context).dialogTheme.backgroundColor,
-                    width: optionsViewWidth ?? constraints.maxWidth,
+                    width: widget.optionsViewWidth ?? constraints.maxWidth,
                     child: ListView.separated(
-                        padding: EdgeInsets.zero,
-                        shrinkWrap: true,
-                        itemBuilder: (BuildContext context, int index) {
-                          final option = options.elementAt(index);
-                          return InkWell(
-                            onTap: () {
-                              onSelected(option);
-                            },
-                            child: Builder(builder: (BuildContext context) {
-                              return listItem(option);
-                            }),
-                          );
-                        },
-                        separatorBuilder: (context, index) {
-                          return const Divider();
-                        },
-                        itemCount: options.length),
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      itemBuilder: (BuildContext context, int index) {
+                        final option = options.elementAt(index);
+                        return InkWell(
+                          onTap: () {
+                            onSelected(option);
+                          },
+                          child: Builder(builder: (BuildContext context) {
+                            return widget.listItem(option);
+                          }),
+                        );
+                      },
+                      separatorBuilder: (context, index) {
+                        return const Divider();
+                      },
+                      itemCount: options.length,
+                    ),
                   ),
                 ),
               );
