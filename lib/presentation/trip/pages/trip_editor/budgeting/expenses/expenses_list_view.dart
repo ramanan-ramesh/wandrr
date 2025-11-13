@@ -51,51 +51,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
   @override
   Widget build(BuildContext context) {
     _initializeCategoryNames();
-    return BlocConsumer<TripManagementBloc, TripManagementState>(
-      buildWhen: _shouldRebuildList,
-      builder: (context, state) {
-        _refreshExpenses();
-        return _buildListArea();
-      },
-      listener: (context, state) {},
-    );
-  }
-
-  Widget _buildListArea() {
     final sortDropdown = _buildSortToggleRow();
-
-    if (_expenses.isEmpty) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              _kSortRowHorizontalPadding,
-              _kSortRowVerticalPadding,
-              _kSortRowHorizontalPadding,
-              0,
-            ),
-            child: sortDropdown,
-          ),
-          Center(
-            child: SizedBox(
-              height: _kEmptyListHeight,
-              child: Center(
-                child: PlatformTextElements.createSubHeader(
-                  context: context,
-                  text: context.localizations.noExpensesCreated,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    _sortingFuture ??= context.activeTrip.budgetingModule
-        .sortExpenses(_expenses, _selectedSortOption);
-
     return Column(
       children: [
         Padding(
@@ -108,84 +64,30 @@ class _ExpenseListViewState extends State<ExpenseListView> {
           child: sortDropdown,
         ),
         Expanded(
-          child: FutureBuilder<Iterable<ExpenseLinkedTripEntity>>(
-            future: _sortingFuture,
-            builder: (context, snapshot) {
-              final isDone = snapshot.connectionState == ConnectionState.done;
-              final hasData = snapshot.hasData && snapshot.data != null;
-              final child = (!isDone || !hasData)
-                  ? _buildLoading()
-                  : _buildExpenseList(snapshot.data!.toList());
-              final childKey = (!isDone || !hasData)
-                  ? 'loading-$_animationToken'
-                  : 'list-${_selectedSortOption.name}-$_animationToken';
-              return _animatedSwitcher(childKey, child);
+          child: BlocConsumer<TripManagementBloc, TripManagementState>(
+            buildWhen: _shouldRebuildList,
+            builder: (context, state) {
+              _refreshExpenses();
+              return FutureBuilder<Iterable<ExpenseLinkedTripEntity>>(
+                future: _sortingFuture,
+                builder: (context, snapshot) {
+                  final isDone =
+                      snapshot.connectionState == ConnectionState.done;
+                  final hasData = snapshot.hasData && snapshot.data != null;
+                  final child = (!isDone || !hasData)
+                      ? _buildLoading()
+                      : _buildExpenseList(snapshot.data!.toList());
+                  final childKey = (!isDone || !hasData)
+                      ? 'loading-$_animationToken'
+                      : 'list-${_selectedSortOption.name}-$_animationToken';
+                  return _animatedSwitcher(childKey, child);
+                },
+              );
             },
+            listener: (context, state) {},
           ),
         ),
       ],
-    );
-  }
-
-  Widget _animatedSwitcher(String keyString, Widget child) {
-    return AnimatedSwitcher(
-      duration: _kAnimationDuration,
-      switchInCurve: Curves.easeOut,
-      switchOutCurve: Curves.easeIn,
-      transitionBuilder: (widget, animation) => FadeTransition(
-        opacity: animation,
-        child: SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0.0, 0.06),
-            end: Offset.zero,
-          ).animate(animation),
-          child: widget,
-        ),
-      ),
-      child: KeyedSubtree(key: ValueKey(keyString), child: child),
-    );
-  }
-
-  Widget _buildLoading() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: _kLoadingIndicatorSize,
-            height: _kLoadingIndicatorSize,
-            child: CircularProgressIndicator(
-              strokeWidth: 5,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            context.localizations.loading,
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildExpenseList(List<ExpenseLinkedTripEntity> sortedExpenses) {
-    _expenses = sortedExpenses;
-    return ListView.builder(
-      itemCount: _expenses.length,
-      itemBuilder: (context, index) {
-        final item = _expenses[index];
-        return Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: _kListItemVerticalPadding,
-            horizontal: _kListItemHorizontalPadding,
-          ),
-          child: _ExpenseListItem(
-            initialExpenseLinkedTripEntity: item,
-            categoryNames: _categoryNames,
-          ),
-        );
-      },
     );
   }
 
@@ -194,7 +96,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child: const BudgetTile(),
+          child: BudgetTile(),
         ),
         const SizedBox(width: 8),
         ToggleButtons(
@@ -246,6 +148,82 @@ class _ExpenseListViewState extends State<ExpenseListView> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _animatedSwitcher(String keyString, Widget child) {
+    return AnimatedSwitcher(
+      duration: _kAnimationDuration,
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      transitionBuilder: (widget, animation) => FadeTransition(
+        opacity: animation,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0.0, 0.06),
+            end: Offset.zero,
+          ).animate(animation),
+          child: widget,
+        ),
+      ),
+      child: KeyedSubtree(key: ValueKey(keyString), child: child),
+    );
+  }
+
+  Widget _buildLoading() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: _kLoadingIndicatorSize,
+            height: _kLoadingIndicatorSize,
+            child: CircularProgressIndicator(
+              strokeWidth: 5,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            context.localizations.loading,
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpenseList(List<ExpenseLinkedTripEntity> sortedExpenses) {
+    _expenses = sortedExpenses;
+    if (_expenses.isEmpty) {
+      return Center(
+        child: SizedBox(
+          height: _kEmptyListHeight,
+          child: Center(
+            child: PlatformTextElements.createSubHeader(
+              context: context,
+              text: context.localizations.noExpensesCreated,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+    return ListView.builder(
+      itemCount: _expenses.length,
+      itemBuilder: (context, index) {
+        final item = _expenses[index];
+        return Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: _kListItemVerticalPadding,
+            horizontal: _kListItemHorizontalPadding,
+          ),
+          child: _ExpenseListItem(
+            initialExpenseLinkedTripEntity: item,
+            categoryNames: _categoryNames,
+          ),
+        );
+      },
     );
   }
 
@@ -301,6 +279,16 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       if (updatedState.dataState == DataState.delete ||
           updatedState.dataState == DataState.create) {
         return true;
+      } else if (updatedState.dataState == DataState.update) {
+        final collectionItemChangeset =
+            updatedState.tripEntityModificationData.modifiedCollectionItem
+                as CollectionItemChangeSet<ExpenseLinkedTripEntity>;
+        final beforeUpdate = collectionItemChangeset.beforeUpdate;
+        final afterUpdate = collectionItemChangeset.afterUpdate;
+        if (beforeUpdate.expense.totalExpense !=
+            afterUpdate.expense.totalExpense) {
+          return true;
+        }
       }
     }
     return false;
