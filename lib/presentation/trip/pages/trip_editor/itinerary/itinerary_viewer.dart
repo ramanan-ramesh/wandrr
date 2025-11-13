@@ -238,7 +238,51 @@ class _ItineraryViewerState extends State<ItineraryViewer>
         children: [
           _buildEventHeader(event),
           if (event.subtitle.isNotEmpty) _buildEventSubtitle(event.subtitle),
+          if (event.confirmationId?.isNotEmpty ?? false) ...[
+            const SizedBox(height: 8),
+            _buildConfirmationChip(event.confirmationId!),
+            const SizedBox(height: 8),
+          ],
           if (event.notes?.isNotEmpty ?? false) _buildEventNotes(event.notes!),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConfirmationChip(String confirmationId) {
+    final isLightTheme = context.isLightTheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.success.withValues(alpha: isLightTheme ? 0.12 : 0.2),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: AppColors.success.withValues(alpha: isLightTheme ? 0.4 : 0.5),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.confirmation_number_rounded,
+            size: 16,
+            color: AppColors.success,
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              confirmationId,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.success,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                    letterSpacing: 0.5,
+                  ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
@@ -350,9 +394,7 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     final List<TimelineEvent> timelineEvents = [];
     timelineEvents.addAll(_createLodgingEvents(itinerary));
     timelineEvents.addAll(
-      _createTransitEvents(
-        itinerary.transits.toList(),
-      ),
+      _createTransitEvents(itinerary.transits),
     );
     timelineEvents.addAll(_createTimedSightEvents(itinerary.planData.sights));
     timelineEvents
@@ -374,6 +416,7 @@ class _ItineraryViewerState extends State<ItineraryViewer>
         iconColor: AppColors.brandPrimary,
         data: fullDay,
         notes: fullDay.notes,
+        confirmationId: fullDay.confirmationId,
       );
       return;
     }
@@ -389,6 +432,7 @@ class _ItineraryViewerState extends State<ItineraryViewer>
         iconColor: AppColors.warning,
         data: checkout,
         notes: checkout.notes,
+        confirmationId: checkout.confirmationId,
       );
     }
 
@@ -403,6 +447,7 @@ class _ItineraryViewerState extends State<ItineraryViewer>
         iconColor: AppColors.success,
         data: checkin,
         notes: checkin.notes,
+        confirmationId: checkin.confirmationId,
       );
     }
   }
@@ -425,6 +470,7 @@ class _ItineraryViewerState extends State<ItineraryViewer>
         iconColor: AppColors.info,
         data: transit,
         notes: transit.notes,
+        confirmationId: transit.confirmationId,
       );
     }
   }
@@ -438,11 +484,19 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     final localizations = context.localizations;
 
     if (isDepartingToday && isArrivingToday) {
-      return (
-        eventTime: departure,
-        title:
-            '${_getTransitLocationDetail(transit)} • ${departure.hourMinuteAmPmFormat} - ${arrival.hourMinuteAmPmFormat}',
-      );
+      if (context.isBigLayout) {
+        return (
+          eventTime: departure,
+          title:
+              '${_getTransitLocationDetail(transit)} • ${departure.hourMinuteAmPmFormat} - ${arrival.hourMinuteAmPmFormat}',
+        );
+      } else {
+        return (
+          eventTime: departure,
+          title:
+              '${_getTransitLocationDetail(transit)}\n${departure.hourMinuteAmPmFormat} - ${arrival.hourMinuteAmPmFormat}',
+        );
+      }
     } else if (isDepartingToday) {
       return (
         eventTime: departure,

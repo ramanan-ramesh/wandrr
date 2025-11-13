@@ -7,6 +7,8 @@ class TimelineEvent<T extends TripEntity> {
   final DateTime time;
   final String title;
   final String subtitle;
+  final String? notes;
+  final String? confirmationId;
   final IconData icon;
   final Color iconColor;
   final T data;
@@ -18,10 +20,17 @@ class TimelineEvent<T extends TripEntity> {
     required this.icon,
     required this.iconColor,
     required this.data,
+    this.notes,
+    this.confirmationId,
   });
 
   void onPressed(BuildContext context) {
     var tripManagementEvent = UpdateTripEntity<T>.select(tripEntity: data);
+    context.addTripManagementEvent(tripManagementEvent);
+  }
+
+  void onDelete(BuildContext context) {
+    var tripManagementEvent = UpdateTripEntity<T>.delete(tripEntity: data);
     context.addTripManagementEvent(tripManagementEvent);
   }
 }
