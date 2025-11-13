@@ -54,10 +54,8 @@ class LodgingFacade extends Equatable
   @override
   LodgingFacade clone() => LodgingFacade(
       location: location?.clone(),
-      checkinDateTime: DateTime(
-          checkinDateTime!.year, checkinDateTime!.month, checkinDateTime!.day),
-      checkoutDateTime: DateTime(checkoutDateTime!.year,
-          checkoutDateTime!.month, checkoutDateTime!.day),
+      checkinDateTime: checkinDateTime?.copyWith(),
+      checkoutDateTime: checkoutDateTime?.copyWith(),
       id: id,
       tripId: tripId,
       confirmationId: confirmationId,

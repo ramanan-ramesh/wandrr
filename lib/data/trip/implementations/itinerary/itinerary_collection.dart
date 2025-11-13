@@ -148,7 +148,9 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
       final fullDayLodging = lodgings
           .where((lodging) =>
               day.isAfter(lodging.checkinDateTime!) &&
-              day.isBefore(lodging.checkoutDateTime!))
+              day
+                  .copyWith(hour: 23, minute: 59, second: 59)
+                  .isBefore(lodging.checkoutDateTime!))
           .firstOrNull;
 
       var itinerary = await ItineraryModelImplementation.createInstance(
@@ -207,7 +209,9 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
               itinerary.day.isAfter(transit.departureDateTime!);
       var isItineraryDayOnOrBeforeArrival =
           itinerary.day.isOnSameDayAs(transit.arrivalDateTime!) ||
-              itinerary.day.isBefore(transit.arrivalDateTime!);
+              itinerary.day
+                  .copyWith(hour: 23, minute: 59, second: 59)
+                  .isBefore(transit.arrivalDateTime!);
       if (isItineraryDayOnOrAfterDeparture && isItineraryDayOnOrBeforeArrival) {
         if (toDelete) {
           itinerary.removeTransit(transit);
@@ -227,7 +231,9 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
         itinerary.checkOutLodging = toDelete ? null : lodging;
       }
       if (itinerary.day.isAfter(lodging.checkinDateTime!) &&
-          itinerary.day.isBefore(lodging.checkoutDateTime!)) {
+          itinerary.day
+              .copyWith(hour: 23, minute: 59, second: 59)
+              .isBefore(lodging.checkoutDateTime!)) {
         itinerary.fullDayLodging = toDelete ? null : lodging;
       }
     }
@@ -245,7 +251,9 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
           .where((transit) =>
               (day.isAfter(transit.departureDateTime!) ||
                   day.isOnSameDayAs(transit.departureDateTime!)) &&
-              (day.isBefore(transit.arrivalDateTime!) ||
+              (day
+                      .copyWith(hour: 23, minute: 59, second: 59)
+                      .isBefore(transit.arrivalDateTime!) ||
                   day.isOnSameDayAs(transit.arrivalDateTime!)))
           .toList();
     }
@@ -264,7 +272,9 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
           .where((lodging) =>
               (day.isAfter(lodging.checkinDateTime!) ||
                   day.isOnSameDayAs(lodging.checkinDateTime!)) &&
-              (day.isBefore(lodging.checkoutDateTime!) ||
+              (day
+                      .copyWith(hour: 23, minute: 59, second: 59)
+                      .isBefore(lodging.checkoutDateTime!) ||
                   day.isOnSameDayAs(lodging.checkoutDateTime!)))
           .toList();
     }
@@ -274,7 +284,9 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
   Set<DateTime> _getDateRange(DateTime startDate, DateTime endDate) {
     final dateSet = <DateTime>{};
     var currentDate = startDate;
-    while (currentDate.isBefore(endDate) ||
+    while (currentDate
+            .copyWith(hour: 23, minute: 59, second: 59)
+            .isBefore(endDate) ||
         currentDate.isAtSameMomentAs(endDate)) {
       dateSet
           .add(DateTime(currentDate.year, currentDate.month, currentDate.day));

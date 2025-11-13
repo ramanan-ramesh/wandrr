@@ -67,8 +67,8 @@ class TransitFacade extends Equatable
   TransitFacade clone() => TransitFacade(
       tripId: tripId,
       transitOption: transitOption,
-      departureDateTime: departureDateTime,
-      arrivalDateTime: arrivalDateTime,
+      departureDateTime: departureDateTime?.copyWith(),
+      arrivalDateTime: arrivalDateTime?.copyWith(),
       departureLocation: departureLocation?.clone(),
       arrivalLocation: arrivalLocation?.clone(),
       expense: expense.clone(),

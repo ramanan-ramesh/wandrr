@@ -180,7 +180,7 @@ class _TravelEditorState extends State<TravelEditor>
     return TextFormField(
       decoration: InputDecoration(
         labelText: '${context.localizations.confirmation} #',
-        prefixIcon: const Icon(Icons.tag),
+        prefixIcon: const Icon(Icons.confirmation_number_rounded),
         filled: true,
         fillColor: Colors.transparent,
         border: OutlineInputBorder(

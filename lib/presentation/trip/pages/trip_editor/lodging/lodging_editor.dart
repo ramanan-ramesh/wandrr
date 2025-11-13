@@ -3,11 +3,11 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 
+import 'date_time_selector.dart';
 import 'stay_details.dart';
 
 class LodgingEditor extends StatefulWidget {
@@ -57,83 +57,23 @@ class _LodgingEditorState extends State<LodgingEditor>
   Widget _buildDatesSection(BuildContext context, dynamic tripMetadata) {
     return EditorTheme.createSection(
       context: context,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          EditorTheme.createSectionHeader(
-            context,
-            icon: Icons.calendar_today_rounded,
-            title: 'Check-in & Check-out',
-            iconColor:
-                context.isLightTheme ? AppColors.info : AppColors.infoLight,
-          ),
-          const SizedBox(height: 12),
-          PlatformDateRangePicker(
-            startDate: _lodging.checkinDateTime,
-            endDate: _lodging.checkoutDateTime,
-            firstDate: tripMetadata.startDate!,
-            lastDate: tripMetadata.endDate!,
-            callback: (newStartDate, newEndDate) {
-              setState(() {
-                _lodging.checkinDateTime = newStartDate;
-                _lodging.checkoutDateTime = newEndDate;
-              });
-              widget.onLodgingUpdated();
-            },
-          ),
-          const SizedBox(width: 8),
-          if (_lodging.checkinDateTime != null &&
-              _lodging.checkoutDateTime != null)
-            _buildDurationIndicator(context),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDurationIndicator(BuildContext context) {
-    final startDate = _lodging.checkinDateTime!;
-    final endDate = _lodging.checkoutDateTime!;
-    final days = endDate.difference(startDate).inDays;
-    final isLightTheme = context.isLightTheme;
-
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      child: Container(
-        margin: const EdgeInsets.only(top: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.info.withValues(alpha: 0.2),
-              AppColors.infoLight.withValues(alpha: 0.1),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isLightTheme
-                ? AppColors.info.withValues(alpha: 0.3)
-                : AppColors.infoLight.withValues(alpha: 0.3),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.event_available,
-              size: 18,
-              color: isLightTheme ? AppColors.info : AppColors.infoLight,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '$days ${days == 1 ? 'day' : 'days'}',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isLightTheme ? AppColors.info : AppColors.infoLight,
-                  ),
-            ),
-          ],
-        ),
+      child: DateTimeSelector(
+        checkinDateTime: _lodging.checkinDateTime,
+        checkoutDateTime: _lodging.checkoutDateTime,
+        firstDate: tripMetadata.startDate!,
+        lastDate: tripMetadata.endDate!,
+        onCheckinChanged: (newDateTime) {
+          setState(() {
+            _lodging.checkinDateTime = newDateTime;
+          });
+          widget.onLodgingUpdated();
+        },
+        onCheckoutChanged: (newDateTime) {
+          setState(() {
+            _lodging.checkoutDateTime = newDateTime;
+          });
+          widget.onLodgingUpdated();
+        },
       ),
     );
   }
