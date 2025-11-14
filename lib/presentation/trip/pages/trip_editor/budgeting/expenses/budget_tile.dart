@@ -16,13 +16,13 @@ class BudgetTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeTrip = context.activeTrip;
-    final budgetingModule = activeTrip.budgetingModule;
-    final budget = activeTrip.tripMetadata.budget;
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       listener: (context, state) {},
       buildWhen: _shouldBuild,
       builder: (context, state) {
+        final activeTrip = context.activeTrip;
+        final budgetingModule = activeTrip.budgetingModule;
+        final budget = activeTrip.tripMetadata.budget;
         return StreamBuilder<double>(
           stream: budgetingModule.totalExpenditureStream,
           initialData: budgetingModule.totalExpenditure,
