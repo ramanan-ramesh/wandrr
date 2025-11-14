@@ -346,6 +346,12 @@ abstract class AppLocalizations {
   /// **'Car Rental'**
   String get carRental;
 
+  /// No description provided for @taxi.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxi'**
+  String get taxi;
+
   /// No description provided for @publicTransit.
   ///
   /// In en, this message translates to:

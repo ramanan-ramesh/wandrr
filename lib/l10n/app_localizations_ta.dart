@@ -138,6 +138,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get carRental => 'கார் வாடகை';
 
   @override
+  String get taxi => 'டாக்சி';
+
+  @override
   String get publicTransit => 'பொது போக்குவரத்து';
 
   @override

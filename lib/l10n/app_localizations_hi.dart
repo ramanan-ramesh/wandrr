@@ -137,6 +137,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get carRental => 'किराए कार';
 
   @override
+  String get taxi => 'टैक्सी';
+
+  @override
   String get publicTransit => 'सार्वजनिक परिवहन';
 
   @override

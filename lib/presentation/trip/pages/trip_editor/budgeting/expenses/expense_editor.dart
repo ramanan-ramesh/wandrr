@@ -224,6 +224,7 @@ class ExpenseEditor extends StatelessWidget {
     _categoryNames[ExpenseCategory.shopping] = context.localizations.shopping;
     _categoryNames[ExpenseCategory.fuel] = context.localizations.fuel;
     _categoryNames[ExpenseCategory.groceries] = context.localizations.groceries;
+    _categoryNames[ExpenseCategory.taxi] = context.localizations.taxi;
     _categoryNames[ExpenseCategory.other] = context.localizations.other;
   }
 
@@ -345,4 +346,5 @@ const Map<ExpenseCategory, IconData> _iconsForCategories = {
   ExpenseCategory.fuel: Icons.local_gas_station_rounded,
   ExpenseCategory.groceries: Icons.local_grocery_store_rounded,
   ExpenseCategory.other: Icons.feed_rounded,
+  ExpenseCategory.taxi: Icons.local_taxi_rounded,
 };

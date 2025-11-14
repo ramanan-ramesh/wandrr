@@ -136,6 +136,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get carRental => 'Car Rental';
 
   @override
+  String get taxi => 'Taxi';
+
+  @override
   String get publicTransit => 'Public Transit';
 
   @override

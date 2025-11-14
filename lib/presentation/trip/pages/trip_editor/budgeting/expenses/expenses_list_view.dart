@@ -327,6 +327,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       ExpenseCategory.fuel: context.localizations.fuel,
       ExpenseCategory.groceries: context.localizations.groceries,
       ExpenseCategory.other: context.localizations.other,
+      ExpenseCategory.taxi: context.localizations.taxi,
     };
   }
 }
@@ -423,4 +424,5 @@ const Map<ExpenseCategory, IconData> iconsForCategories = {
   ExpenseCategory.fuel: Icons.local_gas_station_rounded,
   ExpenseCategory.groceries: Icons.local_grocery_store_rounded,
   ExpenseCategory.other: Icons.feed_rounded,
+  ExpenseCategory.taxi: Icons.local_taxi_rounded,
 };

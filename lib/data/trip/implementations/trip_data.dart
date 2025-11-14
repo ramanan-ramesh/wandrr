@@ -247,6 +247,10 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         transitOption: TransitOption.walk,
         icon: Icons.directions_walk_rounded,
         name: appLocalizations.walk));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.taxi,
+        icon: Icons.local_taxi_rounded,
+        name: appLocalizations.taxi));
     return transitOptionMetadataList;
   }
 
