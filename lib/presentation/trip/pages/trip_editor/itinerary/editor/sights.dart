@@ -33,40 +33,8 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
   static const double _kBorderRadiusLarge = 14.0;
   static const double _kBorderRadiusMedium = 12.0;
 
-  // Controllers cache to prevent recreation on every rebuild
-  final Map<String, TextEditingController> _titleControllers = {};
-  final Map<String, TextEditingController> _descriptionControllers = {};
-
-  @override
-  void dispose() {
-    _titleControllers.values.forEach((c) => c.dispose());
-    _descriptionControllers.values.forEach((c) => c.dispose());
-    super.dispose();
-  }
-
-  void _cleanupOrphanedControllers() {
-    final validSightIds =
-        widget.sights.map((s) => s.id ?? s.hashCode.toString()).toSet();
-    _titleControllers.removeWhere((key, controller) {
-      if (!validSightIds.contains(key)) {
-        controller.dispose();
-        return true;
-      }
-      return false;
-    });
-    _descriptionControllers.removeWhere((key, controller) {
-      if (!validSightIds.contains(key)) {
-        controller.dispose();
-        return true;
-      }
-      return false;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    _cleanupOrphanedControllers();
-
     return CommonCollapsibleTab(
       items: widget.sights,
       addButtonLabel: 'Add Sight',
@@ -135,14 +103,10 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
 
   Widget _buildTitleField(SightFacade sight, VoidCallback notifyParent) {
     final controllerId = sight.id ?? sight.hashCode.toString();
-    final controller = _titleControllers.putIfAbsent(
-      controllerId,
-      () => TextEditingController(text: sight.name),
-    );
 
-    return TextField(
+    return TextFormField(
       key: ValueKey('sight_title_$controllerId'),
-      controller: controller,
+      initialValue: sight.name,
       decoration: InputDecoration(
         labelText: 'Title',
         hintText: 'Enter sight name',
@@ -268,10 +232,6 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
   Widget _buildDescriptionSection(
       BuildContext context, SightFacade sight, VoidCallback notifyParent) {
     final controllerId = sight.id ?? sight.hashCode.toString();
-    final controller = _descriptionControllers.putIfAbsent(
-      controllerId,
-      () => TextEditingController(text: sight.description ?? ''),
-    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -283,9 +243,9 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
                 ? AppColors.brandPrimary
                 : AppColors.brandPrimaryLight),
         const SizedBox(height: _kSpacingMedium),
-        TextField(
+        TextFormField(
           key: ValueKey('sight_description_$controllerId'),
-          controller: controller,
+          initialValue: sight.description ?? '',
           maxLines: 3,
           decoration: const InputDecoration(
             labelText: 'Details',
