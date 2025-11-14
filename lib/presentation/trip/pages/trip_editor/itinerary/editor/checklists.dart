@@ -30,8 +30,50 @@ class _ItineraryChecklistsEditorState extends State<ItineraryChecklistsEditor> {
   static const double _kBorderRadiusMedium = 12.0;
   static const double _kItemVerticalPadding = 4.0;
 
+  // Controllers cache to prevent recreation on every rebuild
+  final Map<String, TextEditingController> _titleControllers = {};
+  final Map<String, TextEditingController> _itemControllers = {};
+
+  @override
+  void dispose() {
+    _titleControllers.values.forEach((c) => c.dispose());
+    _itemControllers.values.forEach((c) => c.dispose());
+    super.dispose();
+  }
+
+  void _cleanupOrphanedControllers() {
+    // Remove title controllers for deleted checklists
+    final validChecklistIds =
+        widget.checklists.map((cl) => cl.id ?? cl.hashCode.toString()).toSet();
+    _titleControllers.removeWhere((key, controller) {
+      if (!validChecklistIds.contains(key)) {
+        controller.dispose();
+        return true;
+      }
+      return false;
+    });
+
+    // Remove item controllers for deleted items
+    final validItemIds = <String>{};
+    for (final checklist in widget.checklists) {
+      final checklistId = checklist.id ?? checklist.hashCode.toString();
+      for (int i = 0; i < checklist.items.length; i++) {
+        validItemIds.add('${checklistId}_item_$i');
+      }
+    }
+    _itemControllers.removeWhere((key, controller) {
+      if (!validItemIds.contains(key)) {
+        controller.dispose();
+        return true;
+      }
+      return false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    _cleanupOrphanedControllers();
+
     return CommonCollapsibleTab(
       items: widget.checklists,
       addButtonLabel: 'Add Checklist',
@@ -63,11 +105,17 @@ class _ItineraryChecklistsEditorState extends State<ItineraryChecklistsEditor> {
     CheckListFacade checklist,
     VoidCallback notifyParent,
   ) {
-    final titleController = TextEditingController(text: checklist.title ?? '');
+    final controllerId = checklist.id ?? checklist.hashCode.toString();
+    final titleController = _titleControllers.putIfAbsent(
+      controllerId,
+      () => TextEditingController(text: checklist.title ?? ''),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextField(
+          key: ValueKey('checklist_title_$controllerId'),
           controller: titleController,
           decoration: const InputDecoration(
             labelText: 'Title',
@@ -81,8 +129,7 @@ class _ItineraryChecklistsEditorState extends State<ItineraryChecklistsEditor> {
             filled: true,
           ),
           onChanged: (val) {
-            checklist.title = val.trim();
-            notifyParent();
+            checklist.title = val;
           },
         ),
         const SizedBox(height: _kSpacingMedium),
@@ -125,13 +172,20 @@ class _ItineraryChecklistsEditorState extends State<ItineraryChecklistsEditor> {
     required CheckListFacade checklist,
     required VoidCallback notifyParent,
   }) {
-    final itemController = TextEditingController(text: item.item);
+    final checklistId = checklist.id ?? checklist.hashCode.toString();
+    final itemControllerId = '${checklistId}_item_$index';
+    final itemController = _itemControllers.putIfAbsent(
+      itemControllerId,
+      () => TextEditingController(text: item.item),
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: _kItemVerticalPadding),
       child: Row(
         children: [
           Expanded(
             child: TextField(
+              key: ValueKey(itemControllerId),
               controller: itemController,
               decoration: InputDecoration(
                 hintText: 'Item ${index + 1}',
@@ -144,8 +198,7 @@ class _ItineraryChecklistsEditorState extends State<ItineraryChecklistsEditor> {
                 filled: true,
               ),
               onChanged: (val) {
-                item.item = val.trim();
-                notifyParent();
+                item.item = val;
               },
             ),
           ),
