@@ -3,16 +3,13 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/app/widgets/date_time_picker.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
-import 'package:wandrr/presentation/trip/widgets/geo_location_auto_complete.dart';
 
-import 'airport_data_editor_section.dart';
+import 'journey_point_editor.dart';
 import 'transit_operator_editor_section.dart';
 import 'transit_option_picker.dart';
 
@@ -41,17 +38,13 @@ class _TravelEditorState extends State<TravelEditor>
 
   @override
   Widget build(BuildContext context) {
-    final activeTrip = context.activeTrip;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildTransitTypeBadge(),
         if (_needsPriorBooking) _buildOperatorSection(),
         _JourneySection(
-          tripMetadata: activeTrip.tripMetadata,
           transitFacade: _transitFacade,
-          parentContext: context,
           onLocationChanged: _updateLocation,
           onDateTimeChanged: _updateDateTime,
         ),
@@ -244,11 +237,13 @@ class _TravelEditorState extends State<TravelEditor>
   }
 
   void _updateLocation(bool isArrival, LocationFacade? newLocation) {
-    if (isArrival) {
-      _transitFacade.arrivalLocation = newLocation;
-    } else {
-      _transitFacade.departureLocation = newLocation;
-    }
+    setState(() {
+      if (isArrival) {
+        _transitFacade.arrivalLocation = newLocation;
+      } else {
+        _transitFacade.departureLocation = newLocation;
+      }
+    });
     widget.onTransitUpdated();
   }
 
@@ -265,9 +260,7 @@ class _TravelEditorState extends State<TravelEditor>
 }
 
 class _JourneySection extends StatelessWidget {
-  final TripMetadataFacade tripMetadata;
   final TransitFacade transitFacade;
-  final BuildContext parentContext;
   final void Function(bool isArrival, LocationFacade? newLocation)
       onLocationChanged;
   final void Function(bool isArrival, DateTime updatedDateTime)
@@ -275,9 +268,7 @@ class _JourneySection extends StatelessWidget {
 
   const _JourneySection({
     Key? key,
-    required this.tripMetadata,
     required this.transitFacade,
-    required this.parentContext,
     required this.onLocationChanged,
     required this.onDateTimeChanged,
   }) : super(key: key);
@@ -287,16 +278,16 @@ class _JourneySection extends StatelessWidget {
     if (context.isBigLayout) {
       return Row(
         children: [
-          Expanded(child: _buildDeparturePoint(tripMetadata)),
+          Expanded(child: _buildDeparturePoint(context)),
           _buildJourneyConnector(context),
-          Expanded(child: _buildArrivalPoint(tripMetadata)),
+          Expanded(child: _buildArrivalPoint(context)),
         ],
       );
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildDeparturePoint(tripMetadata),
+        _buildDeparturePoint(context),
         Align(
           alignment: Alignment.center,
           child: Padding(
@@ -304,49 +295,37 @@ class _JourneySection extends StatelessWidget {
             child: _buildJourneyConnector(context),
           ),
         ),
-        _buildArrivalPoint(tripMetadata),
+        _buildArrivalPoint(context),
       ],
     );
   }
 
-  Widget _buildDeparturePoint(TripMetadataFacade tripMetadata) {
+  Widget _buildDeparturePoint(BuildContext context) {
     return _buildJourneyPoint(
+      context,
       isDeparture: true,
-      tripMetadata: tripMetadata,
     );
   }
 
-  Widget _buildArrivalPoint(TripMetadataFacade tripMetadata) {
+  Widget _buildArrivalPoint(BuildContext context) {
     return _buildJourneyPoint(
+      context,
       isDeparture: false,
-      tripMetadata: tripMetadata,
     );
   }
 
-  Widget _buildJourneyPoint({
+  Widget _buildJourneyPoint(
+    BuildContext context, {
     required bool isDeparture,
-    required TripMetadataFacade tripMetadata,
   }) {
-    final pointTitle = isDeparture
-        ? parentContext.localizations.depart
-        : parentContext.localizations.arrive;
-    return EditorTheme.createSection(
-      context: parentContext,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          EditorTheme.createSectionHeader(
-            parentContext,
-            icon: isDeparture ? Icons.flight_takeoff : Icons.flight_land,
-            title: pointTitle,
-            iconColor: isDeparture ? AppColors.info : AppColors.success,
-          ),
-          const SizedBox(height: 12),
-          _buildLocationField(!isDeparture),
-          const SizedBox(height: 12),
-          _buildDateTimeField(!isDeparture, tripMetadata),
-        ],
-      ),
+    return JourneyPointEditor(
+      transitFacade: transitFacade,
+      isDeparture: isDeparture,
+      onLocationChanged: (newLocation) {
+        onLocationChanged(!isDeparture, newLocation);
+      },
+      onDateTimeChanged: (updatedDateTime) =>
+          onDateTimeChanged(!isDeparture, updatedDateTime),
     );
   }
 
@@ -358,54 +337,5 @@ class _JourneySection extends StatelessWidget {
         context.isBigLayout ? Icons.arrow_forward : Icons.arrow_downward,
         color: connectorColor,
         size: 32);
-  }
-
-  //TODO: LocationAutoComplete has little width in big layout
-  Widget _buildLocationField(bool isArrival) {
-    final currentLocation = isArrival
-        ? transitFacade.arrivalLocation
-        : transitFacade.departureLocation;
-    final isFlightTransit = transitFacade.transitOption == TransitOption.flight;
-    return isFlightTransit
-        ? AirportsDataEditorSection(
-            initialLocation: currentLocation,
-            onLocationSelected: (newLocation) =>
-                onLocationChanged(isArrival, newLocation),
-          )
-        : PlatformGeoLocationAutoComplete(
-            onLocationSelected: (newLocation) =>
-                onLocationChanged(isArrival, newLocation),
-            selectedLocation: currentLocation,
-          );
-  }
-
-  Widget _buildDateTimeField(bool isArrival, TripMetadataFacade tripMetadata) {
-    final startDateTime = _getStartDateTime(isArrival, tripMetadata);
-    final endDateTime = _getEndDateTime(tripMetadata);
-    final currentDateTime = isArrival
-        ? transitFacade.arrivalDateTime
-        : transitFacade.departureDateTime;
-    return PlatformDateTimePicker(
-      dateTimeUpdated: (updatedDateTime) =>
-          onDateTimeChanged(isArrival, updatedDateTime),
-      startDateTime: startDateTime,
-      endDateTime: endDateTime,
-      currentDateTime: currentDateTime,
-    );
-  }
-
-  DateTime _getStartDateTime(bool isArrival, TripMetadataFacade tripMetadata) {
-    if (isArrival) {
-      final departureTime = transitFacade.departureDateTime;
-      if (departureTime != null) {
-        return departureTime.add(const Duration(minutes: 1));
-      }
-    }
-    return tripMetadata.startDate!;
-  }
-
-  DateTime _getEndDateTime(TripMetadataFacade tripMetadata) {
-    final endDate = tripMetadata.endDate!;
-    return DateTime(endDate.year, endDate.month, endDate.day, 23, 59);
   }
 }
