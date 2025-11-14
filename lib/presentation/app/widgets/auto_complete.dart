@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'text.dart';
-
 class PlatformAutoComplete<T extends Object> extends StatefulWidget {
   final FutureOr<Iterable<T>> Function(String searchValue) optionsBuilder;
   final Widget Function(T value) listItem;
@@ -16,6 +14,8 @@ class PlatformAutoComplete<T extends Object> extends StatefulWidget {
   final double? optionsViewWidth;
   final String Function(T)? displayTextCreator;
   final T? selectedItem;
+
+  static const _defaultAutoCompleteHintText = 'e.g. Paris, Hawaii...';
 
   PlatformAutoComplete({
     required this.optionsBuilder,
@@ -39,11 +39,13 @@ class PlatformAutoComplete<T extends Object> extends StatefulWidget {
 
 class _PlatformAutoCompleteState<T extends Object>
     extends State<PlatformAutoComplete<T>> {
-  static const _defaultAutoCompleteHintText = 'e.g. Paris, Hawaii...';
-
   // --- Debouncer State ---
   Timer? _debounce;
   Completer<Iterable<T>>? _completer;
+
+  // Stores the last query text that a timer was set for.
+  // This is the key to fixing the RawAutocomplete bug.
+  String? _lastQueryForTimer;
 
   // --- State variables for managing selection and controllers ---
   late FocusNode _focusNode;
@@ -60,39 +62,53 @@ class _PlatformAutoCompleteState<T extends Object>
   void dispose() {
     _debounce?.cancel();
     if (_completer != null && !_completer!.isCompleted) {
-      // Complete with an empty list to avoid hanging futures
       _completer!.complete([]);
     }
+    _lastQueryForTimer = null;
     super.dispose();
   }
 
   Future<Iterable<T>> _debouncedOptionsBuilder(
       TextEditingValue textEditingValue) async {
     final String query = textEditingValue.text;
+
+    if (query == _lastQueryForTimer && _completer != null) {
+      return _completer!.future;
+    }
+
     _debounce?.cancel();
+
     if (_completer != null && !_completer!.isCompleted) {
       _completer!.complete([]);
     }
+
+    final Completer<Iterable<T>> completer = Completer<Iterable<T>>();
+    _completer = completer;
+    _lastQueryForTimer = query;
+
     if (query.isEmpty) {
-      return Future.value([]);
+      completer.complete([]);
+      return completer.future;
     }
 
-    _completer = Completer<Iterable<T>>();
     _debounce = Timer(const Duration(milliseconds: 500), () async {
       try {
         final results = await widget.optionsBuilder(query);
-        if (!(_completer?.isCompleted ?? true)) {
-          _completer?.complete(results);
+
+        if (completer == _completer && !completer.isCompleted) {
+          completer.complete(results);
         }
       } catch (e) {
-        if (!(_completer?.isCompleted ?? true)) {
-          _completer?.completeError(e);
+        if (completer == _completer && !completer.isCompleted) {
+          completer.completeError(e);
         }
       }
     });
-    return _completer!.future;
+
+    return completer.future;
   }
 
+  /// Helper to get the display string for a given item
   String _getDisplayString(T item) {
     if (widget.displayTextCreator != null) {
       return widget.displayTextCreator!(item);
@@ -153,14 +169,14 @@ class _PlatformAutoCompleteState<T extends Object>
                       focusNode: _focusNode,
                       style: Theme.of(context).textTheme.labelLarge ??
                           const TextStyle(
-                            fontSize: PlatformTextElements.subHeaderSize,
+                            fontSize: 16.0,
                           ),
                       decoration: InputDecoration(
                         suffix: widget.suffix,
                         isDense: true,
                         prefixIcon: widget.prefixIcon,
-                        hintText:
-                            widget.hintText ?? _defaultAutoCompleteHintText,
+                        hintText: widget.hintText ??
+                            PlatformAutoComplete._defaultAutoCompleteHintText,
                         labelText: widget.labelText,
                       ),
                     ),
