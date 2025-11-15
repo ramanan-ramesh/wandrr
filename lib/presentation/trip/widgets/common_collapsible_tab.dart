@@ -139,42 +139,48 @@ class _CommonCollapsibleTabState<T> extends State<CommonCollapsibleTab<T>> {
   }
 
   Widget _buildReorderableList() {
-    return ReorderableListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-      itemCount: widget.items.length,
-      buildDefaultDragHandles: false,
-      onReorder: (oldIndex, newIndex) {
-        setState(() {
-          if (newIndex > oldIndex) newIndex -= 1;
-          final item = widget.items.removeAt(oldIndex);
-          widget.items.insert(newIndex, item);
-          widget.onItemsChanged();
-        });
-      },
-      itemBuilder: (context, index) {
-        final item = widget.items[index];
-        final expanded = _expandedIndex == index;
-        final accent =
-            widget.accentColorBuilder?.call(item) ?? AppColors.brandPrimary;
-        final valid = widget.isValidBuilder?.call(item);
-        final handleColor = valid == null
-            ? accent
-            : (valid ? AppColors.success : AppColors.error);
-        return _CollapsibleEntry<T>(
-          key: ObjectKey(item),
-          index: index,
-          item: item,
-          expanded: expanded,
-          accentColor: handleColor,
-          titleBuilder: widget.titleBuilder,
-          previewBuilder: widget.previewBuilder,
-          onToggle: () =>
-              setState(() => _expandedIndex = expanded ? null : index),
-          onDelete: () => _deleteItem(index),
-          expandedBuilder: (ctx, notify) =>
-              widget.expandedBuilder(ctx, index, item, notify),
-          notifyChanged: _notifyChanged,
-          itemHeaderBuilder: widget.itemHeaderBuilder,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+        return ReorderableListView.builder(
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 32 + keyboardHeight),
+          itemCount: widget.items.length,
+          buildDefaultDragHandles: false,
+          shrinkWrap: true,
+          onReorder: (oldIndex, newIndex) {
+            setState(() {
+              if (newIndex > oldIndex) newIndex -= 1;
+              final item = widget.items.removeAt(oldIndex);
+              widget.items.insert(newIndex, item);
+              widget.onItemsChanged();
+            });
+          },
+          itemBuilder: (context, index) {
+            final item = widget.items[index];
+            final expanded = _expandedIndex == index;
+            final accent =
+                widget.accentColorBuilder?.call(item) ?? AppColors.brandPrimary;
+            final valid = widget.isValidBuilder?.call(item);
+            final handleColor = valid == null
+                ? accent
+                : (valid ? AppColors.success : AppColors.error);
+            return _CollapsibleEntry<T>(
+              key: ObjectKey(item),
+              index: index,
+              item: item,
+              expanded: expanded,
+              accentColor: handleColor,
+              titleBuilder: widget.titleBuilder,
+              previewBuilder: widget.previewBuilder,
+              onToggle: () =>
+                  setState(() => _expandedIndex = expanded ? null : index),
+              onDelete: () => _deleteItem(index),
+              expandedBuilder: (ctx, notify) =>
+                  widget.expandedBuilder(ctx, index, item, notify),
+              notifyChanged: _notifyChanged,
+              itemHeaderBuilder: widget.itemHeaderBuilder,
+            );
+          },
         );
       },
     );

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wandrr/l10n/extension.dart';
 
-class PlatformExpenseAmountEditField extends StatelessWidget {
+class PlatformExpenseAmountEditField extends StatefulWidget {
   final bool isReadonly;
   final Function(double)? onExpenseAmountChanged;
   String? amount;
@@ -27,33 +27,60 @@ class PlatformExpenseAmountEditField extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final TextEditingController effectiveController = controller ??
+  State<PlatformExpenseAmountEditField> createState() =>
+      _PlatformExpenseAmountEditFieldState();
+}
+
+class _PlatformExpenseAmountEditFieldState
+    extends State<PlatformExpenseAmountEditField> {
+  late TextEditingController _controller;
+  final FocusNode _focusNode = FocusNode();
+  String? _amount;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller ??
         TextEditingController(
-            text: amount != null
-                ? (double.parse(amount!) == 0 ? '0' : amount)
-                : amount);
-    final FocusNode effectiveFocusNode = focusNode ?? FocusNode();
+            text: widget.amount != null
+                ? (double.parse(widget.amount!) == 0 ? '0' : widget.amount)
+                : widget.amount);
+  }
+
+  @override
+  void didUpdateWidget(covariant PlatformExpenseAmountEditField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.amount != _amount) {
+      _amount = widget.amount;
+      _controller.text = (widget.amount != null
+          ? (double.parse(widget.amount!) == 0 ? '0' : widget.amount)
+          : widget.amount ?? '')!;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return TextField(
-      readOnly: isReadonly,
-      style: TextStyle(color: textColor),
-      textInputAction: textInputAction,
-      controller: effectiveController,
-      focusNode: effectiveFocusNode,
+      readOnly: widget.isReadonly,
+      style: TextStyle(color: widget.textColor),
+      textInputAction: widget.textInputAction,
+      controller: _controller,
+      focusNode: _focusNode,
       onChanged: (newValue) {
-        if (newValue != amount) {
-          amount = newValue;
+        if (newValue != widget.amount) {
+          _amount = newValue;
           var doubleValue = double.tryParse(newValue);
-          if (onExpenseAmountChanged != null && doubleValue != null) {
-            onExpenseAmountChanged!(doubleValue);
+          if (widget.onExpenseAmountChanged != null && doubleValue != null) {
+            widget.onExpenseAmountChanged!(doubleValue);
           }
         }
         // No focus shifting code here
       },
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [_DecimalTextInputFormatter()],
-      decoration: inputDecoration
+      decoration: widget.inputDecoration
         ?..copyWith(hintText: context.localizations.enterAmount),
+      scrollPadding: const EdgeInsets.only(bottom: 250),
     );
   }
 }

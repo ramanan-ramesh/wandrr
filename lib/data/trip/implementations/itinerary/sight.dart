@@ -17,7 +17,10 @@ class SightModelImplementation extends SightFacade
       tripId: facade.tripId,
       id: facade.id,
       name: facade.name,
-      location: facade.location?.clone(),
+      location: facade.location != null
+          ? LocationModelImplementation.fromModelFacade(
+              locationModelFacade: facade.location!)
+          : null,
       visitTime: facade.visitTime?.copyWith(),
       expense: facade.expense.clone(),
       description: facade.description,
@@ -54,7 +57,7 @@ class SightModelImplementation extends SightFacade
   Map<String, dynamic> toJson() {
     return {
       _nameField: name,
-      _locationField: (location as LocationModelImplementation?)?.toJson(),
+      _locationField: (location as LeafRepositoryItem?)?.toJson(),
       _visitTimeField: visitTime?.toIso8601String(),
       _expenseField: (expense as ExpenseModelImplementation).toJson(),
       _descriptionField: description,

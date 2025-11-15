@@ -38,7 +38,6 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
   static const double _kSpacingSmall = 8.0;
   static const double _kSpacingMedium = 12.0;
   static const double _kHeaderIconSize = 26.0;
-  static const double _kTabViewHeightFactor = 0.6; // portion of screen height
 
   late final TabController _tabController;
 
@@ -80,8 +79,8 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
 
   @override
   Widget build(BuildContext context) {
-    final double tabViewHeight =
-        MediaQuery.of(context).size.height * _kTabViewHeightFactor;
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    final availableHeight = MediaQuery.of(context).size.height * 0.6;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -92,7 +91,8 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
         _buildTabBar(),
         const SizedBox(height: _kSpacingSmall),
         SizedBox(
-          height: tabViewHeight,
+          height:
+              (availableHeight - keyboardHeight).clamp(300.0, availableHeight),
           child: TabBarView(
             controller: _tabController,
             children: [

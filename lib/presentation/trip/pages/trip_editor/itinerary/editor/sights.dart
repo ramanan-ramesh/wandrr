@@ -107,15 +107,16 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
     return TextFormField(
       key: ValueKey('sight_title_$controllerId'),
       initialValue: sight.name,
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         labelText: 'Title',
         hintText: 'Enter sight name',
-        border: const OutlineInputBorder(
+        border: OutlineInputBorder(
           borderSide: BorderSide.none,
           borderRadius: BorderRadius.all(Radius.circular(_kBorderRadiusLarge)),
         ),
         filled: true,
       ),
+      scrollPadding: const EdgeInsets.only(bottom: 250),
       onChanged: (val) {
         sight.name = val;
       },
@@ -257,6 +258,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
             ),
             filled: true,
           ),
+          scrollPadding: const EdgeInsets.only(bottom: 250),
           onChanged: (val) {
             sight.description = val;
           },

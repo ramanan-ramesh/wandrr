@@ -81,6 +81,7 @@ class _ItineraryChecklistsEditorState extends State<ItineraryChecklistsEditor> {
             ),
             filled: true,
           ),
+          scrollPadding: const EdgeInsets.only(bottom: 250),
           onChanged: (val) {
             checklist.title = val;
           },
@@ -145,6 +146,7 @@ class _ItineraryChecklistsEditorState extends State<ItineraryChecklistsEditor> {
                 ),
                 filled: true,
               ),
+              scrollPadding: const EdgeInsets.only(bottom: 250),
               onChanged: (val) {
                 item.item = val;
               },

@@ -6,7 +6,7 @@ import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 
-class TripEditorActionPage<T extends TripEntity> extends StatelessWidget {
+class TripEditorActionPage<T extends TripEntity> extends StatefulWidget {
   final void Function(BuildContext context) onClosePressed;
   final void Function(BuildContext context) onActionInvoked;
   final IconData actionIcon;
@@ -14,25 +14,48 @@ class TripEditorActionPage<T extends TripEntity> extends StatelessWidget {
       pageContentCreator;
   final String title;
   final ScrollController? scrollController;
-  final ValueNotifier<bool> validityNotifier;
   final T tripEntity;
 
-  TripEditorActionPage(
-      {super.key,
-      required this.tripEntity,
-      required this.scrollController,
-      required this.title,
-      required this.onClosePressed,
-      required this.onActionInvoked,
-      required this.pageContentCreator,
-      required this.actionIcon})
-      : validityNotifier = ValueNotifier<bool>(tripEntity.validate());
+  const TripEditorActionPage({
+    super.key,
+    required this.tripEntity,
+    required this.scrollController,
+    required this.title,
+    required this.onClosePressed,
+    required this.onActionInvoked,
+    required this.pageContentCreator,
+    required this.actionIcon,
+  });
+
+  @override
+  State<TripEditorActionPage<T>> createState() =>
+      _TripEditorActionPageState<T>();
+}
+
+class _TripEditorActionPageState<T extends TripEntity>
+    extends State<TripEditorActionPage<T>> {
+  late final ValueNotifier<bool> validityNotifier;
+  late final Widget pageContent;
+
+  @override
+  void initState() {
+    super.initState();
+    validityNotifier = ValueNotifier<bool>(widget.tripEntity.validate());
+    pageContent = widget.pageContentCreator(validityNotifier);
+  }
+
+  @override
+  void dispose() {
+    validityNotifier.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     const double _fabBottomMargin = 25.0;
     final double _bottomPadding =
         TripEditorPageConstants.fabSize + _fabBottomMargin + 16.0;
+
     return Stack(
       children: [
         Column(
@@ -46,17 +69,17 @@ class TripEditorActionPage<T extends TripEntity> extends StatelessWidget {
                               WidgetStatePropertyAll(AppColors.brandSecondary),
                         )
                       : null,
-                  onPressed: () => onClosePressed(context)),
-              title: Text(title),
+                  onPressed: () => widget.onClosePressed(context)),
+              title: Text(widget.title),
               centerTitle: true,
               elevation: 0,
             ),
             Expanded(
               child: SingleChildScrollView(
-                controller: scrollController,
+                controller: widget.scrollController,
                 padding: EdgeInsets.fromLTRB(0, 0, 0, _bottomPadding),
                 child: _AnimatedActionPage(
-                  child: pageContentCreator(validityNotifier),
+                  child: pageContent,
                 ),
               ),
             ),
@@ -81,10 +104,10 @@ class TripEditorActionPage<T extends TripEntity> extends StatelessWidget {
       child: AnimatedOpacity(
         opacity: 1.0,
         child: PlatformSubmitterFAB.conditionallyEnabled(
-          child: Icon(actionIcon),
+          child: Icon(widget.actionIcon),
           valueNotifier: validityNotifier,
           callback: () {
-            onActionInvoked(context);
+            widget.onActionInvoked(context);
             Navigator.of(context).pop();
           },
         ),
