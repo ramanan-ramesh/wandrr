@@ -189,9 +189,9 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
           ),
           _kSectionHeaderSpacing,
           PlatformMoneyEditField(
-            selectedCurrencyData: selectedCurrency,
+            selectedCurrency: selectedCurrency,
             allCurrencies: allCurrencies,
-            onAmountUpdatedCallback: (updatedAmount) {
+            onAmountUpdated: (updatedAmount) {
               widget.tripMetadataFacade.budget = Money(
                 currency: widget.tripMetadataFacade.budget.currency,
                 amount: updatedAmount,
@@ -199,7 +199,7 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
               widget.onTripMetadataUpdated();
             },
             isAmountEditable: true,
-            currencySelectedCallback: (newCurrency) {
+            onCurrencySelected: (newCurrency) {
               widget.tripMetadataFacade.budget = Money(
                 currency: newCurrency.code,
                 amount: widget.tripMetadataFacade.budget.amount,

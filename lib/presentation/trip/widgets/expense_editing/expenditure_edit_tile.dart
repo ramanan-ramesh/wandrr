@@ -164,13 +164,13 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
       isAmountEditable: canEditAmountField,
       initialAmount: _totalExpenseValueNotifier.value.amount,
       allCurrencies: context.supportedCurrencies,
-      selectedCurrencyData: _currentCurrencyInfo,
-      onAmountUpdatedCallback: (_) {
+      selectedCurrency: _currentCurrencyInfo,
+      onAmountUpdated: (_) {
         _currentPaidBy[context.activeUser!.userName] = _;
         _recalculateTotalExpense();
         _invokeUpdatedCallback();
       },
-      currencySelectedCallback: (_) {
+      onCurrencySelected: (_) {
         setState(() {
           _currentCurrencyInfo = _;
           _recalculateTotalExpense();

@@ -151,13 +151,13 @@ class TripCreatorDialog extends StatelessWidget {
     return PlatformMoneyEditField(
       textInputAction: TextInputAction.done,
       allCurrencies: widgetContext.supportedCurrencies,
-      selectedCurrencyData: currencyInfo,
-      onAmountUpdatedCallback: (updatedAmount) {
+      selectedCurrency: currencyInfo,
+      onAmountUpdated: (updatedAmount) {
         _currentTripMetadata.budget = Money(
             currency: _currentTripMetadata.budget.currency,
             amount: updatedAmount);
       },
-      currencySelectedCallback: (selectedCurrency) {
+      onCurrencySelected: (selectedCurrency) {
         _currentTripMetadata.budget = Money(
             currency: selectedCurrency.code,
             amount: _currentTripMetadata.budget.amount);

@@ -7,20 +7,20 @@ import 'package:wandrr/l10n/extension.dart';
 class PlatformExpenseAmountEditField extends StatefulWidget {
   final bool isReadonly;
   final Function(double)? onExpenseAmountChanged;
-  String? amount;
+  final String? amount;
   final TextEditingController? controller;
   final FocusNode? focusNode;
   final InputDecoration? inputDecoration;
   final Color? textColor;
   final TextInputAction textInputAction;
 
-  PlatformExpenseAmountEditField({
+  const PlatformExpenseAmountEditField({
     super.key,
     this.isReadonly = false,
     this.onExpenseAmountChanged,
     this.inputDecoration,
     this.textColor,
-    this.textInputAction = TextInputAction.done, // changed default to done
+    this.textInputAction = TextInputAction.done,
     this.amount,
     this.controller,
     this.focusNode,
@@ -34,28 +34,44 @@ class PlatformExpenseAmountEditField extends StatefulWidget {
 class _PlatformExpenseAmountEditFieldState
     extends State<PlatformExpenseAmountEditField> {
   late TextEditingController _controller;
-  final FocusNode _focusNode = FocusNode();
+  late FocusNode _focusNode;
   String? _amount;
+  bool _isExternalController = false;
 
   @override
   void initState() {
     super.initState();
+    _isExternalController = widget.controller != null;
     _controller = widget.controller ??
         TextEditingController(
             text: widget.amount != null
                 ? (double.parse(widget.amount!) == 0 ? '0' : widget.amount)
                 : widget.amount);
+    _focusNode = widget.focusNode ?? FocusNode();
   }
 
   @override
   void didUpdateWidget(covariant PlatformExpenseAmountEditField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.amount != _amount) {
+    // Only update text if we're using internal controller and amount changed
+    if (!_isExternalController && widget.amount != _amount) {
       _amount = widget.amount;
       _controller.text = (widget.amount != null
           ? (double.parse(widget.amount!) == 0 ? '0' : widget.amount)
           : widget.amount ?? '')!;
     }
+  }
+
+  @override
+  void dispose() {
+    // Only dispose if we created them internally
+    if (!_isExternalController) {
+      _controller.dispose();
+    }
+    if (widget.focusNode == null) {
+      _focusNode.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -74,7 +90,6 @@ class _PlatformExpenseAmountEditFieldState
             widget.onExpenseAmountChanged!(doubleValue);
           }
         }
-        // No focus shifting code here
       },
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [_DecimalTextInputFormatter()],
