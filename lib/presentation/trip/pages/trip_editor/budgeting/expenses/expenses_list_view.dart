@@ -301,8 +301,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     list.addAll(activeTrip.transitCollection.collectionItems);
     list.addAll(activeTrip.lodgingCollection.collectionItems);
     list.addAll(activeTrip.itineraryCollection
-        .expand((itineraryPlanData) => itineraryPlanData.planData.sights)
-        .map((sight) => sight.expense));
+        .expand((itineraryPlanData) => itineraryPlanData.planData.sights));
     _expenses = list
         .where(
           (expense) => expense.expense.totalExpense.amount > 0,

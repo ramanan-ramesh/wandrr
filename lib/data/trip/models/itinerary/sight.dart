@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
@@ -59,6 +60,15 @@ class SightFacade extends Equatable
   @override
   bool validate() {
     return name.isNotEmpty && name.length >= 3;
+  }
+
+  @override
+  String toString() {
+    var sightDescription = name;
+    if (visitTime != null) {
+      sightDescription += ' on ${visitTime!.dayDateMonthFormat}';
+    }
+    return sightDescription;
   }
 
   @override
