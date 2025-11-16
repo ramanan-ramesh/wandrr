@@ -66,18 +66,16 @@ class ExpenseModelImplementation extends ExpenseFacade
 
   @override
   Map<String, dynamic> toJson() {
-    var json = {
+    return {
       _currencyField: currency,
       _paidByField: paidBy,
       _titleField: title,
       _categoryField: category.name,
-      _descriptionField: description,
+      if (description != null && description!.isNotEmpty)
+        _descriptionField: description,
       _splitByField: splitBy,
+      if (dateTime != null) _dateTimeField: Timestamp.fromDate(dateTime!),
     };
-    if (dateTime != null) {
-      json[_dateTimeField] = Timestamp.fromDate(dateTime!);
-    }
-    return json;
   }
 
   static ExpenseModelImplementation fromJson(

@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/data/trip/models/itinerary/note.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/common_collapsible_tab.dart';
 
-class ItineraryNotesEditor extends StatefulWidget {
-  final List<NoteFacade> notes;
-  final VoidCallback onNotesChanged;
+/// A simple mutable wrapper class for a string.
+/// This allows the note's identity (the object) to be stable,
+/// while its content (the text property) can be changed.
+class Note {
+  String text;
 
-  const ItineraryNotesEditor({
+  Note(this.text);
+}
+
+class ItineraryNotesEditor extends StatefulWidget {
+  // The API now takes a List<Note> for stable identity
+  final List<Note> notes;
+  final Function(List<Note>) onNotesChanged;
+
+  ItineraryNotesEditor({
     super.key,
-    required this.notes,
+    required List<String> notes,
     required this.onNotesChanged,
-  });
+  }) : notes = notes.map(Note.new).toList(); // Wrap strings in Note objects
 
   @override
   State<ItineraryNotesEditor> createState() => _ItineraryNotesEditorState();
@@ -23,20 +31,26 @@ class ItineraryNotesEditor extends StatefulWidget {
 class _ItineraryNotesEditorState extends State<ItineraryNotesEditor> {
   @override
   Widget build(BuildContext context) {
-    return CommonCollapsibleTab(
+    return CommonCollapsibleTab<Note>(
+      // Generics updated to Note
       items: widget.notes,
       addButtonLabel: 'Add Note',
       addButtonIcon: Icons.note_add_rounded,
-      createItem: () => NoteFacade(note: '', tripId: context.activeTripId),
-      onItemsChanged: widget.onNotesChanged,
+      createItem: () => Note(''),
+      // Create a new Note object
+      onItemsChanged: () {
+        widget.onNotesChanged(widget.notes);
+      },
       titleBuilder: (n) {
-        final raw = n.note.trim();
+        // `n` is now a Note object
+        final raw = n.text.trim();
         if (raw.isEmpty) return 'Untitled';
         final firstLine = raw.split('\n').first.trim();
         return firstLine.isEmpty ? 'Untitled' : firstLine;
       },
       previewBuilder: (ctx, n) {
-        final raw = n.note.replaceAll('\n', ' ').trim();
+        // `n` is now a Note object
+        final raw = n.text.replaceAll('\n', ' ').trim();
         final preview =
             raw.length <= 80 ? raw : raw.substring(0, 80).trim() + '…';
         return Text(
@@ -50,11 +64,14 @@ class _ItineraryNotesEditorState extends State<ItineraryNotesEditor> {
               ),
         );
       },
-      accentColorBuilder: (n) => n.note.trim().isNotEmpty
-          ? AppColors.brandPrimary
-          : AppColors.neutral400,
+      accentColorBuilder: (n) => // `n` is now a Note object
+          n.text.trim().isNotEmpty
+              ? AppColors.brandPrimary
+              : AppColors.neutral400,
       expandedBuilder: (ctx, index, note, notifyParent) => _NoteEditor(
-        note: note,
+        // Use the stable Note object instance as the key
+        key: ValueKey(note),
+        note: note, // Pass the Note object directly
         onChanged: notifyParent,
       ),
     );
@@ -62,10 +79,12 @@ class _ItineraryNotesEditorState extends State<ItineraryNotesEditor> {
 }
 
 class _NoteEditor extends StatefulWidget {
-  final NoteFacade note;
+  // The editor now receives a single, stable Note object
+  final Note note;
   final VoidCallback onChanged;
 
   const _NoteEditor({
+    super.key,
     required this.note,
     required this.onChanged,
   });
@@ -74,14 +93,17 @@ class _NoteEditor extends StatefulWidget {
   State<_NoteEditor> createState() => _NoteEditorState();
 }
 
-class _NoteEditorState extends State<_NoteEditor> {
+class _NoteEditorState extends State<_NoteEditor>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   // Controller & focus management
   late TextEditingController _controller;
   final FocusNode _keyboardFocusNode = FocusNode();
   final FocusNode _textFieldFocusNode = FocusNode();
 
   // State
-  bool _bulletMode = false;
   String _previousText = '';
 
   // Styling & formatting constants (reused UI values)
@@ -93,21 +115,37 @@ class _NoteEditorState extends State<_NoteEditor> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.note.note);
+    // Initialize controller with the note's text
+    _controller = TextEditingController(text: widget.note.text);
     _previousText = _controller.text;
     _controller.addListener(_onControllerChanged);
+
+    // Notify parent when focus is lost (user done editing)
+    _textFieldFocusNode.addListener(_onFocusChanged);
+  }
+
+  void _onFocusChanged() {
+    if (!_textFieldFocusNode.hasFocus) {
+      // User stopped editing, update parent UI (title/preview)
+      widget.onChanged();
+    }
   }
 
   @override
   void didUpdateWidget(covariant _NoteEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.note != widget.note) {
-      _controller.text = widget.note.note;
+    // If the Note object itself has changed (e.g., due to reordering)
+    // update the controller.
+    if (widget.note != oldWidget.note) {
+      final newNote = widget.note.text;
+      _controller.text = newNote;
+      _previousText = newNote;
     }
   }
 
   @override
   void dispose() {
+    _textFieldFocusNode.removeListener(_onFocusChanged);
     _controller.removeListener(_onControllerChanged);
     _controller.dispose();
     _keyboardFocusNode.dispose();
@@ -115,20 +153,24 @@ class _NoteEditorState extends State<_NoteEditor> {
     super.dispose();
   }
 
-  /// Listener for text changes; updates model, handles bullet continuation,
-  /// and refreshes toolbar state.
+  /// Listener for text changes; updates model, handles bullet continuation.
   void _onControllerChanged() {
     final newText = _controller.text;
     final caret = _controller.selection.start;
-    widget.note.note = newText;
-    if (_bulletMode && caret > 0 && caret <= newText.length) {
+
+    // **THE FIX**: Mutate the stable Note object's text property
+    widget.note.text = newText;
+
+    if (caret > 0 && caret <= newText.length) {
       final insertedNewline = newText.length == _previousText.length + 1 &&
           newText[caret - 1] == '\n';
       if (insertedNewline) _maybeAutoContinueBullet(newText, caret);
     }
     _previousText = newText;
+
+    // **THE FIX**: It is now safe to call this on every keystroke
+    // because the key in CommonCollapsibleTab (ObjectKey(note)) is stable.
     widget.onChanged();
-    setState(() {}); // update toolbar state
   }
 
   void _maybeAutoContinueBullet(String text, int caret) {
@@ -150,17 +192,19 @@ class _NoteEditorState extends State<_NoteEditor> {
       final updated =
           text.substring(0, caret) + newPrefix + text.substring(caret);
       final newCaret = caret + newPrefix.length;
+
+      _previousText = updated;
+      widget.note.text = updated; // Update the object
       _controller.value = TextEditingValue(
         text: updated,
         selection: TextSelection.collapsed(offset: newCaret),
       );
-      _previousText = updated;
-      widget.onChanged();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
     final isLightTheme = context.isLightTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -198,35 +242,16 @@ class _NoteEditorState extends State<_NoteEditor> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            IconButton(
-              tooltip: _bulletMode ? 'Disable bullets' : 'Enable bullets',
-              icon: Icon(
-                Icons.format_list_bulleted,
-                color: _bulletMode ? AppColors.brandPrimary : null,
-              ),
-              onPressed: () {
-                setState(() => _bulletMode = !_bulletMode);
-                if (_bulletMode) _toggleBulletForCurrentLine(forceAdd: true);
-                _textFieldFocusNode.requestFocus();
-              },
-            ),
-            if (_bulletMode)
-              TextButton.icon(
-                onPressed: () {
-                  _toggleBulletForCurrentLine(forceAdd: !hasBullet);
-                  _textFieldFocusNode.requestFocus();
-                },
-                icon: Icon(
-                  hasBullet
-                      ? Icons.remove_circle_outline
-                      : Icons.add_circle_outline,
-                  size: 18,
-                ),
-                label: Text(hasBullet ? 'Remove •' : 'Add •'),
-              ),
-          ],
+        IconButton(
+          tooltip: hasBullet ? 'Remove bullet' : 'Add bullet',
+          icon: Icon(
+            Icons.format_list_bulleted,
+            color: hasBullet ? AppColors.brandPrimary : null,
+          ),
+          onPressed: () {
+            _toggleBulletForCurrentLine(forceAdd: !hasBullet);
+            _textFieldFocusNode.requestFocus();
+          },
         ),
         Row(
           children: [
@@ -271,35 +296,78 @@ class _NoteEditorState extends State<_NoteEditor> {
     final lineStart = prevNewline + 1;
     final nextNewline = text.indexOf('\n', caret);
     final lineEnd = nextNewline == -1 ? text.length : nextNewline;
-    final line = text.substring(lineStart, lineEnd);
-    const prefix = _kBulletPrefix;
-    final hasBullet = line.startsWith(prefix);
+    final lineRaw = text.substring(lineStart, lineEnd);
+
+    // Extract leading spaces and the actual content
+    final leadingSpacesLen = lineRaw.length - lineRaw.trimLeft().length;
+    final indent = lineRaw.substring(0, leadingSpacesLen);
+    final lineContent = lineRaw.substring(leadingSpacesLen);
+
+    // Check if line has a bullet (after indentation)
+    final hasBullet = lineContent.startsWith(_kBulletPrefix) ||
+        lineContent.startsWith('- ') ||
+        lineContent.startsWith('* ');
 
     String updated;
     int caretAdjust = 0;
 
     if (hasBullet && !forceAdd) {
-      updated = line.substring(prefix.length);
-      if (caret >= lineStart + prefix.length) caretAdjust = -prefix.length;
+      // Remove bullet - find which prefix is used and remove it
+      String contentAfterBullet;
+      if (lineContent.startsWith(_kBulletPrefix)) {
+        contentAfterBullet = lineContent.substring(_kBulletPrefix.length);
+      } else if (lineContent.startsWith('- ')) {
+        contentAfterBullet = lineContent.substring(2);
+      } else if (lineContent.startsWith('* ')) {
+        contentAfterBullet = lineContent.substring(2);
+      } else {
+        contentAfterBullet = lineContent;
+      }
+      updated = indent + contentAfterBullet;
+      // Move cursor to start of line (after indent)
+      caretAdjust = lineStart + leadingSpacesLen - caret;
     } else if (!hasBullet && forceAdd) {
-      updated = prefix + line;
-      if (caret >= lineStart) caretAdjust = prefix.length;
+      // Add bullet after indentation
+      updated = indent + _kBulletPrefix + lineContent;
+      if (caret >= lineStart + leadingSpacesLen) {
+        caretAdjust = _kBulletPrefix.length;
+      }
     } else {
-      updated = hasBullet ? line.substring(prefix.length) : prefix + line;
-      if (caret >= lineStart) {
-        caretAdjust = hasBullet ? -prefix.length : prefix.length;
+      // Toggle: same logic as above
+      if (hasBullet) {
+        String contentAfterBullet;
+        if (lineContent.startsWith(_kBulletPrefix)) {
+          contentAfterBullet = lineContent.substring(_kBulletPrefix.length);
+        } else if (lineContent.startsWith('- ')) {
+          contentAfterBullet = lineContent.substring(2);
+        } else if (lineContent.startsWith('* ')) {
+          contentAfterBullet = lineContent.substring(2);
+        } else {
+          contentAfterBullet = lineContent;
+        }
+        updated = indent + contentAfterBullet;
+        caretAdjust = lineStart + leadingSpacesLen - caret;
+      } else {
+        updated = indent + _kBulletPrefix + lineContent;
+        if (caret >= lineStart + leadingSpacesLen) {
+          caretAdjust = _kBulletPrefix.length;
+        }
       }
     }
 
     final newText =
         text.substring(0, lineStart) + updated + text.substring(lineEnd);
     final newCaret = caret + caretAdjust;
+
+    _previousText = newText;
+    widget.note.text = newText; // Update the object
     _controller.value = TextEditingValue(
       text: newText,
       selection: TextSelection.collapsed(offset: newCaret),
     );
+
+    // For toolbar actions, notify immediately for UI feedback
     widget.onChanged();
-    _previousText = newText;
   }
 
   void _handleKeyEvent(KeyEvent event) {
@@ -334,12 +402,16 @@ class _NoteEditorState extends State<_NoteEditor> {
         newLine +
         _controller.text.substring(end);
     final newCaret = (caret + caretDelta).clamp(start, newText.length);
+
+    _previousText = newText;
+    widget.note.text = newText; // Update the object
     _controller.value = TextEditingValue(
       text: newText,
       selection: TextSelection.collapsed(offset: newCaret),
     );
+
+    // For toolbar actions, notify immediately for UI feedback
     widget.onChanged();
-    _previousText = newText;
   }
 
   (int, int, String) _currentLineData() {

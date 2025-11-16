@@ -35,7 +35,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
 
   @override
   Widget build(BuildContext context) {
-    return CommonCollapsibleTab(
+    return CommonCollapsibleTab<SightFacade>(
       items: widget.sights,
       addButtonLabel: 'Add Sight',
       addButtonIcon: Icons.add_location_alt_rounded,
@@ -119,6 +119,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
       scrollPadding: const EdgeInsets.only(bottom: 250),
       onChanged: (val) {
         sight.name = val;
+        notifyParent();
       },
     );
   }
@@ -261,6 +262,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
           scrollPadding: const EdgeInsets.only(bottom: 250),
           onChanged: (val) {
             sight.description = val;
+            notifyParent();
           },
         ),
       ],

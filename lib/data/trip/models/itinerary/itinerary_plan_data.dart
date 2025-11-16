@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
-import 'package:wandrr/data/trip/models/itinerary/note.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
@@ -19,7 +18,7 @@ class ItineraryPlanData extends Equatable
   List<SightFacade> sights;
 
   /// Notes for the day
-  List<NoteFacade> notes;
+  List<String> notes;
 
   /// Checklists for the day
   List<CheckListFacade> checkLists;
@@ -46,7 +45,7 @@ class ItineraryPlanData extends Equatable
         id: id,
         day: day,
         sights: List.from(sights.map((sight) => sight.clone())),
-        notes: List.from(notes.map((note) => note.clone())),
+        notes: List.from(notes),
         checkLists: List.from(checkLists.map((checkList) => checkList.clone())),
       );
 
@@ -70,7 +69,7 @@ class ItineraryPlanData extends Equatable
 
     // Validate notes
     if (notes.isNotEmpty) {
-      if (notes.any((note) => note.note.isEmpty)) {
+      if (notes.any((note) => note.isEmpty)) {
         return ItineraryPlanDataValidationResult.noteEmpty;
       }
     }
@@ -84,9 +83,8 @@ class ItineraryPlanData extends Equatable
       if (checkLists.any((checkList) =>
           checkList.items.isEmpty ||
           checkList.items
-                  .where((checkListItem) => !checkListItem.item.isEmpty)
-                  .length >=
-              1)) {
+              .where((checkListItem) => checkListItem.item.isEmpty)
+              .isNotEmpty)) {
         return ItineraryPlanDataValidationResult.checkListItemEmpty;
       }
     }

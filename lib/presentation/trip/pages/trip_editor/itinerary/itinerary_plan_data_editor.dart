@@ -3,7 +3,6 @@ import 'package:wandrr/blocs/trip/plan_data_edit_context.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
-import 'package:wandrr/data/trip/models/itinerary/note.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
@@ -149,7 +148,10 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
 
   Widget _buildNotesTab() => ItineraryNotesEditor(
         notes: _planData.notes,
-        onNotesChanged: widget.onPlanDataUpdated,
+        onNotesChanged: (newNotes) {
+          _planData.notes = newNotes.map((e) => e.text).toList();
+          widget.onPlanDataUpdated();
+        },
       );
 
   Widget _buildCheckListsTab() => ItineraryChecklistsEditor(
@@ -174,12 +176,7 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
         }
       case PlanDataType.note:
         {
-          _planData.notes.add(
-            NoteFacade.newUiEntry(
-              tripId: tripMetadata.id!,
-              note: '',
-            ),
-          );
+          _planData.notes.add('');
           break;
         }
       case PlanDataType.checklist:

@@ -50,7 +50,6 @@ class TripMetadataModelImplementation extends TripMetadataFacade
       .collection(FirestoreCollections.tripMetadataCollectionName)
       .doc(id);
 
-  //expects a valid database object
   @override
   Map<String, dynamic> toJson() => {
         _startDateField: Timestamp.fromDate(startDate!),

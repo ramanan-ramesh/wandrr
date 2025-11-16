@@ -117,7 +117,7 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
         ItineraryPlanDataModelImplementation.fromModelFacade(planData);
     var planDataBeforeUpdate = _planData.facade;
     didUpdate = await _planData.documentReference
-        .set(leafRepositoryItem.toJson(), SetOptions(merge: true))
+        .set(leafRepositoryItem.toJson(), SetOptions(merge: false))
         .then((value) {
       return true;
     }).catchError((error, stackTrace) {
@@ -185,10 +185,10 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
       if (!_shouldListenToPlanDataChanges) {
         return;
       }
-      if (hasHitFirstTime) {
+      if (!hasHitFirstTime) {
+        hasHitFirstTime = true;
         return;
       }
-      hasHitFirstTime = true;
       ItineraryPlanDataModelImplementation planDataModelImplementation;
       if (snapshot.exists) {
         planDataModelImplementation =

@@ -58,9 +58,7 @@ class SightFacade extends Equatable
 
   @override
   bool validate() {
-    return name.isNotEmpty &&
-        name.length >= 3 &&
-        (location != null || visitTime != null);
+    return name.isNotEmpty && name.length >= 3;
   }
 
   @override

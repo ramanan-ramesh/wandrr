@@ -173,10 +173,12 @@ class TripManagementBloc
     var itineraryDay = event.tripEntity!.day;
     var itinerary =
         _activeTrip!.itineraryCollection.getItineraryForDay(itineraryDay);
+    var itineraryPlanDataBeforeUpdate = itinerary.planData.clone();
     var didUpdate = await itinerary.updatePlanData(event.tripEntity!);
-    emit(UpdatedTripEntity<ItineraryPlanData>.updated(
+    emit(UpdatedTripEntity.updated(
         tripEntityModificationData: CollectionItemChangeMetadata(
-            event.tripEntity!,
+            CollectionItemChangeSet<ItineraryPlanData>(
+                itineraryPlanDataBeforeUpdate, event.tripEntity!),
             isFromExplicitAction: true),
         isOperationSuccess: didUpdate));
   }

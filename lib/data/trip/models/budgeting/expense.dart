@@ -1,9 +1,11 @@
+import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 import 'expense_category.dart';
 import 'money.dart';
 
-class ExpenseFacade implements ExpenseLinkedTripEntity<ExpenseFacade> {
+class ExpenseFacade extends Equatable
+    implements ExpenseLinkedTripEntity<ExpenseFacade> {
   String tripId;
 
   String title;
@@ -93,4 +95,17 @@ class ExpenseFacade implements ExpenseLinkedTripEntity<ExpenseFacade> {
   set expense(ExpenseFacade expense) {
     copyWith(expense);
   }
+
+  @override
+  List<Object?> get props => [
+        tripId,
+        title,
+        description,
+        id,
+        currency,
+        category,
+        paidBy,
+        splitBy,
+        dateTime
+      ];
 }

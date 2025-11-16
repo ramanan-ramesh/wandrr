@@ -1,12 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/events.dart';
+import 'package:wandrr/blocs/trip/plan_data_edit_context.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
+import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
@@ -81,16 +85,13 @@ class _ItineraryViewerState extends State<ItineraryViewer>
                   children: [
                     _buildTimeline(timelineEvents),
                     ItineraryNotesViewer(
-                      notes: itineraryPlanData.notes,
                       day: widget.itineraryDay,
                     ),
                     ItineraryChecklistTab(
-                      checklists: itineraryPlanData.checkLists,
                       onChanged: () {},
                       day: widget.itineraryDay,
                     ),
                     ItinerarySightsViewer(
-                      sights: itineraryPlanData.sights,
                       tripId: context.activeTripId,
                       day: widget.itineraryDay,
                     ),
@@ -515,21 +516,38 @@ class _ItineraryViewerState extends State<ItineraryViewer>
   Iterable<TimelineEvent> _createTimedSightEvents(
     List<SightFacade> sights,
   ) sync* {
-    for (final sight in sights) {
+    for (var sightIndex = 0; sightIndex < sights.length; sightIndex++) {
+      final sight = sights[sightIndex];
       final visitTime = sight.visitTime;
       if (visitTime == null) {
         continue;
       }
 
       yield TimelineEvent<SightFacade>(
-        time: visitTime,
-        title: '${sight.name} • ${visitTime.hourMinuteAmPmFormat}',
-        subtitle: _getSightSubtitle(sight),
-        icon: Icons.place_rounded,
-        iconColor: AppColors.brandAccent,
-        data: sight,
-        notes: sight.description,
-      );
+          time: visitTime,
+          title: '${sight.name} • ${visitTime.hourMinuteAmPmFormat}',
+          subtitle: _getSightSubtitle(sight),
+          icon: Icons.place_rounded,
+          iconColor: AppColors.brandAccent,
+          data: sight,
+          notes: sight.description,
+          tripManagementEventCreatorOnTap: (sight) {
+            return EditItineraryPlanData(
+              day: widget.itineraryDay,
+              planDataEditorConfig: UpdateItineraryPlanDataComponentConfig(
+                planDataType: PlanDataType.sight,
+                index: sightIndex,
+              ),
+            );
+          },
+          tripManagementEventCreatorOnDelete: (sight) {
+            var itineraryPlanData = context.activeTrip.itineraryCollection
+                .getItineraryForDay(widget.itineraryDay)
+                .planData;
+            itineraryPlanData.sights.removeAt(sightIndex);
+            return UpdateTripEntity<ItineraryPlanData>.update(
+                tripEntity: itineraryPlanData);
+          });
     }
   }
 
@@ -650,7 +668,7 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     if (currentState.isTripEntityUpdated<TransitFacade>()) {
       return _shouldRebuildForTransit(currentState);
     }
-    if (currentState.isTripEntityUpdated<SightFacade>()) {
+    if (currentState.isTripEntityUpdated<ItineraryPlanData>()) {
       return _shouldRebuildForSight(currentState);
     }
     return false;
@@ -698,16 +716,18 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     final modifiedCollectionItem = tripEntityUpdatedState
         .tripEntityModificationData.modifiedCollectionItem;
 
-    if (dataState == DataState.create || dataState == DataState.delete) {
-      final updatedTripEntity = modifiedCollectionItem as SightFacade;
-      return updatedTripEntity.day.isOnSameDayAs(widget.itineraryDay);
-    } else if (dataState == DataState.update) {
+    if (dataState == DataState.update) {
       final collectionItemChangeset =
-          modifiedCollectionItem as CollectionItemChangeSet<SightFacade>;
-      return collectionItemChangeset.beforeUpdate.day
+          modifiedCollectionItem as CollectionItemChangeSet<ItineraryPlanData>;
+      var itineraryPlanDataAfterUpdate = collectionItemChangeset.afterUpdate;
+      var isItineraryPlanDataUpdated = collectionItemChangeset.beforeUpdate.day
               .isOnSameDayAs(widget.itineraryDay) ||
-          collectionItemChangeset.afterUpdate.day
-              .isOnSameDayAs(widget.itineraryDay);
+          itineraryPlanDataAfterUpdate.day.isOnSameDayAs(widget.itineraryDay);
+      if (isItineraryPlanDataUpdated) {
+        var sightsBeforeUpdate = collectionItemChangeset.beforeUpdate.sights;
+        var sightsAfterUpdate = collectionItemChangeset.afterUpdate.sights;
+        return !listEquals(sightsBeforeUpdate, sightsAfterUpdate);
+      }
     }
     return false;
   }

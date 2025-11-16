@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/itinerary/check_list.dart';
-import 'package:wandrr/data/trip/implementations/itinerary/note.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 
@@ -32,9 +31,7 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
       sights: planDataFacade.sights
           .map(SightModelImplementation.fromModelFacade)
           .toList(),
-      notes: planDataFacade.notes
-          .map(NoteModelImplementation.fromModelFacade)
-          .toList(),
+      notes: List.from(planDataFacade.notes),
       checkLists: planDataFacade.checkLists
           .map(CheckListModelImplementation.fromModelFacade)
           .toList(),
@@ -61,8 +58,7 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
               .toList() ??
           [],
       notes: (data[_notesField] as List?)
-              ?.map((json) => NoteModelImplementation.fromDocumentSnapshot(
-                  documentSnapshot: documentSnapshot, tripId: tripId))
+              ?.map((noteValue) => noteValue.toString())
               .toList() ??
           [],
       checkLists: (data[_checkListsField] as List?)
@@ -83,22 +79,16 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
 
   Map<String, dynamic> toJson() {
     return {
-      _sightsField: sights.isEmpty
-          ? null
-          : sights
-              .map((sight) => (sight as SightModelImplementation).toJson())
-              .toList(),
-      _notesField: notes.isEmpty
-          ? null
-          : notes
-              .map((note) => (note as NoteModelImplementation).toJson())
-              .toList(),
-      _checkListsField: checkLists.isEmpty
-          ? null
-          : checkLists
-              .map((checkList) =>
-                  (checkList as CheckListModelImplementation).toJson())
-              .toList(),
+      if (sights.isNotEmpty)
+        _sightsField: sights
+            .map((sight) => (sight as SightModelImplementation).toJson())
+            .toList(),
+      if (notes.isNotEmpty) _notesField: notes,
+      if (checkLists.isNotEmpty)
+        _checkListsField: checkLists
+            .map((checkList) =>
+                (checkList as CheckListModelImplementation).toJson())
+            .toList(),
     };
   }
 

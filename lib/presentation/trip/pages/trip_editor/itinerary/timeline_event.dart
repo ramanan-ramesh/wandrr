@@ -12,6 +12,9 @@ class TimelineEvent<T extends TripEntity> {
   final IconData icon;
   final Color iconColor;
   final T data;
+  final TripManagementEvent Function(T data)? tripManagementEventCreatorOnTap;
+  final TripManagementEvent Function(T data)?
+      tripManagementEventCreatorOnDelete;
 
   TimelineEvent({
     required this.time,
@@ -20,17 +23,23 @@ class TimelineEvent<T extends TripEntity> {
     required this.icon,
     required this.iconColor,
     required this.data,
+    this.tripManagementEventCreatorOnTap,
+    this.tripManagementEventCreatorOnDelete,
     this.notes,
     this.confirmationId,
   });
 
   void onPressed(BuildContext context) {
-    var tripManagementEvent = UpdateTripEntity<T>.select(tripEntity: data);
+    var tripManagementEvent = tripManagementEventCreatorOnTap != null
+        ? tripManagementEventCreatorOnTap!(data)
+        : UpdateTripEntity<T>.select(tripEntity: data);
     context.addTripManagementEvent(tripManagementEvent);
   }
 
   void onDelete(BuildContext context) {
-    var tripManagementEvent = UpdateTripEntity<T>.delete(tripEntity: data);
+    var tripManagementEvent = tripManagementEventCreatorOnDelete != null
+        ? tripManagementEventCreatorOnDelete!(data)
+        : UpdateTripEntity<T>.delete(tripEntity: data);
     context.addTripManagementEvent(tripManagementEvent);
   }
 }

@@ -13,15 +13,12 @@ class CommonCollapsibleTab<T> extends StatefulWidget {
   final T Function() createItem;
   final VoidCallback onItemsChanged;
   final String Function(T item) titleBuilder;
-  final Widget Function(BuildContext context, T item)?
-      previewBuilder; // optional second line under title
-  final Color Function(T item)?
-      accentColorBuilder; // for drag handle / arrow coloring
+  final Widget Function(BuildContext context, T item)? previewBuilder;
+  final Color Function(T item)? accentColorBuilder;
   final Widget Function(
           BuildContext context, int index, T item, VoidCallback notifyParent)
       expandedBuilder;
-  final bool Function(T item)? isValidBuilder; // used to style validity
-  // NEW: full custom per-item header builder (overrides default title/preview header)
+  final bool Function(T item)? isValidBuilder;
   final Widget Function(
     BuildContext context,
     int index,
