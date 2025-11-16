@@ -141,7 +141,6 @@ class _CurrencyButton extends StatelessWidget {
     required this.selectedCurrency,
     required this.onPressed,
     required this.layerLink,
-    super.key,
   });
 
   @override
@@ -179,7 +178,6 @@ class _CurrencyDropdownOverlay extends StatelessWidget {
     required this.layerLink,
     required this.triggerSize,
     this.prefix,
-    super.key,
   });
 
   @override
@@ -238,7 +236,6 @@ class _CurrencySearchableDropdown extends StatefulWidget {
     required this.onCurrencySelected,
     required this.onClose,
     this.prefix,
-    super.key,
   });
 
   @override

@@ -30,7 +30,6 @@ class ItineraryChecklistTab extends StatefulWidget {
 class _ItineraryChecklistTabState extends State<ItineraryChecklistTab> {
   // Layout constants
   static const double _kPaddingAll = 16.0;
-  static const double _kSpacingSmall = 8.0;
   static const double _kSpacingMedium = 12.0;
   static const double _kSpacingLarge = 16.0;
   static const double _kEmptyIconSize = 48.0;
@@ -64,7 +63,7 @@ class _ItineraryChecklistTabState extends State<ItineraryChecklistTab> {
             final isLightTheme = Theme.of(c).brightness == Brightness.light;
             final isExpanded = _expandedIndices.contains(i);
 
-            return Container(
+            return DecoratedBox(
               decoration: BoxDecoration(
                 color: isLightTheme
                     ? Colors.white
@@ -211,7 +210,7 @@ class _ItineraryChecklistTabState extends State<ItineraryChecklistTab> {
 
                   // Collapsible items list
                   if (isExpanded && cl.items.isNotEmpty)
-                    Container(
+                    DecoratedBox(
                       decoration: BoxDecoration(
                         color: isLightTheme
                             ? AppColors.neutral100.withValues(alpha: 0.5)

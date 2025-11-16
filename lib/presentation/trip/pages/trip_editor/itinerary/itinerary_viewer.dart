@@ -72,7 +72,6 @@ class _ItineraryViewerState extends State<ItineraryViewer>
 
         final timelineEvents = _collectTimelineEvents(itinerary);
 
-        var itineraryPlanData = itinerary.planData;
         return Column(
           children: [
             _createTabIndicators(),

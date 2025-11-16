@@ -54,7 +54,7 @@ class ItinerarySightsViewer extends StatelessWidget {
             final hasExpense = s.expense.totalExpense.amount > 0;
             final isLightTheme = Theme.of(c).brightness == Brightness.light;
 
-            return Container(
+            return DecoratedBox(
               decoration: BoxDecoration(
                 color: isLightTheme
                     ? Colors.white
