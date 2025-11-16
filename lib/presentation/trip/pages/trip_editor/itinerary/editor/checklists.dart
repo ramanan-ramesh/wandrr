@@ -10,11 +10,13 @@ import 'package:wandrr/presentation/trip/widgets/common_collapsible_tab.dart';
 class ItineraryChecklistsEditor extends StatelessWidget {
   final List<CheckListFacade> checklists;
   final VoidCallback onChecklistsChanged;
+  final int? initialExpandedIndex;
 
   const ItineraryChecklistsEditor({
     super.key,
     required this.checklists,
     required this.onChecklistsChanged,
+    this.initialExpandedIndex,
   });
 
   @override
@@ -41,6 +43,7 @@ class ItineraryChecklistsEditor extends StatelessWidget {
         checklist: checklist,
         onChanged: onChecklistsChanged,
       ),
+      initialExpandedIndex: initialExpandedIndex,
     );
   }
 

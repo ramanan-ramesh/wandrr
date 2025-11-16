@@ -14,12 +14,14 @@ class ItinerarySightsEditor extends StatefulWidget {
   final List<SightFacade> sights;
   final VoidCallback onSightsChanged;
   final DateTime day;
+  final int? initialExpandedIndex;
 
   const ItinerarySightsEditor({
     super.key,
     required this.sights,
     required this.onSightsChanged,
     required this.day,
+    this.initialExpandedIndex,
   });
 
   @override
@@ -69,6 +71,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
       isValidBuilder: (s) => s.validate(),
       expandedBuilder: (ctx, index, sight, notifyParent) =>
           _buildSightEditor(ctx, sight, notifyParent),
+      initialExpandedIndex: widget.initialExpandedIndex,
     );
   }
 

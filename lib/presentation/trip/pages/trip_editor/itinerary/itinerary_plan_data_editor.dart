@@ -144,6 +144,7 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
         sights: _planData.sights,
         onSightsChanged: widget.onPlanDataUpdated,
         day: _planData.day,
+        initialExpandedIndex: _getInitialExpandedIndex(PlanDataType.sight),
       );
 
   Widget _buildNotesTab() => ItineraryNotesEditor(
@@ -152,12 +153,22 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
           _planData.notes = newNotes.map((e) => e.text).toList();
           widget.onPlanDataUpdated();
         },
+        initialExpandedIndex: _getInitialExpandedIndex(PlanDataType.note),
       );
 
   Widget _buildCheckListsTab() => ItineraryChecklistsEditor(
         checklists: _planData.checkLists,
         onChecklistsChanged: widget.onPlanDataUpdated,
+        initialExpandedIndex: _getInitialExpandedIndex(PlanDataType.checklist),
       );
+
+  int? _getInitialExpandedIndex(PlanDataType type) {
+    if (widget.config is UpdateItineraryPlanDataComponentConfig &&
+        widget.config.planDataType == type) {
+      return (widget.config as UpdateItineraryPlanDataComponentConfig).index;
+    }
+    return null;
+  }
 
   void _createNewItineraryPlanDataComponent(PlanDataType kind) {
     final tripMetadata = context.activeTrip.tripMetadata;

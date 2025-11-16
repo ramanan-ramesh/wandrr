@@ -17,11 +17,13 @@ class ItineraryNotesEditor extends StatefulWidget {
   // The API now takes a List<Note> for stable identity
   final List<Note> notes;
   final Function(List<Note>) onNotesChanged;
+  final int? initialExpandedIndex;
 
   ItineraryNotesEditor({
     super.key,
     required List<String> notes,
     required this.onNotesChanged,
+    this.initialExpandedIndex,
   }) : notes = notes.map(Note.new).toList(); // Wrap strings in Note objects
 
   @override
@@ -74,6 +76,7 @@ class _ItineraryNotesEditorState extends State<ItineraryNotesEditor> {
         note: note, // Pass the Note object directly
         onChanged: notifyParent,
       ),
+      initialExpandedIndex: widget.initialExpandedIndex,
     );
   }
 }

@@ -29,6 +29,7 @@ class CommonCollapsibleTab<T> extends StatefulWidget {
     VoidCallback delete,
     VoidCallback notifyParent,
   )? itemHeaderBuilder;
+  final int? initialExpandedIndex;
 
   const CommonCollapsibleTab({
     super.key,
@@ -43,6 +44,7 @@ class CommonCollapsibleTab<T> extends StatefulWidget {
     this.accentColorBuilder,
     this.isValidBuilder,
     this.itemHeaderBuilder,
+    this.initialExpandedIndex,
   });
 
   @override
@@ -52,6 +54,12 @@ class CommonCollapsibleTab<T> extends StatefulWidget {
 
 class _CommonCollapsibleTabState<T> extends State<CommonCollapsibleTab<T>> {
   int? _expandedIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _expandedIndex = widget.initialExpandedIndex;
+  }
 
   @override
   Widget build(BuildContext context) {
