@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 
-import 'app/master_page_bloc.dart';
-import 'app/master_page_events.dart';
+import 'app/bloc.dart';
+import 'app/events.dart';
 
 extension BlocProviderExt on BuildContext {
   void addAuthenticationEvent(AuthenticationEvent event) {

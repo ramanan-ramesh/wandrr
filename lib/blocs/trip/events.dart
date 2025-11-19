@@ -1,49 +1,54 @@
-import 'package:wandrr/blocs/trip/plan_data_edit_context.dart';
+import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
-abstract class TripManagementEvent {}
+abstract class TripManagementEvent {
+  const TripManagementEvent();
+}
 
-class GoToHome extends TripManagementEvent {}
+class GoToHome extends TripManagementEvent {
+  const GoToHome();
+}
 
 class UpdateTripEntity<T extends TripEntity> extends TripManagementEvent {
-  T? tripEntity;
+  final T? tripEntity;
   final DataState dataState;
 
-  UpdateTripEntity.createNewUiEntry({this.tripEntity})
+  const UpdateTripEntity.createNewUiEntry({this.tripEntity})
       : dataState = DataState.newUiEntry;
 
-  UpdateTripEntity.create({required this.tripEntity})
+  const UpdateTripEntity.create({required this.tripEntity})
       : dataState = DataState.create;
 
-  UpdateTripEntity.delete({required this.tripEntity})
+  const UpdateTripEntity.delete({required this.tripEntity})
       : dataState = DataState.delete;
 
-  UpdateTripEntity.update({required this.tripEntity})
+  const UpdateTripEntity.update({required this.tripEntity})
       : dataState = DataState.update;
 
-  UpdateTripEntity.select({required this.tripEntity})
+  const UpdateTripEntity.select({required this.tripEntity})
       : dataState = DataState.select;
 }
 
 class SelectExpenseLinkedTripEntity
     extends UpdateTripEntity<ExpenseLinkedTripEntity> {
-  SelectExpenseLinkedTripEntity({required ExpenseLinkedTripEntity tripEntity})
+  const SelectExpenseLinkedTripEntity(
+      {required ExpenseLinkedTripEntity tripEntity})
       : super.select(tripEntity: tripEntity);
 }
 
 class LoadTrip extends TripManagementEvent {
   final TripMetadataFacade tripMetadata;
 
-  LoadTrip({required this.tripMetadata});
+  const LoadTrip({required this.tripMetadata});
 }
 
 class EditItineraryPlanData extends TripManagementEvent {
   final DateTime day;
   final ItineraryPlanDataEditorConfig planDataEditorConfig;
 
-  EditItineraryPlanData({
+  const EditItineraryPlanData({
     required this.day,
     required this.planDataEditorConfig,
   });

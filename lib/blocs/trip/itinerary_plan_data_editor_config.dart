@@ -1,5 +1,3 @@
-// Defines item kinds and editor configuration for itinerary plan data editing.
-
 enum PlanDataType { sight, note, checklist }
 
 abstract class ItineraryPlanDataEditorConfig {

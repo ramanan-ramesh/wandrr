@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
-import 'package:wandrr/blocs/app/master_page_bloc.dart';
-import 'package:wandrr/blocs/app/master_page_events.dart';
-import 'package:wandrr/blocs/app/master_page_states.dart';
+import 'package:wandrr/blocs/app/bloc.dart';
+import 'package:wandrr/blocs/app/events.dart';
+import 'package:wandrr/blocs/app/states.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/data/auth/models/auth_type.dart';
 import 'package:wandrr/data/auth/models/status.dart';

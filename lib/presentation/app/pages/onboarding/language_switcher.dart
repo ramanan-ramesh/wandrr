@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/blocs/app/master_page_events.dart';
+import 'package:wandrr/blocs/app/events.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/data/app/models/language_metadata.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';

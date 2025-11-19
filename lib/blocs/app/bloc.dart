@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:wandrr/blocs/app/master_page_events.dart';
-import 'package:wandrr/blocs/app/master_page_states.dart';
+import 'package:wandrr/blocs/app/events.dart';
+import 'package:wandrr/blocs/app/states.dart';
 import 'package:wandrr/data/app/implementations/app_data.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 
-class _LoadRepository extends MasterPageEvent {}
+class _LoadRepositoryInternal extends MasterPageEvent {}
 
 class _UpdateAvailableInternal extends MasterPageEvent {
   final UpdateInfo updateInfo;
@@ -26,20 +26,14 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
     on<ChangeLanguage>(_onLanguageChange);
     on<AuthenticateWithUsernamePassword>(_onAuthenticateWithUsernamePassword);
     on<AuthenticateWithThirdParty>(_onAuthenticateWithThirdParty);
-    on<ResendEmailVerification>((event, emit) async {
-      var didResendVerificationEmail = await _appDataRepository!.userManagement
-          .resendVerificationEmail(event.userName, event.password);
-      if (didResendVerificationEmail) {
-        emit(AuthStateChanged(authStatus: AuthStatus.verificationResent));
-      }
-    });
+    on<ResendEmailVerification>(_onResendEmailVerification);
     on<Logout>(_onLogout);
-    on<_LoadRepository>(_onLoadRepository);
+    on<_LoadRepositoryInternal>(_onLoadRepository);
     on<_UpdateAvailableInternal>((event, emit) {
       emit(UpdateAvailable(updateInfo: event.updateInfo));
     });
 
-    add(_LoadRepository());
+    add(_LoadRepositoryInternal());
   }
 
   @override
@@ -49,7 +43,7 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
   }
 
   FutureOr<void> _onLoadRepository(
-      _LoadRepository event, Emitter<MasterPageState> emit) async {
+      _LoadRepositoryInternal event, Emitter<MasterPageState> emit) async {
     _appDataRepository ??= await AppDataRepository.createInstance();
     var updateInfo = await _checkForUpdate();
     emit(
@@ -109,6 +103,15 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
       emit(AuthStateChanged(authStatus: AuthStatus.loggedIn));
     } else {
       emit(AuthStateChanged(authStatus: authStatus));
+    }
+  }
+
+  FutureOr<void> _onResendEmailVerification(
+      ResendEmailVerification event, Emitter<MasterPageState> emit) async {
+    var didResendVerificationEmail = await _appDataRepository!.userManagement
+        .resendVerificationEmail(event.userName, event.password);
+    if (didResendVerificationEmail) {
+      emit(AuthStateChanged(authStatus: AuthStatus.verificationResent));
     }
   }
 

@@ -1,4 +1,4 @@
-import 'package:wandrr/blocs/trip/plan_data_edit_context.dart';
+import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/store/models/collection_item_change_set.dart';
@@ -28,28 +28,34 @@ abstract class TripManagementState {
     }
     return false;
   }
+
+  const TripManagementState();
 }
 
-class LoadingTripManagement extends TripManagementState {}
+class LoadingTripManagement extends TripManagementState {
+  const LoadingTripManagement();
+}
 
 class LoadingTrip extends TripManagementState {
-  TripMetadataFacade tripMetadataFacade;
+  final TripMetadataFacade tripMetadataFacade;
 
-  LoadingTrip(this.tripMetadataFacade);
+  const LoadingTrip(this.tripMetadataFacade);
 }
 
 class LoadedRepository extends TripManagementState {
   final TripRepositoryFacade tripRepository;
 
-  LoadedRepository({required this.tripRepository});
+  const LoadedRepository({required this.tripRepository});
 }
 
-class NavigateToHome extends TripManagementState {}
+class NavigateToHome extends TripManagementState {
+  const NavigateToHome();
+}
 
 class ActivatedTrip extends TripManagementState {
   final ApiServicesRepositoryFacade apiServicesRepository;
 
-  ActivatedTrip({required this.apiServicesRepository});
+  const ActivatedTrip({required this.apiServicesRepository});
 }
 
 class UpdatedTripEntity<T> extends TripManagementState {
@@ -63,17 +69,17 @@ class UpdatedTripEntity<T> extends TripManagementState {
         tripEntityModificationData = CollectionItemChangeMetadata(tripEntity,
             isFromExplicitAction: true);
 
-  UpdatedTripEntity.created(
+  const UpdatedTripEntity.created(
       {required this.tripEntityModificationData,
       required this.isOperationSuccess})
       : dataState = DataState.create;
 
-  UpdatedTripEntity.deleted(
+  const UpdatedTripEntity.deleted(
       {required this.tripEntityModificationData,
       required this.isOperationSuccess})
       : dataState = DataState.delete;
 
-  UpdatedTripEntity.updated(
+  const UpdatedTripEntity.updated(
       {required this.tripEntityModificationData,
       required this.isOperationSuccess})
       : dataState = DataState.update;
@@ -96,7 +102,7 @@ class SelectedItineraryPlanData extends TripManagementState {
   final ItineraryPlanData planData;
   final ItineraryPlanDataEditorConfig planDataEditorConfig;
 
-  SelectedItineraryPlanData({
+  const SelectedItineraryPlanData({
     required this.planData,
     required this.planDataEditorConfig,
   });

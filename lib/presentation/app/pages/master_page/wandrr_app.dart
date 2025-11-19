@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:wandrr/blocs/app/master_page_bloc.dart';
-import 'package:wandrr/blocs/app/master_page_states.dart';
+import 'package:wandrr/blocs/app/bloc.dart';
+import 'package:wandrr/blocs/app/states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 import 'package:wandrr/l10n/app_localizations.dart';

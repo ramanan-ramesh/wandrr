@@ -34,14 +34,6 @@ class TripManagementBloc
 
   TripDataModelEventHandler? get _activeTrip => _tripRepository?.activeTrip;
 
-  @override
-  Future<void> close() async {
-    for (final subscription in _tripRepositorySubscriptions) {
-      await subscription.cancel();
-    }
-    await super.close();
-  }
-
   TripManagementBloc(this.currentUserName, this.appLocalizations)
       : super(LoadingTripManagement()) {
     on<_OnStartup>(_onStartup);
@@ -57,6 +49,14 @@ class TripManagementBloc
     on<EditItineraryPlanData>(_onEditItineraryPlanData);
 
     add(_OnStartup());
+  }
+
+  @override
+  Future<void> close() async {
+    for (final subscription in _tripRepositorySubscriptions) {
+      await subscription.cancel();
+    }
+    await super.close();
   }
 
   FutureOr<void> _onStartup(
@@ -477,21 +477,23 @@ class TripManagementBloc
 }
 
 class _UpdateTripEntityInternalEvent<T> extends TripManagementEvent {
-  CollectionItemChangeMetadata<T> updateData;
-  bool isOperationSuccess;
-  DataState dateState;
+  final CollectionItemChangeMetadata<T> updateData;
+  final bool isOperationSuccess;
+  final DataState dateState;
 
-  _UpdateTripEntityInternalEvent.updated(this.updateData,
+  const _UpdateTripEntityInternalEvent.updated(this.updateData,
       {required this.isOperationSuccess})
       : dateState = DataState.update;
 
-  _UpdateTripEntityInternalEvent.created(this.updateData,
+  const _UpdateTripEntityInternalEvent.created(this.updateData,
       {required this.isOperationSuccess})
       : dateState = DataState.create;
 
-  _UpdateTripEntityInternalEvent.deleted(this.updateData,
+  const _UpdateTripEntityInternalEvent.deleted(this.updateData,
       {required this.isOperationSuccess})
       : dateState = DataState.delete;
 }
 
-class _OnStartup extends TripManagementEvent {}
+class _OnStartup extends TripManagementEvent {
+  const _OnStartup();
+}

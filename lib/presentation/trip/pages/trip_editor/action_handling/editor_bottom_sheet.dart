@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/blocs/trip/plan_data_edit_context.dart';
+import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
