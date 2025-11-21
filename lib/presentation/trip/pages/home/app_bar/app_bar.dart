@@ -15,11 +15,11 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       centerTitle: contentWidth != null,
-      flexibleSpace: Padding(
-        padding: const EdgeInsets.all(8.0),
+      flexibleSpace: FractionallySizedBox(
+        widthFactor: context.isBigLayout ? 0.5 : 1.0,
         child: Center(
-          child: SizedBox(
-            width: contentWidth,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 5.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
