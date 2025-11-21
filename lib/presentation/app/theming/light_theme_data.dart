@@ -130,17 +130,31 @@ ThemeData createLightThemeData(BuildContext context) {
     tabBarTheme: TabBarThemeData(
       indicator: BoxDecoration(
         borderRadius: BorderRadius.circular(ThemeConstants.tabIndicatorRadius),
-        gradient: AppColors.brandGradient,
+        gradient: LinearGradient(
+          colors: [
+            AppColors.brandPrimary,
+            AppColors.brandSecondary,
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ), // More vibrant gradient for visibility
       ),
       indicatorSize: TabBarIndicatorSize.tab,
-      labelStyle: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-      unselectedLabelStyle: Theme.of(context).textTheme.headlineMedium,
-      indicatorColor: Colors.transparent,
-      unselectedLabelColor: AppColors.neutral600,
+      labelStyle: TextStyle(
+        fontWeight: FontWeight.w600,
+        fontSize: 16,
+        color: Colors.white,
+      ),
+      unselectedLabelStyle: TextStyle(
+        fontWeight: FontWeight.w500,
+        fontSize: 16,
+        color: AppColors.neutral600,
+      ),
       labelColor: Colors.white,
+      unselectedLabelColor: AppColors.neutral600,
       dividerColor: AppColors.neutral300,
+      overlayColor: WidgetStateProperty.all(
+          AppColors.brandPrimary.withValues(alpha: 0.08)),
     ),
     appBarTheme: AppBarTheme(
       backgroundColor: AppColors.brandPrimary,

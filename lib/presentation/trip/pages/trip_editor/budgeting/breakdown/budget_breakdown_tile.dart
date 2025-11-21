@@ -6,7 +6,6 @@ import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/tab_bar.dart';
 
 import 'breakdown_by_category.dart';
@@ -42,7 +41,7 @@ class _BudgetBreakdownTileState extends State<BudgetBreakdownTile>
       builder: (BuildContext context, TripManagementState state) {
         return Container(
           constraints: const BoxConstraints(maxHeight: 600),
-          child: PlatformCard(
+          child: Card(
             child: PlatformTabBar(
               tabBarItems: <String, Widget>{
                 context.localizations.category:

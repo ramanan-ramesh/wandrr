@@ -9,7 +9,6 @@ import 'package:wandrr/data/auth/models/auth_type.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
-import 'package:wandrr/presentation/app/widgets/card.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 
 class LoginPage extends StatefulWidget {
@@ -47,7 +46,7 @@ class _LoginPageState extends State<LoginPage>
       child: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(16.0),
-          child: PlatformCard(
+          child: Card(
             child: FocusTraversalGroup(
               policy: OrderedTraversalPolicy(),
               child: Column(
