@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/blocs/trip/bloc.dart';
-import 'package:wandrr/blocs/trip/states.dart';
-import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
 class BudgetTile extends StatelessWidget {
   static const Duration _kAnimationDuration = Duration(milliseconds: 500);
@@ -16,97 +12,89 @@ class BudgetTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<TripManagementBloc, TripManagementState>(
-      listener: (context, state) {},
-      buildWhen: _shouldBuild,
-      builder: (context, state) {
-        final activeTrip = context.activeTrip;
-        final budgetingModule = activeTrip.budgetingModule;
-        final budget = activeTrip.tripMetadata.budget;
-        return StreamBuilder<double>(
-          stream: budgetingModule.totalExpenditureStream,
-          initialData: budgetingModule.totalExpenditure,
-          builder: (context, snapshot) {
-            final totalExpenditure = snapshot.data ?? 0.0;
-            final budgetAmount = budget.amount;
-            final percentageUsed = budgetAmount > 0
-                ? (totalExpenditure / budgetAmount * 100).clamp(0, 100)
-                : 0.0;
+    return TripEntityUpdateHandler<TripMetadataFacade>(
+      widgetBuilder: _createTile,
+      shouldRebuild: (beforeUpdate, afterUpdate) {
+        return beforeUpdate.budget != afterUpdate.budget;
+      },
+    );
+  }
 
-            final isOverBudget = totalExpenditure > budgetAmount;
-            final color = isOverBudget
-                ? Theme.of(context).colorScheme.error
-                : Theme.of(context).colorScheme.primary;
+  Widget _createTile(BuildContext context) {
+    final activeTrip = context.activeTrip;
+    final budgetingModule = activeTrip.budgetingModule;
+    final budget = activeTrip.tripMetadata.budget;
+    return StreamBuilder<double>(
+      stream: budgetingModule.totalExpenditureStream,
+      initialData: budgetingModule.totalExpenditure,
+      builder: (context, snapshot) {
+        final totalExpenditure = snapshot.data ?? 0.0;
+        final budgetAmount = budget.amount;
 
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: color.withValues(alpha: 0.3),
-                  width: 1.5,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  context.isBigLayout
-                      ? _buildHorizontalBudgetDisplay(context, budgetingModule,
-                          budget, color, totalExpenditure)
-                      : _buildVerticalBudgetDisplay(context, budgetingModule,
-                          budget, color, totalExpenditure, isOverBudget),
-                  const SizedBox(height: 4),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
-                    child: isOverBudget
-                        ? _buildAnimatedOverBudgetProgressBar(
-                            context, budgetAmount, totalExpenditure)
-                        : TweenAnimationBuilder<double>(
-                            duration: _kAnimationDuration,
-                            curve: Curves.easeInOut,
-                            tween: Tween<double>(
-                              begin: 0,
-                              end: percentageUsed / 100,
-                            ),
-                            builder: (context, value, child) {
-                              return LinearProgressIndicator(
-                                value: value,
-                                backgroundColor: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHigh,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(color),
-                                minHeight: 4,
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
-            );
-          },
+        final isOverBudget = totalExpenditure > budgetAmount;
+        final color = isOverBudget
+            ? Theme.of(context).colorScheme.error
+            : Theme.of(context).colorScheme.primary;
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: color.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              context.isBigLayout
+                  ? _buildHorizontalBudgetDisplay(
+                      context, budgetingModule, budget, color, totalExpenditure)
+                  : _buildVerticalBudgetDisplay(context, budgetingModule,
+                      budget, color, totalExpenditure, isOverBudget),
+              const SizedBox(height: 4),
+              _createTotalExpensePercentageDisplay(
+                  context, budget.amount, totalExpenditure, color),
+            ],
+          ),
         );
       },
     );
   }
 
-  bool _shouldBuild(
-      TripManagementState previousState, TripManagementState currentState) {
-    if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
-      var updatedState = currentState as UpdatedTripEntity;
-      if (updatedState.dataState == DataState.update) {
-        var collectionItemChangeset =
-            updatedState.tripEntityModificationData.modifiedCollectionItem
-                as CollectionItemChangeSet<TripMetadataFacade>;
-        if (collectionItemChangeset.beforeUpdate.budget !=
-            collectionItemChangeset.afterUpdate.budget) {
-          return true;
-        }
-      }
-    }
-    return false;
+  Widget _createTotalExpensePercentageDisplay(BuildContext context,
+      double budgetAmount, double totalExpenditure, Color color) {
+    final percentageUsed = budgetAmount > 0
+        ? (totalExpenditure / budgetAmount * 100).clamp(0, 100)
+        : 0.0;
+
+    final isOverBudget = totalExpenditure > budgetAmount;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(2),
+      child: isOverBudget
+          ? _buildAnimatedOverBudgetProgressBar(
+              context, budgetAmount, totalExpenditure)
+          : TweenAnimationBuilder<double>(
+              duration: _kAnimationDuration,
+              curve: Curves.easeInOut,
+              tween: Tween<double>(
+                begin: 0,
+                end: percentageUsed / 100,
+              ),
+              builder: (context, value, child) {
+                return LinearProgressIndicator(
+                  value: value,
+                  backgroundColor:
+                      Theme.of(context).colorScheme.surfaceContainerHigh,
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                  minHeight: 4,
+                );
+              },
+            ),
+    );
   }
 
   Widget _buildHorizontalBudgetDisplay(

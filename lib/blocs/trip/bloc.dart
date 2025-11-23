@@ -251,15 +251,17 @@ class TripManagementBloc
         return;
       }
       if (!eventData.isFromExplicitAction && !isClosed) {
-        var hasStartDateChanged = !eventData
-            .modifiedCollectionItem.beforeUpdate.startDate!
-            .isOnSameDayAs(updatedTripMetadata.startDate!);
-        var hasEndDateChanged = !eventData
-            .modifiedCollectionItem.beforeUpdate.endDate!
-            .isOnSameDayAs(updatedTripMetadata.endDate!);
-        if (hasStartDateChanged || hasEndDateChanged) {
-          _clearItineraryPlanDataSubscriptions()
-              .then((value) => _createItineraryPlanDataSubscriptions());
+        if (_activeTrip != null) {
+          var hasStartDateChanged = !eventData
+              .modifiedCollectionItem.beforeUpdate.startDate!
+              .isOnSameDayAs(updatedTripMetadata.startDate!);
+          var hasEndDateChanged = !eventData
+              .modifiedCollectionItem.beforeUpdate.endDate!
+              .isOnSameDayAs(updatedTripMetadata.endDate!);
+          if (hasStartDateChanged || hasEndDateChanged) {
+            _clearItineraryPlanDataSubscriptions()
+                .then((value) => _createItineraryPlanDataSubscriptions());
+          }
         }
         var collectionModificationData = CollectionItemChangeMetadata(
             eventData.modifiedCollectionItem,

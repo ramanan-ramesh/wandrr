@@ -1,8 +1,11 @@
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/app/widgets/date_picker.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_viewer.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
 class ItineraryNavigator extends StatefulWidget {
   const ItineraryNavigator({super.key});
@@ -63,27 +66,44 @@ class _ItineraryNavigatorState extends State<ItineraryNavigator>
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildNavigationBar(),
-        Expanded(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: ItineraryViewer(itineraryDay: _currentDate),
+    return TripEntityUpdateHandler<TripMetadataFacade>(
+      shouldRebuild: (beforeUpdate, afterUpdate) {
+        final newStartDate = afterUpdate.startDate!;
+        final newEndDate = afterUpdate.endDate!;
+        if (!beforeUpdate.startDate!.isOnSameDayAs(newStartDate) ||
+            !beforeUpdate.endDate!.isOnSameDayAs(newEndDate)) {
+          if (_currentDate.isBefore(newStartDate)) {
+            _currentDate = newStartDate;
+          } else if (_currentDate.isAfter(newEndDate)) {
+            _currentDate = newEndDate;
+          }
+          return true;
+        }
+        return false;
+      },
+      widgetBuilder: (context) {
+        return Column(
+          children: [
+            _buildNavigationBar(),
+            Expanded(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: ItineraryViewer(itineraryDay: _currentDate),
+                ),
+              ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
-  bool _isWithinTripDates(DateTime date) =>
-      !date.isBefore(_startDate) && !date.isAfter(_endDate);
-
   bool _tryNavigateToDate(DateTime newDate) {
-    if (!_isWithinTripDates(newDate)) return false;
+    if (newDate.isBefore(_startDate) || newDate.isAfter(_endDate)) {
+      return false;
+    }
     setState(() {
       _currentDate = newDate;
       _animationController

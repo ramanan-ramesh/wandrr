@@ -1,18 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
-import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
-import 'package:wandrr/blocs/trip/states.dart';
-import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
 class ItineraryNotesViewer extends StatefulWidget {
   final DateTime day;
@@ -36,9 +32,19 @@ class _ItineraryNotesViewerState extends State<ItineraryNotesViewer> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<TripManagementBloc, TripManagementState>(
-      buildWhen: _shouldRebuild,
-      builder: (BuildContext context, TripManagementState state) {
+    return TripEntityUpdateHandler<ItineraryPlanData>(
+      shouldRebuild: (beforeUpdate, afterUpdate) {
+        var isItineraryPlanDataUpdated =
+            beforeUpdate.day.isOnSameDayAs(widget.day) ||
+                afterUpdate.day.isOnSameDayAs(widget.day);
+        if (isItineraryPlanDataUpdated) {
+          var notesBeforeUpdate = beforeUpdate.notes;
+          var notesAfterUpdate = afterUpdate.notes;
+          return !listEquals(notesBeforeUpdate, notesAfterUpdate);
+        }
+        return false;
+      },
+      widgetBuilder: (context) {
         var notes = context.activeTrip.itineraryCollection
             .getItineraryForDay(widget.day)
             .planData
@@ -154,33 +160,7 @@ class _ItineraryNotesViewerState extends State<ItineraryNotesViewer> {
           },
         );
       },
-      listener: (BuildContext context, TripManagementState state) {},
     );
-  }
-
-  bool _shouldRebuild(
-      TripManagementState previousState, TripManagementState currentState) {
-    if (currentState.isTripEntityUpdated<ItineraryPlanData>()) {
-      final tripEntityUpdatedState = currentState as UpdatedTripEntity;
-      final dataState = tripEntityUpdatedState.dataState;
-      final modifiedCollectionItem = tripEntityUpdatedState
-          .tripEntityModificationData.modifiedCollectionItem;
-      if (dataState == DataState.update) {
-        final collectionItemChangeset = modifiedCollectionItem
-            as CollectionItemChangeSet<ItineraryPlanData>;
-        var itineraryPlanDataAfterUpdate = collectionItemChangeset.afterUpdate;
-        var isItineraryPlanDataUpdated = collectionItemChangeset
-                .beforeUpdate.day
-                .isOnSameDayAs(widget.day) ||
-            itineraryPlanDataAfterUpdate.day.isOnSameDayAs(widget.day);
-        if (isItineraryPlanDataUpdated) {
-          var notesBeforeUpdate = collectionItemChangeset.beforeUpdate.notes;
-          var notesAfterUpdate = collectionItemChangeset.afterUpdate.notes;
-          return !listEquals(notesBeforeUpdate, notesAfterUpdate);
-        }
-      }
-    }
-    return false;
   }
 
   Widget _emptyState(

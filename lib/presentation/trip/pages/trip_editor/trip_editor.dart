@@ -14,7 +14,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/creat
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/editor_bottom_sheet.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/main/app_bar.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/main/app_bar/app_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';

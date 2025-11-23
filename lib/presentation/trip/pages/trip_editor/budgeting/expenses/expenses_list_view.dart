@@ -6,7 +6,6 @@ import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_sort_options.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
@@ -15,6 +14,7 @@ import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/readonly_expense.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
 import 'budget_tile.dart';
 
@@ -279,16 +279,6 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       if (updatedState.dataState == DataState.delete ||
           updatedState.dataState == DataState.create) {
         return true;
-      } else if (updatedState.dataState == DataState.update) {
-        final collectionItemChangeset =
-            updatedState.tripEntityModificationData.modifiedCollectionItem
-                as CollectionItemChangeSet<ExpenseLinkedTripEntity>;
-        final beforeUpdate = collectionItemChangeset.beforeUpdate;
-        final afterUpdate = collectionItemChangeset.afterUpdate;
-        if (beforeUpdate.expense.totalExpense !=
-            afterUpdate.expense.totalExpense) {
-          return true;
-        }
       }
     }
     return false;
@@ -374,9 +364,15 @@ class _ExpenseListItemState extends State<_ExpenseListItem> {
                 _ExpenseListViewState._kListItemBorderRadius),
             border: Border.all(width: 2.2),
           ),
-          child: BlocBuilder<TripManagementBloc, TripManagementState>(
-            buildWhen: _shouldRebuildItem,
-            builder: (context, state) {
+          child: TripEntityUpdateHandler<ExpenseLinkedTripEntity>(
+            shouldRebuild: (beforeUpdate, afterUpdate) {
+              if (beforeUpdate.id == _expenseLinkedTripEntity.id) {
+                _expenseLinkedTripEntity = afterUpdate;
+                return true;
+              }
+              return false;
+            },
+            widgetBuilder: (context) {
               return ReadonlyExpenseListItem(
                 categoryNames: widget.categoryNames,
                 expenseLinkedTripEntity: _expenseLinkedTripEntity,
@@ -386,27 +382,6 @@ class _ExpenseListItemState extends State<_ExpenseListItem> {
         ),
       ),
     );
-  }
-
-  bool _shouldRebuildItem(
-    TripManagementState previousState,
-    TripManagementState currentState,
-  ) {
-    if (currentState.isTripEntityUpdated<ExpenseLinkedTripEntity>()) {
-      final updatedState = currentState as UpdatedTripEntity;
-      if (updatedState.dataState == DataState.update) {
-        final collectionItemChangeset =
-            updatedState.tripEntityModificationData.modifiedCollectionItem
-                as CollectionItemChangeSet<ExpenseLinkedTripEntity>;
-        if (collectionItemChangeset.afterUpdate.id ==
-            _expenseLinkedTripEntity.id) {
-          setState(() =>
-              _expenseLinkedTripEntity = collectionItemChangeset.afterUpdate);
-          return true;
-        }
-      }
-    }
-    return false;
   }
 }
 

@@ -1,18 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
-import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
-import 'package:wandrr/blocs/trip/states.dart';
-import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
 /// Tab content for managing sights (places) for a day's itinerary.
 /// Allows adding, editing (location/time/description/expense), deleting sights.
@@ -35,9 +31,18 @@ class ItinerarySightsViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<TripManagementBloc, TripManagementState>(
-      buildWhen: _shouldRebuild,
-      builder: (BuildContext context, TripManagementState state) {
+    return TripEntityUpdateHandler<ItineraryPlanData>(
+      shouldRebuild: (beforeUpdate, afterUpdate) {
+        var isItineraryPlanDataUpdated = beforeUpdate.day.isOnSameDayAs(day) ||
+            afterUpdate.day.isOnSameDayAs(day);
+        if (isItineraryPlanDataUpdated) {
+          var sightsBeforeUpdate = beforeUpdate.sights;
+          var sightsAfterUpdate = afterUpdate.sights;
+          return !listEquals(sightsBeforeUpdate, sightsAfterUpdate);
+        }
+        return false;
+      },
+      widgetBuilder: (context) {
         var sights = context.activeTrip.itineraryCollection
             .getItineraryForDay(day)
             .planData
@@ -250,32 +255,7 @@ class ItinerarySightsViewer extends StatelessWidget {
           itemCount: sights.length,
         );
       },
-      listener: (BuildContext context, TripManagementState state) {},
     );
-  }
-
-  bool _shouldRebuild(
-      TripManagementState previousState, TripManagementState currentState) {
-    if (currentState.isTripEntityUpdated<ItineraryPlanData>()) {
-      final tripEntityUpdatedState = currentState as UpdatedTripEntity;
-      final dataState = tripEntityUpdatedState.dataState;
-      final modifiedCollectionItem = tripEntityUpdatedState
-          .tripEntityModificationData.modifiedCollectionItem;
-      if (dataState == DataState.update) {
-        final collectionItemChangeset = modifiedCollectionItem
-            as CollectionItemChangeSet<ItineraryPlanData>;
-        var itineraryPlanDataAfterUpdate = collectionItemChangeset.afterUpdate;
-        var isItineraryPlanDataUpdated =
-            collectionItemChangeset.beforeUpdate.day.isOnSameDayAs(day) ||
-                itineraryPlanDataAfterUpdate.day.isOnSameDayAs(day);
-        if (isItineraryPlanDataUpdated) {
-          var sightsBeforeUpdate = collectionItemChangeset.beforeUpdate.sights;
-          var sightsAfterUpdate = collectionItemChangeset.afterUpdate.sights;
-          return !listEquals(sightsBeforeUpdate, sightsAfterUpdate);
-        }
-      }
-    }
-    return false;
   }
 
   Widget _emptyState(BuildContext context) {
