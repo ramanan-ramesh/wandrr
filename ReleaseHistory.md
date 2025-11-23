@@ -1,4 +1,9 @@
 ## Release History
+- Version 3.0.0 (Commit: 6e88f70b487e3e5ad06cd85b789fbb8b07d7bc75)
+  - Introduce itinerary timelines and sights/activities
+  - Revamped the trip editor page for easy navigation
+  - A common way to edit transits, stays and sights/notes/checklists
+
 - Version 2.0.2 (Commit: ca7b51af2493dfbea522340cc17a326899a6023d)
   - Fixed a bug where theme and locale changes were not updating the app
 
