@@ -19,7 +19,6 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
   static const double _kCardPadding = 8.0;
   static const double _kOuterPadding = 20.0;
   static const double _kTitleFontSize = 16.0;
-  static const double _kProgressHeight = 4.0;
 
   @override
   Widget build(BuildContext context) {
@@ -52,48 +51,121 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
         }
 
         final totalExpense = data.values.fold<double>(0, (a, b) => a + b);
+        final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
         final indicators =
             data.entries.where((e) => e.value > 0).map((dailyExpense) {
           final percentage =
               totalExpense == 0 ? 0.0 : dailyExpense.value / totalExpense;
-          final dateLabel = dailyExpense.key.dayFormat;
+          final dateLabel = dailyExpense.key.dayDateMonthFormat;
+
+          // Use theme colors for better visual appeal
+          final cardColor =
+              Theme.of(context).colorScheme.surfaceContainerHighest;
+          final textColor = Theme.of(context).colorScheme.onSurface;
+          final accentColor = Theme.of(context).colorScheme.primary;
+          final progressBgColor = isDarkMode
+              ? Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest
+                  .withValues(alpha: 0.3)
+              : Theme.of(context).colorScheme.primary.withValues(alpha: 0.15);
+
           return Padding(
-            padding: const EdgeInsets.all(_kOuterPadding),
+            padding: const EdgeInsets.symmetric(
+              horizontal: _kOuterPadding,
+              vertical: _kOuterPadding / 2,
+            ),
             child: Card(
-              shape: RoundedRectangleBorder(),
-              child: Padding(
-                padding: const EdgeInsets.all(_kCardPadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          dateLabel,
-                          style: const TextStyle(
-                            fontSize: _kTitleFontSize,
-                            fontWeight: FontWeight.bold,
+              elevation: 4,
+              shadowColor: Theme.of(context).shadowColor.withValues(alpha: 0.1),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    colors: isDarkMode
+                        ? [
+                            cardColor,
+                            cardColor.withValues(alpha: 0.95),
+                          ]
+                        : [
+                            cardColor.withValues(alpha: 0.9),
+                            cardColor.withValues(alpha: 0.95),
+                          ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(_kCardPadding * 2),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today_rounded,
+                                color: accentColor,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                dateLabel,
+                                style: TextStyle(
+                                  fontSize: _kTitleFontSize,
+                                  fontWeight: FontWeight.bold,
+                                  color: textColor,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        Text(
-                          activeTrip.budgetingModule.formatCurrency(
-                            Money(
-                                currency: budgetCurrency,
-                                amount: dailyExpense.value),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: accentColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              activeTrip.budgetingModule.formatCurrency(
+                                Money(
+                                    currency: budgetCurrency,
+                                    amount: dailyExpense.value),
+                              ),
+                              style: TextStyle(
+                                color: accentColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
                           ),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    LinearProgressIndicator(
-                      value: percentage,
-                      minHeight: _kProgressHeight,
-                      backgroundColor: Colors.grey[300],
-                      color: Colors.green,
-                    ),
-                  ],
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: LinearProgressIndicator(
+                                value: percentage,
+                                minHeight: 8,
+                                backgroundColor: progressBgColor,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(accentColor),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

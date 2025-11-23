@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 import 'budgeting/money.dart';
@@ -72,8 +71,7 @@ class TripMetadataFacade extends Equatable
     var hasValidName = name.isNotEmpty;
     var hasValidDateRange = endDate != null &&
         startDate != null &&
-        endDate!.compareTo(startDate!) > 0 &&
-        endDate!.calculateDaysInBetween(startDate!) >= 1;
+        endDate!.compareTo(startDate!) >= 0;
 
     return hasValidName && hasValidDateRange;
   }
