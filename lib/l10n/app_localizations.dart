@@ -100,491 +100,11 @@ abstract class AppLocalizations {
     Locale('ta')
   ];
 
-  /// No description provided for @plan_itinerary.
-  ///
-  /// In en, this message translates to:
-  /// **'Plan your Itinerary with ease and elegance'**
-  String get plan_itinerary;
-
-  /// No description provided for @login.
-  ///
-  /// In en, this message translates to:
-  /// **'Login'**
-  String get login;
-
-  /// No description provided for @logout.
-  ///
-  /// In en, this message translates to:
-  /// **'LogOut'**
-  String get logout;
-
-  /// No description provided for @register.
-  ///
-  /// In en, this message translates to:
-  /// **'Register'**
-  String get register;
-
-  /// No description provided for @userName.
-  ///
-  /// In en, this message translates to:
-  /// **'UserName'**
-  String get userName;
-
-  /// No description provided for @password.
-  ///
-  /// In en, this message translates to:
-  /// **'Password'**
-  String get password;
-
-  /// No description provided for @alternativeLogin.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in with'**
-  String get alternativeLogin;
-
-  /// No description provided for @userNameAlreadyExists.
-  ///
-  /// In en, this message translates to:
-  /// **'This username is already registered. You can login with it instead'**
-  String get userNameAlreadyExists;
-
-  /// No description provided for @noSuchUserExists.
-  ///
-  /// In en, this message translates to:
-  /// **'No such username exists. You can register with it instead'**
-  String get noSuchUserExists;
-
-  /// No description provided for @enterValidEmail.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter a valid email'**
-  String get enterValidEmail;
-
-  /// No description provided for @verificationPending.
-  ///
-  /// In en, this message translates to:
-  /// **'Verification mail link sent. Please login after completing verification.'**
-  String get verificationPending;
-
-  /// No description provided for @resendVerificationMail.
-  ///
-  /// In en, this message translates to:
-  /// **'Resend verification mail'**
-  String get resendVerificationMail;
-
-  /// No description provided for @viewRecentTrips.
-  ///
-  /// In en, this message translates to:
-  /// **'View upcoming trips'**
-  String get viewRecentTrips;
-
-  /// No description provided for @noTripsCreated.
-  ///
-  /// In en, this message translates to:
-  /// **'No upcoming trips? Have fun creating a new one!'**
-  String get noTripsCreated;
-
-  /// No description provided for @planTrip.
-  ///
-  /// In en, this message translates to:
-  /// **'Plan a trip!'**
-  String get planTrip;
-
-  /// No description provided for @dateRangePickerStart.
-  ///
-  /// In en, this message translates to:
-  /// **'Start Date:'**
-  String get dateRangePickerStart;
-
-  /// No description provided for @dateRangePickerEnd.
-  ///
-  /// In en, this message translates to:
-  /// **'End Date:'**
-  String get dateRangePickerEnd;
-
-  /// No description provided for @budgetAmount.
-  ///
-  /// In en, this message translates to:
-  /// **'Budget Amount'**
-  String get budgetAmount;
-
-  /// No description provided for @destination.
-  ///
-  /// In en, this message translates to:
-  /// **'Destination'**
-  String get destination;
-
-  /// No description provided for @tripName.
-  ///
-  /// In en, this message translates to:
-  /// **'Trip Name'**
-  String get tripName;
-
-  /// No description provided for @enterAmount.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter amount'**
-  String get enterAmount;
-
-  /// No description provided for @transit.
-  ///
-  /// In en, this message translates to:
-  /// **'Transit'**
-  String get transit;
-
-  /// No description provided for @lodging.
-  ///
-  /// In en, this message translates to:
-  /// **'Lodging'**
-  String get lodging;
-
-  /// No description provided for @itinerary.
-  ///
-  /// In en, this message translates to:
-  /// **'Itinerary'**
-  String get itinerary;
-
-  /// No description provided for @budget.
-  ///
-  /// In en, this message translates to:
-  /// **'Budget'**
-  String get budget;
-
-  /// No description provided for @budgeting.
-  ///
-  /// In en, this message translates to:
-  /// **'Budgeting'**
-  String get budgeting;
-
-  /// No description provided for @add_expense.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Expense'**
-  String get add_expense;
-
-  /// No description provided for @edit_budget.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Budget'**
-  String get edit_budget;
-
-  /// No description provided for @debt_summary.
-  ///
-  /// In en, this message translates to:
-  /// **'Debt Summary'**
-  String get debt_summary;
-
-  /// No description provided for @view_breakdown.
-  ///
-  /// In en, this message translates to:
-  /// **'View breakdown'**
-  String get view_breakdown;
-
-  /// No description provided for @add_tripmate.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Tripmate'**
-  String get add_tripmate;
-
-  /// No description provided for @settings.
-  ///
-  /// In en, this message translates to:
-  /// **'Settings'**
-  String get settings;
-
-  /// No description provided for @expenses.
-  ///
-  /// In en, this message translates to:
-  /// **'Expenses'**
-  String get expenses;
-
-  /// No description provided for @category.
-  ///
-  /// In en, this message translates to:
-  /// **'Category'**
-  String get category;
-
-  /// No description provided for @oldToNew.
-  ///
-  /// In en, this message translates to:
-  /// **'Date: Oldest to Newest'**
-  String get oldToNew;
-
-  /// No description provided for @newToOld.
-  ///
-  /// In en, this message translates to:
-  /// **'Date: Newest to Oldest'**
-  String get newToOld;
-
-  /// No description provided for @lowToHighCost.
-  ///
-  /// In en, this message translates to:
-  /// **'Cost: Low to High'**
-  String get lowToHighCost;
-
-  /// No description provided for @highToLowCost.
-  ///
-  /// In en, this message translates to:
-  /// **'Cost: High to Low'**
-  String get highToLowCost;
-
-  /// No description provided for @flight.
-  ///
-  /// In en, this message translates to:
-  /// **'Flight'**
-  String get flight;
-
-  /// No description provided for @flights.
-  ///
-  /// In en, this message translates to:
-  /// **'Flights'**
-  String get flights;
-
-  /// No description provided for @carRental.
-  ///
-  /// In en, this message translates to:
-  /// **'Car Rental'**
-  String get carRental;
-
-  /// No description provided for @publicTransit.
-  ///
-  /// In en, this message translates to:
-  /// **'Public Transit'**
-  String get publicTransit;
-
-  /// No description provided for @food.
-  ///
-  /// In en, this message translates to:
-  /// **'Food'**
-  String get food;
-
-  /// No description provided for @drinks.
-  ///
-  /// In en, this message translates to:
-  /// **'Drinks'**
-  String get drinks;
-
-  /// No description provided for @sightseeing.
-  ///
-  /// In en, this message translates to:
-  /// **'Sightseeing'**
-  String get sightseeing;
-
   /// No description provided for @activities.
   ///
   /// In en, this message translates to:
   /// **'Activities'**
   String get activities;
-
-  /// No description provided for @shopping.
-  ///
-  /// In en, this message translates to:
-  /// **'Shopping'**
-  String get shopping;
-
-  /// No description provided for @fuel.
-  ///
-  /// In en, this message translates to:
-  /// **'Fuel'**
-  String get fuel;
-
-  /// No description provided for @groceries.
-  ///
-  /// In en, this message translates to:
-  /// **'Groceries'**
-  String get groceries;
-
-  /// No description provided for @other.
-  ///
-  /// In en, this message translates to:
-  /// **'Other'**
-  String get other;
-
-  /// No description provided for @noExpensesCreated.
-  ///
-  /// In en, this message translates to:
-  /// **'You haven’t added any expense yet.'**
-  String get noExpensesCreated;
-
-  /// No description provided for @description.
-  ///
-  /// In en, this message translates to:
-  /// **'Description'**
-  String get description;
-
-  /// No description provided for @paidBy.
-  ///
-  /// In en, this message translates to:
-  /// **'Paid By'**
-  String get paidBy;
-
-  /// No description provided for @split.
-  ///
-  /// In en, this message translates to:
-  /// **'Split'**
-  String get split;
-
-  /// No description provided for @you.
-  ///
-  /// In en, this message translates to:
-  /// **'You'**
-  String get you;
-
-  /// No description provided for @title.
-  ///
-  /// In en, this message translates to:
-  /// **'Title'**
-  String get title;
-
-  /// No description provided for @view_expenses.
-  ///
-  /// In en, this message translates to:
-  /// **'View Expenses'**
-  String get view_expenses;
-
-  /// No description provided for @wrong_password_entered.
-  ///
-  /// In en, this message translates to:
-  /// **'Wrong password entered'**
-  String get wrong_password_entered;
-
-  /// No description provided for @password_policy.
-  ///
-  /// In en, this message translates to:
-  /// **'Password must be 8-20 characters long and include an uppercase letter, a lowercase letter, a digit, and a special character.'**
-  String get password_policy;
-
-  /// No description provided for @noTransitsCreated.
-  ///
-  /// In en, this message translates to:
-  /// **'You haven\'t added any transit yet.'**
-  String get noTransitsCreated;
-
-  /// No description provided for @notes.
-  ///
-  /// In en, this message translates to:
-  /// **'Notes'**
-  String get notes;
-
-  /// No description provided for @transitCarrier.
-  ///
-  /// In en, this message translates to:
-  /// **'Transit Carrier'**
-  String get transitCarrier;
-
-  /// No description provided for @depart.
-  ///
-  /// In en, this message translates to:
-  /// **'Depart'**
-  String get depart;
-
-  /// No description provided for @arrive.
-  ///
-  /// In en, this message translates to:
-  /// **'Arrive'**
-  String get arrive;
-
-  /// No description provided for @confirmation.
-  ///
-  /// In en, this message translates to:
-  /// **'Confirmation'**
-  String get confirmation;
-
-  /// No description provided for @cost.
-  ///
-  /// In en, this message translates to:
-  /// **'Cost'**
-  String get cost;
-
-  /// No description provided for @bus.
-  ///
-  /// In en, this message translates to:
-  /// **'Bus'**
-  String get bus;
-
-  /// No description provided for @cruise.
-  ///
-  /// In en, this message translates to:
-  /// **'Cruise'**
-  String get cruise;
-
-  /// No description provided for @ferry.
-  ///
-  /// In en, this message translates to:
-  /// **'Ferry'**
-  String get ferry;
-
-  /// No description provided for @train.
-  ///
-  /// In en, this message translates to:
-  /// **'Train'**
-  String get train;
-
-  /// No description provided for @personalVehicle.
-  ///
-  /// In en, this message translates to:
-  /// **'Personal Vehicle'**
-  String get personalVehicle;
-
-  /// No description provided for @walk.
-  ///
-  /// In en, this message translates to:
-  /// **'Walk'**
-  String get walk;
-
-  /// No description provided for @splitBy.
-  ///
-  /// In en, this message translates to:
-  /// **'Split By'**
-  String get splitBy;
-
-  /// No description provided for @flightNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Flight Number'**
-  String get flightNumber;
-
-  /// No description provided for @flightCarrierName.
-  ///
-  /// In en, this message translates to:
-  /// **'Airline Name'**
-  String get flightCarrierName;
-
-  /// No description provided for @airport.
-  ///
-  /// In en, this message translates to:
-  /// **'Airport'**
-  String get airport;
-
-  /// No description provided for @noLodgingCreated.
-  ///
-  /// In en, this message translates to:
-  /// **'You haven\'t added any lodging yet.'**
-  String get noLodgingCreated;
-
-  /// No description provided for @checkIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Check-In'**
-  String get checkIn;
-
-  /// No description provided for @checkOut.
-  ///
-  /// In en, this message translates to:
-  /// **'Check-Out'**
-  String get checkOut;
-
-  /// No description provided for @newPlanData.
-  ///
-  /// In en, this message translates to:
-  /// **'New Plan Data'**
-  String get newPlanData;
-
-  /// No description provided for @dayByDay.
-  ///
-  /// In en, this message translates to:
-  /// **'Day by day'**
-  String get dayByDay;
 
   /// No description provided for @addATitle.
   ///
@@ -592,65 +112,29 @@ abstract class AppLocalizations {
   /// **'Add a title'**
   String get addATitle;
 
-  /// No description provided for @deleteTrip.
+  /// No description provided for @addChecklistsForThisDay.
   ///
   /// In en, this message translates to:
-  /// **'Delete trip'**
-  String get deleteTrip;
+  /// **'Add checklists for this day'**
+  String get addChecklistsForThisDay;
 
-  /// No description provided for @deleteTripConfirmation.
+  /// No description provided for @addChecklist.
   ///
   /// In en, this message translates to:
-  /// **'Do you really want to delete this trip?'**
-  String get deleteTripConfirmation;
+  /// **'Add Checklist'**
+  String get addChecklist;
 
-  /// No description provided for @yes.
+  /// No description provided for @addPlacesForThisDay.
   ///
   /// In en, this message translates to:
-  /// **'Yes'**
-  String get yes;
+  /// **'Add places you plan to visit on this day'**
+  String get addPlacesForThisDay;
 
-  /// No description provided for @no.
+  /// No description provided for @add_expense.
   ///
   /// In en, this message translates to:
-  /// **'No'**
-  String get no;
-
-  /// No description provided for @cancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get cancel;
-
-  /// No description provided for @share.
-  ///
-  /// In en, this message translates to:
-  /// **'Share'**
-  String get share;
-
-  /// No description provided for @stayAddress.
-  ///
-  /// In en, this message translates to:
-  /// **'Hostel or Lodging Address'**
-  String get stayAddress;
-
-  /// No description provided for @carrierName.
-  ///
-  /// In en, this message translates to:
-  /// **'Carrier Name'**
-  String get carrierName;
-
-  /// No description provided for @dateTimeSelection.
-  ///
-  /// In en, this message translates to:
-  /// **'Select a date and time'**
-  String get dateTimeSelection;
-
-  /// No description provided for @searchForCurrency.
-  ///
-  /// In en, this message translates to:
-  /// **'Search a currency'**
-  String get searchForCurrency;
+  /// **'Add Expense'**
+  String get add_expense;
 
   /// No description provided for @addItem.
   ///
@@ -658,23 +142,35 @@ abstract class AppLocalizations {
   /// **'Add item'**
   String get addItem;
 
-  /// No description provided for @departAt.
+  /// No description provided for @addNew.
   ///
   /// In en, this message translates to:
-  /// **'Depart At'**
-  String get departAt;
+  /// **'Add New'**
+  String get addNew;
 
-  /// No description provided for @arriveAt.
+  /// No description provided for @addNotesForThisDay.
   ///
   /// In en, this message translates to:
-  /// **'Arrive At'**
-  String get arriveAt;
+  /// **'Add notes for this day'**
+  String get addNotesForThisDay;
 
-  /// No description provided for @allDayTravel.
+  /// No description provided for @addNote.
   ///
   /// In en, this message translates to:
-  /// **'All Day Travel'**
-  String get allDayTravel;
+  /// **'Add Note'**
+  String get addNote;
+
+  /// No description provided for @addSight.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Sight'**
+  String get addSight;
+
+  /// No description provided for @airport.
+  ///
+  /// In en, this message translates to:
+  /// **'Airport'**
+  String get airport;
 
   /// No description provided for @allDayStay.
   ///
@@ -682,53 +178,29 @@ abstract class AppLocalizations {
   /// **'All Day Stay'**
   String get allDayStay;
 
-  /// No description provided for @noExpensesAssociatedWithDate.
+  /// No description provided for @allDayTravel.
   ///
   /// In en, this message translates to:
-  /// **'No expenses associated with a date'**
-  String get noExpensesAssociatedWithDate;
+  /// **'All Day Travel'**
+  String get allDayTravel;
 
-  /// No description provided for @noExpensesToSplit.
+  /// No description provided for @alternativeLogin.
   ///
   /// In en, this message translates to:
-  /// **'There are no expenses to split'**
-  String get noExpensesToSplit;
+  /// **'Sign in with'**
+  String get alternativeLogin;
 
-  /// No description provided for @needsToPay.
+  /// No description provided for @arrive.
   ///
   /// In en, this message translates to:
-  /// **'owes'**
-  String get needsToPay;
+  /// **'Arrive'**
+  String get arrive;
 
-  /// No description provided for @splitExpensesWithNewTripMateMessage.
+  /// No description provided for @arriveAt.
   ///
   /// In en, this message translates to:
-  /// **'All current expenses will be split with the new trip mate. Do you wish to proceed?'**
-  String get splitExpensesWithNewTripMateMessage;
-
-  /// No description provided for @addNew.
-  ///
-  /// In en, this message translates to:
-  /// **'Add New'**
-  String get addNew;
-
-  /// No description provided for @departureArrivalDateTimeCannotBeEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'Departure and Arrival date time cannot be empty'**
-  String get departureArrivalDateTimeCannotBeEmpty;
-
-  /// No description provided for @departureArrivalLocationCannotBeEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'Departure and Arrival location cannot be empty'**
-  String get departureArrivalLocationCannotBeEmpty;
-
-  /// No description provided for @departureAndArrivalLocationsCannotBeSame.
-  ///
-  /// In en, this message translates to:
-  /// **'Departure and Arrival locations cannot be the same'**
-  String get departureAndArrivalLocationsCannotBeSame;
+  /// **'Arrive At'**
+  String get arriveAt;
 
   /// No description provided for @arrivalDepartureDateTimesError.
   ///
@@ -736,35 +208,65 @@ abstract class AppLocalizations {
   /// **'Arrival cannot be before departure. Also, both must be within the trip start/end dates'**
   String get arrivalDepartureDateTimesError;
 
-  /// No description provided for @lodgingAddressCannotBeEmpty.
+  /// No description provided for @budget.
   ///
   /// In en, this message translates to:
-  /// **'Lodging address cannot be empty'**
-  String get lodgingAddressCannotBeEmpty;
+  /// **'Budget'**
+  String get budget;
 
-  /// No description provided for @checkInAndCheckoutDatesCannotBeEmpty.
+  /// No description provided for @budgetAmount.
   ///
   /// In en, this message translates to:
-  /// **'Check-In and Check-Out dates cannot be empty'**
-  String get checkInAndCheckoutDatesCannotBeEmpty;
+  /// **'Budget Amount'**
+  String get budgetAmount;
 
-  /// No description provided for @expenseTitleMustBeAtleast3Characters.
+  /// No description provided for @budgeting.
   ///
   /// In en, this message translates to:
-  /// **'Expense title must be at least 3 characters'**
-  String get expenseTitleMustBeAtleast3Characters;
+  /// **'Budgeting'**
+  String get budgeting;
 
-  /// No description provided for @titleCannotBeEmpty.
+  /// No description provided for @bus.
   ///
   /// In en, this message translates to:
-  /// **'Title cannot be empty'**
-  String get titleCannotBeEmpty;
+  /// **'Bus'**
+  String get bus;
 
-  /// No description provided for @noteCannotBeEmpty.
+  /// No description provided for @cancel.
   ///
   /// In en, this message translates to:
-  /// **'Note cannot be empty'**
-  String get noteCannotBeEmpty;
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @carRental.
+  ///
+  /// In en, this message translates to:
+  /// **'Car Rental'**
+  String get carRental;
+
+  /// No description provided for @carrierName.
+  ///
+  /// In en, this message translates to:
+  /// **'Carrier Name'**
+  String get carrierName;
+
+  /// No description provided for @category.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get category;
+
+  /// No description provided for @checkIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-In'**
+  String get checkIn;
+
+  /// No description provided for @checkListItemCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist item cannot be empty'**
+  String get checkListItemCannotBeEmpty;
 
   /// No description provided for @checkListTitle.
   ///
@@ -778,59 +280,23 @@ abstract class AppLocalizations {
   /// **'Checklist title must be at least 3 characters'**
   String get checkListTitleMustBeAtleast3Characters;
 
-  /// No description provided for @checkListItemCannotBeEmpty.
+  /// No description provided for @checkOut.
   ///
   /// In en, this message translates to:
-  /// **'Checklist item cannot be empty'**
-  String get checkListItemCannotBeEmpty;
+  /// **'Check-Out'**
+  String get checkOut;
 
-  /// No description provided for @noNotesOrCheckListsOrPlaces.
+  /// No description provided for @checklists.
   ///
   /// In en, this message translates to:
-  /// **'No notes, checklists or places added yet'**
-  String get noNotesOrCheckListsOrPlaces;
+  /// **'Checklists'**
+  String get checklists;
 
-  /// No description provided for @loading.
+  /// No description provided for @checklist.
   ///
   /// In en, this message translates to:
-  /// **'Loading...'**
-  String get loading;
-
-  /// No description provided for @loadingYourTrips.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading your trips'**
-  String get loadingYourTrips;
-
-  /// No description provided for @loadedYourTrips.
-  ///
-  /// In en, this message translates to:
-  /// **'Loaded your trips'**
-  String get loadedYourTrips;
-
-  /// No description provided for @loadingTripData.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading trip data'**
-  String get loadingTripData;
-
-  /// No description provided for @launchingTrip.
-  ///
-  /// In en, this message translates to:
-  /// **'Launching trip'**
-  String get launchingTrip;
-
-  /// No description provided for @darkTheme.
-  ///
-  /// In en, this message translates to:
-  /// **'Dark Theme'**
-  String get darkTheme;
-
-  /// No description provided for @language.
-  ///
-  /// In en, this message translates to:
-  /// **'Language'**
-  String get language;
+  /// **'Checklist'**
+  String get checklist;
 
   /// No description provided for @chooseTripThumbnail.
   ///
@@ -838,17 +304,623 @@ abstract class AppLocalizations {
   /// **'Choose a thumbnail'**
   String get chooseTripThumbnail;
 
+  /// No description provided for @confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmation'**
+  String get confirmation;
+
+  /// No description provided for @cost.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost'**
+  String get cost;
+
+  /// No description provided for @cruise.
+  ///
+  /// In en, this message translates to:
+  /// **'Cruise'**
+  String get cruise;
+
+  /// No description provided for @dateRangePickerEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End Date:'**
+  String get dateRangePickerEnd;
+
+  /// No description provided for @dateRangePickerStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date:'**
+  String get dateRangePickerStart;
+
+  /// No description provided for @dateTimeSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a date and time'**
+  String get dateTimeSelection;
+
+  /// No description provided for @dayByDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day by day'**
+  String get dayByDay;
+
+  /// No description provided for @darkTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Theme'**
+  String get darkTheme;
+
+  /// No description provided for @debt_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt Summary'**
+  String get debt_summary;
+
+  /// No description provided for @deleteTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete trip'**
+  String get deleteTrip;
+
+  /// No description provided for @deleteTripConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you really want to delete this trip?'**
+  String get deleteTripConfirmation;
+
+  /// No description provided for @depart.
+  ///
+  /// In en, this message translates to:
+  /// **'Depart'**
+  String get depart;
+
+  /// No description provided for @departAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Depart At'**
+  String get departAt;
+
+  /// No description provided for @departureAndArrivalLocationsCannotBeSame.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure and Arrival locations cannot be the same'**
+  String get departureAndArrivalLocationsCannotBeSame;
+
+  /// No description provided for @departureArrivalDateTimeCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure and Arrival date time cannot be empty'**
+  String get departureArrivalDateTimeCannotBeEmpty;
+
+  /// No description provided for @departureArrivalLocationCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure and Arrival location cannot be empty'**
+  String get departureArrivalLocationCannotBeEmpty;
+
+  /// No description provided for @description.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get description;
+
+  /// No description provided for @destination.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination'**
+  String get destination;
+
+  /// No description provided for @detailsAboutSight.
+  ///
+  /// In en, this message translates to:
+  /// **'Details about this sight'**
+  String get detailsAboutSight;
+
+  /// No description provided for @drinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Drinks'**
+  String get drinks;
+
+  /// No description provided for @edit_budget.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Budget'**
+  String get edit_budget;
+
+  /// No description provided for @enterAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter amount'**
+  String get enterAmount;
+
+  /// No description provided for @enterValidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email'**
+  String get enterValidEmail;
+
+  /// No description provided for @expense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get expense;
+
+  /// No description provided for @expenseTitleMustBeAtleast3Characters.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense title must be at least 3 characters'**
+  String get expenseTitleMustBeAtleast3Characters;
+
+  /// No description provided for @expenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get expenses;
+
+  /// No description provided for @ferry.
+  ///
+  /// In en, this message translates to:
+  /// **'Ferry'**
+  String get ferry;
+
+  /// No description provided for @flight.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight'**
+  String get flight;
+
+  /// No description provided for @flightCarrierName.
+  ///
+  /// In en, this message translates to:
+  /// **'Airline Name'**
+  String get flightCarrierName;
+
+  /// No description provided for @flightNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight Number'**
+  String get flightNumber;
+
+  /// No description provided for @flights.
+  ///
+  /// In en, this message translates to:
+  /// **'Flights'**
+  String get flights;
+
+  /// No description provided for @food.
+  ///
+  /// In en, this message translates to:
+  /// **'Food'**
+  String get food;
+
+  /// No description provided for @fuel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel'**
+  String get fuel;
+
+  /// No description provided for @groceries.
+  ///
+  /// In en, this message translates to:
+  /// **'Groceries'**
+  String get groceries;
+
+  /// No description provided for @highToLowCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost: High to Low'**
+  String get highToLowCost;
+
+  /// No description provided for @itinerary.
+  ///
+  /// In en, this message translates to:
+  /// **'Itinerary'**
+  String get itinerary;
+
+  /// No description provided for @item.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get item;
+
+  /// No description provided for @items.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get items;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @launchingTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Launching trip'**
+  String get launchingTrip;
+
+  /// No description provided for @loadedYourTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Loaded your trips'**
+  String get loadedYourTrips;
+
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get loading;
+
+  /// No description provided for @loadingTripData.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading trip data'**
+  String get loadingTripData;
+
+  /// No description provided for @loadingYourTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading your trips'**
+  String get loadingYourTrips;
+
+  /// No description provided for @lodging.
+  ///
+  /// In en, this message translates to:
+  /// **'Lodging'**
+  String get lodging;
+
+  /// No description provided for @lodgingAddressCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Lodging address cannot be empty'**
+  String get lodgingAddressCannotBeEmpty;
+
+  /// No description provided for @location.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get location;
+
+  /// No description provided for @login.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get login;
+
+  /// No description provided for @logout.
+  ///
+  /// In en, this message translates to:
+  /// **'LogOut'**
+  String get logout;
+
+  /// No description provided for @lowToHighCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost: Low to High'**
+  String get lowToHighCost;
+
+  /// No description provided for @needsToPay.
+  ///
+  /// In en, this message translates to:
+  /// **'owes'**
+  String get needsToPay;
+
+  /// No description provided for @newPlanData.
+  ///
+  /// In en, this message translates to:
+  /// **'New Plan Data'**
+  String get newPlanData;
+
+  /// No description provided for @newToOld.
+  ///
+  /// In en, this message translates to:
+  /// **'Date: Newest to Oldest'**
+  String get newToOld;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
+
+  /// No description provided for @noChecklistsCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'No checklists yet'**
+  String get noChecklistsCreated;
+
+  /// No description provided for @noExpensesAssociatedWithDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No expenses associated with a date'**
+  String get noExpensesAssociatedWithDate;
+
+  /// No description provided for @noExpensesCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven’t added any expense yet.'**
+  String get noExpensesCreated;
+
+  /// No description provided for @noExpensesToSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no expenses to split'**
+  String get noExpensesToSplit;
+
+  /// No description provided for @noLodgingCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t added any lodging yet.'**
+  String get noLodgingCreated;
+
+  /// No description provided for @noNotesCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet'**
+  String get noNotesCreated;
+
+  /// No description provided for @noNotesOrCheckListsOrPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes, checklists or places added yet'**
+  String get noNotesOrCheckListsOrPlaces;
+
+  /// No description provided for @noPlacesCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'No places yet'**
+  String get noPlacesCreated;
+
+  /// No description provided for @noSuchUserExists.
+  ///
+  /// In en, this message translates to:
+  /// **'No such username exists. You can register with it instead'**
+  String get noSuchUserExists;
+
+  /// No description provided for @noTransitsCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t added any transit yet.'**
+  String get noTransitsCreated;
+
+  /// No description provided for @noTripsCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming trips? Have fun creating a new one!'**
+  String get noTripsCreated;
+
+  /// No description provided for @noteCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Note cannot be empty'**
+  String get noteCannotBeEmpty;
+
+  /// No description provided for @notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get notes;
+
+  /// No description provided for @oldToNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Date: Oldest to Newest'**
+  String get oldToNew;
+
+  /// No description provided for @other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get other;
+
+  /// No description provided for @paidBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid By'**
+  String get paidBy;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @password_policy.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be 8-20 characters long and include an uppercase letter, a lowercase letter, a digit, and a special character.'**
+  String get password_policy;
+
+  /// No description provided for @personalVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Vehicle'**
+  String get personalVehicle;
+
+  /// No description provided for @places.
+  ///
+  /// In en, this message translates to:
+  /// **'Places'**
+  String get places;
+
+  /// No description provided for @plan_itinerary.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan your Itinerary with ease and elegance'**
+  String get plan_itinerary;
+
+  /// No description provided for @planTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan a trip!'**
+  String get planTrip;
+
+  /// No description provided for @publicTransit.
+  ///
+  /// In en, this message translates to:
+  /// **'Public Transit'**
+  String get publicTransit;
+
+  /// No description provided for @register.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get register;
+
+  /// No description provided for @resendVerificationMail.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend verification mail'**
+  String get resendVerificationMail;
+
+  /// No description provided for @searchForCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a currency'**
+  String get searchForCurrency;
+
   /// No description provided for @select.
   ///
   /// In en, this message translates to:
   /// **'Select'**
   String get select;
 
-  /// No description provided for @updateDialogCriticalTitle.
+  /// No description provided for @settings.
   ///
   /// In en, this message translates to:
-  /// **'Critical Update Required'**
-  String get updateDialogCriticalTitle;
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// No description provided for @shopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get shopping;
+
+  /// No description provided for @sight.
+  ///
+  /// In en, this message translates to:
+  /// **'Sight'**
+  String get sight;
+
+  /// No description provided for @sightseeing.
+  ///
+  /// In en, this message translates to:
+  /// **'Sightseeing'**
+  String get sightseeing;
+
+  /// No description provided for @split.
+  ///
+  /// In en, this message translates to:
+  /// **'Split'**
+  String get split;
+
+  /// No description provided for @splitBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Split By'**
+  String get splitBy;
+
+  /// No description provided for @splitExpensesWithNewTripMateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'All current expenses will be split with the new trip mate. Do you wish to proceed?'**
+  String get splitExpensesWithNewTripMateMessage;
+
+  /// No description provided for @stayAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Hostel or Lodging Address'**
+  String get stayAddress;
+
+  /// No description provided for @setTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Time'**
+  String get setTime;
+
+  /// No description provided for @taxi.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxi'**
+  String get taxi;
+
+  /// No description provided for @timeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get timeline;
+
+  /// No description provided for @title.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get title;
+
+  /// No description provided for @titleCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Title cannot be empty'**
+  String get titleCannotBeEmpty;
+
+  /// No description provided for @train.
+  ///
+  /// In en, this message translates to:
+  /// **'Train'**
+  String get train;
+
+  /// No description provided for @transit.
+  ///
+  /// In en, this message translates to:
+  /// **'Transit'**
+  String get transit;
+
+  /// No description provided for @transitCarrier.
+  ///
+  /// In en, this message translates to:
+  /// **'Transit Carrier'**
+  String get transitCarrier;
+
+  /// No description provided for @tripName.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip Name'**
+  String get tripName;
+
+  /// No description provided for @untitled.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled'**
+  String get untitled;
+
+  /// No description provided for @untitledChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled Checklist'**
+  String get untitledChecklist;
+
+  /// No description provided for @untitledSight.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled Sight'**
+  String get untitledSight;
+
+  /// No description provided for @updateDialogAvailableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover new features to enhance your travel experience'**
+  String get updateDialogAvailableMessage;
 
   /// No description provided for @updateDialogAvailableTitle.
   ///
@@ -862,11 +934,17 @@ abstract class AppLocalizations {
   /// **'This update is required to continue using the app'**
   String get updateDialogCriticalMessage;
 
-  /// No description provided for @updateDialogAvailableMessage.
+  /// No description provided for @updateDialogCriticalTitle.
   ///
   /// In en, this message translates to:
-  /// **'Discover new features to enhance your travel experience'**
-  String get updateDialogAvailableMessage;
+  /// **'Critical Update Required'**
+  String get updateDialogCriticalTitle;
+
+  /// No description provided for @updateDialogUpdateNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Now'**
+  String get updateDialogUpdateNow;
 
   /// No description provided for @updateDialogWhatsNew.
   ///
@@ -874,11 +952,71 @@ abstract class AppLocalizations {
   /// **'What\'s New'**
   String get updateDialogWhatsNew;
 
-  /// No description provided for @updateDialogUpdateNow.
+  /// No description provided for @userName.
   ///
   /// In en, this message translates to:
-  /// **'Update Now'**
-  String get updateDialogUpdateNow;
+  /// **'UserName'**
+  String get userName;
+
+  /// No description provided for @userNameAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'This username is already registered. You can login with it instead'**
+  String get userNameAlreadyExists;
+
+  /// No description provided for @verificationPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification mail link sent. Please login after completing verification.'**
+  String get verificationPending;
+
+  /// No description provided for @view_breakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'View breakdown'**
+  String get view_breakdown;
+
+  /// No description provided for @view_expenses.
+  ///
+  /// In en, this message translates to:
+  /// **'View Expenses'**
+  String get view_expenses;
+
+  /// No description provided for @viewRecentTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'View upcoming trips'**
+  String get viewRecentTrips;
+
+  /// No description provided for @walk.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk'**
+  String get walk;
+
+  /// No description provided for @writeYourNoteHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your note here'**
+  String get writeYourNoteHere;
+
+  /// No description provided for @wrong_password_entered.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong password entered'**
+  String get wrong_password_entered;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
+
+  /// No description provided for @you.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get you;
 }
 
 class _AppLocalizationsDelegate

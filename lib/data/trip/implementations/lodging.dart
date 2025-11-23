@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
-import 'package:wandrr/data/trip/implementations/firestore_helpers.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 
@@ -70,28 +69,6 @@ class LodgingModelImplementation extends LodgingFacade
         _confirmationIdField: confirmationId,
       if (notes != null && notes!.isNotEmpty) _notesField: notes
     };
-  }
-
-  @override
-  Future<bool> tryUpdate(LodgingFacade toUpdate) async {
-    var json = <String, dynamic>{};
-    FirestoreHelpers.updateJson(
-        checkinDateTime, toUpdate.checkinDateTime, _checkinDateTimeField, json);
-    FirestoreHelpers.updateJson(checkoutDateTime, toUpdate.checkoutDateTime,
-        _checkoutDateTimeField, json);
-    FirestoreHelpers.updateJson(
-        location, toUpdate.location, _locationField, json);
-    FirestoreHelpers.updateJson(
-        confirmationId, toUpdate.confirmationId, _confirmationIdField, json);
-    FirestoreHelpers.updateJson(notes, toUpdate.notes, _notesField, json);
-    FirestoreHelpers.updateJson(expense, toUpdate.expense, _expenseField, json);
-
-    return FirestoreHelpers.tryUpdateDocumentField(
-        documentReference: documentReference,
-        json: json,
-        onSuccess: () {
-          copyWith(toUpdate);
-        });
   }
 
   @override

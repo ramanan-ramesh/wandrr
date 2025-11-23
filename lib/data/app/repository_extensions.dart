@@ -13,7 +13,7 @@ extension RepositoryExt on BuildContext {
     (appDataRepository as AppDataModifier).isBigLayout = isBigLayout;
   }
 
-  bool get isLightTheme => appDataRepository.activeThemeMode == ThemeMode.light;
+  bool get isLightTheme => Theme.of(this).brightness == Brightness.light;
 
   PlatformUser? get activeUser => appDataRepository.userManagement.activeUser;
 }

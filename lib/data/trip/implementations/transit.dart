@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/budgeting/expense.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
-import 'package:wandrr/data/trip/implementations/firestore_helpers.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 
@@ -89,33 +88,6 @@ class TransitImplementation extends TransitFacade
       if (operator != null && operator!.isNotEmpty) _operatorField: operator,
       if (notes != null && notes!.isNotEmpty) _notesField: notes
     };
-  }
-
-  @override
-  Future<bool> tryUpdate(TransitFacade toUpdate) async {
-    var json = <String, dynamic>{};
-    FirestoreHelpers.updateJson(departureLocation, toUpdate.departureLocation,
-        _departureLocationField, json);
-    FirestoreHelpers.updateJson(
-        arrivalLocation, toUpdate.arrivalLocation, _arrivalLocationField, json);
-    FirestoreHelpers.updateJson(expense, toUpdate.expense, _expenseField, json);
-    FirestoreHelpers.updateJson(departureDateTime, toUpdate.departureDateTime,
-        _departureDateTimeField, json);
-    FirestoreHelpers.updateJson(
-        arrivalDateTime, toUpdate.arrivalDateTime, _arrivalDateTimeField, json);
-    FirestoreHelpers.updateJson(
-        confirmationId, toUpdate.confirmationId, _confirmationIdField, json);
-    FirestoreHelpers.updateJson(
-        operator, toUpdate.operator, _operatorField, json);
-    FirestoreHelpers.updateJson(notes, toUpdate.notes, _notesField, json);
-    FirestoreHelpers.updateJson(
-        transitOption, toUpdate.transitOption, _transitOptionField, json);
-    return await FirestoreHelpers.tryUpdateDocumentField(
-        documentReference: documentReference,
-        json: json,
-        onSuccess: () {
-          copyWith(toUpdate);
-        });
   }
 
   @override

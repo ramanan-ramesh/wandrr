@@ -5,10 +5,10 @@ import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 import 'budgeting/expense_category.dart';
-import 'budgeting/money.dart';
 
 // ignore: must_be_immutable
-class TransitFacade extends Equatable implements TripEntity<TransitFacade> {
+class TransitFacade extends Equatable
+    implements ExpenseLinkedTripEntity<TransitFacade> {
   final String tripId;
 
   @override
@@ -30,6 +30,7 @@ class TransitFacade extends Equatable implements TripEntity<TransitFacade> {
 
   String? notes;
 
+  @override
   ExpenseFacade expense;
 
   TransitFacade(
@@ -56,7 +57,7 @@ class TransitFacade extends Equatable implements TripEntity<TransitFacade> {
         expense = ExpenseFacade(
             tripId: tripId,
             title: '',
-            totalExpense: Money(currency: defaultCurrency, amount: 0),
+            currency: defaultCurrency,
             category: getExpenseCategory(transitOption),
             paidBy: Map.fromIterables(allTripContributors,
                 List.filled(allTripContributors.length, 0)),
@@ -66,8 +67,8 @@ class TransitFacade extends Equatable implements TripEntity<TransitFacade> {
   TransitFacade clone() => TransitFacade(
       tripId: tripId,
       transitOption: transitOption,
-      departureDateTime: departureDateTime,
-      arrivalDateTime: arrivalDateTime,
+      departureDateTime: departureDateTime?.copyWith(),
+      arrivalDateTime: arrivalDateTime?.copyWith(),
       departureLocation: departureLocation?.clone(),
       arrivalLocation: arrivalLocation?.clone(),
       expense: expense.clone(),
@@ -129,6 +130,7 @@ class TransitFacade extends Equatable implements TripEntity<TransitFacade> {
     }
   }
 
+  @override
   bool validate() {
     var areLocationsValid =
         departureLocation != null && arrivalLocation != null;

@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
-import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/location/location_context.dart';
 
@@ -10,17 +9,9 @@ class LocationModelImplementation extends LocationFacade
   static const String _contextField = 'context';
   static const String _latitudeLongitudeField = 'latLon';
 
-  final String _collectionName;
-  final String _parentId;
-
   LocationModelImplementation.fromModelFacade(
-      {required LocationFacade locationModelFacade,
-      String? collectionName,
-      String? parentId})
-      : _parentId = parentId ?? '',
-        _collectionName =
-            collectionName ?? FirestoreCollections.planDataCollectionName,
-        super(
+      {required LocationFacade locationModelFacade, String? parentId})
+      : super(
             latitude: locationModelFacade.latitude,
             longitude: locationModelFacade.longitude,
             context: locationModelFacade.context,
@@ -47,13 +38,8 @@ class LocationModelImplementation extends LocationFacade
   }
 
   @override
-  DocumentReference<Object?> get documentReference => FirebaseFirestore.instance
-      .collection(FirestoreCollections.tripCollectionName)
-      .doc(tripId)
-      .collection(_collectionName)
-      .doc(_parentId)
-      .collection(FirestoreCollections.placeCollectionName)
-      .doc(id);
+  DocumentReference<Object?> get documentReference =>
+      throw UnimplementedError();
 
   @override
   Map<String, dynamic> toJson() {
@@ -77,9 +63,6 @@ class LocationModelImplementation extends LocationFacade
   }
 
   @override
-  Future<bool> tryUpdate(LocationFacade toUpdate) async => true;
-
-  @override
   LocationFacade get facade => clone();
 
   LocationModelImplementation._(
@@ -89,8 +72,5 @@ class LocationModelImplementation extends LocationFacade
       required super.tripId,
       super.id,
       String? collectionName,
-      String? parentId})
-      : _parentId = parentId ?? '',
-        _collectionName =
-            collectionName ?? FirestoreCollections.planDataCollectionName;
+      String? parentId});
 }

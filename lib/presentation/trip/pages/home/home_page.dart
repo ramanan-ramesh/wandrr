@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
+import 'package:wandrr/presentation/trip/pages/home/app_bar/app_bar.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 import 'trip_creator_dialog.dart';
@@ -13,6 +14,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     context.updateLocalizations();
     return Scaffold(
+      appBar: HomeAppBar(),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [

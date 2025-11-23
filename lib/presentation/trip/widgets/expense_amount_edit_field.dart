@@ -4,48 +4,98 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wandrr/l10n/extension.dart';
 
-class PlatformExpenseAmountEditField extends StatelessWidget {
+class PlatformExpenseAmountEditField extends StatefulWidget {
   final bool isReadonly;
   final Function(double)? onExpenseAmountChanged;
-  String? amount;
-  final TextEditingController _amountEditingController;
+  final String? amount;
+  final TextEditingController? controller;
+  final FocusNode? focusNode;
   final InputDecoration? inputDecoration;
   final Color? textColor;
   final TextInputAction textInputAction;
 
-  PlatformExpenseAmountEditField(
-      {super.key,
-      this.isReadonly = false,
-      this.onExpenseAmountChanged,
-      this.inputDecoration,
-      this.textColor,
-      this.textInputAction = TextInputAction.next,
-      this.amount})
-      : _amountEditingController = TextEditingController(
-            text: amount != null
-                ? (double.parse(amount) == 0 ? null : amount)
-                : amount);
+  const PlatformExpenseAmountEditField({
+    super.key,
+    this.isReadonly = false,
+    this.onExpenseAmountChanged,
+    this.inputDecoration,
+    this.textColor,
+    this.textInputAction = TextInputAction.done,
+    this.amount,
+    this.controller,
+    this.focusNode,
+  });
+
+  @override
+  State<PlatformExpenseAmountEditField> createState() =>
+      _PlatformExpenseAmountEditFieldState();
+}
+
+class _PlatformExpenseAmountEditFieldState
+    extends State<PlatformExpenseAmountEditField> {
+  late TextEditingController _controller;
+  late FocusNode _focusNode;
+  String? _amount;
+  bool _isExternalController = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isExternalController = widget.controller != null;
+    _controller = widget.controller ??
+        TextEditingController(
+            text: widget.amount != null
+                ? (double.parse(widget.amount!) == 0 ? '0' : widget.amount)
+                : widget.amount);
+    _focusNode = widget.focusNode ?? FocusNode();
+  }
+
+  @override
+  void didUpdateWidget(covariant PlatformExpenseAmountEditField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Only update text if we're using internal controller and amount changed
+    if (!_isExternalController && widget.amount != _amount) {
+      _amount = widget.amount;
+      _controller.text = (widget.amount != null
+          ? (double.parse(widget.amount!) == 0 ? '0' : widget.amount)
+          : widget.amount ?? '')!;
+    }
+  }
+
+  @override
+  void dispose() {
+    // Only dispose if we created them internally
+    if (!_isExternalController) {
+      _controller.dispose();
+    }
+    if (widget.focusNode == null) {
+      _focusNode.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return TextField(
-      readOnly: isReadonly,
-      style: TextStyle(color: textColor),
-      textInputAction: textInputAction,
+      readOnly: widget.isReadonly,
+      style: TextStyle(color: widget.textColor),
+      textInputAction: widget.textInputAction,
+      controller: _controller,
+      focusNode: _focusNode,
       onChanged: (newValue) {
-        if (newValue != amount) {
-          amount = newValue;
+        if (newValue != widget.amount) {
+          _amount = newValue;
           var doubleValue = double.tryParse(newValue);
-          if (onExpenseAmountChanged != null && doubleValue != null) {
-            onExpenseAmountChanged!(doubleValue);
+          if (widget.onExpenseAmountChanged != null && doubleValue != null) {
+            widget.onExpenseAmountChanged!(doubleValue);
           }
         }
       },
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      controller: _amountEditingController,
       inputFormatters: [_DecimalTextInputFormatter()],
-      decoration: inputDecoration
+      decoration: widget.inputDecoration
         ?..copyWith(hintText: context.localizations.enterAmount),
+      scrollPadding: const EdgeInsets.only(bottom: 250),
     );
   }
 }

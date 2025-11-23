@@ -2,45 +2,361 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/l10n/extension.dart';
 
-abstract class CurrencyDropDownField extends StatefulWidget {
-  CurrencyData selectedCurrencyData;
+/// Controller for managing currency dropdown state and overlay lifecycle.
+/// Handles opening/closing dropdown overlay and managing layer link positioning.
+class CurrencyDropdownController {
   OverlayEntry? _overlayEntry;
-  final Iterable<CurrencyData> allCurrencies;
-  final Function(CurrencyData selectedCurrencyInfo) currencySelectedCallback;
   final LayerLink layerLink = LayerLink();
 
-  CurrencyDropDownField(
-      {required this.selectedCurrencyData,
-      required this.allCurrencies,
-      required this.currencySelectedCallback,
-      super.key,
-      OverlayEntry? overlayEntry})
-      : _overlayEntry = overlayEntry;
+  bool get isOpen => _overlayEntry != null;
 
-  Widget buildCurrencyListTile(CurrencyData currency, BuildContext context,
-      void Function(VoidCallback) setState,
-      {required bool isDropDownButton}) {
-    var textColor = Theme.of(context).listTileTheme.textColor;
-    var isEqualToCurrentlySelectedItem = currency == selectedCurrencyData;
-    if (isDropDownButton || isEqualToCurrentlySelectedItem) {
-      textColor = Theme.of(context).listTileTheme.selectedColor;
+  void open(BuildContext context, OverlayEntry entry) {
+    if (_overlayEntry == null) {
+      _overlayEntry = entry;
+      Overlay.of(context).insert(_overlayEntry!);
     }
+  }
+
+  void close() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  void dispose() {
+    close();
+  }
+}
+
+/// Standalone currency selector dropdown.
+class PlatformCurrencyDropDown extends StatefulWidget {
+  final CurrencyData selectedCurrency;
+  final Iterable<CurrencyData> allCurrencies;
+  final Function(CurrencyData) onCurrencySelected;
+
+  const PlatformCurrencyDropDown({
+    required this.selectedCurrency,
+    required this.allCurrencies,
+    required this.onCurrencySelected,
+    super.key,
+  });
+
+  @override
+  State<PlatformCurrencyDropDown> createState() =>
+      _PlatformCurrencyDropDownState();
+}
+
+class _PlatformCurrencyDropDownState extends State<PlatformCurrencyDropDown> {
+  late CurrencyDropdownController _controller;
+  late CurrencyData _selectedCurrency;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = CurrencyDropdownController();
+    _selectedCurrency = widget.selectedCurrency;
+  }
+
+  @override
+  void didUpdateWidget(covariant PlatformCurrencyDropDown oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedCurrency != oldWidget.selectedCurrency) {
+      _selectedCurrency = widget.selectedCurrency;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _toggleDropdown() {
+    if (_controller.isOpen) {
+      _controller.close();
+    } else {
+      _openDropdown();
+    }
+  }
+
+  void _openDropdown() {
+    final renderBox = context.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+
+    final size = renderBox.size;
+
+    final entry = OverlayEntry(
+      builder: (context) => _CurrencyDropdownOverlay(
+        controller: _controller,
+        allCurrencies: widget.allCurrencies,
+        selectedCurrency: _selectedCurrency,
+        onCurrencySelected: (currency) {
+          setState(() {
+            _selectedCurrency = currency;
+          });
+          widget.onCurrencySelected(currency);
+        },
+        onClose: () {
+          _controller.close();
+          setState(() {});
+        },
+        layerLink: _controller.layerLink,
+        triggerSize: size,
+        prefix: _CurrencyButton(
+          selectedCurrency: _selectedCurrency,
+          onPressed: _toggleDropdown,
+          layerLink: _controller.layerLink,
+        ),
+      ),
+    );
+
+    _controller.open(context, entry);
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CompositedTransformTarget(
+      link: _controller.layerLink,
+      child: InkWell(
+        onTap: _toggleDropdown,
+        child: _CurrencyListTile(
+          currency: _selectedCurrency,
+          selectedCurrency: _selectedCurrency,
+          width: 100,
+          isDropDownButton: true,
+          onTap: _toggleDropdown,
+        ),
+      ),
+    );
+  }
+}
+
+/// Button widget for toggling currency dropdown.
+class _CurrencyButton extends StatelessWidget {
+  final CurrencyData selectedCurrency;
+  final VoidCallback onPressed;
+  final LayerLink layerLink;
+
+  const _CurrencyButton({
+    required this.selectedCurrency,
+    required this.onPressed,
+    required this.layerLink,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      shape: const CircleBorder(),
+      child: IconButton(
+        onPressed: onPressed,
+        icon: Text(
+          selectedCurrency.symbol,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+      ),
+    );
+  }
+}
+
+/// Dropdown overlay containing the searchable currency menu.
+class _CurrencyDropdownOverlay extends StatelessWidget {
+  final CurrencyDropdownController controller;
+  final Iterable<CurrencyData> allCurrencies;
+  final CurrencyData selectedCurrency;
+  final Function(CurrencyData) onCurrencySelected;
+  final VoidCallback onClose;
+  final LayerLink layerLink;
+  final Size triggerSize;
+  final Widget? prefix;
+
+  const _CurrencyDropdownOverlay({
+    required this.controller,
+    required this.allCurrencies,
+    required this.selectedCurrency,
+    required this.onCurrencySelected,
+    required this.onClose,
+    required this.layerLink,
+    required this.triggerSize,
+    this.prefix,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onClose,
+      child: Stack(
+        children: [
+          CompositedTransformFollower(
+            link: layerLink,
+            showWhenUnlinked: false,
+            targetAnchor: Alignment.bottomLeft,
+            followerAnchor: Alignment.topLeft,
+            child: GestureDetector(
+              onTap: () {},
+              child: Material(
+                elevation: 4.0,
+                color: Theme.of(context).dialogTheme.backgroundColor,
+                child: ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(context),
+                  child: SizedBox(
+                    width: triggerSize.width,
+                    child: Container(
+                      constraints: const BoxConstraints(maxHeight: 300),
+                      child: _CurrencySearchableDropdown(
+                        allCurrencies: allCurrencies,
+                        selectedCurrency: selectedCurrency,
+                        onCurrencySelected: onCurrencySelected,
+                        onClose: onClose,
+                        prefix: prefix,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Searchable dropdown menu for currency selection.
+class _CurrencySearchableDropdown extends StatefulWidget {
+  final Iterable<CurrencyData> allCurrencies;
+  final CurrencyData selectedCurrency;
+  final Function(CurrencyData) onCurrencySelected;
+  final VoidCallback onClose;
+  final Widget? prefix;
+
+  const _CurrencySearchableDropdown({
+    required this.allCurrencies,
+    required this.selectedCurrency,
+    required this.onCurrencySelected,
+    required this.onClose,
+    this.prefix,
+  });
+
+  @override
+  State<_CurrencySearchableDropdown> createState() =>
+      _CurrencySearchableDropdownState();
+}
+
+class _CurrencySearchableDropdownState
+    extends State<_CurrencySearchableDropdown> {
+  late List<CurrencyData> _filteredCurrencies;
+  late TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredCurrencies = widget.allCurrencies.toList();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _updateSearch(String searchText) {
+    _filteredCurrencies.clear();
+    if (searchText.isEmpty) {
+      _filteredCurrencies.addAll(widget.allCurrencies);
+    } else {
+      final searchLower = searchText.toLowerCase();
+      final byName = widget.allCurrencies.where(
+        (c) => c.name.toLowerCase().contains(searchLower),
+      );
+      final byCode = widget.allCurrencies.where(
+        (c) => c.code.toLowerCase().contains(searchLower),
+      );
+
+      _filteredCurrencies.addAll(byName);
+      _filteredCurrencies.addAll(
+        byCode.where((c) => !_filteredCurrencies.contains(c)),
+      );
+    }
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextField(
+          controller: _searchController,
+          autofocus: true,
+          onChanged: _updateSearch,
+          decoration: InputDecoration(
+            hintText: context.localizations.searchForCurrency,
+            prefixIcon: widget.prefix ?? const Icon(Icons.search_rounded),
+          ),
+          textInputAction: TextInputAction.done,
+        ),
+        Flexible(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3.0),
+            child: ListView(
+              // padding: EdgeInsets.all(8.0),
+              shrinkWrap: true,
+              children: _filteredCurrencies
+                  .map(
+                    (currency) => _CurrencyListTile(
+                      currency: currency,
+                      selectedCurrency: widget.selectedCurrency,
+                      width: double.infinity,
+                      onTap: () {
+                        widget.onCurrencySelected(currency);
+                        widget.onClose();
+                      },
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Builds a currency list tile with consistent styling.
+class _CurrencyListTile extends StatelessWidget {
+  final CurrencyData currency;
+  final CurrencyData selectedCurrency;
+  final VoidCallback onTap;
+  final double width;
+  final bool isDropDownButton;
+
+  const _CurrencyListTile({
+    required this.currency,
+    required this.selectedCurrency,
+    required this.onTap,
+    required this.width,
+    this.isDropDownButton = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = currency == selectedCurrency;
+    final textColor = isSelected || isDropDownButton
+        ? Theme.of(context).listTileTheme.selectedColor
+        : Theme.of(context).listTileTheme.textColor;
+    final backgroundColor = isSelected
+        ? Theme.of(context).listTileTheme.selectedTileColor
+        : Theme.of(context).listTileTheme.tileColor;
+
     return SizedBox(
-      height: 60,
+      height: 30,
+      width: width,
       child: Container(
-        color: isEqualToCurrentlySelectedItem
-            ? Theme.of(context).listTileTheme.selectedTileColor
-            : Theme.of(context).listTileTheme.tileColor,
+        color: backgroundColor,
         child: InkWell(
-          onTap: !isDropDownButton
-              ? () {
-                  setState(() {
-                    selectedCurrencyData = currency;
-                    currencySelectedCallback(currency);
-                    toggleDropdown(context, setState);
-                  });
-                }
-              : null,
+          onTap: isDropDownButton ? null : onTap,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -54,7 +370,6 @@ abstract class CurrencyDropDownField extends StatefulWidget {
                       fontSize:
                           Theme.of(context).textTheme.titleLarge!.fontSize,
                       fontWeight: FontWeight.bold,
-                      // color: textColor,
                     ),
                   ),
                 ),
@@ -70,13 +385,15 @@ abstract class CurrencyDropDownField extends StatefulWidget {
                         fit: BoxFit.scaleDown,
                         child: Text(
                           currency.name,
-                          style: TextStyle(
-                              color:
-                                  textColor), //TODO: This should also be scaled down. But it makes text center in the ListTile. How to avoid this?
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: textColor),
                         ),
                       ),
                       Text(
                         currency.code,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: textColor),
                       ),
                     ],
@@ -92,210 +409,6 @@ abstract class CurrencyDropDownField extends StatefulWidget {
           ),
         ),
       ),
-    );
-  }
-
-  Widget createCurrencyButton(
-      BuildContext context, void Function(VoidCallback) setState) {
-    return Material(
-      shape: const CircleBorder(),
-      child: IconButton(
-        onPressed: () => toggleDropdown(context, setState),
-        icon: Text(
-          selectedCurrencyData.symbol,
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-      ),
-    );
-  }
-
-  void toggleDropdown(
-      BuildContext context, void Function(VoidCallback) setState) {
-    if (_overlayEntry == null) {
-      _overlayEntry = _createCurrencyDropDownOverlay(context, setState);
-      Overlay.of(context).insert(_overlayEntry!);
-    } else {
-      _overlayEntry?.remove();
-      _overlayEntry = null;
-    }
-  }
-
-  void removeOverlayEntry() {
-    _overlayEntry?.remove();
-  }
-
-  OverlayEntry _createCurrencyDropDownOverlay(
-      BuildContext context, void Function(VoidCallback) setState) {
-    var clickedRenderBox = context.findRenderObject() as RenderBox;
-    var clickedRenderBoxSize = clickedRenderBox.size;
-    var clickedRenderBoxOffset = clickedRenderBox.localToGlobal(Offset.zero);
-
-    return OverlayEntry(
-      builder: (context) => GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () {
-          _overlayEntry?.remove();
-          _overlayEntry = null;
-        },
-        child: Stack(
-          children: [
-            Positioned(
-              width: clickedRenderBoxSize.width,
-              left: clickedRenderBoxOffset.dx,
-              top: clickedRenderBoxOffset.dy + clickedRenderBoxSize.height,
-              child: CompositedTransformFollower(
-                link: layerLink,
-                showWhenUnlinked: false,
-                offset: Offset.zero,
-                child: Material(
-                  elevation: 4.0,
-                  color: Theme.of(context).dialogTheme.backgroundColor,
-                  child: ScrollConfiguration(
-                    behavior: ScrollConfiguration.of(context),
-                    child: Container(
-                      constraints: const BoxConstraints(
-                        maxHeight: 300,
-                      ),
-                      child: _SearchableCurrencyDropDown(
-                        allCurrencies: allCurrencies,
-                        currencyInfo: selectedCurrencyData,
-                        prefix: createCurrencyButton(context, setState),
-                        onClose: () => toggleDropdown(context, setState),
-                        currencyListTileBuilder: (CurrencyData currency) {
-                          return buildCurrencyListTile(
-                              currency, context, setState,
-                              isDropDownButton: false);
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class PlatformCurrencyDropDown extends CurrencyDropDownField {
-  PlatformCurrencyDropDown(
-      {required super.selectedCurrencyData,
-      required super.allCurrencies,
-      required super.currencySelectedCallback,
-      super.overlayEntry,
-      super.key});
-
-  @override
-  _PlatformCurrencyDropDownState createState() =>
-      _PlatformCurrencyDropDownState();
-}
-
-class _PlatformCurrencyDropDownState extends State<PlatformCurrencyDropDown> {
-  _PlatformCurrencyDropDownState();
-
-  @override
-  void dispose() {
-    widget.removeOverlayEntry();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return CompositedTransformTarget(
-      link: widget.layerLink,
-      child: InkWell(
-        onTap: () => widget.toggleDropdown(context, setState),
-        child: widget.buildCurrencyListTile(
-            widget.selectedCurrencyData, context, setState,
-            isDropDownButton: true),
-      ),
-    );
-  }
-}
-
-class _SearchableCurrencyDropDown extends StatefulWidget {
-  final Iterable<CurrencyData> allCurrencies;
-  final CurrencyData currencyInfo;
-  final Widget Function(CurrencyData currency) currencyListTileBuilder;
-  final VoidCallback onClose;
-  final Widget? prefix;
-
-  const _SearchableCurrencyDropDown(
-      {required this.allCurrencies,
-      required this.currencyInfo,
-      required this.currencyListTileBuilder,
-      required this.onClose,
-      this.prefix});
-
-  @override
-  State<_SearchableCurrencyDropDown> createState() =>
-      _SearchableCurrencyDropDownState();
-}
-
-class _SearchableCurrencyDropDownState
-    extends State<_SearchableCurrencyDropDown> {
-  late final List<CurrencyData> _currencies;
-
-  @override
-  void initState() {
-    super.initState();
-    _currencies = widget.allCurrencies.toList();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildSearchEditor(context),
-        Flexible(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 3.0),
-            child: ListView(
-              padding: EdgeInsets.zero,
-              shrinkWrap: true,
-              children: _currencies.map((item) {
-                return widget.currencyListTileBuilder(item);
-              }).toList(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSearchEditor(BuildContext context) {
-    return TextField(
-      autofocus: true,
-      onChanged: (searchText) {
-        _currencies.clear();
-        if (searchText.isEmpty) {
-          _currencies.addAll(widget.allCurrencies);
-        } else {
-          var searchResultsForCurrencyName = widget.allCurrencies.where(
-              (currencyInfo) => currencyInfo.name
-                  .toLowerCase()
-                  .contains(searchText.toLowerCase()));
-          var searchResultsForCurrencyCode = widget.allCurrencies.where(
-              (currencyInfo) => currencyInfo.code
-                  .toLowerCase()
-                  .contains(searchText.toLowerCase()));
-          _currencies.addAll(searchResultsForCurrencyName);
-          for (final currencyInfo in searchResultsForCurrencyCode) {
-            if (!_currencies.contains(currencyInfo)) {
-              _currencies.add(currencyInfo);
-            }
-          }
-        }
-        setState(() {});
-      },
-      decoration: InputDecoration(
-        hintText: context.localizations.searchForCurrency,
-        prefixIcon: widget.prefix ?? const Icon(Icons.search_rounded),
-      ),
-      textInputAction: TextInputAction.done,
     );
   }
 }

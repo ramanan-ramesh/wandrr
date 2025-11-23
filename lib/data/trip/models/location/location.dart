@@ -40,6 +40,9 @@ class LocationFacade extends Equatable implements TripEntity<LocationFacade> {
   }
 
   @override
+  bool validate() => true;
+
+  @override
   List<Object?> get props => [tripId, id, latitude, longitude, context, id];
 }
 

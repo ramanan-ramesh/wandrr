@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/presentation/app/theming/constants.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/app/theming/constants.dart';
 
 ThemeData createLightThemeData(BuildContext context) {
   return ThemeData(
@@ -46,30 +46,39 @@ ThemeData createLightThemeData(BuildContext context) {
         ),
       ),
     ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: AppColors.lightSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(ThemeConstants.cardBorderRadius),
+        ),
+      ),
+      elevation: 10,
+    ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: AppColors.brandPrimary,
       circularTrackColor: AppColors.neutral300,
     ),
     listTileTheme: ListTileThemeData(
-      tileColor:
-          Colors.transparent, // Transparent to avoid background bleed-through
+      tileColor: AppColors.neutral200,
       textColor: AppColors.brandSecondary,
-      iconColor: AppColors.brandSecondary, // Dark charcoal for better contrast
-      selectedTileColor: AppColors.brandPrimary
-          .withValues(alpha: 0.85), // More vibrant and visible when selected
-      selectedColor:
-          Colors.white, // White for selected icon/text for max contrast
+      iconColor: AppColors.brandPrimary,
+      selectedTileColor: AppColors.brandPrimary.withValues(alpha: 0.85),
+      selectedColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: BorderSide(
-            color: AppColors.brandPrimary,
-            width: 2.0), // More pronounced border for selected
+          color: AppColors.brandPrimary,
+          width: 2.0,
+        ),
       ),
     ),
     cardTheme: CardThemeData(
       clipBehavior: Clip.hardEdge,
-      color: AppColors.brandPrimaryLight, // Vibrant light emerald for cards
-      elevation: 10, // Even higher elevation for more shadow
+      color: AppColors.brandPrimaryLight,
+      // Vibrant light emerald for cards
+      elevation: 10,
+      // Even higher elevation for more shadow
       shadowColor: AppColors.withOpacity(AppColors.brandSecondary, 0.22),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(
@@ -99,12 +108,14 @@ ThemeData createLightThemeData(BuildContext context) {
         ),
       ),
     ),
-    iconTheme: const IconThemeData(
-        color: AppColors.brandSecondary), // Dark charcoal for better contrast
+    iconTheme: const IconThemeData(color: AppColors.brandSecondary),
+    // Dark charcoal for better contrast
     floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: AppColors.brandSecondary, // Dark charcoal background
+      backgroundColor: AppColors.brandSecondary,
+      // Dark charcoal background
       foregroundColor: Colors.white,
-      elevation: 6, // Higher elevation for better visibility
+      elevation: 6,
+      // Higher elevation for better visibility
       focusElevation: 8,
       hoverElevation: 8,
       splashColor: AppColors.withOpacity(Colors.white, 0.3),
@@ -119,17 +130,31 @@ ThemeData createLightThemeData(BuildContext context) {
     tabBarTheme: TabBarThemeData(
       indicator: BoxDecoration(
         borderRadius: BorderRadius.circular(ThemeConstants.tabIndicatorRadius),
-        gradient: AppColors.brandGradient,
+        gradient: LinearGradient(
+          colors: [
+            AppColors.brandPrimary,
+            AppColors.brandSecondary,
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ), // More vibrant gradient for visibility
       ),
       indicatorSize: TabBarIndicatorSize.tab,
-      labelStyle: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-      unselectedLabelStyle: Theme.of(context).textTheme.headlineMedium,
-      indicatorColor: Colors.transparent,
-      unselectedLabelColor: AppColors.neutral600,
+      labelStyle: TextStyle(
+        fontWeight: FontWeight.w600,
+        fontSize: 16,
+        color: Colors.white,
+      ),
+      unselectedLabelStyle: TextStyle(
+        fontWeight: FontWeight.w500,
+        fontSize: 16,
+        color: AppColors.neutral600,
+      ),
       labelColor: Colors.white,
+      unselectedLabelColor: AppColors.neutral600,
       dividerColor: AppColors.neutral300,
+      overlayColor: WidgetStateProperty.all(
+          AppColors.brandPrimary.withValues(alpha: 0.08)),
     ),
     appBarTheme: AppBarTheme(
       backgroundColor: AppColors.brandPrimary,
@@ -244,7 +269,15 @@ ThemeData createLightThemeData(BuildContext context) {
         }
         return null;
       }),
-      // Add a slight shadow to the thumb for a modern look
+    ),
+    toggleButtonsTheme: ToggleButtonsThemeData(
+      color: AppColors.neutral600,
+      selectedColor: AppColors.brandPrimary,
+      fillColor: AppColors.brandPrimary.withValues(alpha: 0.15),
+      splashColor: AppColors.brandPrimary.withValues(alpha: 0.1),
+      borderColor: AppColors.neutral500,
+      selectedBorderColor: AppColors.brandPrimary,
+      borderRadius: BorderRadius.circular(ThemeConstants.cardBorderRadius / 2),
     ),
   );
 }

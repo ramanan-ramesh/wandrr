@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
@@ -12,14 +12,18 @@ import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_sort_options.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
+import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/ui_element.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 
+//TODO: BudgetingModule must have an API updateTripMetadata or listen to metadata updates, rather than individually listening to TripDates/Contributors changed/Currency changes
 class BudgetingModule implements BudgetingModuleEventHandler {
   final ModelCollectionModifier<TransitFacade> _transitModelCollection;
   final ModelCollectionModifier<LodgingFacade> _lodgingModelCollection;
   final ModelCollectionModifier<ExpenseFacade> _expenseModelCollection;
+  final ItineraryFacadeCollectionEventHandler _itineraryCollection;
   final ApiService<(Money, String), double?> currencyConverter;
   String defaultCurrency;
   final String currentUserName;
@@ -35,18 +39,21 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       String defaultCurrency,
       Iterable<CurrencyData> supportedCurrencies,
       Iterable<String> contributors,
-      String currentUserName) async {
+      String currentUserName,
+      ItineraryFacadeCollectionEventHandler itineraryCollection) async {
     var totalExpenditure = await _calculateTotalExpenseAmount(
         transitModelCollection,
         currencyConverter,
         defaultCurrency,
         lodgingModelCollection,
         expenseModelCollection,
+        itineraryCollection,
         currentUserName);
     return BudgetingModule._(
         transitModelCollection,
         lodgingModelCollection,
         expenseModelCollection,
+        itineraryCollection,
         currencyConverter,
         defaultCurrency,
         supportedCurrencies,
@@ -190,12 +197,14 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   Future recalculateTotalExpenditure(
       {Iterable<TransitFacade> deletedTransits = const [],
       Iterable<LodgingFacade> deletedLodgings = const []}) async {
+    _subscribeToItinerarySightsExpenseChanges();
     var updatedTotalExpenditure = await _calculateTotalExpenseAmount(
         _transitModelCollection,
         currencyConverter,
         defaultCurrency,
         _lodgingModelCollection,
         _expenseModelCollection,
+        _itineraryCollection,
         transitsToExclude: deletedTransits,
         lodgingsToExclude: deletedLodgings,
         currentUserName);
@@ -206,16 +215,11 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   }
 
   @override
-  Future<Iterable<UiElement<ExpenseFacade>>> sortExpenseElements(
-      Iterable<UiElement<ExpenseFacade>> expenseUiElements,
+  Future<Iterable<ExpenseLinkedTripEntity>> sortExpenses(
+      Iterable<ExpenseLinkedTripEntity> expenseUiElements,
       ExpenseSortOption expenseSortOption) async {
     var expenseUiElementsToSort =
-        List<UiElement<ExpenseFacade>>.from(expenseUiElements);
-    var newUiEntry = expenseUiElementsToSort
-        .where((element) => element.dataState == DataState.newUiEntry)
-        .firstOrNull;
-    expenseUiElementsToSort
-        .removeWhere((element) => element.dataState == DataState.newUiEntry);
+        List<ExpenseLinkedTripEntity>.from(expenseUiElements);
     switch (expenseSortOption) {
       case ExpenseSortOption.oldToNew:
         {
@@ -233,7 +237,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       case ExpenseSortOption.category:
         {
           expenseUiElementsToSort.sort((a, b) =>
-              a.element.category.name.compareTo(b.element.category.name));
+              a.expense.category.name.compareTo(b.expense.category.name));
           break;
         }
       case ExpenseSortOption.lowToHighCost:
@@ -250,10 +254,63 @@ class BudgetingModule implements BudgetingModuleEventHandler {
           break;
         }
     }
-    if (newUiEntry != null) {
-      expenseUiElementsToSort.insert(0, newUiEntry);
-    }
     return expenseUiElementsToSort;
+  }
+
+//TODO: Expenses for sights also need to be split when new Contributor is added
+  @override
+  Future<void> balanceExpensesOnContributorsChanged(
+      Iterable<String> contributors) async {
+    var writeBatch = FirebaseFirestore.instance.batch();
+    _contributors = contributors;
+    await _recalculateExpensesOnContributorsChanged<TransitFacade>(
+        _transitModelCollection, contributors, writeBatch);
+    await _recalculateExpensesOnContributorsChanged<LodgingFacade>(
+        _lodgingModelCollection, contributors, writeBatch);
+    await _recalculateExpensesOnContributorsChanged<ExpenseFacade>(
+        _expenseModelCollection, contributors, writeBatch);
+
+    await writeBatch.commit();
+  }
+
+  @override
+  void updateCurrency(String defaultCurrency) {
+    this.defaultCurrency = defaultCurrency;
+  }
+
+  @override
+  String formatCurrency(Money money) {
+    var currencyData = supportedCurrencies
+        .firstWhere((currency) => currency.code == money.currency);
+    var amountStr = money.amount.toStringAsFixed(2);
+    var parts = amountStr.split('.');
+    var integerPart = parts[0];
+    var decimalPart = parts[1];
+
+    var intBuffer = StringBuffer();
+    for (int i = 0; i < integerPart.length; i++) {
+      if (i != 0 && (integerPart.length - i) % 3 == 0) {
+        intBuffer.write(currencyData.thousandsSeparator);
+      }
+      intBuffer.write(integerPart[i]);
+    }
+    String formattedAmount;
+    if (decimalPart == '00' || decimalPart == '0') {
+      formattedAmount = intBuffer.toString();
+    } else {
+      formattedAmount =
+          intBuffer.toString() + currencyData.decimalSeparator + decimalPart;
+    }
+
+    if (currencyData.symbolOnLeft) {
+      return currencyData.spaceBetweenAmountAndSymbol
+          ? '${currencyData.symbol} $formattedAmount'
+          : '${currencyData.symbol}$formattedAmount';
+    } else {
+      return currencyData.spaceBetweenAmountAndSymbol
+          ? '$formattedAmount ${currencyData.symbol}'
+          : '$formattedAmount${currencyData.symbol}';
+    }
   }
 
   static Future<double> _calculateTotalExpenseAmount(
@@ -262,6 +319,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       String defaultCurrency,
       ModelCollectionFacade<LodgingFacade> lodgingModelCollection,
       ModelCollectionFacade<ExpenseFacade> expenseModelCollection,
+      ItineraryFacadeCollectionEventHandler itineraryCollection,
       String currentUserName,
       {Iterable<TransitFacade> transitsToExclude = const [],
       Iterable<LodgingFacade> lodgingsToExclude = const []}) async {
@@ -286,6 +344,14 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     for (final expense in expenseModelCollection.collectionItems) {
       if (expense.splitBy.contains(currentUserName)) {
         expensesToConsider.add(expense);
+      }
+    }
+    for (final itinerary in itineraryCollection) {
+      for (final sight in itinerary.planData.sights) {
+        var expense = sight.expense;
+        if (expense.splitBy.contains(currentUserName)) {
+          expensesToConsider.add(expense);
+        }
       }
     }
     if (expensesToConsider.isNotEmpty) {
@@ -336,22 +402,30 @@ class BudgetingModule implements BudgetingModuleEventHandler {
         _expenseModelCollection.onDocumentUpdated.listen((eventData) async {
       await recalculateTotalExpenditure();
     }));
+    _subscribeToItinerarySightsExpenseChanges();
   }
 
-  Iterable<ExpenseFacade> _getAllExpenses() =>
-      _transitModelCollection.collectionItems
-          .map((transit) => transit.expense)
-          .followedBy(_lodgingModelCollection.collectionItems
-              .map((lodging) => lodging.expense))
-          .followedBy(_expenseModelCollection.collectionItems);
+  void _subscribeToItinerarySightsExpenseChanges() {
+    for (var subscription in _subscriptions) {
+      if (subscription is StreamSubscription<
+          CollectionItemChangeMetadata<ItineraryPlanData>>) {
+        subscription.cancel();
+      }
+    }
+    for (final itinerary in _itineraryCollection) {
+      _subscriptions.add(itinerary.planDataStream.listen((eventData) async {
+        await recalculateTotalExpenditure();
+      }));
+    }
+  }
 
-  Iterable<UiElement<ExpenseFacade>> _sortOnDateTime(
-      List<UiElement<ExpenseFacade>> expenseUiElements,
+  Iterable<ExpenseLinkedTripEntity> _sortOnDateTime(
+      List<ExpenseLinkedTripEntity> expenseUiElements,
       {bool isAscendingOrder = true}) {
-    var expensesWithDateTime = <UiElement<ExpenseFacade>>[];
-    var expensesWithoutDateTime = <UiElement<ExpenseFacade>>[];
+    var expensesWithDateTime = <ExpenseLinkedTripEntity>[];
+    var expensesWithoutDateTime = <ExpenseLinkedTripEntity>[];
     for (final expenseUiElement in expenseUiElements) {
-      var expense = expenseUiElement.element;
+      var expense = expenseUiElement.expense;
       if (expense.dateTime != null) {
         expensesWithDateTime.add(expenseUiElement);
       } else {
@@ -359,27 +433,27 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       }
     }
     expenseUiElements =
-        List<UiElement<ExpenseFacade>>.from(expensesWithDateTime);
+        List<ExpenseLinkedTripEntity>.from(expensesWithDateTime);
     if (isAscendingOrder) {
       expenseUiElements
-          .sort((a, b) => a.element.dateTime!.compareTo(b.element.dateTime!));
+          .sort((a, b) => a.expense.dateTime!.compareTo(b.expense.dateTime!));
     } else {
       expenseUiElements
-          .sort((a, b) => b.element.dateTime!.compareTo(a.element.dateTime!));
+          .sort((a, b) => b.expense.dateTime!.compareTo(a.expense.dateTime!));
     }
-    expenseUiElements.insertAll(0, expensesWithoutDateTime);
+    expenseUiElements.addAll(expensesWithoutDateTime);
     return expenseUiElements;
   }
 
-  Future<Iterable<UiElement<ExpenseFacade>>> _sortOnCost(
-      List<UiElement<ExpenseFacade>> expenseUiElements,
+  Future<Iterable<ExpenseLinkedTripEntity>> _sortOnCost(
+      List<ExpenseLinkedTripEntity> expenseUiElements,
       {bool isAscendingOrder = true}) async {
     var expenseElementsWithConvertedCurrency =
-        <UiElement<ExpenseFacade>, double>{};
+        <ExpenseLinkedTripEntity, double>{};
 
     for (final expenseUiElement in expenseUiElements) {
       var expenseValue = await currencyConverter
-          .queryData((expenseUiElement.element.totalExpense, defaultCurrency));
+          .queryData((expenseUiElement.expense.totalExpense, defaultCurrency));
       expenseElementsWithConvertedCurrency[expenseUiElement] = expenseValue!;
     }
 
@@ -392,109 +466,48 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     return expenseUiElements;
   }
 
-  @override
-  Future<void> balanceExpensesOnContributorsChanged(
-      Iterable<String> contributors) async {
-    var writeBatch = FirebaseFirestore.instance.batch();
-    _contributors = contributors;
-    await _recalculateExpensesOnContributorsChanged<TransitFacade>(
-        _transitModelCollection, contributors, writeBatch,
-        isLinkedExpense: true);
-    await _recalculateExpensesOnContributorsChanged<LodgingFacade>(
-        _lodgingModelCollection, contributors, writeBatch,
-        isLinkedExpense: true);
-    await _recalculateExpensesOnContributorsChanged<ExpenseFacade>(
-        _expenseModelCollection, contributors, writeBatch,
-        isLinkedExpense: false);
-
-    await writeBatch.commit();
-  }
-
-  @override
-  void updateCurrency(String defaultCurrency) {
-    this.defaultCurrency = defaultCurrency;
-  }
-
-  @override
-  String formatCurrency(Money money) {
-    var currencyData = supportedCurrencies
-        .firstWhere((currency) => currency.code == money.currency);
-    var amountStr = money.amount.toStringAsFixed(2);
-    var parts = amountStr.split('.');
-    var integerPart = parts[0];
-    var decimalPart = parts[1];
-
-    var intBuffer = StringBuffer();
-    for (int i = 0; i < integerPart.length; i++) {
-      if (i != 0 && (integerPart.length - i) % 3 == 0) {
-        intBuffer.write(currencyData.thousandsSeparator);
-      }
-      intBuffer.write(integerPart[i]);
-    }
-    String formattedAmount;
-    if (decimalPart == '00' || decimalPart == '0') {
-      formattedAmount = intBuffer.toString();
-    } else {
-      formattedAmount =
-          intBuffer.toString() + currencyData.decimalSeparator + decimalPart;
-    }
-
-    if (currencyData.symbolOnLeft) {
-      return currencyData.spaceBetweenAmountAndSymbol
-          ? '${currencyData.symbol} $formattedAmount'
-          : '${currencyData.symbol}$formattedAmount';
-    } else {
-      return currencyData.spaceBetweenAmountAndSymbol
-          ? '$formattedAmount ${currencyData.symbol}'
-          : '$formattedAmount${currencyData.symbol}';
-    }
-  }
-
-  Future _recalculateExpensesOnContributorsChanged<T>(
+  Future _recalculateExpensesOnContributorsChanged<
+          T extends ExpenseLinkedTripEntity>(
       ModelCollectionModifier<T> modelCollection,
       Iterable<String> contributors,
-      WriteBatch writeBatch,
-      {bool isLinkedExpense = false}) async {
-    for (final dynamic collectionItem in modelCollection.collectionItems) {
-      ExpenseFacade expenseModelFacade;
-      if (isLinkedExpense) {
-        expenseModelFacade = collectionItem.expense;
-      } else {
-        expenseModelFacade = collectionItem;
-      }
-
+      WriteBatch writeBatch) async {
+    for (final collectionItem in modelCollection.collectionItems) {
+      final expenseModelFacade = collectionItem.expense;
       for (final contributor in contributors) {
         if (!expenseModelFacade.splitBy.contains(contributor)) {
           expenseModelFacade.splitBy.add(contributor);
         }
       }
-      for (final contributorSplittingExpense in expenseModelFacade.splitBy) {
-        if (!contributors.contains(contributorSplittingExpense)) {
-          expenseModelFacade.splitBy.remove(contributorSplittingExpense);
-        }
-      }
-      for (final contributorThatPayed in expenseModelFacade.paidBy.keys) {
-        if (!contributors.contains(contributorThatPayed)) {
-          expenseModelFacade.paidBy.remove(contributorThatPayed);
-        }
-      }
+      expenseModelFacade.splitBy.removeWhere((c) => !contributors.contains(c));
+      expenseModelFacade.paidBy
+          .removeWhere((c, _) => !contributors.contains(c));
       var itemToUpdate = modelCollection.repositoryItemCreator(collectionItem);
       writeBatch.update(itemToUpdate.documentReference, itemToUpdate.toJson());
     }
   }
 
+  Iterable<ExpenseFacade> _getAllExpenses() =>
+      _transitModelCollection.collectionItems
+          .map((transit) => transit.expense)
+          .followedBy(_lodgingModelCollection.collectionItems
+              .map((lodging) => lodging.expense))
+          .followedBy(_expenseModelCollection.collectionItems)
+          .followedBy(_itineraryCollection.expand((itinerary) =>
+              itinerary.planData.sights.map((sight) => sight.expense)));
+
   BudgetingModule._(
-      this._transitModelCollection,
-      this._lodgingModelCollection,
-      this._expenseModelCollection,
-      this.currencyConverter,
-      this.defaultCurrency,
-      this.supportedCurrencies,
-      Iterable<String> contributors,
-      double totalExpenditure,
-      this.currentUserName)
-      : _totalExpenditure = totalExpenditure,
-        _contributors = contributors {
+    this._transitModelCollection,
+    this._lodgingModelCollection,
+    this._expenseModelCollection,
+    this._itineraryCollection,
+    this.currencyConverter,
+    this.defaultCurrency,
+    this.supportedCurrencies,
+    Iterable<String> contributors,
+    double totalExpenditure,
+    this.currentUserName,
+  )   : _contributors = contributors,
+        _totalExpenditure = totalExpenditure {
     _subscribeToTotalExpenseReCalculationEvents();
   }
 }

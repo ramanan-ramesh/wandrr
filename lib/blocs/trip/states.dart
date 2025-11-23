@@ -1,46 +1,61 @@
+import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
+import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
-import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 
 abstract class TripManagementState {
   bool isTripEntityUpdated<T>() {
     if (this is UpdatedTripEntity) {
-      if (this is UpdatedTripEntity<T> &&
-          (this as UpdatedTripEntity<T>).isOperationSuccess) {
-        return true;
-      } else if ((this as UpdatedTripEntity).tripEntityModificationData
-              is CollectionItemChangeMetadata<T> &&
-          (this as UpdatedTripEntity).isOperationSuccess) {
-        return true;
+      var isOperationSuccess = (this as UpdatedTripEntity).isOperationSuccess;
+      if (this is UpdatedTripEntity<T>) {
+        return isOperationSuccess;
+      } else {
+        var modifiedCollectionItem = (this as UpdatedTripEntity)
+            .tripEntityModificationData
+            .modifiedCollectionItem;
+        if (modifiedCollectionItem is T) {
+          return isOperationSuccess;
+        } else if (modifiedCollectionItem is CollectionItemChangeSet &&
+            modifiedCollectionItem.afterUpdate is T) {
+          return isOperationSuccess;
+        }
       }
     }
     return false;
   }
+
+  const TripManagementState();
 }
 
-class LoadingTripManagement extends TripManagementState {}
+class LoadingTripManagement extends TripManagementState {
+  const LoadingTripManagement();
+}
 
 class LoadingTrip extends TripManagementState {
-  TripMetadataFacade tripMetadataFacade;
+  final TripMetadataFacade tripMetadataFacade;
 
-  LoadingTrip(this.tripMetadataFacade);
+  const LoadingTrip(this.tripMetadataFacade);
 }
 
 class LoadedRepository extends TripManagementState {
   final TripRepositoryFacade tripRepository;
 
-  LoadedRepository({required this.tripRepository});
+  const LoadedRepository({required this.tripRepository});
 }
 
-class NavigateToHome extends TripManagementState {}
+class NavigateToHome extends TripManagementState {
+  const NavigateToHome();
+}
 
 class ActivatedTrip extends TripManagementState {
   final ApiServicesRepositoryFacade apiServicesRepository;
 
-  ActivatedTrip({required this.apiServicesRepository});
+  const ActivatedTrip({required this.apiServicesRepository});
 }
 
 class UpdatedTripEntity<T> extends TripManagementState {
@@ -54,17 +69,17 @@ class UpdatedTripEntity<T> extends TripManagementState {
         tripEntityModificationData = CollectionItemChangeMetadata(tripEntity,
             isFromExplicitAction: true);
 
-  UpdatedTripEntity.created(
+  const UpdatedTripEntity.created(
       {required this.tripEntityModificationData,
       required this.isOperationSuccess})
       : dataState = DataState.create;
 
-  UpdatedTripEntity.deleted(
+  const UpdatedTripEntity.deleted(
       {required this.tripEntityModificationData,
       required this.isOperationSuccess})
       : dataState = DataState.delete;
 
-  UpdatedTripEntity.updated(
+  const UpdatedTripEntity.updated(
       {required this.tripEntityModificationData,
       required this.isOperationSuccess})
       : dataState = DataState.update;
@@ -77,34 +92,18 @@ class UpdatedTripEntity<T> extends TripManagementState {
             isFromExplicitAction: true);
 }
 
-class UpdatedLinkedExpense<T> extends UpdatedTripEntity<ExpenseFacade> {
-  final T link;
-
-  UpdatedLinkedExpense.updated(
-      {required ExpenseFacade expense,
-      required this.link,
-      required bool isFromEvent,
-      required bool isOperationSuccess})
-      : super.updated(
-            tripEntityModificationData: CollectionItemChangeMetadata(expense,
-                isFromExplicitAction: isFromEvent),
-            isOperationSuccess: isOperationSuccess);
-
-  UpdatedLinkedExpense.selected(
-      {required ExpenseFacade expense, required this.link})
-      : super.selected(tripEntity: expense);
+class SelectedExpenseLinkedTripEntity
+    extends UpdatedTripEntity<ExpenseLinkedTripEntity> {
+  SelectedExpenseLinkedTripEntity({required ExpenseLinkedTripEntity tripEntity})
+      : super.selected(tripEntity: tripEntity);
 }
 
-class ItineraryDataUpdated extends TripManagementState {
-  final DateTime day;
-  final bool isOperationSuccess;
+class SelectedItineraryPlanData extends TripManagementState {
+  final ItineraryPlanData planData;
+  final ItineraryPlanDataEditorConfig planDataEditorConfig;
 
-  ItineraryDataUpdated({required this.day, required this.isOperationSuccess});
-}
-
-class ProcessSectionNavigation extends TripManagementState {
-  DateTime? dateTime;
-  final String section;
-
-  ProcessSectionNavigation({required this.section, this.dateTime});
+  const SelectedItineraryPlanData({
+    required this.planData,
+    required this.planDataEditorConfig,
+  });
 }

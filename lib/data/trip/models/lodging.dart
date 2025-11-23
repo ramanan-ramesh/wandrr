@@ -5,10 +5,10 @@ import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 import 'budgeting/expense_category.dart';
-import 'budgeting/money.dart';
 
 // ignore: must_be_immutable
-class LodgingFacade extends Equatable implements TripEntity<LodgingFacade> {
+class LodgingFacade extends Equatable
+    implements ExpenseLinkedTripEntity<LodgingFacade> {
   LocationFacade? location;
 
   DateTime? checkinDateTime;
@@ -22,6 +22,7 @@ class LodgingFacade extends Equatable implements TripEntity<LodgingFacade> {
 
   String? confirmationId;
 
+  @override
   ExpenseFacade expense;
 
   String? notes;
@@ -44,7 +45,7 @@ class LodgingFacade extends Equatable implements TripEntity<LodgingFacade> {
       : expense = ExpenseFacade(
             tripId: tripId,
             title: ' ',
-            totalExpense: Money(currency: defaultCurrency, amount: 0),
+            currency: defaultCurrency,
             category: ExpenseCategory.lodging,
             paidBy: Map.fromIterables(allTripContributors,
                 List.filled(allTripContributors.length, 0)),
@@ -53,10 +54,8 @@ class LodgingFacade extends Equatable implements TripEntity<LodgingFacade> {
   @override
   LodgingFacade clone() => LodgingFacade(
       location: location?.clone(),
-      checkinDateTime: DateTime(
-          checkinDateTime!.year, checkinDateTime!.month, checkinDateTime!.day),
-      checkoutDateTime: DateTime(checkoutDateTime!.year,
-          checkoutDateTime!.month, checkoutDateTime!.day),
+      checkinDateTime: checkinDateTime?.copyWith(),
+      checkoutDateTime: checkoutDateTime?.copyWith(),
       id: id,
       tripId: tripId,
       confirmationId: confirmationId,
@@ -78,6 +77,7 @@ class LodgingFacade extends Equatable implements TripEntity<LodgingFacade> {
     notes = lodgingModelFacade.notes;
   }
 
+  @override
   bool validate() =>
       location != null &&
       checkinDateTime != null &&

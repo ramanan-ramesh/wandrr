@@ -6,7 +6,7 @@ import 'package:wandrr/data/store/implementations/firestore_model_collection.dar
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/budgeting/budgeting_module.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
-import 'package:wandrr/data/trip/implementations/itinerary_collection.dart';
+import 'package:wandrr/data/trip/implementations/itinerary/itinerary_collection.dart';
 import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
@@ -15,7 +15,6 @@ import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
@@ -24,7 +23,6 @@ import 'package:wandrr/l10n/app_localizations.dart';
 
 import 'budgeting/expense.dart';
 import 'lodging.dart';
-import 'plan_data/plan_data_model_implementation.dart';
 import 'transit.dart';
 import 'trip_metadata.dart';
 
@@ -64,13 +62,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
             tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
         (expenseModelFacade) => ExpenseModelImplementation.fromModelFacade(
             expenseModelFacade: expenseModelFacade));
-    var planDataModelCollection = await FirestoreModelCollection.createInstance(
-        tripDocumentReference
-            .collection(FirestoreCollections.planDataCollectionName),
-        (documentSnapshot) => PlanDataModelImplementation.fromDocumentSnapshot(
-            tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
-        (planDataModelFacade) => PlanDataModelImplementation.fromModelFacade(
-            planDataFacade: planDataModelFacade));
 
     var itineraries = await ItineraryCollection.createInstance(
         transitCollection: transitModelCollection,
@@ -85,14 +76,14 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         tripMetadataModelImplementation.budget.currency,
         supportedCurrencies,
         tripMetadataModelImplementation.contributors,
-        currentUserName);
+        currentUserName,
+        itineraries);
 
     return TripDataModelImplementation._(
         tripMetadataModelImplementation,
         transitModelCollection,
         lodgingModelCollection,
         expenseModelCollection,
-        planDataModelCollection,
         itineraries,
         apiServicesRepository.currencyConverter,
         budgetingModule,
@@ -107,9 +98,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
 
   @override
   final ModelCollectionModifier<ExpenseFacade> expenseCollection;
-
-  @override
-  final ModelCollectionModifier<PlanDataFacade> planDataCollection;
 
   @override
   final ItineraryCollection itineraryCollection;
@@ -194,7 +182,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   Future dispose() async {
     await transitCollection.dispose();
     await lodgingCollection.dispose();
-    await planDataCollection.dispose();
     await expenseCollection.dispose();
     await itineraryCollection.dispose();
     await budgetingModule.dispose();
@@ -260,6 +247,10 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         transitOption: TransitOption.walk,
         icon: Icons.directions_walk_rounded,
         name: appLocalizations.walk));
+    transitOptionMetadataList.add(TransitOptionMetadata(
+        transitOption: TransitOption.taxi,
+        icon: Icons.local_taxi_rounded,
+        name: appLocalizations.taxi));
     return transitOptionMetadataList;
   }
 
@@ -278,7 +269,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       this.transitCollection,
       this.lodgingCollection,
       this.expenseCollection,
-      this.planDataCollection,
       this.itineraryCollection,
       this.currencyConverter,
       this.budgetingModule,

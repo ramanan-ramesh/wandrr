@@ -10,7 +10,9 @@ class PlatformDialogElements {
       {required BuildContext context,
       required WidgetBuilder dialogContentCreator,
       double width = 200,
-      Function(dynamic)? onDialogResult}) {
+      Function(dynamic)? onDialogResult,
+      Alignment? dialogAnchor,
+      Alignment? widgetAnchor}) {
     if (!context.mounted) {
       return;
     }
@@ -69,8 +71,8 @@ class PlatformDialogElements {
           ),
         );
       },
-      followerAnchor: followerAnchor,
-      targetAnchor: targetAnchor,
+      followerAnchor: dialogAnchor ?? followerAnchor,
+      targetAnchor: widgetAnchor ?? targetAnchor,
       barrierColor: Colors.transparent,
       avoidOverflow: true,
     )

@@ -3,14 +3,15 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
+import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/api_services/repository.dart';
 import 'package:wandrr/data/trip/implementations/trip_repository.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
@@ -33,36 +34,29 @@ class TripManagementBloc
 
   TripDataModelEventHandler? get _activeTrip => _tripRepository?.activeTrip;
 
+  TripManagementBloc(this.currentUserName, this.appLocalizations)
+      : super(LoadingTripManagement()) {
+    on<_OnStartup>(_onStartup);
+    on<LoadTrip>(_onLoadTrip);
+    on<SelectExpenseLinkedTripEntity>(_onSelectExpenseLinkedTripEntity);
+    on<UpdateTripEntity<TransitFacade>>(_onUpdateTransit);
+    on<UpdateTripEntity<LodgingFacade>>(_onUpdateLodging);
+    on<GoToHome>(_onGoToHome);
+    on<UpdateTripEntity<ExpenseFacade>>(_onUpdateExpense);
+    on<UpdateTripEntity<TripMetadataFacade>>(_onUpdateTripMetadata);
+    on<UpdateTripEntity<ItineraryPlanData>>(_onUpdateItineraryData);
+    on<_UpdateTripEntityInternalEvent>(_onTripEntityUpdateInternal);
+    on<EditItineraryPlanData>(_onEditItineraryPlanData);
+
+    add(_OnStartup());
+  }
+
   @override
   Future<void> close() async {
     for (final subscription in _tripRepositorySubscriptions) {
       await subscription.cancel();
     }
     await super.close();
-  }
-
-  TripManagementBloc(this.currentUserName, this.appLocalizations)
-      : super(LoadingTripManagement()) {
-    on<_OnStartup>(_onStartup);
-    on<LoadTrip>(_onLoadTrip);
-    on<UpdateTripEntity<TransitFacade>>(_onUpdateTransit);
-    on<UpdateTripEntity<LodgingFacade>>(_onUpdateLodging);
-    on<GoToHome>(_onGoToHome);
-    on<UpdateLinkedExpense<TransitFacade>>(_onTransitExpenseUpdated);
-    on<UpdateLinkedExpense<LodgingFacade>>(_onLodgingExpenseUpdated);
-    on<UpdateTripEntity<ExpenseFacade>>(_onUpdateExpense);
-    on<UpdateTripEntity<TripMetadataFacade>>(_onUpdateTripMetadata);
-    on<UpdateTripEntity<PlanDataFacade>>(_onUpdatePlanData);
-    on<UpdateItineraryPlanData>(_onUpdateItineraryData);
-    on<_UpdateTripEntityInternalEvent>(_onTripEntityUpdateInternal);
-    on<_UpdateItineraryPlanDataInternalEvent>(
-        _onItineraryPlanDataUpdateInternal);
-    on<NavigateToSection>((event, emit) {
-      emit(ProcessSectionNavigation(
-          section: event.section, dateTime: event.dateTime));
-    });
-
-    add(_OnStartup());
   }
 
   FutureOr<void> _onStartup(
@@ -104,8 +98,6 @@ class TripManagementBloc
           _activeTrip!.lodgingCollection, emit);
       _subscribeToCollectionUpdatesForTripEntity<ExpenseFacade>(
           _activeTrip!.expenseCollection, emit);
-      _subscribeToCollectionUpdatesForTripEntity<PlanDataFacade>(
-          _activeTrip!.planDataCollection, emit);
       await _createItineraryPlanDataSubscriptions();
       emit(ActivatedTrip(apiServicesRepository: _apiServicesRepository!));
     }
@@ -114,11 +106,12 @@ class TripManagementBloc
   FutureOr<void> _onUpdateTransit(UpdateTripEntity<TransitFacade> event,
       Emitter<TripManagementState> emit) async {
     if (event.dataState == DataState.newUiEntry) {
-      var transit = TransitFacade.newUiEntry(
-          tripId: _activeTrip!.tripMetadata.id!,
-          transitOption: TransitOption.publicTransport,
-          allTripContributors: _activeTrip!.tripMetadata.contributors,
-          defaultCurrency: _activeTrip!.tripMetadata.budget.currency);
+      var transit = event.tripEntity ??
+          TransitFacade.newUiEntry(
+              tripId: _activeTrip!.tripMetadata.id!,
+              transitOption: TransitOption.publicTransport,
+              allTripContributors: _activeTrip!.tripMetadata.contributors,
+              defaultCurrency: _activeTrip!.tripMetadata.budget.currency);
       emit(UpdatedTripEntity<TransitFacade>.createdNewUiEntry(
           tripEntity: transit, isOperationSuccess: true));
       return;
@@ -134,10 +127,11 @@ class TripManagementBloc
   FutureOr<void> _onUpdateLodging(UpdateTripEntity<LodgingFacade> event,
       Emitter<TripManagementState> emit) async {
     if (event.dataState == DataState.newUiEntry) {
-      var lodgingModelFacade = LodgingFacade.newUiEntry(
-          tripId: _activeTrip!.tripMetadata.id!,
-          allTripContributors: _activeTrip!.tripMetadata.contributors,
-          defaultCurrency: _activeTrip!.tripMetadata.budget.currency);
+      var lodgingModelFacade = event.tripEntity ??
+          LodgingFacade.newUiEntry(
+              tripId: _activeTrip!.tripMetadata.id!,
+              allTripContributors: _activeTrip!.tripMetadata.contributors,
+              defaultCurrency: _activeTrip!.tripMetadata.budget.currency);
       emit(UpdatedTripEntity<LodgingFacade>.createdNewUiEntry(
           tripEntity: lodgingModelFacade, isOperationSuccess: true));
       return;
@@ -152,14 +146,12 @@ class TripManagementBloc
 
   FutureOr<void> _onUpdateExpense(UpdateTripEntity<ExpenseFacade> event,
       Emitter<TripManagementState> emit) async {
-    if (event is UpdateLinkedExpense) {
-      return;
-    }
     if (event.dataState == DataState.newUiEntry) {
-      var newExpense = ExpenseFacade.newUiEntry(
-          tripId: _activeTrip!.tripMetadata.id!,
-          allTripContributors: _activeTrip!.tripMetadata.contributors,
-          defaultCurrency: _activeTrip!.tripMetadata.budget.currency);
+      var newExpense = event.tripEntity ??
+          ExpenseFacade.newUiEntry(
+              tripId: _activeTrip!.tripMetadata.id!,
+              allTripContributors: _activeTrip!.tripMetadata.contributors,
+              defaultCurrency: _activeTrip!.tripMetadata.budget.currency);
       emit(UpdatedTripEntity<ExpenseFacade>.createdNewUiEntry(
           tripEntity: newExpense, isOperationSuccess: true));
       return;
@@ -172,29 +164,23 @@ class TripManagementBloc
         emit);
   }
 
-  FutureOr<void> _onUpdatePlanData(UpdateTripEntity<PlanDataFacade> event,
+  FutureOr<void> _onUpdateItineraryData(
+      UpdateTripEntity<ItineraryPlanData> event,
       Emitter<TripManagementState> emit) async {
-    if (event.dataState == DataState.newUiEntry) {
-      var planDataModelFacade = PlanDataFacade.newUiEntry(
-          id: null, tripId: _activeTrip!.tripMetadata.id!);
-      emit(UpdatedTripEntity<PlanDataFacade>.createdNewUiEntry(
-          tripEntity: planDataModelFacade, isOperationSuccess: true));
+    if (event.tripEntity == null) {
       return;
     }
-    await _tryUpdateTripEntityAndEmitState<PlanDataFacade>(
-        event.tripEntity!,
-        event.dataState,
-        _activeTrip!.planDataCollection,
-        event.tripEntity!.id,
-        emit);
-  }
-
-  FutureOr<void> _onUpdateItineraryData(
-      UpdateItineraryPlanData event, Emitter<TripManagementState> emit) async {
+    var itineraryDay = event.tripEntity!.day;
     var itinerary =
-        _activeTrip!.itineraryCollection.getItineraryForDay(event.day);
-    var didUpdate = await itinerary.updatePlanData(event.planData);
-    emit(ItineraryDataUpdated(day: event.day, isOperationSuccess: didUpdate));
+        _activeTrip!.itineraryCollection.getItineraryForDay(itineraryDay);
+    var itineraryPlanDataBeforeUpdate = itinerary.planData.clone();
+    var didUpdate = await itinerary.updatePlanData(event.tripEntity!);
+    emit(UpdatedTripEntity.updated(
+        tripEntityModificationData: CollectionItemChangeMetadata(
+            CollectionItemChangeSet<ItineraryPlanData>(
+                itineraryPlanDataBeforeUpdate, event.tripEntity!),
+            isFromExplicitAction: true),
+        isOperationSuccess: didUpdate));
   }
 
   FutureOr<void> _onUpdateTripMetadata(
@@ -208,50 +194,51 @@ class TripManagementBloc
         emit);
   }
 
-  FutureOr<void> _onTransitExpenseUpdated(
-      UpdateLinkedExpense<TransitFacade> event,
-      Emitter<TripManagementState> emit) async {
-    switch (event.dataState) {
-      case DataState.select:
+  FutureOr<void> _onTripEntityUpdateInternal<T>(
+      _UpdateTripEntityInternalEvent<T> event,
+      Emitter<TripManagementState> emit) {
+    switch (event.dateState) {
+      case DataState.create:
         {
-          emit(UpdatedLinkedExpense.selected(
-              link: event.link, expense: event.tripEntity!));
+          emit(UpdatedTripEntity<T>.created(
+              tripEntityModificationData: event.updateData,
+              isOperationSuccess: event.isOperationSuccess));
+          break;
+        }
+      case DataState.delete:
+        {
+          emit(UpdatedTripEntity<T>.deleted(
+              tripEntityModificationData: event.updateData,
+              isOperationSuccess: event.isOperationSuccess));
           break;
         }
       case DataState.update:
         {
-          event.link.expense = event.tripEntity!;
-          add(UpdateTripEntity<TransitFacade>.update(tripEntity: event.link));
+          var updateState = UpdatedTripEntity<T>.updated(
+              tripEntityModificationData: event.updateData,
+              isOperationSuccess: event.isOperationSuccess);
+          emit(updateState);
           break;
         }
       default:
-        {
-          break;
-        }
+        break;
     }
   }
 
-  FutureOr<void> _onLodgingExpenseUpdated(
-      UpdateLinkedExpense<LodgingFacade> event,
-      Emitter<TripManagementState> emit) async {
-    switch (event.dataState) {
-      case DataState.select:
-        {
-          emit(UpdatedLinkedExpense.selected(
-              link: event.link, expense: event.tripEntity!));
-          break;
-        }
-      case DataState.update:
-        {
-          event.link.expense = event.tripEntity!;
-          add(UpdateTripEntity<LodgingFacade>.update(tripEntity: event.link));
-          break;
-        }
-      default:
-        {
-          break;
-        }
-    }
+  FutureOr<void> _onSelectExpenseLinkedTripEntity(
+      SelectExpenseLinkedTripEntity event, Emitter<TripManagementState> emit) {
+    emit(SelectedExpenseLinkedTripEntity(tripEntity: event.tripEntity!));
+  }
+
+  FutureOr<void> _onEditItineraryPlanData(
+      EditItineraryPlanData event, Emitter<TripManagementState> emit) {
+    final itinerary =
+        _activeTrip!.itineraryCollection.getItineraryForDay(event.day);
+    final planData = itinerary.planData;
+    emit(SelectedItineraryPlanData(
+      planData: planData,
+      planDataEditorConfig: event.planDataEditorConfig,
+    ));
   }
 
   void _createTripMetadataCollectionSubscriptions() {
@@ -263,22 +250,24 @@ class TripManagementBloc
           _activeTrip!.tripMetadata.id != updatedTripMetadata.id) {
         return;
       }
-      if (!isClosed) {
-        var hasStartDateChanged = !eventData
-            .modifiedCollectionItem.beforeUpdate.startDate!
-            .isOnSameDayAs(updatedTripMetadata.startDate!);
-        var hasEndDateChanged = !eventData
-            .modifiedCollectionItem.beforeUpdate.endDate!
-            .isOnSameDayAs(updatedTripMetadata.endDate!);
-        if (hasStartDateChanged || hasEndDateChanged) {
-          _clearItineraryPlanDataSubscriptions()
-              .then((value) => _createItineraryPlanDataSubscriptions());
-          var collectionModificationData = CollectionItemChangeMetadata(
-              updatedTripMetadata,
-              isFromExplicitAction: false);
-          add(_UpdateTripEntityInternalEvent.updated(collectionModificationData,
-              isOperationSuccess: true));
+      if (!eventData.isFromExplicitAction && !isClosed) {
+        if (_activeTrip != null) {
+          var hasStartDateChanged = !eventData
+              .modifiedCollectionItem.beforeUpdate.startDate!
+              .isOnSameDayAs(updatedTripMetadata.startDate!);
+          var hasEndDateChanged = !eventData
+              .modifiedCollectionItem.beforeUpdate.endDate!
+              .isOnSameDayAs(updatedTripMetadata.endDate!);
+          if (hasStartDateChanged || hasEndDateChanged) {
+            _clearItineraryPlanDataSubscriptions()
+                .then((value) => _createItineraryPlanDataSubscriptions());
+          }
         }
+        var collectionModificationData = CollectionItemChangeMetadata(
+            eventData.modifiedCollectionItem,
+            isFromExplicitAction: false);
+        add(_UpdateTripEntityInternalEvent.updated(collectionModificationData,
+            isOperationSuccess: true));
       }
     });
     var tripMetadataAddedSubscription = _tripRepository!
@@ -385,9 +374,10 @@ class TripManagementBloc
                 .firstOrNull;
             if (collectionItem != null) {
               var didUpdate = await modelCollection.tryUpdateItem(tripEntity);
-              emit(UpdatedTripEntity<E>.updated(
+              emit(UpdatedTripEntity.updated(
                   tripEntityModificationData: CollectionItemChangeMetadata(
-                      tripEntity,
+                      CollectionItemChangeSet<E>(
+                          collectionItem as E, tripEntity),
                       isFromExplicitAction: true),
                   isOperationSuccess: didUpdate));
             }
@@ -444,10 +434,9 @@ class TripManagementBloc
       if (!eventData.isFromExplicitAction) {
         if (!isClosed) {
           var collectionModificationData = CollectionItemChangeMetadata(
-              eventData.modifiedCollectionItem.afterUpdate,
+              eventData.modifiedCollectionItem,
               isFromExplicitAction: false);
-          add(_UpdateTripEntityInternalEvent<T>.updated(
-              collectionModificationData,
+          add(_UpdateTripEntityInternalEvent.updated(collectionModificationData,
               isOperationSuccess: true));
         }
       }
@@ -465,43 +454,15 @@ class TripManagementBloc
     await _clearItineraryPlanDataSubscriptions();
   }
 
-  FutureOr<void> _onTripEntityUpdateInternal<T extends TripEntity>(
-      _UpdateTripEntityInternalEvent<T> event,
-      Emitter<TripManagementState> emit) {
-    switch (event.dateState) {
-      case DataState.create:
-        {
-          emit(UpdatedTripEntity<T>.created(
-              tripEntityModificationData: event.updateData,
-              isOperationSuccess: event.isOperationSuccess));
-          break;
-        }
-      case DataState.delete:
-        {
-          emit(UpdatedTripEntity<T>.deleted(
-              tripEntityModificationData: event.updateData,
-              isOperationSuccess: event.isOperationSuccess));
-          break;
-        }
-      case DataState.update:
-        {
-          var updateState = UpdatedTripEntity<T>.updated(
-              tripEntityModificationData: event.updateData,
-              isOperationSuccess: event.isOperationSuccess);
-          emit(updateState);
-          break;
-        }
-      default:
-        break;
-    }
-  }
-
   FutureOr<void> _createItineraryPlanDataSubscriptions() async {
     for (final itinerary in _activeTrip!.itineraryCollection) {
       var planDataSubscription = itinerary.planDataStream.listen((eventData) {
         if (!eventData.isFromExplicitAction) {
           if (!isClosed) {
-            add(_UpdateItineraryPlanDataInternalEvent(itinerary.day));
+            add(_UpdateTripEntityInternalEvent.updated(
+                CollectionItemChangeMetadata(eventData.modifiedCollectionItem,
+                    isFromExplicitAction: false),
+                isOperationSuccess: true));
           }
         }
       });
@@ -515,37 +476,26 @@ class TripManagementBloc
     }
     _itineraryPlanDataSubscriptions.clear();
   }
-
-  FutureOr<void> _onItineraryPlanDataUpdateInternal(
-      _UpdateItineraryPlanDataInternalEvent event,
-      Emitter<TripManagementState> emit) {
-    emit(ItineraryDataUpdated(day: event.day, isOperationSuccess: true));
-  }
 }
 
-class _UpdateTripEntityInternalEvent<T extends TripEntity>
-    extends TripManagementEvent {
-  CollectionItemChangeMetadata<T> updateData;
-  bool isOperationSuccess;
-  DataState dateState;
+class _UpdateTripEntityInternalEvent<T> extends TripManagementEvent {
+  final CollectionItemChangeMetadata<T> updateData;
+  final bool isOperationSuccess;
+  final DataState dateState;
 
-  _UpdateTripEntityInternalEvent.updated(this.updateData,
+  const _UpdateTripEntityInternalEvent.updated(this.updateData,
       {required this.isOperationSuccess})
       : dateState = DataState.update;
 
-  _UpdateTripEntityInternalEvent.created(this.updateData,
+  const _UpdateTripEntityInternalEvent.created(this.updateData,
       {required this.isOperationSuccess})
       : dateState = DataState.create;
 
-  _UpdateTripEntityInternalEvent.deleted(this.updateData,
+  const _UpdateTripEntityInternalEvent.deleted(this.updateData,
       {required this.isOperationSuccess})
       : dateState = DataState.delete;
 }
 
-class _UpdateItineraryPlanDataInternalEvent extends TripManagementEvent {
-  DateTime day;
-
-  _UpdateItineraryPlanDataInternalEvent(this.day);
+class _OnStartup extends TripManagementEvent {
+  const _OnStartup();
 }
-
-class _OnStartup extends TripManagementEvent {}

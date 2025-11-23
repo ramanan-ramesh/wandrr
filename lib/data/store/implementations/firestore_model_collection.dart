@@ -138,7 +138,7 @@ class FirestoreModelCollection<Model>
       }
       var collectionItemBeforeUpdate = _collectionItems[matchingElementIndex];
       didUpdate = await leafRepositoryItem.documentReference
-          .set(leafRepositoryItem.toJson(), SetOptions(merge: true))
+          .set(leafRepositoryItem.toJson(), SetOptions(merge: false))
           .then((value) {
         return true;
       }).catchError((error, stackTrace) {

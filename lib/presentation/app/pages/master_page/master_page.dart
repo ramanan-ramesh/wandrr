@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
-import 'package:wandrr/blocs/app/master_page_bloc.dart';
-import 'package:wandrr/blocs/app/master_page_states.dart';
+import 'package:wandrr/blocs/app/bloc.dart';
+import 'package:wandrr/blocs/app/states.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 
 import 'wandrr_app.dart';

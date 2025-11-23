@@ -52,6 +52,8 @@ class AppColors {
   // Surface colors for light theme
   static const Color lightSurface =
       Color(0xFFFAFAFA); // Subtle off-white for cards
+  static const Color lightSurfaceHeader =
+      Color(0xFFFFFFFF); // Pure white for headers
   static const Color lightSurfaceVariant =
       Color(0xFFF1F5F9); // More distinct gray for background
   static const Color lightBackground =
@@ -59,6 +61,8 @@ class AppColors {
 
   // Surface colors for dark theme
   static const Color darkSurface = Color(0xFF334155); // Lighter for cards
+  static const Color darkSurfaceHeader =
+      Color(0xFF3E4C62); // Slightly lighter for headers
   static const Color darkSurfaceVariant = Color(0xFF1E293B); // Medium dark
   static const Color darkBackground =
       Color(0xFF0F172A); // Very dark for scaffold
@@ -104,10 +108,11 @@ class AppColors {
     onError: Colors.white,
     errorContainer: errorLight,
     onErrorContainer: brandSecondary,
-    surface: lightBackground, // Use distinct gray background for scaffold
+    surface: lightBackground,
+    // Use distinct gray background for scaffold
     onSurface: brandSecondary,
-    surfaceContainerHighest:
-        lightSurface, // Use pure white for containers/cards
+    surfaceContainerHighest: lightSurface,
+    // Use pure white for containers/cards
     onSurfaceVariant: neutral700,
     outline: neutral400,
     outlineVariant: neutral300,
@@ -134,10 +139,11 @@ class AppColors {
     onError: brandSecondary,
     errorContainer: error,
     onErrorContainer: errorLight,
-    surface: darkBackground, // Use very dark background for scaffold
+    surface: darkBackground,
+    // Use very dark background for scaffold
     onSurface: neutral100,
-    surfaceContainerHighest:
-        darkSurface, // Use lighter color for containers/cards
+    surfaceContainerHighest: darkSurface,
+    // Use lighter color for containers/cards
     onSurfaceVariant: neutral300,
     outline: neutral500,
     outlineVariant: neutral600,

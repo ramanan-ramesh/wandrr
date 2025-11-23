@@ -6,7 +6,7 @@ typedef OnEmailChangedCallback = void Function(String, {required bool isValid});
 class PlatformTextElements {
   static const double subHeaderSize = 17;
   static const double formElementSize = 15;
-  static final _emailRegExValidator = RegExp('.*@.*.com');
+  static final _emailRegExValidator = RegExp(r'^[^@]+@[^@]+\.[a-zA-Z]+$');
 
   static Text createHeader(
       {required BuildContext context, required String text, Color? color}) {
@@ -40,9 +40,12 @@ class PlatformTextElements {
       OnEmailChangedCallback? onEmailChanged,
       TextInputAction? textInputAction,
       String? Function(String? value)? validator,
+      void Function(String)? onFieldSubmitted,
+      GlobalKey<FormState>? formKey,
       bool readonly = false}) {
     return TextFormField(
       readOnly: readonly,
+      key: formKey,
       style: const TextStyle(fontSize: PlatformTextElements.formElementSize),
       minLines: 1,
       textInputAction: textInputAction,
@@ -70,6 +73,11 @@ class PlatformTextElements {
         return null;
       },
       decoration: inputDecoration,
+      onFieldSubmitted: (newEmail) {
+        if (onFieldSubmitted != null) {
+          onFieldSubmitted(newEmail);
+        }
+      },
     );
   }
 

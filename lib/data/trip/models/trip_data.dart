@@ -1,7 +1,6 @@
 import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
-import 'package:wandrr/data/trip/models/itinerary.dart';
-import 'package:wandrr/data/trip/models/plan_data/plan_data.dart';
+import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 
 import 'budgeting/budgeting_module.dart';
 import 'budgeting/expense.dart';
@@ -19,12 +18,11 @@ abstract class TripDataFacade {
 
   ModelCollectionFacade<ExpenseFacade> get expenseCollection;
 
-  ModelCollectionFacade<PlanDataFacade> get planDataCollection;
-
   ItineraryFacadeCollection get itineraryCollection;
 
   BudgetingModuleFacade get budgetingModule;
 
+  //TODO: Is repository the right place for localizations related constants? If so, then create a repository at TripEditor page level only
   Iterable<TransitOptionMetadata> get transitOptionMetadatas;
 }
 
@@ -39,6 +37,4 @@ abstract class TripDataModelEventHandler extends TripDataFacade
   ModelCollectionModifier<LodgingFacade> get lodgingCollection;
 
   ModelCollectionModifier<ExpenseFacade> get expenseCollection;
-
-  ModelCollectionModifier<PlanDataFacade> get planDataCollection;
 }

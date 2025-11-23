@@ -28,6 +28,7 @@ class TripCreatorDialog extends StatelessWidget {
       ValueNotifier(false);
   final TextEditingController _tripNameEditingController =
       TextEditingController();
+  final SizedBox _formElementsSpacer = const SizedBox(height: 8.0);
 
   TripCreatorDialog({required this.widgetContext, super.key})
       : _currentTripMetadata = TripMetadataFacade.newUiEntry(
@@ -40,69 +41,102 @@ class TripCreatorDialog extends StatelessWidget {
     var currencyInfo = widgetContext.supportedCurrencies.firstWhere((element) {
       return element.code == _currentTripMetadata.budget.currency;
     });
-    return SingleChildScrollView(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: isBig ? 800.0 : 600.0,
-          maxWidth: isBig ? 600.0 : 400.0,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _createAppBar(context),
-            FocusTraversalGroup(
-              policy: OrderedTraversalPolicy(),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
-                child: Column(
-                  children: [
-                    _createThumbnailPicker(context),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: FocusTraversalOrder(
-                        order: const NumericFocusOrder(1),
-                        child: _createDatePicker(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxDialogHeight = constraints.maxHeight * 0.8;
+        return Container(
+          constraints: BoxConstraints(
+            maxWidth: isBig ? 600.0 : 500.0,
+            maxHeight: maxDialogHeight,
+          ),
+          child: Center(
+            child: Material(
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(ThemeConstants.appBarBorderRadius),
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _createAppBar(context),
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(context).viewInsets.bottom),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10.0, horizontal: 5.0),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _createThumbnailPicker(context),
+                            _formElementsSpacer,
+                            _createTripDetailsForm(context, currencyInfo),
+                          ],
+                        ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: FocusTraversalOrder(
-                        order: const NumericFocusOrder(2),
-                        child: _createTripNameField(context),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.localizations.edit_budget,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          FocusTraversalOrder(
-                            order: const NumericFocusOrder(3),
-                            child: _createBudgetEditingField(currencyInfo),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: FocusTraversalOrder(
-                        order: const NumericFocusOrder(4),
-                        child: _buildCreateTripButton(context),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _createTripDetailsForm(
+      BuildContext context, CurrencyData currencyInfo) {
+    return FocusTraversalGroup(
+      policy: OrderedTraversalPolicy(),
+      child: Column(
+        children: [
+          FocusTraversalOrder(
+            order: const NumericFocusOrder(1),
+            child: _createDatePicker(),
+          ),
+          _formElementsSpacer,
+          FocusTraversalOrder(
+            order: const NumericFocusOrder(2),
+            child: _createTripNameField(context),
+          ),
+          _formElementsSpacer,
+          _createBudgetEditor(context, currencyInfo),
+          _formElementsSpacer,
+          FocusTraversalOrder(
+            order: const NumericFocusOrder(4),
+            child: _buildCreateTripButton(context),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _createBudgetEditor(BuildContext context, CurrencyData currencyInfo) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.center,
+          child: Text(
+            context.localizations.edit_budget,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+        FocusTraversalOrder(
+          order: const NumericFocusOrder(3),
+          child: _createBudgetEditingField(currencyInfo),
+        ),
+      ],
     );
   }
 
@@ -110,11 +144,14 @@ class TripCreatorDialog extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widgetContext.localizations.chooseTripThumbnail,
-          style: Theme.of(context).textTheme.titleMedium,
+        Align(
+          alignment: Alignment.center,
+          child: Text(
+            widgetContext.localizations.chooseTripThumbnail,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
         ),
-        const SizedBox(height: 8),
+        _formElementsSpacer,
         TripThumbnailCarouselSelector(
           selectedThumbnailTag: _currentTripMetadata.thumbnailTag,
           onChanged: (thumbnailTag) {
@@ -127,12 +164,14 @@ class TripCreatorDialog extends StatelessWidget {
 
   TextField _createTripNameField(BuildContext context) {
     return TextField(
-        onChanged: _updateTripName,
-        textInputAction: TextInputAction.next,
-        decoration: InputDecoration(
-          labelText: context.localizations.tripName,
-        ),
-        controller: _tripNameEditingController);
+      onChanged: _updateTripName,
+      textInputAction: TextInputAction.next,
+      decoration: InputDecoration(
+        labelText: context.localizations.tripName,
+      ),
+      controller: _tripNameEditingController,
+      scrollPadding: const EdgeInsets.only(bottom: 300.0),
+    );
   }
 
   PlatformDateRangePicker _createDatePicker() {
@@ -148,27 +187,23 @@ class TripCreatorDialog extends StatelessWidget {
   }
 
   Widget _createBudgetEditingField(CurrencyData currencyInfo) {
-    return Column(
-      children: [
-        PlatformMoneyEditField(
-          textInputAction: TextInputAction.done,
-          allCurrencies: widgetContext.supportedCurrencies,
-          selectedCurrencyData: currencyInfo,
-          onAmountUpdatedCallback: (updatedAmount) {
-            _currentTripMetadata.budget = Money(
-                currency: _currentTripMetadata.budget.currency,
-                amount: updatedAmount);
-          },
-          currencySelectedCallback: (selectedCurrency) {
-            _currentTripMetadata.budget = Money(
-                currency: selectedCurrency.code,
-                amount: _currentTripMetadata.budget.amount);
-            _tripCreationMetadataValidityNotifier.value =
-                _currentTripMetadata.validate();
-          },
-          isAmountEditable: true,
-        ),
-      ],
+    return PlatformMoneyEditField(
+      textInputAction: TextInputAction.done,
+      allCurrencies: widgetContext.supportedCurrencies,
+      selectedCurrency: currencyInfo,
+      onAmountUpdated: (updatedAmount) {
+        _currentTripMetadata.budget = Money(
+            currency: _currentTripMetadata.budget.currency,
+            amount: updatedAmount);
+      },
+      onCurrencySelected: (selectedCurrency) {
+        _currentTripMetadata.budget = Money(
+            currency: selectedCurrency.code,
+            amount: _currentTripMetadata.budget.amount);
+        _tripCreationMetadataValidityNotifier.value =
+            _currentTripMetadata.validate();
+      },
+      isAmountEditable: true,
     );
   }
 

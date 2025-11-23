@@ -14,6 +14,7 @@ import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/delete_trip_dialog.dart';
+import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
 import 'thumbnail_selector.dart';
 
@@ -38,17 +39,7 @@ class TripListView extends StatelessWidget {
           ),
           Expanded(
             child: BlocConsumer<TripManagementBloc, TripManagementState>(
-              buildWhen: (previousState, currentState) {
-                if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
-                  var tripMetadataUpdatedState =
-                      currentState as UpdatedTripEntity;
-                  if (tripMetadataUpdatedState.dataState == DataState.delete ||
-                      tripMetadataUpdatedState.dataState == DataState.create) {
-                    return true;
-                  }
-                }
-                return false;
-              },
+              buildWhen: _shouldBuildListView,
               listener: (context, state) {},
               builder: (context, state) {
                 var tripMetadatas = context
@@ -65,7 +56,7 @@ class TripListView extends StatelessWidget {
                     childAspectRatio: 0.75,
                     children: tripMetadatas.map((tripMetadata) {
                       return _TripMetadataGridItem(
-                        tripMetaDataFacade: tripMetadata,
+                        tripId: tripMetadata.id!,
                       );
                     }).toList(growable: false),
                   );
@@ -85,17 +76,31 @@ class TripListView extends StatelessWidget {
       ),
     );
   }
+
+  bool _shouldBuildListView(
+      TripManagementState previousState, TripManagementState currentState) {
+    if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
+      var tripMetadataUpdatedState = currentState as UpdatedTripEntity;
+      if (tripMetadataUpdatedState.dataState == DataState.delete ||
+          tripMetadataUpdatedState.dataState == DataState.create) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 class _TripMetadataGridItem extends StatelessWidget {
-  _TripMetadataGridItem({required this.tripMetaDataFacade});
-
-  TripMetadataFacade tripMetaDataFacade;
+  final String tripId;
+  _TripMetadataGridItem({required this.tripId});
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<TripManagementBloc, TripManagementState>(
-      builder: (BuildContext context, TripManagementState state) {
+    return TripEntityUpdateHandler<TripMetadataFacade>(
+      widgetBuilder: (context) {
+        var tripMetaDataFacade = context
+            .tripRepository.tripMetadataCollection.collectionItems
+            .firstWhere((element) => element.id == tripId);
         var subTitle =
             '${tripMetaDataFacade.startDate!.dayDateMonthFormat} to ${tripMetaDataFacade.endDate!.dayDateMonthFormat}';
         var currentThumbnail = Assets.images.tripThumbnails.values.firstWhere(
@@ -171,7 +176,8 @@ class _TripMetadataGridItem extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 3.0),
                           child: IconButton(
                             onPressed: () {
-                              _showDeleteTripConfirmationDialog(context);
+                              _showDeleteTripConfirmationDialog(
+                                  context, tripMetaDataFacade);
                             },
                             icon: const Icon(Icons.delete_rounded),
                           ),
@@ -185,25 +191,19 @@ class _TripMetadataGridItem extends StatelessWidget {
           ),
         );
       },
-      listener: (BuildContext context, TripManagementState state) {},
-      buildWhen: (previousState, currentState) {
-        if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
-          var tripMetadataUpdatedState = currentState as UpdatedTripEntity;
-          if (currentState.dataState == DataState.update &&
-              tripMetadataUpdatedState
-                      .tripEntityModificationData.modifiedCollectionItem.id ==
-                  tripMetaDataFacade.id) {
-            tripMetaDataFacade = tripMetadataUpdatedState
-                .tripEntityModificationData.modifiedCollectionItem;
-            return true;
-          }
-        }
-        return false;
+      shouldRebuild:
+          (TripMetadataFacade beforeUpdate, TripMetadataFacade afterUpdate) {
+        return afterUpdate.id == tripId &&
+                beforeUpdate.name != afterUpdate.name ||
+            !beforeUpdate.startDate!.isOnSameDayAs(afterUpdate.startDate!) ||
+            !beforeUpdate.endDate!.isOnSameDayAs(afterUpdate.endDate!) ||
+            beforeUpdate.thumbnailTag != afterUpdate.thumbnailTag;
       },
     );
   }
 
-  void _showDeleteTripConfirmationDialog(BuildContext pageContext) {
+  void _showDeleteTripConfirmationDialog(
+      BuildContext pageContext, TripMetadataFacade tripMetaDataFacade) {
     PlatformDialogElements.showAlertDialog(pageContext, (context) {
       return DeleteTripDialog(
           widgetContext: pageContext, tripMetadataFacade: tripMetaDataFacade);

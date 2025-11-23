@@ -1,10 +1,11 @@
-import 'package:wandrr/data/trip/models/location/location.dart';
+import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 import 'expense_category.dart';
 import 'money.dart';
 
-class ExpenseFacade implements TripEntity<ExpenseFacade> {
+class ExpenseFacade extends Equatable
+    implements ExpenseLinkedTripEntity<ExpenseFacade> {
   String tripId;
 
   String title;
@@ -14,7 +15,15 @@ class ExpenseFacade implements TripEntity<ExpenseFacade> {
   @override
   String? id;
 
-  Money totalExpense;
+  String currency;
+
+  Money get totalExpense {
+    double total = 0;
+    paidBy.forEach((key, value) {
+      total += value;
+    });
+    return Money(amount: total, currency: currency);
+  }
 
   ExpenseCategory category;
 
@@ -22,20 +31,17 @@ class ExpenseFacade implements TripEntity<ExpenseFacade> {
 
   List<String> splitBy;
 
-  LocationFacade? location;
-
   DateTime? dateTime;
 
   ExpenseFacade(
       {required this.tripId,
       required this.title,
-      required this.totalExpense,
+      required this.currency,
       required this.category,
       required this.paidBy,
       required this.splitBy,
       this.description,
       this.id,
-      this.location,
       this.dateTime});
 
   ExpenseFacade.newUiEntry(
@@ -43,7 +49,7 @@ class ExpenseFacade implements TripEntity<ExpenseFacade> {
       required Iterable<String> allTripContributors,
       required String defaultCurrency})
       : title = '',
-        totalExpense = Money(currency: defaultCurrency, amount: 0),
+        currency = defaultCurrency,
         category = ExpenseCategory.other,
         paidBy = Map.fromIterables(
             allTripContributors, List.filled(allTripContributors.length, 0)),
@@ -55,11 +61,10 @@ class ExpenseFacade implements TripEntity<ExpenseFacade> {
       title: title,
       description: description,
       id: id,
-      totalExpense: totalExpense,
+      currency: currency,
       category: category,
       paidBy: paidBy,
       splitBy: splitBy,
-      location: location?.clone(),
       dateTime: dateTime != null
           ? DateTime(dateTime!.year, dateTime!.month, dateTime!.day)
           : null);
@@ -69,14 +74,38 @@ class ExpenseFacade implements TripEntity<ExpenseFacade> {
     title = expenseModelFacade.title;
     description = expenseModelFacade.description;
     id = expenseModelFacade.id;
-    totalExpense = expenseModelFacade.totalExpense;
+    currency = expenseModelFacade.currency;
     category = expenseModelFacade.category;
     paidBy = expenseModelFacade.paidBy;
     splitBy = expenseModelFacade.splitBy;
-    location = expenseModelFacade.location;
     dateTime = DateTime(expenseModelFacade.dateTime!.year,
         expenseModelFacade.dateTime!.month, expenseModelFacade.dateTime!.day);
   }
 
-  bool validate() => paidBy.isNotEmpty && splitBy.isNotEmpty;
+  //TODO: How to validate that title is not empty for pure expenses, and ensure that title for Transits/Stays/Sights are generated each time and not copied to DB/open to updation, and also passing validity API
+  @override
+  bool validate() {
+    return paidBy.isNotEmpty && splitBy.isNotEmpty;
+  }
+
+  @override
+  ExpenseFacade get expense => this;
+
+  @override
+  set expense(ExpenseFacade expense) {
+    copyWith(expense);
+  }
+
+  @override
+  List<Object?> get props => [
+        tripId,
+        title,
+        description,
+        id,
+        currency,
+        category,
+        paidBy,
+        splitBy,
+        dateTime
+      ];
 }

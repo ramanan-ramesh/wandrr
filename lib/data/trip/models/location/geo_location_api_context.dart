@@ -23,6 +23,7 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
   static const String _busStop = 'bus_stop';
   static const String _busStation = 'bus_station';
   static const String _address = 'address';
+  static const String _county = 'county';
   static const String _aerodrome = 'aerodrome';
   static const String _administrative = 'administrative';
   static const String _boundary = 'boundary';
@@ -113,6 +114,7 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
           locationType: LocationType.city,
           nodeClass: locationClass,
           nodeType: locationType,
+          city: city,
           address: locationJson[_displayAddress]);
     } else if (locationType == _station) {
       if (locationClass == _railway) {
@@ -164,7 +166,7 @@ class GeoLocationApiContext with EquatableMixin implements LocationContext {
         minLat: double.parse(boundingBoxValue[0].toString()),
         maxLon: double.parse(boundingBoxValue[3].toString()),
         minLon: double.parse(boundingBoxValue[2].toString()));
-    var city = locationJson[_address][_city];
+    var city = locationJson[_address][_city] ?? locationJson[_address][_county];
     var state = locationJson[_address][_state];
     var country = locationJson[_address][_country];
     var name = locationJson[_address][_name];
