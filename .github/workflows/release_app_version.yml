@@ -89,12 +89,11 @@ jobs:
             ' ReleaseHistory.md > ReleaseHistory.tmp && mv ReleaseHistory.tmp ReleaseHistory.md
           fi
 
-      - name: Commit, tag, and push changes
+      - name: Commit changes
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git add pubspec.yaml ReleaseHistory.md
-          
           # Format updates for commit message
           UPDATES="${{ github.event.inputs.updates }}"
           FORMATTED_UPDATES=""
@@ -109,16 +108,20 @@ jobs:
               fi
             fi
           done
-          
           COMMIT_MSG=$(printf "Release version ${{ github.event.inputs.version }}\n\n%b" "$FORMATTED_UPDATES")
           git commit -m "$COMMIT_MSG"
-          VERSION="${{ github.event.inputs.version }}"
-          # Create annotated tag with message
-          git tag -a "$VERSION" -m "${VERSION}"
-          # Push branch first
-          git push origin "${GITHUB_REF_NAME}"
-          # Push tag explicitly
-          git push origin "$VERSION"
+
+      - name: Ensure l10n/untranslated-messages.txt is empty
+        run: |
+          if [ -f l10n/untranslated-messages.txt ]; then
+            CONTENT=$(tr -d '\n\r\t ' < l10n/untranslated-messages.txt)
+            if [ -s l10n/untranslated-messages.txt ] && [ "$CONTENT" != "{}" ]; then
+              echo "Error: l10n/untranslated-messages.txt is not empty. Please resolve all untranslated messages before release." >&2
+              cat l10n/untranslated-messages.txt
+              exit 1
+            fi
+          fi
+          echo "l10n/untranslated-messages.txt is empty."
 
       - name: Install npm
         run: |
@@ -138,3 +141,13 @@ jobs:
         run: |
           cd scripts/release_management
           node update_firebase_remote_config.js
+
+      - name: Tag and Push Changes
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          # Create annotated tag with message
+          git tag -a "$VERSION" -m "${VERSION}"
+          # Push branch first
+          git push origin "${GITHUB_REF_NAME}"
+          # Push tag explicitly
+          git push origin "$VERSION"
