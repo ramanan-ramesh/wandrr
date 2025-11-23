@@ -114,6 +114,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get expenses => 'செலவுகள்';
 
   @override
+  String get expense => 'செலவு';
+
+  @override
   String get category => 'வகை';
 
   @override
@@ -199,7 +202,63 @@ class AppLocalizationsTa extends AppLocalizations {
   String get noTransitsCreated => 'போக்குவரத்துகள் உருவாக்கப்படவில்லை';
 
   @override
+  String get timeline => 'காலவரிசை';
+
+  @override
+  String get checklists => 'சரிபார்ப்புப் பட்டியல்கள்';
+
+  @override
+  String get addChecklist => 'சரிபார்ப்புப் பட்டியலைச் சேர்க்கவும்';
+
+  @override
+  String get places => 'இடங்கள்';
+
+  @override
   String get notes => 'குறிப்புகள்';
+
+  @override
+  String get sight => 'காட்சி';
+
+  @override
+  String get detailsAboutSight => 'இந்த காட்சியைப் பற்றிய விவரங்கள்';
+
+  @override
+  String get addSight => 'காட்சியைச் சேர்க்கவும்';
+
+  @override
+  String get noNotesCreated => 'குறிப்புகள் உருவாக்கப்படவில்லை';
+
+  @override
+  String get addNotesForThisDay => 'இந்த நாளுக்கான குறிப்புகளைச் சேர்க்கவும்';
+
+  @override
+  String get addNote => 'குறிப்பைச் சேர்க்கவும்';
+
+  @override
+  String get noChecklistsCreated =>
+      'சரிபார்ப்புப் பட்டியல்கள் உருவாக்கப்படவில்லை';
+
+  @override
+  String get addChecklistsForThisDay =>
+      'இந்த நாளுக்கான சரிபார்ப்புப் பட்டியல்களைச் சேர்க்கவும்';
+
+  @override
+  String get noPlacesCreated => 'இடங்கள் உருவாக்கப்படவில்லை';
+
+  @override
+  String get addPlacesForThisDay => 'இந்த நாளில் நீங்கள் பார்வையிட திட்டம';
+
+  @override
+  String get untitled => 'தலைப்பில்லாதது';
+
+  @override
+  String get writeYourNoteHere => 'உங்கள் குறிப்பை இங்கே எழுதுங்கள்';
+
+  @override
+  String get untitledSight => 'தலைப்பில்லாத காட்சி';
+
+  @override
+  String get untitledChecklist => 'தலைப்பில்லாத சரிபார்ப்புப் பட்டியல்';
 
   @override
   String get transitCarrier => 'போக்குவரத்து வாகனம்';
@@ -327,6 +386,12 @@ class AppLocalizationsTa extends AppLocalizations {
   String get addNew => 'புதியதை சேர்க்கவும்';
 
   @override
+  String get items => 'உருப்படிகள்';
+
+  @override
+  String get item => 'உருப்படி';
+
+  @override
   String get departureArrivalDateTimeCannotBeEmpty =>
       'புறப்படும் மற்றும் வருகை தேதி நேரம் காலியாக இருக்கக்கூடாது';
 
@@ -391,10 +456,16 @@ class AppLocalizationsTa extends AppLocalizations {
   String get launchingTrip => 'பயணத்தை ஏற்றுகிறது';
 
   @override
+  String get setTime => 'நேரத்தை அமைக்கவும்';
+
+  @override
   String get darkTheme => 'இருண்ட தீம்';
 
   @override
   String get language => 'மொழி';
+
+  @override
+  String get location => 'இடம்';
 
   @override
   String get chooseTripThumbnail => 'சிறுபடம் தேர்ந்தெடுக்கவும்';

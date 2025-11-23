@@ -113,7 +113,6 @@ class _ItineraryNavigatorState extends State<ItineraryNavigator>
         children: [
           IconButton(
             icon: const Icon(Icons.chevron_left_rounded),
-            tooltip: 'Previous',
             iconSize: _kNavBarIconSize,
             onPressed: canGoPrevious ? _goToPreviousDay : null,
           ),
@@ -122,7 +121,6 @@ class _ItineraryNavigatorState extends State<ItineraryNavigator>
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right_rounded),
-            tooltip: 'Next',
             iconSize: _kNavBarIconSize,
             onPressed: canGoNext ? _goToNextDay : null,
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
@@ -39,7 +40,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
   Widget build(BuildContext context) {
     return CommonCollapsibleTab<SightFacade>(
       items: widget.sights,
-      addButtonLabel: 'Add Sight',
+      addButtonLabel: context.localizations.addSight,
       addButtonIcon: Icons.add_location_alt_rounded,
       createItem: () {
         var activeTrip = context.activeTrip;
@@ -52,9 +53,9 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
         );
       },
       onItemsChanged: widget.onSightsChanged,
-      titleBuilder: (s) => s.name.isNotEmpty
+      titleBuilder: (s, context) => s.name.isNotEmpty
           ? s.name
-          : (s.location?.context.name ?? 'Untitled Sight'),
+          : (s.location?.context.name ?? context.localizations.untitledSight),
       previewBuilder: (ctx, s) => s.visitTime != null
           ? Row(
               mainAxisSize: MainAxisSize.min,
@@ -83,7 +84,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildTitleField(sight, notifyParent),
+        _buildTitleField(sight, notifyParent, context),
         const SizedBox(height: _kSpacingMedium),
         _buildLocationSection(context, sight, notifyParent),
         const SizedBox(height: _kSpacingMedium),
@@ -92,27 +93,19 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
         _buildExpenseSection(context, sight, notifyParent),
         const SizedBox(height: _kSpacingMedium),
         _buildDescriptionSection(context, sight, notifyParent),
-        const SizedBox(height: _kSpacingSmall),
-        Text(
-          sight.validate() ? 'Valid' : 'Incomplete',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: sight.validate() ? AppColors.success : AppColors.error,
-                fontWeight: FontWeight.w600,
-              ),
-        ),
       ],
     );
   }
 
-  Widget _buildTitleField(SightFacade sight, VoidCallback notifyParent) {
+  Widget _buildTitleField(
+      SightFacade sight, VoidCallback notifyParent, BuildContext context) {
     final controllerId = sight.id ?? sight.hashCode.toString();
 
     return TextFormField(
       key: ValueKey('sight_title_$controllerId'),
       initialValue: sight.name,
-      decoration: const InputDecoration(
-        labelText: 'Title',
-        hintText: 'Enter sight name',
+      decoration: InputDecoration(
+        labelText: context.localizations.title,
         border: OutlineInputBorder(
           borderSide: BorderSide.none,
           borderRadius: BorderRadius.all(Radius.circular(_kBorderRadiusLarge)),
@@ -134,7 +127,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
       children: [
         EditorTheme.createSectionHeader(context,
             icon: Icons.place_rounded,
-            title: 'Location',
+            title: context.localizations.location,
             iconColor: context.isLightTheme
                 ? AppColors.brandPrimary
                 : AppColors.brandPrimaryLight),
@@ -143,7 +136,6 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
           selectedLocation: sight.location,
           onLocationSelected: (loc) {
             sight.location = loc;
-            if (sight.name.isEmpty) sight.name = loc.context.name;
             notifyParent();
           },
         ),
@@ -171,8 +163,9 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
             Expanded(
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.access_time),
-                label: Text(
-                    timeOfDay == null ? 'Set time' : timeOfDay.format(context)),
+                label: Text(timeOfDay == null
+                    ? context.localizations.setTime
+                    : timeOfDay.format(context)),
                 onPressed: () async {
                   final picked = await showTimePicker(
                     context: context,
@@ -193,7 +186,6 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
             ),
             const SizedBox(width: _kSpacingMedium),
             IconButton(
-              tooltip: 'Clear time',
               onPressed: timeOfDay == null
                   ? null
                   : () {
@@ -215,7 +207,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
       children: [
         EditorTheme.createSectionHeader(context,
             icon: Icons.attach_money_rounded,
-            title: 'Expense',
+            title: context.localizations.expense,
             iconColor: context.isLightTheme
                 ? AppColors.brandPrimary
                 : AppColors.brandPrimaryLight),
@@ -243,7 +235,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
       children: [
         EditorTheme.createSectionHeader(context,
             icon: Icons.description_rounded,
-            title: 'Description',
+            title: context.localizations.description,
             iconColor: context.isLightTheme
                 ? AppColors.brandPrimary
                 : AppColors.brandPrimaryLight),
@@ -252,9 +244,8 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
           key: ValueKey('sight_description_$controllerId'),
           initialValue: sight.description ?? '',
           maxLines: 3,
-          decoration: const InputDecoration(
-            labelText: 'Details',
-            hintText: 'Details about this sight...',
+          decoration: InputDecoration(
+            hintText: '${context.localizations.detailsAboutSight}...',
             border: OutlineInputBorder(
               borderSide: BorderSide.none,
               borderRadius:

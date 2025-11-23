@@ -10,6 +10,7 @@ import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
@@ -44,8 +45,8 @@ class _ItineraryNotesViewerState extends State<ItineraryNotesViewer> {
             .notes;
         // Read-only list
         if (notes.isEmpty) {
-          return _emptyState(context, 'No notes yet', 'Add notes for this day',
-              Icons.note_outlined);
+          return _emptyState(context, context.localizations.noNotesCreated,
+              context.localizations.addNotesForThisDay, Icons.note_outlined);
         }
         return ListView.builder(
           padding: const EdgeInsets.all(_kPaddingAll),

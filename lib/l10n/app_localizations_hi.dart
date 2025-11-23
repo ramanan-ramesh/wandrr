@@ -113,6 +113,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get expenses => 'ख़र्चे';
 
   @override
+  String get expense => 'खर्च';
+
+  @override
   String get category => 'वर्ग';
 
   @override
@@ -198,7 +201,62 @@ class AppLocalizationsHi extends AppLocalizations {
   String get noTransitsCreated => 'आपने अभी तक कोई ट्रांज़िट नहीं जोड़ा है.';
 
   @override
+  String get timeline => 'जाँच सूची';
+
+  @override
+  String get checklists => 'चेकलिस्ट';
+
+  @override
+  String get addChecklist => 'चेकलिस्ट जोड़ें';
+
+  @override
+  String get places => 'स्थानों';
+
+  @override
   String get notes => 'टिप्पणियॉन';
+
+  @override
+  String get sight => 'दृश्य';
+
+  @override
+  String get detailsAboutSight => 'इस दृश्य के बारे में विवरण';
+
+  @override
+  String get addSight => 'दृश्य जोड़ें';
+
+  @override
+  String get noNotesCreated => 'कोई टिप्पणि नहीं जुड़ा है';
+
+  @override
+  String get addNotesForThisDay => 'इस दिन के लिए टिप्पणियॉन जोड़ें';
+
+  @override
+  String get addNote => 'टिप्पणी जोड़ें';
+
+  @override
+  String get noChecklistsCreated => 'कोई चेकलिस्ट नहीं जुड़ी है';
+
+  @override
+  String get addChecklistsForThisDay => 'इस दिन के लिए चेकलिस्ट जोड़';
+
+  @override
+  String get noPlacesCreated => 'कोई स्थान नहीं जुड़ा है';
+
+  @override
+  String get addPlacesForThisDay =>
+      'इस दिन आप जिन स्थानों पर जाने की योजना बना रहे हैं उन्हें जोड़ें';
+
+  @override
+  String get untitled => 'शीर्षकहीन';
+
+  @override
+  String get writeYourNoteHere => 'अपनी टिप्पणी यहाँ लिखें';
+
+  @override
+  String get untitledSight => 'शीर्षकहीन दृश्य';
+
+  @override
+  String get untitledChecklist => 'शीर्षकहीन चेकलिस्ट';
 
   @override
   String get transitCarrier => 'पारगमन वाहक';
@@ -327,6 +385,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get addNew => 'नया जोड़ो';
 
   @override
+  String get items => 'प्रविष्टियां';
+
+  @override
+  String get item => 'प्रवेश';
+
+  @override
   String get departureArrivalDateTimeCannotBeEmpty =>
       'प्रस्थान और आगमन तिथि समय खाली नहीं हो सकता';
 
@@ -389,10 +453,16 @@ class AppLocalizationsHi extends AppLocalizations {
   String get launchingTrip => 'यात्रा लॉन्च हो रही है';
 
   @override
+  String get setTime => 'समय सेट करें';
+
+  @override
   String get darkTheme => 'डार्क थीम';
 
   @override
   String get language => 'भाषा';
+
+  @override
+  String get location => 'स्थान';
 
   @override
   String get chooseTripThumbnail => 'लघुचित्र चुनें';

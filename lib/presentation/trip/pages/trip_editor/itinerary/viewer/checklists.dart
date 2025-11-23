@@ -10,6 +10,7 @@ import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
@@ -54,7 +55,7 @@ class _ItineraryChecklistTabState extends State<ItineraryChecklistTab> {
           itemBuilder: (c, i) {
             final cl = checklists[i];
             final title = cl.title?.trim().isEmpty ?? true
-                ? 'Checklist'
+                ? context.localizations.untitledChecklist
                 : cl.title!.trim();
             final completedCount =
                 cl.items.where((item) => item.isChecked).length;
@@ -336,13 +337,14 @@ class _ItineraryChecklistTabState extends State<ItineraryChecklistTab> {
           const Icon(Icons.checklist_outlined,
               size: _kEmptyIconSize, color: AppColors.neutral400),
           const SizedBox(height: _kSpacingMedium),
-          Text('No checklists', style: Theme.of(context).textTheme.titleMedium),
+          Text(context.localizations.noChecklistsCreated,
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 4),
-          const Text('Add a checklist for this day'),
+          Text(context.localizations.addChecklistsForThisDay),
           const SizedBox(height: _kSpacingLarge),
           FilledButton.icon(
             icon: const Icon(Icons.add_rounded),
-            label: const Text('Add Checklist'),
+            label: Text(context.localizations.addChecklist),
             onPressed: () => context.addTripManagementEvent(
               EditItineraryPlanData(
                 day: widget.day,

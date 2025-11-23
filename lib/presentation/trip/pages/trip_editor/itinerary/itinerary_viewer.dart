@@ -107,10 +107,10 @@ class _ItineraryViewerState extends State<ItineraryViewer>
   Widget _createTabIndicators() {
     return ChromeTabBar(
       iconsAndTitles: {
-        Icons.timeline: 'Timeline',
-        Icons.note_outlined: 'Notes',
-        Icons.checklist_outlined: 'Checklists',
-        Icons.place_outlined: 'Places',
+        Icons.timeline: context.localizations.timeline,
+        Icons.note_outlined: context.localizations.notes,
+        Icons.checklist_outlined: context.localizations.checklists,
+        Icons.place_outlined: context.localizations.places,
       },
       tabController: _tabController,
     );

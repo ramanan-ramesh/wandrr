@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/itinerary/check_list_item.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
@@ -23,7 +24,7 @@ class ItineraryChecklistsEditor extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonCollapsibleTab(
       items: checklists,
-      addButtonLabel: 'Add Checklist',
+      addButtonLabel: context.localizations.addChecklist,
       addButtonIcon: Icons.checklist_rounded,
       createItem: () => CheckListFacade.newUiEntry(
         tripId: context.activeTripId,
@@ -32,7 +33,7 @@ class ItineraryChecklistsEditor extends StatelessWidget {
       onItemsChanged: onChecklistsChanged,
       titleBuilder: _effectiveTitle,
       previewBuilder: (ctx, cl) => Text(
-        '${cl.items.length} items',
+        '${cl.items.length} ${ctx.localizations.items}',
         style: Theme.of(ctx).textTheme.labelSmall,
       ),
       accentColorBuilder: (cl) =>
@@ -47,8 +48,10 @@ class ItineraryChecklistsEditor extends StatelessWidget {
     );
   }
 
-  String _effectiveTitle(CheckListFacade cl) =>
-      (cl.title?.trim().isEmpty ?? true) ? 'Checklist' : cl.title!.trim();
+  String _effectiveTitle(CheckListFacade cl, BuildContext context) =>
+      (cl.title?.trim().isEmpty ?? true)
+          ? context.localizations.untitledChecklist
+          : cl.title!.trim();
 
   bool _isValid(CheckListFacade cl) =>
       (cl.title?.isNotEmpty ?? false) && cl.items.isNotEmpty;
@@ -148,9 +151,8 @@ class _ChecklistEditorContentState extends State<_ChecklistEditorContent> {
         // Title field
         TextFormField(
           controller: _titleController,
-          decoration: const InputDecoration(
-            labelText: 'Title',
-            hintText: 'Enter checklist title',
+          decoration: InputDecoration(
+            labelText: context.localizations.title,
             border: OutlineInputBorder(
               borderSide: BorderSide.none,
               borderRadius:
@@ -170,7 +172,7 @@ class _ChecklistEditorContentState extends State<_ChecklistEditorContent> {
         EditorTheme.createSectionHeader(
           context,
           icon: Icons.list_rounded,
-          title: 'Items',
+          title: context.localizations.items,
           iconColor: context.isLightTheme
               ? AppColors.brandPrimary
               : AppColors.brandPrimaryLight,
@@ -195,19 +197,8 @@ class _ChecklistEditorContentState extends State<_ChecklistEditorContent> {
         // Add item button
         ElevatedButton.icon(
           icon: const Icon(Icons.add_rounded),
-          label: const Text('Add Item'),
+          label: Text(context.localizations.addItem),
           onPressed: _tryAddItem,
-        ),
-
-        const SizedBox(height: _kSpacingSmall),
-
-        // Validity indicator
-        Text(
-          isValid ? 'Valid' : 'Incomplete',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: isValid ? AppColors.success : AppColors.error,
-                fontWeight: FontWeight.w600,
-              ),
         ),
       ],
     );
@@ -278,7 +269,7 @@ class _ChecklistItemRowState extends State<_ChecklistItemRow> {
               controller: _controller,
               focusNode: _focusNode,
               decoration: InputDecoration(
-                hintText: 'Item ${widget.itemNumber}',
+                hintText: '${context.localizations.item} ${widget.itemNumber}',
                 border: const OutlineInputBorder(
                   borderSide: BorderSide.none,
                   borderRadius: BorderRadius.all(
@@ -317,7 +308,6 @@ class _ChecklistItemRowState extends State<_ChecklistItemRow> {
           IconButton(
             icon: const Icon(Icons.delete_outline_rounded),
             color: AppColors.error,
-            tooltip: 'Delete item',
             visualDensity: VisualDensity.compact,
             onPressed: widget.onDelete,
           ),

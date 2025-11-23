@@ -298,6 +298,12 @@ abstract class AppLocalizations {
   /// **'Expenses'**
   String get expenses;
 
+  /// No description provided for @expense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get expense;
+
   /// No description provided for @category.
   ///
   /// In en, this message translates to:
@@ -466,11 +472,119 @@ abstract class AppLocalizations {
   /// **'You haven\'t added any transit yet.'**
   String get noTransitsCreated;
 
+  /// No description provided for @timeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get timeline;
+
+  /// No description provided for @checklists.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklists'**
+  String get checklists;
+
+  /// No description provided for @addChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Checklist'**
+  String get addChecklist;
+
+  /// No description provided for @places.
+  ///
+  /// In en, this message translates to:
+  /// **'Places'**
+  String get places;
+
   /// No description provided for @notes.
   ///
   /// In en, this message translates to:
   /// **'Notes'**
   String get notes;
+
+  /// No description provided for @sight.
+  ///
+  /// In en, this message translates to:
+  /// **'Sight'**
+  String get sight;
+
+  /// No description provided for @detailsAboutSight.
+  ///
+  /// In en, this message translates to:
+  /// **'Details about this sight'**
+  String get detailsAboutSight;
+
+  /// No description provided for @addSight.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Sight'**
+  String get addSight;
+
+  /// No description provided for @noNotesCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet'**
+  String get noNotesCreated;
+
+  /// No description provided for @addNotesForThisDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Add notes for this day'**
+  String get addNotesForThisDay;
+
+  /// No description provided for @addNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Note'**
+  String get addNote;
+
+  /// No description provided for @noChecklistsCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'No checklists yet'**
+  String get noChecklistsCreated;
+
+  /// No description provided for @addChecklistsForThisDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Add checklists for this day'**
+  String get addChecklistsForThisDay;
+
+  /// No description provided for @noPlacesCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'No places yet'**
+  String get noPlacesCreated;
+
+  /// No description provided for @addPlacesForThisDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Add places you plan to visit on this day'**
+  String get addPlacesForThisDay;
+
+  /// No description provided for @untitled.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled'**
+  String get untitled;
+
+  /// No description provided for @writeYourNoteHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your note here'**
+  String get writeYourNoteHere;
+
+  /// No description provided for @untitledSight.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled Sight'**
+  String get untitledSight;
+
+  /// No description provided for @untitledChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled Checklist'**
+  String get untitledChecklist;
 
   /// No description provided for @transitCarrier.
   ///
@@ -718,6 +832,18 @@ abstract class AppLocalizations {
   /// **'Add New'**
   String get addNew;
 
+  /// No description provided for @items.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get items;
+
+  /// No description provided for @item.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get item;
+
   /// No description provided for @departureArrivalDateTimeCannotBeEmpty.
   ///
   /// In en, this message translates to:
@@ -826,6 +952,12 @@ abstract class AppLocalizations {
   /// **'Launching trip'**
   String get launchingTrip;
 
+  /// No description provided for @setTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Time'**
+  String get setTime;
+
   /// No description provided for @darkTheme.
   ///
   /// In en, this message translates to:
@@ -837,6 +969,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get language;
+
+  /// No description provided for @location.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get location;
 
   /// No description provided for @chooseTripThumbnail.
   ///

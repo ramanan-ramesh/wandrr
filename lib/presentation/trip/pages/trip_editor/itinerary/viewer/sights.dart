@@ -10,6 +10,7 @@ import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
@@ -48,8 +49,9 @@ class ItinerarySightsViewer extends StatelessWidget {
           padding: const EdgeInsets.all(_kPaddingAll),
           itemBuilder: (c, i) {
             final s = sights[i];
-            final sightName =
-                s.name.isEmpty ? (s.location?.context.name ?? 'Sight') : s.name;
+            final sightName = s.name.isEmpty
+                ? (s.location?.context.name ?? context.localizations.sight)
+                : s.name;
             final locationName = s.location?.context.name;
             final hasExpense = s.expense.totalExpense.amount > 0;
             final isLightTheme = Theme.of(c).brightness == Brightness.light;
@@ -284,14 +286,14 @@ class ItinerarySightsViewer extends StatelessWidget {
           const Icon(Icons.place_outlined,
               size: _kEmptyIconSize, color: AppColors.neutral400),
           const SizedBox(height: _kSpacingMedium),
-          Text('No sights added',
+          Text(context.localizations.noPlacesCreated,
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: _kSpacingSmall),
-          const Text('Add places you plan to visit'),
+          Text(context.localizations.addPlacesForThisDay),
           const SizedBox(height: _kSpacingLarge),
           FilledButton.icon(
             icon: const Icon(Icons.add_location_alt_rounded),
-            label: const Text('Add Sight'),
+            label: Text(context.localizations.addSight),
             onPressed: () => context.addTripManagementEvent(
               EditItineraryPlanData(
                 day: day,

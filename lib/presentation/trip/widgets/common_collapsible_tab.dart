@@ -12,7 +12,7 @@ class CommonCollapsibleTab<T> extends StatefulWidget {
   final IconData addButtonIcon;
   final T Function() createItem;
   final VoidCallback onItemsChanged;
-  final String Function(T item) titleBuilder;
+  final String Function(T item, BuildContext context) titleBuilder;
   final Widget Function(BuildContext context, T item)? previewBuilder;
   final Color Function(T item)? accentColorBuilder;
   final Widget Function(
@@ -218,7 +218,7 @@ class _CollapsibleEntry<T> extends StatelessWidget {
   final T item;
   final bool expanded;
   final Color accentColor;
-  final String Function(T) titleBuilder;
+  final String Function(T, BuildContext) titleBuilder;
   final Widget Function(BuildContext, T)? previewBuilder;
   final VoidCallback onToggle;
   final VoidCallback onDelete;
@@ -295,7 +295,7 @@ class _CollapsibleEntry<T> extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
-    final title = titleBuilder(item);
+    final title = titleBuilder(item, context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -350,7 +350,6 @@ class _CollapsibleEntry<T> extends StatelessWidget {
                   color: accentColor),
               const SizedBox(width: 4),
               IconButton(
-                tooltip: 'Delete',
                 icon: const Icon(Icons.delete_forever_rounded),
                 color: AppColors.error,
                 onPressed: onDelete,

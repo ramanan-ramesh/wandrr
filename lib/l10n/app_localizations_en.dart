@@ -112,6 +112,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get expenses => 'Expenses';
 
   @override
+  String get expense => 'Expense';
+
+  @override
   String get category => 'Category';
 
   @override
@@ -197,7 +200,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noTransitsCreated => 'You haven\'t added any transit yet.';
 
   @override
+  String get timeline => 'Timeline';
+
+  @override
+  String get checklists => 'Checklists';
+
+  @override
+  String get addChecklist => 'Add Checklist';
+
+  @override
+  String get places => 'Places';
+
+  @override
   String get notes => 'Notes';
+
+  @override
+  String get sight => 'Sight';
+
+  @override
+  String get detailsAboutSight => 'Details about this sight';
+
+  @override
+  String get addSight => 'Add Sight';
+
+  @override
+  String get noNotesCreated => 'No notes yet';
+
+  @override
+  String get addNotesForThisDay => 'Add notes for this day';
+
+  @override
+  String get addNote => 'Add Note';
+
+  @override
+  String get noChecklistsCreated => 'No checklists yet';
+
+  @override
+  String get addChecklistsForThisDay => 'Add checklists for this day';
+
+  @override
+  String get noPlacesCreated => 'No places yet';
+
+  @override
+  String get addPlacesForThisDay => 'Add places you plan to visit on this day';
+
+  @override
+  String get untitled => 'Untitled';
+
+  @override
+  String get writeYourNoteHere => 'Write your note here';
+
+  @override
+  String get untitledSight => 'Untitled Sight';
+
+  @override
+  String get untitledChecklist => 'Untitled Checklist';
 
   @override
   String get transitCarrier => 'Transit Carrier';
@@ -326,6 +383,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addNew => 'Add New';
 
   @override
+  String get items => 'Items';
+
+  @override
+  String get item => 'Item';
+
+  @override
   String get departureArrivalDateTimeCannotBeEmpty =>
       'Departure and Arrival date time cannot be empty';
 
@@ -388,10 +451,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get launchingTrip => 'Launching trip';
 
   @override
+  String get setTime => 'Set Time';
+
+  @override
   String get darkTheme => 'Dark Theme';
 
   @override
   String get language => 'Language';
+
+  @override
+  String get location => 'Location';
 
   @override
   String get chooseTripThumbnail => 'Choose a thumbnail';

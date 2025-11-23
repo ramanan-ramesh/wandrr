@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/widgets/common_collapsible_tab.dart';
 
@@ -34,21 +35,21 @@ class _ItineraryNotesEditorState extends State<ItineraryNotesEditor> {
   @override
   Widget build(BuildContext context) {
     return CommonCollapsibleTab<Note>(
-      // Generics updated to Note
       items: widget.notes,
-      addButtonLabel: 'Add Note',
+      addButtonLabel: context.localizations.addNote,
       addButtonIcon: Icons.note_add_rounded,
       createItem: () => Note(''),
       // Create a new Note object
       onItemsChanged: () {
         widget.onNotesChanged(widget.notes);
       },
-      titleBuilder: (n) {
+      titleBuilder: (n, context) {
         // `n` is now a Note object
         final raw = n.text.trim();
-        if (raw.isEmpty) return 'Untitled';
+        final untitledText = context.localizations.untitled;
+        if (raw.isEmpty) return untitledText;
         final firstLine = raw.split('\n').first.trim();
-        return firstLine.isEmpty ? 'Untitled' : firstLine;
+        return firstLine.isEmpty ? untitledText : firstLine;
       },
       previewBuilder: (ctx, n) {
         // `n` is now a Note object
@@ -224,7 +225,7 @@ class _NoteEditorState extends State<_NoteEditor>
             maxLines: null,
             scrollPadding: const EdgeInsets.only(bottom: 250),
             decoration: InputDecoration(
-              hintText: 'Write your note here…',
+              hintText: '${context.localizations.writeYourNoteHere}…',
               filled: true,
               fillColor: isLightTheme
                   ? Colors.white.withValues(alpha: 0.98)
@@ -246,7 +247,6 @@ class _NoteEditorState extends State<_NoteEditor>
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
-          tooltip: hasBullet ? 'Remove bullet' : 'Add bullet',
           icon: Icon(
             Icons.format_list_bulleted,
             color: hasBullet ? AppColors.brandPrimary : null,
@@ -259,7 +259,6 @@ class _NoteEditorState extends State<_NoteEditor>
         Row(
           children: [
             IconButton(
-              tooltip: 'Outdent (Shift+Tab)',
               icon: const Icon(Icons.format_indent_decrease),
               onPressed: () {
                 _outdentCurrentLine();
@@ -267,7 +266,6 @@ class _NoteEditorState extends State<_NoteEditor>
               },
             ),
             IconButton(
-              tooltip: 'Indent (Tab)',
               icon: const Icon(Icons.format_indent_increase),
               onPressed: () {
                 _indentCurrentLine();
