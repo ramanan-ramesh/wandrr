@@ -51,7 +51,9 @@ class ItineraryPlanData extends Equatable
 
   @override
   bool validate() {
-    return getValidationResult() == ItineraryPlanDataValidationResult.valid;
+    var validationResult = getValidationResult();
+    return validationResult == ItineraryPlanDataValidationResult.valid ||
+        validationResult == ItineraryPlanDataValidationResult.noContent;
   }
 
   ItineraryPlanDataValidationResult getValidationResult() {

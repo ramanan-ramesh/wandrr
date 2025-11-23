@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_amount_edit_field.dart';
 
 class PaidByTab extends StatelessWidget {
   final Map<String, double> paidBy;
   final void Function(Map<String, double> paidBy) callback;
-  final Map<String, Color> contributorsVsColors;
   final String defaultCurrencySymbol;
 
   const PaidByTab(
       {required this.callback,
-      required this.contributorsVsColors,
       required this.defaultCurrencySymbol,
       required this.paidBy,
       super.key});
@@ -23,66 +22,57 @@ class PaidByTab extends StatelessWidget {
     return ListView.builder(
       itemCount: allContributions.length,
       itemBuilder: (context, index) {
-        var contributorVsColor = allContributions[index];
+        var contributor = allContributions[index];
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 3.0),
-          child: _buildPaidByContributor(
-              contributorVsColor, context, currentUserName),
+          child: _buildPaidByContributor(contributor, context, currentUserName),
         );
       },
     );
   }
 
-  List<MapEntry<String, Color>> _createContributions(
+  List<String> _createContributions(
       BuildContext context, String currentUserName) {
-    var allContributions = contributorsVsColors.entries.toList();
-    var personalContribution = allContributions
-        .firstWhere((element) => element.key == currentUserName);
-    allContributions.removeWhere((element) => element.key == currentUserName);
-    allContributions.insert(0, personalContribution);
+    var allContributions =
+        context.activeTrip.tripMetadata.contributors.toList();
+    allContributions.insert(0, currentUserName);
+    allContributions.remove(context.activeUser!.userName);
     return allContributions;
   }
 
-  Widget _buildPaidByContributor(MapEntry<String, Color> contributorVsColor,
-      BuildContext context, String currentUserName) {
+  Widget _buildPaidByContributor(
+      String contributor, BuildContext context, String currentUserName) {
     double contribution;
-    if (paidBy.containsKey(contributorVsColor.key)) {
-      contribution = paidBy[contributorVsColor.key]!;
+    if (paidBy.containsKey(contributor)) {
+      contribution = paidBy[contributor]!;
     } else {
       contribution = 0;
     }
 
-    String displayName = contributorVsColor.key;
-
     return ListTile(
       isThreeLine: true,
-      leading: CircleAvatar(
-        backgroundColor: contributorVsColor.value,
-        radius: context.isBigLayout ? 24 : 20,
-      ),
       title: _ExpenseEditField(
         onChanged: (amountValue) {
           if (amountValue.isEmpty) {
-            paidBy[contributorVsColor.key] = 0;
+            paidBy[contributor] = 0;
             callback(paidBy);
           } else {
-            paidBy[contributorVsColor.key] = double.parse(amountValue);
+            paidBy[contributor] = double.parse(amountValue);
             callback(paidBy);
           }
         },
         initialExpense: contribution.toStringAsFixed(2),
-        contributorColor: contributorVsColor.value,
         currencySymbol: defaultCurrencySymbol,
       ),
       subtitle: Text(
-        displayName == currentUserName
+        contributor == currentUserName
             ? context.localizations.you
-            : displayName,
+            : contributor,
         softWrap: true,
         maxLines: 2,
         style: TextStyle(
           fontSize: 13,
-          fontWeight: displayName == currentUserName
+          fontWeight: contributor == currentUserName
               ? FontWeight.w600
               : FontWeight.normal,
         ),
@@ -94,14 +84,12 @@ class PaidByTab extends StatelessWidget {
 
 class _ExpenseEditField extends StatefulWidget {
   final Function(String) onChanged;
-  final Color contributorColor;
   final String currencySymbol;
   final String initialExpense;
 
   const _ExpenseEditField(
       {required this.onChanged,
       required this.initialExpense,
-      required this.contributorColor,
       required this.currencySymbol});
 
   @override
@@ -153,7 +141,6 @@ class _ExpenseEditFieldState extends State<_ExpenseEditField> {
           widget.currencySymbol,
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: widget.contributorColor,
           ),
         ),
       ),

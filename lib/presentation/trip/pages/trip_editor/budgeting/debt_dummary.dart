@@ -3,7 +3,6 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/debt_data.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class DebtSummaryTile extends StatelessWidget {
@@ -18,11 +17,6 @@ class DebtSummaryTile extends StatelessWidget {
     final currentUserName = context.activeUser!.userName;
     final budgetingModule = activeTrip.budgetingModule;
     final appLocalizations = context.localizations;
-    final contributors = [...activeTrip.tripMetadata.contributors]..sort();
-    final contributorColors = <String, Color>{
-      for (var i = 0; i < contributors.length; i++)
-        contributors[i]: AppColors.travelAccents[i]
-    };
 
     return FutureBuilder<Iterable<DebtData>>(
       future: budgetingModule.retrieveDebtDataList(),
@@ -48,8 +42,6 @@ class DebtSummaryTile extends StatelessWidget {
                           amountText: budgetingModule.formatCurrency(e.money),
                           currentUserName: currentUserName,
                           appLocalizations: appLocalizations,
-                          owedByColor: contributorColors[e.owedBy]!,
-                          owedToColor: contributorColors[e.owedTo]!,
                         ))
                     .toList(),
               );
@@ -69,8 +61,6 @@ class _DebtRow extends StatelessWidget {
   final String amountText;
   final String currentUserName;
   final AppLocalizations appLocalizations;
-  final Color owedByColor;
-  final Color owedToColor;
 
   const _DebtRow({
     required this.owedBy,
@@ -78,8 +68,6 @@ class _DebtRow extends StatelessWidget {
     required this.amountText,
     required this.currentUserName,
     required this.appLocalizations,
-    required this.owedByColor,
-    required this.owedToColor,
   });
 
   static const double _kHorizontalSpacing = 12.0;
@@ -91,59 +79,24 @@ class _DebtRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _ContributorBadge(
-            contributorName: owedBy,
-            currentUserName: currentUserName,
-            color: owedByColor,
-            appLocalizations: appLocalizations,
-          ),
+          _createContributorBadge(owedBy),
           const SizedBox(width: _kHorizontalSpacing / 3),
           FittedBox(child: Text(context.localizations.needsToPay)),
           const SizedBox(width: _kHorizontalSpacing / 3),
-          _ContributorBadge(
-            contributorName: owedTo,
-            currentUserName: currentUserName,
-            color: owedToColor,
-            appLocalizations: appLocalizations,
-          ),
+          _createContributorBadge(owedTo),
           const SizedBox(width: _kHorizontalSpacing / 3),
           FittedBox(child: Text(amountText)),
         ],
       ),
     );
   }
-}
 
-class _ContributorBadge extends StatelessWidget {
-  final String contributorName;
-  final String currentUserName;
-  final Color color;
-  final AppLocalizations appLocalizations;
-
-  const _ContributorBadge({
-    required this.contributorName,
-    required this.currentUserName,
-    required this.color,
-    required this.appLocalizations,
-  });
-
-  static const double _kBadgeSize = 20.0;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _createContributorBadge(String contributorName) {
     final displayName = contributorName == currentUserName
         ? appLocalizations.you
         : contributorName.split('@').first;
     return TextButton.icon(
       onPressed: null,
-      icon: Container(
-        width: _kBadgeSize,
-        height: _kBadgeSize,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-        ),
-      ),
       label: Text(displayName),
     );
   }

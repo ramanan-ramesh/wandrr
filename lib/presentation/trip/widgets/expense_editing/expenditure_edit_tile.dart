@@ -5,7 +5,6 @@ import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/chrome_tab.dart';
@@ -40,7 +39,6 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   late CurrencyData _currentCurrencyInfo;
-  final Map<String, Color> _contributorsVsColors = {};
   late final ValueNotifier<Money> _totalExpenseValueNotifier;
   late Map<String, double> _currentPaidBy;
   late List<String> _currentSplitBy;
@@ -70,7 +68,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   Widget build(BuildContext context) {
     _initializeContributors(context);
     if (widget.isEditable) {
-      if (_contributorsVsColors.length == 1) {
+      if (context.activeTrip.tripMetadata.contributors.length == 1) {
         return _createTotalExpenseField(context, true);
       }
       return _createEditorForMultipleContributors(context);
@@ -136,22 +134,6 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
         ),
       ),
     ];
-    var shouldHideSplitByData = _totalExpenseValueNotifier.value.amount == 0 ||
-        _currentSplitBy.isEmpty ||
-        _currentSplitBy.length == 1 &&
-            _currentSplitBy.single == context.activeUser!.userName;
-    if (!shouldHideSplitByData) {
-      columnItems.add(Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2.0),
-        child: Text(
-          '${context.localizations.splitBy} : ',
-        ),
-      ));
-      columnItems.add(Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2.0),
-        child: _buildSplitByIcons(),
-      ));
-    }
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: columnItems,
@@ -199,36 +181,12 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
     var contributors = context.activeTrip.tripMetadata.contributors;
     var allContributors = List.from(contributors);
     allContributors.sort();
-    for (var index = 0; index < allContributors.length; index++) {
-      var contributor = allContributors.elementAt(index);
-      _contributorsVsColors[contributor] = AppColors.travelAccents[index];
-    }
     _currentCurrencyInfo = context.supportedCurrencies.firstWhere(
         (element) => element.code == _totalExpenseValueNotifier.value.currency);
   }
 
-  Widget _buildSplitByIcons() {
-    return Wrap(
-      children: _contributorsVsColors.entries
-          .where((element) => _currentSplitBy.contains(element.key))
-          .map((e) => Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  width: 22,
-                  height: 22,
-                  decoration: BoxDecoration(
-                    color: e.value,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ))
-          .toList(),
-    );
-  }
-
   Widget _buildPaidByTab() {
     return PaidByTab(
-      contributorsVsColors: _contributorsVsColors,
       paidBy: _currentPaidBy,
       callback: (paidBy) {
         _currentPaidBy = Map.from(paidBy);
@@ -245,7 +203,6 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
           _currentSplitBy = List.from(splitBy);
           _invokeUpdatedCallback();
         },
-        splitBy: _currentSplitBy,
-        contributorsVsColors: _contributorsVsColors);
+        splitBy: _currentSplitBy);
   }
 }
