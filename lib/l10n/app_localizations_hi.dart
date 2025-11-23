@@ -168,7 +168,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get description => 'विवरण';
 
   @override
-  String get destination => 'Destination';
+  String get destination => 'मंजिल';
 
   @override
   String get detailsAboutSight => 'इस दृश्य के बारे में विवरण';
@@ -459,7 +459,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get verificationPending =>
-      'Verification mail link sent. Please login after completing verification.';
+      'सत्यापन मेल लिंक भेजा गया। कृपया सत्यापन पूरा करने के बाद लॉगिन करें।';
 
   @override
   String get view_breakdown => 'विवरण देखें';

@@ -170,7 +170,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get description => 'விவரம்';
 
   @override
-  String get destination => 'Destination';
+  String get destination => 'இலக்கு';
 
   @override
   String get detailsAboutSight => 'இந்த காட்சியின் பற்றிய விவரம்';
@@ -464,7 +464,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get verificationPending =>
-      'Verification mail link sent. Please login after completing verification.';
+      'சரிபார்ப்பு அஞ்சல் இணைப்பு அனுப்பப்பட்டது. சரிபார்ப்பை முடித்த பிறகு உள்நுழையவும்.';
 
   @override
   String get view_breakdown => 'விவரங்களைப் பார்க்கவும்';
