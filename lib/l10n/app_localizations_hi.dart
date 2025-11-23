@@ -9,263 +9,108 @@ class AppLocalizationsHi extends AppLocalizations {
   AppLocalizationsHi([String locale = 'hi']) : super(locale);
 
   @override
-  String get plan_itinerary =>
-      'आसानी और सुन्दरता के साथ अपनी यात्रा कार्यक्रम की योजना बनाएं';
+  String get activities => 'गतिविधियां';
 
   @override
-  String get login => 'लॉग इन';
+  String get addATitle => 'शीर्षक जोड़ें';
 
   @override
-  String get logout => 'लॉग आउट';
-
-  @override
-  String get register => 'रजिस्टर';
-
-  @override
-  String get userName => 'उपयोगकर्ता नाम';
-
-  @override
-  String get password => 'पासवर्ड';
-
-  @override
-  String get alternativeLogin => 'प्रविष्ट करें इनके साथ भी';
-
-  @override
-  String get userNameAlreadyExists =>
-      'यह उपयोगकर्ता नाम पहले से ही पंजीकृत है। आप इसके बजाय इसके साथ लॉगिन कर सकते हैं';
-
-  @override
-  String get noSuchUserExists =>
-      'ऐसा कोई उपयोगकर्ता नाम मौजूद नहीं है। आप इसके बजाय इसके साथ पंजीकरण कर सकते हैं';
-
-  @override
-  String get enterValidEmail => 'मान्य ईमेल दर्ज करें';
-
-  @override
-  String get verificationPending =>
-      'सत्यापन मेल लिंक भेजा गया। कृपया सत्यापन पूरा करने के बाद लॉगिन करें।';
-
-  @override
-  String get resendVerificationMail => 'सत्यापन मेल पुनः भेजें';
-
-  @override
-  String get viewRecentTrips => 'आगामी यात्राएं देखें';
-
-  @override
-  String get noTripsCreated =>
-      'कोई आगामी यात्रा नहीं? एक नई यात्रा बनाने का आनंद लें!';
-
-  @override
-  String get planTrip => 'यात्रा की योजना बनायें!';
-
-  @override
-  String get dateRangePickerStart => 'आरंभ तिथि:';
-
-  @override
-  String get dateRangePickerEnd => 'अंतिम तिथि:';
-
-  @override
-  String get budgetAmount => 'बजट राशि';
-
-  @override
-  String get destination => 'मंजिल';
-
-  @override
-  String get tripName => 'यात्रा का नाम';
-
-  @override
-  String get enterAmount => 'राशि दर्ज करें';
-
-  @override
-  String get transit => 'पारगमन';
-
-  @override
-  String get lodging => 'आवास';
-
-  @override
-  String get itinerary => 'यात्रा कार्यक्रम';
-
-  @override
-  String get budget => 'बजट';
-
-  @override
-  String get budgeting => 'व्यय बहीखाता';
-
-  @override
-  String get add_expense => 'व्यय जोड़ें';
-
-  @override
-  String get edit_budget => 'बजट संपादित';
-
-  @override
-  String get debt_summary => 'ऋण सारांश';
-
-  @override
-  String get view_breakdown => 'विवरण देखें';
-
-  @override
-  String get add_tripmate => 'ट्रिपमेट जोड़ें';
-
-  @override
-  String get settings => 'सेटिंग्स';
-
-  @override
-  String get expenses => 'ख़र्चे';
-
-  @override
-  String get expense => 'खर्च';
-
-  @override
-  String get category => 'वर्ग';
-
-  @override
-  String get oldToNew => 'दिनांक: पुराने से नवीनतम';
-
-  @override
-  String get newToOld => 'दिनांक: नवीनतम से पुराने';
-
-  @override
-  String get lowToHighCost => 'लागत: कम से अधिक';
-
-  @override
-  String get highToLowCost => 'लागत: अधिक से कम';
-
-  @override
-  String get flight => 'उड़ान';
-
-  @override
-  String get flights => 'उड़ानें';
-
-  @override
-  String get carRental => 'किराए कार';
-
-  @override
-  String get taxi => 'टैक्सी';
-
-  @override
-  String get publicTransit => 'सार्वजनिक परिवहन';
-
-  @override
-  String get food => 'खाना';
-
-  @override
-  String get drinks => 'पेय';
-
-  @override
-  String get sightseeing => 'दर्शनीय स्थलों';
-
-  @override
-  String get activities => 'गतिविधियाँ';
-
-  @override
-  String get shopping => 'खरीदारी';
-
-  @override
-  String get fuel => 'ईंधन';
-
-  @override
-  String get groceries => 'किराना';
-
-  @override
-  String get other => 'अन्य';
-
-  @override
-  String get noExpensesCreated => 'आपने अभी तक कोई व्यय नहीं जोड़ा है|';
-
-  @override
-  String get description => 'विवरण';
-
-  @override
-  String get paidBy => 'भुगतानकर्ता';
-
-  @override
-  String get split => 'बंटवारे';
-
-  @override
-  String get you => 'आप';
-
-  @override
-  String get title => 'शीर्षक';
-
-  @override
-  String get view_expenses => 'व्यय देखें';
-
-  @override
-  String get wrong_password_entered => 'ग़लत पासवर्ड दर्ज किया गया';
-
-  @override
-  String get password_policy =>
-      'पासवर्ड 8-20 अक्षरों का होना चाहिए और इसमें एक बड़ा अक्षर, एक छोटा अक्षर, एक अंक और एक विशेष वर्ण शामिल होना चाहिए।';
-
-  @override
-  String get noTransitsCreated => 'आपने अभी तक कोई ट्रांज़िट नहीं जोड़ा है.';
-
-  @override
-  String get timeline => 'जाँच सूची';
-
-  @override
-  String get checklists => 'चेकलिस्ट';
+  String get addChecklistsForThisDay => 'इस दिन के लिए चेकलिस्ट जोड़ें';
 
   @override
   String get addChecklist => 'चेकलिस्ट जोड़ें';
 
   @override
-  String get places => 'स्थानों';
+  String get addPlacesForThisDay => 'इस दिन के लिए स्थान जोड़ें';
 
   @override
-  String get notes => 'टिप्पणियॉन';
+  String get add_expense => 'व्यय जोड़ें';
 
   @override
-  String get sight => 'दृश्य';
+  String get addItem => 'मद जोड़ें';
 
   @override
-  String get detailsAboutSight => 'इस दृश्य के बारे में विवरण';
+  String get addNew => 'नया जोड़ो';
 
   @override
-  String get addSight => 'दृश्य जोड़ें';
-
-  @override
-  String get noNotesCreated => 'कोई टिप्पणि नहीं जुड़ा है';
-
-  @override
-  String get addNotesForThisDay => 'इस दिन के लिए टिप्पणियॉन जोड़ें';
+  String get addNotesForThisDay => 'इस दिन के लिए टिप्पणियाँ जोड़ें';
 
   @override
   String get addNote => 'टिप्पणी जोड़ें';
 
   @override
-  String get noChecklistsCreated => 'कोई चेकलिस्ट नहीं जुड़ी है';
+  String get addSight => 'दृश्य जोड़ें';
 
   @override
-  String get addChecklistsForThisDay => 'इस दिन के लिए चेकलिस्ट जोड़';
+  String get airport => 'एयरपोर्ट';
 
   @override
-  String get noPlacesCreated => 'कोई स्थान नहीं जुड़ा है';
+  String get allDayStay => 'पूरे दिन रुकेँ';
 
   @override
-  String get addPlacesForThisDay =>
-      'इस दिन आप जिन स्थानों पर जाने की योजना बना रहे हैं उन्हें जोड़ें';
+  String get allDayTravel => 'पूरे दिन की यात्रा';
 
   @override
-  String get untitled => 'शीर्षकहीन';
-
-  @override
-  String get writeYourNoteHere => 'अपनी टिप्पणी यहाँ लिखें';
-
-  @override
-  String get untitledSight => 'शीर्षकहीन दृश्य';
-
-  @override
-  String get untitledChecklist => 'शीर्षकहीन चेकलिस्ट';
-
-  @override
-  String get transitCarrier => 'पारगमन वाहक';
-
-  @override
-  String get depart => 'प्रस्थान';
+  String get alternativeLogin => 'प्रविष्ट करें इनके साथ भी';
 
   @override
   String get arrive => 'आना';
+
+  @override
+  String get arriveAt => 'आगमन समय';
+
+  @override
+  String get arrivalDepartureDateTimesError =>
+      'आगमन प्रस्थान से पहले नहीं हो सकता। साथ ही, दोनों यात्रा की आरंभ/समाप्ति तिथियों के भीतर होने चाहिए';
+
+  @override
+  String get budget => 'बजट';
+
+  @override
+  String get budgetAmount => 'बजट राशि';
+
+  @override
+  String get budgeting => 'व्यय बहिखाता';
+
+  @override
+  String get bus => 'बस';
+
+  @override
+  String get cancel => 'रद्द करें';
+
+  @override
+  String get carRental => 'किराए कार';
+
+  @override
+  String get carrierName => 'वाहक का नाम';
+
+  @override
+  String get category => 'वर्ग';
+
+  @override
+  String get checkIn => 'चेक इन';
+
+  @override
+  String get checkListItemCannotBeEmpty => 'चेकलिस्ट आइटम खाली नहीं हो सकता';
+
+  @override
+  String get checkListTitle => 'चेकलिस्ट शीर्षक';
+
+  @override
+  String get checkListTitleMustBeAtleast3Characters =>
+      'चेकलिस्ट शीर्षक कम से कम 3 अक्षर होना चाहिए';
+
+  @override
+  String get checkOut => 'चेक आउट';
+
+  @override
+  String get checklists => 'चेकलिस्ट';
+
+  @override
+  String get checklist => 'चेकलिस्ट';
+
+  @override
+  String get chooseTripThumbnail => 'लघुचित्र चुनें';
 
   @override
   String get confirmation => 'पुष्टीकरण';
@@ -274,121 +119,42 @@ class AppLocalizationsHi extends AppLocalizations {
   String get cost => 'लागत';
 
   @override
-  String get bus => 'बस';
-
-  @override
   String get cruise => 'क्रूज शिप';
 
   @override
-  String get ferry => 'नौका';
+  String get dateRangePickerEnd => 'अंतिम तिथि:';
 
   @override
-  String get train => 'रेलगाड़ी';
+  String get dateRangePickerStart => 'आरंभ तिथि:';
 
   @override
-  String get personalVehicle => 'निजी वाहन';
-
-  @override
-  String get walk => 'टहलना';
-
-  @override
-  String get splitBy => 'विभाजित करें';
-
-  @override
-  String get flightNumber => 'विमान संख्या';
-
-  @override
-  String get flightCarrierName => 'उड़ान वाहक का नाम';
-
-  @override
-  String get airport => 'एयरपोर्ट';
-
-  @override
-  String get noLodgingCreated => 'आपने अभी तक कोई आवास नहीं जोड़ा है.';
-
-  @override
-  String get checkIn => 'चेक इन';
-
-  @override
-  String get checkOut => 'चेक आउट';
-
-  @override
-  String get newPlanData => 'नई योजना';
+  String get dateTimeSelection => 'दिनांक और समय चुनें';
 
   @override
   String get dayByDay => 'दिन-प्रतिदिन';
 
   @override
-  String get addATitle => 'शीर्षक जोड़ें';
+  String get darkTheme => 'डार्क थीम';
 
   @override
-  String get deleteTrip => 'यात्रा हटाएं';
+  String get debt_summary => 'ऋण सारांश';
+
+  @override
+  String get deleteTrip => 'यात्रा हटाएँ';
 
   @override
   String get deleteTripConfirmation =>
       'क्या आप सचमुच इस यात्रा को हटाना चाहते हैं?';
 
   @override
-  String get yes => 'हाँ';
-
-  @override
-  String get no => 'नहीं';
-
-  @override
-  String get cancel => 'रद्द करें';
-
-  @override
-  String get share => 'शेयर';
-
-  @override
-  String get stayAddress => 'छात्रावास या आवास का पता';
-
-  @override
-  String get carrierName => 'वाहक का नाम';
-
-  @override
-  String get dateTimeSelection => 'दिनांक और समय चुनें';
-
-  @override
-  String get searchForCurrency => 'मुद्रा खोजें';
-
-  @override
-  String get addItem => 'मद जोड़ें';
+  String get depart => 'प्रस्थान';
 
   @override
   String get departAt => 'प्रस्थान समय';
 
   @override
-  String get arriveAt => 'आगमन समय';
-
-  @override
-  String get allDayTravel => 'पूरे दिन की यात्रा';
-
-  @override
-  String get allDayStay => 'पूरे दिन रुकें';
-
-  @override
-  String get noExpensesAssociatedWithDate =>
-      'किसी तिथि से संबंधित कोई व्यय नहीं';
-
-  @override
-  String get noExpensesToSplit => 'विभाजित करने के लिए कोई व्यय नहीं है';
-
-  @override
-  String get needsToPay => 'भुगतान करना होगा';
-
-  @override
-  String get splitExpensesWithNewTripMateMessage =>
-      'सभी मौजूदा खर्च नए ट्रिप मेट के साथ बांटे जाएंगे। क्या आप आगे बढ़ना चाहते हैं?';
-
-  @override
-  String get addNew => 'नया जोड़ो';
-
-  @override
-  String get items => 'प्रविष्टियां';
-
-  @override
-  String get item => 'प्रवेश';
+  String get departureAndArrivalLocationsCannotBeSame =>
+      'प्रस्थान और आगमन स्थान एक समान नहीं हो सकते';
 
   @override
   String get departureArrivalDateTimeCannotBeEmpty =>
@@ -399,94 +165,323 @@ class AppLocalizationsHi extends AppLocalizations {
       'प्रस्थान और आगमन स्थान खाली नहीं हो सकता';
 
   @override
-  String get departureAndArrivalLocationsCannotBeSame =>
-      'प्रस्थान और आगमन स्थान एक समान नहीं हो सकते';
+  String get description => 'विवरण';
 
   @override
-  String get arrivalDepartureDateTimesError =>
-      'आगमन प्रस्थान से पहले नहीं हो सकता। साथ ही, दोनों यात्रा की आरंभ/समाप्ति तिथियों के भीतर होने चाहिए';
+  String get destination => 'Destination';
 
   @override
-  String get lodgingAddressCannotBeEmpty => 'आवास का पता खाली नहीं हो सकता';
+  String get detailsAboutSight => 'इस दृश्य के बारे में विवरण';
 
   @override
-  String get checkInAndCheckoutDatesCannotBeEmpty =>
-      'चेक-इन और चेक-आउट तिथियाँ खाली नहीं हो सकतीं';
+  String get drinks => 'पेय';
+
+  @override
+  String get edit_budget => 'बजट संपादित';
+
+  @override
+  String get enterAmount => 'राशि दर्ज करें';
+
+  @override
+  String get enterValidEmail => 'मान्य ईमेल दर्ज करें';
+
+  @override
+  String get expense => 'व्यय';
 
   @override
   String get expenseTitleMustBeAtleast3Characters =>
       'व्यय शीर्षक कम से कम 3 अक्षर होना चाहिए';
 
   @override
-  String get titleCannotBeEmpty => 'शीर्षक खाली नहीं हो सकता';
+  String get expenses => 'खर्चे';
 
   @override
-  String get noteCannotBeEmpty => 'टिप्पणी खाली नहीं हो सकती';
+  String get ferry => 'नौका';
 
   @override
-  String get checkListTitle => 'चेकलिस्ट शीर्षक';
+  String get flight => 'उड़ान';
 
   @override
-  String get checkListTitleMustBeAtleast3Characters =>
-      'चेकलिस्ट शीर्षक कम से कम 3 अक्षर होना चाहिए';
+  String get flightCarrierName => 'उड़ान वाहक का नाम';
 
   @override
-  String get checkListItemCannotBeEmpty => 'चेकलिस्ट आइटम खाली नहीं हो सकता';
+  String get flightNumber => 'विमान संख्या';
+
+  @override
+  String get flights => 'उड़ानें';
+
+  @override
+  String get food => 'खाना';
+
+  @override
+  String get fuel => 'ईंधन';
+
+  @override
+  String get groceries => 'किराना';
+
+  @override
+  String get highToLowCost => 'लागत: अधिक से कम';
+
+  @override
+  String get itinerary => 'यात्रा कार्यक्रम';
+
+  @override
+  String get item => 'प्रवेश';
+
+  @override
+  String get items => 'प्रविष्टियां';
+
+  @override
+  String get language => 'भाषा';
+
+  @override
+  String get launchingTrip => 'यात्रा लॉन्च हो रही है';
+
+  @override
+  String get loadedYourTrips => 'आपकी यात्राएँ लोड हो गई हैं';
+
+  @override
+  String get loading => 'लोड हो रहा है...';
+
+  @override
+  String get loadingTripData => 'यात्रा डेटा लोड हो रहा है';
+
+  @override
+  String get loadingYourTrips => 'आपकी यात्राएँ लोड हो रही हैं';
+
+  @override
+  String get lodging => 'आवास';
+
+  @override
+  String get lodgingAddressCannotBeEmpty => 'आवास का पता खाली नहीं हो सकता';
+
+  @override
+  String get location => 'स्थान';
+
+  @override
+  String get login => 'लॉग इन';
+
+  @override
+  String get logout => 'लॉग आउट';
+
+  @override
+  String get lowToHighCost => 'लागत: कम से अधिक';
+
+  @override
+  String get needsToPay => 'भुगतान करना होगा';
+
+  @override
+  String get newPlanData => 'नई योजना';
+
+  @override
+  String get newToOld => 'दिनांक: नवीनतम से पुराने';
+
+  @override
+  String get no => 'नहीं';
+
+  @override
+  String get noChecklistsCreated => 'कोई चेकलिस्ट नहीं जुड़ी है';
+
+  @override
+  String get noExpensesAssociatedWithDate =>
+      'किसी तिथि से सम्बंधित कोई व्यय नहीं';
+
+  @override
+  String get noExpensesCreated => 'आपने अभी तक कोई व्यय नहीं जोड़ा है|';
+
+  @override
+  String get noExpensesToSplit => 'विभाजित करने के लिए कोई व्यय नहीं है';
+
+  @override
+  String get noLodgingCreated => 'आपने अभी तक कोई आवास नहीं जोड़ा है.';
+
+  @override
+  String get noNotesCreated => 'कोई टिप्पणी नहीं जुड़ी है';
 
   @override
   String get noNotesOrCheckListsOrPlaces =>
       'अभी तक कोई नोट, चेकलिस्ट या स्थान नहीं जोड़ा गया है';
 
   @override
-  String get loading => 'लोड हो रहा है...';
+  String get noPlacesCreated => 'कोई स्थान नहीं जुड़ा है';
 
   @override
-  String get loadingYourTrips => 'आपकी यात्राएं लोड हो रही हैं';
+  String get noSuchUserExists =>
+      'ऐसा कोई उपयोगकर्ता नाम मौजूद नहीं है| आप इसके बजाय पंजीकरण कर सकते हैं';
 
   @override
-  String get loadedYourTrips => 'आपकी यात्राएं लोड हो गई हैं';
+  String get noTransitsCreated => 'आपने अभी तक कोई ट्रांजिट नहीं जोड़ा है.';
 
   @override
-  String get loadingTripData => 'यात्रा डेटा लोड हो रहा है';
+  String get noTripsCreated =>
+      'कोई आगामी यात्रा नहीं? एक नई यात्रा बनाने का आनंद लें!';
 
   @override
-  String get launchingTrip => 'यात्रा लॉन्च हो रही है';
+  String get noteCannotBeEmpty => 'टिप्पणी खाली नहीं हो सकती';
 
   @override
-  String get setTime => 'समय सेट करें';
+  String get notes => 'टिप्पणियाँ';
 
   @override
-  String get darkTheme => 'डार्क थीम';
+  String get oldToNew => 'दिनांक: पुराने से नवीनतम';
 
   @override
-  String get language => 'भाषा';
+  String get other => 'अन्य';
 
   @override
-  String get location => 'स्थान';
+  String get paidBy => 'भुगतानकर्ता';
 
   @override
-  String get chooseTripThumbnail => 'लघुचित्र चुनें';
+  String get password => 'पासवर्ड';
+
+  @override
+  String get password_policy =>
+      'पासवर्ड 8-20 अक्षरों का होना चाहिए और इसमें एक बड़ा अक्षर, एक छोटा अक्षर, एक अंक और एक विशेष वर्ण शामिल होना चाहिए।';
+
+  @override
+  String get personalVehicle => 'निजी वाहन';
+
+  @override
+  String get places => 'स्थानों';
+
+  @override
+  String get plan_itinerary =>
+      'आसानी और सुन्दरता के साथ अपनी यात्रा कार्यक्रम की योजना बनाएं';
+
+  @override
+  String get planTrip => 'यात्रा की योजना बनाएं!';
+
+  @override
+  String get publicTransit => 'सार्वजनिक परिवहन';
+
+  @override
+  String get register => 'रजिस्टर';
+
+  @override
+  String get resendVerificationMail => 'सत्यापन मेल पुनः भेजें';
+
+  @override
+  String get searchForCurrency => 'मुद्रा खोजें';
 
   @override
   String get select => 'चुनें';
 
   @override
-  String get updateDialogCriticalTitle => 'महत्वपूर्ण अपडेट आवश्यक';
+  String get settings => 'सेटिंग्स';
 
   @override
-  String get updateDialogAvailableTitle => 'एक अपडेट उपलब्ध है';
+  String get share => 'शेयर';
 
   @override
-  String get updateDialogCriticalMessage =>
-      'ऐप का उपयोग जारी रखने के लिए यह अपडेट आवश्यक है';
+  String get shopping => 'खरीदारी';
+
+  @override
+  String get sight => 'दृश्य';
+
+  @override
+  String get sightseeing => 'दर्शनीय स्थल';
+
+  @override
+  String get split => 'बंटवारे';
+
+  @override
+  String get splitBy => 'विभाजित करें';
+
+  @override
+  String get splitExpensesWithNewTripMateMessage =>
+      'सभी मौजूदा खर्च नए ट्रिप मेट के साथ बांटे जाएंगे। क्या आप आगे बढ़ना चाहते हैं?';
+
+  @override
+  String get stayAddress => 'छात्रावास या आवास का पता';
+
+  @override
+  String get setTime => 'समय सेट करें';
+
+  @override
+  String get taxi => 'टैक्सी';
+
+  @override
+  String get timeline => 'जाँच सूची';
+
+  @override
+  String get title => 'शीर्षक';
+
+  @override
+  String get titleCannotBeEmpty => 'शीर्षक खाली नहीं हो सकता';
+
+  @override
+  String get train => 'रेलगाड़ी';
+
+  @override
+  String get transit => 'पारगमन';
+
+  @override
+  String get transitCarrier => 'पारगमन वाहक';
+
+  @override
+  String get tripName => 'यात्रा का नाम';
+
+  @override
+  String get untitled => 'शीर्षकहीन';
+
+  @override
+  String get untitledChecklist => 'शीर्षकहीन चेकलिस्ट';
+
+  @override
+  String get untitledSight => 'शीर्षकहीन दृश्य';
 
   @override
   String get updateDialogAvailableMessage =>
       'अपने यात्रा अनुभव को बेहतर बनाने के लिए नई सुविधाओं की खोज करें';
 
   @override
-  String get updateDialogWhatsNew => 'नया क्या है';
+  String get updateDialogAvailableTitle => 'एक अपडेट उपलब्ध है';
+
+  @override
+  String get updateDialogCriticalMessage =>
+      'इस अपडेट का उपयोग जारी रखने के लिए आवश्यक है';
+
+  @override
+  String get updateDialogCriticalTitle => 'महत्वपूर्ण अपडेट आवश्यक';
 
   @override
   String get updateDialogUpdateNow => 'अभी अपडेट करें';
+
+  @override
+  String get updateDialogWhatsNew => 'नया क्या है';
+
+  @override
+  String get userName => 'उपयोगकर्ता नाम';
+
+  @override
+  String get userNameAlreadyExists =>
+      'यह उपयोगकर्ता नाम पहले से ही पंजीकृत है। आप इसके बजाय लॉगिन कर सकते हैं';
+
+  @override
+  String get verificationPending =>
+      'Verification mail link sent. Please login after completing verification.';
+
+  @override
+  String get view_breakdown => 'विवरण देखें';
+
+  @override
+  String get view_expenses => 'व्यय देखें';
+
+  @override
+  String get viewRecentTrips => 'आगामी यात्राएँ देखें';
+
+  @override
+  String get walk => 'टहलना';
+
+  @override
+  String get writeYourNoteHere => 'अपनी टिप्पणी यहाँ लिखें';
+
+  @override
+  String get wrong_password_entered => 'गलत पासवर्ड दर्ज किया गया';
+
+  @override
+  String get yes => 'हाँ';
+
+  @override
+  String get you => 'आप';
 }

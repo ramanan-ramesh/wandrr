@@ -31,7 +31,6 @@ class ItinerarySightsEditor extends StatefulWidget {
 
 class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
   // Reused layout constants
-  static const double _kSpacingSmall = 8.0;
   static const double _kSpacingMedium = 12.0;
   static const double _kBorderRadiusLarge = 14.0;
   static const double _kBorderRadiusMedium = 12.0;

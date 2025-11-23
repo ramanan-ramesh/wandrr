@@ -142,9 +142,6 @@ class _ChecklistEditorContentState extends State<_ChecklistEditorContent> {
 
   @override
   Widget build(BuildContext context) {
-    final isValid = (widget.checklist.title?.isNotEmpty ?? false) &&
-        widget.checklist.items.isNotEmpty;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

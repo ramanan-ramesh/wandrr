@@ -9,224 +9,29 @@ class AppLocalizationsTa extends AppLocalizations {
   AppLocalizationsTa([String locale = 'ta']) : super(locale);
 
   @override
-  String get plan_itinerary =>
-      'உங்கள் பயணத்திட்டத்தை எளிதாகவும் நேர்த்தியாகவும் திட்டமிடுங்கள்';
-
-  @override
-  String get login => 'உள்நுழை';
-
-  @override
-  String get logout => 'வெளியேறு';
-
-  @override
-  String get register => 'பதிவு செய்க';
-
-  @override
-  String get userName => 'பயனர்பெயர்';
-
-  @override
-  String get password => 'கடவுச்சொல்';
-
-  @override
-  String get alternativeLogin => 'பிற உள்நுழைவு முறை';
-
-  @override
-  String get userNameAlreadyExists =>
-      'இந்த பயனர் பெயர் ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது. அதன் மூலம் உள்நுழையலாம்';
-
-  @override
-  String get noSuchUserExists =>
-      'அத்தகைய பயனர்பெயர் எதுவும் இல்லை. அதற்கு பதிலாக நீங்கள் பதிவு செய்யலாம்';
-
-  @override
-  String get enterValidEmail => 'சரியான மின்னஞ்சலை உள்ளிடவும்';
-
-  @override
-  String get verificationPending =>
-      'சரிபார்ப்பு அஞ்சல் இணைப்பு அனுப்பப்பட்டது. சரிபார்ப்பை முடித்த பிறகு உள்நுழையவும்.';
-
-  @override
-  String get resendVerificationMail =>
-      'சரிபார்ப்பு மின்னஞ்சலை மீண்டும் அனுப்பவும்';
-
-  @override
-  String get viewRecentTrips => 'வரவிருக்கும் பயணங்களைக் காண்க';
-
-  @override
-  String get noTripsCreated =>
-      'வரவிருக்கும் பயணங்கள் இல்லையா? புதிய ஒன்றை உருவாக்கி மகிழுங்கள்!';
-
-  @override
-  String get planTrip => 'ஒரு பயணத்தைத் திட்டமிடுங்கள்!';
-
-  @override
-  String get dateRangePickerStart => 'தொடக்க தேதி:';
-
-  @override
-  String get dateRangePickerEnd => 'முடிவு தேதி:';
-
-  @override
-  String get budgetAmount => 'பட்ஜெட் தொகை';
-
-  @override
-  String get destination => 'இலக்கு';
-
-  @override
-  String get tripName => 'பயணத்தின் பெயர்';
-
-  @override
-  String get enterAmount => 'தொகையை உள்ளிடவும்';
-
-  @override
-  String get transit => 'போக்குவரத்து';
-
-  @override
-  String get lodging => 'தங்கும் இடம்';
-
-  @override
-  String get itinerary => 'பயணத்திட்டம்';
-
-  @override
-  String get budget => 'பட்ஜெட்';
-
-  @override
-  String get budgeting => 'பட்ஜெட் திட்டமிடல்';
-
-  @override
-  String get add_expense => 'செலவைச் சேர்க்கவும்';
-
-  @override
-  String get edit_budget => 'பட்ஜெட்டைத் திருத்தவும்';
-
-  @override
-  String get debt_summary => 'கடன் சுருக்கம்';
-
-  @override
-  String get view_breakdown => 'முறிவு விளக்கப்படங்களைக் காண்க';
-
-  @override
-  String get add_tripmate => 'பயணத்தில் சகோதரரைச் சேர்க்கவும்';
-
-  @override
-  String get settings => 'அமைப்புகள்';
-
-  @override
-  String get expenses => 'செலவுகள்';
-
-  @override
-  String get expense => 'செலவு';
-
-  @override
-  String get category => 'வகை';
-
-  @override
-  String get oldToNew => 'தேதி: பழையது முதல் புதியது வரை';
-
-  @override
-  String get newToOld => 'தேதி: புதியது முதல் பழையது வரை';
-
-  @override
-  String get lowToHighCost => 'செலவு: குறைந்தது முதல் அதிகமாக';
-
-  @override
-  String get highToLowCost => 'செலவு: அதிகம் முதல் குறைந்தது வரை';
-
-  @override
-  String get flight => 'விமானம்';
-
-  @override
-  String get flights => 'விமானங்கள்';
-
-  @override
-  String get carRental => 'கார் வாடகை';
-
-  @override
-  String get taxi => 'டாக்சி';
-
-  @override
-  String get publicTransit => 'பொது போக்குவரத்து';
-
-  @override
-  String get food => 'உணவு';
-
-  @override
-  String get drinks => 'குடிக்க';
-
-  @override
-  String get sightseeing => 'சுற்றிப்பார்த்தல்';
-
-  @override
   String get activities => 'நடவடிக்கைகள்';
 
   @override
-  String get shopping => 'பொருட்களை வாங்குதல்';
+  String get addATitle => 'ஒரு தலைப்பைச் சேர்க்கவும்';
 
   @override
-  String get fuel => 'எரிபொருள்';
-
-  @override
-  String get groceries => 'மளிகை பொருட்கள்';
-
-  @override
-  String get other => 'மற்றவை';
-
-  @override
-  String get noExpensesCreated => 'செலவுகள் உருவாக்கப்படவில்லை';
-
-  @override
-  String get description => 'விளக்கம்';
-
-  @override
-  String get paidBy => 'செலவு செலுத்தியவர்';
-
-  @override
-  String get split => 'பிரித்து கொள்ளு';
-
-  @override
-  String get you => 'நீங்கள்';
-
-  @override
-  String get title => 'தலைப்பு';
-
-  @override
-  String get view_expenses => 'செலவுகளைக் காண்க';
-
-  @override
-  String get wrong_password_entered => 'தவறான கடவுச்சொல் உள்ளிடப்பட்டுள்ளது';
-
-  @override
-  String get password_policy =>
-      'கடவுச்சொல் 8-20 எழுத்துகள் நீளமாக இருக்க வேண்டும், ஒரு பெரிய எழுத்து, ஒரு சிறிய எழுத்து, ஒரு எண் மற்றும் ஒரு சிறப்பு எழுத்து இருக்க வேண்டும்.';
-
-  @override
-  String get noTransitsCreated => 'போக்குவரத்துகள் உருவாக்கப்படவில்லை';
-
-  @override
-  String get timeline => 'காலவரிசை';
-
-  @override
-  String get checklists => 'சரிபார்ப்புப் பட்டியல்கள்';
+  String get addChecklistsForThisDay =>
+      'இந்த நாளுக்கான சரிபார்ப்புப் பட்டியலைச் சேர்க்கவும்';
 
   @override
   String get addChecklist => 'சரிபார்ப்புப் பட்டியலைச் சேர்க்கவும்';
 
   @override
-  String get places => 'இடங்கள்';
+  String get addPlacesForThisDay => 'இந்த நாளுக்கான இடங்களைச் சேர்க்கவும்';
 
   @override
-  String get notes => 'குறிப்புகள்';
+  String get add_expense => 'செலவுச் சேர்க்கவும்';
 
   @override
-  String get sight => 'காட்சி';
+  String get addItem => 'உருப்படியைச் சேர்க்கவும்';
 
   @override
-  String get detailsAboutSight => 'இந்த காட்சியைப் பற்றிய விவரங்கள்';
-
-  @override
-  String get addSight => 'காட்சியைச் சேர்க்கவும்';
-
-  @override
-  String get noNotesCreated => 'குறிப்புகள் உருவாக்கப்படவில்லை';
+  String get addNew => 'புதியதைச் சேர்க்கவும்';
 
   @override
   String get addNotesForThisDay => 'இந்த நாளுக்கான குறிப்புகளைச் சேர்க்கவும்';
@@ -235,39 +40,79 @@ class AppLocalizationsTa extends AppLocalizations {
   String get addNote => 'குறிப்பைச் சேர்க்கவும்';
 
   @override
-  String get noChecklistsCreated =>
-      'சரிபார்ப்புப் பட்டியல்கள் உருவாக்கப்படவில்லை';
+  String get addSight => 'காட்சியைச் சேர்க்கவும்';
 
   @override
-  String get addChecklistsForThisDay =>
-      'இந்த நாளுக்கான சரிபார்ப்புப் பட்டியல்களைச் சேர்க்கவும்';
+  String get airport => 'விமான நிலையம்';
 
   @override
-  String get noPlacesCreated => 'இடங்கள் உருவாக்கப்படவில்லை';
+  String get allDayStay => 'முழு நாள் தங்கும் இடம்';
 
   @override
-  String get addPlacesForThisDay => 'இந்த நாளில் நீங்கள் பார்வையிட திட்டம';
+  String get allDayTravel => 'முழு நாள் பயணம்';
 
   @override
-  String get untitled => 'தலைப்பில்லாதது';
-
-  @override
-  String get writeYourNoteHere => 'உங்கள் குறிப்பை இங்கே எழுதுங்கள்';
-
-  @override
-  String get untitledSight => 'தலைப்பில்லாத காட்சி';
-
-  @override
-  String get untitledChecklist => 'தலைப்பில்லாத சரிபார்ப்புப் பட்டியல்';
-
-  @override
-  String get transitCarrier => 'போக்குவரத்து வாகனம்';
-
-  @override
-  String get depart => 'விடு';
+  String get alternativeLogin => 'மற்ற உள்நுழைவு முறைகள்';
 
   @override
   String get arrive => 'அடை';
+
+  @override
+  String get arriveAt => 'அடை நேரம்';
+
+  @override
+  String get arrivalDepartureDateTimesError =>
+      'அடை நேரம் புறப்படும் நேரத்திற்கு முன் இருக்க முடியாது. இரண்டும் பயணத்தின் தொடக்கம்/முடிவு தேதிக்குள் இருக்க வேண்டும்';
+
+  @override
+  String get budget => 'பட்ஜெட்';
+
+  @override
+  String get budgetAmount => 'பட்ஜெட் தொகை';
+
+  @override
+  String get budgeting => 'பட்ஜெட் திட்டமிடல்';
+
+  @override
+  String get bus => 'பேருந்து';
+
+  @override
+  String get cancel => 'ரத்து செய்';
+
+  @override
+  String get carRental => 'கார் வாடகை';
+
+  @override
+  String get carrierName => 'வாகனத்தின் பெயர்';
+
+  @override
+  String get category => 'வகை';
+
+  @override
+  String get checkIn => 'செக்-இன்';
+
+  @override
+  String get checkListItemCannotBeEmpty =>
+      'சரிபார்ப்புப் பட்டியல் உருப்படி காலியாக இருக்க முடியாது';
+
+  @override
+  String get checkListTitle => 'சரிபார்ப்புப் பட்டியல் தலைப்பு';
+
+  @override
+  String get checkListTitleMustBeAtleast3Characters =>
+      'சரிபார்ப்புப் பட்டியல் தலைப்பு குறைந்தது 3 எழுத்துகள் இருக்க வேண்டும்';
+
+  @override
+  String get checkOut => 'செக்-அவுட்';
+
+  @override
+  String get checklists => 'சரிபார்ப்புப் பட்டியல்கள்';
+
+  @override
+  String get checklist => 'சரிபார்ப்புப் பட்டியல்';
+
+  @override
+  String get chooseTripThumbnail => 'சிறுபடத்தைத் தேர்ந்தெடுக்கவும்';
 
   @override
   String get confirmation => 'உறுதிப்படுத்தல்';
@@ -276,220 +121,372 @@ class AppLocalizationsTa extends AppLocalizations {
   String get cost => 'செலவு';
 
   @override
-  String get bus => 'பேருந்து';
-
-  @override
   String get cruise => 'கப்பல் பயணம்';
 
   @override
-  String get ferry => 'படகு';
+  String get dateRangePickerEnd => 'முடிவு தேதி:';
 
   @override
-  String get train => 'ரயில்';
+  String get dateRangePickerStart => 'தொடக்கம் தேதி:';
 
   @override
-  String get personalVehicle => 'தனிப்பட்ட வாகனம்';
+  String get dateTimeSelection => 'தேதி மற்றும் நேரத்தைத் தேர்ந்தெடுக்கவும்';
 
   @override
-  String get walk => 'நடை';
-
-  @override
-  String get splitBy => 'பிரிக்கப்பட்டது';
-
-  @override
-  String get flightNumber => 'விமான எண்';
-
-  @override
-  String get flightCarrierName => 'விமான வாகனம் பெயர்';
-
-  @override
-  String get airport => 'விமான நிலையம்';
-
-  @override
-  String get noLodgingCreated => 'தங்கும் இடங்கள் உருவாக்கப்படவில்லை';
-
-  @override
-  String get checkIn => 'சேர்க்கை';
-
-  @override
-  String get checkOut => 'சரிபார்க்கவும்';
-
-  @override
-  String get newPlanData => 'புதிய திட்டம்';
-
-  @override
-  String get dayByDay => 'நாளுக்கு நாள்';
-
-  @override
-  String get addATitle => 'ஒரு தலைப்பைச் சேர்க்கவும்';
-
-  @override
-  String get deleteTrip => 'பயணத்தை நீக்கு';
-
-  @override
-  String get deleteTripConfirmation => 'இந்த பயணத்தை நீக்க வேண்டுமா?';
-
-  @override
-  String get yes => 'ஆம்';
-
-  @override
-  String get no => 'இல்லை';
-
-  @override
-  String get cancel => 'ரத்து செய்';
-
-  @override
-  String get share => 'பகிர்';
-
-  @override
-  String get stayAddress => 'தங்கும் இடத்தின் முகவரி';
-
-  @override
-  String get carrierName => 'வாகனம் பெயர்';
-
-  @override
-  String get dateTimeSelection => 'தேதி மற்றும் நேரம் தேர்வு';
-
-  @override
-  String get searchForCurrency => 'நாணயத்தை தேடு';
-
-  @override
-  String get addItem => 'உருப்படியைச் சேர்க்கவும்';
-
-  @override
-  String get departAt => 'விடு';
-
-  @override
-  String get arriveAt => 'அடை';
-
-  @override
-  String get allDayTravel => 'முழு நாள் பயணம்';
-
-  @override
-  String get allDayStay => 'முழு நாள் தங்கும் இடம்';
-
-  @override
-  String get noExpensesAssociatedWithDate =>
-      'இந்த தேதியுடன் இணைக்கப்பட்ட செலவுகள் இல்லை';
-
-  @override
-  String get noExpensesToSplit => 'பிரிக்க செலவுகள் இல்லை';
-
-  @override
-  String get needsToPay => 'பணம் செலுத்த வேண்டும்';
-
-  @override
-  String get splitExpensesWithNewTripMateMessage =>
-      'தற்போதைய செலவுகள் அனைத்தும் புதிய பயண துணையுடன் பிரிக்கப்படும். நீங்கள் தொடர விரும்புகிறீர்களா?';
-
-  @override
-  String get addNew => 'புதியதை சேர்க்கவும்';
-
-  @override
-  String get items => 'உருப்படிகள்';
-
-  @override
-  String get item => 'உருப்படி';
-
-  @override
-  String get departureArrivalDateTimeCannotBeEmpty =>
-      'புறப்படும் மற்றும் வருகை தேதி நேரம் காலியாக இருக்கக்கூடாது';
-
-  @override
-  String get departureArrivalLocationCannotBeEmpty =>
-      'புறப்படும் இடம் மற்றும் வருகை இடம் காலியாக இருக்கக்கூடாது';
-
-  @override
-  String get departureAndArrivalLocationsCannotBeSame =>
-      'புறப்பாடு மற்றும் வருகை இடங்கள் ஒரே மாதிரியாக இருக்கக்கூடாது';
-
-  @override
-  String get arrivalDepartureDateTimesError =>
-      'புறப்படுவதற்கு முன் வருகை இருக்கக்கூடாது. மேலும், இரண்டும் பயணத் தொடக்க/முடிவு தேதிகளுக்குள் இருக்க வேண்டும்.';
-
-  @override
-  String get lodgingAddressCannotBeEmpty =>
-      'தங்கும் முகவரி காலியாக இருக்கக்கூடாது';
-
-  @override
-  String get checkInAndCheckoutDatesCannotBeEmpty =>
-      'சேர்க்கை மற்றும் சரிபார்க்கவும் தேதிகள் காலியாக இருக்க கூடாது';
-
-  @override
-  String get expenseTitleMustBeAtleast3Characters =>
-      'செலவின் தலைப்பில் குறைந்தது 3 எழுத்துகள் இருக்க வேண்டும்';
-
-  @override
-  String get titleCannotBeEmpty => 'தலைப்பு காலியாக இருக்க கூடாது';
-
-  @override
-  String get noteCannotBeEmpty => 'குறிப்பு காலியாக இருக்க கூடாது';
-
-  @override
-  String get checkListTitle => 'செக்கிலிஸ்ட் தலைப்பு';
-
-  @override
-  String get checkListTitleMustBeAtleast3Characters =>
-      'செக்கிலிஸ்ட் தலைப்பு குறைந்தது 3 எழுத்துகள் இருக்க வேண்டும்';
-
-  @override
-  String get checkListItemCannotBeEmpty =>
-      'செக்லிஸ்ட் உருப்படி காலியாக இருக்க கூடாது';
-
-  @override
-  String get noNotesOrCheckListsOrPlaces =>
-      'குறிப்புகள், செக்கிலிஸ்ட்கள் அல்லது இடங்கள் உருவாக்கப்படவில்லை';
-
-  @override
-  String get loading => 'ஏற்றுகிறது...';
-
-  @override
-  String get loadingYourTrips => 'உங்கள் பயணங்களை ஏற்றுகிறது';
-
-  @override
-  String get loadedYourTrips => 'உங்கள் பயணங்களை ஏற்றுகிறது';
-
-  @override
-  String get loadingTripData => 'பயணத் தரவை ஏற்றுகிறது';
-
-  @override
-  String get launchingTrip => 'பயணத்தை ஏற்றுகிறது';
-
-  @override
-  String get setTime => 'நேரத்தை அமைக்கவும்';
+  String get dayByDay => 'நாள்-பிற நாள்';
 
   @override
   String get darkTheme => 'இருண்ட தீம்';
 
   @override
+  String get debt_summary => 'கடன் சுருக்கம்';
+
+  @override
+  String get deleteTrip => 'பயணத்தை நீக்கு';
+
+  @override
+  String get deleteTripConfirmation =>
+      'இந்த பயணத்தை நிச்சயமாக நீக்க விரும்புகிறீர்களா?';
+
+  @override
+  String get depart => 'புறப்படு';
+
+  @override
+  String get departAt => 'புறப்படும் நேரம்';
+
+  @override
+  String get departureAndArrivalLocationsCannotBeSame =>
+      'புறப்படும் மற்றும் அடை இடம் ஒரே மாதிரி இருக்க முடியாது';
+
+  @override
+  String get departureArrivalDateTimeCannotBeEmpty =>
+      'புறப்படும் மற்றும் அடை நேரம் காலியாக இருக்க முடியாது';
+
+  @override
+  String get departureArrivalLocationCannotBeEmpty =>
+      'புறப்படும் மற்றும் அடை இடம் காலியாக இருக்க முடியாது';
+
+  @override
+  String get description => 'விவரம்';
+
+  @override
+  String get destination => 'Destination';
+
+  @override
+  String get detailsAboutSight => 'இந்த காட்சியின் பற்றிய விவரம்';
+
+  @override
+  String get drinks => 'பானங்கள்';
+
+  @override
+  String get edit_budget => 'பட்ஜெட் திருத்தம்';
+
+  @override
+  String get enterAmount => 'தொகையை உள்ளிடவும்';
+
+  @override
+  String get enterValidEmail => 'சரியான மின்னஞ்சலை உள்ளிடவும்';
+
+  @override
+  String get expense => 'செலவு';
+
+  @override
+  String get expenseTitleMustBeAtleast3Characters =>
+      'செலவு தலைப்பு குறைந்தது 3 எழுத்துகள் இருக்க வேண்டும்';
+
+  @override
+  String get expenses => 'செலவுகள்';
+
+  @override
+  String get ferry => 'படகு';
+
+  @override
+  String get flight => 'விமானம்';
+
+  @override
+  String get flightCarrierName => 'விமான வாகனத்தின் பெயர்';
+
+  @override
+  String get flightNumber => 'விமான எண்';
+
+  @override
+  String get flights => 'விமானங்கள்';
+
+  @override
+  String get food => 'உணவு';
+
+  @override
+  String get fuel => 'எரிபொருள்';
+
+  @override
+  String get groceries => 'மளிகை பொருட்கள்';
+
+  @override
+  String get highToLowCost => 'செலவு: அதிகம் முதல் குறைவு';
+
+  @override
+  String get itinerary => 'பயண திட்டம்';
+
+  @override
+  String get item => 'உருப்படி';
+
+  @override
+  String get items => 'உருப்படிகள்';
+
+  @override
   String get language => 'மொழி';
+
+  @override
+  String get launchingTrip => 'பயணம் துவங்குகிறது';
+
+  @override
+  String get loadedYourTrips => 'உங்கள் பயணங்கள் ஏற்றப்பட்டுள்ளன';
+
+  @override
+  String get loading => 'ஏற்றுகிறது...';
+
+  @override
+  String get loadingTripData => 'பயண தரவு ஏற்றுகிறது';
+
+  @override
+  String get loadingYourTrips => 'உங்கள் பயணங்கள் ஏற்றப்படுகிறது';
+
+  @override
+  String get lodging => 'தங்கும் இடம்';
+
+  @override
+  String get lodgingAddressCannotBeEmpty =>
+      'தங்கும் இட முகவரி காலியாக இருக்க முடியாது';
 
   @override
   String get location => 'இடம்';
 
   @override
-  String get chooseTripThumbnail => 'சிறுபடம் தேர்ந்தெடுக்கவும்';
+  String get login => 'உள்நுழைவு';
 
   @override
-  String get select => 'தேர்வு செய்';
+  String get logout => 'வெளியேறு';
 
   @override
-  String get updateDialogCriticalTitle => 'முக்கியமான புதுப்பிப்பு தேவை';
+  String get lowToHighCost => 'செலவு: குறைவு முதல் அதிகம்';
 
   @override
-  String get updateDialogAvailableTitle => 'ஒரு புதுப்பிப்பு கிடைக்கிறது';
+  String get needsToPay => 'பணம் செலுத்த வேண்டும்';
 
   @override
-  String get updateDialogCriticalMessage =>
-      'ஆப்ஸைத் தொடர்ந்து பயன்படுத்த இந்தப் புதுப்பிப்பு தேவை';
+  String get newPlanData => 'புதிய திட்டம்';
+
+  @override
+  String get newToOld => 'தேதி: புதியது முதல் பழையது';
+
+  @override
+  String get no => 'இல்லை';
+
+  @override
+  String get noChecklistsCreated =>
+      'சரிபார்ப்புப் பட்டியல்கள் உருவாக்கப்படவில்லை';
+
+  @override
+  String get noExpensesAssociatedWithDate =>
+      'தேதியுடன் தொடர்புடைய செலவுகள் இல்லை';
+
+  @override
+  String get noExpensesCreated => 'நீங்கள் இன்னும் செலவு சேர்க்கவில்லை';
+
+  @override
+  String get noExpensesToSplit => 'பிரிக்க செலவுகள் இல்லை';
+
+  @override
+  String get noLodgingCreated => 'நீங்கள் இன்னும் தங்கும் இடம் சேர்க்கவில்லை';
+
+  @override
+  String get noNotesCreated => 'குறிப்புகள் இல்லை';
+
+  @override
+  String get noNotesOrCheckListsOrPlaces =>
+      'இன்னும் குறிப்புகள், சரிபார்ப்புப் பட்டியல்கள் அல்லது இடங்கள் சேர்க்கப்படவில்லை';
+
+  @override
+  String get noPlacesCreated => 'இடங்கள் இல்லை';
+
+  @override
+  String get noSuchUserExists =>
+      'அந்த பயனர் பெயர் இல்லை. பதிலாக பதிவு செய்யலாம்';
+
+  @override
+  String get noTransitsCreated => 'நீங்கள் இன்னும் போக்குவரத்து சேர்க்கவில்லை';
+
+  @override
+  String get noTripsCreated =>
+      'வரவிருக்கும் பயணங்கள் இல்லை? புதிய பயணம் உருவாக்க மகிழுங்கள்!';
+
+  @override
+  String get noteCannotBeEmpty => 'குறிப்பு காலியாக இருக்க முடியாது';
+
+  @override
+  String get notes => 'குறிப்புகள்';
+
+  @override
+  String get oldToNew => 'தேதி: பழையது முதல் புதியது';
+
+  @override
+  String get other => 'மற்றவை';
+
+  @override
+  String get paidBy => 'பணம் செலுத்தியவர்';
+
+  @override
+  String get password => 'கடவுச்சொல்';
+
+  @override
+  String get password_policy =>
+      'கடவுச்சொல் 8-20 எழுத்துகள் இருக்க வேண்டும் மற்றும் ஒரு பெரிய எழுத்து, ஒரு சிறிய எழுத்து, ஒரு எண் மற்றும் ஒரு சிறப்பு எழுத்து இருக்க வேண்டும்.';
+
+  @override
+  String get personalVehicle => 'தனிப்பட்ட வாகனம்';
+
+  @override
+  String get places => 'இடங்கள்';
+
+  @override
+  String get plan_itinerary =>
+      'உங்கள் பயணத்திட்டத்தை எளிதாகவும் நேர்த்தியாகவும் திட்டமிடுங்கள்';
+
+  @override
+  String get planTrip => 'பயணத்தை திட்டமிடுங்கள்!';
+
+  @override
+  String get publicTransit => 'பொது போக்குவரத்து';
+
+  @override
+  String get register => 'பதிவு செய்க';
+
+  @override
+  String get resendVerificationMail =>
+      'சரிபார்ப்பு மின்னஞ்சலை மீண்டும் அனுப்பவும்';
+
+  @override
+  String get searchForCurrency => 'நாணயத்தைத் தேடவும்';
+
+  @override
+  String get select => 'தேர்வு செய்க';
+
+  @override
+  String get settings => 'அமைப்புகள்';
+
+  @override
+  String get share => 'பகிர்';
+
+  @override
+  String get shopping => 'கடைசெயல்';
+
+  @override
+  String get sight => 'காட்சி';
+
+  @override
+  String get sightseeing => 'சுற்றிப்பார்த்தல்';
+
+  @override
+  String get split => 'பிரிக்க';
+
+  @override
+  String get splitBy => 'பிரிக்கவும்';
+
+  @override
+  String get splitExpensesWithNewTripMateMessage =>
+      'அனைத்து தற்போதைய செலவுகள் புதிய பயணத் தோழருடன் பிரிக்கப்படும். தொடர விரும்புகிறீர்களா?';
+
+  @override
+  String get stayAddress => 'ஹோட்டல் அல்லது தங்கும் இட முகவரி';
+
+  @override
+  String get setTime => 'நேரத்தை அமைக்கவும்';
+
+  @override
+  String get taxi => 'டாக்சி';
+
+  @override
+  String get timeline => 'காலவரிசை';
+
+  @override
+  String get title => 'தலைப்பு';
+
+  @override
+  String get titleCannotBeEmpty => 'தலைப்பு காலியாக இருக்க முடியாது';
+
+  @override
+  String get train => 'ரயில்';
+
+  @override
+  String get transit => 'போக்குவரத்து';
+
+  @override
+  String get transitCarrier => 'போக்குவரத்து வாகனத்தின் பெயர்';
+
+  @override
+  String get tripName => 'பயணத்தின் பெயர்';
+
+  @override
+  String get untitled => 'தலைப்பில்லாதது';
+
+  @override
+  String get untitledChecklist => 'தலைப்பில்லாத சரிபார்ப்புப் பட்டியல்';
+
+  @override
+  String get untitledSight => 'தலைப்பில்லாத காட்சி';
 
   @override
   String get updateDialogAvailableMessage =>
-      'உங்கள் பயண அனுபவத்தை மேம்படுத்த புதிய அம்சங்களைக் கண்டறியுங்கள்';
+      'உங்கள் பயண அனுபவத்தை மேம்படுத்த புதிய அம்சங்களை கண்டறியவும்';
+
+  @override
+  String get updateDialogAvailableTitle => 'புதுப்பிப்பு கிடைக்கிறது';
+
+  @override
+  String get updateDialogCriticalMessage =>
+      'இந்த புதுப்பிப்பு தொடர பயன்படுத்த அவசியம்';
+
+  @override
+  String get updateDialogCriticalTitle => 'முக்கிய புதுப்பிப்பு தேவை';
+
+  @override
+  String get updateDialogUpdateNow => 'இப்போது புதுப்பிக்கவும்';
 
   @override
   String get updateDialogWhatsNew => 'புதியது என்ன';
 
   @override
-  String get updateDialogUpdateNow => 'இப்போது புதுப்பிக்கவும்';
+  String get userName => 'பயனர் பெயர்';
+
+  @override
+  String get userNameAlreadyExists =>
+      'இந்த பயனர் பெயர் ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது. பதிலாக உள்நுழையலாம்';
+
+  @override
+  String get verificationPending =>
+      'Verification mail link sent. Please login after completing verification.';
+
+  @override
+  String get view_breakdown => 'விவரங்களைப் பார்க்கவும்';
+
+  @override
+  String get view_expenses => 'செலவுகளைப் பார்க்கவும்';
+
+  @override
+  String get viewRecentTrips => 'வரவிருக்கும் பயணங்களைப் பார்க்கவும்';
+
+  @override
+  String get walk => 'நடக்க';
+
+  @override
+  String get writeYourNoteHere => 'உங்கள் குறிப்பை இங்கே எழுதுங்கள்';
+
+  @override
+  String get wrong_password_entered => 'தவறான கடவுச்சொல் உள்ளிடப்பட்டது';
+
+  @override
+  String get yes => 'ஆம்';
+
+  @override
+  String get you => 'நீங்கள்';
 }
