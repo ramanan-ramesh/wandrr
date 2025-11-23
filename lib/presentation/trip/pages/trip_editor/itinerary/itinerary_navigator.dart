@@ -151,6 +151,8 @@ class _ItineraryNavigatorState extends State<ItineraryNavigator>
 
   Widget _buildDatePickerButton() {
     return PlatformDatePicker(
+      widgetAnchor: Alignment.bottomCenter,
+      dialogAnchor: Alignment.topCenter,
       onDateSelected: _tryNavigateToDate,
       selectedDate: _currentDate,
       calendarConfig: CalendarDatePicker2WithActionButtonsConfig(

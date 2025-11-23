@@ -15,10 +15,14 @@ Future<void> _showPlatformDatePicker(
   required Function(DateTime) onDateSelected,
   DateTime? initialDate,
   CalendarDatePicker2WithActionButtonsConfig? customConfig,
+  Alignment? widgetAnchor,
+  Alignment? dialogAnchor,
 }) async {
   return PlatformDialogElements.showAlignedDialog(
     context: context,
     width: _calculateDialogWidth(context),
+    widgetAnchor: widgetAnchor,
+    dialogAnchor: dialogAnchor,
     dialogContentCreator: (dialogContext) {
       final defaultConfig =
           _createDefaultDatePickerConfig(dialogContext, context);
@@ -82,12 +86,15 @@ class PlatformDatePicker extends StatelessWidget {
   final DateTime? selectedDate;
   final Function(DateTime) onDateSelected;
   final CalendarDatePicker2WithActionButtonsConfig? calendarConfig;
+  final Alignment? widgetAnchor, dialogAnchor;
 
   const PlatformDatePicker({
     super.key,
     required this.onDateSelected,
     this.selectedDate,
     this.calendarConfig,
+    this.widgetAnchor,
+    this.dialogAnchor,
   });
 
   @override
@@ -102,6 +109,8 @@ class PlatformDatePicker extends StatelessWidget {
           onDateSelected: onDateSelected,
           initialDate: selectedDate,
           customConfig: calendarConfig,
+          widgetAnchor: widgetAnchor,
+          dialogAnchor: dialogAnchor,
         );
       },
       label: Text(buttonText),
