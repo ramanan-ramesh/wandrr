@@ -93,6 +93,7 @@ class _LoginPageState extends State<LoginPage>
     return _AuthStateObserver(
       onAuthStateChangeBuilder: (state, canEnableFormElement) =>
           PlatformSubmitterFAB.form(
+        key: const Key('login_submit_button'),
         child: Icon(Icons.login_rounded),
         formState: _formKey,
         isEnabledInitially: canEnableFormElement,
@@ -273,6 +274,7 @@ class _UserNameFieldState extends State<_UserNameField> {
         },
         onAuthStateChangeBuilder: (state, canEnableFormElement) =>
             PlatformTextElements.createUsernameFormField(
+          key: const Key('username_field'),
           context: context,
           controller: widget.textEditingController,
           textInputAction: widget.textInputAction,
@@ -340,6 +342,7 @@ class _PasswordFieldState extends State<_PasswordField> {
         },
         onAuthStateChangeBuilder: (state, canEnableFormElement) =>
             TextFormField(
+          key: const Key('password_field'),
           readOnly: !canEnableFormElement,
           focusNode: focusNode,
           controller: widget.controller,

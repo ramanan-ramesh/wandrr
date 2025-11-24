@@ -35,6 +35,7 @@ class PlatformTextElements {
 
   static TextFormField createUsernameFormField(
       {required BuildContext context,
+      Key? key,
       InputDecoration? inputDecoration,
       TextEditingController? controller,
       OnEmailChangedCallback? onEmailChanged,
@@ -44,8 +45,8 @@ class PlatformTextElements {
       GlobalKey<FormState>? formKey,
       bool readonly = false}) {
     return TextFormField(
+      key: key ?? formKey,
       readOnly: readonly,
-      key: formKey,
       style: const TextStyle(fontSize: PlatformTextElements.formElementSize),
       minLines: 1,
       textInputAction: textInputAction,
