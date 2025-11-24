@@ -11,6 +11,7 @@ import 'package:wandrr/presentation/app/theming/dark_theme_data.dart';
 import 'package:wandrr/presentation/app/theming/light_theme_data.dart';
 import 'package:wandrr/presentation/trip/pages/trip_provider/trip_provider.dart';
 
+import 'no_connectivity_dialog.dart';
 import 'update_dialog.dart';
 
 class WandrrApp extends StatelessWidget {
@@ -77,11 +78,27 @@ class _ContentPage extends StatelessWidget {
           (currentState.authStatus == AuthStatus.loggedIn ||
               currentState.authStatus == AuthStatus.loggedOut),
       listenWhen: (previousState, currentState) =>
-          currentState is UpdateAvailable,
+          currentState is UpdateAvailable ||
+          currentState is NetworkConnectivityChanged,
       listener: (BuildContext context, MasterPageState state) {
         if (state is UpdateAvailable) {
           _showUpdateDialog(context, state);
+        } else if (state is NetworkConnectivityChanged && !state.isConnected) {
+          _handleConnectivityChange(context);
         }
+      },
+    );
+  }
+
+  void _handleConnectivityChange(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return BlocProvider<MasterPageBloc>(
+          create: (_) => BlocProvider.of<MasterPageBloc>(context),
+          child: NoConnectivityDialog(),
+        );
       },
     );
   }

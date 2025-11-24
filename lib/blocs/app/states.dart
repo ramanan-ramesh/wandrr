@@ -36,6 +36,12 @@ class UpdateAvailable extends MasterPageState {
   const UpdateAvailable({required this.updateInfo});
 }
 
+class NetworkConnectivityChanged extends MasterPageState {
+  final bool isConnected;
+
+  const NetworkConnectivityChanged({required this.isConnected});
+}
+
 class UpdateInfo {
   final String latestVersion;
   final bool isForceUpdate;

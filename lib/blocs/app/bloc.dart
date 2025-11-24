@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:wandrr/blocs/app/events.dart';
 import 'package:wandrr/blocs/app/states.dart';
@@ -9,7 +10,7 @@ import 'package:wandrr/data/app/implementations/app_data.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 
-class _LoadRepositoryInternal extends MasterPageEvent {}
+class _StartupInternal extends MasterPageEvent {}
 
 class _UpdateAvailableInternal extends MasterPageEvent {
   final UpdateInfo updateInfo;
@@ -17,9 +18,16 @@ class _UpdateAvailableInternal extends MasterPageEvent {
   _UpdateAvailableInternal({required this.updateInfo});
 }
 
+class _ConnectivityChangedInternal extends MasterPageEvent {
+  final bool isConnected;
+
+  _ConnectivityChangedInternal({required this.isConnected});
+}
+
 class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
   static AppDataModifier? _appDataRepository;
   late final StreamSubscription _updateRemoteConfigSubscription;
+  late final StreamSubscription<InternetStatus> _connectivitySubscription;
 
   MasterPageBloc() : super(Loading()) {
     on<ChangeTheme>(_onThemeChange);
@@ -28,27 +36,32 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
     on<AuthenticateWithThirdParty>(_onAuthenticateWithThirdParty);
     on<ResendEmailVerification>(_onResendEmailVerification);
     on<Logout>(_onLogout);
-    on<_LoadRepositoryInternal>(_onLoadRepository);
+    on<_StartupInternal>(_onStartup);
     on<_UpdateAvailableInternal>((event, emit) {
       emit(UpdateAvailable(updateInfo: event.updateInfo));
     });
+    on<_ConnectivityChangedInternal>((event, emit) {
+      emit(NetworkConnectivityChanged(isConnected: event.isConnected));
+    });
 
-    add(_LoadRepositoryInternal());
+    add(_StartupInternal());
   }
 
   @override
   Future<void> close() {
     _updateRemoteConfigSubscription.cancel();
+    _connectivitySubscription.cancel();
     return super.close();
   }
 
-  FutureOr<void> _onLoadRepository(
-      _LoadRepositoryInternal event, Emitter<MasterPageState> emit) async {
+  FutureOr<void> _onStartup(
+      _StartupInternal event, Emitter<MasterPageState> emit) async {
     _appDataRepository ??= await AppDataRepository.createInstance();
     var updateInfo = await _checkForUpdate();
     emit(
         LoadedRepository(appData: _appDataRepository!, updateInfo: updateInfo));
     await _initUpdateListener();
+    await _initConnectivityListener();
   }
 
   FutureOr<void> _onThemeChange(
@@ -155,5 +168,18 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
             releaseNotes: releaseNotes,
           )
         : null;
+  }
+
+  Future<void> _initConnectivityListener() async {
+    final isConnectedToInternet = await InternetConnection().hasInternetAccess;
+    if (!isConnectedToInternet) {
+      add(_ConnectivityChangedInternal(isConnected: false));
+    }
+
+    _connectivitySubscription =
+        InternetConnection().onStatusChange.listen((status) {
+      add(_ConnectivityChangedInternal(
+          isConnected: status == InternetStatus.connected));
+    });
   }
 }
