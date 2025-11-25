@@ -27,6 +27,7 @@ class _ConnectivityChangedInternal extends MasterPageEvent {
 class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
   static AppDataModifier? _appDataRepository;
   late final StreamSubscription _updateRemoteConfigSubscription;
+  late final InternetConnection _internetConnection;
   late final StreamSubscription<InternetStatus> _connectivitySubscription;
 
   MasterPageBloc() : super(Loading()) {
@@ -171,13 +172,15 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
   }
 
   Future<void> _initConnectivityListener() async {
-    final isConnectedToInternet = await InternetConnection().hasInternetAccess;
+    _internetConnection =
+        InternetConnection.createInstance(checkInterval: Duration(seconds: 3));
+    final isConnectedToInternet = await _internetConnection.hasInternetAccess;
     if (!isConnectedToInternet) {
       add(_ConnectivityChangedInternal(isConnected: false));
     }
 
     _connectivitySubscription =
-        InternetConnection().onStatusChange.listen((status) {
+        _internetConnection.onStatusChange.listen((status) {
       add(_ConnectivityChangedInternal(
           isConnected: status == InternetStatus.connected));
     });

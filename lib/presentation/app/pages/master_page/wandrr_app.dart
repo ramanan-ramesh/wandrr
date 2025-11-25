@@ -79,7 +79,8 @@ class _ContentPage extends StatelessWidget {
               currentState.authStatus == AuthStatus.loggedOut),
       listenWhen: (previousState, currentState) =>
           currentState is UpdateAvailable ||
-          currentState is NetworkConnectivityChanged,
+          (currentState is NetworkConnectivityChanged &&
+              !currentState.isConnected),
       listener: (BuildContext context, MasterPageState state) {
         if (state is UpdateAvailable) {
           _showUpdateDialog(context, state);
