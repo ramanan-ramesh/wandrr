@@ -11,9 +11,8 @@ class Loading extends MasterPageState {
 
 class LoadedRepository extends MasterPageState {
   final AppDataFacade appData;
-  final UpdateInfo? updateInfo;
 
-  const LoadedRepository({required this.appData, required this.updateInfo});
+  const LoadedRepository({required this.appData});
 }
 
 class ActiveLanguageChanged extends MasterPageState {

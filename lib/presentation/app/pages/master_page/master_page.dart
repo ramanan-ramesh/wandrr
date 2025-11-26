@@ -1,20 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:rive/rive.dart';
-import 'package:wandrr/asset_manager/assets.gen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/blocs/app/bloc.dart';
 import 'package:wandrr/blocs/app/states.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/auth/models/status.dart';
+import 'package:wandrr/l10n/app_localizations.dart';
+import 'package:wandrr/presentation/app/pages/startup_page.dart';
+import 'package:wandrr/presentation/app/theming/dark_theme_data.dart';
+import 'package:wandrr/presentation/app/theming/light_theme_data.dart';
+import 'package:wandrr/presentation/trip/pages/trip_provider/trip_provider.dart';
 
-import 'wandrr_app.dart';
+import 'update_dialog.dart';
 
 class MasterPage extends StatelessWidget {
-  const MasterPage({super.key});
+  final SharedPreferences sharedPreferences;
+
+  const MasterPage(this.sharedPreferences);
 
   @override
   Widget build(BuildContext context) => BlocProvider<MasterPageBloc>(
-        create: (context) => MasterPageBloc(),
-        child: const _ContentPageRouter(),
+        create: (context) => MasterPageBloc(sharedPreferences),
+        child: RepositoryProvider<AppDataFacade>(
+          create: (BuildContext context) =>
+              (BlocProvider.of<MasterPageBloc>(context).state
+                      as LoadedRepository)
+                  .appData,
+          child: _ContentPageRouter(),
+        ),
       );
 }
 
@@ -22,74 +37,81 @@ class _ContentPageRouter extends StatefulWidget {
   const _ContentPageRouter();
 
   @override
-  State<_ContentPageRouter> createState() => _MasterContentPageLoader();
+  State<_ContentPageRouter> createState() => _ContentPageLoader();
 }
 
-class _MasterContentPageLoader extends State<_ContentPageRouter> {
-  var _hasMinimumWalkAnimationTimePassed = false;
-  static const _minimumWalkAnimationTime = Duration(seconds: 2);
+class _ContentPageLoader extends State<_ContentPageRouter> {
+  static const String _appTitle = 'Wandrr';
 
   @override
   Widget build(BuildContext context) {
-    if (BlocProvider.of<MasterPageBloc>(context).state is Loading) {
-      if (!_hasMinimumWalkAnimationTimePassed) {
-        _tryStartWalkAnimation();
-      }
-    }
     return BlocConsumer<MasterPageBloc, MasterPageState>(
-      builder: (BuildContext context, MasterPageState state) {
-        if (state is LoadedRepository && _hasMinimumWalkAnimationTimePassed) {
-          return RepositoryProvider<AppDataFacade>(
-            create: (BuildContext context) => state.appData,
-            child: WandrrApp(),
-          );
-        }
-        return _createAnimatedLoadingScreen(context);
+      builder: (BuildContext pageContext, MasterPageState state) {
+        var appLevelData = context.appDataRepository;
+        var currentTheme = appLevelData.activeThemeMode;
+        return MaterialApp(
+          locale: Locale(appLevelData.activeLanguage),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          title: _appTitle,
+          debugShowCheckedModeBanner: false,
+          darkTheme: createDarkThemeData(context),
+          themeMode: currentTheme,
+          theme: createLightThemeData(context),
+          home: _ContentPage(),
+        );
       },
       buildWhen: (previousState, currentState) =>
-          previousState != currentState && currentState is LoadedRepository ||
-          currentState is Loading,
+          currentState is ActiveLanguageChanged ||
+          currentState is ActiveThemeModeChanged,
+      listener: (BuildContext context, MasterPageState state) {},
+    );
+  }
+}
+
+class _ContentPage extends StatelessWidget {
+  const _ContentPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<MasterPageBloc, MasterPageState>(
+      builder: (BuildContext pageContext, MasterPageState state) => Material(
+        child: DropdownButtonHideUnderline(
+          child: SafeArea(
+            child: context.activeUser == null
+                ? const StartupPage()
+                : const TripProvider(),
+          ),
+        ),
+      ),
+      buildWhen: (previousState, currentState) =>
+          currentState is AuthStateChanged &&
+          (currentState.authStatus == AuthStatus.loggedIn ||
+              currentState.authStatus == AuthStatus.loggedOut),
+      listenWhen: (previousState, currentState) =>
+          currentState is UpdateAvailable,
       listener: (BuildContext context, MasterPageState state) {
-        if (state is Loading) {
-          _tryStartWalkAnimation();
+        if (state is UpdateAvailable) {
+          _showUpdateDialog(context, state);
         }
       },
     );
   }
 
-  Widget _createAnimatedLoadingScreen(BuildContext context) => Directionality(
-        textDirection: TextDirection.ltr,
-        child: Stack(
-          children: [
-            RiveAnimation.asset(
-              Assets.walkAnimation,
-              fit: BoxFit.fitHeight,
-              controllers: [
-                SimpleAnimation('Walk'),
-              ],
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Text(
-                'Loading user data and theme',
-                style: TextStyle(
-                  fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-
-  void _tryStartWalkAnimation() {
-    _hasMinimumWalkAnimationTimePassed = false;
-    Future.delayed(_minimumWalkAnimationTime, () {
-      if (mounted) {
-        setState(() {
-          _hasMinimumWalkAnimationTimePassed = true;
-        });
-      }
-    });
+  void _showUpdateDialog(BuildContext context, UpdateAvailable state) {
+    showDialog(
+      context: context,
+      barrierDismissible: !state.updateInfo.isForceUpdate,
+      builder: (BuildContext dialogContext) {
+        return UpdateDialog(
+          updateInfo: state.updateInfo,
+        );
+      },
+    );
   }
 }

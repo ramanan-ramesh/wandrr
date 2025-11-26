@@ -138,10 +138,16 @@ ThemeData createDarkThemeData(BuildContext context) {
         ),
       ),
       indicatorSize: TabBarIndicatorSize.tab,
-      labelStyle: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-      unselectedLabelStyle: Theme.of(context).textTheme.headlineMedium,
+      labelStyle: const TextStyle(
+        inherit: true,
+        fontWeight: FontWeight.w600,
+        fontSize: 16,
+      ),
+      unselectedLabelStyle: const TextStyle(
+        inherit: true,
+        fontWeight: FontWeight.w500,
+        fontSize: 16,
+      ),
       indicatorColor: Colors.transparent,
       labelColor: AppColors.brandSecondary,
       unselectedLabelColor: AppColors.neutral400,
