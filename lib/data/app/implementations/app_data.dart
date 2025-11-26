@@ -1,4 +1,3 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
@@ -6,8 +5,6 @@ import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/app/models/language_metadata.dart';
 import 'package:wandrr/data/auth/implementations/user_management.dart';
 import 'package:wandrr/data/auth/models/user_management.dart';
-
-import 'firebase_options.dart';
 
 class AppDataRepository extends AppDataModifier {
   static const String _themeMode = "themeMode";
@@ -34,30 +31,24 @@ class AppDataRepository extends AppDataModifier {
   @override
   final Iterable<LanguageMetadata> languageMetadatas;
 
-  static Future<AppDataModifier> createInstance() async {
-    await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
-
-    var userManagement = await UserManagement.createInstance();
-    var localStorage = await SharedPreferences.getInstance();
-    var languageValue = localStorage.getString(_language);
-    if (languageValue == null || languageValue.isEmpty) {
-      await localStorage.setString(_language, _defaultLanguage);
-      languageValue = _defaultLanguage;
-    }
-    var themeModeValue = localStorage.getString(_themeMode);
-    if (themeModeValue == null) {
-      await localStorage.setString(_themeMode, ThemeMode.dark.name);
-    }
+  static AppDataModifier create(SharedPreferences sharedPreferences) {
+    var userManagement = UserManagement.create(sharedPreferences);
+    var language = sharedPreferences.getString(_language) ?? _defaultLanguage;
+    var themeModeValue = sharedPreferences.getString(_themeMode);
     var themeMode = themeModeValue is String
         ? (ThemeMode.values
             .firstWhere((element) => element.name == themeModeValue))
         : ThemeMode.dark;
     return AppDataRepository._(
         userManagement: userManagement,
-        initialLanguage: languageValue,
+        initialLanguage: language,
         initialThemeMode: themeMode,
-        localStorage: localStorage);
+        localStorage: sharedPreferences);
+  }
+
+  @override
+  Future<void> initialize() async {
+    await userManagement.initialize();
   }
 
   @override

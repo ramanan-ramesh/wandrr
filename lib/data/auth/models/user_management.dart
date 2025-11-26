@@ -7,6 +7,8 @@ abstract interface class UserManagementFacade {
 }
 
 abstract interface class UserManagementModifier extends UserManagementFacade {
+  Future<void> initialize();
+
   Future<AuthStatus> trySignInWithThirdParty(
       AuthenticationType authenticationType);
 

@@ -3,13 +3,14 @@ import 'dart:async';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/blocs/app/events.dart';
 import 'package:wandrr/blocs/app/states.dart';
 import 'package:wandrr/data/app/implementations/app_data.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 
-class _LoadRepositoryInternal extends MasterPageEvent {}
+class _StartupInternal extends MasterPageEvent {}
 
 class _UpdateAvailableInternal extends MasterPageEvent {
   final UpdateInfo updateInfo;
@@ -21,19 +22,22 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
   static AppDataModifier? _appDataRepository;
   late final StreamSubscription _updateRemoteConfigSubscription;
 
-  MasterPageBloc() : super(Loading()) {
+  MasterPageBloc(SharedPreferences sharedPreferences)
+      : super(LoadedRepository(
+            appData: AppDataRepository.create(sharedPreferences))) {
     on<ChangeTheme>(_onThemeChange);
     on<ChangeLanguage>(_onLanguageChange);
     on<AuthenticateWithUsernamePassword>(_onAuthenticateWithUsernamePassword);
     on<AuthenticateWithThirdParty>(_onAuthenticateWithThirdParty);
     on<ResendEmailVerification>(_onResendEmailVerification);
     on<Logout>(_onLogout);
-    on<_LoadRepositoryInternal>(_onLoadRepository);
+    on<_StartupInternal>(_onStartup);
     on<_UpdateAvailableInternal>((event, emit) {
       emit(UpdateAvailable(updateInfo: event.updateInfo));
     });
 
-    add(_LoadRepositoryInternal());
+    _appDataRepository = (state as LoadedRepository).appData as AppDataModifier;
+    add(_StartupInternal());
   }
 
   @override
@@ -42,12 +46,14 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
     return super.close();
   }
 
-  FutureOr<void> _onLoadRepository(
-      _LoadRepositoryInternal event, Emitter<MasterPageState> emit) async {
-    _appDataRepository ??= await AppDataRepository.createInstance();
+  FutureOr<void> _onStartup(
+      _StartupInternal event, Emitter<MasterPageState> emit) async {
+    await _appDataRepository!.initialize();
+
     var updateInfo = await _checkForUpdate();
-    emit(
-        LoadedRepository(appData: _appDataRepository!, updateInfo: updateInfo));
+    if (updateInfo != null) {
+      emit(UpdateAvailable(updateInfo: updateInfo));
+    }
     await _initUpdateListener();
   }
 
