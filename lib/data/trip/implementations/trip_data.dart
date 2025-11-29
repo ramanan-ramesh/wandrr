@@ -156,6 +156,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
               lodging.checkinDateTime!.isOnSameDayAs(dateTime) ||
               lodging.checkoutDateTime!.isOnSameDayAs(dateTime),
           writeBatch));
+
       await writeBatch.commit();
     }
 
