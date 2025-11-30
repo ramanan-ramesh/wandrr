@@ -140,12 +140,14 @@ ThemeData createLightThemeData(BuildContext context) {
         ), // More vibrant gradient for visibility
       ),
       indicatorSize: TabBarIndicatorSize.tab,
-      labelStyle: TextStyle(
+      labelStyle: const TextStyle(
+        inherit: true,
         fontWeight: FontWeight.w600,
         fontSize: 16,
         color: Colors.white,
       ),
-      unselectedLabelStyle: TextStyle(
+      unselectedLabelStyle: const TextStyle(
+        inherit: true,
         fontWeight: FontWeight.w500,
         fontSize: 16,
         color: AppColors.neutral600,

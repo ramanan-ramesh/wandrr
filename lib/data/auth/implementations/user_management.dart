@@ -16,7 +16,6 @@ class UserManagement implements UserManagementModifier {
   static const _authenticationTypeField = 'authType';
   static const _userIDField = 'userID';
   static const _displayNameField = 'displayName';
-  static const _isLoggedInField = 'isLoggedIn';
   static const _photoUrlField = 'photoUrl';
   static const String _usersDBCollectionName = 'users';
   static const String _googleWebClientIdField = 'webClientId';
@@ -35,12 +34,32 @@ class UserManagement implements UserManagementModifier {
   @override
   PlatformUser? activeUser;
 
-  static Future<UserManagementModifier> createInstance() async {
-    var sharedPreferences = await SharedPreferences.getInstance();
+  static UserManagementModifier create(SharedPreferences sharedPreferences) {
     var currentUser = FirebaseAuth.instance.currentUser;
-    var platformUser = await _getPlatformUser(sharedPreferences, currentUser);
+    PlatformUser? platformUser;
+    if (currentUser != null) {
+      var authenticationType = AuthenticationType.emailPassword;
+      var authTypeInLocalStorage =
+          sharedPreferences.getString(_authenticationTypeField) as String;
+      authenticationType = AuthenticationType.values.firstWhere(
+          (element) => element.name == authTypeInLocalStorage,
+          orElse: () => AuthenticationType.emailPassword);
+      platformUser = PlatformUser.fromAuth(
+          userName: currentUser.email!,
+          authenticationType: authenticationType,
+          userID: currentUser.uid,
+          displayName: currentUser.displayName,
+          photoUrl: currentUser.photoURL);
+    }
     return UserManagement._(
         activeUser: platformUser, localStorage: sharedPreferences);
+  }
+
+  @override
+  Future<void> initialize() async {
+    if (activeUser == null) {
+      await _clearCache(_localStorage);
+    }
   }
 
   @override
@@ -223,32 +242,6 @@ class UserManagement implements UserManagementModifier {
     }
   }
 
-  static Future<PlatformUser?> _getPlatformUser(
-      SharedPreferences localStorage, User? currentUser) async {
-    var isLoggedInValue = localStorage.getBool(_isLoggedInField) ?? false;
-    if (currentUser != null) {
-      var authenticationType = AuthenticationType.emailPassword;
-      if (isLoggedInValue) {
-        var authTypeInLocalStorage =
-            localStorage.getString(_authenticationTypeField) as String;
-        authenticationType = AuthenticationType.values.firstWhere(
-            (element) => element.name == authTypeInLocalStorage,
-            orElse: () => AuthenticationType.emailPassword);
-      }
-      return PlatformUser.fromAuth(
-          userName: currentUser.email!,
-          authenticationType: authenticationType,
-          userID: currentUser.uid,
-          displayName: currentUser.displayName,
-          photoUrl: currentUser.photoURL);
-    } else {
-      if (isLoggedInValue) {
-        await _clearCache(localStorage);
-      }
-      return null;
-    }
-  }
-
   Future _persistActiveUser() async {
     if (activeUser != null) {
       await _localStorage.setString(_userIDField, activeUser!.userID);
@@ -259,7 +252,6 @@ class UserManagement implements UserManagementModifier {
       if (displayName != null && displayName.isNotEmpty) {
         await _localStorage.setString(_displayNameField, displayName);
       }
-      await _localStorage.setBool(_isLoggedInField, true);
       if (activeUser!.photoUrl != null) {
         await _localStorage.setString(_photoUrlField, activeUser!.photoUrl!);
       }
@@ -269,7 +261,6 @@ class UserManagement implements UserManagementModifier {
   }
 
   static Future<void> _clearCache(SharedPreferences localStorage) async {
-    await localStorage.setBool(_isLoggedInField, false);
     await localStorage.remove(_userIDField);
     await localStorage.remove(_userNameField);
     await localStorage.remove(_authenticationTypeField);

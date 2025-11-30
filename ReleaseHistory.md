@@ -1,4 +1,7 @@
 ## Release History
+- Version 3.0.1 (Commit: d7bf42432b9443843bd6ee1d7bcde07ca230857f)
+  - Ensure app initialization is synchronous to prevent the need for redundant loading animation on startup
+
 - Version 3.0.0 (Commit: 6e88f70b487e3e5ad06cd85b789fbb8b07d7bc75)
   - Introduce itinerary timelines and sights/activities
   - Revamped the trip editor page for easy navigation
