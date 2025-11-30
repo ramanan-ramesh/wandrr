@@ -1,5 +1,4 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
-import 'package:fake_firebase_remote_config/fake_firebase_remote_config.dart'; // Optional, for unit tests
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
@@ -11,7 +10,6 @@ import 'package:flutter_test/flutter_test.dart';
 /// - MethodChannel mocks for Core + Remote Config (for integration tests)
 class MockFirebaseSetup {
   static bool _initialized = false;
-  static FakeRemoteConfig? _fakeRemoteConfig; // For unit tests only
 
   /// Initialize mock Firebase
   static Future<void> setupFirebaseMocks({
@@ -39,9 +37,6 @@ class MockFirebaseSetup {
     } catch (e) {
       print('Firebase initialization warning: $e');
     }
-
-    // Optional: Setup fake for unit tests
-    await _setupRemoteConfigUnitTestOnly();
 
     _initialized = true;
   }
@@ -156,26 +151,6 @@ class MockFirebaseSetup {
     });
   }
 
-  /// Optional: Setup FakeRemoteConfig for unit/widget tests (requires DI)
-  static Future<void> _setupRemoteConfigUnitTestOnly() async {
-    try {
-      _fakeRemoteConfig = FakeRemoteConfig();
-      await _fakeRemoteConfig!.setDefaults({
-        'latest_version': '3.0.1+16',
-        'min_version': '3.0.1+16',
-        'release_notes': 'Test release notes',
-        // Add more as needed
-      });
-    } catch (e) {
-      print('Unit-test-only Remote Config setup warning: $e');
-    }
-  }
-
-  /// Get the fake Remote Config instance (for unit tests)
-  static FakeRemoteConfig? getFakeRemoteConfig() {
-    return _fakeRemoteConfig;
-  }
-
   /// Get mock Firebase Auth instance
   static MockFirebaseAuth getMockAuth({
     bool isSignedIn = false,
@@ -247,7 +222,6 @@ class MockFirebaseSetup {
   /// Reset all mocks
   static void reset() {
     _initialized = false;
-    _fakeRemoteConfig = null;
     // Reset channels using the non-deprecated API
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(

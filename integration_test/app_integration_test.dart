@@ -29,15 +29,15 @@ void main() {
       );
     });
 
-    tearDownAll(() async {
-      MockFirebaseSetup.reset();
-    });
-
     setUp(() async {
       // Reset shared preferences for each test
       SharedPreferences.setMockInitialValues({});
       sharedPreferences = await SharedPreferences.getInstance();
       await sharedPreferences.clear();
+    });
+
+    tearDownAll(() async {
+      MockFirebaseSetup.reset();
     });
 
     group('Startup Page Tests', () {

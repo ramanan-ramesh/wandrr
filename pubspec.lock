@@ -313,14 +313,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.0"
-  fake_firebase_remote_config:
-    dependency: "direct dev"
-    description:
-      name: fake_firebase_remote_config
-      sha256: cbf432a81ea800f2fb9e488c8c8fd991193d7aff65a079b424829faa0d5eece7
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0"
   fake_firebase_security_rules:
     dependency: transitive
     description:
