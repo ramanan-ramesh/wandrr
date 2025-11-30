@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:wandrr/main.dart' as app;
 
+import 'helpers/mock_firebase_setup.dart';
+
 /// Integration test for the Wandrr app
 ///
 /// This test performs the following actions:
@@ -18,6 +20,11 @@ void main() {
   // This is required for all integration tests
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
+  setUpAll(() async {
+    // Initialize Firebase before any tests run
+    await MockFirebaseSetup.setupFirebaseMocks();
+  });
+
   group('Wandrr App Integration Tests', () {
     testWidgets('Login flow and navigate to trip details',
         (WidgetTester tester) async {
@@ -28,21 +35,19 @@ void main() {
       // Wait for the app to initialize and render the first frame
       await tester.pumpAndSettle();
 
-      // STEP 2: Wait for the loading animation to complete
-      // The app shows a loading screen with a Rive animation for minimum 2 seconds
-      print('Waiting for loading animation to complete...');
+      // STEP 2: Wait for the login page to appear
+      // Instead of waiting for a fixed duration, wait for the username field to appear
+      print('Waiting for login page to appear...');
 
-      // We need to wait for the loading screen to disappear
-      // The loading screen shows "Loading user data and theme" text
-      await tester.pumpAndSettle(const Duration(seconds: 3));
-
-      // At this point, the app should have loaded and we should be on the login page
-      // Let's verify we can find the login page elements
-      print('Looking for login page elements...');
-
-      // STEP 3: Find the username field
-      // The login page has a username field with a unique key
       final usernameFinder = find.byKey(const Key('username_field'));
+
+      // Wait for the username field to appear (max 10 seconds)
+      await _waitForWidget(tester, usernameFinder,
+          timeout: const Duration(seconds: 10));
+      print('Login page loaded!');
+
+      // STEP 3: Verify we're on the login page
+      print('Looking for login page elements...');
 
       // Verify the username field exists
       expect(usernameFinder, findsOneWidget);
@@ -83,23 +88,23 @@ void main() {
       print('Tapped login button');
 
       // STEP 8: Wait for authentication to complete
-      // This might take a few seconds depending on network speed
-      print('Waiting for authentication...');
-      await tester.pumpAndSettle(const Duration(seconds: 5));
+      // Wait for trips list view to appear instead of fixed duration
+      print('Waiting for authentication and navigation...');
 
-      // STEP 9: Verify we've navigated to the trips list view
-      // The trips list view should have a "View Recent Trips" or similar text
-      // and should show either trip items or "No trips created" message
-      print('Looking for trips list view...');
-
-      // Try to find the trips list view by looking for specific text
-      // This will find either the header or the "no trips" message
+      // Wait for trips view indicator (text containing "trip")
       final tripsViewIndicator =
           find.textContaining('trip', findRichText: true, skipOffstage: false);
 
+      await _waitForWidget(tester, tripsViewIndicator,
+          timeout: const Duration(seconds: 10));
+      print('Successfully authenticated and navigated to trips list view!');
+
+      // STEP 9: Verify we've navigated to the trips list view
+
+      // Try to find the trips list view by looking for specific text
+      // This will find either the header or the "no trips" message
       // We should find at least one text widget containing "trip"
       expect(tripsViewIndicator, findsWidgets);
-      print('Successfully navigated to trips list view');
 
       // STEP 10: Find and tap on a trip item (if available)
       // Trip items are InkWell widgets within the grid
@@ -109,11 +114,12 @@ void main() {
         print('Found ${tester.widgetList(tripItemFinder).length} trip items');
 
         // Tap on the first trip item
-        // We need to be more specific - find InkWell within the GridView
         await tester.tap(tripItemFinder.first);
         print('Tapped on first trip item');
 
-        await tester.pumpAndSettle(const Duration(seconds: 2));
+        // Wait for trip details page to load instead of fixed duration
+        // You should replace this with a specific widget from your trip details page
+        await tester.pumpAndSettle();
         print('Navigated to trip details');
 
         // At this point, the trip should be loaded
@@ -132,28 +138,60 @@ void main() {
         (WidgetTester tester) async {
       // STEP 1: Launch the app
       app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
 
       print('Testing invalid login...');
 
-      // STEP 2: Enter invalid credentials
+      // STEP 2: Wait for login page to appear
       final usernameFinder = find.byKey(const Key('username_field'));
+      await _waitForWidget(tester, usernameFinder,
+          timeout: const Duration(seconds: 10));
+
+      // STEP 3: Enter invalid credentials
       final passwordFinder = find.byKey(const Key('password_field'));
 
       await tester.enterText(usernameFinder, 'invalid@example.com');
       await tester.enterText(passwordFinder, 'WrongPassword123!');
       await tester.pumpAndSettle();
 
-      // STEP 3: Tap login button
+      // STEP 4: Tap login button
       final loginButtonFinder = find.byKey(const Key('login_submit_button'));
       await tester.tap(loginButtonFinder);
 
-      // STEP 4: Wait and check for error message
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+      // STEP 5: Wait for error message instead of fixed duration
+      await tester.pumpAndSettle();
 
       // The error should be displayed
       // (You'll need to adjust this based on your actual error display)
       print('Invalid login test completed');
     });
   });
+}
+
+/// Helper method to wait for a widget to appear
+///
+/// This is much better than using pumpAndSettle with a fixed duration
+/// because it:
+/// 1. Fails fast if widget appears quickly
+/// 2. Retries until timeout if widget takes time to appear
+/// 3. Provides clear error message if widget never appears
+Future<void> _waitForWidget(
+  WidgetTester tester,
+  Finder finder, {
+  Duration timeout = const Duration(seconds: 10),
+}) async {
+  final endTime = DateTime.now().add(timeout);
+
+  while (DateTime.now().isBefore(endTime)) {
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+
+    if (finder.evaluate().isNotEmpty) {
+      return;
+    }
+
+    await Future.delayed(const Duration(milliseconds: 100));
+  }
+
+  throw Exception(
+      'Widget not found within ${timeout.inSeconds} seconds: $finder');
 }
