@@ -2,117 +2,108 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/presentation/app/pages/login_page.dart';
-import 'package:wandrr/presentation/app/pages/master_page/master_page.dart';
 import 'package:wandrr/presentation/app/pages/onboarding/onboarding_page.dart';
 import 'package:wandrr/presentation/app/pages/startup_page.dart';
 
 import '../helpers/test_helpers.dart';
 
-/// Test: Startup page displays OnboardingPage and LoginPage side by side
-/// when screen width > 1000
-Future<void> runStartupPageLargeScreenTest(
+/// Comprehensive test for StartupPage that adapts to device screen size
+///
+/// For large screens (width >= 1000):
+/// - Displays OnboardingPage and LoginPage side by side
+/// - No next button navigation needed
+///
+/// For small screens (width < 1000):
+/// - Displays OnboardingPage first with next button
+/// - Tapping next button navigates to LoginPage
+Future<void> runStartupPageTest(
   WidgetTester tester,
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
+  await TestHelpers.pumpAndSettleApp(tester);
 
-  // Get actual device size
+  // Determine screen size
   final isLarge = TestHelpers.isLargeScreen(tester);
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
 
   // Verify StartupPage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(StartupPage));
+  expect(find.byType(StartupPage), findsOneWidget);
 
   if (isLarge) {
-    // Verify both OnboardingPage and LoginPage are displayed side by side
-    TestHelpers.verifyWidgetExists(find.byType(OnBoardingPage));
-    TestHelpers.verifyWidgetExists(find.byType(LoginPage));
+    // ==================== LARGE SCREEN SCENARIO ====================
+    print('Running large screen scenario');
 
-    // Verify they are in a Row layout (side by side)
-    final row = find.ancestor(
-      of: find.byType(OnBoardingPage),
+    // Find both OnboardingPage and LoginPage
+    final onboardingFinder = find.byType(OnBoardingPage);
+    final loginFinder = find.byType(LoginPage);
+
+    expect(onboardingFinder, findsOneWidget);
+    expect(loginFinder, findsOneWidget);
+
+    // Find the Row ancestor that contains OnboardingPage
+    final onboardingRowFinder = find.ancestor(
+      of: onboardingFinder,
       matching: find.byType(Row),
     );
-    TestHelpers.verifyWidgetExists(row);
+    expect(onboardingRowFinder, findsWidgets,
+        reason: 'OnboardingPage must have a Row ancestor');
+
+    // Find the Row ancestor that contains LoginPage
+    final loginRowFinder = find.ancestor(
+      of: loginFinder,
+      matching: find.byType(Row),
+    );
+    expect(loginRowFinder, findsWidgets,
+        reason: 'LoginPage must have a Row ancestor');
+
+    // Get the actual Row widgets
+    final onboardingRowWidget = tester.widget<Row>(onboardingRowFinder.first);
+    final loginRowWidget = tester.widget<Row>(loginRowFinder.first);
+
+    // Verify both pages share the same Row ancestor
+    expect(identical(onboardingRowWidget, loginRowWidget), isTrue,
+        reason:
+            'OnboardingPage and LoginPage must share the same Row ancestor');
+
+    // Additionally verify the Row has exactly 2 children in correct order
+    expect(onboardingRowWidget.children.length, 2,
+        reason: 'Row must contain exactly 2 children');
+    expect(onboardingRowWidget.children[0].runtimeType.toString(),
+        contains('Expanded'));
+    expect(onboardingRowWidget.children[1].runtimeType.toString(),
+        contains('Expanded'));
 
     // Verify no next button is shown (only for small screens)
     final nextButton = find.byIcon(Icons.navigate_next_rounded);
-    TestHelpers.verifyWidgetDoesNotExist(nextButton);
+    expect(nextButton, findsNothing);
+
+    print(
+        '✓ Large screen layout verified: OnboardingPage and LoginPage are side-by-side in Row');
   } else {
-    print('Skipping large screen test - device has small screen');
-  }
-}
+    // ==================== SMALL SCREEN SCENARIO ====================
+    print('Running small screen scenario');
 
-/// Test: Startup page displays OnboardingPage with next button
-/// when screen width < 1000
-Future<void> runStartupPageSmallScreenTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
-  // Launch the app
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
-
-  // Get actual device size
-  final isSmall = TestHelpers.isSmallScreen(tester);
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
-
-  // Verify StartupPage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(StartupPage));
-
-  if (isSmall) {
     // Verify OnboardingPage is displayed
-    TestHelpers.verifyWidgetExists(find.byType(OnBoardingPage));
+    expect(find.byType(OnBoardingPage), findsOneWidget);
 
     // Verify LoginPage is NOT displayed initially
-    TestHelpers.verifyWidgetDoesNotExist(find.byType(LoginPage));
+    expect(find.byType(LoginPage), findsNothing);
 
     // Verify next button is shown
     final nextButton = find.byIcon(Icons.navigate_next_rounded);
-    TestHelpers.verifyWidgetExists(nextButton);
-  } else {
-    print('Skipping small screen test - device has large screen');
-  }
-}
+    expect(nextButton, findsOneWidget);
 
-/// Test: Clicking next button navigates to LoginPage
-Future<void> runStartupPageNavigationTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
-  // Launch the app
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
+    print('✓ OnboardingPage displayed with next button');
 
-  // Get actual device size
-  final isSmall = TestHelpers.isSmallScreen(tester);
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
-
-  if (isSmall) {
-    // Verify OnboardingPage is displayed
-    TestHelpers.verifyWidgetExists(find.byType(OnBoardingPage));
-    TestHelpers.verifyWidgetDoesNotExist(find.byType(LoginPage));
-
-    // Find and tap the next button
-    final nextButton = find.byIcon(Icons.navigate_next_rounded);
+    // Test navigation: tap next button
     await TestHelpers.tapWidget(tester, nextButton);
 
     // Verify LoginPage is now displayed
-    TestHelpers.verifyWidgetExists(find.byType(LoginPage));
+    expect(find.byType(LoginPage), findsOneWidget);
 
     // Verify OnboardingPage is no longer displayed
-    TestHelpers.verifyWidgetDoesNotExist(find.byType(OnBoardingPage));
-  } else {
-    print(
-        'Skipping navigation test - device has large screen (no next button)');
+    expect(find.byType(OnBoardingPage), findsNothing);
+
+    print('✓ Navigation to LoginPage successful');
   }
 }
-

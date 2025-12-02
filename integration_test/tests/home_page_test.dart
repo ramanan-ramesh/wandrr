@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wandrr/presentation/app/pages/master_page/master_page.dart';
 import 'package:wandrr/presentation/app/pages/startup_page.dart';
 import 'package:wandrr/presentation/trip/pages/home/home_page.dart';
 import 'package:wandrr/presentation/trip/pages/home/trip_creator_dialog.dart';
@@ -16,15 +15,10 @@ Future<void> runHomePageLayoutLargeTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
-
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Verify HomePage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(HomePage));
+  expect(find.byType(HomePage), findsOneWidget);
 
   // Verify layout matches device size
   final isLarge = TestHelpers.isLargeScreen(tester);
@@ -42,18 +36,13 @@ Future<void> runHomePageLayoutSmallTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
-
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Verify HomePage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(HomePage));
+  expect(find.byType(HomePage), findsOneWidget);
 
   // Verify layout matches device size
-  final isSmall = TestHelpers.isSmallScreen(tester);
+  final isSmall = !TestHelpers.isLargeScreen(tester);
   if (isSmall) {
     // On small screens, verify expected small layout behavior
     print('Verified small layout on device');
@@ -68,18 +57,13 @@ Future<void> runHomePageEmptyTripsTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
-
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Verify HomePage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(HomePage));
+  expect(find.byType(HomePage), findsOneWidget);
 
   // Verify TripsListView is displayed
-  TestHelpers.verifyWidgetExists(find.byType(TripListView));
+  expect(find.byType(TripListView), findsOneWidget);
 
   // Verify no trips are displayed (should show empty state)
   // Note: Adjust based on your empty state implementation
@@ -92,15 +76,10 @@ Future<void> runHomePageLanguageSwitchTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
-
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Verify HomePage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(HomePage));
+  expect(find.byType(HomePage), findsOneWidget);
 
   // Find and tap the toolbar menu
   final toolbarButton = find.byIcon(Icons.more_vert);
@@ -129,15 +108,10 @@ Future<void> runHomePageThemeSwitchTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
-
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Verify HomePage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(HomePage));
+  expect(find.byType(HomePage), findsOneWidget);
 
   // Find and tap the toolbar menu
   final toolbarButton = find.byIcon(Icons.more_vert);
@@ -163,15 +137,10 @@ Future<void> runHomePageLogoutTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
-
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Verify HomePage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(HomePage));
+  expect(find.byType(HomePage), findsOneWidget);
 
   // Find and tap the toolbar menu
   final toolbarButton = find.byIcon(Icons.more_vert);
@@ -188,7 +157,7 @@ Future<void> runHomePageLogoutTest(
       await tester.pumpAndSettle();
 
       // Verify StartupPage is displayed
-      TestHelpers.verifyWidgetExists(find.byType(StartupPage));
+      expect(find.byType(StartupPage), findsOneWidget);
     }
   }
 }
@@ -199,25 +168,20 @@ Future<void> runHomePageCreateTripDialogTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
-
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Verify HomePage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(HomePage));
+  expect(find.byType(HomePage), findsOneWidget);
 
   // Find the 'Plan a Trip' button
   final planTripButton = find.byIcon(Icons.add_location_alt_rounded);
-  TestHelpers.verifyWidgetExists(planTripButton);
+  expect(planTripButton, findsOneWidget);
 
   // Tap the button
   await TestHelpers.tapWidget(tester, planTripButton);
 
   // Verify dialog is displayed
-  TestHelpers.verifyWidgetExists(find.byType(TripCreatorDialog));
+  expect(find.byType(TripCreatorDialog), findsOneWidget);
 }
 
 /// Test: Creating a trip navigates to TripEditorPage
@@ -226,22 +190,17 @@ Future<void> runHomePageCreateTripFlowTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
-
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Verify HomePage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(HomePage));
+  expect(find.byType(HomePage), findsOneWidget);
 
   // Find and tap the 'Plan a Trip' button
   final planTripButton = find.byIcon(Icons.add_location_alt_rounded);
   await TestHelpers.tapWidget(tester, planTripButton);
 
   // Verify dialog is displayed
-  TestHelpers.verifyWidgetExists(find.byType(TripCreatorDialog));
+  expect(find.byType(TripCreatorDialog), findsOneWidget);
 
   // Select a thumbnail (tap on first thumbnail)
   // Note: Adjust based on actual thumbnail selector implementation
@@ -266,7 +225,6 @@ Future<void> runHomePageCreateTripFlowTest(
     // Wait for navigation to TripEditorPage
     await TestHelpers.waitForWidget(tester, find.byType(TripEditorPage),
         timeout: const Duration(seconds: 10));
-    TestHelpers.verifyWidgetExists(find.byType(TripEditorPage));
+    expect(find.byType(TripEditorPage), findsOneWidget);
   }
 }
-

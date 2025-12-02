@@ -16,6 +16,7 @@ Complete guide for integration testing the Wandrr Travel Planner Flutter applica
 8. [Troubleshooting](#troubleshooting)
 9. [CI/CD Integration](#cicd-integration)
 10. [Writing New Tests](#writing-new-tests)
+11. [Trip Repository Setup](#trip-repository-setup)
 
 *Note: If links open in browser, scroll down or use Ctrl+F to search for section titles.*
 
@@ -25,7 +26,7 @@ Complete guide for integration testing the Wandrr Travel Planner Flutter applica
 
 This directory contains comprehensive integration tests for the Wandrr Travel Planner app, covering:
 
-- ✅ **19 test cases** across 4 major features
+- ✅ **83 test cases** across 8 major features
 - ✅ **Device-agnostic testing** (adapts to actual device size)
 - ✅ **Widget-based waiting** (fast and reliable)
 - ✅ **Native splash screen handling** (automatic)
@@ -90,18 +91,22 @@ flutter test integration_test/app_integration_test.dart -d chrome
 
 ```
 integration_test/
-├── app_integration_test.dart          # Main test suite entry point (19 tests)
+├── app_integration_test.dart          # Main test suite entry point (83 tests)
 ├── driver/
 │   └── integration_test_driver.dart   # Test driver for real devices
 ├── helpers/
 │   ├── test_config.dart               # Test configuration & constants
 │   ├── test_helpers.dart              # 30+ utility functions
-│   └── mock_firebase_setup.dart       # Firebase mocking (optional)
+│   └── mock_firebase_setup.dart       # Firebase mocking
 ├── tests/
 │   ├── startup_page_test.dart         # 3 test functions
 │   ├── login_page_test.dart           # 2 test functions
 │   ├── home_page_test.dart            # 8 test functions
-│   └── trip_editor_page_test.dart     # 6 test functions
+│   ├── trip_editor_page_test.dart     # 6 test functions
+│   ├── itinerary_viewer_test.dart     # 12 test functions
+│   ├── budgeting_page_test.dart       # 16 test functions
+│   ├── crud_operations_test.dart      # 18 test functions
+│   └── multi_collaborator_test.dart   # 18 test functions
 ├── README.md                          # This comprehensive guide
 └── run_integration_tests.ps1          # PowerShell test runner
 ```
@@ -126,6 +131,18 @@ flutter test integration_test/app_integration_test.dart --name "Home Page Tests"
 
 # Trip editor tests only
 flutter test integration_test/app_integration_test.dart --name "Trip Editor Page Tests"
+
+# Itinerary viewer tests only
+flutter test integration_test/app_integration_test.dart --name "Itinerary Viewer Tests"
+
+# Budgeting page tests only
+flutter test integration_test/app_integration_test.dart --name "Budgeting Page Tests"
+
+# CRUD operations tests only
+flutter test integration_test/app_integration_test.dart --name "CRUD Operations Tests"
+
+# Multi-collaborator tests only
+flutter test integration_test/app_integration_test.dart --name "Multi-Collaborator Tests"
 ```
 
 #### Run Individual Tests
@@ -167,9 +184,10 @@ Run tests on multiple devices to cover different scenarios:
 
 ### Summary
 
-- **Total Tests**: 19 test cases
-- **Test Files**: 4 files
-- **Coverage**: All major user flows
+- **Total Tests**: 83 test cases
+- **Test Files**: 8 files
+- **Coverage**: All major user flows including itinerary management, budgeting, CRUD operations, and
+  multi-collaborator features
 
 ### 1. Startup Page Tests (3 tests)
 
@@ -193,13 +211,15 @@ Run tests on multiple devices to cover different scenarios:
 
 - Enter username and password
 - Tap login button
-- Wait for HomePage to appear
+- Navigate to TripProvider (loading page with Rive animation)
+- TripProvider loads trip repository
+- Navigate to HomePage after loading completes
 - Verify successful navigation
 
 ✅ **Loading Animation**
 
-- Rive animation displayed during authentication
-- Automatic wait for HomePage after login
+- Rive animation displayed during TripProvider loading
+- Automatic wait for HomePage after repository loading
 
 ### 3. Home Page Tests (8 tests)
 
@@ -238,6 +258,229 @@ Run tests on multiple devices to cover different scenarios:
 - BottomNavigationBar for navigation
 - FloatingActionButton docked in center of BottomNavBar
 - Can switch between Itinerary and Budgeting views
+
+### 5. Itinerary Viewer Tests (12 tests)
+
+✅ **Default Display**
+
+- Displays first trip date's itinerary by default
+- ItineraryNavigator and ItineraryViewer present
+
+✅ **Timeline Items**
+
+- Transits displayed correctly (full-day and short-duration)
+- Lodgings displayed correctly (full-day, check-in, check-out)
+- Timeline items sorted chronologically
+
+✅ **Tab Navigation**
+
+- Notes tab accessible and functional
+- Checklists tab accessible and functional
+- Sights tab accessible and functional (with/without dates)
+
+✅ **Date Navigation**
+
+- Navigate to next date using right chevron
+- Navigate to previous date using left chevron
+- Cannot navigate before trip start date (button disabled)
+- Cannot navigate beyond trip end date (button disabled)
+- Itinerary viewer refreshes when navigating between dates
+
+### 6. Budgeting Page Tests (16 tests)
+
+✅ **Page Structure**
+
+- Three collapsible sections present: Expenses, Debt, Breakdown
+- ExpenseListView displays with BudgetTile
+- Sort options toggle buttons available
+
+✅ **Budget Display**
+
+- BudgetTile shows total expense percentage and budget amount
+- Progress indicator when expenses under budget (colored bar)
+- Error indicator when expenses over budget (red color scheme)
+- Currency conversion applied to all expenses
+
+✅ **Sort Options**
+
+- Default sort: Date (newest to oldest)
+- Sort by cost ascending (low to high) ✅
+- Sort by cost descending (high to low) ✅
+- Sort by date ascending (oldest to newest) ✅
+- Sort by date descending (newest to oldest) ✅
+- Sort by category ✅
+
+✅ **Expense Types**
+
+- Expenses from transits (flights, trains, taxis)
+- Expenses from lodgings (hotels, hostels)
+- Expenses from sights (tickets, tours)
+- Pure expenses (meals, shopping, misc)
+- Expenses with dates (linked to trip entities)
+- Expenses without dates (standalone)
+
+✅ **Categories**
+
+- Transport category
+- Lodging category
+- Food category
+- Entertainment category
+- Sightseeing category
+- Miscellaneous category
+
+✅ **Multiple Currencies**
+
+- Expenses in various currencies (USD, EUR, GBP, JPY, etc.)
+- Currency conversion to base currency
+- Total displayed in trip's base currency
+
+✅ **Debt Summary**
+
+- Debt information displayed
+- Shows who owes whom
+- Amounts formatted correctly
+
+✅ **Breakdown**
+
+- Category breakdown chart
+- Day-by-day breakdown chart
+- Tab navigation between breakdown views
+
+### 7. CRUD Operations Tests (18 tests)
+
+✅ **Create Operations (6 tests)**
+
+- Add new transit via FloatingActionButton
+- Add new stay/lodging via FloatingActionButton
+- Add new expense via FloatingActionButton
+- Add new sight from itinerary viewer
+- Add new note from itinerary viewer
+- Add new checklist from itinerary viewer
+
+✅ **Update/Edit Operations (6 tests)**
+
+- Edit existing transit from timeline
+- Edit existing stay from timeline
+- Edit existing expense from budgeting page
+- Edit sight opens specific sight in editor
+- Edit note opens specific note in editor
+- Edit checklist opens specific checklist in editor
+
+✅ **Repository Propagation (6 tests)**
+
+- Adding transit updates expense list view
+- Adding stay updates multiple views (timeline + expenses + breakdown)
+- Adding sight updates itinerary and optionally expenses
+- Editing expense updates budget display (percentage, total, charts)
+- Repository updates propagate to all subscribed views
+- Navigate to specific itinerary component (sight/note/checklist by index)
+
+✅ **Data Flow Validation**
+
+- User action → TripManagementBloc event
+- Bloc → Repository update
+- Repository → Firestore collection
+- Stream broadcasts change
+- All subscribed widgets rebuild
+
+✅ **Affected Components on Update**
+
+- ItineraryViewer (timeline, notes, checklists, sights tabs)
+- ExpenseListView (sorted expense list)
+- BudgetTile (total expense and percentage)
+- DebtSummaryTile (debt calculations)
+- BudgetBreakdownTile (charts by category and day)
+
+✅ **Editor Configuration**
+
+- PlanDataType enum (sight, note, checklist)
+- CreateNewItineraryPlanDataComponentConfig (for adding)
+- UpdateItineraryPlanDataComponentConfig (for editing with index)
+- Editor opens correct tab and scrolls to item
+
+### 8. Multi-Collaborator Tests (18 tests)
+
+✅ **Collaborator Display (2 tests)**
+
+- AppBar displays maximum of 3 contributors (CircleAvatars)
+- First avatar shows current user (may have photo)
+- Other avatars show generic person icon
+- Avatars overlap for compact display
+
+✅ **Trip Metadata Editor Access (1 test)**
+
+- Clicking trip name/date opens metadata editor
+- InkWell tappable area in AppBar
+- Opens dialog or bottom sheet for editing
+
+✅ **Trip Metadata Editing (5 tests)**
+
+- Edit trip name (TextFormField)
+- Edit trip start/end dates (calendar picker)
+- Add/remove contributors (person_add/remove icons)
+- Edit trip budget amount and currency
+- All changes persist via repository
+
+✅ **Expense Splitting (4 tests)**
+
+- Transit expense splitting (flights, trains, taxis)
+- Stay/lodging expense splitting (hotels, hostels)
+- Sight expense splitting (tickets, tours)
+- Pure expense splitting (meals, shopping)
+
+✅ **Expense Splitting Structure**
+
+- **paidBy**: Map<String, double> - Who paid and how much
+- **splitBy**: List<String> - Who shares the cost
+- All contributors shown in expense editor
+- Can split payment between multiple people
+- Cost divided equally among splitBy contributors
+
+✅ **Debt Summary (3 tests)**
+
+- Debt summary with multiple contributors
+- Shows simplified debt relationships
+- Format: "X owes Y: amount"
+- Calculated from all expenses (paidBy vs fair share)
+
+✅ **Debt Calculation Logic**
+
+```
+For each contributor:
+1. Total paid = Sum of all paidBy amounts
+2. Fair share = Sum of (expense / splitBy.length) for expenses where contributor in splitBy
+3. Debt = Fair share - Total paid
+4. Positive debt = owes money, Negative debt = owed money
+5. Simplify and display net debts
+```
+
+✅ **Contributor Management (3 tests)**
+
+- Adding contributor updates expense editors
+- New contributor available in paidBy/splitBy
+- Removing contributor validation (must not have expenses)
+- Cannot remove current user
+- Contributor changes propagate to all UI
+
+✅ **Example Scenario**
+
+```
+Trip with Alice, Bob, and Charlie:
+
+Day 1 Expenses:
+- Flight: $600 (Alice paid, split 3 ways = $200 each)
+- Hotel: $300 (Bob paid, split 3 ways = $100 each)
+- Dinner: $90 (Charlie paid, split 3 ways = $30 each)
+
+Calculations:
+- Alice: Paid $600, Share $330 → Others owe $270
+- Bob: Paid $300, Share $330 → Owes $30
+- Charlie: Paid $90, Share $330 → Owes $240
+
+Debt Summary:
+- Bob owes Alice: $30
+- Charlie owes Alice: $240
+```
 
 ---
 
@@ -828,5 +1071,34 @@ For questions or issues:
 **Total Tests**: 19  
 **Platform Support**: iOS, Android, Web, Desktop  
 **Status**: ✅ Production Ready
+
+
+
+
+---
+
+## 11. Trip Repository Setup
+
+For detailed information about how trip data and repository are structured, see:
+
+**[Trip Repository Setup Guide](helpers/TRIP_REPOSITORY_SETUP.md)**
+
+This guide covers:
+
+- Architecture overview of TripRepository
+- Firestore data structure
+- How data flows through the app
+- Mock data setup for testing
+- Current limitations and recommendations
+- Future improvements for data validation
+
+Key topics:
+
+- **TripRepositoryImplementation** - Manages trip metadata and active trip
+- **TripDataModelImplementation** - Represents a loaded trip with all collections
+- **Firestore collections** - transits, lodgings, expenses, itineraries
+- **Mock data strategies** - FakeFirebaseFirestore vs Firebase Emulator
+- **Integration test limitations** - Why tests don't validate actual data yet
+- **Recommendations** - How to add comprehensive data validation
 
 

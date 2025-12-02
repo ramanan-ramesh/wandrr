@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wandrr/presentation/app/pages/master_page/master_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
@@ -16,12 +15,8 @@ Future<void> runTripEditorLargeLayoutTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
+  await TestHelpers.pumpAndSettleApp(tester);
 
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
   final isLarge = TestHelpers.isLargeScreen(tester);
 
   // Navigate to trip editor
@@ -32,22 +27,22 @@ Future<void> runTripEditorLargeLayoutTest(
   );
 
   // Verify TripEditorPage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(TripEditorPage));
+  expect(find.byType(TripEditorPage), findsOneWidget);
 
   if (isLarge) {
     // Verify both ItineraryNavigator and BudgetingPage are displayed
-    TestHelpers.verifyWidgetExists(find.byType(ItineraryNavigator));
-    TestHelpers.verifyWidgetExists(find.byType(BudgetingPage));
+    expect(find.byType(ItineraryNavigator), findsOneWidget);
+    expect(find.byType(BudgetingPage), findsOneWidget);
 
     // Verify they are in a Row layout (side by side)
     final row = find.ancestor(
       of: find.byType(ItineraryNavigator),
       matching: find.byType(Row),
     );
-    TestHelpers.verifyWidgetExists(row);
+    expect(row, findsOneWidget);
 
     // Verify no BottomNavigationBar is displayed
-    TestHelpers.verifyWidgetDoesNotExist(find.byType(BottomNavBar));
+    expect(find.byType(BottomNavBar), findsNothing);
   } else {
     print('Skipping large layout test - device has small screen');
   }
@@ -60,12 +55,8 @@ Future<void> runTripEditorLargeLayoutFABTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
+  await TestHelpers.pumpAndSettleApp(tester);
 
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
   final isLarge = TestHelpers.isLargeScreen(tester);
 
   // Navigate to trip editor
@@ -76,11 +67,11 @@ Future<void> runTripEditorLargeLayoutFABTest(
   );
 
   // Verify TripEditorPage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(TripEditorPage));
+  expect(find.byType(TripEditorPage), findsOneWidget);
 
   // Verify FloatingActionButton is displayed
   final fab = find.byType(FloatingActionButton);
-  TestHelpers.verifyWidgetExists(fab);
+  expect(fab, findsOneWidget);
 
   if (isLarge) {
     // Verify FAB has padding (wrapped in Padding widget)
@@ -88,7 +79,7 @@ Future<void> runTripEditorLargeLayoutFABTest(
       of: find.byType(FloatingActionButton),
       matching: find.byType(Padding),
     );
-    TestHelpers.verifyWidgetExists(paddedFab);
+    expect(paddedFab, findsOneWidget);
 
     // Get FAB position to verify it's at center bottom
     final fabPosition = TestHelpers.getWidgetPosition(tester, fab);
@@ -116,13 +107,9 @@ Future<void> runTripEditorSmallLayoutDefaultTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
+  await TestHelpers.pumpAndSettleApp(tester);
 
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
-  final isSmall = TestHelpers.isSmallScreen(tester);
+  final isSmall = !TestHelpers.isLargeScreen(tester);
 
   // Navigate to trip editor
   await TestHelpers.waitForWidget(
@@ -132,11 +119,11 @@ Future<void> runTripEditorSmallLayoutDefaultTest(
   );
 
   // Verify TripEditorPage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(TripEditorPage));
+  expect(find.byType(TripEditorPage), findsOneWidget);
 
   if (isSmall) {
     // Verify ItineraryNavigator is displayed
-    TestHelpers.verifyWidgetExists(find.byType(ItineraryNavigator));
+    expect(find.byType(ItineraryNavigator), findsOneWidget);
 
     // Note: BudgetingPage exists in the widget tree but is not the current page
   } else {
@@ -150,13 +137,9 @@ Future<void> runTripEditorSmallLayoutBottomNavTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
+  await TestHelpers.pumpAndSettleApp(tester);
 
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
-  final isSmall = TestHelpers.isSmallScreen(tester);
+  final isSmall = !TestHelpers.isLargeScreen(tester);
 
   // Navigate to trip editor
   await TestHelpers.waitForWidget(
@@ -166,11 +149,11 @@ Future<void> runTripEditorSmallLayoutBottomNavTest(
   );
 
   // Verify TripEditorPage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(TripEditorPage));
+  expect(find.byType(TripEditorPage), findsOneWidget);
 
   if (isSmall) {
     // Verify BottomNavigationBar is displayed
-    TestHelpers.verifyWidgetExists(find.byType(BottomNavBar));
+    expect(find.byType(BottomNavBar), findsOneWidget);
   } else {
     print('Skipping small layout test - device has large screen');
   }
@@ -182,13 +165,9 @@ Future<void> runTripEditorSmallLayoutNavigationTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
+  await TestHelpers.pumpAndSettleApp(tester);
 
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
-  final isSmall = TestHelpers.isSmallScreen(tester);
+  final isSmall = !TestHelpers.isLargeScreen(tester);
 
   // Navigate to trip editor
   await TestHelpers.waitForWidget(
@@ -198,15 +177,15 @@ Future<void> runTripEditorSmallLayoutNavigationTest(
   );
 
   // Verify TripEditorPage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(TripEditorPage));
+  expect(find.byType(TripEditorPage), findsOneWidget);
 
   if (isSmall) {
     // Verify ItineraryNavigator is initially displayed
-    TestHelpers.verifyWidgetExists(find.byType(ItineraryNavigator));
+    expect(find.byType(ItineraryNavigator), findsOneWidget);
 
     // Find BottomNavigationBar
     final bottomNavBar = find.byType(BottomNavBar);
-    TestHelpers.verifyWidgetExists(bottomNavBar);
+    expect(bottomNavBar, findsOneWidget);
 
     // Find icon for budgeting (adjust icon based on your implementation)
     final budgetIcon = find.descendant(
@@ -218,7 +197,7 @@ Future<void> runTripEditorSmallLayoutNavigationTest(
       await TestHelpers.tapWidget(tester, budgetIcon);
 
       // Verify BudgetingPage is now displayed
-      TestHelpers.verifyWidgetExists(find.byType(BudgetingPage));
+      expect(find.byType(BudgetingPage), findsOneWidget);
     }
   } else {
     print('Skipping small layout navigation test - device has large screen');
@@ -231,13 +210,9 @@ Future<void> runTripEditorSmallLayoutFABTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(
-    tester,
-    MasterPage(sharedPreferences),
-  );
+  await TestHelpers.pumpAndSettleApp(tester);
 
-  print('Testing on ${TestHelpers.getDeviceSizeDescription(tester)}');
-  final isSmall = TestHelpers.isSmallScreen(tester);
+  final isSmall = !TestHelpers.isLargeScreen(tester);
 
   // Navigate to trip editor
   await TestHelpers.waitForWidget(
@@ -247,16 +222,16 @@ Future<void> runTripEditorSmallLayoutFABTest(
   );
 
   // Verify TripEditorPage is displayed
-  TestHelpers.verifyWidgetExists(find.byType(TripEditorPage));
+  expect(find.byType(TripEditorPage), findsOneWidget);
 
   // Verify FloatingActionButton is displayed
   final fab = find.byType(FloatingActionButton);
-  TestHelpers.verifyWidgetExists(fab);
+  expect(fab, findsOneWidget);
 
   if (isSmall) {
     // Verify BottomNavigationBar is displayed
     final bottomNavBar = find.byType(BottomNavBar);
-    TestHelpers.verifyWidgetExists(bottomNavBar);
+    expect(bottomNavBar, findsOneWidget);
 
     // Get positions to verify FAB is docked with bottom nav bar
     final fabPosition = TestHelpers.getWidgetPosition(tester, fab);
@@ -286,4 +261,3 @@ Future<void> runTripEditorSmallLayoutFABTest(
     print('Skipping small layout FAB test - device has large screen');
   }
 }
-
