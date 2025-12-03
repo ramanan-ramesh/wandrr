@@ -1,9 +1,11 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'helpers/mock_firebase_setup.dart';
+import 'helpers/firebase_emulator_helper.dart';
 import 'helpers/test_helpers.dart';
+import 'tests/authentication_comprehensive_test.dart';
 import 'tests/budgeting_page_test.dart';
 import 'tests/crud_operations_test.dart';
 import 'tests/home_page_test.dart';
@@ -20,14 +22,17 @@ void main() {
     late SharedPreferences sharedPreferences;
 
     setUpAll(() async {
-      await MockFirebaseSetup.setupFirebaseMocks(
-        remoteConfigDefaults: {
-          'latest_version': '3.0.1+16',
-          'min_version': '3.0.1+16',
-          'release_notes': 'Test notes',
-        },
-        enableDebugLogs: true,
-      );
+      try {
+        await Firebase.initializeApp();
+      } catch (e) {
+        print('Firebase already initialized or initialization skipped: $e');
+      }
+      await FirebaseEmulatorHelper.configureEmulators();
+    });
+
+    tearDownAll(() async {
+      await FirebaseEmulatorHelper.clearTestData();
+      FirebaseEmulatorHelper.reset();
     });
 
     setUp(() async {
@@ -37,8 +42,9 @@ void main() {
       await sharedPreferences.clear();
     });
 
-    tearDownAll(() async {
-      MockFirebaseSetup.reset();
+    tearDown(() async {
+      // Clean up after each test: sign out user and clear Firestore data
+      await FirebaseEmulatorHelper.cleanupAfterTest();
     });
 
     group('Startup Page Tests', () {
@@ -46,6 +52,61 @@ void main() {
           'adapts layout based on screen size (large: side-by-side, small: navigation)',
           (WidgetTester tester) async {
         await runStartupPageTest(tester, sharedPreferences);
+      });
+    });
+
+    // ========================================================================
+    // Comprehensive Authentication & Firestore Tests (user_management.dart)
+    // ========================================================================
+    group('Authentication & Firestore - UserManagement Tests', () {
+      testWidgets('Sign in with existing user (has Firestore document)',
+          (WidgetTester tester) async {
+        await runSignInExistingUserWithFirestoreDoc(tester, sharedPreferences);
+      });
+
+      testWidgets('Sign in with user without Firestore doc (creates one)',
+          (WidgetTester tester) async {
+        await runSignInNewUserWithoutFirestoreDoc(tester, sharedPreferences);
+      });
+
+      testWidgets('Sign in with unverified email (verification pending)',
+          (WidgetTester tester) async {
+        await runSignInUnverifiedEmail(tester, sharedPreferences);
+      });
+
+      testWidgets('Sign up new user (verification pending)',
+          (WidgetTester tester) async {
+        await runSignUpNewUser(tester, sharedPreferences);
+      });
+
+      testWidgets('Sign up with existing email (should fail)',
+          (WidgetTester tester) async {
+        await runSignUpExistingEmail(tester, sharedPreferences);
+      });
+
+      testWidgets('Sign in with wrong password (should fail)',
+          (WidgetTester tester) async {
+        await runSignInWrongPassword(tester, sharedPreferences);
+      });
+
+      testWidgets('Sign in with invalid email format (should fail)',
+          (WidgetTester tester) async {
+        await runSignInInvalidEmail(tester, sharedPreferences);
+      });
+
+      testWidgets('Sign in with non-existent user (should fail)',
+          (WidgetTester tester) async {
+        await runSignInNonExistentUser(tester, sharedPreferences);
+      });
+
+      testWidgets('Sign out clears auth and cache',
+          (WidgetTester tester) async {
+        await runSignOutTest(tester, sharedPreferences);
+      });
+
+      testWidgets('Firestore document structure verification',
+          (WidgetTester tester) async {
+        await runFirestoreDocumentVerification(tester, sharedPreferences);
       });
     });
 
@@ -305,7 +366,7 @@ void main() {
       });
     });
 
-    group('CRUD Operations Tests', () {
+    group('TripEntity CRUD Tests', () {
       setUp(() async {
         // Setup authenticated state and create a test trip
         await TestHelpers.setupAuthenticatedState(sharedPreferences);

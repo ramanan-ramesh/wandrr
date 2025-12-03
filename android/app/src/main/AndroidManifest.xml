@@ -13,6 +13,7 @@
         android:name="${applicationName}"
         android:icon="@mipmap/app_logo_round"
         android:label="wandrr"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="false">
         <activity
             android:name=".MainActivity"
@@ -35,7 +36,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".FlutterAppActivity" android:theme="@android:style/Theme.Light.NoTitleBar"/>
+        <activity
+            android:name=".FlutterAppActivity"
+            android:theme="@android:style/Theme.Light.NoTitleBar" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

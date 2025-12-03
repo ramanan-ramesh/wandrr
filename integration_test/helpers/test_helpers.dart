@@ -1,8 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/presentation/app/pages/master_page/master_page.dart';
 
+import 'firebase_emulator_helper.dart';
 import 'test_config.dart';
 
 /// Helper utilities for integration tests
@@ -15,7 +17,34 @@ class TestHelpers {
   ///
   /// This method automatically waits for the native splash screen to complete
   /// before proceeding with the test.
-  static Future<void> pumpAndSettleApp(WidgetTester tester) async {
+  static Future<void> pumpAndSettleApp(
+      WidgetTester tester, bool shouldSetupTestUser) async {
+    // Ensure Firebase emulators are configured before app starts
+    try {
+      // Check if Firebase is already initialized
+      try {
+        Firebase.app();
+      } catch (e) {
+        // Firebase not initialized, initialize it
+        await Firebase.initializeApp();
+      }
+
+      // Configure emulators
+      if (!FirebaseEmulatorHelper.isConfigured) {
+        await FirebaseEmulatorHelper.configureEmulators();
+      }
+      print('✓ Firebase emulators configured for integration tests');
+      if (shouldSetupTestUser) {
+        await FirebaseEmulatorHelper.createFirebaseAuthUser(
+          email: TestConfig.testEmail,
+          password: TestConfig.testPassword,
+          shouldAddToFirestore: false,
+        );
+      }
+    } catch (e) {
+      print('Warning: Firebase emulator configuration: $e');
+    }
+
     final sharedPreferences = await SharedPreferences.getInstance();
     await tester.pumpWidget(MasterPage(sharedPreferences));
     await tester.pumpAndSettle();
