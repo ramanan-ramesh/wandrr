@@ -1,5 +1,3 @@
-import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
-import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -149,74 +147,6 @@ class MockFirebaseSetup {
               'RemoteConfig method ${call.method} not implemented.');
       }
     });
-  }
-
-  /// Get mock Firebase Auth instance
-  static MockFirebaseAuth getMockAuth({
-    bool isSignedIn = false,
-    MockUser? mockUser,
-  }) {
-    final user = mockUser ??
-        MockUser(
-          uid: 'test_user_id',
-          email: 'test@example.com',
-          displayName: 'Test User',
-        );
-
-    return MockFirebaseAuth(
-      signedIn: isSignedIn,
-      mockUser: user,
-    );
-  }
-
-  /// Get mock Firestore instance
-  static FakeFirebaseFirestore getMockFirestore() {
-    return FakeFirebaseFirestore();
-  }
-
-  /// Setup mock user authentication
-  static Future<MockFirebaseAuth> setupAuthenticatedUser({
-    String? uid,
-    String? email,
-    String? displayName,
-  }) async {
-    await setupFirebaseMocks();
-
-    final mockUser = MockUser(
-      uid: uid ?? 'test_user_id',
-      email: email ?? 'test@example.com',
-      displayName: displayName ?? 'Test User',
-      isEmailVerified: true,
-    );
-
-    return MockFirebaseAuth(
-      signedIn: true,
-      mockUser: mockUser,
-    );
-  }
-
-  /// Setup mock Firestore with test data
-  static Future<FakeFirebaseFirestore> setupFirestoreWithData({
-    Map<String, dynamic>? userData,
-    List<Map<String, dynamic>>? trips,
-  }) async {
-    await setupFirebaseMocks();
-
-    final firestore = FakeFirebaseFirestore();
-
-    // Add user data if provided
-    if (userData != null) {
-      await firestore.collection('users').doc('test_user_id').set(userData);
-    }
-
-    // Add trips if provided
-    if (trips != null) {
-      for (var i = 0; i < trips.length; i++) {
-        await firestore.collection('trips').doc('trip_$i').set(trips[i]);
-      }
-    }
-
-    return firestore;
   }
 
   /// Reset all mocks

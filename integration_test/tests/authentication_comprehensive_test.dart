@@ -313,7 +313,7 @@ Future<void> runSignInWrongPassword(
   _TestLogger.logTestStart('6/10', 'sign in with wrong password');
 
   final testEmail = TestConfig.testEmail;
-  final wrongPassword = 'wrongPassword999';
+  final wrongPassword = r'WrongPassword123$';
 
   // Launch the app
   await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, false);
@@ -564,7 +564,7 @@ Future<void> runSignOutTest(
   final testEmail = TestConfig.testEmail;
   final testPassword = TestConfig.testPassword;
 
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, false);
   await _LoginTestActions.navigateToLoginPage(tester);
 
   expect(find.byType(LoginPage), findsOneWidget);
@@ -576,14 +576,8 @@ Future<void> runSignOutTest(
     password: testPassword,
   );
 
-  // VERIFY: Successfully signed in
-  try {
-    await _LoginTestActions.verifySuccessfulLogin(tester);
-    _TestLogger.logSuccess('Signed in successfully');
-  } catch (e) {
-    _TestLogger.logWarning(
-        'HomePage not found, but continuing with sign out test');
-  }
+  await _LoginTestActions.verifySuccessfulLogin(tester);
+  _TestLogger.logSuccess('Signed in successfully');
 
   // VERIFY: User is authenticated
   var currentUser = FirebaseAuth.instance.currentUser;
@@ -592,6 +586,8 @@ Future<void> runSignOutTest(
   _TestLogger.logSuccess('User is authenticated');
 
   // TEST: Sign out
+  final toolbarButton = find.byIcon(Icons.settings);
+  await TestHelpers.tapWidget(tester, toolbarButton);
   final logoutButton = find.byIcon(Icons.logout);
   if (logoutButton.evaluate().isEmpty) {
     _TestLogger.logWarning('Logout button not found - test may be incomplete');
@@ -615,8 +611,8 @@ Future<void> runSignOutTest(
   _TestLogger.logSuccess('Firebase Auth state cleared');
 
   // VERIFY: SharedPreferences cleared
-  final userID = sharedPreferences.getString('userID');
-  expect(userID, isNull, reason: 'UserID should be cleared from cache');
+  expect(sharedPreferences.getKeys().isEmpty, true,
+      reason: 'UserData should be cleared from cache');
   _TestLogger.logSuccess('Local cache cleared');
 }
 
