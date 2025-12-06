@@ -21,7 +21,7 @@ Future<void> runStartupPageTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleApp(tester, false);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Determine screen size
   final isLarge = TestHelpers.isLargeScreen(tester);

@@ -28,10 +28,10 @@ void main() {
         print('Firebase already initialized or initialization skipped: $e');
       }
       await FirebaseEmulatorHelper.configureEmulators();
+      print('✓ Firebase emulators configured for integration tests');
     });
 
     tearDownAll(() async {
-      await FirebaseEmulatorHelper.clearTestData();
       FirebaseEmulatorHelper.reset();
     });
 
@@ -94,6 +94,11 @@ void main() {
         await runSignInInvalidEmail(tester, sharedPreferences);
       });
 
+      testWidgets('Sign in with weak password (should fail)',
+          (WidgetTester tester) async {
+        await runSignUpWeakPassword(tester, sharedPreferences);
+      });
+
       testWidgets('Sign in with non-existent user (should fail)',
           (WidgetTester tester) async {
         await runSignInNonExistentUser(tester, sharedPreferences);
@@ -102,11 +107,6 @@ void main() {
       testWidgets('Sign out clears auth and cache',
           (WidgetTester tester) async {
         await runSignOutTest(tester, sharedPreferences);
-      });
-
-      testWidgets('Firestore document structure verification',
-          (WidgetTester tester) async {
-        await runFirestoreDocumentVerification(tester, sharedPreferences);
       });
     });
 

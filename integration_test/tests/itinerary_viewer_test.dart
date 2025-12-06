@@ -14,7 +14,7 @@ Future<void> runItineraryViewerDefaultDateTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -41,7 +41,7 @@ Future<void> runItineraryViewerTransitsTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -69,7 +69,7 @@ Future<void> runItineraryViewerLodgingsTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -94,7 +94,7 @@ Future<void> runItineraryViewerNotesTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -124,7 +124,7 @@ Future<void> runItineraryViewerChecklistsTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -154,7 +154,7 @@ Future<void> runItineraryViewerSightsTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -184,7 +184,7 @@ Future<void> runItineraryViewerTimelineSortingTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -211,7 +211,7 @@ Future<void> runItineraryViewerNavigateNextTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -256,7 +256,7 @@ Future<void> runItineraryViewerNavigatePreviousTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -318,7 +318,7 @@ Future<void> runItineraryViewerNavigationBoundaryStartTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -356,7 +356,7 @@ Future<void> runItineraryViewerNavigationBoundaryEndTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -401,7 +401,7 @@ Future<void> runItineraryViewerRefreshOnNavigationTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(

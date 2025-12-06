@@ -15,7 +15,7 @@ Future<void> runTripEditorLargeLayoutTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   final isLarge = TestHelpers.isLargeScreen(tester);
 
@@ -55,7 +55,7 @@ Future<void> runTripEditorLargeLayoutFABTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   final isLarge = TestHelpers.isLargeScreen(tester);
 
@@ -107,7 +107,7 @@ Future<void> runTripEditorSmallLayoutDefaultTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   final isSmall = !TestHelpers.isLargeScreen(tester);
 
@@ -137,7 +137,7 @@ Future<void> runTripEditorSmallLayoutBottomNavTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   final isSmall = !TestHelpers.isLargeScreen(tester);
 
@@ -165,7 +165,7 @@ Future<void> runTripEditorSmallLayoutNavigationTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   final isSmall = !TestHelpers.isLargeScreen(tester);
 
@@ -210,7 +210,7 @@ Future<void> runTripEditorSmallLayoutFABTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   final isSmall = !TestHelpers.isLargeScreen(tester);
 

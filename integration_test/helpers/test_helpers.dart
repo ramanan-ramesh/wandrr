@@ -1,7 +1,8 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wandrr/data/auth/models/auth_type.dart';
+import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/app/pages/master_page/master_page.dart';
 
 import 'firebase_emulator_helper.dart';
@@ -17,35 +18,34 @@ class TestHelpers {
   ///
   /// This method automatically waits for the native splash screen to complete
   /// before proceeding with the test.
-  static Future<void> pumpAndSettleApp(
-      WidgetTester tester, bool shouldSetupTestUser) async {
-    // Ensure Firebase emulators are configured before app starts
-    try {
-      // Check if Firebase is already initialized
-      try {
-        Firebase.app();
-      } catch (e) {
-        // Firebase not initialized, initialize it
-        await Firebase.initializeApp();
-      }
+  static Future<void> pumpAndSettleApp(WidgetTester tester) async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    await tester.pumpWidget(MasterPage(sharedPreferences));
+    await tester.pumpAndSettle();
+    // Wait for native splash screen to complete (Android/iOS)
+    await _waitForNativeSplashScreen(tester);
+    // Log device size after splash screen
+    print(_getDeviceSizeDescription(tester));
+  }
 
-      // Configure emulators
-      if (!FirebaseEmulatorHelper.isConfigured) {
-        await FirebaseEmulatorHelper.configureEmulators();
-      }
-      print('✓ Firebase emulators configured for integration tests');
-      if (shouldSetupTestUser) {
-        await FirebaseEmulatorHelper.createFirebaseAuthUser(
-          email: TestConfig.testEmail,
-          password: TestConfig.testPassword,
-          shouldAddToFirestore: false,
-        );
-      }
-    } catch (e) {
-      print('Warning: Firebase emulator configuration: $e');
-    }
+  /// Pump the app and wait for animations to settle
+  ///
+  /// This method automatically waits for the native splash screen to complete
+  /// before proceeding with the test.
+  static Future<void> pumpAndSettleAppWithTestUser(
+      WidgetTester tester, bool shouldAddToFirestore, bool shouldSignIn) async {
+    await FirebaseEmulatorHelper.createFirebaseAuthUser(
+      email: TestConfig.testEmail,
+      password: TestConfig.testPassword,
+      shouldAddToFirestore: shouldAddToFirestore,
+      shouldSignIn: shouldSignIn,
+    );
 
     final sharedPreferences = await SharedPreferences.getInstance();
+    if (shouldSignIn) {
+      await sharedPreferences.setString(
+          'authType', AuthenticationType.emailPassword.name);
+    }
     await tester.pumpWidget(MasterPage(sharedPreferences));
     await tester.pumpAndSettle();
     // Wait for native splash screen to complete (Android/iOS)
@@ -61,6 +61,11 @@ class TestHelpers {
     // Note: Adjust these keys based on your actual implementation
     await sharedPreferences.setString('user_id', TestConfig.testUserId);
     await sharedPreferences.setBool('is_authenticated', true);
+  }
+
+  static AppLocalizations getAppLocalizations(WidgetTester tester, Type type) {
+    final context = tester.element(find.byType(type));
+    return AppLocalizations.of(context)!;
   }
 
   /// Create a test trip for trip editor tests

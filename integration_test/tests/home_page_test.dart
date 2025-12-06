@@ -15,7 +15,7 @@ Future<void> runHomePageLayoutLargeTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Verify HomePage is displayed
   expect(find.byType(HomePage), findsOneWidget);
@@ -36,7 +36,7 @@ Future<void> runHomePageLayoutSmallTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Verify HomePage is displayed
   expect(find.byType(HomePage), findsOneWidget);
@@ -57,7 +57,7 @@ Future<void> runHomePageEmptyTripsTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Verify HomePage is displayed
   expect(find.byType(HomePage), findsOneWidget);
@@ -76,7 +76,7 @@ Future<void> runHomePageLanguageSwitchTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Verify HomePage is displayed
   expect(find.byType(HomePage), findsOneWidget);
@@ -108,7 +108,7 @@ Future<void> runHomePageThemeSwitchTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Verify HomePage is displayed
   expect(find.byType(HomePage), findsOneWidget);
@@ -137,7 +137,7 @@ Future<void> runHomePageLogoutTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Verify HomePage is displayed
   expect(find.byType(HomePage), findsOneWidget);
@@ -168,7 +168,7 @@ Future<void> runHomePageCreateTripDialogTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Verify HomePage is displayed
   expect(find.byType(HomePage), findsOneWidget);
@@ -190,7 +190,7 @@ Future<void> runHomePageCreateTripFlowTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleApp(tester);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Verify HomePage is displayed
   expect(find.byType(HomePage), findsOneWidget);

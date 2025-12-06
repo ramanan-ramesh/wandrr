@@ -16,7 +16,7 @@ Future<void> runLoginAuthenticationTest(
   print('\n[1/5] Testing valid credentials...');
 
   // Launch the app
-  await TestHelpers.pumpAndSettleApp(tester, true);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Verify LoginPage is displayed
   expect(find.byType(LoginPage), findsOneWidget);
@@ -83,7 +83,7 @@ Future<void> runLoginAnimationTest(
   print('\n[2/5] Testing Rive animation during loading...');
 
   // Launch the app
-  await TestHelpers.pumpAndSettleApp(tester, true);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
   // Verify LoginPage is displayed
   expect(find.byType(LoginPage), findsOneWidget);

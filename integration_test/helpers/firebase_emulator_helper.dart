@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:wandrr/data/auth/models/auth_type.dart';
 
 /// Helper class to configure Firebase to use local emulators for integration tests
 class FirebaseEmulatorHelper {
@@ -72,59 +76,124 @@ class FirebaseEmulatorHelper {
     }
   }
 
+  /// Manually verify email using Firebase Auth Emulator's internal REST API
+  /// This is required because the emulator doesn't automatically verify emails
+  /// and user_management.dart checks emailVerified status
+  ///
+  /// [user] - The Firebase User object to verify (must be signed in)
+  /// Returns true if verification was successful
+  /// Manually verify email using Firebase Auth Emulator Admin REST API
+  /// This uses admin privileges to set emailVerified=true
+  static Future _verifyEmailInEmulator(String email) async {
+    try {
+      final host = _emulatorHost;
+      final port = _authEmulatorPort;
+
+      // Get current user details (must be signed in)
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        if (kDebugMode) {
+          print('✗ No current user to verify email for');
+        }
+        return;
+      }
+
+      final uid = currentUser.uid;
+      if (kDebugMode) {
+        print('  → Verifying email for: $email');
+      }
+
+      final updateUrl =
+          'http://$host:$port/identitytoolkit.googleapis.com/v1/accounts:update?key=wandrr-15f70';
+
+      // Admin request body: Use localId (UID) + emailVerified
+      final updateResponse = await http.post(
+        Uri.parse(updateUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer owner', // Key: Emulator admin token
+        },
+        body: json.encode({
+          'localId': uid,
+          'emailVerified': true,
+        }),
+      );
+
+      if (updateResponse.statusCode == 200) {
+        if (kDebugMode) {
+          print('✓ Email verified in emulator via Admin REST API: $email');
+        }
+        return;
+      } else {
+        if (kDebugMode) {
+          print('✗ Admin update failed: ${updateResponse.statusCode}');
+          print('   Response: ${updateResponse.body}');
+        }
+        throw Exception('Error verifying email in emulator');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('✗ Error verifying email in emulator: $e');
+      }
+      throw Exception('Error verifying email in emulator');
+    }
+  }
+
   /// Create a test user in Firebase Auth emulator
-  static Future<UserCredential?> _createTestUser({
+  /// Uses Firebase Auth Emulator REST API to manually verify email
+  /// This ensures user_management.dart's emailVerified checks pass
+  static Future _createVerifiedTestUser({
     required String email,
     required String password,
   }) async {
     try {
-      final userCredential = await FirebaseAuth.instance
+      await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
-
-      if (kDebugMode) {
-        print('✓ Test user created: $email');
-      }
-
-      return userCredential;
     } on FirebaseAuthException catch (e) {
-      print('✗ Error creating test user: ${e.message}');
-      return null;
+      if (kDebugMode) {
+        print('✗ Error creating test user: ${e.code}');
+      }
+      throw Exception('Error creating test user: ${e.message}');
+    }
+
+    if (kDebugMode) {
+      print('✓ Test user created: $email');
+    }
+
+    await _verifyEmailInEmulator(email);
+
+    try {
+      await FirebaseAuth.instance.currentUser!.reload();
+    } on FirebaseAuthException catch (e) {
+      if (kDebugMode) {
+        print('✗ Error reloading user: ${e.message}');
+      }
+      rethrow;
     }
   }
 
   /// Create test user document in Firestore
-  static Future<void> _createTestUserDocument({
-    required String email,
-    required String userId,
-  }) async {
-    try {
-      final usersRef = FirebaseFirestore.instance.collection('users');
+  static Future<void> _createTestUserDocument({required String email}) async {
+    final usersRef = FirebaseFirestore.instance.collection('users');
 
-      // Check if user document already exists
-      final querySnapshot =
-          await usersRef.where('userName', isEqualTo: email).get();
+    // Check if user document already exists
+    final querySnapshot =
+        await usersRef.where('userName', isEqualTo: email).get();
 
-      if (querySnapshot.docs.isEmpty) {
-        // Create new user document
-        await usersRef.add({
-          'userName': email,
-          'authType': 'emailPassword',
-          'createdAt': FieldValue.serverTimestamp(),
-        });
+    if (querySnapshot.docs.isEmpty) {
+      // Create new user document
+      await usersRef.add({
+        'userName': email,
+        'authType': AuthenticationType.emailPassword.name,
+      });
 
-        if (kDebugMode) {
-          print('✓ Test user document created in Firestore: $email');
-        }
-      } else {
-        if (kDebugMode) {
-          print('ℹ Test user document already exists: $email');
-        }
-      }
-    } catch (e) {
       if (kDebugMode) {
-        print('✗ Error creating test user document: $e');
+        print('✓ Test user document created in Firestore: $email');
       }
-      rethrow;
+    } else {
+      if (kDebugMode) {
+        print('ℹ Test user document already exists: $email');
+      }
     }
   }
 
@@ -133,35 +202,33 @@ class FirebaseEmulatorHelper {
     required String email,
     required String password,
     required bool shouldAddToFirestore,
+    required bool shouldSignIn,
   }) async {
-    try {
-      // Create test user in Firebase Auth
-      final userCredential = await _createTestUser(
-        email: email,
-        password: password,
-      );
+    // Create test user in Firebase Auth
+    await _createVerifiedTestUser(
+      email: email,
+      password: password,
+    );
 
-      if (userCredential != null &&
-          userCredential.user != null &&
-          shouldAddToFirestore) {
-        // Create user document in Firestore
-        await _createTestUserDocument(
-          email: email,
-          userId: userCredential.user!.uid,
-        );
+    // Create user document in Firestore
+    if (shouldAddToFirestore) {
+      await _createTestUserDocument(email: email);
+    }
 
+    if (!shouldSignIn) {
+      try {
         // Sign out after setup
         await FirebaseAuth.instance.signOut();
-
+      } catch (e) {
         if (kDebugMode) {
-          print('--- Test data setup complete ---\n');
+          print('✗ Error while signing out: $e');
         }
+        rethrow;
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print('✗ Error setting up test data: $e');
-      }
-      rethrow;
+    }
+
+    if (kDebugMode) {
+      print('--- Test data setup complete ---\n');
     }
   }
 
@@ -256,17 +323,11 @@ class FirebaseEmulatorHelper {
 
   /// Sign out current user if signed in
   static Future<void> _signOutCurrentUser() async {
-    try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        await FirebaseAuth.instance.signOut();
-        if (kDebugMode) {
-          print('✓ Signed out user: ${currentUser.email}');
-        }
-      }
-    } catch (e) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      await FirebaseAuth.instance.signOut();
       if (kDebugMode) {
-        print('✗ Error signing out: $e');
+        print('✓ Signed out user: ${currentUser.email}');
       }
     }
   }
@@ -281,6 +342,7 @@ class FirebaseEmulatorHelper {
 
       // Sign out any authenticated user
       await _signOutCurrentUser();
+      await _clearAllAuthUsers();
 
       // Clear all Firestore data
       await _clearAllFirestoreData();
@@ -292,6 +354,48 @@ class FirebaseEmulatorHelper {
       if (kDebugMode) {
         print('✗ Error during test cleanup: $e');
       }
+    }
+  }
+
+  /// Clear ALL users from Firebase Auth emulator via REST API
+  /// This flushes the entire emulated Auth database for test isolation
+  static Future _clearAllAuthUsers() async {
+    try {
+      if (kDebugMode) {
+        print('\n--- Clearing ALL Auth users ---');
+      }
+
+      final host = _emulatorHost; // '10.0.2.2' for Android emulator
+      final port = _authEmulatorPort; // 9099
+      const projectId = 'wandrr-15f70'; // From your firebase.json
+
+      // Emulator-specific endpoint to flush/clear all user records
+      final clearUrl =
+          'http://$host:$port/emulator/v1/projects/$projectId/accounts';
+
+      final response = await http.delete(
+        Uri.parse(clearUrl),
+        headers: {
+          'Authorization': 'Bearer owner', // Admin access for emulator
+        },
+      );
+
+      if (response.statusCode == 200) {
+        if (kDebugMode) {
+          print('✓ ALL Auth users cleared successfully');
+        }
+      } else {
+        if (kDebugMode) {
+          print('✗ Failed to clear Auth users: ${response.statusCode}');
+          print('   Response: ${response.body}');
+        }
+        throw Exception('Failed to clear Auth users');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('✗ Error clearing Auth users: $e');
+      }
+      rethrow;
     }
   }
 

@@ -3,8 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wandrr/data/auth/models/auth_type.dart';
 import 'package:wandrr/presentation/app/pages/login_page.dart';
-import 'package:wandrr/presentation/trip/pages/home/home_page.dart';
+import 'package:wandrr/presentation/app/pages/startup_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_provider/trip_provider.dart';
 
 import '../helpers/firebase_emulator_helper.dart';
@@ -12,476 +13,838 @@ import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
 
 /// Comprehensive integration tests for UserManagement authentication and Firestore logic
+///
+/// DESIGN PRINCIPLES APPLIED:
+/// 1. Single Responsibility Principle (SRP): Each test focuses on one scenario
+/// 2. Open/Closed Principle (OCP): Tests are extensible via helper methods
+/// 3. Dependency Inversion Principle (DIP): Tests depend on abstractions (helpers)
+/// 4. Don't Repeat Yourself (DRY): Common logic extracted to helper methods
+///
 /// Tests all scenarios in user_management.dart:
-/// 1. Sign in with existing user (with Firestore doc)
-/// 2. Sign in with new user (no Firestore doc)
-/// 3. Sign in with unverified email
-/// 4. Sign up new user
-/// 5. Sign up with existing email
+/// 1. Sign in with existing user (with Firestore doc) + email verified
+/// 2. Sign in with new user (no Firestore doc) + creates doc
+/// 3. Sign in with unverified email → verificationPending
+/// 4. Sign up new user → creates user + sends verification
+/// 5. Sign up with existing email → error
 /// 6. Invalid credentials (wrong password, invalid email, user not found)
-/// 7. Sign out
-/// 8. Resend verification email
+/// 7. Sign out → clears auth + cache + Firestore
+/// 8. Firestore document structure validation
 
-/// Test 1: Sign in with valid credentials - Existing user WITH Firestore document
+// ============================================================================
+// TEST IMPLEMENTATIONS - Following DRY and OCP principles
+// ============================================================================
+
+/// Test 1: Sign in with existing user (verified email + Firestore document)
+///
+/// DESIGN NOTES:
+/// - Tests the "happy path" where everything is set up correctly
+/// - Validates email verification via REST API works
+/// - Confirms user_management.dart's emailVerified check passes
+/// - Verifies Firestore document is reused (not recreated)
 Future<void> runSignInExistingUserWithFirestoreDoc(
   WidgetTester tester,
   SharedPreferences sharedPreferences,
 ) async {
-  print('\n[1/8] Testing sign in with existing user (has Firestore doc)...');
+  _TestLogger.logTestStart(
+      '1/10', 'sign in with existing user (has Firestore doc)');
 
-  // Launch the app
-  await TestHelpers.pumpAndSettleApp(tester, false);
-
+  // SETUP: Create verified user with Firestore document
   await FirebaseEmulatorHelper.createFirebaseAuthUser(
     email: TestConfig.testEmail,
     password: TestConfig.testPassword,
     shouldAddToFirestore: true,
+    shouldSignIn: false,
   );
 
-  await _ensureLoginPageIsDisplayed(tester);
+  // TEST: Launch app and perform login
+  await TestHelpers.pumpAndSettleApp(tester);
+  await _LoginTestActions.navigateToLoginPage(tester);
 
-  // Verify LoginPage is displayed
   expect(find.byType(LoginPage), findsOneWidget);
 
-  // Enter credentials
-  final usernameField = find.byType(TextFormField).first;
-  final passwordField = find.byType(TextFormField).last;
+  await _LoginTestActions.performLogin(
+    tester,
+    email: TestConfig.testEmail,
+    password: TestConfig.testPassword,
+  );
 
-  await TestHelpers.enterText(tester, usernameField, TestConfig.testEmail);
-  await TestHelpers.enterText(tester, passwordField, TestConfig.testPassword);
+  // VERIFY: Successful login navigation
+  await _LoginTestActions.verifySuccessfulLogin(tester);
+  _TestLogger.logSuccess('Successfully signed in existing user');
 
-  // Submit login
-  final submitButton = find.byKey(const Key('login_submit_button'));
-  await TestHelpers.tapWidget(tester, submitButton);
-
-  // Wait for authentication
-  await tester.pump(const Duration(seconds: 2));
-
-  // Should navigate to TripProvider
-  try {
-    await TestHelpers.waitForWidget(
-      tester,
-      find.byType(TripProvider),
-      timeout: const Duration(seconds: 8),
-    );
-    print('✓ Successfully signed in existing user');
-    print('✓ User has Firestore document');
-  } catch (e) {
-    print('✗ Failed to sign in: $e');
-    rethrow;
-  }
-
-  // Verify Firestore document exists
-  final firestoreDoc = await FirebaseFirestore.instance
-      .collection('users')
-      .where('userName', isEqualTo: TestConfig.testEmail)
-      .get();
-
-  expect(firestoreDoc.docs.isNotEmpty, true,
-      reason: 'User document should exist in Firestore');
-  print('✓ Firestore document verified');
-
-  // Clean up: Sign out for next test
-  await FirebaseAuth.instance.signOut();
-  print('✓ Signed out (cleanup)');
+  // VERIFY: Firestore document exists and is correct
+  await _FirestoreTestVerifier.verifyUserDocumentExists(TestConfig.testEmail);
+  _TestLogger.logSuccess('Firestore document verified');
 }
 
-/// Test 2: Sign in with valid credentials - User WITHOUT Firestore document (creates one)
+/// Test 2: Sign in with user without Firestore document (should create one)
+///
+/// DESIGN NOTES:
+/// - Tests user_management.dart lines 208-217 (creates new Firestore doc)
+/// - Validates that users can sign in even without pre-existing Firestore data
+/// - Confirms document is created during sign-in flow
+/// - Tests emailVerified check with verified user
 Future<void> runSignInNewUserWithoutFirestoreDoc(
   WidgetTester tester,
   SharedPreferences sharedPreferences,
 ) async {
-  print(
-      '\n[2/8] Testing sign in with user that has no Firestore doc (should create one)...');
+  _TestLogger.logTestStart(
+      '2/10', 'sign in with user without Firestore doc (should create one)');
 
-  final testEmail = 'nofirestoredoc@example.com';
-  final testPassword = 'password123';
+  const testEmail = 'nofirestoredoc@example.com';
+  const testPassword = r'Password123$';
 
-  // Create user in Auth only (not in Firestore)
+  // SETUP: Create verified user in Auth only (NO Firestore doc)
   await FirebaseEmulatorHelper.createFirebaseAuthUser(
     email: testEmail,
     password: testPassword,
     shouldAddToFirestore: false,
+    shouldSignIn: false,
   );
 
-  // Launch the app
-  await TestHelpers.pumpAndSettleApp(tester, false);
+  await _FirestoreTestVerifier.verifyUserDocumentDoesNotExist(testEmail);
+
+  // TEST: Launch app and perform login
+  await TestHelpers.pumpAndSettleApp(tester);
+  await _LoginTestActions.navigateToLoginPage(tester);
+
   expect(find.byType(LoginPage), findsOneWidget);
 
-  // Enter credentials
-  final usernameField = find.byType(TextFormField).first;
-  final passwordField = find.byType(TextFormField).last;
+  await _LoginTestActions.performLogin(
+    tester,
+    email: testEmail,
+    password: testPassword,
+  );
 
-  await TestHelpers.enterText(tester, usernameField, testEmail);
-  await TestHelpers.enterText(tester, passwordField, testPassword);
+  await _LoginTestActions.verifySuccessfulLogin(tester);
+  _TestLogger.logSuccess('Successfully signed in user without Firestore doc');
 
-  // Submit login
-  final submitButton = find.byKey(const Key('login_submit_button'));
-  await TestHelpers.tapWidget(tester, submitButton);
-
-  await tester.pump(const Duration(seconds: 2));
-
-  // Note: This might fail if email is unverified in emulator
-  // The user_management.dart checks emailVerified status
-  print('⚠ Note: Email verification may not work in emulator');
-
-  // Clean up: Ensure signed out
-  await FirebaseAuth.instance.signOut();
-  print('✓ Signed out (cleanup)');
+  // VERIFY: Document exists and structure is correct
+  final userData =
+      await _FirestoreTestVerifier.verifyDocumentStructure(testEmail);
+  _TestLogger.logSuccess('Firestore document was created during sign-in');
+  _TestLogger.logInfo(
+      'Document created with userName: ${userData['userName']}');
+  _TestLogger.logInfo(
+      'Document created with authType: ${userData['authType']}');
 }
 
-/// Test 3: Sign in with unverified email - Should return verificationPending
+/// Test 3: Sign in with unverified email (should return verificationPending)
+///
+/// DESIGN NOTES:
+/// - Tests user_management.dart (emailVerified check)
+/// - Validates that unverified users cannot sign in
+/// - Confirms user is signed out and verificationPending is returned
 Future<void> runSignInUnverifiedEmail(
   WidgetTester tester,
   SharedPreferences sharedPreferences,
 ) async {
-  print('\n[3/8] Testing sign in with unverified email...');
+  _TestLogger.logTestStart(
+      '3/10', 'sign in with unverified email (verificationPending)');
 
-  final testEmail = 'unverified@example.com';
-  final testPassword = 'password123';
+  const testEmail = 'unverified@example.com';
+  const testPassword = r'Password123$';
 
-  // Create user but don't verify email
-  await FirebaseAuth.instance
-      .createUserWithEmailAndPassword(email: testEmail, password: testPassword);
+  // SETUP: Create user WITHOUT verifying email
+  await _AuthTestSetup.createUnverifiedUser(
+    email: testEmail,
+    password: testPassword,
+  );
 
-  // Sign out immediately
-  await FirebaseAuth.instance.signOut();
+  // VERIFY: Email is NOT verified
+  final isVerified =
+      await _AuthTestSetup.verifyEmailWasVerified(testEmail, testPassword);
 
-  // Launch the app
-  await TestHelpers.pumpAndSettleApp(tester, false);
+  if (isVerified) {
+    _TestLogger.logWarning(
+        'Email was verified unexpectedly - emulator may auto-verify');
+    fail('Pre-Condition: Email should NOT be verified');
+  } else {
+    _TestLogger.logInfo('User created without email verification');
+  }
+
+  // TEST: Launch app and attempt login
+  await TestHelpers.pumpAndSettleApp(tester);
+  await _LoginTestActions.navigateToLoginPage(tester);
   expect(find.byType(LoginPage), findsOneWidget);
 
-  // Enter credentials
-  final usernameField = find.byType(TextFormField).first;
-  final passwordField = find.byType(TextFormField).last;
+  await _LoginTestActions.performLogin(
+    tester,
+    email: testEmail,
+    password: testPassword,
+  );
 
-  await TestHelpers.enterText(tester, usernameField, testEmail);
-  await TestHelpers.enterText(tester, passwordField, testPassword);
+  // VERIFY: Should stay on LoginPage (verification pending)
+  _LoginTestActions.verifyLoginFailed(tester, 'Email not verified');
+  _TestLogger.logSuccess(
+      'Stayed on LoginPage (verification pending as expected)');
 
-  // Submit login
-  final submitButton = find.byKey(const Key('login_submit_button'));
-  await TestHelpers.tapWidget(tester, submitButton);
+  // VERIFY: Verification pending message appears in UI
+  await _LoginTestActions.verifyVerificationPendingMessage(tester);
+  _TestLogger.logSuccess('Verification pending message displayed in UI');
 
-  await tester.pump(const Duration(seconds: 2));
-
-  // Should show verification pending message
-  // In emulator, email verification status might not be enforced
-  print('⚠ Email verification status depends on emulator configuration');
-
-  // Clean up: Ensure signed out
-  await FirebaseAuth.instance.signOut();
-  print('✓ Signed out (cleanup)');
+  // VERIFY: User was signed out (per user_management.dart)
+  final currentUser = FirebaseAuth.instance.currentUser;
+  expect(currentUser, isNull,
+      reason: 'User should be signed out since verification is pending');
+  _TestLogger.logSuccess(
+      'User was signed out (per user_management.dart logic)');
 }
 
 /// Test 4: Sign up new user - Should create Auth user and return verificationPending
+///
+/// DESIGN NOTES:
+/// - Tests user_management.dart trySignUpWithUsernamePassword flow
+/// - Validates that new user registration sends verification email
+/// - Confirms verificationPending status is returned and shown in UI
+/// - Tests that user is signed out after registration
 Future<void> runSignUpNewUser(
   WidgetTester tester,
   SharedPreferences sharedPreferences,
 ) async {
-  print('\n[4/8] Testing sign up new user...');
+  _TestLogger.logTestStart(
+      '4/10', 'sign up new user (should show verificationPending)');
 
-  final testEmail = 'newuser@example.com';
-  final testPassword = 'password123';
+  const testEmail = 'newuser@example.com';
+  const testPassword = r'Password123$';
 
-  // Note: Since RegistrationPage doesn't exist in the codebase,
-  // we'll test the underlying UserManagement logic directly
+  // TEST: Launch app and navigate to sign up on LoginPage
+  await TestHelpers.pumpAndSettleApp(tester);
+  await _LoginTestActions.navigateToLoginPage(tester);
 
-  // Create user directly using Firebase Auth (simulating registration)
-  try {
-    final userCredential = await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(
-            email: testEmail, password: testPassword);
+  expect(find.byType(LoginPage), findsOneWidget);
 
-    print('✓ User registration successful');
-    print('  - Email: $testEmail');
-    print('  - UID: ${userCredential.user?.uid}');
-    print('  - Email verified: ${userCredential.user?.emailVerified}');
+  // Switch to Sign Up tab
+  await _LoginTestActions.switchToSignUpTab(tester);
+  _TestLogger.logInfo('Switched to Sign Up tab');
 
-    // In user_management.dart, after registration, user is signed out
-    await FirebaseAuth.instance.signOut();
-    print(
-        '✓ User signed out after registration (as per user_management.dart logic)');
+  // Perform sign up
+  await _LoginTestActions.performSignUp(
+    tester,
+    email: testEmail,
+    password: testPassword,
+  );
 
-    // Verify user exists in Auth
-    // Try to sign in to verify user exists
-    final signInCredential = await FirebaseAuth.instance
-        .signInWithEmailAndPassword(email: testEmail, password: testPassword);
+  // VERIFY: Should stay on LoginPage (verification pending)
+  _LoginTestActions.verifyLoginFailed(tester, 'Sign up requires verification');
+  _TestLogger.logSuccess('Stayed on LoginPage after sign up (as expected)');
 
-    expect(signInCredential.user, isNotNull,
-        reason: 'User should exist in Auth');
-    print('✓ User successfully created and can sign in');
+  // VERIFY: Verification pending message appears in UI
+  await _LoginTestActions.verifyVerificationPendingMessage(tester);
+  _TestLogger.logSuccess(
+      'Verification pending message displayed in UI after sign up');
 
-    // Clean up: Sign out
-    await FirebaseAuth.instance.signOut();
-    print('✓ Signed out (cleanup)');
-  } on FirebaseAuthException catch (e) {
-    print('✗ Registration failed: ${e.message}');
-    // Ensure signed out even on error
-    await FirebaseAuth.instance.signOut();
-    rethrow;
-  }
+  // VERIFY: User was signed out (per user_management.dart sign up logic)
+  final currentUser = FirebaseAuth.instance.currentUser;
+  expect(currentUser, isNull,
+      reason: 'User should be signed out after sign up pending verification');
+  _TestLogger.logSuccess(
+      'User was signed out after sign up (per user_management.dart logic)');
 }
 
-/// Test 5: Sign up with existing email - Should return usernameAlreadyExists
+/// Test 5: Sign up with existing email - Should return usernameAlreadyExists or verificationPending
+///
+/// DESIGN NOTES:
+/// - Tests user_management.dart trySignUpWithUsernamePassword with existing user
+/// - If user is verified: should return usernameAlreadyExists
+/// - If user is unverified: should return verificationPending
+/// - Validates appropriate message is shown in UI
 Future<void> runSignUpExistingEmail(
   WidgetTester tester,
   SharedPreferences sharedPreferences,
 ) async {
-  print('\n[5/8] Testing sign up with existing email...');
+  _TestLogger.logTestStart('5/10',
+      'sign up with existing email (should show error or verificationPending)');
 
-  final testEmail = TestConfig.testEmail; // Use already created test user
-  final testPassword = 'password123';
+  final testEmail = TestConfig.testEmail;
+  final testPassword = TestConfig.testPassword;
 
-  // Test the underlying logic: try to create user with existing email
-  try {
-    await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: testEmail, password: testPassword);
+  // TEST: Launch app and navigate to sign up on LoginPage
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, false);
+  await _LoginTestActions.navigateToLoginPage(tester);
 
-    // If we get here, the test should fail because email already exists
-    fail('Should have thrown FirebaseAuthException for existing email');
-  } on FirebaseAuthException catch (e) {
-    // This is expected
-    expect(e.code, contains('email-already-in-use'),
-        reason: 'Should return email-already-in-use error');
-    print('✓ Correctly detected existing email');
-    print('  - Error code: ${e.code}');
-    print('  - Error message: ${e.message}');
-  }
+  expect(find.byType(LoginPage), findsOneWidget);
 
-  // Clean up: Ensure signed out
-  await FirebaseAuth.instance.signOut();
-  print('✓ Signed out (cleanup)');
+  // Switch to Sign Up tab
+  await _LoginTestActions.switchToSignUpTab(tester);
+  _TestLogger.logInfo('Switched to Sign Up tab');
+
+  // Attempt to sign up with existing email
+  await _LoginTestActions.performSignUp(
+    tester,
+    email: testEmail,
+    password: testPassword,
+  );
+
+  // VERIFY: Should stay on LoginPage
+  _LoginTestActions.verifyLoginFailed(tester, 'Email already exists');
+  _TestLogger.logSuccess(
+      'Stayed on LoginPage after attempting duplicate sign up');
+
+  final localizations = TestHelpers.getAppLocalizations(tester, LoginPage);
+  final alreadyExistsMessage =
+      find.textContaining(localizations.userNameAlreadyExists);
+
+  expect(
+    alreadyExistsMessage.evaluate().isNotEmpty,
+    true,
+    reason: 'Should show either already registered message in UI',
+  );
+
+  _TestLogger.logSuccess('Correctly showed already registered message');
+
+  // VERIFY: User is signed out
+  final currentUser = FirebaseAuth.instance.currentUser;
+  expect(currentUser, isNull,
+      reason: 'User should be signed out after failed sign up');
+  _TestLogger.logSuccess('User was signed out as expected');
 }
 
 /// Test 6: Sign in with invalid credentials - Wrong password
+///
+/// DESIGN NOTES:
+/// - Tests user_management.dart error handling for wrong password
+/// - Validates appropriate error message appears in UI
+/// - Confirms user stays on LoginPage and is not authenticated
 Future<void> runSignInWrongPassword(
   WidgetTester tester,
   SharedPreferences sharedPreferences,
 ) async {
-  print('\n[6/8] Testing sign in with wrong password...');
+  _TestLogger.logTestStart('6/10', 'sign in with wrong password');
 
   final testEmail = TestConfig.testEmail;
   final wrongPassword = 'wrongPassword999';
 
   // Launch the app
-  await TestHelpers.pumpAndSettleApp(tester, false);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, false);
+  await _LoginTestActions.navigateToLoginPage(tester);
+
   expect(find.byType(LoginPage), findsOneWidget);
 
   // Enter credentials with wrong password
-  final usernameField = find.byType(TextFormField).first;
-  final passwordField = find.byType(TextFormField).last;
+  await _LoginTestActions.performLogin(
+    tester,
+    email: testEmail,
+    password: wrongPassword,
+  );
 
-  await TestHelpers.enterText(tester, usernameField, testEmail);
-  await TestHelpers.enterText(tester, passwordField, wrongPassword);
+  // VERIFY: Should still be on LoginPage
+  _LoginTestActions.verifyLoginFailed(tester, 'Wrong password');
+  _TestLogger.logSuccess('Stayed on LoginPage after wrong password');
 
-  // Submit login
-  final submitButton = find.byKey(const Key('login_submit_button'));
-  await TestHelpers.tapWidget(tester, submitButton);
+  // VERIFY: Error message appears in UI
+  var localizations = TestHelpers.getAppLocalizations(tester, LoginPage);
+  final errorMessage = find.text(localizations.wrong_password_entered);
 
-  await tester.pump(const Duration(seconds: 2));
+  expect(
+    errorMessage.evaluate().isNotEmpty,
+    true,
+    reason: 'Error message should appear in UI for wrong password',
+  );
+  _TestLogger.logSuccess('Error message displayed for wrong password');
 
-  // Should show error message
-  final errorMessage = find.textContaining('password');
-  if (errorMessage.evaluate().isNotEmpty) {
-    print('✓ Error message displayed for wrong password');
-  } else {
-    print('⚠ Error message not found (might be handled differently)');
-  }
-
-  // Should still be on LoginPage
-  expect(find.byType(LoginPage), findsOneWidget);
-  print('✓ Still on LoginPage after failed login');
+  // VERIFY: User is not authenticated
+  final currentUser = FirebaseAuth.instance.currentUser;
+  expect(currentUser, isNull, reason: 'User should not be authenticated');
+  _TestLogger.logSuccess('User is not authenticated (as expected)');
 }
 
 /// Test 7: Sign in with invalid email format
+///
+/// DESIGN NOTES:
+/// - Tests form validation or Firebase error handling for invalid email
+/// - Validates appropriate error message appears in UI
+/// - Confirms user stays on LoginPage
 Future<void> runSignInInvalidEmail(
   WidgetTester tester,
   SharedPreferences sharedPreferences,
 ) async {
-  print('\n[7/8] Testing sign in with invalid email format...');
-
-  final invalidEmail = 'notanemail';
-  final testPassword = 'password123';
+  _TestLogger.logTestStart('7/10', 'sign in with invalid email format');
 
   // Launch the app
-  await TestHelpers.pumpAndSettleApp(tester, false);
+  await TestHelpers.pumpAndSettleApp(tester);
+  await _LoginTestActions.navigateToLoginPage(tester);
+
   expect(find.byType(LoginPage), findsOneWidget);
 
-  // Enter invalid email
-  final usernameField = find.byType(TextFormField).first;
-  final passwordField = find.byType(TextFormField).last;
+  var localizations = TestHelpers.getAppLocalizations(tester, LoginPage);
 
-  await TestHelpers.enterText(tester, usernameField, invalidEmail);
-  await TestHelpers.enterText(tester, passwordField, testPassword);
+  //Use Case 1 : Invalid email format(missing domain qualifier)
+  await _LoginTestActions.verifyLoginFailsOnInvalidEntry(
+      tester,
+      'invalid@email',
+      'password',
+      'Invalid email format',
+      'Stayed on LoginPage after invalid email',
+      localizations.enterValidEmail);
 
-  // Submit login
-  final submitButton = find.byKey(const Key('login_submit_button'));
-  await TestHelpers.tapWidget(tester, submitButton);
+  //Use Case 2 : Invalid email format(missing domain and domain qualifier)
+  await _LoginTestActions.verifyLoginFailsOnInvalidEntry(
+      tester,
+      'invalid',
+      'password',
+      'Invalid email format',
+      'Stayed on LoginPage after invalid email',
+      localizations.enterValidEmail);
 
-  await tester.pump(const Duration(seconds: 2));
+  //Use Case 3 : Invalid email format(missing domain and domain qualifier with just @)
+  await _LoginTestActions.verifyLoginFailsOnInvalidEntry(
+      tester,
+      'invalid@',
+      'password',
+      'Invalid email format',
+      'Stayed on LoginPage after invalid email',
+      localizations.enterValidEmail);
 
-  // Should show error message
-  print('✓ Invalid email format handled');
+  //Password must be 8-20 characters long and include an uppercase letter, a lowercase letter, a digit, and a special character
+  //Use Case 4 : Weak password(password less than)
+  await _LoginTestActions.verifyLoginFailsOnInvalidEntry(
+      tester,
+      'invalid@',
+      'password',
+      'Invalid email format',
+      'Stayed on LoginPage after invalid email',
+      localizations.enterValidEmail);
 
-  // Should still be on LoginPage
-  expect(find.byType(LoginPage), findsOneWidget);
+  // VERIFY: User is not authenticated
+  final currentUser = FirebaseAuth.instance.currentUser;
+  expect(currentUser, isNull, reason: 'User should not be authenticated');
+  _TestLogger.logSuccess('User is not authenticated (as expected)');
 }
 
-/// Test 8: Sign in with non-existent user
+/// Test 8: Sign up with weak password
+///
+/// DESIGN NOTES:
+/// - Tests form validation or Firebase error handling for weak password
+/// - Validates appropriate error message appears in UI
+/// - Confirms user stays on LoginPage
+Future<void> runSignUpWeakPassword(
+  WidgetTester tester,
+  SharedPreferences sharedPreferences,
+) async {
+  _TestLogger.logTestStart('8/10', 'sign up with weak password');
+
+  // Launch the app and navigate to Sign Up tab
+  await TestHelpers.pumpAndSettleApp(tester);
+  await _LoginTestActions.navigateToLoginPage(tester);
+  expect(find.byType(LoginPage), findsOneWidget);
+  await _LoginTestActions.switchToSignUpTab(tester);
+  _TestLogger.logInfo('Switched to Sign Up tab');
+
+  var localizations = TestHelpers.getAppLocalizations(tester, LoginPage);
+
+  var userEmail = 'username@example.com';
+  var verificationSuccessMessage = 'Stayed on LoginPage after weak password';
+  var passwordPolicyErrorMessage = localizations.password_policy;
+
+  //Use Case 1 : Weak password(less than 8 characters)
+  await _LoginTestActions.verifyLoginFailsOnInvalidEntry(
+      tester,
+      userEmail,
+      'pasword',
+      'Password contains less than 8 characters',
+      verificationSuccessMessage,
+      passwordPolicyErrorMessage);
+
+  //Use Case 2 : Weak password(more than 20 characters)
+  await _LoginTestActions.verifyLoginFailsOnInvalidEntry(
+      tester,
+      userEmail,
+      r'invalidpasswordentry@123$',
+      'Password contains more than 20 characters',
+      verificationSuccessMessage,
+      passwordPolicyErrorMessage);
+
+  //Use Case 3 : Weak password(must contain uppercase letter)
+  await _LoginTestActions.verifyLoginFailsOnInvalidEntry(
+      tester,
+      userEmail,
+      r'password@123$',
+      'Password must contain an uppercase letter',
+      verificationSuccessMessage,
+      passwordPolicyErrorMessage);
+
+  //Use Case 4 : Weak password(must contain lowercase letter)
+  await _LoginTestActions.verifyLoginFailsOnInvalidEntry(
+      tester,
+      userEmail,
+      r'PASSWORD@123$',
+      'Password must contain an lowercase letter',
+      verificationSuccessMessage,
+      passwordPolicyErrorMessage);
+
+  //Use Case 5 : Weak password(must contain a digit)
+  await _LoginTestActions.verifyLoginFailsOnInvalidEntry(
+      tester,
+      userEmail,
+      r'Password$',
+      'Password must contain a digit',
+      verificationSuccessMessage,
+      passwordPolicyErrorMessage);
+
+  //Use Case 6 : Weak password(must contain a special character)
+  await _LoginTestActions.verifyLoginFailsOnInvalidEntry(
+      tester,
+      userEmail,
+      'Password123',
+      'Password must contain a special character',
+      verificationSuccessMessage,
+      passwordPolicyErrorMessage);
+
+  // VERIFY: User is not authenticated
+  final currentUser = FirebaseAuth.instance.currentUser;
+  expect(currentUser, isNull, reason: 'User should not be authenticated');
+  _TestLogger.logSuccess('User is not authenticated (as expected)');
+}
+
+/// Test 9: Sign in with non-existent user
+///
+/// DESIGN NOTES:
+/// - Tests Firebase error handling for non-existent user
+/// - Validates appropriate error message appears in UI
+/// - Confirms user stays on LoginPage and is not authenticated
 Future<void> runSignInNonExistentUser(
   WidgetTester tester,
   SharedPreferences sharedPreferences,
 ) async {
-  print('\n[8/8] Testing sign in with non-existent user...');
+  _TestLogger.logTestStart('9/10', 'sign in with non-existent user');
 
   final nonExistentEmail = 'nonexistent@example.com';
-  final testPassword = 'password123';
+  final testPassword = r'Password123$';
 
   // Launch the app
-  await TestHelpers.pumpAndSettleApp(tester, false);
+  await TestHelpers.pumpAndSettleApp(tester);
+  await _LoginTestActions.navigateToLoginPage(tester);
+
   expect(find.byType(LoginPage), findsOneWidget);
 
-  // Enter non-existent user credentials
-  final usernameField = find.byType(TextFormField).first;
-  final passwordField = find.byType(TextFormField).last;
+  // Attempt to sign in with non-existent user
+  await _LoginTestActions.performLogin(
+    tester,
+    email: nonExistentEmail,
+    password: testPassword,
+  );
 
-  await TestHelpers.enterText(tester, usernameField, nonExistentEmail);
-  await TestHelpers.enterText(tester, passwordField, testPassword);
+  await tester.pumpAndSettle();
 
-  // Submit login
-  final submitButton = find.byKey(const Key('login_submit_button'));
-  await TestHelpers.tapWidget(tester, submitButton);
+  // VERIFY: Should still be on LoginPage
+  _LoginTestActions.verifyLoginFailed(tester, 'User not found');
+  _TestLogger.logSuccess('Stayed on LoginPage after non-existent user');
 
-  await tester.pump(const Duration(seconds: 2));
+  // VERIFY: Error message appears in UI
+  await tester.pump(const Duration(seconds: 1));
+  var localizations = TestHelpers.getAppLocalizations(tester, LoginPage);
+  final notFoundError = find.textContaining(localizations.noSuchUserExists);
 
-  // Should show error message
-  final errorMessage = find.textContaining('not found');
-  if (errorMessage.evaluate().isNotEmpty) {
-    print('✓ Error message displayed for non-existent user');
-  } else {
-    // Check for registration suggestion
-    final registerMessage = find.textContaining('register');
-    if (registerMessage.evaluate().isNotEmpty) {
-      print('✓ Registration suggestion displayed');
-    } else {
-      print('⚠ Error message not found (might be handled differently)');
-    }
-  }
+  expect(
+    notFoundError.evaluate().isNotEmpty,
+    true,
+    reason: 'Error message should appear in UI for non-existent user',
+  );
+  _TestLogger.logSuccess('Error message displayed for non-existent user');
 
-  // Should still be on LoginPage
-  expect(find.byType(LoginPage), findsOneWidget);
-  print('✓ Still on LoginPage after failed login');
+  // VERIFY: User is not authenticated
+  final currentUser = FirebaseAuth.instance.currentUser;
+  expect(currentUser, isNull, reason: 'User should not be authenticated');
+  _TestLogger.logSuccess('User is not authenticated (as expected)');
 }
 
-/// Test 9: Sign out functionality
+/// Test 10: Sign out functionality
+///
+/// DESIGN NOTES:
+/// - Tests sign out clears auth, cache, and Firestore listeners
+/// - Validates user is signed out and returns to LoginPage
 Future<void> runSignOutTest(
   WidgetTester tester,
   SharedPreferences sharedPreferences,
 ) async {
-  print('\n[9/9] Testing sign out functionality...');
+  _TestLogger.logTestStart('10/10', 'sign out functionality');
 
   // First, sign in
   final testEmail = TestConfig.testEmail;
   final testPassword = TestConfig.testPassword;
 
-  await TestHelpers.pumpAndSettleApp(tester, false);
+  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await _LoginTestActions.navigateToLoginPage(tester);
+
   expect(find.byType(LoginPage), findsOneWidget);
 
   // Sign in
-  final usernameField = find.byType(TextFormField).first;
-  final passwordField = find.byType(TextFormField).last;
+  await _LoginTestActions.performLogin(
+    tester,
+    email: testEmail,
+    password: testPassword,
+  );
 
-  await TestHelpers.enterText(tester, usernameField, testEmail);
-  await TestHelpers.enterText(tester, passwordField, testPassword);
-
-  final submitButton = find.byKey(const Key('login_submit_button'));
-  await TestHelpers.tapWidget(tester, submitButton);
-
-  await tester.pump(const Duration(seconds: 2));
-
-  // Wait for HomePage
+  // VERIFY: Successfully signed in
   try {
-    await TestHelpers.waitForWidget(
-      tester,
-      find.byType(HomePage),
-      timeout: const Duration(seconds: 15),
-    );
-    print('✓ Signed in successfully');
+    await _LoginTestActions.verifySuccessfulLogin(tester);
+    _TestLogger.logSuccess('Signed in successfully');
   } catch (e) {
-    print('⚠ HomePage not found, continuing with sign out test');
+    _TestLogger.logWarning(
+        'HomePage not found, but continuing with sign out test');
   }
 
-  // Now sign out
-  final logoutButton = find.byKey(const Key('logout_button'));
-  if (logoutButton.evaluate().isNotEmpty) {
-    await TestHelpers.tapWidget(tester, logoutButton);
-    await tester.pump(const Duration(seconds: 2));
+  // VERIFY: User is authenticated
+  var currentUser = FirebaseAuth.instance.currentUser;
+  expect(currentUser, isNotNull,
+      reason: 'User should be authenticated after login');
+  _TestLogger.logSuccess('User is authenticated');
 
-    // Should return to LoginPage
-    await TestHelpers.waitForWidget(
-      tester,
-      find.byType(LoginPage),
-      timeout: const Duration(seconds: 5),
-    );
-    print('✓ Successfully signed out');
-    print('✓ Navigated back to LoginPage');
-  } else {
-    print('⚠ Logout button not found');
+  // TEST: Sign out
+  final logoutButton = find.byIcon(Icons.logout);
+  if (logoutButton.evaluate().isEmpty) {
+    _TestLogger.logWarning('Logout button not found - test may be incomplete');
+    fail('Logout button should be present after successful login');
   }
 
-  // Verify Firebase Auth state
-  final currentUser = FirebaseAuth.instance.currentUser;
+  await TestHelpers.tapWidget(tester, logoutButton);
+
+  // VERIFY: Returned to LoginPage
+  await TestHelpers.waitForWidget(
+    tester,
+    find.byType(StartupPage),
+    timeout: const Duration(seconds: 5),
+  );
+  _TestLogger.logSuccess('Successfully signed out');
+  _TestLogger.logSuccess('Navigated back to StartupPage');
+
+  // VERIFY: Firebase Auth state cleared
+  currentUser = FirebaseAuth.instance.currentUser;
   expect(currentUser, isNull, reason: 'User should be null after sign out');
-  print('✓ Firebase Auth state cleared');
+  _TestLogger.logSuccess('Firebase Auth state cleared');
 
-  // Verify SharedPreferences cleared
+  // VERIFY: SharedPreferences cleared
   final userID = sharedPreferences.getString('userID');
   expect(userID, isNull, reason: 'UserID should be cleared from cache');
-  print('✓ Local cache cleared');
+  _TestLogger.logSuccess('Local cache cleared');
 }
 
-/// Test 10: Firestore document verification after sign in
-Future<void> runFirestoreDocumentVerification(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
-  print('\n[10/10] Testing Firestore document structure...');
+// ============================================================================
+// HELPER CLASSES - Following Single Responsibility Principle
+// ============================================================================
 
-  final testEmail = 'firestore-test@example.com';
-  final testPassword = 'password123';
+/// Helper class for authentication test setup (SRP: Test data creation)
+class _AuthTestSetup {
+  /// Create an unverified user (for testing verification flow)
+  static Future<void> createUnverifiedUser({
+    required String email,
+    required String password,
+  }) async {
+    await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    await FirebaseAuth.instance.signOut();
+  }
 
-  // Create and sign in user
-  await FirebaseEmulatorHelper.createFirebaseAuthUser(
-      email: testEmail, password: testPassword, shouldAddToFirestore: false);
-
-  // Verify Firestore document structure
-  final querySnapshot = await FirebaseFirestore.instance
-      .collection('users')
-      .where('userName', isEqualTo: testEmail)
-      .get();
-
-  expect(querySnapshot.docs.isNotEmpty, true,
-      reason: 'User document should exist');
-
-  final userDoc = querySnapshot.docs.first;
-  final userData = userDoc.data();
-
-  // Verify document fields
-  expect(userData.containsKey('userName'), true);
-  expect(userData.containsKey('authType'), true);
-  expect(userData['userName'], testEmail);
-  expect(userData['authType'], 'emailPassword');
-
-  print('✓ Firestore document structure validated');
-  print('  - userName: ${userData['userName']}');
-  print('  - authType: ${userData['authType']}');
-  print('  - documentId: ${userDoc.id}');
+  /// Verify email verification status
+  static Future<bool> verifyEmailWasVerified(
+      String email, String password) async {
+    await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    final user = FirebaseAuth.instance.currentUser;
+    final isVerified = user?.emailVerified ?? false;
+    await FirebaseAuth.instance.signOut();
+    return isVerified;
+  }
 }
 
-Future<void> _ensureLoginPageIsDisplayed(WidgetTester tester) async {
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final nextButton = find.byIcon(Icons.navigate_next_rounded);
-    await TestHelpers.tapWidget(tester, nextButton);
-    print('✓ Navigate to LoginPage');
+/// Helper class for login UI interactions (SRP: UI testing)
+class _LoginTestActions {
+  /// Navigate to login page (handles screen size differences)
+  static Future<void> navigateToLoginPage(WidgetTester tester) async {
+    if (!TestHelpers.isLargeScreen(tester)) {
+      final nextButton = find.byIcon(Icons.navigate_next_rounded);
+      if (nextButton.evaluate().isNotEmpty) {
+        await TestHelpers.tapWidget(tester, nextButton);
+        print('✓ Navigated to LoginPage');
+      }
+    }
+  }
+
+  /// Perform login with credentials
+  static Future<void> performLogin(
+    WidgetTester tester, {
+    required String email,
+    required String password,
+  }) async {
+    final usernameField = find.byType(TextFormField).first;
+    final passwordField = find.byType(TextFormField).last;
+
+    await TestHelpers.enterText(tester, usernameField, email);
+    await TestHelpers.enterText(tester, passwordField, password);
+
+    final submitButton = find.byKey(const Key('login_submit_button'));
+    await TestHelpers.tapWidget(tester, submitButton);
+
+    // Wait for authentication processing
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+  }
+
+  /// Verify successful login navigation
+  static Future<void> verifySuccessfulLogin(WidgetTester tester) async {
+    await TestHelpers.waitForWidget(
+      tester,
+      find.byType(TripProvider),
+      timeout: const Duration(seconds: 8),
+    );
+  }
+
+  /// Verify login failed (still on LoginPage)
+  static void verifyLoginFailed(WidgetTester tester, String reason) {
+    expect(find.byType(LoginPage), findsOneWidget,
+        reason: 'Should still be on LoginPage: $reason');
+  }
+
+  /// Switch to Register tab on LoginPage
+  static Future<void> switchToSignUpTab(WidgetTester tester) async {
+    // Find the Register tab by text
+    final registerTab = find.text('Register');
+
+    // Verify the tab exists
+    expect(registerTab, findsOneWidget,
+        reason: 'Register tab should be present on LoginPage');
+
+    print('✓ Found Register tab, tapping it now');
+
+    // Tap the Register tab
+    await tester.tap(registerTab);
+    await tester.pumpAndSettle();
+
+    // Give the tab animation time to complete
+    await tester.pump(const Duration(milliseconds: 300));
+
+    print('✓ Switched to Register tab');
+  }
+
+  /// Perform sign up with credentials
+  static Future<void> performSignUp(
+    WidgetTester tester, {
+    required String email,
+    required String password,
+  }) async {
+    // Find text fields in the sign up tab
+    final usernameField = find.byType(TextFormField).first;
+    final passwordField = find.byType(TextFormField).last;
+
+    await TestHelpers.enterText(tester, usernameField, email);
+    await TestHelpers.enterText(tester, passwordField, password);
+
+    // The submit button is the same for both login and register
+    // The behavior changes based on which tab is active (tabController.index)
+    final submitButton = find.byKey(const Key('login_submit_button'));
+
+    // Verify button exists
+    expect(submitButton, findsOneWidget,
+        reason: 'Submit button should be present');
+
+    await TestHelpers.tapWidget(tester, submitButton);
+
+    // Wait for authentication processing
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+  }
+
+  /// Verify that the verification pending message appears in the UI
+  static Future<void> verifyVerificationPendingMessage(
+      WidgetTester tester) async {
+    // Look for the verification pending message text
+    var localizations = TestHelpers.getAppLocalizations(tester, LoginPage);
+    final verificationMessage = find.text(localizations.verificationPending);
+
+    expect(verificationMessage.evaluate().isNotEmpty, true,
+        reason: 'Verification pending message should appear in UI. ');
+  }
+
+  static Future<void> verifyLoginFailsOnInvalidEntry(
+      WidgetTester tester,
+      String email,
+      String password,
+      String loginFailureMessage,
+      String verificationSuccessMessage,
+      String errorMessage) async {
+    // Enter invalid email
+    await _LoginTestActions.performLogin(
+      tester,
+      email: email,
+      password: password,
+    );
+    // VERIFY: Should still be on LoginPage
+    _LoginTestActions.verifyLoginFailed(tester, 'Invalid email format');
+    _TestLogger.logSuccess('Stayed on LoginPage after invalid email');
+    var errorMessageText = find.textContaining(errorMessage);
+    expect(errorMessageText.evaluate().isNotEmpty, true,
+        reason: 'Error message should appear in UI for invalid entry');
+  }
+}
+
+/// Helper class for Firestore verification (SRP: Data validation)
+class _FirestoreTestVerifier {
+  /// Verify user document exists in Firestore
+  static Future<void> verifyUserDocumentExists(String email) async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('userName', isEqualTo: email)
+        .get();
+
+    expect(querySnapshot.docs.length, 1,
+        reason: 'One user document should exist in Firestore for $email');
+  }
+
+  /// Verify user document does NOT exist in Firestore
+  static Future<void> verifyUserDocumentDoesNotExist(String email) async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('userName', isEqualTo: email)
+        .get();
+
+    expect(querySnapshot.docs.isEmpty, true,
+        reason: 'User document should NOT exist in Firestore for $email');
+  }
+
+  /// Verify document structure and fields
+  static Future<Map<String, dynamic>> verifyDocumentStructure(
+      String email) async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('userName', isEqualTo: email)
+        .get();
+
+    expect(querySnapshot.docs.isNotEmpty, true,
+        reason: 'User document should exist');
+
+    final userData = querySnapshot.docs.first.data();
+
+    expect(userData.containsKey('userName'), true);
+    expect(userData.containsKey('authType'), true);
+    expect(userData['userName'], email);
+    expect(userData['authType'], AuthenticationType.emailPassword.name);
+
+    return userData;
+  }
+}
+
+/// Helper class for test logging (SRP: Logging and reporting)
+class _TestLogger {
+  static void logTestStart(String testNumber, String description) {
+    print('\n[$testNumber] Testing $description...');
+  }
+
+  static void logSuccess(String message) {
+    print('✓ $message');
+  }
+
+  static void logWarning(String message) {
+    print('⚠ $message');
+  }
+
+  static void logError(String message) {
+    print('✗ $message');
+  }
+
+  static void logInfo(String message) {
+    print('  - $message');
   }
 }
