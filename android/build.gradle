@@ -22,14 +22,14 @@ allprojects {
     }
 }
 
-rootProject.layout.buildDirectory.set(file("../build"))
+rootProject.buildDir = new File(rootProject.projectDir, "../build")
 subprojects {
-    project.layout.buildDirectory.set(new File(rootProject.layout.buildDirectory.get().asFile, project.name))
+    buildDir = new File(rootProject.buildDir, project.name)
 }
 subprojects {
     project.evaluationDependsOn(":app")
 }
 
 tasks.register("clean", Delete) {
-    delete rootProject.layout.buildDirectory.get().asFile
+    delete rootProject.buildDir
 }
