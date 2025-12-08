@@ -26,7 +26,7 @@ Future<void> runHomePageLayoutTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Verify HomePage is displayed
   expect(find.byType(HomePage), findsOneWidget);
@@ -59,14 +59,14 @@ Future<void> runHomePageLanguageSwitchTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   final context = tester.element(find.byType(HomePage));
   final appDataRepository = RepositoryProvider.of<AppDataFacade>(context);
   expect(appDataRepository.activeLanguage, 'en',
       reason: 'Default language in AppDataRepository should be english');
   final defaultLocale = Localizations.localeOf(context);
-  expect(defaultLocale, 'en',
+  expect(defaultLocale.languageCode, 'en',
       reason: 'Default language applied in MaterialApp should be english');
 
   // Verify HomePage is displayed
@@ -88,7 +88,7 @@ Future<void> runHomePageThemeSwitchTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Verify HomePage is displayed
   expect(find.byType(HomePage), findsOneWidget);
@@ -117,7 +117,7 @@ Future<void> runHomePageEmptyTripsTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Verify HomePage is displayed
   expect(find.byType(HomePage), findsOneWidget);
@@ -137,7 +137,7 @@ Future<void> runHomePageCreateTripFlowTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Verify HomePage is displayed
   expect(find.byType(HomePage), findsOneWidget);
@@ -172,12 +172,11 @@ Future<void> runHomePageCreateTripFlowTest(
       reason: 'First possible selectable date should be today');
 
   // Select range: Current day plus 15 days.
-  await _selectDateRange(tester, currentDateTime, 15);
+  await TestHelpers.selectDateRange(tester, false, currentDateTime, 15);
 
   // Enter budget
   var budget = Money(currency: 'EUR', amount: 50000);
-  await _enterExpenseAmountInMoneyEditField(tester, budget.amount);
-  await _selectCurrencyInMoneyEditField(tester, budget.currency);
+  await TestHelpers.enterMoneyAmount(tester, budget);
 
   // Tap submit button
   await TestHelpers.tapWidget(tester, find.byType(PlatformSubmitterFAB),
@@ -239,25 +238,6 @@ void _matchDate(DateTime actualDateTime, DateTime expectedDateTime,
       }, reason ?? 'Date should be ${expectedDateTime.dayDateMonthFormat}'));
 }
 
-Future<void> _enterExpenseAmountInMoneyEditField(
-    WidgetTester tester, double expense) async {
-  var textField = find.byKey(Key('ExpenseAmountEditField_TextField'));
-  await tester.enterText(textField, expense.toString());
-}
-
-Future<void> _selectCurrencyInMoneyEditField(
-    WidgetTester tester, String currency) async {
-  await TestHelpers.tapWidget(
-      tester, find.byKey(Key('PlatformMoneyEditField_CurrencyPickerButton')));
-  var searchField = find.byKey(Key('PlatformMoneyEditField_TextField'));
-  await tester.enterText(searchField, currency);
-  await tester.pumpAndSettle(); // Wait for filtered list to render
-
-  final currencyListTile =
-      find.byKey(Key('PlatformMoneyEditField_CurrencyListTile_$currency'));
-  await TestHelpers.tapWidget(tester, currencyListTile, warnIfMissed: false);
-}
-
 Future _changeLanguageAndVerifyLocale(
     String locale, WidgetTester tester) async {
   // Find and tap the toolbar menu
@@ -309,20 +289,4 @@ Future<void> _switchAndVerifyThemeMode(
 Future<void> _openToolbar(WidgetTester tester) async {
   final toolbarButton = find.byIcon(Icons.settings);
   await TestHelpers.tapWidget(tester, toolbarButton);
-}
-
-Future<void> _selectDateRange(
-    WidgetTester tester, DateTime tripStartDate, int numberOfTripDays) async {
-  await TestHelpers.tapWidget(tester, find.text(tripStartDate.day.toString()));
-  final tripEndDate = tripStartDate.add(Duration(days: numberOfTripDays));
-  if (tripStartDate.month < tripEndDate.month) {
-    await TestHelpers.tapWidget(tester, find.byIcon(Icons.navigate_next));
-  }
-  await TestHelpers.tapWidget(tester, find.text(tripEndDate.day.toString()));
-
-  final doneButton = find.descendant(
-    of: find.byType(CalendarDatePicker2WithActionButtons),
-    matching: find.byIcon(Icons.done_rounded),
-  );
-  await TestHelpers.tapWidget(tester, doneButton, warnIfMissed: false);
 }

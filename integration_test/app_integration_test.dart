@@ -4,6 +4,8 @@ import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'helpers/firebase_emulator_helper.dart';
+import 'helpers/mock_location_api_service.dart';
+import 'helpers/test_config.dart';
 import 'helpers/test_helpers.dart';
 import 'tests/authentication_comprehensive_test.dart';
 import 'tests/budgeting_page_test.dart';
@@ -21,6 +23,7 @@ void main() {
     late SharedPreferences sharedPreferences;
 
     setUpAll(() async {
+      sharedPreferences = await SharedPreferences.getInstance();
       try {
         await Firebase.initializeApp();
       } catch (e) {
@@ -34,19 +37,17 @@ void main() {
       FirebaseEmulatorHelper.reset();
     });
 
-    setUp(() async {
-      // Reset shared preferences for each test
-      SharedPreferences.setMockInitialValues({});
-      sharedPreferences = await SharedPreferences.getInstance();
-      await sharedPreferences.clear();
-    });
-
-    tearDown(() async {
-      // Clean up after each test: sign out user and clear Firestore data
-      await FirebaseEmulatorHelper.cleanupAfterTest();
-    });
-
     group('Startup Page Tests', () {
+      setUp(() async {
+        SharedPreferences.setMockInitialValues({});
+        await sharedPreferences.clear();
+      });
+
+      tearDown(() async {
+        await sharedPreferences.clear();
+        await FirebaseEmulatorHelper.cleanupAfterTest();
+      });
+
       testWidgets(
           'adapts layout based on screen size (large: side-by-side, small: navigation)',
           (WidgetTester tester) async {
@@ -54,10 +55,17 @@ void main() {
       });
     });
 
-    // ========================================================================
-    // Comprehensive Authentication & Firestore Tests (user_management.dart)
-    // ========================================================================
     group('Authentication & Firestore - UserManagement Tests', () {
+      setUp(() async {
+        SharedPreferences.setMockInitialValues({});
+        await sharedPreferences.clear();
+      });
+
+      tearDown(() async {
+        await sharedPreferences.clear();
+        await FirebaseEmulatorHelper.cleanupAfterTest();
+      });
+
       testWidgets('Sign in with existing user (has Firestore document)',
           (WidgetTester tester) async {
         await runSignInExistingUserWithFirestoreDoc(tester, sharedPreferences);
@@ -110,6 +118,23 @@ void main() {
     });
 
     group('Home Page Tests', () {
+      setUpAll(() async {
+        await FirebaseEmulatorHelper.createFirebaseAuthUser(
+          email: TestConfig.testEmail,
+          password: TestConfig.testPassword,
+          shouldAddToFirestore: true,
+          shouldSignIn: true,
+        );
+        // Initialize mock location API service to intercept HTTP requests
+        // Note: This creates a MockClient that can be injected into GeoLocator
+        await MockLocationApiService.initialize();
+      });
+
+      tearDownAll(() async {
+        await FirebaseEmulatorHelper.cleanupAfterTest();
+        await sharedPreferences.clear();
+      });
+
       testWidgets(
           'sets isBigLayout to true when screen width >= 1000, and AppBar resizes accordingly',
           (WidgetTester tester) async {
@@ -140,7 +165,6 @@ void main() {
     group('Trip Editor Page Tests', () {
       setUp(() async {
         // Setup authenticated state and create a test trip
-        await TestHelpers.setupAuthenticatedState(sharedPreferences);
         await TestHelpers.createTestTrip(sharedPreferences);
       });
 
@@ -182,7 +206,6 @@ void main() {
     group('Itinerary Viewer Tests', () {
       setUp(() async {
         // Setup authenticated state and create a test trip
-        await TestHelpers.setupAuthenticatedState(sharedPreferences);
         await TestHelpers.createTestTrip(sharedPreferences);
       });
 
@@ -251,7 +274,6 @@ void main() {
     group('Budgeting Page Tests', () {
       setUp(() async {
         // Setup authenticated state and create a test trip
-        await TestHelpers.setupAuthenticatedState(sharedPreferences);
         await TestHelpers.createTestTrip(sharedPreferences);
       });
 
@@ -336,7 +358,6 @@ void main() {
     group('TripEntity CRUD Tests', () {
       setUp(() async {
         // Setup authenticated state and create a test trip
-        await TestHelpers.setupAuthenticatedState(sharedPreferences);
         await TestHelpers.createTestTrip(sharedPreferences);
       });
 
@@ -434,7 +455,6 @@ void main() {
     group('Multi-Collaborator Tests', () {
       setUp(() async {
         // Setup authenticated state and create a test trip
-        await TestHelpers.setupAuthenticatedState(sharedPreferences);
         await TestHelpers.createTestTrip(sharedPreferences);
       });
 

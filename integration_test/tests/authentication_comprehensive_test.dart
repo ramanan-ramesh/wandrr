@@ -260,7 +260,13 @@ Future<void> runSignUpExistingEmail(
   final testPassword = TestConfig.testPassword;
 
   // TEST: Launch app and navigate to sign up on LoginPage
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, false);
+  await FirebaseEmulatorHelper.createFirebaseAuthUser(
+    email: TestConfig.testEmail,
+    password: TestConfig.testPassword,
+    shouldAddToFirestore: true,
+    shouldSignIn: false,
+  );
+  await TestHelpers.pumpAndSettleApp(tester);
   await _LoginTestActions.navigateToLoginPage(tester);
 
   expect(find.byType(LoginPage), findsOneWidget);
@@ -316,7 +322,13 @@ Future<void> runSignInWrongPassword(
   final wrongPassword = r'WrongPassword123$';
 
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, false);
+  await FirebaseEmulatorHelper.createFirebaseAuthUser(
+    email: TestConfig.testEmail,
+    password: TestConfig.testPassword,
+    shouldAddToFirestore: true,
+    shouldSignIn: false,
+  );
+  await TestHelpers.pumpAndSettleApp(tester);
   await _LoginTestActions.navigateToLoginPage(tester);
 
   expect(find.byType(LoginPage), findsOneWidget);
@@ -564,7 +576,13 @@ Future<void> runSignOutTest(
   final testEmail = TestConfig.testEmail;
   final testPassword = TestConfig.testPassword;
 
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, false);
+  await FirebaseEmulatorHelper.createFirebaseAuthUser(
+    email: TestConfig.testEmail,
+    password: TestConfig.testPassword,
+    shouldAddToFirestore: true,
+    shouldSignIn: false,
+  );
+  await TestHelpers.pumpAndSettleApp(tester);
   await _LoginTestActions.navigateToLoginPage(tester);
 
   expect(find.byType(LoginPage), findsOneWidget);

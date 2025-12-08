@@ -1,14 +1,15 @@
+import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wandrr/data/auth/models/auth_type.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/app/pages/master_page/master_page.dart';
+import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 
 import 'firebase_emulator_helper.dart';
 import 'test_config.dart';
 
-/// Helper utilities for integration tests
 class TestHelpers {
   /// Test credentials
   static const String testUsername = TestConfig.testEmail;
@@ -42,25 +43,12 @@ class TestHelpers {
     );
 
     final sharedPreferences = await SharedPreferences.getInstance();
-    if (shouldSignIn) {
-      await sharedPreferences.setString(
-          'authType', AuthenticationType.emailPassword.name);
-    }
     await tester.pumpWidget(MasterPage(sharedPreferences));
     await tester.pumpAndSettle();
     // Wait for native splash screen to complete (Android/iOS)
     await _waitForNativeSplashScreen(tester);
     // Log device size after splash screen
     print(_getDeviceSizeDescription(tester));
-  }
-
-  /// Setup authenticated state for tests
-  static Future<void> setupAuthenticatedState(
-      SharedPreferences sharedPreferences) async {
-    // Set authentication flags in shared preferences
-    // Note: Adjust these keys based on your actual implementation
-    await sharedPreferences.setString('user_id', TestConfig.testUserId);
-    await sharedPreferences.setBool('is_authenticated', true);
   }
 
   static AppLocalizations getAppLocalizations(WidgetTester tester, Type type) {
@@ -124,6 +112,44 @@ class TestHelpers {
     }
 
     throw Exception('Widget not found within timeout: $finder');
+  }
+
+  static Future<void> selectDateRange(
+      WidgetTester tester,
+      bool shouldOpenDateRangePickerDialog,
+      DateTime tripStartDate,
+      int numberOfDays) async {
+    if (shouldOpenDateRangePickerDialog) {
+      final dateRangePicker = find.byType(PlatformDateRangePicker);
+      await TestHelpers.tapWidget(tester, dateRangePicker);
+    }
+    await TestHelpers.tapWidget(
+        tester, find.text(tripStartDate.day.toString()));
+    final tripEndDate = tripStartDate.add(Duration(days: numberOfDays));
+    if (tripStartDate.month < tripEndDate.month) {
+      await TestHelpers.tapWidget(tester, find.byIcon(Icons.navigate_next));
+    }
+    await TestHelpers.tapWidget(tester, find.text(tripEndDate.day.toString()));
+
+    final doneButton = find.descendant(
+      of: find.byType(CalendarDatePicker2WithActionButtons),
+      matching: find.byIcon(Icons.done_rounded),
+    );
+    await TestHelpers.tapWidget(tester, doneButton, warnIfMissed: false);
+  }
+
+  static Future<void> enterMoneyAmount(WidgetTester tester, Money money) async {
+    var textField = find.byKey(Key('ExpenseAmountEditField_TextField'));
+    await tester.enterText(textField, money.amount.toString());
+    await TestHelpers.tapWidget(
+        tester, find.byKey(Key('PlatformMoneyEditField_CurrencyPickerButton')));
+    var searchField = find.byKey(Key('PlatformMoneyEditField_TextField'));
+    await tester.enterText(searchField, money.currency);
+    await tester.pumpAndSettle(); // Wait for filtered list to render
+
+    final currencyListTile = find.byKey(
+        Key('PlatformMoneyEditField_CurrencyListTile_${money.currency}'));
+    await TestHelpers.tapWidget(tester, currencyListTile, warnIfMissed: false);
   }
 
   /// Wait for native splash screen to complete (Private helper)

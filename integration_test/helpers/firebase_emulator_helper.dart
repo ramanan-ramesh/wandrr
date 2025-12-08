@@ -4,10 +4,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/data/auth/models/auth_type.dart';
+import 'package:wandrr/data/trip/implementations/api_services/constants.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 
 /// Helper class to configure Firebase to use local emulators for integration tests
+
 class FirebaseEmulatorHelper {
   // Emulator configuration
   // For Android emulator: use 10.0.2.2 (maps to host machine's localhost)
@@ -66,14 +69,69 @@ class FirebaseEmulatorHelper {
     _isConfigured = false;
   }
 
-  /// Get the emulator host based on platform
-  static String getEmulatorHost() {
-    // For Android emulator, use 10.0.2.2
-    // For iOS simulator or web, use localhost
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return '10.0.2.2';
+  /// Setup test data - creates test user
+  static Future<void> createFirebaseAuthUser({
+    required String email,
+    required String password,
+    required bool shouldAddToFirestore,
+    required bool shouldSignIn,
+  }) async {
+    // Create test user in Firebase Auth
+    await _createVerifiedTestUser(
+      email: email,
+      password: password,
+    );
+
+    // Create user document in Firestore
+    if (shouldAddToFirestore) {
+      await _createTestUserDocument(email: email);
+    }
+
+    if (!shouldSignIn) {
+      try {
+        // Sign out after setup
+        await FirebaseAuth.instance.signOut();
+      } catch (e) {
+        if (kDebugMode) {
+          print('✗ Error while signing out: $e');
+        }
+        rethrow;
+      }
     } else {
-      return 'localhost';
+      final sharedPreferences = await SharedPreferences.getInstance();
+      if (shouldSignIn) {
+        await sharedPreferences.setString(
+            'authType', AuthenticationType.emailPassword.name);
+      }
+    }
+
+    if (kDebugMode) {
+      print('--- Test data setup complete ---\n');
+    }
+  }
+
+  /// Complete cleanup - signs out user and clears all Firestore data
+  /// Call this in tearDown() after each test
+  static Future<void> cleanupAfterTest() async {
+    try {
+      if (kDebugMode) {
+        print('\n🧹 Cleaning up after test...');
+      }
+
+      // Sign out any authenticated user
+      await _signOutCurrentUser();
+      await _clearAllAuthUsers();
+
+      // Clear all Firestore data
+      await _clearAllFirestoreData();
+
+      if (kDebugMode) {
+        print('✓ Test cleanup complete\n');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('✗ Error during test cleanup: $e');
+      }
     }
   }
 
@@ -198,54 +256,56 @@ class FirebaseEmulatorHelper {
     }
   }
 
-  /// Setup test data - creates test user
-  static Future<void> createFirebaseAuthUser({
-    required String email,
-    required String password,
-    required bool shouldAddToFirestore,
-    required bool shouldSignIn,
-  }) async {
-    // Create test user in Firebase Auth
-    await _createVerifiedTestUser(
-      email: email,
-      password: password,
-    );
-
-    // Create user document in Firestore
-    if (shouldAddToFirestore) {
-      await _createTestUserDocument(email: email);
-    }
-
-    if (!shouldSignIn) {
-      try {
-        // Sign out after setup
-        await FirebaseAuth.instance.signOut();
-      } catch (e) {
-        if (kDebugMode) {
-          print('✗ Error while signing out: $e');
-        }
-        rethrow;
+  /// Sign out current user if signed in
+  static Future<void> _signOutCurrentUser() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      await FirebaseAuth.instance.signOut();
+      if (kDebugMode) {
+        print('✓ Signed out user: ${currentUser.email}');
       }
-    }
-
-    if (kDebugMode) {
-      print('--- Test data setup complete ---\n');
     }
   }
 
-  /// Clear all test data from emulators
-  static Future<void> clearTestData() async {
+  /// Clear ALL users from Firebase Auth emulator via REST API
+  /// This flushes the entire emulated Auth database for test isolation
+  static Future _clearAllAuthUsers() async {
     try {
-      // Sign out current user
-      await FirebaseAuth.instance.signOut();
-
       if (kDebugMode) {
-        print('✓ User signed out');
+        print('\n--- Clearing ALL Auth users ---');
+      }
+
+      final host = _emulatorHost; // '10.0.2.2' for Android emulator
+      final port = _authEmulatorPort; // 9099
+      const projectId = 'wandrr-15f70'; // From your firebase.json
+
+      // Emulator-specific endpoint to flush/clear all user records
+      final clearUrl =
+          'http://$host:$port/emulator/v1/projects/$projectId/accounts';
+
+      final response = await http.delete(
+        Uri.parse(clearUrl),
+        headers: {
+          'Authorization': 'Bearer owner', // Admin access for emulator
+        },
+      );
+
+      if (response.statusCode == 200) {
+        if (kDebugMode) {
+          print('✓ ALL Auth users cleared successfully');
+        }
+      } else {
+        if (kDebugMode) {
+          print('✗ Failed to clear Auth users: ${response.statusCode}');
+          print('   Response: ${response.body}');
+        }
+        throw Exception('Failed to clear Auth users');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('✗ Error clearing test data: $e');
+        print('✗ Error clearing Auth users: $e');
       }
+      rethrow;
     }
   }
 
@@ -264,6 +324,7 @@ class FirebaseEmulatorHelper {
       final collectionsToDelete = [
         'users',
         FirestoreCollections.appConfig,
+        Constants.apiServicesCollectionName,
         FirestoreCollections.tripMetadataCollectionName,
         FirestoreCollections.tripCollectionName,
         FirestoreCollections.expenseCollectionName,
@@ -319,162 +380,6 @@ class FirebaseEmulatorHelper {
       if (kDebugMode) {
         print('✗ Error clearing Firestore data: $e');
       }
-    }
-  }
-
-  /// Sign out current user if signed in
-  static Future<void> _signOutCurrentUser() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      await FirebaseAuth.instance.signOut();
-      if (kDebugMode) {
-        print('✓ Signed out user: ${currentUser.email}');
-      }
-    }
-  }
-
-  /// Complete cleanup - signs out user and clears all Firestore data
-  /// Call this in tearDown() after each test
-  static Future<void> cleanupAfterTest() async {
-    try {
-      if (kDebugMode) {
-        print('\n🧹 Cleaning up after test...');
-      }
-
-      // Sign out any authenticated user
-      await _signOutCurrentUser();
-      await _clearAllAuthUsers();
-
-      // Clear all Firestore data
-      await _clearAllFirestoreData();
-
-      if (kDebugMode) {
-        print('✓ Test cleanup complete\n');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('✗ Error during test cleanup: $e');
-      }
-    }
-  }
-
-  /// Clear ALL users from Firebase Auth emulator via REST API
-  /// This flushes the entire emulated Auth database for test isolation
-  static Future _clearAllAuthUsers() async {
-    try {
-      if (kDebugMode) {
-        print('\n--- Clearing ALL Auth users ---');
-      }
-
-      final host = _emulatorHost; // '10.0.2.2' for Android emulator
-      final port = _authEmulatorPort; // 9099
-      const projectId = 'wandrr-15f70'; // From your firebase.json
-
-      // Emulator-specific endpoint to flush/clear all user records
-      final clearUrl =
-          'http://$host:$port/emulator/v1/projects/$projectId/accounts';
-
-      final response = await http.delete(
-        Uri.parse(clearUrl),
-        headers: {
-          'Authorization': 'Bearer owner', // Admin access for emulator
-        },
-      );
-
-      if (response.statusCode == 200) {
-        if (kDebugMode) {
-          print('✓ ALL Auth users cleared successfully');
-        }
-      } else {
-        if (kDebugMode) {
-          print('✗ Failed to clear Auth users: ${response.statusCode}');
-          print('   Response: ${response.body}');
-        }
-        throw Exception('Failed to clear Auth users');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('✗ Error clearing Auth users: $e');
-      }
-      rethrow;
-    }
-  }
-
-  /// Delete specific Firestore collection
-  static Future<void> deleteCollection(String collectionName) async {
-    try {
-      final snapshot =
-          await FirebaseFirestore.instance.collection(collectionName).get();
-
-      if (snapshot.docs.isEmpty) {
-        return;
-      }
-
-      final batch = FirebaseFirestore.instance.batch();
-      for (final doc in snapshot.docs) {
-        batch.delete(doc.reference);
-      }
-
-      await batch.commit();
-
-      if (kDebugMode) {
-        print(
-            '✓ Deleted ${snapshot.docs.length} documents from $collectionName');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('✗ Error deleting collection $collectionName: $e');
-      }
-    }
-  }
-
-  /// Get count of documents in a collection (for verification)
-  static Future<int> getCollectionDocumentCount(String collectionName) async {
-    try {
-      final snapshot =
-          await FirebaseFirestore.instance.collection(collectionName).get();
-      return snapshot.docs.length;
-    } catch (e) {
-      if (kDebugMode) {
-        print('✗ Error getting document count for $collectionName: $e');
-      }
-      return 0;
-    }
-  }
-
-  /// Verify cleanup was successful
-  static Future<bool> verifyCleanup() async {
-    try {
-      // Check if user is signed out
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        if (kDebugMode) {
-          print('✗ User still signed in: ${currentUser.email}');
-        }
-        return false;
-      }
-
-      // Check if Firestore collections are empty
-      final collections = ['users', 'trips', 'expenses'];
-      for (final collection in collections) {
-        final count = await getCollectionDocumentCount(collection);
-        if (count > 0) {
-          if (kDebugMode) {
-            print('✗ Collection $collection still has $count documents');
-          }
-          return false;
-        }
-      }
-
-      if (kDebugMode) {
-        print('✓ Cleanup verification passed');
-      }
-      return true;
-    } catch (e) {
-      if (kDebugMode) {
-        print('✗ Error verifying cleanup: $e');
-      }
-      return false;
     }
   }
 }
