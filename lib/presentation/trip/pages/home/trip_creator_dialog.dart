@@ -164,6 +164,7 @@ class TripCreatorDialog extends StatelessWidget {
 
   TextField _createTripNameField(BuildContext context) {
     return TextField(
+      key: Key('TripCreatorDialog_TripNameField'),
       onChanged: _updateTripName,
       textInputAction: TextInputAction.next,
       decoration: InputDecoration(

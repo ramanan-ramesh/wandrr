@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:wandrr/data/auth/models/auth_type.dart';
+import 'package:wandrr/data/trip/implementations/collection_names.dart';
 
 /// Helper class to configure Firebase to use local emulators for integration tests
 class FirebaseEmulatorHelper {
@@ -262,13 +263,13 @@ class FirebaseEmulatorHelper {
       // List of collections to clear
       final collectionsToDelete = [
         'users',
-        'trips',
-        'transits',
-        'stays',
-        'expenses',
-        'sights',
-        'notes',
-        'checklists',
+        FirestoreCollections.appConfig,
+        FirestoreCollections.tripMetadataCollectionName,
+        FirestoreCollections.tripCollectionName,
+        FirestoreCollections.expenseCollectionName,
+        FirestoreCollections.itineraryDataCollectionName,
+        FirestoreCollections.lodgingCollectionName,
+        FirestoreCollections.transitCollectionName,
       ];
 
       int totalDeleted = 0;

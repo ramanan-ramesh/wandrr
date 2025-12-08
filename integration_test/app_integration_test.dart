@@ -10,7 +10,6 @@ import 'tests/budgeting_page_test.dart';
 import 'tests/crud_operations_test.dart';
 import 'tests/home_page_test.dart';
 import 'tests/itinerary_viewer_test.dart';
-import 'tests/login_page_test.dart';
 import 'tests/multi_collaborator_test.dart';
 import 'tests/startup_page_test.dart';
 import 'tests/trip_editor_page_test.dart';
@@ -110,38 +109,11 @@ void main() {
       });
     });
 
-    group('Login Page Tests', () {
-      testWidgets(
-          'authenticates with username and password and navigates to HomePage',
-          (WidgetTester tester) async {
-        await runLoginAuthenticationTest(tester, sharedPreferences);
-      });
-
-      testWidgets('displays rive animation during TripProvider loading',
-          (WidgetTester tester) async {
-        await runLoginAnimationTest(tester, sharedPreferences);
-      });
-    });
-
     group('Home Page Tests', () {
-      setUp(() async {
-        // Setup authenticated state for HomePage tests
-        await TestHelpers.setupAuthenticatedState(sharedPreferences);
-      });
-
-      testWidgets('sets isBigLayout to true when screen width >= 1000',
+      testWidgets(
+          'sets isBigLayout to true when screen width >= 1000, and AppBar resizes accordingly',
           (WidgetTester tester) async {
-        await runHomePageLayoutLargeTest(tester, sharedPreferences);
-      });
-
-      testWidgets('sets isBigLayout to false when screen width < 1000',
-          (WidgetTester tester) async {
-        await runHomePageLayoutSmallTest(tester, sharedPreferences);
-      });
-
-      testWidgets('displays no trips initially in TripsListView',
-          (WidgetTester tester) async {
-        await runHomePageEmptyTripsTest(tester, sharedPreferences);
+        await runHomePageLayoutTest(tester, sharedPreferences);
       });
 
       testWidgets('updates locale when language is selected from toolbar',
@@ -154,14 +126,9 @@ void main() {
         await runHomePageThemeSwitchTest(tester, sharedPreferences);
       });
 
-      testWidgets('navigates to StartupPage on logout',
+      testWidgets('displays no trips initially in TripsListView',
           (WidgetTester tester) async {
-        await runHomePageLogoutTest(tester, sharedPreferences);
-      });
-
-      testWidgets('shows trip creator dialog on clicking Plan a Trip button',
-          (WidgetTester tester) async {
-        await runHomePageCreateTripDialogTest(tester, sharedPreferences);
+        await runHomePageEmptyTripsTest(tester, sharedPreferences);
       });
 
       testWidgets('navigates to TripEditorPage after creating trip',

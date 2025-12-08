@@ -95,8 +95,9 @@ class TestHelpers {
   }
 
   /// Tap on a widget
-  static Future<void> tapWidget(WidgetTester tester, Finder finder) async {
-    await tester.tap(finder);
+  static Future<void> tapWidget(WidgetTester tester, Finder finder,
+      {bool warnIfMissed = true}) async {
+    await tester.tap(finder, warnIfMissed: warnIfMissed);
     await tester.pumpAndSettle();
   }
 
