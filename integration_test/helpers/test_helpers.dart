@@ -88,6 +88,7 @@ class TestHelpers {
     final londonAirport = {
       'latLon': GeoPoint(51.5074, -0.1278),
       'context': {
+        'type': 'airport',
         'name': 'London Airport',
         'city': 'London',
         "iata": 'YXU',
@@ -98,6 +99,7 @@ class TestHelpers {
     final parisAirport = {
       'latLon': GeoPoint(48.8566, 2.3522),
       'context': {
+        'type': 'airport',
         'name': 'Charles de Gaulle International Airport',
         'city': 'Paris (Roissy-en-France, Val-d\'Oise)',
         'iata': 'CDG',
@@ -105,80 +107,173 @@ class TestHelpers {
       }
     };
 
-    final brusselsLocation = {
-      'latLon': GeoPoint(50.8503, 4.3517),
+    // City locations
+    final parisCity = {
+      'latLon': GeoPoint(48.8566, 2.3522),
       'context': {
-        'name': 'Brussels',
-        'city': 'Brussels',
-        'state': 'Brussels-Capital',
-        'country': 'Belgium',
+        'type': 'city',
         'locationType': 'city',
-      }
-    };
-
-    final amsterdamLocation = {
-      'latLon': GeoPoint(52.3676, 4.9041),
-      'context': {
-        'name': 'Amsterdam',
-        'city': 'Amsterdam',
-        'state': 'North Holland',
-        'country': 'Netherlands',
-        'locationType': 'city',
-      }
-    };
-
-    final eiffelTowerLocation = {
-      'latLon': GeoPoint(48.8584, 2.2945),
-      'context': {
-        'name': 'Eiffel Tower',
+        'class': 'place',
+        'name': 'Paris',
+        'address': 'Paris, Île-de-France, France',
+        'boundingbox': {
+          'maxLat': 48.9021,
+          'minLat': 48.8156,
+          'maxLon': 2.4699,
+          'minLon': 2.2242
+        },
+        'place_id': 'paris_city',
         'city': 'Paris',
         'state': 'Île-de-France',
         'country': 'France',
-        'locationType': 'attraction',
-      }
-    };
-
-    final louvreLocation = {
-      'latLon': GeoPoint(48.8606, 2.3376),
-      'context': {
-        'name': 'Louvre Museum',
-        'city': 'Paris',
-        'state': 'Île-de-France',
-        'country': 'France',
-        'locationType': 'attraction',
       }
     };
 
     final versaillesLocation = {
       'latLon': GeoPoint(48.8049, 2.1204),
       'context': {
-        'name': 'Palace of Versailles',
+        'type': 'town',
+        'locationType': 'city',
+        'class': 'place',
+        'name': 'Versailles',
+        'address': 'Versailles, Île-de-France, France',
+        'boundingbox': {
+          'maxLat': 48.8200,
+          'minLat': 48.7900,
+          'maxLon': 2.1500,
+          'minLon': 2.1200
+        },
+        'place_id': 'versailles_town',
         'city': 'Versailles',
         'state': 'Île-de-France',
         'country': 'France',
+      }
+    };
+
+    final brusselsLocation = {
+      'latLon': GeoPoint(50.8503, 4.3517),
+      'context': {
+        'type': 'city',
+        'locationType': 'city',
+        'class': 'place',
+        'name': 'Brussels',
+        'address': 'Brussels, Brussels-Capital, Belgium',
+        'boundingbox': {
+          'maxLat': 50.8800,
+          'minLat': 50.8300,
+          'maxLon': 4.4300,
+          'minLon': 4.3100
+        },
+        'place_id': 'brussels_city',
+        'city': 'Brussels',
+        'state': 'Brussels-Capital',
+        'country': 'Belgium',
+      }
+    };
+
+    final amsterdamLocation = {
+      'latLon': GeoPoint(52.3676, 4.9041),
+      'context': {
+        'type': 'city',
+        'locationType': 'city',
+        'class': 'place',
+        'name': 'Amsterdam',
+        'address': 'Amsterdam, North Holland, Netherlands',
+        'boundingbox': {
+          'maxLat': 52.4200,
+          'minLat': 52.3500,
+          'maxLon': 5.0000,
+          'minLon': 4.8300
+        },
+        'place_id': 'amsterdam_city',
+        'city': 'Amsterdam',
+        'state': 'North Holland',
+        'country': 'Netherlands',
+      }
+    };
+
+    // Attraction locations
+    final eiffelTowerLocation = {
+      'latLon': GeoPoint(48.8584, 2.2945),
+      'context': {
+        'type': 'attraction',
         'locationType': 'attraction',
+        'class': 'tourism',
+        'name': 'Eiffel Tower',
+        'address': 'Eiffel Tower, Paris, Île-de-France, France',
+        'boundingbox': {
+          'maxLat': 48.8584,
+          'minLat': 48.8577,
+          'maxLon': 2.2950,
+          'minLon': 2.2942
+        },
+        'place_id': 'eiffel_tower',
+        'city': 'Paris',
+        'state': 'Île-de-France',
+        'country': 'France',
+      }
+    };
+
+    final louvreLocation = {
+      'latLon': GeoPoint(48.8606, 2.3376),
+      'context': {
+        'type': 'attraction',
+        'locationType': 'attraction',
+        'class': 'tourism',
+        'name': 'Louvre Museum',
+        'address': 'Louvre Museum, Paris, Île-de-France, France',
+        'boundingbox': {
+          'maxLat': 48.8620,
+          'minLat': 48.8600,
+          'maxLon': 2.3400,
+          'minLon': 2.3300
+        },
+        'place_id': 'louvre_museum',
+        'city': 'Paris',
+        'state': 'Île-de-France',
+        'country': 'France',
       }
     };
 
     final atomiumLocation = {
       'latLon': GeoPoint(50.8950, 4.3414),
       'context': {
+        'type': 'attraction',
+        'locationType': 'attraction',
+        'class': 'tourism',
         'name': 'Atomium',
+        'address': 'Atomium, Brussels, Brussels-Capital, Belgium',
+        'boundingbox': {
+          'maxLat': 50.8955,
+          'minLat': 50.8940,
+          'maxLon': 4.3420,
+          'minLon': 4.3400
+        },
+        'place_id': 'atomium_brussels',
         'city': 'Brussels',
         'state': 'Brussels-Capital',
         'country': 'Belgium',
-        'locationType': 'attraction',
       }
     };
 
     final rijksmuseumLocation = {
       'latLon': GeoPoint(52.3600, 4.8852),
       'context': {
+        'type': 'attraction',
+        'locationType': 'attraction',
+        'class': 'tourism',
         'name': 'Rijksmuseum',
+        'address': 'Rijksmuseum, Amsterdam, North Holland, Netherlands',
+        'boundingbox': {
+          'maxLat': 52.3610,
+          'minLat': 52.3590,
+          'maxLon': 4.8860,
+          'minLon': 4.8800
+        },
+        'place_id': 'rijksmuseum_amsterdam',
         'city': 'Amsterdam',
         'state': 'North Holland',
         'country': 'Netherlands',
-        'locationType': 'attraction',
       }
     };
 
@@ -215,7 +310,7 @@ class TestHelpers {
     // Train: Paris to Versailles
     await transitCollection.add({
       'transitOption': 'train',
-      'departureLocation': parisAirport,
+      'departureLocation': parisCity,
       'departureDateTime': Timestamp.fromDate(DateTime(2025, 9, 25, 9, 0)),
       'arrivalLocation': versaillesLocation,
       'arrivalDateTime': Timestamp.fromDate(DateTime(2025, 9, 25, 10, 0)),
@@ -234,7 +329,7 @@ class TestHelpers {
       'transitOption': 'train',
       'departureLocation': versaillesLocation,
       'departureDateTime': Timestamp.fromDate(DateTime(2025, 9, 25, 17, 0)),
-      'arrivalLocation': parisAirport,
+      'arrivalLocation': parisCity,
       'arrivalDateTime': Timestamp.fromDate(DateTime(2025, 9, 25, 18, 0)),
       'operator': 'RER C',
       'totalExpense': {
@@ -249,7 +344,7 @@ class TestHelpers {
     // Bus: Paris to Brussels (overnight/multi-day)
     await transitCollection.add({
       'transitOption': 'bus',
-      'departureLocation': parisAirport,
+      'departureLocation': parisCity,
       'departureDateTime': Timestamp.fromDate(DateTime(2025, 9, 26, 22, 0)),
       'arrivalLocation': brusselsLocation,
       'arrivalDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 2, 30)),
@@ -353,7 +448,7 @@ class TestHelpers {
     // === LODGINGS ===
     // Multi-day lodging: Paris (2 nights)
     await lodgingCollection.add({
-      'location': parisAirport,
+      'location': parisCity,
       'checkinDateTime': Timestamp.fromDate(DateTime(2025, 9, 24, 14, 0)),
       'checkoutDateTime': Timestamp.fromDate(DateTime(2025, 9, 26, 11, 0)),
       'confirmationId': 'PARIS-HTL-001',
@@ -405,7 +500,6 @@ class TestHelpers {
           'location': eiffelTowerLocation,
           'visitTime': Timestamp.fromDate(DateTime(2025, 9, 24, 15, 30)),
           'expense': {
-            'title': 'Eiffel Tower',
             'currency': defaultCurrency,
             'category': 'sightseeing',
             'paidBy': {TestConfig.testEmail: 26.0},
@@ -434,7 +528,6 @@ class TestHelpers {
           'location': versaillesLocation,
           'visitTime': Timestamp.fromDate(DateTime(2025, 9, 25, 10, 30)),
           'expense': {
-            'title': 'Versailles',
             'currency': defaultCurrency,
             'category': 'sightseeing',
             'paidBy': {TestConfig.testEmail: 20.0},
@@ -490,7 +583,6 @@ class TestHelpers {
           'location': atomiumLocation,
           'visitTime': Timestamp.fromDate(DateTime(2025, 9, 27, 11, 0)),
           'expense': {
-            'title': 'Atomium',
             'currency': defaultCurrency,
             'category': 'sightseeing',
             'paidBy': {TestConfig.testEmail: 16.0},
@@ -519,7 +611,6 @@ class TestHelpers {
           'location': rijksmuseumLocation,
           'visitTime': Timestamp.fromDate(DateTime(2025, 9, 28, 10, 0)),
           'expense': {
-            'title': 'Rijksmuseum',
             'currency': defaultCurrency,
             'category': 'sightseeing',
             'paidBy': {TestConfig.testEmail: 22.5},

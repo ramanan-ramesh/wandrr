@@ -166,7 +166,7 @@ void main() {
       setUpAll(() async {
         await FirebaseEmulatorHelper.createFirebaseAuthUser(
           email: TestConfig.testEmail,
-          password: TestConfig.testPassword,
+          password: TestConfig.testEmail,
           shouldAddToFirestore: true,
           shouldSignIn: true,
         );
@@ -182,37 +182,9 @@ void main() {
       });
 
       testWidgets(
-          'displays ItineraryViewer and BudgetingPage side by side when isBigLayout is true',
+          'adapts layout based on screen size - side-by-side for large screens, bottom navigation for small screens',
           (WidgetTester tester) async {
-        await runTripEditorLargeLayoutTest(tester, sharedPreferences);
-      });
-
-      testWidgets(
-          'displays FAB at center bottom with padding when isBigLayout is true',
-          (WidgetTester tester) async {
-        await runTripEditorLargeLayoutFABTest(tester, sharedPreferences);
-      });
-
-      testWidgets(
-          'displays ItineraryViewer by default when isBigLayout is false',
-          (WidgetTester tester) async {
-        await runTripEditorSmallLayoutDefaultTest(tester, sharedPreferences);
-      });
-
-      testWidgets('displays BottomNavigationBar when isBigLayout is false',
-          (WidgetTester tester) async {
-        await runTripEditorSmallLayoutBottomNavTest(tester, sharedPreferences);
-      });
-
-      testWidgets(
-          'switches between ItineraryViewer and BudgetingPage using BottomNavigationBar',
-          (WidgetTester tester) async {
-        await runTripEditorSmallLayoutNavigationTest(tester, sharedPreferences);
-      });
-
-      testWidgets('displays FAB docked in center of BottomNavBar',
-          (WidgetTester tester) async {
-        await runTripEditorSmallLayoutFABTest(tester, sharedPreferences);
+        await runTripEditorLayoutTest(tester, sharedPreferences);
       });
     });
 
