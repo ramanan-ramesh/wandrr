@@ -4,6 +4,8 @@ import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
+import '../budgeting/expense_category.dart';
+
 class SightFacade extends Equatable
     implements ExpenseLinkedTripEntity<SightFacade> {
   final String tripId;
@@ -43,6 +45,7 @@ class SightFacade extends Equatable
           tripId: tripId,
           defaultCurrency: defaultCurrency,
           allTripContributors: contributors,
+          category: ExpenseCategory.sightseeing,
         );
 
   @override
