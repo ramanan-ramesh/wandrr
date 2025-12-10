@@ -62,8 +62,7 @@ class GeoLocator implements ApiService<String, Iterable<LocationFacade>> {
           (locationJson) => LocationFacade(
               latitude: double.parse(locationJson[_latitudeField].toString()),
               longitude: double.parse(locationJson[_longitudeField].toString()),
-              context: GeoLocationApiContext.fromApi(locationJson),
-              tripId: ''),
+              context: GeoLocationApiContext.fromApi(locationJson)),
         )
         .toList();
   }

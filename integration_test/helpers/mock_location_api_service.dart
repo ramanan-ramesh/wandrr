@@ -170,7 +170,6 @@ class MockLocationApiService {
         return LocationFacade(
           latitude: double.parse(json['lat'] as String),
           longitude: double.parse(json['lon'] as String),
-          tripId: '',
           context: GeoLocationApiContext.fromApi(json),
         );
       }).toList();

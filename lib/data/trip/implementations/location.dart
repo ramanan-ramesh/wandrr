@@ -15,12 +15,10 @@ class LocationModelImplementation extends LocationFacade
             latitude: locationModelFacade.latitude,
             longitude: locationModelFacade.longitude,
             context: locationModelFacade.context,
-            id: locationModelFacade.id,
-            tripId: locationModelFacade.tripId);
+            id: locationModelFacade.id);
 
   static LocationModelImplementation fromDocumentSnapshot(
       {required DocumentSnapshot documentSnapshot,
-      required String tripId,
       String? parentId,
       String? collectionName}) {
     var json = documentSnapshot.data() as Map<String, dynamic>;
@@ -30,7 +28,6 @@ class LocationModelImplementation extends LocationFacade
     return LocationModelImplementation._(
         latitude: geoPoint.latitude,
         longitude: geoPoint.longitude,
-        tripId: tripId,
         id: documentSnapshot.id,
         context: locationContext,
         parentId: parentId,
@@ -51,14 +48,13 @@ class LocationModelImplementation extends LocationFacade
   }
 
   static LocationModelImplementation fromJson(
-      {required Map<String, dynamic> json, required String tripId}) {
+      {required Map<String, dynamic> json}) {
     var geoPoint = json[_latitudeLongitudeField] as GeoPoint;
     var locationContext =
         LocationContext.createInstance(json: json[_contextField]);
     return LocationModelImplementation._(
         latitude: geoPoint.latitude,
         longitude: geoPoint.longitude,
-        tripId: tripId,
         context: locationContext);
   }
 
@@ -69,7 +65,6 @@ class LocationModelImplementation extends LocationFacade
       {required super.latitude,
       required super.longitude,
       required super.context,
-      required super.tripId,
       super.id,
       String? collectionName,
       String? parentId});

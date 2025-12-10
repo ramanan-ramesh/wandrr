@@ -60,9 +60,9 @@ class TransitImplementation extends TransitFacade
         arrivalDateTime:
             (documentData[_arrivalDateTimeField] as Timestamp).toDate(),
         arrivalLocation: LocationModelImplementation.fromJson(
-            json: documentData[_arrivalLocationField], tripId: tripId),
+            json: documentData[_arrivalLocationField]),
         departureLocation: LocationModelImplementation.fromJson(
-            json: documentData[_departureLocationField], tripId: tripId),
+            json: documentData[_departureLocationField]),
         operator: documentData[_operatorField]);
   }
 
