@@ -162,10 +162,23 @@ void main() {
       });
     });
 
-    group('Trip Editor Page Tests', () {
-      setUp(() async {
-        // Setup authenticated state and create a test trip
-        await TestHelpers.createTestTrip(sharedPreferences);
+    group('Trip Editor Page Layout Tests', () {
+      setUpAll(() async {
+        await FirebaseEmulatorHelper.createFirebaseAuthUser(
+          email: TestConfig.testEmail,
+          password: TestConfig.testPassword,
+          shouldAddToFirestore: true,
+          shouldSignIn: true,
+        );
+        // Initialize mock location API service to intercept HTTP requests
+        // Note: This creates a MockClient that can be injected into GeoLocator
+        await MockLocationApiService.initialize();
+        await TestHelpers.createTestTrip();
+      });
+
+      tearDownAll(() async {
+        await FirebaseEmulatorHelper.cleanupAfterTest();
+        await sharedPreferences.clear();
       });
 
       testWidgets(
@@ -206,7 +219,7 @@ void main() {
     group('Itinerary Viewer Tests', () {
       setUp(() async {
         // Setup authenticated state and create a test trip
-        await TestHelpers.createTestTrip(sharedPreferences);
+        await TestHelpers.createTestTrip();
       });
 
       testWidgets('displays the first trip date\'s itinerary by default',
@@ -274,7 +287,7 @@ void main() {
     group('Budgeting Page Tests', () {
       setUp(() async {
         // Setup authenticated state and create a test trip
-        await TestHelpers.createTestTrip(sharedPreferences);
+        await TestHelpers.createTestTrip();
       });
 
       testWidgets('displays three main sections (Expenses, Debt, Breakdown)',
@@ -358,7 +371,7 @@ void main() {
     group('TripEntity CRUD Tests', () {
       setUp(() async {
         // Setup authenticated state and create a test trip
-        await TestHelpers.createTestTrip(sharedPreferences);
+        await TestHelpers.createTestTrip();
       });
 
       testWidgets('add new transit via FloatingActionButton',
@@ -455,7 +468,7 @@ void main() {
     group('Multi-Collaborator Tests', () {
       setUp(() async {
         // Setup authenticated state and create a test trip
-        await TestHelpers.createTestTrip(sharedPreferences);
+        await TestHelpers.createTestTrip();
       });
 
       testWidgets('AppBar displays maximum of 3 contributors',

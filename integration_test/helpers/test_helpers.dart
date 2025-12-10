@@ -1,7 +1,9 @@
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/app/pages/master_page/master_page.dart';
@@ -57,11 +59,491 @@ class TestHelpers {
   }
 
   /// Create a test trip for trip editor tests
-  static Future<void> createTestTrip(
-      SharedPreferences sharedPreferences) async {
-    // Store a test trip in shared preferences
-    // Note: Adjust based on your actual data structure
-    await sharedPreferences.setString('current_trip_id', TestConfig.testTripId);
+  /// Create a 5-day test trip for integration tests (European tour)
+  static Future<void> createTestTrip() async {
+    final firestore = FirebaseFirestore.instance;
+
+    // Test trip data
+    const tripId = 'test_trip_123';
+    final startDate = DateTime(2025, 9, 24);
+    final endDate = DateTime(2025, 9, 28);
+    const tripName = 'European Adventure';
+    const defaultCurrency = 'EUR';
+    final contributors = [TestConfig.testEmail];
+
+    // Create trip metadata
+    await firestore
+        .collection(FirestoreCollections.tripMetadataCollectionName)
+        .doc(tripId)
+        .set({
+      'name': tripName,
+      'startDate': Timestamp.fromDate(startDate),
+      'endDate': Timestamp.fromDate(endDate),
+      'thumbnailTag': 'urban',
+      'contributors': contributors,
+      'budget': '800.00 EUR',
+    });
+
+    // === LOCATIONS ===
+    final londonAirport = {
+      'latLon': GeoPoint(51.5074, -0.1278),
+      'context': {
+        'name': 'London Airport',
+        'city': 'London',
+        "iata": 'YXU',
+        'locationType': 'airport',
+      }
+    };
+
+    final parisAirport = {
+      'latLon': GeoPoint(48.8566, 2.3522),
+      'context': {
+        'name': 'Charles de Gaulle International Airport',
+        'city': 'Paris (Roissy-en-France, Val-d\'Oise)',
+        'iata': 'CDG',
+        'locationType': 'airport',
+      }
+    };
+
+    final brusselsLocation = {
+      'latLon': GeoPoint(50.8503, 4.3517),
+      'context': {
+        'name': 'Brussels',
+        'city': 'Brussels',
+        'state': 'Brussels-Capital',
+        'country': 'Belgium',
+        'locationType': 'city',
+      }
+    };
+
+    final amsterdamLocation = {
+      'latLon': GeoPoint(52.3676, 4.9041),
+      'context': {
+        'name': 'Amsterdam',
+        'city': 'Amsterdam',
+        'state': 'North Holland',
+        'country': 'Netherlands',
+        'locationType': 'city',
+      }
+    };
+
+    final eiffelTowerLocation = {
+      'latLon': GeoPoint(48.8584, 2.2945),
+      'context': {
+        'name': 'Eiffel Tower',
+        'city': 'Paris',
+        'state': 'Île-de-France',
+        'country': 'France',
+        'locationType': 'attraction',
+      }
+    };
+
+    final louvreLocation = {
+      'latLon': GeoPoint(48.8606, 2.3376),
+      'context': {
+        'name': 'Louvre Museum',
+        'city': 'Paris',
+        'state': 'Île-de-France',
+        'country': 'France',
+        'locationType': 'attraction',
+      }
+    };
+
+    final versaillesLocation = {
+      'latLon': GeoPoint(48.8049, 2.1204),
+      'context': {
+        'name': 'Palace of Versailles',
+        'city': 'Versailles',
+        'state': 'Île-de-France',
+        'country': 'France',
+        'locationType': 'attraction',
+      }
+    };
+
+    final atomiumLocation = {
+      'latLon': GeoPoint(50.8950, 4.3414),
+      'context': {
+        'name': 'Atomium',
+        'city': 'Brussels',
+        'state': 'Brussels-Capital',
+        'country': 'Belgium',
+        'locationType': 'attraction',
+      }
+    };
+
+    final rijksmuseumLocation = {
+      'latLon': GeoPoint(52.3600, 4.8852),
+      'context': {
+        'name': 'Rijksmuseum',
+        'city': 'Amsterdam',
+        'state': 'North Holland',
+        'country': 'Netherlands',
+        'locationType': 'attraction',
+      }
+    };
+
+    var tripDataCollection = firestore
+        .collection(FirestoreCollections.tripCollectionName)
+        .doc(tripId);
+
+    var itineraryDataCollection = tripDataCollection
+        .collection(FirestoreCollections.itineraryDataCollectionName);
+    var lodgingCollection = tripDataCollection
+        .collection(FirestoreCollections.lodgingCollectionName);
+    var transitCollection = tripDataCollection
+        .collection(FirestoreCollections.transitCollectionName);
+
+    // === TRANSITS===
+    // Flight: London to Paris
+    await transitCollection.add({
+      'transitOption': 'flight',
+      'departureLocation': londonAirport,
+      'departureDateTime': Timestamp.fromDate(DateTime(2025, 9, 24, 8, 0)),
+      'arrivalLocation': parisAirport,
+      'arrivalDateTime': Timestamp.fromDate(DateTime(2025, 9, 24, 11, 0)),
+      'operator': 'Air France AF 542',
+      'confirmationId': 'AF123456',
+      'totalExpense': {
+        'currency': defaultCurrency,
+        'category': 'flights',
+        'paidBy': {TestConfig.testEmail: 250.0},
+        'splitBy': contributors,
+      },
+      'notes': 'Direct flight',
+    });
+
+    // Train: Paris to Versailles
+    await transitCollection.add({
+      'transitOption': 'train',
+      'departureLocation': parisAirport,
+      'departureDateTime': Timestamp.fromDate(DateTime(2025, 9, 25, 9, 0)),
+      'arrivalLocation': versaillesLocation,
+      'arrivalDateTime': Timestamp.fromDate(DateTime(2025, 9, 25, 10, 0)),
+      'operator': 'RER C',
+      'totalExpense': {
+        'currency': defaultCurrency,
+        'category': 'publicTransit',
+        'paidBy': {TestConfig.testEmail: 7.5},
+        'splitBy': contributors,
+      },
+      'notes': 'Regional train',
+    });
+
+    // Train return
+    await transitCollection.add({
+      'transitOption': 'train',
+      'departureLocation': versaillesLocation,
+      'departureDateTime': Timestamp.fromDate(DateTime(2025, 9, 25, 17, 0)),
+      'arrivalLocation': parisAirport,
+      'arrivalDateTime': Timestamp.fromDate(DateTime(2025, 9, 25, 18, 0)),
+      'operator': 'RER C',
+      'totalExpense': {
+        'currency': defaultCurrency,
+        'category': 'publicTransit',
+        'paidBy': {TestConfig.testEmail: 7.5},
+        'splitBy': contributors,
+      },
+      'notes': 'Return trip',
+    });
+
+    // Bus: Paris to Brussels (overnight/multi-day)
+    await transitCollection.add({
+      'transitOption': 'bus',
+      'departureLocation': parisAirport,
+      'departureDateTime': Timestamp.fromDate(DateTime(2025, 9, 26, 22, 0)),
+      'arrivalLocation': brusselsLocation,
+      'arrivalDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 2, 30)),
+      'operator': 'FlixBus',
+      'confirmationId': 'FLIX789',
+      'totalExpense': {
+        'currency': defaultCurrency,
+        'category': 'publicTransit',
+        'paidBy': {TestConfig.testEmail: 35.0},
+        'splitBy': contributors,
+      },
+      'notes': 'Overnight bus',
+    });
+
+    // Rented vehicle
+    await transitCollection.add({
+      'transitOption': 'rentedVehicle',
+      'departureLocation': brusselsLocation,
+      'departureDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 10, 0)),
+      'arrivalLocation': atomiumLocation,
+      'arrivalDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 10, 30)),
+      'operator': 'Hertz',
+      'confirmationId': 'HERTZ456',
+      'totalExpense': {
+        'currency': defaultCurrency,
+        'category': 'carRental',
+        'paidBy': {TestConfig.testEmail: 60.0},
+        'splitBy': contributors,
+      },
+      'notes': 'Full day rental',
+    });
+
+    // Taxi
+    await transitCollection.add({
+      'transitOption': 'taxi',
+      'departureLocation': atomiumLocation,
+      'departureDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 16, 0)),
+      'arrivalLocation': brusselsLocation,
+      'arrivalDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 16, 30)),
+      'operator': 'Uber',
+      'totalExpense': {
+        'currency': defaultCurrency,
+        'category': 'taxi',
+        'paidBy': {TestConfig.testEmail: 25.0},
+        'splitBy': contributors,
+      },
+      'notes': 'Quick ride',
+    });
+
+    // Ferry
+    await transitCollection.add({
+      'transitOption': 'ferry',
+      'departureLocation': brusselsLocation,
+      'departureDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 18, 0)),
+      'arrivalLocation': amsterdamLocation,
+      'arrivalDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 21, 0)),
+      'operator': 'P&O Ferries',
+      'confirmationId': 'PO999',
+      'totalExpense': {
+        'currency': defaultCurrency,
+        'category': 'publicTransit',
+        'paidBy': {TestConfig.testEmail: 45.0},
+        'splitBy': contributors,
+      },
+      'notes': 'Scenic route',
+    });
+
+    // Walk
+    await transitCollection.add({
+      'transitOption': 'walk',
+      'departureLocation': amsterdamLocation,
+      'departureDateTime': Timestamp.fromDate(DateTime(2025, 9, 28, 9, 0)),
+      'arrivalLocation': rijksmuseumLocation,
+      'arrivalDateTime': Timestamp.fromDate(DateTime(2025, 9, 28, 9, 30)),
+      'totalExpense': {
+        'currency': defaultCurrency,
+        'category': 'other',
+        'paidBy': {TestConfig.testEmail: 0.0},
+        'splitBy': contributors,
+      },
+      'notes': 'Morning stroll',
+    });
+
+    // Public transport
+    await transitCollection.add({
+      'transitOption': 'publicTransport',
+      'departureLocation': rijksmuseumLocation,
+      'departureDateTime': Timestamp.fromDate(DateTime(2025, 9, 28, 14, 0)),
+      'arrivalLocation': amsterdamLocation,
+      'arrivalDateTime': Timestamp.fromDate(DateTime(2025, 9, 28, 14, 30)),
+      'operator': 'Amsterdam Metro',
+      'totalExpense': {
+        'currency': defaultCurrency,
+        'category': 'publicTransit',
+        'paidBy': {TestConfig.testEmail: 3.0},
+        'splitBy': contributors,
+      },
+      'notes': 'Metro line 52',
+    });
+
+    // === LODGINGS ===
+    // Multi-day lodging: Paris (2 nights)
+    await lodgingCollection.add({
+      'location': parisAirport,
+      'checkinDateTime': Timestamp.fromDate(DateTime(2025, 9, 24, 14, 0)),
+      'checkoutDateTime': Timestamp.fromDate(DateTime(2025, 9, 26, 11, 0)),
+      'confirmationId': 'PARIS-HTL-001',
+      'expense': {
+        'currency': defaultCurrency,
+        'category': 'lodging',
+        'paidBy': {TestConfig.testEmail: 450.0},
+        'splitBy': contributors,
+      },
+      'notes': 'City center, 2 nights',
+    });
+
+    // Same-day check-in/out: Brussels day room
+    await lodgingCollection.add({
+      'location': brusselsLocation,
+      'checkinDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 3, 0)),
+      'checkoutDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 15, 0)),
+      'confirmationId': 'BRU-DAY-789',
+      'expense': {
+        'currency': defaultCurrency,
+        'category': 'lodging',
+        'paidBy': {TestConfig.testEmail: 80.0},
+        'splitBy': contributors,
+      },
+      'notes': 'Rest after night bus',
+    });
+
+    // Amsterdam hostel
+    await lodgingCollection.add({
+      'location': amsterdamLocation,
+      'checkinDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 22, 0)),
+      'checkoutDateTime': Timestamp.fromDate(DateTime(2025, 9, 28, 16, 0)),
+      'confirmationId': 'AMS-HSTL-123',
+      'expense': {
+        'currency': defaultCurrency,
+        'category': 'lodging',
+        'paidBy': {TestConfig.testEmail: 90.0},
+        'splitBy': contributors,
+      },
+      'notes': 'Budget hostel',
+    });
+
+    // === ITINERARY DATA ===
+    // Day 1: September 24
+    await itineraryDataCollection.doc('24092025').set({
+      'sights': [
+        {
+          'name': 'Eiffel Tower',
+          'location': eiffelTowerLocation,
+          'visitTime': Timestamp.fromDate(DateTime(2025, 9, 24, 15, 30)),
+          'expense': {
+            'title': 'Eiffel Tower',
+            'currency': defaultCurrency,
+            'category': 'sightseeing',
+            'paidBy': {TestConfig.testEmail: 26.0},
+            'splitBy': contributors,
+          },
+          'description': 'Iconic landmark',
+        }
+      ],
+      'notes': ['Arrive from London', 'Check in', 'Visit Eiffel Tower'],
+      'checkLists': [
+        {
+          'title': 'Day 1',
+          'items': [
+            {'item': 'Exchange currency', 'status': false},
+            {'item': 'Buy metro pass', 'status': false},
+          ]
+        }
+      ],
+    });
+
+    // Day 2: September 25
+    await itineraryDataCollection.doc('25092025').set({
+      'sights': [
+        {
+          'name': 'Palace of Versailles',
+          'location': versaillesLocation,
+          'visitTime': Timestamp.fromDate(DateTime(2025, 9, 25, 10, 30)),
+          'expense': {
+            'title': 'Versailles',
+            'currency': defaultCurrency,
+            'category': 'sightseeing',
+            'paidBy': {TestConfig.testEmail: 20.0},
+            'splitBy': contributors,
+          },
+          'description': 'Royal palace',
+        },
+        {
+          'name': 'Louvre Museum',
+          'location': louvreLocation,
+          'visitTime': Timestamp.fromDate(DateTime(2025, 9, 25, 13, 0)),
+          'expense': {
+            'currency': defaultCurrency,
+            'category': 'sightseeing',
+            'paidBy': {TestConfig.testEmail: 17.0},
+            'splitBy': contributors,
+          },
+          'description': 'Art museum',
+        }
+      ],
+      'notes': ['Versailles trip', 'Louvre visit', 'Dinner'],
+      'checkLists': [
+        {
+          'title': 'Day 2',
+          'items': [
+            {'item': 'Book tour', 'status': true},
+            {'item': 'Pack snacks', 'status': false},
+          ]
+        }
+      ],
+    });
+
+    // Day 3: September 26
+    await itineraryDataCollection.doc('26092025').set({
+      'sights': [],
+      'notes': ['Morning in Paris', 'Check out', 'Night bus to Brussels'],
+      'checkLists': [
+        {
+          'title': 'Travel day',
+          'items': [
+            {'item': 'Pack bags', 'status': false},
+            {'item': 'Hotel checkout', 'status': false},
+          ]
+        }
+      ],
+    });
+
+    // Day 4: September 27
+    await itineraryDataCollection.doc('27092025').set({
+      'sights': [
+        {
+          'name': 'Atomium',
+          'location': atomiumLocation,
+          'visitTime': Timestamp.fromDate(DateTime(2025, 9, 27, 11, 0)),
+          'expense': {
+            'title': 'Atomium',
+            'currency': defaultCurrency,
+            'category': 'sightseeing',
+            'paidBy': {TestConfig.testEmail: 16.0},
+            'splitBy': contributors,
+          },
+          'description': 'Brussels landmark',
+        }
+      ],
+      'notes': ['Early arrival', 'Rest', 'Visit Atomium', 'Ferry to Amsterdam'],
+      'checkLists': [
+        {
+          'title': 'Brussels',
+          'items': [
+            {'item': 'Try waffles', 'status': false},
+            {'item': 'Buy chocolates', 'status': false},
+          ]
+        }
+      ],
+    });
+
+    // Day 5: September 28
+    await itineraryDataCollection.doc('28092025').set({
+      'sights': [
+        {
+          'name': 'Rijksmuseum',
+          'location': rijksmuseumLocation,
+          'visitTime': Timestamp.fromDate(DateTime(2025, 9, 28, 10, 0)),
+          'expense': {
+            'title': 'Rijksmuseum',
+            'currency': defaultCurrency,
+            'category': 'sightseeing',
+            'paidBy': {TestConfig.testEmail: 22.5},
+            'splitBy': contributors,
+          },
+          'description': 'Dutch art',
+        }
+      ],
+      'notes': ['Final day', 'Museum visit', 'Canal walk', 'Departure prep'],
+      'checkLists': [
+        {
+          'title': 'Last day',
+          'items': [
+            {'item': 'Buy souvenirs', 'status': false},
+            {'item': 'Pack bags', 'status': false},
+          ]
+        }
+      ],
+    });
+
+    print('✅ 5-day test trip created: $tripId');
+    print('   Route: London → Paris → Brussels → Amsterdam');
+    print(
+        '   Transits: flight, train, bus, rentedVehicle, taxi, ferry, walk, publicTransport');
   }
 
   /// Get the current device screen size
