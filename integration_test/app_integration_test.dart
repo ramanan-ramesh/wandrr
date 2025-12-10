@@ -51,7 +51,7 @@ void main() {
       testWidgets(
           'adapts layout based on screen size (large: side-by-side, small: navigation)',
           (WidgetTester tester) async {
-        await runStartupPageTest(tester, sharedPreferences);
+        await runStartupPageTest(tester);
       });
     });
 
@@ -68,52 +68,52 @@ void main() {
 
       testWidgets('Sign in with existing user (has Firestore document)',
           (WidgetTester tester) async {
-        await runSignInExistingUserWithFirestoreDoc(tester, sharedPreferences);
+        await runSignInExistingUserWithFirestoreDoc(tester);
       });
 
       testWidgets('Sign in with user without Firestore doc (creates one)',
           (WidgetTester tester) async {
-        await runSignInNewUserWithoutFirestoreDoc(tester, sharedPreferences);
+        await runSignInNewUserWithoutFirestoreDoc(tester);
       });
 
       testWidgets('Sign in with unverified email (verification pending)',
           (WidgetTester tester) async {
-        await runSignInUnverifiedEmail(tester, sharedPreferences);
+        await runSignInUnverifiedEmail(tester);
       });
 
       testWidgets('Sign up new user (verification pending)',
           (WidgetTester tester) async {
-        await runSignUpNewUser(tester, sharedPreferences);
+        await runSignUpNewUser(tester);
       });
 
       testWidgets('Sign up with existing email (should fail)',
           (WidgetTester tester) async {
-        await runSignUpExistingEmail(tester, sharedPreferences);
+        await runSignUpExistingEmail(tester);
       });
 
       testWidgets('Sign in with wrong password (should fail)',
           (WidgetTester tester) async {
-        await runSignInWrongPassword(tester, sharedPreferences);
+        await runSignInWrongPassword(tester);
       });
 
       testWidgets('Sign in with invalid email format (should fail)',
           (WidgetTester tester) async {
-        await runSignInInvalidEmail(tester, sharedPreferences);
+        await runSignInInvalidEmail(tester);
       });
 
       testWidgets('Sign in with weak password (should fail)',
           (WidgetTester tester) async {
-        await runSignUpWeakPassword(tester, sharedPreferences);
+        await runSignUpWeakPassword(tester);
       });
 
       testWidgets('Sign in with non-existent user (should fail)',
           (WidgetTester tester) async {
-        await runSignInNonExistentUser(tester, sharedPreferences);
+        await runSignInNonExistentUser(tester);
       });
 
       testWidgets('Sign out clears auth and cache',
           (WidgetTester tester) async {
-        await runSignOutTest(tester, sharedPreferences);
+        await runSignOutTest(tester);
       });
     });
 
@@ -138,27 +138,27 @@ void main() {
       testWidgets(
           'sets isBigLayout to true when screen width >= 1000, and AppBar resizes accordingly',
           (WidgetTester tester) async {
-        await runHomePageLayoutTest(tester, sharedPreferences);
+        await runHomePageLayoutTest(tester);
       });
 
       testWidgets('updates locale when language is selected from toolbar',
           (WidgetTester tester) async {
-        await runHomePageLanguageSwitchTest(tester, sharedPreferences);
+        await runHomePageLanguageSwitchTest(tester);
       });
 
       testWidgets('updates theme mode when theme switcher is toggled',
           (WidgetTester tester) async {
-        await runHomePageThemeSwitchTest(tester, sharedPreferences);
+        await runHomePageThemeSwitchTest(tester);
       });
 
       testWidgets('displays no trips initially in TripsListView',
           (WidgetTester tester) async {
-        await runHomePageEmptyTripsTest(tester, sharedPreferences);
+        await runHomePageEmptyTripsTest(tester);
       });
 
       testWidgets('navigates to TripEditorPage after creating trip',
           (WidgetTester tester) async {
-        await runHomePageCreateTripFlowTest(tester, sharedPreferences);
+        await runHomePageCreateTripFlowTest(tester);
       });
     });
 
@@ -184,75 +184,85 @@ void main() {
       testWidgets(
           'adapts layout based on screen size - side-by-side for large screens, bottom navigation for small screens',
           (WidgetTester tester) async {
-        await runTripEditorLayoutTest(tester, sharedPreferences);
+        await runTripEditorLayoutTest(tester);
       });
     });
 
     group('Itinerary Viewer Tests', () {
-      setUp(() async {
-        // Setup authenticated state and create a test trip
+      setUpAll(() async {
+        await FirebaseEmulatorHelper.createFirebaseAuthUser(
+          email: TestConfig.testEmail,
+          password: TestConfig.testEmail,
+          shouldAddToFirestore: true,
+          shouldSignIn: true,
+        );
+        // Initialize mock location API service to intercept HTTP requests
+        // Note: This creates a MockClient that can be injected into GeoLocator
+        await MockLocationApiService.initialize();
         await TestHelpers.createTestTrip();
+      });
+
+      tearDownAll(() async {
+        await FirebaseEmulatorHelper.cleanupAfterTest();
+        await sharedPreferences.clear();
       });
 
       testWidgets('displays the first trip date\'s itinerary by default',
           (WidgetTester tester) async {
-        await runItineraryViewerDefaultDateTest(tester, sharedPreferences);
+        await runItineraryViewerDefaultDateTest(tester);
       });
 
       testWidgets('displays transits correctly in timeline',
           (WidgetTester tester) async {
-        await runItineraryViewerTransitsTest(tester, sharedPreferences);
+        await runItineraryViewerTransitsTest(tester);
       });
 
       testWidgets('displays lodgings correctly in timeline',
           (WidgetTester tester) async {
-        await runItineraryViewerLodgingsTest(tester, sharedPreferences);
+        await runItineraryViewerLodgingsTest(tester);
       });
 
       testWidgets('displays notes tab correctly', (WidgetTester tester) async {
-        await runItineraryViewerNotesTest(tester, sharedPreferences);
+        await runItineraryViewerNotesTest(tester);
       });
 
       testWidgets('displays checklists tab correctly',
           (WidgetTester tester) async {
-        await runItineraryViewerChecklistsTest(tester, sharedPreferences);
+        await runItineraryViewerChecklistsTest(tester);
       });
 
       testWidgets('displays sights tab correctly', (WidgetTester tester) async {
-        await runItineraryViewerSightsTest(tester, sharedPreferences);
+        await runItineraryViewerSightsTest(tester);
       });
 
       testWidgets('timeline items are sorted correctly',
           (WidgetTester tester) async {
-        await runItineraryViewerTimelineSortingTest(tester, sharedPreferences);
+        await runItineraryViewerTimelineSortingTest(tester);
       });
 
       testWidgets('navigates to next date correctly',
           (WidgetTester tester) async {
-        await runItineraryViewerNavigateNextTest(tester, sharedPreferences);
+        await runItineraryViewerNavigateNextTest(tester);
       });
 
       testWidgets('navigates to previous date correctly',
           (WidgetTester tester) async {
-        await runItineraryViewerNavigatePreviousTest(tester, sharedPreferences);
+        await runItineraryViewerNavigatePreviousTest(tester);
       });
 
       testWidgets('cannot navigate before trip start date',
           (WidgetTester tester) async {
-        await runItineraryViewerNavigationBoundaryStartTest(
-            tester, sharedPreferences);
+        await runItineraryViewerNavigationBoundaryStartTest(tester);
       });
 
       testWidgets('cannot navigate beyond trip end date',
           (WidgetTester tester) async {
-        await runItineraryViewerNavigationBoundaryEndTest(
-            tester, sharedPreferences);
+        await runItineraryViewerNavigationBoundaryEndTest(tester);
       });
 
       testWidgets('refreshes correctly when navigating between dates',
           (WidgetTester tester) async {
-        await runItineraryViewerRefreshOnNavigationTest(
-            tester, sharedPreferences);
+        await runItineraryViewerRefreshOnNavigationTest(tester);
       });
     });
 

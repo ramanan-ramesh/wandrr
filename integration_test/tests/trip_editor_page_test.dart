@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/home/trips_list_view.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_page.dart';
@@ -15,7 +14,6 @@ import '../helpers/test_helpers.dart';
 /// Also verifies isBigLayout setting based on screen width (>= 1000px)
 Future<void> runTripEditorLayoutTest(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleApp(tester);

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_viewer.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/timeline_item_widget.dart';
@@ -9,10 +8,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 import '../helpers/test_helpers.dart';
 
 /// Test: ItineraryViewer displays the first trip date's itinerary by default
-Future<void> runItineraryViewerDefaultDateTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runItineraryViewerDefaultDateTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
@@ -36,10 +32,7 @@ Future<void> runItineraryViewerDefaultDateTest(
 }
 
 /// Test: Timeline displays transits correctly
-Future<void> runItineraryViewerTransitsTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runItineraryViewerTransitsTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
@@ -64,10 +57,7 @@ Future<void> runItineraryViewerTransitsTest(
 }
 
 /// Test: Timeline displays lodgings correctly
-Future<void> runItineraryViewerLodgingsTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runItineraryViewerLodgingsTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
@@ -89,10 +79,7 @@ Future<void> runItineraryViewerLodgingsTest(
 }
 
 /// Test: Timeline displays notes correctly
-Future<void> runItineraryViewerNotesTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runItineraryViewerNotesTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
@@ -119,10 +106,7 @@ Future<void> runItineraryViewerNotesTest(
 }
 
 /// Test: Timeline displays checklists correctly
-Future<void> runItineraryViewerChecklistsTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runItineraryViewerChecklistsTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
@@ -149,10 +133,7 @@ Future<void> runItineraryViewerChecklistsTest(
 }
 
 /// Test: Timeline displays sights correctly
-Future<void> runItineraryViewerSightsTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runItineraryViewerSightsTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
@@ -179,10 +160,7 @@ Future<void> runItineraryViewerSightsTest(
 }
 
 /// Test: Timeline items are sorted correctly
-Future<void> runItineraryViewerTimelineSortingTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runItineraryViewerTimelineSortingTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
@@ -206,10 +184,7 @@ Future<void> runItineraryViewerTimelineSortingTest(
 }
 
 /// Test: Navigate to next date in itinerary
-Future<void> runItineraryViewerNavigateNextTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runItineraryViewerNavigateNextTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
@@ -251,10 +226,7 @@ Future<void> runItineraryViewerNavigateNextTest(
 }
 
 /// Test: Navigate to previous date in itinerary
-Future<void> runItineraryViewerNavigatePreviousTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runItineraryViewerNavigatePreviousTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
@@ -314,9 +286,7 @@ Future<void> runItineraryViewerNavigatePreviousTest(
 
 /// Test: Cannot navigate beyond trip start date
 Future<void> runItineraryViewerNavigationBoundaryStartTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+    WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
@@ -352,9 +322,7 @@ Future<void> runItineraryViewerNavigationBoundaryStartTest(
 
 /// Test: Cannot navigate beyond trip end date
 Future<void> runItineraryViewerNavigationBoundaryEndTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+    WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 
@@ -397,9 +365,7 @@ Future<void> runItineraryViewerNavigationBoundaryEndTest(
 
 /// Test: Itinerary viewer refreshes correctly when navigating between dates
 Future<void> runItineraryViewerRefreshOnNavigationTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+    WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
 

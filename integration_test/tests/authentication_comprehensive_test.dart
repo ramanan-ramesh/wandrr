@@ -43,7 +43,6 @@ import '../helpers/test_helpers.dart';
 /// - Verifies Firestore document is reused (not recreated)
 Future<void> runSignInExistingUserWithFirestoreDoc(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   _TestLogger.logTestStart(
       '1/10', 'sign in with existing user (has Firestore doc)');
@@ -86,7 +85,6 @@ Future<void> runSignInExistingUserWithFirestoreDoc(
 /// - Tests emailVerified check with verified user
 Future<void> runSignInNewUserWithoutFirestoreDoc(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   _TestLogger.logTestStart(
       '2/10', 'sign in with user without Firestore doc (should create one)');
@@ -137,7 +135,6 @@ Future<void> runSignInNewUserWithoutFirestoreDoc(
 /// - Confirms user is signed out and verificationPending is returned
 Future<void> runSignInUnverifiedEmail(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   _TestLogger.logTestStart(
       '3/10', 'sign in with unverified email (verificationPending)');
@@ -200,7 +197,6 @@ Future<void> runSignInUnverifiedEmail(
 /// - Tests that user is signed out after registration
 Future<void> runSignUpNewUser(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   _TestLogger.logTestStart(
       '4/10', 'sign up new user (should show verificationPending)');
@@ -251,7 +247,6 @@ Future<void> runSignUpNewUser(
 /// - Validates appropriate message is shown in UI
 Future<void> runSignUpExistingEmail(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   _TestLogger.logTestStart('5/10',
       'sign up with existing email (should show error or verificationPending)');
@@ -314,7 +309,6 @@ Future<void> runSignUpExistingEmail(
 /// - Confirms user stays on LoginPage and is not authenticated
 Future<void> runSignInWrongPassword(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   _TestLogger.logTestStart('6/10', 'sign in with wrong password');
 
@@ -369,7 +363,6 @@ Future<void> runSignInWrongPassword(
 /// - Confirms user stays on LoginPage
 Future<void> runSignInInvalidEmail(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   _TestLogger.logTestStart('7/10', 'sign in with invalid email format');
 
@@ -432,7 +425,6 @@ Future<void> runSignInInvalidEmail(
 /// - Confirms user stays on LoginPage
 Future<void> runSignUpWeakPassword(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   _TestLogger.logTestStart('8/10', 'sign up with weak password');
 
@@ -517,7 +509,6 @@ Future<void> runSignUpWeakPassword(
 /// - Confirms user stays on LoginPage and is not authenticated
 Future<void> runSignInNonExistentUser(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   _TestLogger.logTestStart('9/10', 'sign in with non-existent user');
 
@@ -568,7 +559,6 @@ Future<void> runSignInNonExistentUser(
 /// - Validates user is signed out and returns to LoginPage
 Future<void> runSignOutTest(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   _TestLogger.logTestStart('10/10', 'sign out functionality');
 
@@ -629,6 +619,7 @@ Future<void> runSignOutTest(
   _TestLogger.logSuccess('Firebase Auth state cleared');
 
   // VERIFY: SharedPreferences cleared
+  final sharedPreferences = await SharedPreferences.getInstance();
   expect(sharedPreferences.getKeys().isEmpty, true,
       reason: 'UserData should be cleared from cache');
   _TestLogger.logSuccess('Local cache cleared');

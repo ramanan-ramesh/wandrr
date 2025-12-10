@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/presentation/app/pages/login_page.dart';
 import 'package:wandrr/presentation/app/pages/onboarding/onboarding_page.dart';
 import 'package:wandrr/presentation/app/pages/startup_page.dart';
@@ -18,7 +17,6 @@ import '../helpers/test_helpers.dart';
 /// - Tapping next button navigates to LoginPage
 Future<void> runStartupPageTest(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);

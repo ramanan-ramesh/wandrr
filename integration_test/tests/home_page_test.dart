@@ -23,7 +23,6 @@ import '../helpers/test_helpers.dart';
 /// Test: HomePage sets isBigLayout to true when screen width >= 1000, and AppBar resizes accordingly
 Future<void> runHomePageLayoutTest(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
   await TestHelpers.pumpAndSettleApp(tester);
@@ -56,7 +55,6 @@ Future<void> runHomePageLayoutTest(
 /// Test: Language selection updates locale and repository
 Future<void> runHomePageLanguageSwitchTest(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
   await TestHelpers.pumpAndSettleApp(tester);
@@ -85,7 +83,6 @@ Future<void> runHomePageLanguageSwitchTest(
 /// Test: Theme mode switcher updates theme mode and repository
 Future<void> runHomePageThemeSwitchTest(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
   await TestHelpers.pumpAndSettleApp(tester);
@@ -114,7 +111,6 @@ Future<void> runHomePageThemeSwitchTest(
 /// Test: HomePage displays no trips initially in TripsListView
 Future<void> runHomePageEmptyTripsTest(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
   await TestHelpers.pumpAndSettleApp(tester);
@@ -134,7 +130,6 @@ Future<void> runHomePageEmptyTripsTest(
 /// Test: Creating a trip navigates to TripEditorPage
 Future<void> runHomePageCreateTripFlowTest(
   WidgetTester tester,
-  SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated)
   await TestHelpers.pumpAndSettleApp(tester);
