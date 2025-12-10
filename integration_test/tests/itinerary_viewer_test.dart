@@ -10,7 +10,7 @@ import '../helpers/test_helpers.dart';
 /// Test: ItineraryViewer displays the first trip date's itinerary by default
 Future<void> runItineraryViewerDefaultDateTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -34,7 +34,7 @@ Future<void> runItineraryViewerDefaultDateTest(WidgetTester tester) async {
 /// Test: Timeline displays transits correctly
 Future<void> runItineraryViewerTransitsTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -59,7 +59,7 @@ Future<void> runItineraryViewerTransitsTest(WidgetTester tester) async {
 /// Test: Timeline displays lodgings correctly
 Future<void> runItineraryViewerLodgingsTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -81,7 +81,7 @@ Future<void> runItineraryViewerLodgingsTest(WidgetTester tester) async {
 /// Test: Timeline displays notes correctly
 Future<void> runItineraryViewerNotesTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -108,7 +108,7 @@ Future<void> runItineraryViewerNotesTest(WidgetTester tester) async {
 /// Test: Timeline displays checklists correctly
 Future<void> runItineraryViewerChecklistsTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -135,7 +135,7 @@ Future<void> runItineraryViewerChecklistsTest(WidgetTester tester) async {
 /// Test: Timeline displays sights correctly
 Future<void> runItineraryViewerSightsTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -162,7 +162,7 @@ Future<void> runItineraryViewerSightsTest(WidgetTester tester) async {
 /// Test: Timeline items are sorted correctly
 Future<void> runItineraryViewerTimelineSortingTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -186,7 +186,7 @@ Future<void> runItineraryViewerTimelineSortingTest(WidgetTester tester) async {
 /// Test: Navigate to next date in itinerary
 Future<void> runItineraryViewerNavigateNextTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -228,7 +228,7 @@ Future<void> runItineraryViewerNavigateNextTest(WidgetTester tester) async {
 /// Test: Navigate to previous date in itinerary
 Future<void> runItineraryViewerNavigatePreviousTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -288,7 +288,7 @@ Future<void> runItineraryViewerNavigatePreviousTest(WidgetTester tester) async {
 Future<void> runItineraryViewerNavigationBoundaryStartTest(
     WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -324,7 +324,7 @@ Future<void> runItineraryViewerNavigationBoundaryStartTest(
 Future<void> runItineraryViewerNavigationBoundaryEndTest(
     WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -367,7 +367,7 @@ Future<void> runItineraryViewerNavigationBoundaryEndTest(
 Future<void> runItineraryViewerRefreshOnNavigationTest(
     WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(

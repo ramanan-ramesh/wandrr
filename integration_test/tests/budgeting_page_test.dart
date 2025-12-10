@@ -16,7 +16,7 @@ Future<void> runBudgetingPageStructureTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Wait for TripEditorPage to appear
   await TestHelpers.waitForWidget(
@@ -66,7 +66,7 @@ Future<void> runExpensesListViewStructureTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -114,7 +114,7 @@ Future<void> runBudgetTileUnderBudgetTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to budgeting page
   await TestHelpers.waitForWidget(
@@ -156,7 +156,7 @@ Future<void> runBudgetTileOverBudgetTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to budgeting page
   await TestHelpers.waitForWidget(
@@ -196,7 +196,7 @@ Future<void> runSortOptionsDefaultTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to budgeting page
   await TestHelpers.waitForWidget(
@@ -235,7 +235,7 @@ Future<void> runSortByCostAscendingTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to budgeting page
   await TestHelpers.waitForWidget(
@@ -279,7 +279,7 @@ Future<void> runSortByCostDescendingTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to budgeting page
   await TestHelpers.waitForWidget(
@@ -327,7 +327,7 @@ Future<void> runSortByDateAscendingTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to budgeting page
   await TestHelpers.waitForWidget(
@@ -371,7 +371,7 @@ Future<void> runSortByDateDescendingTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to budgeting page
   await TestHelpers.waitForWidget(
@@ -406,7 +406,7 @@ Future<void> runSortByCategoryTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to budgeting page
   await TestHelpers.waitForWidget(
@@ -445,7 +445,7 @@ Future<void> runDebtSummaryTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to budgeting page
   await TestHelpers.waitForWidget(
@@ -489,7 +489,7 @@ Future<void> runBudgetBreakdownTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to budgeting page
   await TestHelpers.waitForWidget(
@@ -542,7 +542,7 @@ Future<void> runExpenseCategoriesTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to budgeting page
   await TestHelpers.waitForWidget(
@@ -583,7 +583,7 @@ Future<void> runExpensesWithAndWithoutDatesTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to budgeting page
   await TestHelpers.waitForWidget(
@@ -622,7 +622,7 @@ Future<void> runExpensesFromDifferentSourcesTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to budgeting page
   await TestHelpers.waitForWidget(
@@ -654,7 +654,7 @@ Future<void> runMultipleCurrenciesTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to budgeting page
   await TestHelpers.waitForWidget(

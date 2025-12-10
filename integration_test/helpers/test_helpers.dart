@@ -9,7 +9,6 @@ import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/app/pages/master_page/master_page.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 
-import 'firebase_emulator_helper.dart';
 import 'test_config.dart';
 
 class TestHelpers {
@@ -22,28 +21,6 @@ class TestHelpers {
   /// This method automatically waits for the native splash screen to complete
   /// before proceeding with the test.
   static Future<void> pumpAndSettleApp(WidgetTester tester) async {
-    final sharedPreferences = await SharedPreferences.getInstance();
-    await tester.pumpWidget(MasterPage(sharedPreferences));
-    await tester.pumpAndSettle();
-    // Wait for native splash screen to complete (Android/iOS)
-    await _waitForNativeSplashScreen(tester);
-    // Log device size after splash screen
-    print(_getDeviceSizeDescription(tester));
-  }
-
-  /// Pump the app and wait for animations to settle
-  ///
-  /// This method automatically waits for the native splash screen to complete
-  /// before proceeding with the test.
-  static Future<void> pumpAndSettleAppWithTestUser(
-      WidgetTester tester, bool shouldAddToFirestore, bool shouldSignIn) async {
-    await FirebaseEmulatorHelper.createFirebaseAuthUser(
-      email: TestConfig.testEmail,
-      password: TestConfig.testPassword,
-      shouldAddToFirestore: shouldAddToFirestore,
-      shouldSignIn: shouldSignIn,
-    );
-
     final sharedPreferences = await SharedPreferences.getInstance();
     await tester.pumpWidget(MasterPage(sharedPreferences));
     await tester.pumpAndSettle();

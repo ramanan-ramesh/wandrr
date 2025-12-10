@@ -12,7 +12,7 @@ Future<void> runCollaboratorListMaxThreeTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -49,7 +49,7 @@ Future<void> runTripNameOpensMetadataEditorTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -89,7 +89,7 @@ Future<void> runEditTripNameTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -124,7 +124,7 @@ Future<void> runEditTripDatesTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -159,7 +159,7 @@ Future<void> runEditContributorsTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -203,7 +203,7 @@ Future<void> runEditTripBudgetTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -236,7 +236,7 @@ Future<void> runExpenseSplittingDisplayTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -271,7 +271,7 @@ Future<void> runTransitExpenseSplittingTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -304,7 +304,7 @@ Future<void> runStayExpenseSplittingTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -337,7 +337,7 @@ Future<void> runSightExpenseSplittingTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -372,7 +372,7 @@ Future<void> runDebtSummaryMultipleContributorsTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -409,7 +409,7 @@ Future<void> runDebtCalculationTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -440,7 +440,7 @@ Future<void> runAddContributorUpdatesExpensesTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -464,7 +464,7 @@ Future<void> runRemoveContributorValidationTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -487,7 +487,7 @@ Future<void> runExpenseSplittingUITest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -519,7 +519,7 @@ Future<void> runCollaboratorAvatarsTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -547,7 +547,7 @@ Future<void> runTripMetadataPersistenceTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
@@ -577,7 +577,7 @@ Future<void> runMultipleContributorsScenarioTest(
   SharedPreferences sharedPreferences,
 ) async {
   // Launch the app
-  await TestHelpers.pumpAndSettleAppWithTestUser(tester, true, true);
+  await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
   await TestHelpers.waitForWidget(
