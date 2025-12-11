@@ -20,16 +20,31 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
   final DateTime day;
 
   @override
-  final List<TransitFacade> transits;
+  Iterable<TransitFacade> get transits =>
+      _transits.map((t) => t.clone()).toList()
+        ..sort((a, b) => a.departureDateTime!.compareTo(b.departureDateTime!));
+  final List<TransitFacade> _transits;
 
   @override
-  LodgingFacade? checkInLodging;
+  LodgingFacade? get checkInLodging => _checkInLodging?.clone();
+  LodgingFacade? _checkInLodging;
 
   @override
-  LodgingFacade? checkOutLodging;
+  set checkInLodging(LodgingFacade? lodging) => _checkInLodging = lodging;
 
   @override
-  LodgingFacade? fullDayLodging;
+  LodgingFacade? get checkOutLodging => _checkOutLodging?.clone();
+  LodgingFacade? _checkOutLodging;
+
+  @override
+  set checkOutLodging(LodgingFacade? lodging) => _checkOutLodging = lodging;
+
+  @override
+  LodgingFacade? get fullDayLodging => _fullDayLodging?.clone();
+  LodgingFacade? _fullDayLodging;
+
+  @override
+  set fullDayLodging(LodgingFacade? lodging) => _fullDayLodging = lodging;
 
   @override
   Stream<
@@ -140,7 +155,7 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
       day: day,
       planData: ItineraryPlanDataModelImplementation.fromModelFacade(
           _planData.facade),
-      transits: transits.map((e) => e.clone()).toList(),
+      transits: _transits.map((e) => e.clone()).toList(),
       checkInLodging: checkInLodging?.clone(),
       checkOutLodging: checkOutLodging?.clone(),
       fullDayLodging: fullDayLodging?.clone(),
@@ -149,14 +164,14 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
 
   @override
   void addTransit(TransitFacade transitToAdd) {
-    if (!transits.any((transit) => transit.id == transitToAdd.id)) {
-      transits.add(transitToAdd);
+    if (!_transits.any((transit) => transit.id == transitToAdd.id)) {
+      _transits.add(transitToAdd);
     }
   }
 
   @override
   void removeTransit(TransitFacade transit) {
-    transits.removeWhere((t) => t.id == transit.id);
+    _transits.removeWhere((t) => t.id == transit.id);
   }
 
   @override
@@ -219,11 +234,15 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
     required this.tripId,
     required this.day,
     required ItineraryPlanDataModelImplementation planData,
-    required this.transits,
-    this.checkInLodging,
-    this.checkOutLodging,
-    this.fullDayLodging,
-  }) : _planData = planData {
+    required List<TransitFacade> transits,
+    LodgingFacade? checkInLodging,
+    LodgingFacade? checkOutLodging,
+    LodgingFacade? fullDayLodging,
+  })  : _planData = planData,
+        _transits = transits,
+        _checkInLodging = checkInLodging,
+        _checkOutLodging = checkOutLodging,
+        _fullDayLodging = fullDayLodging {
     _listenToPlanDataChanges();
   }
 }

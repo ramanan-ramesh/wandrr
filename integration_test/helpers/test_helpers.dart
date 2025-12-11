@@ -43,7 +43,7 @@ class TestHelpers {
     // Test trip data
     const tripId = 'test_trip_123';
     final startDate = DateTime(2025, 9, 24);
-    final endDate = DateTime(2025, 9, 28);
+    final endDate = DateTime(2025, 9, 29);
     const tripName = 'European Adventure';
     const defaultCurrency = 'EUR';
     final contributors = [TestConfig.testEmail];
@@ -70,6 +70,13 @@ class TestHelpers {
         'city': 'London',
         "iata": 'YXU',
         'locationType': 'airport',
+        // bounding box added to satisfy BoundingBox.fromDocument requirements
+        'boundingbox': {
+          'maxLat': 51.5174,
+          'minLat': 51.4974,
+          'maxLon': -0.1178,
+          'minLon': -0.1378
+        }
       }
     };
 
@@ -81,6 +88,13 @@ class TestHelpers {
         'city': 'Paris (Roissy-en-France, Val-d\'Oise)',
         'iata': 'CDG',
         'locationType': 'airport',
+        // bounding box added to satisfy BoundingBox.fromDocument requirements
+        'boundingbox': {
+          'maxLat': 48.8666,
+          'minLat': 48.8466,
+          'maxLon': 2.3622,
+          'minLon': 2.3422
+        }
       }
     };
 
@@ -264,6 +278,8 @@ class TestHelpers {
         .collection(FirestoreCollections.lodgingCollectionName);
     var transitCollection = tripDataCollection
         .collection(FirestoreCollections.transitCollectionName);
+    var expenseCollection = tripDataCollection
+        .collection(FirestoreCollections.expenseCollectionName);
 
     // === TRANSITS===
     // Flight: London to Paris
@@ -438,31 +454,31 @@ class TestHelpers {
       'notes': 'City center, 2 nights',
     });
 
-    // Same-day check-in/out: Brussels day room
+    // Multi-day lodging: Brussels to Amsterdam (spans Sept 27-28)
     await lodgingCollection.add({
       'location': brusselsLocation,
       'checkinDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 3, 0)),
-      'checkoutDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 15, 0)),
-      'confirmationId': 'BRU-DAY-789',
+      'checkoutDateTime': Timestamp.fromDate(DateTime(2025, 9, 28, 10, 0)),
+      'confirmationId': 'BRU-HTL-789',
       'expense': {
         'currency': defaultCurrency,
         'category': 'lodging',
-        'paidBy': {TestConfig.testEmail: 80.0},
+        'paidBy': {TestConfig.testEmail: 120.0},
         'splitBy': contributors,
       },
-      'notes': 'Rest after night bus',
+      'notes': 'Brussels hotel, 1 night',
     });
 
-    // Amsterdam hostel
+    // Amsterdam hostel (check-in on Sept 28)
     await lodgingCollection.add({
       'location': amsterdamLocation,
-      'checkinDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 22, 0)),
-      'checkoutDateTime': Timestamp.fromDate(DateTime(2025, 9, 28, 16, 0)),
+      'checkinDateTime': Timestamp.fromDate(DateTime(2025, 9, 28, 14, 0)),
+      'checkoutDateTime': Timestamp.fromDate(DateTime(2025, 9, 29, 11, 0)),
       'confirmationId': 'AMS-HSTL-123',
       'expense': {
         'currency': defaultCurrency,
         'category': 'lodging',
-        'paidBy': {TestConfig.testEmail: 90.0},
+        'paidBy': {TestConfig.testEmail: 60.0},
         'splitBy': contributors,
       },
       'notes': 'Budget hostel',
@@ -608,10 +624,45 @@ class TestHelpers {
       ],
     });
 
+    // === PURE EXPENSES (not linked to transits/lodgings/sights) ===
+    // Restaurant meal on Day 1
+    await expenseCollection.add({
+      'title': 'Dinner at Le Comptoir',
+      'currency': defaultCurrency,
+      'category': 'food',
+      'paidBy': {TestConfig.testEmail: 45.0},
+      'splitBy': contributors,
+      'dateTime': Timestamp.fromDate(DateTime(2025, 9, 24, 20, 0)),
+      'description': 'French cuisine',
+    });
+
+    // Souvenirs on Day 2
+    await expenseCollection.add({
+      'title': 'Souvenirs from Louvre',
+      'currency': defaultCurrency,
+      'category': 'other',
+      'paidBy': {TestConfig.testEmail: 25.0},
+      'splitBy': contributors,
+      'dateTime': Timestamp.fromDate(DateTime(2025, 9, 25)),
+      'description': 'Postcards and magnets',
+    });
+
+    // Groceries on Day 3
+    await expenseCollection.add({
+      'title': 'Groceries',
+      'currency': defaultCurrency,
+      'category': 'food',
+      'paidBy': {TestConfig.testEmail: 15.5},
+      'splitBy': contributors,
+      'dateTime': Timestamp.fromDate(DateTime(2025, 9, 26)),
+      'description': 'Snacks for the bus',
+    });
+
     print('✅ 5-day test trip created: $tripId');
     print('   Route: London → Paris → Brussels → Amsterdam');
     print(
         '   Transits: flight, train, bus, rentedVehicle, taxi, ferry, walk, publicTransport');
+    print('   Pure expenses: 3 (2 food, 1 other)');
   }
 
   /// Get the current device screen size

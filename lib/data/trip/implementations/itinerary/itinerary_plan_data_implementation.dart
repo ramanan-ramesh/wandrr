@@ -3,7 +3,9 @@ import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
+import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 
 import 'sight.dart';
 
@@ -13,14 +15,31 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
   static const String _notesField = 'notes';
   static const String _checkListsField = 'checkLists';
 
+  @override
+  List<SightFacade> get sights =>
+      List.from(_sights.map((sight) => sight.clone()));
+  final List<SightFacade> _sights;
+
+  @override
+  List<String> get notes => List.from(_notes);
+  final List<String> _notes;
+
+  @override
+  List<CheckListFacade> get checkLists =>
+      List.from(_checkLists.map((checkList) => checkList.clone()));
+  final List<CheckListFacade> _checkLists;
+
   ItineraryPlanDataModelImplementation({
     required super.tripId,
     required super.day,
-    required super.sights,
-    required super.notes,
-    required super.checkLists,
+    required List<SightFacade> sights,
+    required List<String> notes,
+    required List<CheckListFacade> checkLists,
     super.id,
-  });
+  })  : _sights = sights,
+        _notes = notes,
+        _checkLists = checkLists,
+        super(sights: [], notes: [], checkLists: []);
 
   factory ItineraryPlanDataModelImplementation.fromModelFacade(
       ItineraryPlanData planDataFacade) {
@@ -79,13 +98,13 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
 
   Map<String, dynamic> toJson() {
     return {
-      if (sights.isNotEmpty)
-        _sightsField: sights
+      if (_sights.isNotEmpty)
+        _sightsField: _sights
             .map((sight) => (sight as SightModelImplementation).toJson())
             .toList(),
-      if (notes.isNotEmpty) _notesField: notes,
-      if (checkLists.isNotEmpty)
-        _checkListsField: checkLists
+      if (_notes.isNotEmpty) _notesField: _notes,
+      if (_checkLists.isNotEmpty)
+        _checkListsField: _checkLists
             .map((checkList) =>
                 (checkList as CheckListModelImplementation).toJson())
             .toList(),

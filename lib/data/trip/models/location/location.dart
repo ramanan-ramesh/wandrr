@@ -36,7 +36,7 @@ class LocationFacade extends Equatable implements TripEntity<LocationFacade> {
   bool validate() => true;
 
   @override
-  List<Object?> get props => [id, latitude, longitude, context, id];
+  List<Object?> get props => [latitude, longitude, context];
 }
 
 enum LocationType {
@@ -44,6 +44,7 @@ enum LocationType {
   country,
   state,
   city,
+  town,
   place,
   region,
   railwayStation,
@@ -52,5 +53,6 @@ enum LocationType {
   restaurant,
   attraction,
   lodging,
-  busStop
+  busStop,
+  museum
 }

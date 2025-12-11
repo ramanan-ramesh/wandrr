@@ -66,9 +66,7 @@ class ExpenseFacade extends Equatable
       category: category,
       paidBy: paidBy,
       splitBy: splitBy,
-      dateTime: dateTime != null
-          ? DateTime(dateTime!.year, dateTime!.month, dateTime!.day)
-          : null);
+      dateTime: dateTime);
 
   void copyWith(ExpenseFacade expenseModelFacade) {
     tripId = expenseModelFacade.tripId;

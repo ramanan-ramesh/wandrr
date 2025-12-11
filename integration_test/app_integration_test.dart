@@ -162,7 +162,7 @@ void main() {
       });
     });
 
-    group('Trip Editor Page Layout Tests', () {
+    group('Trip Editor Page Tests', () {
       setUpAll(() async {
         await FirebaseEmulatorHelper.createFirebaseAuthUser(
           email: TestConfig.testEmail,
@@ -186,6 +186,12 @@ void main() {
           (WidgetTester tester) async {
         await runTripEditorLayoutTest(tester);
       });
+
+      testWidgets(
+          'trip repository contains correct values from createTestTrip setup',
+          (WidgetTester tester) async {
+        await runTripRepositoryValuesTest(tester);
+      });
     });
 
     group('Itinerary Viewer Tests', () {
@@ -207,37 +213,10 @@ void main() {
         await sharedPreferences.clear();
       });
 
-      testWidgets('displays the first trip date\'s itinerary by default',
+      testWidgets(
+          'displays first trip date with all components (transits, lodgings, sights, notes, checklists)',
           (WidgetTester tester) async {
         await runItineraryViewerDefaultDateTest(tester);
-      });
-
-      testWidgets('displays transits correctly in timeline',
-          (WidgetTester tester) async {
-        await runItineraryViewerTransitsTest(tester);
-      });
-
-      testWidgets('displays lodgings correctly in timeline',
-          (WidgetTester tester) async {
-        await runItineraryViewerLodgingsTest(tester);
-      });
-
-      testWidgets('displays notes tab correctly', (WidgetTester tester) async {
-        await runItineraryViewerNotesTest(tester);
-      });
-
-      testWidgets('displays checklists tab correctly',
-          (WidgetTester tester) async {
-        await runItineraryViewerChecklistsTest(tester);
-      });
-
-      testWidgets('displays sights tab correctly', (WidgetTester tester) async {
-        await runItineraryViewerSightsTest(tester);
-      });
-
-      testWidgets('timeline items are sorted correctly',
-          (WidgetTester tester) async {
-        await runItineraryViewerTimelineSortingTest(tester);
       });
 
       testWidgets('navigates to next date correctly',
