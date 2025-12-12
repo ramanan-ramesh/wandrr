@@ -259,14 +259,45 @@ jobs:
       - name: Start Firebase Emulators  # UNCHANGED: Good curl check
         run: |
           firebase emulators:start --only auth,firestore --project wandrr-15f70 &
+          EMULATOR_PID=$!
+          echo "Firebase emulators started with PID: $EMULATOR_PID"
+          
+          # Wait for emulators to be ready
+          READY=false
           for i in {1..120}; do
             if curl -s http://localhost:8080 > /dev/null 2>&1 && curl -s http://localhost:9099 > /dev/null 2>&1; then
-              echo "Firebase emulators ready!"
+              echo "✓ Firebase emulators are ready and accessible from host!"
+              READY=true
               break
             fi
             sleep 1
           done
-          echo "FIREBASE_EMULATOR_PID=$!" >> $GITHUB_ENV
+          
+          if [ "$READY" = false ]; then
+            echo "❌ Firebase emulators failed to start within 120 seconds"
+            exit 1
+          fi
+          
+          echo "FIREBASE_EMULATOR_PID=$EMULATOR_PID" >> $GITHUB_ENV
+          
+          # Note: Android emulators access host machine's localhost via 10.0.2.2
+          echo "ℹ️ Emulators will connect via 10.0.2.2:8080 and 10.0.2.2:9099"
+
+      - name: Verify Emulator Connectivity to Firebase
+        run: |
+          echo "🔍 Verifying Android emulators can reach Firebase emulators..."
+          
+          # Test connectivity from tablet emulator
+          echo "Testing from emulator-5554..."
+          adb -s emulator-5554 shell "curl -s http://10.0.2.2:8080 > /dev/null && echo '✓ Tablet can reach Firestore' || echo '❌ Tablet CANNOT reach Firestore'"
+          adb -s emulator-5554 shell "curl -s http://10.0.2.2:9099 > /dev/null && echo '✓ Tablet can reach Auth' || echo '❌ Tablet CANNOT reach Auth'"
+          
+          # Test connectivity from phone emulator
+          echo "Testing from emulator-5556..."
+          adb -s emulator-5556 shell "curl -s http://10.0.2.2:8080 > /dev/null && echo '✓ Phone can reach Firestore' || echo '❌ Phone CANNOT reach Firestore'"
+          adb -s emulator-5556 shell "curl -s http://10.0.2.2:9099 > /dev/null && echo '✓ Phone can reach Auth' || echo '❌ Phone CANNOT reach Auth'"
+          
+          echo "✅ Connectivity check complete"
 
       - name: Run Integration Tests for Screenshot Generation  # flutter test handles build & install automatically
         run: |
@@ -274,8 +305,8 @@ jobs:
           flutter test integration_test/scripts/release_management/screenshot_generation/script.dart \
             -d emulator-5554 \
             --dart-define=DEVICE_TYPE=tablet \
-            --dart-define=FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 \
-            --dart-define=FIRESTORE_EMULATOR_HOST=localhost:8080 \
+            --dart-define=FIREBASE_AUTH_EMULATOR_HOST=10.0.2.2:9099 \
+            --dart-define=FIRESTORE_EMULATOR_HOST=10.0.2.2:8080 \
             --verbose || {
               echo "❌ Tablet integration tests failed"
               adb -s emulator-5554 logcat -d > /tmp/tablet_logcat.txt
@@ -287,8 +318,8 @@ jobs:
           flutter test integration_test/scripts/release_management/screenshot_generation/script.dart \
             -d emulator-5556 \
             --dart-define=DEVICE_TYPE=phone \
-            --dart-define=FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 \
-            --dart-define=FIRESTORE_EMULATOR_HOST=localhost:8080 \
+            --dart-define=FIREBASE_AUTH_EMULATOR_HOST=10.0.2.2:9099 \
+            --dart-define=FIRESTORE_EMULATOR_HOST=10.0.2.2:8080 \
             --verbose || {
               echo "❌ Phone integration tests failed"
               adb -s emulator-5556 logcat -d > /tmp/phone_logcat.txt

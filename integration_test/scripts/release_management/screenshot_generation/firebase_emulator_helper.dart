@@ -15,9 +15,34 @@ class FirebaseEmulatorHelper {
   // Emulator configuration
   // For Android emulator: use 10.0.2.2 (maps to host machine's localhost)
   // For iOS simulator or web: use localhost/127.0.0.1
-  static const String _emulatorHost = '10.0.2.2';
-  static const int _authEmulatorPort = 9099;
-  static const int _firestoreEmulatorPort = 8080;
+  // Can be overridden via dart-define: FIREBASE_AUTH_EMULATOR_HOST and FIRESTORE_EMULATOR_HOST
+  static String get _defaultEmulatorHost {
+    // Parse from dart-define if provided (format: "host:port")
+    const authEmulatorEnv =
+        String.fromEnvironment('FIREBASE_AUTH_EMULATOR_HOST', defaultValue: '');
+    if (authEmulatorEnv.isNotEmpty && authEmulatorEnv.contains(':')) {
+      return authEmulatorEnv.split(':')[0];
+    }
+    return '10.0.2.2'; // Default for Android emulator
+  }
+
+  static int get _defaultAuthPort {
+    const authEmulatorEnv =
+        String.fromEnvironment('FIREBASE_AUTH_EMULATOR_HOST', defaultValue: '');
+    if (authEmulatorEnv.isNotEmpty && authEmulatorEnv.contains(':')) {
+      return int.tryParse(authEmulatorEnv.split(':')[1]) ?? 9099;
+    }
+    return 9099;
+  }
+
+  static int get _defaultFirestorePort {
+    const firestoreEmulatorEnv =
+        String.fromEnvironment('FIRESTORE_EMULATOR_HOST', defaultValue: '');
+    if (firestoreEmulatorEnv.isNotEmpty && firestoreEmulatorEnv.contains(':')) {
+      return int.tryParse(firestoreEmulatorEnv.split(':')[1]) ?? 8080;
+    }
+    return 8080;
+  }
 
   static bool _isConfigured = false;
 
@@ -35,9 +60,9 @@ class FirebaseEmulatorHelper {
       return;
     }
 
-    final host = customHost ?? _emulatorHost;
-    final authPort = customAuthPort ?? _authEmulatorPort;
-    final firestorePort = customFirestorePort ?? _firestoreEmulatorPort;
+    final host = customHost ?? _defaultEmulatorHost;
+    final authPort = customAuthPort ?? _defaultAuthPort;
+    final firestorePort = customFirestorePort ?? _defaultFirestorePort;
 
     try {
       // Configure Firebase Auth to use emulator
@@ -67,6 +92,66 @@ class FirebaseEmulatorHelper {
   /// Reset configuration flag (useful for testing)
   static void reset() {
     _isConfigured = false;
+  }
+
+  /// Check if emulators are accessible
+  /// Returns true if both Auth and Firestore emulators respond, false otherwise
+  static Future<bool> checkEmulatorConnectivity() async {
+    final host = _defaultEmulatorHost;
+    final authPort = _defaultAuthPort;
+    final firestorePort = _defaultFirestorePort;
+
+    try {
+      print('🔍 Checking Firebase emulator connectivity...');
+      print('   Auth emulator: http://$host:$authPort');
+      print('   Firestore emulator: http://$host:$firestorePort');
+
+      // Check Auth emulator
+      try {
+        final authResponse = await http
+            .get(
+              Uri.parse('http://$host:$authPort'),
+            )
+            .timeout(const Duration(seconds: 5));
+
+        if (authResponse.statusCode == 200 || authResponse.statusCode == 404) {
+          print('✓ Auth emulator is accessible');
+        } else {
+          print('⚠️ Auth emulator returned status: ${authResponse.statusCode}');
+          return false;
+        }
+      } catch (e) {
+        print('❌ Auth emulator is NOT accessible: $e');
+        return false;
+      }
+
+      // Check Firestore emulator
+      try {
+        final firestoreResponse = await http
+            .get(
+              Uri.parse('http://$host:$firestorePort'),
+            )
+            .timeout(const Duration(seconds: 5));
+
+        if (firestoreResponse.statusCode == 200 ||
+            firestoreResponse.statusCode == 404) {
+          print('✓ Firestore emulator is accessible');
+        } else {
+          print(
+              '⚠️ Firestore emulator returned status: ${firestoreResponse.statusCode}');
+          return false;
+        }
+      } catch (e) {
+        print('❌ Firestore emulator is NOT accessible: $e');
+        return false;
+      }
+
+      print('✅ All emulators are accessible');
+      return true;
+    } catch (e) {
+      print('❌ Error checking emulator connectivity: $e');
+      return false;
+    }
   }
 
   /// Setup test data - creates test user
@@ -145,8 +230,8 @@ class FirebaseEmulatorHelper {
   /// This uses admin privileges to set emailVerified=true
   static Future _verifyEmailInEmulator(String email) async {
     try {
-      final host = _emulatorHost;
-      final port = _authEmulatorPort;
+      final host = _defaultEmulatorHost;
+      final port = _defaultAuthPort;
 
       // Get current user details (must be signed in)
       final currentUser = FirebaseAuth.instance.currentUser;
@@ -166,7 +251,8 @@ class FirebaseEmulatorHelper {
           'http://$host:$port/identitytoolkit.googleapis.com/v1/accounts:update?key=wandrr-15f70';
 
       // Admin request body: Use localId (UID) + emailVerified
-      final updateResponse = await http.post(
+      final updateResponse = await http
+          .post(
         Uri.parse(updateUrl),
         headers: {
           'Content-Type': 'application/json',
@@ -176,6 +262,13 @@ class FirebaseEmulatorHelper {
           'localId': uid,
           'emailVerified': true,
         }),
+      )
+          .timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception(
+              'Timeout: Could not connect to Firebase Auth emulator at $host:$port');
+        },
       );
 
       if (updateResponse.statusCode == 200) {
@@ -275,8 +368,10 @@ class FirebaseEmulatorHelper {
         print('\n--- Clearing ALL Auth users ---');
       }
 
-      final host = _emulatorHost; // '10.0.2.2' for Android emulator
-      final port = _authEmulatorPort; // 9099
+      final host =
+          _defaultEmulatorHost; // Dynamic based on dart-define or default '10.0.2.2'
+      final port =
+          _defaultAuthPort; // Dynamic based on dart-define or default 9099
       const projectId = 'wandrr-15f70'; // From your firebase.json
 
       // Emulator-specific endpoint to flush/clear all user records
@@ -287,6 +382,12 @@ class FirebaseEmulatorHelper {
         Uri.parse(clearUrl),
         headers: {
           'Authorization': 'Bearer owner', // Admin access for emulator
+        },
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception(
+              'Timeout: Could not connect to Firebase Auth emulator at $host:$port');
         },
       );
 
