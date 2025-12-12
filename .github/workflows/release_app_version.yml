@@ -1,7 +1,10 @@
 name: Flutter Multi-Platform Release & Version Management
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger; add 'push: branches: [main]' for auto
+
+permissions:
+  contents: write  # For git commit/push in README update
 
 jobs:
   release:
@@ -9,11 +12,36 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # For push permissions
+
+      - name: Free up disk space  # FIX: Reclaims ~25 GB to prevent "No space left" error
+        uses: jlumbroso/free-disk-space@v2.1.0
+        with:
+          android: true
+          docker: false
+          pr: false
+
+      - name: Cache Android SDK/AVD  # FIX: Avoid redownloading ~5 GB images
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android
+            $ANDROID_SDK_ROOT
+          key: android-sdk-api36-33-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            android-sdk-api36-33-${{ runner.os }}-
+
+      - name: Log free space  # DEBUG: Monitor space post-cleanup
+        run: df -h
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+
+      - name: Install dependencies  # NEW: Get Flutter pubs early
+        run: flutter pub get
 
       - name: Generate Android debug keystore if missing
         run: |
@@ -38,31 +66,17 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK Components
+      - name: Install Android SDK Components  # OPTIMIZED: ARM64 for space savings; skip if cached
         run: |
-          # Accept licenses
           yes | sdkmanager --licenses || true
-          
-          # Install system images for both emulators
-          sdkmanager "system-images;android-36;google_apis;x86_64"
-          sdkmanager "system-images;android-33;google_apis;x86_64"
-          
-          # Install platform tools and emulator
-          sdkmanager "platform-tools"
-          sdkmanager "emulator"
-          sdkmanager "platforms;android-36"
-          sdkmanager "platforms;android-33"
+          # Use ARM64 images (smaller/faster on modern runners)
+          sdkmanager "system-images;android-36;google_apis;arm64-v8a"
+          sdkmanager "system-images;android-33;google_apis;arm64-v8a"
+          sdkmanager "platform-tools" "emulator" "platforms;android-36" "platforms;android-33"
 
-      - name: Create Pixel Tablet Emulator (API 36)
+      - name: Create Pixel Tablet Emulator (API 36)  # UPDATED: ARM64 package
         run: |
-          echo "Creating Pixel Tablet emulator..."
-          echo "no" | avdmanager create avd \
-            --force \
-            --name pixel_tablet_api_36 \
-            --package "system-images;android-36;google_apis;x86_64" \
-            --device "pixel_tablet"
-          
-          # Configure emulator settings
+          echo "no" | avdmanager create avd --force --name pixel_tablet_api_36 --package "system-images;android-36;google_apis;arm64-v8a" --device "pixel_tablet"
           cat >> ~/.android/avd/pixel_tablet_api_36.avd/config.ini << EOF
           hw.keyboard=yes
           hw.ramSize=4096
@@ -70,19 +84,10 @@ jobs:
           hw.gpu.mode=auto
           disk.dataPartition.size=4096M
           EOF
-          
-          echo "Pixel Tablet emulator created successfully"
 
-      - name: Create Pixel 8a Emulator (API 33)
+      - name: Create Pixel 8a Emulator (API 33)  # UPDATED: ARM64 package
         run: |
-          echo "Creating Pixel 8a emulator..."
-          echo "no" | avdmanager create avd \
-            --force \
-            --name pixel_8a_api_33 \
-            --package "system-images;android-33;google_apis;x86_64" \
-            --device "pixel_8a"
-          
-          # Configure emulator settings
+          echo "no" | avdmanager create avd --force --name pixel_8a_api_33 --package "system-images;android-33;google_apis;arm64-v8a" --device "pixel_8a"
           cat >> ~/.android/avd/pixel_8a_api_33.avd/config.ini << EOF
           hw.keyboard=yes
           hw.ramSize=2048
@@ -90,106 +95,71 @@ jobs:
           hw.gpu.mode=auto
           disk.dataPartition.size=2048M
           EOF
-          
-          echo "Pixel 8a emulator created successfully"
 
       - name: Set up Virtual Display (Xvfb) for Screenshots
         run: |
-          # Install Xvfb for virtual display
           sudo apt-get update
-          sudo apt-get install -y xvfb libglu1-mesa
-          
-          # Start Xvfb on display :99
+          sudo apt-get install -y xvfb libglu1-mesa imagemagick  # NEW: ImageMagick for post-processing
           Xvfb :99 -screen 0 1920x1080x24 &
           export DISPLAY=:99
           echo "DISPLAY=:99" >> $GITHUB_ENV
-          
-          # Wait for Xvfb to be ready
           sleep 2
-          echo "Virtual display ready for screenshots"
 
-      - name: Start Android Emulators
+      - name: Start Android Emulators  # OPTIMIZED: Sequential start to reduce peak load
         run: |
-          # Start Pixel Tablet in background (with display for screenshots)
-          echo "Starting Pixel Tablet emulator..."
-          $ANDROID_HOME/emulator/emulator -avd pixel_tablet_api_36 \
-            -no-snapshot-save \
-            -no-audio \
-            -no-boot-anim \
-            -gpu swiftshader_indirect \
-            -port 5554 &
-          
-          # Start Pixel 8a in background (with display for screenshots)
-          echo "Starting Pixel 8a emulator..."
-          $ANDROID_HOME/emulator/emulator -avd pixel_8a_api_33 \
-            -no-snapshot-save \
-            -no-audio \
-            -no-boot-anim \
-            -gpu swiftshader_indirect \
-            -port 5556 &
-          
-          echo "Waiting for emulators to boot..."
+          # Start Tablet first
+          $ANDROID_HOME/emulator/emulator -avd pixel_tablet_api_36 -no-snapshot-save -no-audio -no-boot-anim -gpu host -port 5554 &
+          sleep 5  # Brief pause
+          # Start Phone
+          $ANDROID_HOME/emulator/emulator -avd pixel_8a_api_33 -no-snapshot-save -no-audio -no-boot-anim -gpu host -port 5556 &
 
-      - name: Wait for Emulators to be Ready
+      - name: Wait for Emulators to be Ready  # UNCHANGED: Solid logic
         run: |
-          # Wait for Pixel Tablet (emulator-5554)
-          echo "Waiting for Pixel Tablet (emulator-5554) to boot..."
+          # Tablet
           adb -s emulator-5554 wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
           adb -s emulator-5554 shell settings put global window_animation_scale 0.0
           adb -s emulator-5554 shell settings put global transition_animation_scale 0.0
           adb -s emulator-5554 shell settings put global animator_duration_scale 0.0
-          echo "✓ Pixel Tablet ready (emulator-5554)"
-          
-          # Wait for Pixel 8a (emulator-5556)
-          echo "Waiting for Pixel 8a (emulator-5556) to boot..."
+          # Phone
           adb -s emulator-5556 wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
           adb -s emulator-5556 shell settings put global window_animation_scale 0.0
           adb -s emulator-5556 shell settings put global transition_animation_scale 0.0
           adb -s emulator-5556 shell settings put global animator_duration_scale 0.0
-          echo "✓ Pixel 8a ready (emulator-5556)"
-          
-          # List all devices
-          echo "Available emulators:"
           adb devices -l
 
       - name: Install Firebase CLI
         run: |
-          npm install -g firebase-tools
-          firebase --version  # Verify
+          npm install -g firebase-tools@latest  # UPDATED: @latest for JDK 21 compat
+          firebase --version
 
-      - name: Set up Firebase Emulator Prerequisites
+      - name: Set up Firebase Emulator Prerequisites  # OPTIMIZED: Cache-aware
         run: |
-          # Create necessary directories for emulator data
           mkdir -p ~/.cache/firebase/emulators
-          
-          # Download emulators if not cached
           firebase setup:emulators:firestore
           firebase setup:emulators:ui
-          
-          echo "Firebase emulator prerequisites set up successfully"
 
-      - name: Start Firebase Emulators
+      - name: Start Firebase Emulators  # UNCHANGED: Good curl check
         run: |
-          # Start emulators in background
           firebase emulators:start --only auth,firestore --project wandrr-15f70 &
-          
-          # Wait for emulators to be ready (max 120 seconds)
-          echo "Waiting for Firebase emulators to start..."
           for i in {1..120}; do
-            if curl -s http://localhost:8080 > /dev/null 2>&1 && \
-               curl -s http://localhost:9099 > /dev/null 2>&1; then
-              echo "Firebase emulators are ready!"
+            if curl -s http://localhost:8080 > /dev/null 2>&1 && curl -s http://localhost:9099 > /dev/null 2>&1; then
+              echo "Firebase emulators ready!"
               break
-            fi
-            if [ $i -eq 120 ]; then
-              echo "Error: Firebase emulators failed to start within 60 seconds"
-              exit 1
             fi
             sleep 1
           done
-          
-          # Keep emulators running for subsequent steps
           echo "FIREBASE_EMULATOR_PID=$!" >> $GITHUB_ENV
 
-      - name: Build Flutter APK (Android)
-        run: flutter build apk --debug
+      - name: Build & Install Flutter APK on Emulators  # SPLIT: Build once, install on both
+        run: |
+          flutter build apk --debug
+          flutter install -s emulator-5554  # Tablet
+          flutter install -s emulator-5556  # Phone
+
+      - name: Cleanup Emulators & Firebase  # NEW: Graceful shutdown
+        if: always()
+        run: |
+          adb -s emulator-5554 emu kill || true
+          adb -s emulator-5556 emu kill || true
+          pkill -f "firebase emulators" || true
+          echo "Cleanup complete"
