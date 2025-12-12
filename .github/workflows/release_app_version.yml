@@ -70,12 +70,12 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK Components  # OPTIMIZED: ARM64 for space savings; skip if cached
+      - name: Install Android SDK Components  # Use x86_64 to match host architecture
         run: |
           yes | sdkmanager --licenses || true
-          # Use ARM64 images (smaller/faster on modern runners)
-          sdkmanager "system-images;android-36;google_apis;arm64-v8a"
-          sdkmanager "system-images;android-33;google_apis;arm64-v8a"
+          # Use x86_64 images (required for x86_64 GitHub runners)
+          sdkmanager "system-images;android-36;google_apis;x86_64"
+          sdkmanager "system-images;android-33;google_apis;x86_64"
           sdkmanager "platform-tools" "emulator" "platforms;android-36" "platforms;android-33"
 
       - name: Set Android AVD Home  # NEW: Point emulator to correct AVD location
@@ -86,13 +86,13 @@ jobs:
           echo "ANDROID_AVD_HOME=$ACTUAL_AVD_HOME" >> $GITHUB_ENV
           echo "Android AVD Home set to: $ACTUAL_AVD_HOME"
 
-      - name: Create Pixel Tablet Emulator (API 36)  # UPDATED: ARM64 package
+      - name: Create Pixel Tablet Emulator (API 36)  # x86_64 for host compatibility
         run: |
           echo "Creating Pixel Tablet AVD..."
           
           # Check if system image is installed
           echo "Verifying system image installation..."
-          sdkmanager --list | grep "system-images;android-36;google_apis;arm64-v8a"
+          sdkmanager --list | grep "system-images;android-36;google_apis;x86_64"
           
           # List available devices
           echo "Available device definitions:"
@@ -101,7 +101,7 @@ jobs:
           # Create AVD and capture output
           set +e  # Don't exit on error yet
           AVD_OUTPUT=$(echo "no" | avdmanager create avd --force --name pixel_tablet_api_36 \
-            --package "system-images;android-36;google_apis;arm64-v8a" \
+            --package "system-images;android-36;google_apis;x86_64" \
             --device "pixel_tablet" 2>&1)
           AVD_EXIT_CODE=$?
           set -e
@@ -114,10 +114,10 @@ jobs:
           
             # Fallback: Create with tablet dimensions manually
             echo "no" | avdmanager create avd --force --name pixel_tablet_api_36 \
-              --package "system-images;android-36;google_apis;arm64-v8a" \
-              --device "pixel_tablet" --abi arm64-v8a || \
+              --package "system-images;android-36;google_apis;x86_64" \
+              --device "pixel_tablet" --abi x86_64 || \
             echo "no" | avdmanager create avd --force --name pixel_tablet_api_36 \
-              --package "system-images;android-36;google_apis;arm64-v8a" \
+              --package "system-images;android-36;google_apis;x86_64" \
               --device 30
           fi
           
@@ -149,18 +149,18 @@ jobs:
           echo "Pixel Tablet AVD created successfully"
           ls -la "$AVD_DIR"
 
-      - name: Create Pixel 8a Emulator (API 33)  # UPDATED: ARM64 package
+      - name: Create Pixel 8a Emulator (API 33)  # x86_64 for host compatibility
         run: |
           echo "Creating Pixel 8a AVD..."
           
           # Check if system image is installed
           echo "Verifying system image installation..."
-          sdkmanager --list | grep "system-images;android-33;google_apis;arm64-v8a"
+          sdkmanager --list | grep "system-images;android-33;google_apis;x86_64"
           
           # Create AVD and capture output
           set +e  # Don't exit on error yet
           AVD_OUTPUT=$(echo "no" | avdmanager create avd --force --name pixel_8a_api_33 \
-            --package "system-images;android-33;google_apis;arm64-v8a" \
+            --package "system-images;android-33;google_apis;x86_64" \
             --device "pixel_8a" 2>&1)
           AVD_EXIT_CODE=$?
           set -e
@@ -173,10 +173,10 @@ jobs:
           
             # Fallback: Create with phone dimensions
             echo "no" | avdmanager create avd --force --name pixel_8a_api_33 \
-              --package "system-images;android-33;google_apis;arm64-v8a" \
-              --device "pixel_8a" --abi arm64-v8a || \
+              --package "system-images;android-33;google_apis;x86_64" \
+              --device "pixel_8a" --abi x86_64 || \
             echo "no" | avdmanager create avd --force --name pixel_8a_api_33 \
-              --package "system-images;android-33;google_apis;arm64-v8a" \
+              --package "system-images;android-33;google_apis;x86_64" \
               --device 30
           fi
           
