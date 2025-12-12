@@ -12,10 +12,14 @@ import 'test_helpers.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
+  // Get device type from dart-define parameter
+  const deviceType = String.fromEnvironment('DEVICE_TYPE', defaultValue: 'all');
+
   group('Wandrr Travel Planner Integration Tests', () {
     late SharedPreferences sharedPreferences;
 
     setUpAll(() async {
+      print('🚀 Starting integration tests for: $deviceType');
       sharedPreferences = await SharedPreferences.getInstance();
       try {
         await Firebase.initializeApp();
@@ -39,13 +43,24 @@ void main() {
       FirebaseEmulatorHelper.reset();
     });
 
-    testWidgets('generate screenshots for phone', (WidgetTester tester) async {
-      await generateScreenshotsForPhone(tester);
-    });
+    // Run phone tests only if device type is 'phone' or 'all'
+    if (deviceType == 'phone' || deviceType == 'all') {
+      testWidgets('generate screenshots for phone',
+          (WidgetTester tester) async {
+        print('📱 Generating screenshots for phone...');
+        await generateScreenshotsForPhone(tester);
+        print('✓ Phone screenshots generated');
+      });
+    }
 
-    testWidgets('generate screenshots for tablets',
-        (WidgetTester tester) async {
-      await generateScreenshotsForTablet(tester);
-    });
+    // Run tablet tests only if device type is 'tablet' or 'all'
+    if (deviceType == 'tablet' || deviceType == 'all') {
+      testWidgets('generate screenshots for tablet',
+          (WidgetTester tester) async {
+        print('📱 Generating screenshots for tablet...');
+        await generateScreenshotsForTablet(tester);
+        print('✓ Tablet screenshots generated');
+      });
+    }
   });
 }

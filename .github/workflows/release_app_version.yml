@@ -274,6 +274,39 @@ jobs:
           flutter install -s emulator-5554  # Tablet
           flutter install -s emulator-5556  # Phone
 
+      - name: Run Integration Tests for Screenshot Generation
+        run: |
+          # Create symlink for integration_test directory to point to scripts
+          ln -s "$GITHUB_WORKSPACE/scripts/release_management/screenshot_generation" "$GITHUB_WORKSPACE/integration_test" || true
+          
+          echo "Running integration tests on tablet (emulator-5554)..."
+          flutter test integration_test/script.dart \
+            -d emulator-5554 \
+            --dart-define=DEVICE_TYPE=tablet \
+            --dart-define=FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 \
+            --dart-define=FIRESTORE_EMULATOR_HOST=localhost:8080 \
+            --verbose || {
+              echo "❌ Tablet integration tests failed"
+              adb -s emulator-5554 logcat -d > /tmp/tablet_logcat.txt
+              echo "Tablet logcat saved to /tmp/tablet_logcat.txt"
+              exit 1
+            }
+          
+          echo "Running integration tests on phone (emulator-5556)..."
+          flutter test integration_test/script.dart \
+            -d emulator-5556 \
+            --dart-define=DEVICE_TYPE=phone \
+            --dart-define=FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 \
+            --dart-define=FIRESTORE_EMULATOR_HOST=localhost:8080 \
+            --verbose || {
+              echo "❌ Phone integration tests failed"
+              adb -s emulator-5556 logcat -d > /tmp/phone_logcat.txt
+              echo "Phone logcat saved to /tmp/phone_logcat.txt"
+              exit 1
+            }
+          
+          echo "✓ Integration tests completed successfully on both devices"
+
       - name: Cleanup Emulators & Firebase  # NEW: Graceful shutdown
         if: always()
         run: |
