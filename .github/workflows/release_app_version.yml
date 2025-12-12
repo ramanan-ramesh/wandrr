@@ -81,17 +81,49 @@ jobs:
       - name: Create Pixel Tablet Emulator (API 36)  # UPDATED: ARM64 package
         run: |
           echo "Creating Pixel Tablet AVD..."
-          echo "no" | avdmanager create avd --force --name pixel_tablet_api_36 \
-            --package "system-images;android-36;google_apis;arm64-v8a" \
-            --device "pixel_tablet"
           
-          # Wait for AVD creation to complete
-          sleep 10
+          # Check if system image is installed
+          echo "Verifying system image installation..."
+          sdkmanager --list | grep "system-images;android-36;google_apis;arm64-v8a"
+          
+          # List available devices
+          echo "Available device definitions:"
+          avdmanager list device | grep -i pixel
+          
+          # Create AVD and capture output
+          set +e  # Don't exit on error yet
+          AVD_OUTPUT=$(echo "no" | avdmanager create avd --force --name pixel_tablet_api_36 \
+            --package "system-images;android-36;google_apis;arm64-v8a" \
+            --device "pixel_tablet" 2>&1)
+          AVD_EXIT_CODE=$?
+          set -e
+          
+          echo "$AVD_OUTPUT"
+          
+          if [ $AVD_EXIT_CODE -ne 0 ]; then
+            echo "Error: avdmanager create avd failed with exit code $AVD_EXIT_CODE"
+            echo "Trying with generic device profile instead..."
+          
+            # Fallback: Create with tablet dimensions manually
+            echo "no" | avdmanager create avd --force --name pixel_tablet_api_36 \
+              --package "system-images;android-36;google_apis;arm64-v8a" \
+              --device "pixel_tablet" --abi arm64-v8a || \
+            echo "no" | avdmanager create avd --force --name pixel_tablet_api_36 \
+              --package "system-images;android-36;google_apis;arm64-v8a" \
+              --device 30
+          fi
+          
+          # Wait for filesystem sync
+          sleep 3
           
           # Verify AVD directory exists
           AVD_DIR="$HOME/.android/avd/pixel_tablet_api_36.avd"
           if [ ! -d "$AVD_DIR" ]; then
             echo "Error: AVD directory not created at $AVD_DIR"
+            echo "Contents of ~/.android/avd:"
+            ls -la "$HOME/.android/avd/" || echo "Directory doesn't exist"
+            echo "Listing all AVDs:"
+            avdmanager list avd
             exit 1
           fi
           
@@ -110,17 +142,45 @@ jobs:
       - name: Create Pixel 8a Emulator (API 33)  # UPDATED: ARM64 package
         run: |
           echo "Creating Pixel 8a AVD..."
-          echo "no" | avdmanager create avd --force --name pixel_8a_api_33 \
-            --package "system-images;android-33;google_apis;arm64-v8a" \
-            --device "pixel_8a"
           
-          # Wait for AVD creation to complete
-          sleep 10
+          # Check if system image is installed
+          echo "Verifying system image installation..."
+          sdkmanager --list | grep "system-images;android-33;google_apis;arm64-v8a"
+          
+          # Create AVD and capture output
+          set +e  # Don't exit on error yet
+          AVD_OUTPUT=$(echo "no" | avdmanager create avd --force --name pixel_8a_api_33 \
+            --package "system-images;android-33;google_apis;arm64-v8a" \
+            --device "pixel_8a" 2>&1)
+          AVD_EXIT_CODE=$?
+          set -e
+          
+          echo "$AVD_OUTPUT"
+          
+          if [ $AVD_EXIT_CODE -ne 0 ]; then
+            echo "Error: avdmanager create avd failed with exit code $AVD_EXIT_CODE"
+            echo "Trying with generic device profile instead..."
+          
+            # Fallback: Create with phone dimensions
+            echo "no" | avdmanager create avd --force --name pixel_8a_api_33 \
+              --package "system-images;android-33;google_apis;arm64-v8a" \
+              --device "pixel_8a" --abi arm64-v8a || \
+            echo "no" | avdmanager create avd --force --name pixel_8a_api_33 \
+              --package "system-images;android-33;google_apis;arm64-v8a" \
+              --device 30
+          fi
+          
+          # Wait for filesystem sync
+          sleep 3
           
           # Verify AVD directory exists
           AVD_DIR="$HOME/.android/avd/pixel_8a_api_33.avd"
           if [ ! -d "$AVD_DIR" ]; then
             echo "Error: AVD directory not created at $AVD_DIR"
+            echo "Contents of ~/.android/avd:"
+            ls -la "$HOME/.android/avd/" || echo "Directory doesn't exist"
+            echo "Listing all AVDs:"
+            avdmanager list avd
             exit 1
           fi
           
