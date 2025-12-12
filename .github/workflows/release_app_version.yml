@@ -211,7 +211,7 @@ jobs:
       - name: Set up Virtual Display (Xvfb) for Screenshots
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb libglu1-mesa imagemagick  # NEW: ImageMagick for post-processing
+          sudo apt-get install -y xvfb libglu1-mesa imagemagick libpulse0  # Added libpulse0 for emulator audio libs
           Xvfb :99 -screen 0 1920x1080x24 &
           export DISPLAY=:99
           echo "DISPLAY=:99" >> $GITHUB_ENV
