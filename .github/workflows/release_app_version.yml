@@ -16,7 +16,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}  # For push permissions
 
       - name: Free up disk space  # FIX: Reclaims ~25 GB to prevent "No space left" error
-        uses: jlumbroso/free-disk-space@v2.1.0
+        uses: jlumbroso/free-disk-space@v1.3.1
         with:
           android: true
           docker: false
