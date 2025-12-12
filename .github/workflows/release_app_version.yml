@@ -2,23 +2,10 @@ name: Flutter Multi-Platform Release & Version Management
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to set in pubspec.yaml'
-        required: true
-        type: string
-      min_version:
-        description: 'Minimum version required (optional)'
-        required: false
-        type: string
-      updates:
-        description: 'Description of updates in this version'
-        required: true
-        type: string
 
 jobs:
   release:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,118 +23,173 @@ jobs:
           fi
           echo "Debug keystore ensured."
 
-      - name: Build Flutter APK (Android)
-        run: flutter build apk --debug
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
 
-      - name: Build Flutter Web
-        run: flutter build web --debug
-
-      - name: Update pubspec.yaml version and ReleaseHistory.md
+      - name: Enable KVM for Android Emulators
         run: |
-          # Update pubspec.yaml version
-          sed -i '' "s/^version: .*/version: ${{ github.event.inputs.version }}/" pubspec.yaml
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
-          # Ensure min_version includes build number
-          RAW_MIN_VERSION="${{ github.event.inputs.min_version }}"
-          RAW_VERSION="${{ github.event.inputs.version }}"
-          if [[ "$RAW_MIN_VERSION" == *+* ]]; then
-            MIN_VERSION="$RAW_MIN_VERSION"
-          else
-            BUILD_NUMBER="$(echo "$RAW_VERSION" | awk -F'+' '{print $2}')"
-            if [ -n "$BUILD_NUMBER" ]; then
-              MIN_VERSION="$RAW_MIN_VERSION+$BUILD_NUMBER"
-            else
-              MIN_VERSION="$RAW_MIN_VERSION"
-            fi
-          fi
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
-          # Prepare ReleaseHistory.md entry
-          SECTION_HEADER="## Release History"
-          VERSION=$(echo "$RAW_VERSION" | cut -d'+' -f1)
-          UPDATES="${{ github.event.inputs.updates }}"
-          # Split updates on '||', trim whitespace, and format as markdown list
-          UPDATE_LIST=""
-          IFS='||' read -ra UPDATE_ITEMS <<< "$UPDATES"
-          for item in "${UPDATE_ITEMS[@]}"; do
-            TRIMMED_ITEM=$(echo "$item" | awk '{$1=$1;print}')
-            if [ -n "$TRIMMED_ITEM" ]; then
-              UPDATE_LIST+="  - $TRIMMED_ITEM\n"
-            fi
-          done
-          # Get latest commit hash
-          COMMIT_HASH=$(git rev-parse HEAD)
-          ENTRY="- Version $VERSION (Commit: $COMMIT_HASH)\n$UPDATE_LIST"
-          if [ ! -f ReleaseHistory.md ]; then
-            echo -e "$SECTION_HEADER\n$ENTRY" > ReleaseHistory.md
-          elif ! grep -q "$SECTION_HEADER" ReleaseHistory.md; then
-            echo -e "\n$SECTION_HEADER\n$ENTRY" >> ReleaseHistory.md
-          else
-            awk -v entry="$ENTRY" -v header="$SECTION_HEADER" '
-              BEGIN {added=0}
-              {print}
-              $0==header && !added {print entry; added=1}
-            ' ReleaseHistory.md > ReleaseHistory.tmp && mv ReleaseHistory.tmp ReleaseHistory.md
-          fi
-
-      - name: Commit changes
+      - name: Install Android SDK Components
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-          git add pubspec.yaml ReleaseHistory.md
-          # Format updates for commit message
-          UPDATES="${{ github.event.inputs.updates }}"
-          FORMATTED_UPDATES=""
-          IFS='||' read -ra UPDATE_ITEMS <<< "$UPDATES"
-          for item in "${UPDATE_ITEMS[@]}"; do
-            TRIMMED_ITEM=$(echo "$item" | awk '{$1=$1;print}')
-            if [ -n "$TRIMMED_ITEM" ]; then
-              if [ -n "$FORMATTED_UPDATES" ]; then
-                FORMATTED_UPDATES="${FORMATTED_UPDATES}\n- ${TRIMMED_ITEM}"
-              else
-                FORMATTED_UPDATES="- ${TRIMMED_ITEM}"
-              fi
-            fi
-          done
-          COMMIT_MSG=$(printf "Release version ${{ github.event.inputs.version }}\n\n%b" "$FORMATTED_UPDATES")
-          git commit -m "$COMMIT_MSG"
+          # Accept licenses
+          yes | sdkmanager --licenses || true
+          
+          # Install system images for both emulators
+          sdkmanager "system-images;android-36;google_apis;x86_64"
+          sdkmanager "system-images;android-33;google_apis;x86_64"
+          
+          # Install platform tools and emulator
+          sdkmanager "platform-tools"
+          sdkmanager "emulator"
+          sdkmanager "platforms;android-36"
+          sdkmanager "platforms;android-33"
 
-      - name: Ensure l10n/untranslated-messages.txt is empty
+      - name: Create Pixel Tablet Emulator (API 36)
         run: |
-          if [ -f l10n/untranslated-messages.txt ]; then
-            CONTENT=$(tr -d '\n\r\t ' < l10n/untranslated-messages.txt)
-            if [ -s l10n/untranslated-messages.txt ] && [ "$CONTENT" != "{}" ]; then
-              echo "Error: l10n/untranslated-messages.txt is not empty. Please resolve all untranslated messages before release." >&2
-              cat l10n/untranslated-messages.txt
+          echo "Creating Pixel Tablet emulator..."
+          echo "no" | avdmanager create avd \
+            --force \
+            --name pixel_tablet_api_36 \
+            --package "system-images;android-36;google_apis;x86_64" \
+            --device "pixel_tablet"
+          
+          # Configure emulator settings
+          cat >> ~/.android/avd/pixel_tablet_api_36.avd/config.ini << EOF
+          hw.keyboard=yes
+          hw.ramSize=4096
+          hw.gpu.enabled=yes
+          hw.gpu.mode=auto
+          disk.dataPartition.size=4096M
+          EOF
+          
+          echo "Pixel Tablet emulator created successfully"
+
+      - name: Create Pixel 8a Emulator (API 33)
+        run: |
+          echo "Creating Pixel 8a emulator..."
+          echo "no" | avdmanager create avd \
+            --force \
+            --name pixel_8a_api_33 \
+            --package "system-images;android-33;google_apis;x86_64" \
+            --device "pixel_8a"
+          
+          # Configure emulator settings
+          cat >> ~/.android/avd/pixel_8a_api_33.avd/config.ini << EOF
+          hw.keyboard=yes
+          hw.ramSize=2048
+          hw.gpu.enabled=yes
+          hw.gpu.mode=auto
+          disk.dataPartition.size=2048M
+          EOF
+          
+          echo "Pixel 8a emulator created successfully"
+
+      - name: Set up Virtual Display (Xvfb) for Screenshots
+        run: |
+          # Install Xvfb for virtual display
+          sudo apt-get update
+          sudo apt-get install -y xvfb libglu1-mesa
+          
+          # Start Xvfb on display :99
+          Xvfb :99 -screen 0 1920x1080x24 &
+          export DISPLAY=:99
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+          
+          # Wait for Xvfb to be ready
+          sleep 2
+          echo "Virtual display ready for screenshots"
+
+      - name: Start Android Emulators
+        run: |
+          # Start Pixel Tablet in background (with display for screenshots)
+          echo "Starting Pixel Tablet emulator..."
+          $ANDROID_HOME/emulator/emulator -avd pixel_tablet_api_36 \
+            -no-snapshot-save \
+            -no-audio \
+            -no-boot-anim \
+            -gpu swiftshader_indirect \
+            -port 5554 &
+          
+          # Start Pixel 8a in background (with display for screenshots)
+          echo "Starting Pixel 8a emulator..."
+          $ANDROID_HOME/emulator/emulator -avd pixel_8a_api_33 \
+            -no-snapshot-save \
+            -no-audio \
+            -no-boot-anim \
+            -gpu swiftshader_indirect \
+            -port 5556 &
+          
+          echo "Waiting for emulators to boot..."
+
+      - name: Wait for Emulators to be Ready
+        run: |
+          # Wait for Pixel Tablet (emulator-5554)
+          echo "Waiting for Pixel Tablet (emulator-5554) to boot..."
+          adb -s emulator-5554 wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
+          adb -s emulator-5554 shell settings put global window_animation_scale 0.0
+          adb -s emulator-5554 shell settings put global transition_animation_scale 0.0
+          adb -s emulator-5554 shell settings put global animator_duration_scale 0.0
+          echo "✓ Pixel Tablet ready (emulator-5554)"
+          
+          # Wait for Pixel 8a (emulator-5556)
+          echo "Waiting for Pixel 8a (emulator-5556) to boot..."
+          adb -s emulator-5556 wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
+          adb -s emulator-5556 shell settings put global window_animation_scale 0.0
+          adb -s emulator-5556 shell settings put global transition_animation_scale 0.0
+          adb -s emulator-5556 shell settings put global animator_duration_scale 0.0
+          echo "✓ Pixel 8a ready (emulator-5556)"
+          
+          # List all devices
+          echo "Available emulators:"
+          adb devices -l
+
+      - name: Install Firebase CLI
+        run: |
+          npm install -g firebase-tools
+          firebase --version  # Verify
+
+      - name: Set up Firebase Emulator Prerequisites
+        run: |
+          # Create necessary directories for emulator data
+          mkdir -p ~/.cache/firebase/emulators
+          
+          # Download emulators if not cached
+          firebase setup:emulators:firestore
+          firebase setup:emulators:ui
+          
+          echo "Firebase emulator prerequisites set up successfully"
+
+      - name: Start Firebase Emulators
+        run: |
+          # Start emulators in background
+          firebase emulators:start --only auth,firestore --project wandrr-15f70 &
+          
+          # Wait for emulators to be ready (max 120 seconds)
+          echo "Waiting for Firebase emulators to start..."
+          for i in {1..120}; do
+            if curl -s http://localhost:8080 > /dev/null 2>&1 && \
+               curl -s http://localhost:9099 > /dev/null 2>&1; then
+              echo "Firebase emulators are ready!"
+              break
+            fi
+            if [ $i -eq 120 ]; then
+              echo "Error: Firebase emulators failed to start within 60 seconds"
               exit 1
             fi
-          fi
-          echo "l10n/untranslated-messages.txt is empty."
+            sleep 1
+          done
+          
+          # Keep emulators running for subsequent steps
+          echo "FIREBASE_EMULATOR_PID=$!" >> $GITHUB_ENV
 
-      - name: Install npm
-        run: |
-          brew install node
-
-      - name: Install Node.js dependencies for Firebase
-        run: |
-          cd scripts/release_management
-          npm install
-
-      - name: Update Firebase RemoteConfig
-        env:
-          VERSION: ${{ github.event.inputs.version }}
-          MIN_VERSION: ${{ github.event.inputs.min_version || github.event.inputs.version }}
-          UPDATES: ${{ github.event.inputs.updates }}
-          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
-        run: |
-          cd scripts/release_management
-          node update_firebase_remote_config.js
-
-      - name: Tag and Push Changes
-        run: |
-          VERSION="${{ github.event.inputs.version }}"
-          # Create annotated tag with message
-          git tag -a "$VERSION" -m "${VERSION}"
-          # Push branch first
-          git push origin "${GITHUB_REF_NAME}"
-          # Push tag explicitly
-          git push origin "$VERSION"
+      - name: Build Flutter APK (Android)
+        run: flutter build apk --debug

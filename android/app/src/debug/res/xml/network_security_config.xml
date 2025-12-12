@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext traffic for Firebase Emulator on Android emulator -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Android emulator's localhost address -->
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <!-- Standard localhost -->
+        <domain includeSubdomains="true">localhost</domain>
+        <!-- Local IP range for development -->
+        <domain includeSubdomains="true">127.0.0.1</domain>
+    </domain-config>
+
+    <!-- For production, keep default secure settings -->
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
+
