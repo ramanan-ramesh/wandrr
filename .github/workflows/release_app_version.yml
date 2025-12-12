@@ -116,16 +116,18 @@ jobs:
           # Wait for filesystem sync
           sleep 3
           
-          # Verify AVD directory exists
-          AVD_DIR="$HOME/.android/avd/pixel_tablet_api_36.avd"
-          if [ ! -d "$AVD_DIR" ]; then
-            echo "Error: AVD directory not created at $AVD_DIR"
-            echo "Contents of ~/.android/avd:"
-            ls -la "$HOME/.android/avd/" || echo "Directory doesn't exist"
-            echo "Listing all AVDs:"
+          # Verify AVD was created and find its actual path
+          AVD_INFO=$(avdmanager list avd | grep -A 5 "Name: pixel_tablet_api_36")
+          AVD_DIR=$(echo "$AVD_INFO" | grep "Path:" | awk '{print $2}')
+          
+          if [ -z "$AVD_DIR" ] || [ ! -d "$AVD_DIR" ]; then
+            echo "Error: Could not find AVD directory"
+            echo "AVD Info:"
             avdmanager list avd
             exit 1
           fi
+          
+          echo "AVD directory found at: $AVD_DIR"
           
           # Append configuration to existing config.ini
           cat >> "$AVD_DIR/config.ini" << EOF
@@ -173,16 +175,18 @@ jobs:
           # Wait for filesystem sync
           sleep 3
           
-          # Verify AVD directory exists
-          AVD_DIR="$HOME/.android/avd/pixel_8a_api_33.avd"
-          if [ ! -d "$AVD_DIR" ]; then
-            echo "Error: AVD directory not created at $AVD_DIR"
-            echo "Contents of ~/.android/avd:"
-            ls -la "$HOME/.android/avd/" || echo "Directory doesn't exist"
-            echo "Listing all AVDs:"
+          # Verify AVD was created and find its actual path
+          AVD_INFO=$(avdmanager list avd | grep -A 5 "Name: pixel_8a_api_33")
+          AVD_DIR=$(echo "$AVD_INFO" | grep "Path:" | awk '{print $2}')
+          
+          if [ -z "$AVD_DIR" ] || [ ! -d "$AVD_DIR" ]; then
+            echo "Error: Could not find AVD directory"
+            echo "AVD Info:"
             avdmanager list avd
             exit 1
           fi
+          
+          echo "AVD directory found at: $AVD_DIR"
           
           # Append configuration to existing config.ini
           cat >> "$AVD_DIR/config.ini" << EOF
