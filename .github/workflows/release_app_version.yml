@@ -80,25 +80,61 @@ jobs:
 
       - name: Create Pixel Tablet Emulator (API 36)  # UPDATED: ARM64 package
         run: |
-          echo "no" | avdmanager create avd --force --name pixel_tablet_api_36 --package "system-images;android-36;google_apis;arm64-v8a" --device "pixel_tablet"
-          cat >> ~/.android/avd/pixel_tablet_api_36.avd/config.ini << EOF
+          echo "Creating Pixel Tablet AVD..."
+          echo "no" | avdmanager create avd --force --name pixel_tablet_api_36 \
+            --package "system-images;android-36;google_apis;arm64-v8a" \
+            --device "pixel_tablet"
+          
+          # Wait for AVD creation to complete
+          sleep 10
+          
+          # Verify AVD directory exists
+          AVD_DIR="$HOME/.android/avd/pixel_tablet_api_36.avd"
+          if [ ! -d "$AVD_DIR" ]; then
+            echo "Error: AVD directory not created at $AVD_DIR"
+            exit 1
+          fi
+          
+          # Append configuration to existing config.ini
+          cat >> "$AVD_DIR/config.ini" << EOF
           hw.keyboard=yes
           hw.ramSize=4096
           hw.gpu.enabled=yes
           hw.gpu.mode=auto
           disk.dataPartition.size=4096M
           EOF
+          
+          echo "Pixel Tablet AVD created successfully"
+          ls -la "$AVD_DIR"
 
       - name: Create Pixel 8a Emulator (API 33)  # UPDATED: ARM64 package
         run: |
-          echo "no" | avdmanager create avd --force --name pixel_8a_api_33 --package "system-images;android-33;google_apis;arm64-v8a" --device "pixel_8a"
-          cat >> ~/.android/avd/pixel_8a_api_33.avd/config.ini << EOF
+          echo "Creating Pixel 8a AVD..."
+          echo "no" | avdmanager create avd --force --name pixel_8a_api_33 \
+            --package "system-images;android-33;google_apis;arm64-v8a" \
+            --device "pixel_8a"
+          
+          # Wait for AVD creation to complete
+          sleep 10
+          
+          # Verify AVD directory exists
+          AVD_DIR="$HOME/.android/avd/pixel_8a_api_33.avd"
+          if [ ! -d "$AVD_DIR" ]; then
+            echo "Error: AVD directory not created at $AVD_DIR"
+            exit 1
+          fi
+          
+          # Append configuration to existing config.ini
+          cat >> "$AVD_DIR/config.ini" << EOF
           hw.keyboard=yes
           hw.ramSize=2048
           hw.gpu.enabled=yes
           hw.gpu.mode=auto
           disk.dataPartition.size=2048M
           EOF
+          
+          echo "Pixel 8a AVD created successfully"
+          ls -la "$AVD_DIR"
 
       - name: Set up Virtual Display (Xvfb) for Screenshots
         run: |
