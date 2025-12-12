@@ -78,6 +78,14 @@ jobs:
           sdkmanager "system-images;android-33;google_apis;arm64-v8a"
           sdkmanager "platform-tools" "emulator" "platforms;android-36" "platforms;android-33"
 
+      - name: Set Android AVD Home  # NEW: Point emulator to correct AVD location
+        run: |
+          # Find where avdmanager actually creates AVDs
+          ACTUAL_AVD_HOME="$HOME/.config/.android/avd"
+          mkdir -p "$ACTUAL_AVD_HOME"
+          echo "ANDROID_AVD_HOME=$ACTUAL_AVD_HOME" >> $GITHUB_ENV
+          echo "Android AVD Home set to: $ACTUAL_AVD_HOME"
+
       - name: Create Pixel Tablet Emulator (API 36)  # UPDATED: ARM64 package
         run: |
           echo "Creating Pixel Tablet AVD..."
@@ -211,6 +219,12 @@ jobs:
 
       - name: Start Android Emulators  # OPTIMIZED: Sequential start to reduce peak load
         run: |
+          echo "ANDROID_AVD_HOME is: $ANDROID_AVD_HOME"
+          echo "Available AVDs:"
+          $ANDROID_HOME/emulator/emulator -list-avds
+          echo "AVD directory contents:"
+          ls -la "$ANDROID_AVD_HOME" || echo "Directory not accessible"
+          
           # Start Tablet first
           $ANDROID_HOME/emulator/emulator -avd pixel_tablet_api_36 -no-snapshot-save -no-audio -no-boot-anim -gpu host -port 5554 &
           sleep 5  # Brief pause
