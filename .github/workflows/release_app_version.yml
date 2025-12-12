@@ -268,13 +268,7 @@ jobs:
           done
           echo "FIREBASE_EMULATOR_PID=$!" >> $GITHUB_ENV
 
-      - name: Build & Install Flutter APK on Emulators  # SPLIT: Build once, install on both
-        run: |
-          flutter build apk --debug
-          flutter install -s emulator-5554  # Tablet
-          flutter install -s emulator-5556  # Phone
-
-      - name: Run Integration Tests for Screenshot Generation
+      - name: Run Integration Tests for Screenshot Generation  # flutter test handles build & install automatically
         run: |
           # Create symlink for integration_test directory to point to scripts
           ln -s "$GITHUB_WORKSPACE/scripts/release_management/screenshot_generation" "$GITHUB_WORKSPACE/integration_test" || true
