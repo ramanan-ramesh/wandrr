@@ -19,8 +19,8 @@ times, addresses, and associated costs.
 
 <table>
 <tr>
-<td width="50%" align="center"><b>📱 Phone View</b></td>
-<td width="50%" align="center"><b>📱 Tablet View</b></td>
+<td width="40%" align="center"><b>📱 Phone View</b></td>
+<td width="60%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/stay_editor.png" alt="Stay Editor - Phone" /></td>
@@ -40,8 +40,8 @@ Track carrier information, departure/arrival times, and costs.
 
 <table>
 <tr>
-<td width="50%" align="center"><b>📱 Phone View</b></td>
-<td width="50%" align="center"><b>📱 Tablet View</b></td>
+<td width="40%" align="center"><b>📱 Phone View</b></td>
+<td width="60%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/flight_editor.png" alt="Flight Editor - Phone" /></td>
@@ -61,8 +61,8 @@ activities. Manage trip contributors who can collaborate and split expenses.
 
 <table>
 <tr>
-<td width="50%" align="center"><b>📱 Phone View</b></td>
-<td width="50%" align="center"><b>📱 Tablet View</b></td>
+<td width="40%" align="center"><b>📱 Phone View</b></td>
+<td width="60%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/trip_editor_page.png" alt="Trip Editor - Phone" /></td>
@@ -148,8 +148,8 @@ Discover and plan visits to attractions, landmarks, and points of interest durin
 
 <table>
 <tr>
-<td width="50%" align="center"><b>📱 Phone View</b></td>
-<td width="50%" align="center"><b>📱 Tablet View</b></td>
+<td width="40%" align="center"><b>📱 Phone View</b></td>
+<td width="60%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/sight_viewer.png" alt="Sights Viewer - Phone" /></td>
@@ -162,8 +162,8 @@ Discover and plan visits to attractions, landmarks, and points of interest durin
 
 <table>
 <tr>
-<td width="50%" align="center"><b>📱 Phone View</b></td>
-<td width="50%" align="center"><b>📱 Tablet View</b></td>
+<td width="40%" align="center"><b>📱 Phone View</b></td>
+<td width="60%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/sight_editor.png" alt="Sight Editor - Phone" /></td>
@@ -187,8 +187,8 @@ View and sort your expenses in multiple ways to get the insights you need.
 
 <table>
 <tr>
-<td width="50%" align="center"><b>📱 Phone View</b></td>
-<td width="50%" align="center"><b>📱 Tablet View</b></td>
+<td width="40%" align="center"><b>📱 Phone View</b></td>
+<td width="60%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/trips_list_view.png" alt="Trips List - Phone" /></td>
@@ -205,8 +205,8 @@ Visualize how your expenses are distributed across each day of your trip with in
 
 <table>
 <tr>
-<td width="50%" align="center"><b>📱 Phone View</b></td>
-<td width="50%" align="center"><b>📱 Tablet View</b></td>
+<td width="40%" align="center"><b>📱 Phone View</b></td>
+<td width="60%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/budget_breakdown_by_day_section.png" alt="Budget by Day - Phone" /></td>
@@ -224,8 +224,8 @@ etc.).
 
 <table>
 <tr>
-<td width="50%" align="center"><b>📱 Phone View</b></td>
-<td width="50%" align="center"><b>📱 Tablet View</b></td>
+<td width="40%" align="center"><b>📱 Phone View</b></td>
+<td width="60%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/budget_breakdown_by_category_section.png" alt="Budget by Category - Phone" /></td>
@@ -375,7 +375,7 @@ an issue first to discuss what you would like to change.
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ---
 
@@ -404,4 +404,3 @@ Have questions or suggestions? Feel free to reach out!
 [Report Bug](https://github.com/yourusername/wandrr/issues) · [Request Feature](https://github.com/yourusername/wandrr/issues)
 
 </div>
-
