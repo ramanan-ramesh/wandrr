@@ -8,6 +8,8 @@ A comprehensive travel planning app built with Flutter and ❤️, designed to m
 experiences seamless and memorable. Wandrr helps you plan, track, and manage every aspect of your
 journey - from accommodations and transit to expenses and daily itineraries.
 
+**Available in Light & Dark themes • Supports English, Tamil (தமிழ்) and Hindi (हिंदी)**
+
 ---
 
 ## ✨ Key Features
@@ -19,8 +21,8 @@ times, addresses, and associated costs.
 
 <table>
 <tr>
-<td width="40%" align="center"><b>📱 Phone View</b></td>
-<td width="60%" align="center"><b>📱 Tablet View</b></td>
+<td width="30%" align="center"><b>📱 Phone View</b></td>
+<td width="70%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/stay_editor.png" alt="Stay Editor - Phone" /></td>
@@ -40,8 +42,8 @@ Track carrier information, departure/arrival times, and costs.
 
 <table>
 <tr>
-<td width="40%" align="center"><b>📱 Phone View</b></td>
-<td width="60%" align="center"><b>📱 Tablet View</b></td>
+<td width="30%" align="center"><b>📱 Phone View</b></td>
+<td width="70%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/flight_editor.png" alt="Flight Editor - Phone" /></td>
@@ -61,8 +63,8 @@ activities. Manage trip contributors who can collaborate and split expenses.
 
 <table>
 <tr>
-<td width="40%" align="center"><b>📱 Phone View</b></td>
-<td width="60%" align="center"><b>📱 Tablet View</b></td>
+<td width="30%" align="center"><b>📱 Phone View</b></td>
+<td width="70%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/trip_editor_page.png" alt="Trip Editor - Phone" /></td>
@@ -148,8 +150,8 @@ Discover and plan visits to attractions, landmarks, and points of interest durin
 
 <table>
 <tr>
-<td width="40%" align="center"><b>📱 Phone View</b></td>
-<td width="60%" align="center"><b>📱 Tablet View</b></td>
+<td width="30%" align="center"><b>📱 Phone View</b></td>
+<td width="70%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/sight_viewer.png" alt="Sights Viewer - Phone" /></td>
@@ -162,8 +164,8 @@ Discover and plan visits to attractions, landmarks, and points of interest durin
 
 <table>
 <tr>
-<td width="40%" align="center"><b>📱 Phone View</b></td>
-<td width="60%" align="center"><b>📱 Tablet View</b></td>
+<td width="30%" align="center"><b>📱 Phone View</b></td>
+<td width="70%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/sight_editor.png" alt="Sight Editor - Phone" /></td>
@@ -187,8 +189,8 @@ View and sort your expenses in multiple ways to get the insights you need.
 
 <table>
 <tr>
-<td width="40%" align="center"><b>📱 Phone View</b></td>
-<td width="60%" align="center"><b>📱 Tablet View</b></td>
+<td width="30%" align="center"><b>📱 Phone View</b></td>
+<td width="70%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/trips_list_view.png" alt="Trips List - Phone" /></td>
@@ -205,8 +207,8 @@ Visualize how your expenses are distributed across each day of your trip with in
 
 <table>
 <tr>
-<td width="40%" align="center"><b>📱 Phone View</b></td>
-<td width="60%" align="center"><b>📱 Tablet View</b></td>
+<td width="30%" align="center"><b>📱 Phone View</b></td>
+<td width="70%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/budget_breakdown_by_day_section.png" alt="Budget by Day - Phone" /></td>
@@ -224,8 +226,8 @@ etc.).
 
 <table>
 <tr>
-<td width="40%" align="center"><b>📱 Phone View</b></td>
-<td width="60%" align="center"><b>📱 Tablet View</b></td>
+<td width="30%" align="center"><b>📱 Phone View</b></td>
+<td width="70%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/budget_breakdown_by_category_section.png" alt="Budget by Category - Phone" /></td>
@@ -251,8 +253,8 @@ Keep track of who owes whom with automatic debt calculation and settlement track
 
 <table>
 <tr>
-<td width="50%" align="center"><b>📱 Phone View</b></td>
-<td width="50%" align="center"><b>📱 Tablet View</b></td>
+<td width="30%" align="center"><b>📱 Phone View</b></td>
+<td width="70%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/debt_summary_section.png" alt="Debt Summary - Phone" /></td>
