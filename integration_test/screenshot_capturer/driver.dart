@@ -89,6 +89,28 @@ Future<List<int>> _overlayScreenshotOnFrame(
     throw Exception('Failed to decode screenshot');
   }
 
+  print('Screenshot dimensions: ${screenshot.width}x${screenshot.height}');
+
+  // Define expected screenshot dimensions for each device type
+  final expectedWidth = isPhone ? 1080 : 2560;
+  final expectedHeight = isPhone ? 2337 : 1600;
+
+  // Check if screenshot needs to be resized to match expected dimensions
+  img.Image finalScreenshot = screenshot;
+  if (screenshot.width != expectedWidth ||
+      screenshot.height != expectedHeight) {
+    print(
+        'Warning: Screenshot dimensions (${screenshot.width}x${screenshot.height}) '
+        'do not match expected ($expectedWidth x$expectedHeight)');
+    print('Resizing screenshot to fit frame...');
+    finalScreenshot = img.copyResize(
+      screenshot,
+      width: expectedWidth,
+      height: expectedHeight,
+      interpolation: img.Interpolation.linear,
+    );
+  }
+
   // Load the appropriate device frame
   final framePath = isPhone
       ? 'integration_test/screenshot_capturer/phone_frame.png'
@@ -105,26 +127,46 @@ Future<List<int>> _overlayScreenshotOnFrame(
     throw Exception('Failed to decode device frame');
   }
 
-  // Calculate position to center the screenshot on the frame
+  print('Frame dimensions: ${frame.width}x${frame.height}');
+
+  // Calculate position to place the screenshot on the frame
   // Phone: Frame 1198x2539, Screenshot 1080x2337
   // Tablet: Frame 2798x1837, Screenshot 2560x1600
   final int offsetX;
   final int offsetY;
 
   if (isPhone) {
-    // Phone frame dimensions: 1198x2539, screenshot: 1080x2337
-    offsetX = (1198 - 1080) ~/ 2; // Center horizontally
-    offsetY = (2539 - 2337) ~/ 2; // Center vertically
+    // Phone frame dimensions: 1198x2539
+    // Expected screenshot: ~1080x2337
+    // The frame has bezels and a notch. The screen area is NOT centered due to the notch.
+
+    // Horizontal: center the screenshot
+    offsetX = (frame.width - finalScreenshot.width) ~/ 2;
+
+    // Vertical positioning:
+    // For phone frames with notches, the screen area typically starts below the notch
+    // and the top bezel is thicker than the bottom bezel.
+    // With 202px total space, if top bezel is ~117px and bottom is ~85px,
+    // the screen content area starts at offsetY = 117.
+    // This positions the screenshot below the notch area.
+    offsetY = 117;
+
+    print(
+        'Phone positioning: notch-adjusted with offsets ($offsetX, $offsetY)');
   } else {
     // Tablet frame dimensions: 2798x1837, screenshot: 2560x1600
-    offsetX = (2798 - 2560) ~/ 2; // Center horizontally
-    offsetY = (1837 - 1600) ~/ 2; // Center vertically
+    offsetX = (frame.width - finalScreenshot.width) ~/ 2; // Center horizontally
+    offsetY = (frame.height - finalScreenshot.height) ~/ 2; // Center vertically
+
+    print('Tablet positioning: centered with offsets ($offsetX, $offsetY)');
   }
+
+  print('Positioning screenshot at offset: ($offsetX, $offsetY)');
 
   // Composite the screenshot onto the frame
   final composite = img.compositeImage(
     frame,
-    screenshot,
+    finalScreenshot,
     dstX: offsetX,
     dstY: offsetY,
   );
