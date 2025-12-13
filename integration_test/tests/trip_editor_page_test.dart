@@ -205,7 +205,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   final trip = tripRepo.activeTrip!;
   const tripId = 'test_trip_123';
   const defaultCurrency = 'EUR';
-  final contributors = [TestConfig.testEmail];
+  final contributors = [TestConfig.testEmail, TestConfig.tripMateUserName];
 
   print('✓ Verifying trip repository values for createTestTrip setup');
   print('✓ Creating expected facade instances for comparison...');
@@ -934,7 +934,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     startDate: DateTime(2025, 9, 24),
     endDate: DateTime(2025, 9, 29),
     budget: Money(currency: 'EUR', amount: 800),
-    contributors: [TestConfig.testEmail],
+    contributors: contributors,
     thumbnailTag: 'urban',
   );
   expect(trip.tripMetadata, expectedTripMetadata,

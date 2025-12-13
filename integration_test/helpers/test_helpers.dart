@@ -46,7 +46,7 @@ class TestHelpers {
     final endDate = DateTime(2025, 9, 29);
     const tripName = 'European Adventure';
     const defaultCurrency = 'EUR';
-    final contributors = [TestConfig.testEmail];
+    final contributors = [TestConfig.testEmail, TestConfig.tripMateUserName];
 
     // Create trip metadata
     await firestore

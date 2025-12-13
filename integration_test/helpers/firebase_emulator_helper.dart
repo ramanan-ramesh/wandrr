@@ -135,7 +135,6 @@ class FirebaseEmulatorHelper {
     }
   }
 
-  /// Manually verify email using Firebase Auth Emulator's internal REST API
   /// This is required because the emulator doesn't automatically verify emails
   /// and user_management.dart checks emailVerified status
   ///

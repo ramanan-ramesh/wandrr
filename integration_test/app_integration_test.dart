@@ -7,6 +7,7 @@ import 'helpers/firebase_emulator_helper.dart';
 import 'helpers/mock_location_api_service.dart';
 import 'helpers/test_config.dart';
 import 'helpers/test_helpers.dart';
+import 'screenshot_capturer/capturer.dart';
 import 'tests/authentication_comprehensive_test.dart';
 import 'tests/budgeting_page_test.dart';
 import 'tests/crud_operations_test.dart';
@@ -17,7 +18,7 @@ import 'tests/startup_page_test.dart';
 import 'tests/trip_editor_page_test.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Wandrr Travel Planner Integration Tests', () {
     late SharedPreferences sharedPreferences;
@@ -35,6 +36,30 @@ void main() {
 
     tearDownAll(() async {
       FirebaseEmulatorHelper.reset();
+    });
+
+    group('Screenshot Capturer', () {
+      setUpAll(() async {
+        await FirebaseEmulatorHelper.createFirebaseAuthUser(
+          email: TestConfig.testEmail,
+          password: TestConfig.testPassword,
+          shouldAddToFirestore: true,
+          shouldSignIn: true,
+        );
+        // Initialize mock location API service to intercept HTTP requests
+        // Note: This creates a MockClient that can be injected into GeoLocator
+        await MockLocationApiService.initialize();
+        await TestHelpers.createTestTrip();
+      });
+
+      tearDownAll(() async {
+        await FirebaseEmulatorHelper.cleanupAfterTest();
+        await sharedPreferences.clear();
+      });
+
+      testWidgets('Capturing screenshots', (WidgetTester tester) async {
+        await runScreenshotCapturer(tester, binding);
+      });
     });
 
     group('Startup Page Tests', () {

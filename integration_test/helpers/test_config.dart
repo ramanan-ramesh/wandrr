@@ -5,6 +5,7 @@ class TestConfig {
   static const String testPassword = r'testPassword123$';
   static const String testUserId = 'test_user_id';
   static const String testUserDisplayName = 'Test User';
+  static const String tripMateUserName = 'tripmate@example.com';
 
   // Test trip data
   static const String testTripId = 'test_trip_id';
@@ -25,55 +26,6 @@ class TestConfig {
   // Screen size breakpoints
   static const double bigLayoutBreakpoint = 1000.0;
   static const double mediumLayoutBreakpoint = 600.0;
-
-  // Test data
-  static Map<String, dynamic> getTestUserData() {
-    return {
-      'uid': testUserId,
-      'email': testEmail,
-      'displayName': testUserDisplayName,
-      'createdAt': DateTime.now().toIso8601String(),
-      'preferences': {
-        'language': 'en',
-        'themeMode': 'system',
-      },
-    };
-  }
-
-  static Map<String, dynamic> getTestTripData() {
-    final now = DateTime.now();
-    final startDate = now.add(const Duration(days: 30));
-    final endDate = startDate.add(const Duration(days: 7));
-
-    return {
-      'id': testTripId,
-      'name': testTripName,
-      'thumbnail': testTripThumbnail,
-      'startDate': startDate.toIso8601String(),
-      'endDate': endDate.toIso8601String(),
-      'budget': {
-        'amount': testTripBudget,
-        'currency': testTripCurrency,
-      },
-      'userId': testUserId,
-      'createdAt': now.toIso8601String(),
-      'updatedAt': now.toIso8601String(),
-      'itinerary': [],
-      'expenses': [],
-    };
-  }
-
-  static List<Map<String, dynamic>> getTestTripsData() {
-    return [
-      getTestTripData(),
-      {
-        ...getTestTripData(),
-        'id': 'test_trip_2',
-        'name': 'Beach Vacation',
-        'thumbnail': 'beach',
-      },
-    ];
-  }
 
   // Feature flags for tests
   static const bool enableFirebaseMocks = true;
