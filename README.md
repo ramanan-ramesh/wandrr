@@ -85,8 +85,8 @@ Add notes and reminders for your trip or specific travel days to keep important 
 
 <table>
 <tr>
-<td width="50%" align="center"><b>📱 Phone View</b></td>
-<td width="50%" align="center"><b>📱 Tablet View</b></td>
+<td width="30%" align="center"><b>📱 Phone View</b></td>
+<td width="70%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/note_viewer.png" alt="Notes Viewer - Phone" /></td>
@@ -99,8 +99,8 @@ Add notes and reminders for your trip or specific travel days to keep important 
 
 <table>
 <tr>
-<td width="50%" align="center"><b>📱 Phone View</b></td>
-<td width="50%" align="center"><b>📱 Tablet View</b></td>
+<td width="30%" align="center"><b>📱 Phone View</b></td>
+<td width="70%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/note_editor.png" alt="Note Editor - Phone" /></td>
@@ -118,8 +118,8 @@ travel-related tasks.
 
 <table>
 <tr>
-<td width="50%" align="center"><b>📱 Phone View</b></td>
-<td width="50%" align="center"><b>📱 Tablet View</b></td>
+<td width="30%" align="center"><b>📱 Phone View</b></td>
+<td width="70%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/checklist_viewer.png" alt="Checklist Viewer - Phone" /></td>
@@ -132,8 +132,8 @@ travel-related tasks.
 
 <table>
 <tr>
-<td width="50%" align="center"><b>📱 Phone View</b></td>
-<td width="50%" align="center"><b>📱 Tablet View</b></td>
+<td width="30%" align="center"><b>📱 Phone View</b></td>
+<td width="70%" align="center"><b>📱 Tablet View</b></td>
 </tr>
 <tr>
 <td><img src="screenshots/phone/check_list_editor.png" alt="Checklist Editor - Phone" /></td>
