@@ -6,35 +6,56 @@ import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 
-//TODO: Prevent multiple events resulting due to same document change. Also, clone all collection items during external access
+/// A Firestore-backed collection that manages a set of models with automatic synchronization.
+/// Uses Firestore's withConverter API for type-safe document conversion.
 class FirestoreModelCollection<Model>
     implements ModelCollectionModifier<Model> {
-  final CollectionReference<Object?> _collectionReference;
+  final CollectionReference<LeafRepositoryItem<Model>>
+      _typedCollectionReference;
   bool _shouldListenToUpdates = false;
   late final StreamSubscription _collectionStreamSubscription;
-  final FutureOr<LeafRepositoryItem<Model>?> Function(
-      DocumentSnapshot documentSnapshot) _fromDocumentSnapshot;
 
+  /// Creates a new FirestoreModelCollection instance.
+  ///
+  /// [collectionReference] - The raw Firestore collection reference
+  /// [fromDocumentSnapshot] - Function to convert a DocumentSnapshot to a LeafRepositoryItem
+  /// [leafRepositoryItemCreator] - Function to create a LeafRepositoryItem from a Model
+  /// [query] - Optional query to filter the collection
   static Future<ModelCollectionModifier<Model>> createInstance<Model>(
       CollectionReference collectionReference,
-      FutureOr<LeafRepositoryItem<Model>> Function(
-              DocumentSnapshot documentSnapshot)
+      LeafRepositoryItem<Model> Function(DocumentSnapshot documentSnapshot)
           fromDocumentSnapshot,
       LeafRepositoryItem<Model> Function(Model) leafRepositoryItemCreator,
       {Query? query}) async {
-    var collectionItems = <LeafRepositoryItem<Model>>[];
-    var queryResult = await (query ?? collectionReference).get();
-    for (final documentSnapshot in queryResult.docs) {
-      var item = await fromDocumentSnapshot(documentSnapshot);
-      collectionItems.add(item);
+    // Create typed converter for Firestore
+    final typedCollectionReference =
+        collectionReference.withConverter<LeafRepositoryItem<Model>>(
+      fromFirestore: (snapshot, _) => fromDocumentSnapshot(snapshot),
+      toFirestore: (item, _) => item.toJson(),
+    );
+
+    // Apply query with converter if provided
+    Query<LeafRepositoryItem<Model>>? typedQuery;
+    if (query != null) {
+      typedQuery = query.withConverter<LeafRepositoryItem<Model>>(
+        fromFirestore: (snapshot, _) => fromDocumentSnapshot(snapshot),
+        toFirestore: (item, _) => item.toJson(),
+      );
     }
-    var modelCollection = FirestoreModelCollection<Model>._(
-        collectionReference: collectionReference,
-        fromDocumentSnapshot: fromDocumentSnapshot,
-        repositoryItemCreator: (x) => leafRepositoryItemCreator(x),
-        collectionItems: collectionItems,
-        query: query);
-    return modelCollection;
+
+    // Load initial collection items
+    var collectionItems = <LeafRepositoryItem<Model>>[];
+    var queryResult = await (typedQuery ?? typedCollectionReference).get();
+    for (final documentSnapshot in queryResult.docs) {
+      collectionItems.add(documentSnapshot.data());
+    }
+
+    return FirestoreModelCollection<Model>._(
+      typedCollectionReference: typedCollectionReference,
+      typedQuery: typedQuery,
+      repositoryItemCreator: leafRepositoryItemCreator,
+      collectionItems: collectionItems,
+    );
   }
 
   @override
@@ -88,25 +109,21 @@ class FirestoreModelCollection<Model>
   }
 
   @override
-  Future<LeafRepositoryItem<Model>?> tryAdd(Model toAdd) async {
+  Future<Model?> tryAdd(Model toAdd) async {
     LeafRepositoryItem<Model>? addedCollectionItem;
 
     await runUpdateTransaction(() async {
       var leafRepositoryItem = repositoryItemCreator(toAdd);
-      var addResult =
-          await _collectionReference.add(leafRepositoryItem.toJson());
-
-      var addedDocumentSnapshot = await addResult.get();
-      var createdEntity = await _fromDocumentSnapshot(addedDocumentSnapshot)
-          as LeafRepositoryItem<Model>;
-      addedCollectionItem = createdEntity;
-      _collectionItems.add(createdEntity);
+      var addResult = await _typedCollectionReference.add(leafRepositoryItem);
+      addedCollectionItem = leafRepositoryItem;
+      addedCollectionItem!.id = addResult.id;
+      _collectionItems.add(addedCollectionItem!);
       _additionStreamController.add(CollectionItemChangeMetadata(
-          createdEntity.facade,
+          addedCollectionItem!.facade,
           isFromExplicitAction: true));
     });
 
-    return addedCollectionItem;
+    return addedCollectionItem?.facade;
   }
 
   @override
@@ -129,21 +146,26 @@ class FirestoreModelCollection<Model>
     var didUpdate = false;
     await runUpdateTransaction(() async {
       var leafRepositoryItem = repositoryItemCreator(toUpdate);
-      var matchingElementIndex = _collectionItems.indexWhere((element) =>
-          element.documentReference.id ==
+      var matchingElementIndex = _collectionItems.indexWhere((repositoryItem) =>
+          repositoryItem.documentReference.id ==
           leafRepositoryItem.documentReference.id);
       if (matchingElementIndex == -1) {
         didUpdate = false;
         return;
       }
       var collectionItemBeforeUpdate = _collectionItems[matchingElementIndex];
-      didUpdate = await leafRepositoryItem.documentReference
-          .set(leafRepositoryItem.toJson(), SetOptions(merge: false))
+
+      var typedDocRef = _typedCollectionReference
+          .doc(leafRepositoryItem.documentReference.id);
+
+      didUpdate = await typedDocRef
+          .set(leafRepositoryItem, SetOptions(merge: false))
           .then((value) {
         return true;
       }).catchError((error, stackTrace) {
         return false;
       });
+
       if (didUpdate) {
         _collectionItems[matchingElementIndex] = leafRepositoryItem;
         _updationStreamController.add(CollectionItemChangeMetadata(
@@ -155,14 +177,19 @@ class FirestoreModelCollection<Model>
     return didUpdate;
   }
 
-  void _onCollectionDataUpdate(List<DocumentChange> documentChanges) {
+  void _onCollectionDataUpdate(
+      List<DocumentChange<LeafRepositoryItem<Model>>> documentChanges) {
     if (!_shouldListenToUpdates || documentChanges.isEmpty) {
       return;
     }
     for (final documentChange in documentChanges) {
       var documentSnapshot = documentChange.doc;
-      var leafRepositoryItem =
-          _fromDocumentSnapshot(documentSnapshot) as LeafRepositoryItem<Model>;
+      var leafRepositoryItem = documentSnapshot.data();
+
+      if (leafRepositoryItem == null) {
+        continue;
+      }
+
       switch (documentChange.type) {
         case DocumentChangeType.added:
           {
@@ -179,11 +206,14 @@ class FirestoreModelCollection<Model>
           }
         case DocumentChangeType.removed:
           {
-            _collectionItems.removeWhere((element) =>
-                element.documentReference.id == documentSnapshot.id);
-            _deletionStreamController.add(CollectionItemChangeMetadata(
-                leafRepositoryItem.facade,
-                isFromExplicitAction: false));
+            if (_collectionItems.any((element) =>
+                element.documentReference.id == documentSnapshot.id)) {
+              _collectionItems.removeWhere((element) =>
+                  element.documentReference.id == documentSnapshot.id);
+              _deletionStreamController.add(CollectionItemChangeMetadata(
+                  leafRepositoryItem.facade,
+                  isFromExplicitAction: false));
+            }
             break;
           }
         case DocumentChangeType.modified:
@@ -214,21 +244,16 @@ class FirestoreModelCollection<Model>
     return didDelete;
   }
 
-  FirestoreModelCollection._(
-      {required this.repositoryItemCreator,
-      required CollectionReference collectionReference,
-      required FutureOr<LeafRepositoryItem<Model>?> Function(
-              DocumentSnapshot<Object?>)
-          fromDocumentSnapshot,
-      required List<LeafRepositoryItem<Model>> collectionItems,
-      Query? query})
-      : _fromDocumentSnapshot = fromDocumentSnapshot,
-        _collectionReference = collectionReference,
+  FirestoreModelCollection._({
+    required this.repositoryItemCreator,
+    required CollectionReference<LeafRepositoryItem<Model>>
+        typedCollectionReference,
+    required Query<LeafRepositoryItem<Model>>? typedQuery,
+    required List<LeafRepositoryItem<Model>> collectionItems,
+  })  : _typedCollectionReference = typedCollectionReference,
         _collectionItems = collectionItems {
-    //TODO: This fires the first time, even though collectionItems would have been initialized by then
-    // TODO: Can we use this platform API ?- collectionReference.withConverter(fromFirestore: fromFirestore, toFirestore: toFirestore)
     _shouldListenToUpdates = false;
-    _collectionStreamSubscription = (query ?? collectionReference)
+    _collectionStreamSubscription = (typedQuery ?? typedCollectionReference)
         .snapshots()
         .listen((event) => _onCollectionDataUpdate(event.docChanges));
     _shouldListenToUpdates = true;

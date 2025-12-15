@@ -21,7 +21,7 @@ abstract class ModelCollectionModifier<Model>
     extends ModelCollectionFacade<Model> implements Dispose {
   LeafRepositoryItem<Model> Function(Model) get repositoryItemCreator;
 
-  Future<LeafRepositoryItem<Model>?> tryAdd(Model toAdd);
+  Future<Model?> tryAdd(Model toAdd);
 
   FutureOr<bool> tryDeleteItem(Model toDelete);
 
