@@ -121,6 +121,7 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
             Text(context.localizations.darkTheme),
             const Spacer(),
             Switch.adaptive(
+              key: Key('ToolBar_ThemeSwitcher'),
               value: !context.isLightTheme,
               onChanged: (bool value) {
                 context.addMasterPageEvent(ChangeTheme(
@@ -268,6 +269,8 @@ class _LanguageSubMenuEntry extends StatelessWidget {
                 borderRadius: const BorderRadius.all(Radius.circular(20)),
                 child: Image.asset(
                   languageMetadata.flagAssetLocation,
+                  key: Key(
+                      'ToolBar_LanguageSwitcher_' + languageMetadata.locale),
                   width: 35,
                   height: 35,
                   fit: BoxFit.fill,

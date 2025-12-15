@@ -38,9 +38,7 @@ class TransitImplementation extends TransitFacade
             confirmationId: transitModelFacade.confirmationId,
             id: transitModelFacade.id,
             operator: transitModelFacade.operator,
-            notes: transitModelFacade.notes) {
-    expense.dateTime = departureDateTime;
-  }
+            notes: transitModelFacade.notes);
 
   static TransitImplementation fromDocumentSnapshot(
       String tripId, DocumentSnapshot documentSnapshot) {
@@ -60,9 +58,9 @@ class TransitImplementation extends TransitFacade
         arrivalDateTime:
             (documentData[_arrivalDateTimeField] as Timestamp).toDate(),
         arrivalLocation: LocationModelImplementation.fromJson(
-            json: documentData[_arrivalLocationField], tripId: tripId),
+            json: documentData[_arrivalLocationField]),
         departureLocation: LocationModelImplementation.fromJson(
-            json: documentData[_departureLocationField], tripId: tripId),
+            json: documentData[_departureLocationField]),
         operator: documentData[_operatorField]);
   }
 
@@ -108,7 +106,5 @@ class TransitImplementation extends TransitFacade
       : super(
             arrivalLocation: arrivalLocation,
             expense: expense,
-            departureLocation: departureLocation) {
-    expense.dateTime = departureDateTime;
-  }
+            departureLocation: departureLocation);
 }

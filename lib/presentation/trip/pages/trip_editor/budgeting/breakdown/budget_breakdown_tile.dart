@@ -9,29 +9,8 @@ import 'package:wandrr/presentation/app/widgets/tab_bar.dart';
 import 'breakdown_by_category.dart';
 import 'breakdown_by_day.dart';
 
-class BudgetBreakdownTile extends StatefulWidget {
+class BudgetBreakdownTile extends StatelessWidget {
   const BudgetBreakdownTile({super.key});
-
-  @override
-  State<BudgetBreakdownTile> createState() => _BudgetBreakdownTileState();
-}
-
-class _BudgetBreakdownTileState extends State<BudgetBreakdownTile>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-  int touchedIndex = -1;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {

@@ -47,10 +47,11 @@ class ExpenseFacade extends Equatable
   ExpenseFacade.newUiEntry(
       {required this.tripId,
       required Iterable<String> allTripContributors,
-      required String defaultCurrency})
+      required String defaultCurrency,
+      ExpenseCategory? category})
       : title = '',
         currency = defaultCurrency,
-        category = ExpenseCategory.other,
+        category = category ?? ExpenseCategory.other,
         paidBy = Map.fromIterables(
             allTripContributors, List.filled(allTripContributors.length, 0)),
         splitBy = allTripContributors.toList();
@@ -65,9 +66,7 @@ class ExpenseFacade extends Equatable
       category: category,
       paidBy: paidBy,
       splitBy: splitBy,
-      dateTime: dateTime != null
-          ? DateTime(dateTime!.year, dateTime!.month, dateTime!.day)
-          : null);
+      dateTime: dateTime);
 
   void copyWith(ExpenseFacade expenseModelFacade) {
     tripId = expenseModelFacade.tripId;

@@ -25,7 +25,6 @@ class AirportsDataService extends CachedDataService<LocationFacade> {
   }
 
   static LocationFacade _fromJson(Map<String, dynamic> json) => LocationFacade(
-        tripId: '',
         latitude: double.parse(json['lat'].toString()),
         longitude: double.parse(json['lon'].toString()),
         context: AirportLocationContext.fromDocument(json),

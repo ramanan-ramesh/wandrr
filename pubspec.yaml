@@ -37,10 +37,15 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
   flutter_gen: ^5.4.0
   flutter_gen_runner: ^5.11.0
   build_runner: ^2.4.0
   flutter_lints: ^2.0.0
+  # Mock packages for integration testing
+  mockito: ^5.4.0
+  image: ^4.5.4
 
 flutter:
 

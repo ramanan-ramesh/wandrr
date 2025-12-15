@@ -69,7 +69,7 @@ class ExpenseModelImplementation extends ExpenseFacade
     return {
       _currencyField: currency,
       _paidByField: paidBy,
-      _titleField: title,
+      if (title.isNotEmpty) _titleField: title,
       _categoryField: category.name,
       if (description != null && description!.isNotEmpty)
         _descriptionField: description,
@@ -108,7 +108,7 @@ class ExpenseModelImplementation extends ExpenseFacade
         dateTime: dateTimeValue?.toDate(),
         category: category,
         splitBy: splitBy,
-        title: json[_titleField],
+        title: json[_titleField] ?? '',
         description: json[_descriptionField]);
   }
 

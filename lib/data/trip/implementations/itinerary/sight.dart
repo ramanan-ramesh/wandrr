@@ -40,9 +40,7 @@ class SightModelImplementation extends SightFacade
         : null;
     var location = json[_locationField] != null
         ? LocationModelImplementation.fromJson(
-            json: json[_locationField] as Map<String, dynamic>,
-            tripId: tripId,
-          )
+            json: json[_locationField] as Map<String, dynamic>)
         : null;
     return SightModelImplementation._(
       tripId: tripId,

@@ -43,7 +43,7 @@ class LodgingModelImplementation extends LodgingFacade
         checkoutDateTime:
             (documentData[_checkoutDateTimeField] as Timestamp).toDate(),
         location: LocationModelImplementation.fromJson(
-            json: documentData[_locationField], tripId: tripId),
+            json: documentData[_locationField]),
         notes: documentData[_notesField],
         expense: ExpenseModelImplementation.fromJson(
             tripId: tripId,

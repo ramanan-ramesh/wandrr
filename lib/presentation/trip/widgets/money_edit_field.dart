@@ -139,6 +139,7 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
         prefixIcon: Material(
           shape: const CircleBorder(),
           child: IconButton(
+            key: Key('PlatformMoneyEditField_CurrencyPickerButton'),
             onPressed: _toggleMode,
             icon: Text(
               _selectedCurrency.symbol,
@@ -155,6 +156,7 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
       mainAxisSize: MainAxisSize.min,
       children: [
         TextField(
+          key: Key('PlatformMoneyEditField_TextField'),
           controller: _searchController,
           focusNode: _searchFocusNode,
           autofocus: true,
@@ -189,6 +191,8 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 3.0),
                     child: ListTile(
+                      key: Key('PlatformMoneyEditField_CurrencyListTile_' +
+                          currency.code),
                       selected: isSelected,
                       onTap: () => _selectCurrency(currency),
                       leading: Text(

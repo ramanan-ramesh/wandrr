@@ -6,8 +6,6 @@ import 'location_context.dart';
 
 // ignore: must_be_immutable
 class LocationFacade extends Equatable implements TripEntity<LocationFacade> {
-  final String tripId;
-
   final double latitude;
   final double longitude;
 
@@ -20,16 +18,11 @@ class LocationFacade extends Equatable implements TripEntity<LocationFacade> {
       {required this.latitude,
       required this.longitude,
       required this.context,
-      required this.tripId,
       this.id});
 
   @override
   LocationFacade clone() => LocationFacade(
-      latitude: latitude,
-      longitude: longitude,
-      context: context,
-      tripId: tripId,
-      id: id);
+      latitude: latitude, longitude: longitude, context: context, id: id);
 
   @override
   String toString() {
@@ -43,7 +36,7 @@ class LocationFacade extends Equatable implements TripEntity<LocationFacade> {
   bool validate() => true;
 
   @override
-  List<Object?> get props => [tripId, id, latitude, longitude, context, id];
+  List<Object?> get props => [latitude, longitude, context];
 }
 
 enum LocationType {
@@ -51,6 +44,7 @@ enum LocationType {
   country,
   state,
   city,
+  town,
   place,
   region,
   railwayStation,
@@ -59,5 +53,6 @@ enum LocationType {
   restaurant,
   attraction,
   lodging,
-  busStop
+  busStop,
+  museum
 }
