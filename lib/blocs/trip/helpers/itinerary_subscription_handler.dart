@@ -1,4 +1,3 @@
-import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/helpers/subscription_manager.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
@@ -8,13 +7,13 @@ class ItinerarySubscriptionHandler {
   final TripDataModelEventHandler activeTrip;
   final SubscriptionManager subscriptionManager;
   final bool Function() isBlocClosed;
-  final void Function(TripManagementEvent) addEvent;
+  final void Function(CollectionItemChangeMetadata) onUpdated;
 
   ItinerarySubscriptionHandler({
     required this.activeTrip,
     required this.subscriptionManager,
     required this.isBlocClosed,
-    required this.addEvent,
+    required this.onUpdated,
   });
 
   /// Creates subscriptions for all itinerary plan data
@@ -27,25 +26,11 @@ class ItinerarySubscriptionHandler {
           eventData.modifiedCollectionItem,
           isFromExplicitAction: false,
         );
-        addEvent(_UpdateTripEntityInternalEvent.updated(
-          metadata,
-          isOperationSuccess: true,
-        ));
+        onUpdated(metadata);
       });
 
       subscriptionManager
           .addItineraryPlanDataSubscription(planDataSubscription);
     }
   }
-}
-
-/// Internal event for trip entity updates from subscriptions
-class _UpdateTripEntityInternalEvent<T> extends TripManagementEvent {
-  final CollectionItemChangeMetadata<T> updateData;
-  final bool isOperationSuccess;
-
-  const _UpdateTripEntityInternalEvent.updated(
-    this.updateData, {
-    required this.isOperationSuccess,
-  });
 }

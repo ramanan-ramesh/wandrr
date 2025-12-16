@@ -63,6 +63,12 @@ class UserManagement implements UserManagementModifier {
   }
 
   @override
+  Future<bool> doesUserNameExist(String userName) async {
+    var existingUserDocument = await _retrieveUserDocumentForUserName(userName);
+    return existingUserDocument != null && existingUserDocument.exists;
+  }
+
+  @override
   Future<AuthStatus> trySignInWithUsernamePassword(
       {required String userName, required String password}) async {
     try {

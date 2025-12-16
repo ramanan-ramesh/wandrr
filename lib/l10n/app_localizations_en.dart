@@ -418,6 +418,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transitCarrier => 'Transit Carrier';
 
   @override
+  String tripMateNotFound(Object email) {
+    return 'The tripmate \'$email\' cannot be found.';
+  }
+
+  @override
   String get tripName => 'Trip Name';
 
   @override

@@ -315,7 +315,14 @@ class TripManagementBloc
       activeTrip: _activeTrip!,
       subscriptionManager: _subscriptionManager,
       isBlocClosed: () => isClosed,
-      addEvent: add,
+      onUpdated: (metadata) {
+        if (!isClosed) {
+          add(_UpdateTripEntityInternalEvent.updated(
+            metadata,
+            isOperationSuccess: true,
+          ));
+        }
+      },
     );
     await _itinerarySubscriptionHandler!.createSubscriptions();
   }

@@ -9,6 +9,7 @@ import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
+//TODO: On updating contributors, the UI should update.
 class CollaboratorList extends StatelessWidget {
   static const double _kAvatarRadius = 14;
   static const double _kAvatarOffset = 18.0;

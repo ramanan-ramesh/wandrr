@@ -131,6 +131,7 @@
   "train": "Train",
   "transit": "Transit",
   "transitCarrier": "Transit Carrier",
+  "tripMateNotFound": "The tripmate '{email}' cannot be found.",
   "tripName": "Trip Name",
   "untitled": "Untitled",
   "untitledChecklist": "Untitled Checklist",

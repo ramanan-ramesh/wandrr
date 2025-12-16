@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
@@ -36,12 +37,23 @@ class _TripContributorsEditorSectionState
   late TextEditingController _contributorController;
   late List<String> _contributors;
   bool _isAddContributorFieldVisible = false;
+  bool _isCheckingUserExistence = false;
+  String? _userExistenceError;
 
   @override
   void initState() {
     super.initState();
     _contributorController = TextEditingController();
     _contributors = List.from(widget.contributors);
+
+    // Clear error when user starts typing
+    _contributorController.addListener(() {
+      if (_userExistenceError != null) {
+        setState(() {
+          _userExistenceError = null;
+        });
+      }
+    });
   }
 
   @override
@@ -201,6 +213,7 @@ class _TripContributorsEditorSectionState
                 inputDecoration: InputDecoration(
                   icon: const Icon(Icons.person_2_rounded),
                   labelText: context.localizations.userName,
+                  errorText: _userExistenceError,
                 ),
                 onFieldSubmitted: (_) => _validateAndAddContributor(),
                 validator: _validateContributor,
@@ -210,27 +223,44 @@ class _TripContributorsEditorSectionState
             Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: _validateAndAddContributor,
+                onTap: _isCheckingUserExistence
+                    ? null
+                    : _validateAndAddContributor,
                 borderRadius: _kBorderRadiusMedium,
                 child: Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppColors.success, AppColors.successLight],
+                    gradient: LinearGradient(
+                      colors: _isCheckingUserExistence
+                          ? [AppColors.neutral500, AppColors.neutral400]
+                          : [AppColors.success, AppColors.successLight],
                     ),
                     borderRadius: _kBorderRadiusMedium,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.success.withValues(alpha: 0.3),
+                        color: (_isCheckingUserExistence
+                                ? AppColors.neutral500
+                                : AppColors.success)
+                            .withValues(alpha: 0.3),
                         blurRadius: 8.0,
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: _kIconSizeXLarge,
-                  ),
+                  child: _isCheckingUserExistence
+                      ? const SizedBox(
+                          width: _kIconSizeXLarge,
+                          height: _kIconSizeXLarge,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: _kIconSizeXLarge,
+                        ),
                 ),
               ),
             ),
@@ -240,44 +270,93 @@ class _TripContributorsEditorSectionState
     );
   }
 
-  void _validateAndAddContributor() {
+  Future<void> _validateAndAddContributor() async {
+    // Clear any previous error
+    setState(() {
+      _userExistenceError = null;
+    });
+
     if (_userNameFieldFormKey.currentState?.validate() != true) {
       return;
     }
     final name = _contributorController.text.trim();
-    if (name.isNotEmpty && !_contributors.contains(name)) {
-      PlatformDialogElements.showAlertDialog(context, (dialogContext) {
-        return AlertDialog(
-          title:
-              Text(context.localizations.splitExpensesWithNewTripMateMessage),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-              child: Text(context.localizations.no),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _contributors.add(name);
-                  _contributorController.clear();
-                  _isAddContributorFieldVisible = false;
-                  widget.onContributorsChanged(_contributors);
-                });
-                Navigator.of(dialogContext).pop();
-              },
-              child: Text(context.localizations.yes),
-            ),
-          ],
-        );
+    if (name.isEmpty || _contributors.contains(name)) {
+      return;
+    }
+
+    setState(() {
+      _isCheckingUserExistence = true;
+    });
+
+    try {
+      final userManagement =
+          (context.appDataRepository as AppDataModifier).userManagement;
+
+      final results = await Future.wait([
+        userManagement.doesUserNameExist(name),
+        Future.delayed(const Duration(seconds: 1)),
+      ]);
+
+      final userExists = results[0] as bool;
+
+      setState(() {
+        _isCheckingUserExistence = false;
       });
+
+      if (!userExists) {
+        // Set error and trigger validation
+        setState(() {
+          _userExistenceError = context.localizations.tripMateNotFound(name);
+        });
+        return;
+      }
+
+      if (mounted) {
+        PlatformDialogElements.showAlertDialog(context, (dialogContext) {
+          return AlertDialog(
+            title:
+                Text(context.localizations.splitExpensesWithNewTripMateMessage),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+                child: Text(context.localizations.no),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _contributors.add(name);
+                    _contributorController.clear();
+                    _isAddContributorFieldVisible = false;
+                    _userExistenceError = null;
+                    widget.onContributorsChanged(_contributors);
+                  });
+                  Navigator.of(dialogContext).pop();
+                },
+                child: Text(context.localizations.yes),
+              ),
+            ],
+          );
+        });
+      }
+    } catch (e) {
+      // Set error and trigger validation
+      setState(() {
+        _isCheckingUserExistence = false;
+        _userExistenceError = 'Error checking user: ${e.toString()}';
+      });
+      _userNameFieldFormKey.currentState?.validate();
     }
   }
 
   String? _validateContributor(String? name) {
     if (_contributors.contains(name?.trim())) {
       return 'This name is already added.';
+    }
+    // Return the user existence error if it exists
+    if (_userExistenceError != null) {
+      return _userExistenceError;
     }
     return null;
   }
