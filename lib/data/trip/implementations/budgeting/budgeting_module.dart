@@ -181,28 +181,6 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     }
   }
 
-  /// Rebalances expenses for all entities when contributors change
-  Future<void> _balanceExpenses<T extends ExpenseLinkedTripEntity>(
-    ModelCollectionModifier<T> modelCollection,
-    Iterable<String> contributors,
-    WriteBatch writeBatch,
-  ) async {
-    for (final collectionItem in modelCollection.collectionItems) {
-      final expense = collectionItem.expense;
-      for (final contributor in contributors) {
-        if (!expense.splitBy.contains(contributor)) {
-          expense.splitBy.add(contributor);
-        }
-      }
-      expense.splitBy.removeWhere((c) => !contributors.contains(c));
-      expense.paidBy.removeWhere((c, _) => !contributors.contains(c));
-      final itemToUpdate =
-          modelCollection.repositoryItemCreator(collectionItem);
-      writeBatch.update(itemToUpdate.documentReference, itemToUpdate.toJson());
-    }
-  }
-
-  //TODO: Expenses for sights also need to be split when new Contributor is added
   @override
   Future<void> balanceExpensesOnContributorsChanged(
       Iterable<String> contributors) async {
@@ -212,6 +190,14 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     await _balanceExpenses(_lodgingModelCollection, contributors, writeBatch);
     await _balanceExpenses(_expenseModelCollection, contributors, writeBatch);
     await writeBatch.commit();
+    for (final itinerary in _itineraryCollection) {
+      var updatedPlanData = itinerary.planData;
+      for (final sight in updatedPlanData.sights) {
+        final expense = sight.expense;
+        _balanceContributors(contributors, expense);
+      }
+      await itinerary.updatePlanData(updatedPlanData);
+    }
   }
 
   @override
@@ -222,6 +208,32 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   @override
   String formatCurrency(Money money) {
     return _currencyFormatter.format(money);
+  }
+
+  /// Rebalances expenses for all entities when contributors change
+  Future<void> _balanceExpenses<T extends ExpenseLinkedTripEntity>(
+    ModelCollectionModifier<T> modelCollection,
+    Iterable<String> contributors,
+    WriteBatch writeBatch,
+  ) async {
+    for (final collectionItem in modelCollection.collectionItems) {
+      final expense = collectionItem.expense;
+      _balanceContributors(contributors, expense);
+      final itemToUpdate =
+          modelCollection.repositoryItemCreator(collectionItem);
+      writeBatch.update(itemToUpdate.documentReference, itemToUpdate.toJson());
+    }
+  }
+
+  static void _balanceContributors(
+      Iterable<String> contributors, ExpenseFacade expense) {
+    for (final contributor in contributors) {
+      if (!expense.splitBy.contains(contributor)) {
+        expense.splitBy.add(contributor);
+      }
+    }
+    expense.splitBy.removeWhere((c) => !contributors.contains(c));
+    expense.paidBy.removeWhere((c, _) => !contributors.contains(c));
   }
 
   void _addSubscription(StreamSubscription subscription) {
