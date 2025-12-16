@@ -33,6 +33,7 @@ dependencies:
   package_info_plus: ^9.0.0
   firebase_remote_config: ^5.1.1
   url_launcher: ^6.1.11
+  lat_lng_to_timezone: ^0.2.0
 
 dev_dependencies:
   flutter_test:

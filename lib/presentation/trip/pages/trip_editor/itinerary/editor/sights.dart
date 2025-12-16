@@ -8,6 +8,7 @@ import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/common_collapsible_tab.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 import 'package:wandrr/presentation/trip/widgets/geo_location_auto_complete.dart';
+import 'package:wandrr/presentation/trip/widgets/time_zone_indicator.dart';
 
 /// Tab content for managing sights (places) for a day's itinerary.
 /// Allows adding, editing (location/time/description/expense), deleting sights.
@@ -89,9 +90,9 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
         const SizedBox(height: _kSpacingMedium),
         _buildTimeSection(context, sight, notifyParent),
         const SizedBox(height: _kSpacingMedium),
-        _buildExpenseSection(context, sight, notifyParent),
-        const SizedBox(height: _kSpacingMedium),
         _buildDescriptionSection(context, sight, notifyParent),
+        const SizedBox(height: _kSpacingMedium),
+        _buildExpenseSection(context, sight, notifyParent),
       ],
     );
   }
@@ -159,6 +160,12 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
         const SizedBox(height: _kSpacingMedium),
         Row(
           children: [
+            if (sight.location != null)
+              TimezoneIndicator(location: sight.location!),
+            if (sight.location != null)
+              const SizedBox(
+                width: _kSpacingMedium,
+              ),
             Expanded(
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.access_time),

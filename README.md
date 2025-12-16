@@ -324,7 +324,7 @@ gets missed.
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/wandrr.git
+   git clone https://github.com/ramanan-ramesh/wandrr.git
    cd wandrr
    ```
 
@@ -403,6 +403,6 @@ Have questions or suggestions? Feel free to reach out!
 
 ⭐ Star us on GitHub — it motivates us a lot!
 
-[Report Bug](https://github.com/yourusername/wandrr/issues) · [Request Feature](https://github.com/yourusername/wandrr/issues)
+[Report Bug](https://github.com/ramanan-ramesh/wandrr/issues) · [Request Feature](https://github.com/ramanan-ramesh/wandrr/issues)
 
 </div>

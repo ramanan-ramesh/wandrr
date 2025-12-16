@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
-// TODO: Split into text button submitter and icon button submitter
 class PlatformSubmitterFAB extends StatefulWidget {
   final Widget child;
   final VoidCallback? callback;

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
+import 'package:wandrr/presentation/trip/widgets/time_zone_indicator.dart';
 
 class DateTimeSelector extends StatefulWidget {
   final DateTime? checkinDateTime;
@@ -12,6 +14,7 @@ class DateTimeSelector extends StatefulWidget {
   final ValueChanged<DateTime> onCheckoutChanged;
   final int defaultCheckinHour;
   final int defaultCheckoutHour;
+  final LocationFacade? location;
 
   const DateTimeSelector({
     required this.checkinDateTime,
@@ -22,6 +25,7 @@ class DateTimeSelector extends StatefulWidget {
     required this.onCheckoutChanged,
     this.defaultCheckinHour = 8,
     this.defaultCheckoutHour = 8,
+    this.location,
     super.key,
   });
 
@@ -40,9 +44,16 @@ class _DateTimeSelectorState extends State<DateTimeSelector> {
           const SizedBox(height: 20),
           _buildTimeSliders(),
           const SizedBox(height: 16),
-          _DurationIndicator(
-            startDateTime: widget.checkinDateTime!,
-            endDateTime: widget.checkoutDateTime!,
+          Row(
+            children: [
+              if (widget.location != null)
+                TimezoneIndicator(location: widget.location!),
+              if (widget.location != null) const SizedBox(width: 16),
+              _DurationIndicator(
+                startDateTime: widget.checkinDateTime!,
+                endDateTime: widget.checkoutDateTime!,
+              )
+            ],
           ),
         ],
       ],

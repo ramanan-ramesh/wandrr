@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lat_lng_to_timezone/lat_lng_to_timezone.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
@@ -65,32 +66,37 @@ class TimelineEventFormatter {
     final isDepartingToday = departure.isOnSameDayAs(itineraryDay);
     final isArrivingToday = arrival.isOnSameDayAs(itineraryDay);
     final localizations = context.localizations;
+    final departureTimezone = latLngToTimezoneString(
+        transit.departureLocation!.latitude,
+        transit.departureLocation!.longitude);
+    final arrivalTimezone = latLngToTimezoneString(
+        transit.arrivalLocation!.latitude, transit.arrivalLocation!.longitude);
 
     if (isDepartingToday && isArrivingToday) {
-      if (isBigLayout) {
-        return (
-          eventTime: departure,
-          title:
-              '${getTransitLocationDetail(transit)} • ${departure.hourMinuteAmPmFormat} - ${arrival.hourMinuteAmPmFormat}',
-        );
+      final areTimezonesEqual = departureTimezone == arrivalTimezone;
+      String dateTimeText;
+      if (areTimezonesEqual) {
+        dateTimeText =
+            '${departure.hourMinuteAmPmFormat} - ${arrival.hourMinuteAmPmFormat} ($departureTimezone)';
       } else {
-        return (
-          eventTime: departure,
-          title:
-              '${getTransitLocationDetail(transit)}\n${departure.hourMinuteAmPmFormat} - ${arrival.hourMinuteAmPmFormat}',
-        );
+        dateTimeText =
+            '${departure.hourMinuteAmPmFormat} - ${arrival.hourMinuteAmPmFormat}\n$departureTimezone - $arrivalTimezone';
       }
+      return (
+        eventTime: departure,
+        title: '${getTransitLocationDetail(transit)}\n$dateTimeText',
+      );
     } else if (isDepartingToday) {
       return (
         eventTime: departure,
         title:
-            '${localizations.departAt} ${departure.hourMinuteAmPmFormat} → ${_getDestinationName(transit)}',
+            '${localizations.departAt} ${departure.hourMinuteAmPmFormat} ($departureTimezone) → ${_getDestinationName(transit)}',
       );
     } else {
       return (
         eventTime: arrival,
         title:
-            '${localizations.arriveAt} ${arrival.hourMinuteAmPmFormat} from ${_getOriginName(transit)}',
+            '${localizations.arriveAt} ${arrival.hourMinuteAmPmFormat} ($arrivalTimezone) from ${_getOriginName(transit)}',
       );
     }
   }

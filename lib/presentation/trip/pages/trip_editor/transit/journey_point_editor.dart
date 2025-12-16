@@ -9,6 +9,7 @@ import 'package:wandrr/presentation/app/widgets/date_time_picker.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/geo_location_auto_complete.dart';
+import 'package:wandrr/presentation/trip/widgets/time_zone_indicator.dart';
 
 import 'airport_data_editor_section.dart';
 
@@ -74,16 +75,27 @@ class JourneyPointEditor extends StatelessWidget {
                   onLocationSelected: onLocationChanged,
                 ),
           const SizedBox(height: 12),
-          PlatformDateTimePicker(
-            dateTimeUpdated: onDateTimeChanged,
-            startDateTime: startDateTime,
-            endDateTime: endDateTime,
-            currentDateTime: isDeparture
-                ? transitFacade.departureDateTime
-                : transitFacade.arrivalDateTime,
-          ),
+          _createDateTimeDetails(startDateTime, endDateTime, location),
         ],
       ),
+    );
+  }
+
+  Widget _createDateTimeDetails(
+      DateTime startDateTime, DateTime endDateTime, LocationFacade? location) {
+    return Row(
+      children: [
+        PlatformDateTimePicker(
+          dateTimeUpdated: onDateTimeChanged,
+          startDateTime: startDateTime,
+          endDateTime: endDateTime,
+          currentDateTime: isDeparture
+              ? transitFacade.departureDateTime
+              : transitFacade.arrivalDateTime,
+        ),
+        if (location != null) const SizedBox(width: 12),
+        if (location != null) TimezoneIndicator(location: location)
+      ],
     );
   }
 
