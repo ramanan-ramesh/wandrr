@@ -28,7 +28,7 @@ class ReadonlyExpenseListItem extends StatelessWidget {
 
   String get _subTitle {
     if (_expense.dateTime == null) return '';
-    return 'on ${_expense.dateTime!.monthFormat} ${_expense.dateTime!.day}';
+    return 'Paid on ${_expense.dateTime!.monthFormat} ${_expense.dateTime!.day}';
   }
 
   @override

@@ -83,7 +83,8 @@ class JourneyPointEditor extends StatelessWidget {
 
   Widget _createDateTimeDetails(
       DateTime startDateTime, DateTime endDateTime, LocationFacade? location) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         PlatformDateTimePicker(
           dateTimeUpdated: onDateTimeChanged,
@@ -93,7 +94,6 @@ class JourneyPointEditor extends StatelessWidget {
               ? transitFacade.departureDateTime
               : transitFacade.arrivalDateTime,
         ),
-        if (location != null) const SizedBox(width: 12),
         if (location != null) TimezoneIndicator(location: location)
       ],
     );

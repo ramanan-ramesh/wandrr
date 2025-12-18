@@ -54,11 +54,24 @@ class CommonCollapsibleTab<T> extends StatefulWidget {
 
 class _CommonCollapsibleTabState<T> extends State<CommonCollapsibleTab<T>> {
   int? _expandedIndex;
+  final Map<int, ValueNotifier<int>> _itemNotifiers = {};
 
   @override
   void initState() {
     super.initState();
     _expandedIndex = widget.initialExpandedIndex;
+  }
+
+  @override
+  void dispose() {
+    for (var notifier in _itemNotifiers.values) {
+      notifier.dispose();
+    }
+    super.dispose();
+  }
+
+  ValueNotifier<int> _getNotifierForIndex(int index) {
+    return _itemNotifiers.putIfAbsent(index, () => ValueNotifier<int>(0));
   }
 
   @override
@@ -177,13 +190,19 @@ class _CommonCollapsibleTabState<T> extends State<CommonCollapsibleTab<T>> {
               accentColor: handleColor,
               titleBuilder: widget.titleBuilder,
               previewBuilder: widget.previewBuilder,
-              onToggle: () =>
-                  setState(() => _expandedIndex = expanded ? null : index),
+              onToggle: () {
+                setState(() => _expandedIndex = expanded ? null : index);
+                // Persist changes when collapsing an item
+                if (expanded) {
+                  widget.onItemsChanged();
+                }
+              },
               onDelete: () => _deleteItem(index),
               expandedBuilder: (ctx, notify) =>
                   widget.expandedBuilder(ctx, index, item, notify),
-              notifyChanged: _notifyChanged,
+              notifyChanged: () => _notifyItemChanged(index),
               itemHeaderBuilder: widget.itemHeaderBuilder,
+              itemNotifier: _getNotifierForIndex(index),
             );
           },
         );
@@ -207,9 +226,14 @@ class _CommonCollapsibleTabState<T> extends State<CommonCollapsibleTab<T>> {
     widget.onItemsChanged();
   }
 
-  void _notifyChanged() {
+  void _notifyItemChanged(int index) {
+    // Trigger update for this specific item's header/preview
+    final notifier = _itemNotifiers[index];
+    if (notifier != null) {
+      notifier.value++;
+    }
+    // Persist changes
     widget.onItemsChanged();
-    setState(() {}); // refresh headers (title/preview)
   }
 }
 
@@ -225,6 +249,7 @@ class _CollapsibleEntry<T> extends StatelessWidget {
   final Widget Function(BuildContext, VoidCallback notifyParent)
       expandedBuilder;
   final VoidCallback notifyChanged;
+  final ValueNotifier<int> itemNotifier;
   final Widget Function(
     BuildContext context,
     int index,
@@ -248,6 +273,7 @@ class _CollapsibleEntry<T> extends StatelessWidget {
     required this.onDelete,
     required this.expandedBuilder,
     required this.notifyChanged,
+    required this.itemNotifier,
     this.itemHeaderBuilder,
   });
 
@@ -295,70 +321,76 @@ class _CollapsibleEntry<T> extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
-    final title = titleBuilder(item, context);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onToggle,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              ReorderableDragStartListener(
-                index: index,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(Icons.drag_handle_rounded, color: accentColor),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      transitionBuilder: (child, animation) =>
-                          FadeTransition(opacity: animation, child: child),
-                      child: Text(
-                        title,
-                        key: ValueKey(title),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
+    return ValueListenableBuilder<int>(
+      valueListenable: itemNotifier,
+      builder: (context, _, __) {
+        final title = titleBuilder(item, context);
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onToggle,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: accentColor.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(10),
                       ),
+                      child:
+                          Icon(Icons.drag_handle_rounded, color: accentColor),
                     ),
-                    if (previewBuilder != null) ...[
-                      const SizedBox(height: 4),
-                      previewBuilder!(context, item),
-                    ],
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 250),
+                          transitionBuilder: (child, animation) =>
+                              FadeTransition(opacity: animation, child: child),
+                          child: Text(
+                            title,
+                            key: ValueKey(title),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        if (previewBuilder != null) ...[
+                          const SizedBox(height: 4),
+                          previewBuilder!(context, item),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                      expanded
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.keyboard_arrow_down_rounded,
+                      color: accentColor),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: const Icon(Icons.delete_forever_rounded),
+                    color: AppColors.error,
+                    onPressed: onDelete,
+                    splashRadius: 20,
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Icon(
-                  expanded
-                      ? Icons.keyboard_arrow_up_rounded
-                      : Icons.keyboard_arrow_down_rounded,
-                  color: accentColor),
-              const SizedBox(width: 4),
-              IconButton(
-                icon: const Icon(Icons.delete_forever_rounded),
-                color: AppColors.error,
-                onPressed: onDelete,
-                splashRadius: 20,
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

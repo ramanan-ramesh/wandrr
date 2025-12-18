@@ -8,6 +8,7 @@ import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/date_picker.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
+import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
 
 class ExpenseEditor extends StatelessWidget {
   final ExpenseLinkedTripEntity expenseLinkedTripEntity;
@@ -154,18 +155,13 @@ class ExpenseEditor extends StatelessWidget {
   }
 
   Widget _buildDescriptionSection(BuildContext context) {
+    var note = Note(_expense.description ?? '');
     return EditorTheme.createSection(
       context: context,
-      child: TextFormField(
-        controller: _descriptionFieldController,
-        maxLines: null,
-        decoration: EditorTheme.createTextFieldDecoration(
-          labelText: context.localizations.description,
-          hintText: 'Enter expense details...',
-          alignLabelWithHint: true,
-        ),
-        onChanged: (updatedDescription) {
-          _expense.description = updatedDescription;
+      child: NoteEditor(
+        note: note,
+        onChanged: () {
+          _expense.description = note.text;
           onExpenseUpdated();
         },
       ),

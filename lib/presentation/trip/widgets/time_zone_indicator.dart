@@ -17,9 +17,9 @@ class TimezoneIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLightTheme = context.isLightTheme;
-    final timezoneString =
+    var timezoneString =
         latLngToTimezoneString(location.latitude, location.longitude);
-
+    timezoneString = timezoneString.replaceAll('_', ' ');
     return TweenAnimationBuilder<double>(
       duration: _scaleAnimationDuration,
       curve: Curves.easeOutBack,
@@ -30,7 +30,7 @@ class TimezoneIndicator extends StatelessWidget {
           child: AnimatedContainer(
             duration: _containerAnimationDuration,
             curve: Curves.easeInOut,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
             decoration: _buildDecoration(isLightTheme),
             child: Row(
               mainAxisSize: MainAxisSize.min,

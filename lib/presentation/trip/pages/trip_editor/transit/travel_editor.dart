@@ -8,6 +8,7 @@ import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
+import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
 
 import 'journey_point_editor.dart';
 import 'transit_operator_editor_section.dart';
@@ -191,32 +192,15 @@ class _TravelEditorState extends State<TravelEditor>
   }
 
   Widget _buildNotesSection() {
+    var note = Note(_transitFacade.notes ?? '');
     return EditorTheme.createSection(
       context: context,
-      child: _buildNotesField(context),
-    );
-  }
-
-  Widget _buildNotesField(BuildContext context) {
-    return TextFormField(
-      style: Theme.of(context).textTheme.bodyLarge,
-      decoration: InputDecoration(
-        hintText: '${context.localizations.notes}...',
-        filled: true,
-        fillColor: Colors.transparent,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-      ),
-      initialValue: _transitFacade.notes,
-      textInputAction: TextInputAction.done,
-      maxLines: 3,
-      minLines: 2,
-      onChanged: (value) {
-        _transitFacade.notes = value;
-        widget.onTransitUpdated();
-      },
+      child: NoteEditor(
+          note: note,
+          onChanged: () {
+            _transitFacade.notes = note.text;
+            widget.onTransitUpdated();
+          }),
     );
   }
 

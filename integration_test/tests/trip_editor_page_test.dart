@@ -18,10 +18,10 @@ import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/presentation/trip/pages/home/trips_list_view.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_page.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/editor/notes.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
+import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
 
 import '../helpers/facade_matchers.dart';
 import '../helpers/test_config.dart';
