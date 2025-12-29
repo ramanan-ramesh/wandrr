@@ -7,9 +7,6 @@ import 'package:wandrr/data/app/models/language_metadata.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/app/widgets/dialog.dart';
-import 'package:wandrr/presentation/trip/repository_extensions.dart';
-import 'package:wandrr/presentation/trip/widgets/delete_trip_dialog.dart';
 
 class Toolbar extends StatefulWidget {
   const Toolbar({super.key});
@@ -72,8 +69,6 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
         );
       },
       menuChildren: <Widget>[
-        if (context.tripRepository.activeTrip != null)
-          _createDeleteTripMenuEntry(context),
         _createThemeSwitcherMenuEntry(context),
         _createLanguageSwitcherMenuEntry(),
         _createLogoutMenuEntry(context),
@@ -131,24 +126,6 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  _MenuItem _createDeleteTripMenuEntry(BuildContext context) {
-    return _MenuItem(
-      animationDurationMs: 200,
-      child: MenuItemButton(
-        leadingIcon: Icon(Icons.delete_rounded),
-        child: Text(context.localizations.deleteTrip),
-        onPressed: () {
-          var tripMetadataToDelete = context.activeTrip.tripMetadata;
-          PlatformDialogElements.showAlertDialog(context, (dialogContext) {
-            return DeleteTripDialog(
-                widgetContext: context,
-                tripMetadataFacade: tripMetadataToDelete);
-          });
-        },
       ),
     );
   }

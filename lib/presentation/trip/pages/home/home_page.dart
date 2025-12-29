@@ -34,6 +34,7 @@ class HomePage extends StatelessWidget {
     return Visibility(
       visible: !keyboardIsOpened,
       child: FloatingActionButton.extended(
+        heroTag: 'homePageCreateTripButton',
         onPressed: () {
           PlatformDialogElements.showGeneralDialog(
             pageContext,

@@ -35,6 +35,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   Widget _createAppLogo(BuildContext context) {
     return FloatingActionButton.extended(
+      heroTag: 'homeAppBarLogo',
       elevation: 0,
       onPressed: null,
       label: Text(

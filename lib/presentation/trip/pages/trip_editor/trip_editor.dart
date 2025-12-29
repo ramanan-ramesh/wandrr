@@ -149,6 +149,7 @@ class _TripEditorPageInternal extends StatelessWidget {
           width: TripEditorPageConstants.fabSize,
           child: FittedBox(
             child: FloatingActionButton(
+              heroTag: 'tripEditorAddButtonWithNav',
               onPressed: () => _onAddButtonPressed(pageContext),
               child: Icon(Icons.add),
             ),
@@ -161,6 +162,7 @@ class _TripEditorPageInternal extends StatelessWidget {
       width: TripEditorPageConstants.fabSize,
       child: FittedBox(
         child: FloatingActionButton(
+          heroTag: 'tripEditorAddButton',
           onPressed: () => _onAddButtonPressed(pageContext),
           child: const Icon(Icons.add),
         ),

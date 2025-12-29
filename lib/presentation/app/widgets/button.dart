@@ -107,6 +107,8 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
     final bool isButtonEnabled = canEnable && !_isLoading;
 
     return FloatingActionButton(
+      heroTag: null,
+      // Disable hero animation to prevent conflicts with go_router
       onPressed: _isLoading || !canEnable
           ? () {
               widget.callbackOnClickWhileDisabled?.call();
