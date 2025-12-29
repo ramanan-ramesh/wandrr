@@ -28,7 +28,7 @@ Permissions-Policy = "geolocation=(), microphone=(), camera=()"
 Cross-Origin-Opener-Policy = "same-origin-allow-popups"
 Content-Security-Policy = """
       default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://www.googletagmanager.com https://www.gstatic.com;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://www.googletagmanager.com https://www.gstatic.com https://cdn.jsdelivr.net;
       style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com;
       img-src 'self' data: blob: https: https://play.google.com https://www.gstatic.com https://lh3.googleusercontent.com;
       font-src 'self' data: https://fonts.gstatic.com;
