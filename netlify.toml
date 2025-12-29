@@ -15,8 +15,6 @@ package = "netlify-plugin-flutter"
 [plugins.inputs]
 # Use stable channel (change to "beta" or specific version if needed)
 channel = "stable"
-# Optional: cache Flutter SDK across builds for faster deploys
-cache = true
 
 # Security & HTTP headers
 [[headers]]
