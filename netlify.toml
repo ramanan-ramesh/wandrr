@@ -2,7 +2,7 @@
 
 [build]
 # The actual build is handled by the Flutter plugin, but we keep a command for manual/UI deploys
-command = "flutter build web --release --web-renderer html --pwa-strategy=none"
+command = "flutter build web --release --wasm --pwa-strategy=none"
 publish = "build/web"
 
 # Environment variables (optional, adjust as needed)
