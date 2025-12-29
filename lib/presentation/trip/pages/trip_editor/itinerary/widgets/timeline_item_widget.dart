@@ -156,13 +156,19 @@ class _TimelineEventCard extends StatelessWidget {
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _EventHeader(event: event),
+          const SizedBox(height: 4),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
+              Flexible(
+                flex: 1,
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (event.subtitle.isNotEmpty)
@@ -174,8 +180,13 @@ class _TimelineEventCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (event.notes?.isNotEmpty ?? false)
-                Expanded(child: _EventNotes(notes: event.notes!)),
+              if (event.notes?.isNotEmpty ?? false) ...[
+                const SizedBox(width: 8),
+                Flexible(
+                  flex: 1,
+                  child: _EventNotes(notes: event.notes!),
+                ),
+              ],
             ],
           ),
         ],
@@ -327,23 +338,20 @@ class _EventNotes extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeHelper = TimelineThemeHelper(context);
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: themeHelper.getNotesBackgroundColor(),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          _truncateNotes(notes),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: themeHelper.getSubtitleColor(),
-                fontStyle: FontStyle.italic,
-              ),
-          maxLines: 5,
-          overflow: TextOverflow.ellipsis,
-        ),
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: themeHelper.getNotesBackgroundColor(),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        _truncateNotes(notes),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: themeHelper.getSubtitleColor(),
+              fontStyle: FontStyle.italic,
+            ),
+        maxLines: 5,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
