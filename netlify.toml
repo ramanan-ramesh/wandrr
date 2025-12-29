@@ -1,20 +1,41 @@
-# Netlify configuration for Flutter Web app
+# Netlify configuration for Flutter Web app (2025 best practices)
 
 [build]
-# Build command (not used in CI, but useful for Netlify UI deploys)
-command = "flutter build web --release"
-# Directory to deploy
+# The actual build is handled by the Flutter plugin, but we keep a command for manual/UI deploys
+command = "flutter build web --release --web-renderer html --pwa-strategy=none"
 publish = "build/web"
 
-# Headers for security and caching
+# Environment variables (optional, adjust as needed)
+# environment = { FLUTTER_WEB_RENDERER = "html" }
+
+# Use the official Flutter plugin for reliable SDK management
+[[plugins]]
+package = "netlify-plugin-flutter"
+
+[plugins.inputs]
+# Use stable channel (change to "beta" or specific version if needed)
+channel = "stable"
+# Optional: cache Flutter SDK across builds for faster deploys
+cache = true
+
+# Security & HTTP headers
 [[headers]]
 for = "/*"
 [headers.values]
 X-Frame-Options = "DENY"
+X-XSS-Protection = "1; mode=block"
 X-Content-Type-Options = "nosniff"
 Referrer-Policy = "strict-origin-when-cross-origin"
+Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+# Enable basic CSP (adjust if you use inline scripts/styles or external resources)
+Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com; frame-src 'self';"
 
-# Cache static assets
+# Long-term caching for immutable assets (Flutter hashes them)
+[[headers]]
+for = "/assets/**"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
 [[headers]]
 for = "/*.js"
 [headers.values]
@@ -25,20 +46,15 @@ for = "/*.css"
 [headers.values]
 Cache-Control = "public, max-age=31536000, immutable"
 
-[[headers]]
-for = "/assets/*"
-[headers.values]
-Cache-Control = "public, max-age=31536000, immutable"
-
-# Don't cache HTML for SPA routing
+# No caching for index.html (critical for SPA updates)
 [[headers]]
 for = "/index.html"
 [headers.values]
-Cache-Control = "public, max-age=0, must-revalidate"
+Cache-Control = "no-cache, no-store, must-revalidate"
 
-# SPA fallback - redirect all routes to index.html
+# SPA routing: serve index.html for all routes (200 status for client-side routing)
 [[redirects]]
 from = "/*"
 to = "/index.html"
 status = 200
-
+force = true
