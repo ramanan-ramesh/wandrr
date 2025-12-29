@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/presentation/app/routing/app_router.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
@@ -89,7 +91,7 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget _createHomeButton(BuildContext context) {
     return IconButton(
       onPressed: () {
-        context.addTripManagementEvent(GoToHome());
+        context.go(AppRoutes.trips);
       },
       icon: const Icon(Icons.home_rounded),
       style: context.isLightTheme

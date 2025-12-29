@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
-import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/routing/app_router.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
@@ -92,6 +92,7 @@ class TripListView extends StatelessWidget {
 
 class _TripMetadataGridItem extends StatelessWidget {
   final String tripId;
+
   _TripMetadataGridItem({required this.tripId});
 
   @override
@@ -111,8 +112,7 @@ class _TripMetadataGridItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           child: InkWell(
             onTap: () {
-              context.addTripManagementEvent(
-                  LoadTrip(tripMetadata: tripMetaDataFacade));
+              context.go(AppRoutes.tripEditorPath(tripMetaDataFacade.id!));
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,

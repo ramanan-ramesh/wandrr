@@ -180,7 +180,9 @@ class _NoteEditorState extends State<NoteEditor>
         IconButton(
           icon: Icon(
             Icons.format_list_bulleted,
-            color: hasBullet ? AppColors.brandPrimary : null,
+            color: hasBullet
+                ? AppColors.brandPrimary
+                : null, //TODO: Icon not visible in light mode
           ),
           onPressed: () {
             _toggleBulletForCurrentLine(forceAdd: !hasBullet);
