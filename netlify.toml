@@ -1,0 +1,44 @@
+# Netlify configuration for Flutter Web app
+
+[build]
+# Build command (not used in CI, but useful for Netlify UI deploys)
+command = "flutter build web --release"
+# Directory to deploy
+publish = "build/web"
+
+# Headers for security and caching
+[[headers]]
+for = "/*"
+[headers.values]
+X-Frame-Options = "DENY"
+X-Content-Type-Options = "nosniff"
+Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cache static assets
+[[headers]]
+for = "/*.js"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/*.css"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/assets/*"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+# Don't cache HTML for SPA routing
+[[headers]]
+for = "/index.html"
+[headers.values]
+Cache-Control = "public, max-age=0, must-revalidate"
+
+# SPA fallback - redirect all routes to index.html
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+
