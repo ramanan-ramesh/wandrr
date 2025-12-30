@@ -148,7 +148,7 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
           npm install -g netlify-cli
-          netlify deploy --prod --dir=build/web --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
+          netlify deploy --prod-if-unlocked --dir=build/web --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
 
       - name: Tag and Push Changes
         run: |
