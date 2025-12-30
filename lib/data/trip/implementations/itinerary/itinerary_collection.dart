@@ -200,6 +200,11 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
       _addOrRemoveLodgingToItinerary(lodgingBeforeUpdate, true);
       _addOrRemoveLodgingToItinerary(lodgingAfterUpdate, false);
     }));
+    _subscriptions
+        .add(lodgingCollection.onDocumentDeleted.listen((eventData) async {
+      var lodgingDeleted = eventData.modifiedCollectionItem;
+      _addOrRemoveLodgingToItinerary(lodgingDeleted, true);
+    }));
   }
 
   void _addOrRemoveTransitToItinerary(TransitFacade transit, bool toDelete) {

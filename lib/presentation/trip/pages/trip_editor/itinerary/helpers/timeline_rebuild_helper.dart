@@ -39,7 +39,7 @@ class TimelineRebuildHelper {
 
     if (dataState == DataState.delete || dataState == DataState.create) {
       final lodging = collectionItemChangeset as LodgingFacade;
-      return _isLodgingOnItineraryDay(lodging);
+      return _doesItineraryDayFallDuringStayDuration(lodging);
     }
 
     if (dataState == DataState.update) {
@@ -49,8 +49,10 @@ class TimelineRebuildHelper {
       final lodgingBeforeUpdate = collectionItemChangeset.beforeUpdate;
       final lodgingAfterUpdate = collectionItemChangeset.afterUpdate;
 
-      final wasOnItineraryDay = _isLodgingOnItineraryDay(lodgingBeforeUpdate);
-      final isOnItineraryDay = _isLodgingOnItineraryDay(lodgingAfterUpdate);
+      final wasOnItineraryDay =
+          _doesItineraryDayFallDuringStayDuration(lodgingBeforeUpdate);
+      final isOnItineraryDay =
+          _doesItineraryDayFallDuringStayDuration(lodgingAfterUpdate);
 
       if (wasOnItineraryDay || isOnItineraryDay) {
         return true;
@@ -113,10 +115,14 @@ class TimelineRebuildHelper {
     return false;
   }
 
-  /// Checks if lodging is on the itinerary day
-  bool _isLodgingOnItineraryDay(LodgingFacade lodging) {
-    return lodging.checkinDateTime!.isOnSameDayAs(itineraryDay) ||
-        lodging.checkoutDateTime!.isOnSameDayAs(itineraryDay);
+  /// Checks if itinerary day falls during stay duration
+  bool _doesItineraryDayFallDuringStayDuration(LodgingFacade lodging) {
+    var checkinDate = lodging.checkinDateTime!;
+    var checkoutDate = lodging.checkoutDateTime!;
+    return (checkinDate.isOnSameDayAs(itineraryDay) ||
+            itineraryDay.isAfter(checkinDate)) &&
+        (checkoutDate.isOnSameDayAs(itineraryDay) ||
+            itineraryDay.isBefore(checkoutDate));
   }
 
   /// Checks if transit is on the itinerary day

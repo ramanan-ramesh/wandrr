@@ -152,9 +152,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       deletedLodgings.addAll(_updateTripEntityListOnDatesChanged<LodgingFacade>(
           datesToRemove,
           lodgingCollection,
-          (dateTime, lodging) =>
-              lodging.checkinDateTime!.isOnSameDayAs(dateTime) ||
-              lodging.checkoutDateTime!.isOnSameDayAs(dateTime),
+          (dateTime, lodging) => _isStayingDuringDate(lodging, dateTime),
           writeBatch));
 
       await writeBatch.commit();
@@ -263,6 +261,15 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       dateSet.add(date);
     }
     return dateSet;
+  }
+
+  bool _isStayingDuringDate(LodgingFacade lodging, DateTime date) {
+    var checkinDateTime = lodging.checkinDateTime!;
+    var checkoutDateTime = lodging.checkoutDateTime!;
+    return (checkinDateTime.isOnSameDayAs(date) ||
+            date.isAfter(checkinDateTime)) &&
+        (checkoutDateTime.isOnSameDayAs(date) ||
+            date.isBefore(checkoutDateTime));
   }
 
   TripDataModelImplementation._(
