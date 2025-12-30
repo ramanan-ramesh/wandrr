@@ -3,6 +3,8 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.0+-blue.svg)](https://flutter.dev/)
 [![Firebase](https://img.shields.io/badge/Firebase-Enabled-orange.svg)](https://firebase.google.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Get it on Google Play](https://img.shields.io/badge/Get%20it%20on-Google%20Play-00A65A?style=flat&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=com.rareapps.wandrr)
+[![Website](https://img.shields.io/badge/dynamic/svg?url=https%3A%2F%2Fimg.shields.io%2Fbadge/-Website-green?logo=https%3A%2F%2Fraw.githubusercontent.com%2Framanan-ramesh%2Fwandrr%2Fmain%2Fassets%2Fimages%2Flogo.jpg&logoColor=white&labelColor=00A65A&style=flat)](https://wandrr.netlify.app)
 
 A comprehensive travel planning app built with Flutter and ❤️, designed to make your travel
 experiences seamless and memorable. Wandrr helps you plan, track, and manage every aspect of your
