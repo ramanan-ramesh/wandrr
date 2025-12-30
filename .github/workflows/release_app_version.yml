@@ -23,6 +23,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Ensure l10n/untranslated-messages.txt is empty
+        run: |
+          if [ -f l10n/untranslated-messages.txt ]; then
+            CONTENT=$(tr -d '\n\r\t ' < l10n/untranslated-messages.txt)
+            if [ -s l10n/untranslated-messages.txt ] && [ "$CONTENT" != "{}" ]; then
+              echo "Error: l10n/untranslated-messages.txt is not empty. Please resolve all untranslated messages before release." >&2
+              cat l10n/untranslated-messages.txt
+              exit 1
+            fi
+          fi
+          echo "l10n/untranslated-messages.txt is empty."
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -39,8 +51,8 @@ jobs:
       - name: Build Flutter APK (Android)
         run: flutter build apk --debug
 
-      - name: Build Flutter Web
-        run: flutter build web --debug
+      - name: Build Flutter Web for Web Hosting
+        run: flutter build web --release
 
       - name: Update pubspec.yaml version and ReleaseHistory.md
         run: |
@@ -111,18 +123,6 @@ jobs:
           COMMIT_MSG=$(printf "Release version ${{ github.event.inputs.version }}\n\n%b" "$FORMATTED_UPDATES")
           git commit -m "$COMMIT_MSG"
 
-      - name: Ensure l10n/untranslated-messages.txt is empty
-        run: |
-          if [ -f l10n/untranslated-messages.txt ]; then
-            CONTENT=$(tr -d '\n\r\t ' < l10n/untranslated-messages.txt)
-            if [ -s l10n/untranslated-messages.txt ] && [ "$CONTENT" != "{}" ]; then
-              echo "Error: l10n/untranslated-messages.txt is not empty. Please resolve all untranslated messages before release." >&2
-              cat l10n/untranslated-messages.txt
-              exit 1
-            fi
-          fi
-          echo "l10n/untranslated-messages.txt is empty."
-
       - name: Install npm
         run: |
           brew install node
@@ -141,6 +141,14 @@ jobs:
         run: |
           cd scripts/release_management
           node update_firebase_remote_config.js
+
+      - name: Deploy to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          npm install -g netlify-cli
+          netlify deploy --prod --dir=build/web --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
 
       - name: Tag and Push Changes
         run: |

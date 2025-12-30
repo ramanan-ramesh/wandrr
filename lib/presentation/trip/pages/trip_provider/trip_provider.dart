@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:rive/rive.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
@@ -12,13 +13,16 @@ import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/routing/app_router.dart';
 import 'package:wandrr/presentation/trip/pages/home/home_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
 import 'constants.dart';
 
 class TripProvider extends StatelessWidget {
-  const TripProvider({super.key});
+  final String? initialTripId;
+
+  const TripProvider({super.key, this.initialTripId});
 
   @override
   Widget build(BuildContext pageContext) {
@@ -26,13 +30,15 @@ class TripProvider extends StatelessWidget {
     return BlocProvider<TripManagementBloc>(
       create: (BuildContext context) =>
           TripManagementBloc(currentUserName, pageContext.localizations),
-      child: const _TripProviderContentPage(),
+      child: _TripProviderContentPage(initialTripId: initialTripId),
     );
   }
 }
 
 class _TripProviderContentPage extends StatefulWidget {
-  const _TripProviderContentPage();
+  final String? initialTripId;
+
+  const _TripProviderContentPage({this.initialTripId});
 
   @override
   State<_TripProviderContentPage> createState() =>
@@ -45,6 +51,7 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
   TripRepositoryFacade? _tripRepository;
   static final _walkAnimation = SimpleAnimation('Walk');
   final _waveAnimation = SimpleAnimation('Wave');
+  bool _hasTriedLoadingInitialTrip = false;
 
   @override
   Widget build(BuildContext context) {
@@ -92,9 +99,10 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
             return;
           }
           if (tripMetadataUpdatedState.dataState == DataState.create) {
-            context.addTripManagementEvent(LoadTrip(
-                tripMetadata: tripMetadataUpdatedState
-                    .tripEntityModificationData.modifiedCollectionItem));
+            final tripMetadata = tripMetadataUpdatedState
+                .tripEntityModificationData.modifiedCollectionItem;
+            context
+                .addTripManagementEvent(LoadTrip(tripMetadata: tripMetadata));
           }
           if (tripMetadataUpdatedState.dataState == DataState.delete) {
             if (state.tripEntityModificationData.isFromExplicitAction) {
@@ -105,11 +113,36 @@ class _TripProviderContentPageState extends State<_TripProviderContentPage> {
           _tryStartWalkAnimation();
         } else if (state is LoadingTrip) {
           _tryStartWalkAnimation();
+          // Update URL to reflect the trip being loaded
+          final tripId = state.tripMetadataFacade.id;
+          if (tripId != null) {
+            context.go(AppRoutes.tripEditorPath(tripId));
+          }
         } else if (state is LoadedRepository) {
           _tripRepository = state.tripRepository;
-          _tryStopWalkStartWaveAnimation();
+          // Handle deep linking: if initialTripId is provided, load that trip
+          if (widget.initialTripId != null && !_hasTriedLoadingInitialTrip) {
+            _hasTriedLoadingInitialTrip = true;
+            final tripMetadata = state
+                .tripRepository.tripMetadataCollection.collectionItems
+                .where((trip) => trip.id == widget.initialTripId)
+                .firstOrNull;
+            if (tripMetadata != null) {
+              context
+                  .addTripManagementEvent(LoadTrip(tripMetadata: tripMetadata));
+            } else {
+              // Trip not found, redirect to trips list
+              context.go(AppRoutes.trips);
+              _tryStopWalkStartWaveAnimation();
+            }
+          } else {
+            _tryStopWalkStartWaveAnimation();
+          }
         } else if (state is ActivatedTrip) {
           _tryStopWalkStartWaveAnimation();
+        } else if (state is NavigateToHome) {
+          // Update URL to trips list when navigating home
+          context.go(AppRoutes.trips);
         }
       },
     );

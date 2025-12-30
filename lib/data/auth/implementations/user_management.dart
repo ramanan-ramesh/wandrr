@@ -137,31 +137,53 @@ class UserManagement implements UserManagementModifier {
       return AuthStatus.undefined;
     }
 
-    GoogleSignIn googleSignIn;
-    if (kIsWeb) {
-      var googleConfigDocument = await FirebaseFirestore.instance
-          .collection(FirestoreCollections.appConfig)
-          .doc('google')
-          .get();
-      String googleWebClientId = googleConfigDocument[_googleWebClientIdField];
-      googleSignIn = GoogleSignIn(clientId: googleWebClientId);
-    } else {
-      googleSignIn = GoogleSignIn();
+    try {
+      GoogleSignIn googleSignIn;
+      if (kIsWeb) {
+        var googleConfigDocument = await FirebaseFirestore.instance
+            .collection(FirestoreCollections.appConfig)
+            .doc('google')
+            .get();
+        String googleWebClientId =
+            googleConfigDocument[_googleWebClientIdField];
+        googleSignIn = GoogleSignIn(
+          clientId: googleWebClientId,
+          scopes: ['email', 'profile'],
+        );
+      } else {
+        googleSignIn = GoogleSignIn(
+          scopes: ['email', 'profile'],
+        );
+      }
+
+      final googleUser = await googleSignIn.signIn();
+
+      if (googleUser == null) {
+        // User cancelled the sign-in
+        return AuthStatus.undefined;
+      }
+
+      final googleAuth = await googleUser.authentication;
+
+      if (googleAuth.accessToken == null && googleAuth.idToken == null) {
+        return AuthStatus.undefined;
+      }
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+      final existingUserDocument =
+          await _retrieveUserDocumentForUserName(userCredential.user!.email!);
+      return await _signInWithCredential(userCredential, existingUserDocument);
+    } on FirebaseAuthException catch (e) {
+      return _getAuthFailureReason(e.code, e.message);
+    } catch (e) {
+      return AuthStatus.undefined;
     }
-    var googleUser = await googleSignIn.signIn();
-
-    var googleAuth = await googleUser?.authentication;
-
-    var credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth?.accessToken,
-      idToken: googleAuth?.idToken,
-    );
-
-    var userCredential =
-        await FirebaseAuth.instance.signInWithCredential(credential);
-    var existingUserDocument =
-        await _retrieveUserDocumentForUserName(userCredential.user!.email!);
-    return await _signInWithCredential(userCredential, existingUserDocument);
   }
 
   @override
