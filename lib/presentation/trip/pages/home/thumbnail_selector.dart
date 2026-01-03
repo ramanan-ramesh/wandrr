@@ -254,11 +254,12 @@ class ThumbnailPicker extends StatelessWidget {
   void _onDialogResult(String? selectedThumbnailTag) {
     if (selectedThumbnailTag != null &&
         selectedThumbnailTag != tripMetaDataFacade.thumbnailTag) {
-      var clonedTripMetadataFacade = tripMetaDataFacade.clone();
-      clonedTripMetadataFacade.thumbnailTag = selectedThumbnailTag;
+      var updatedTripMetadata = tripMetaDataFacade.copyWith(
+        thumbnailTag: selectedThumbnailTag,
+      );
       widgetContext.addTripManagementEvent(
         UpdateTripEntity<TripMetadataFacade>.update(
-            tripEntity: clonedTripMetadataFacade),
+            tripEntity: updatedTripMetadata),
       );
     }
   }

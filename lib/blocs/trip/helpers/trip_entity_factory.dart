@@ -10,9 +10,9 @@ class TripEntityFactory {
   const TripEntityFactory(this.activeTrip);
 
   /// Creates a new UI entry for transit
-  TransitFacade createTransit({TransitFacade? existing}) {
+  Transit createTransit({Transit? existing}) {
     return existing ??
-        TransitFacade.newUiEntry(
+        Transit.newEntry(
           tripId: activeTrip.tripMetadata.id!,
           transitOption: TransitOption.publicTransport,
           allTripContributors: activeTrip.tripMetadata.contributors,
@@ -21,9 +21,9 @@ class TripEntityFactory {
   }
 
   /// Creates a new UI entry for lodging
-  LodgingFacade createLodging({LodgingFacade? existing}) {
+  Lodging createLodging({Lodging? existing}) {
     return existing ??
-        LodgingFacade.newUiEntry(
+        Lodging.newEntry(
           tripId: activeTrip.tripMetadata.id!,
           allTripContributors: activeTrip.tripMetadata.contributors,
           defaultCurrency: activeTrip.tripMetadata.budget.currency,
@@ -31,9 +31,9 @@ class TripEntityFactory {
   }
 
   /// Creates a new UI entry for expense
-  ExpenseFacade createExpense({ExpenseFacade? existing}) {
+  Expense createExpense({Expense? existing}) {
     return existing ??
-        ExpenseFacade.newUiEntry(
+        Expense.newEntry(
           tripId: activeTrip.tripMetadata.id!,
           allTripContributors: activeTrip.tripMetadata.contributors,
           defaultCurrency: activeTrip.tripMetadata.budget.currency,

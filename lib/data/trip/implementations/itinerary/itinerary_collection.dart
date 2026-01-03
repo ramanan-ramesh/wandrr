@@ -88,13 +88,8 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
           checkinLodging: null,
           checkoutLodging: null,
           fullDayLodging: null,
-          planData: ItineraryPlanDataModelImplementation(
-              tripId: tripId,
-              id: date.itineraryDateFormat,
-              day: date,
-              sights: [],
-              notes: [],
-              checkLists: []));
+          planData: ItineraryPlanDataModelImplementation.empty(
+              tripId: tripId, day: date));
       _itineraries.add(
         itinerary,
       );

@@ -1,28 +1,29 @@
-import 'package:equatable/equatable.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:wandrr/data/trip/models/core/model_types.dart';
 
 import 'airport_location_context.dart';
 import 'location_context.dart';
 
-// ignore: must_be_immutable
-class LocationFacade extends Equatable implements TripEntity<LocationFacade> {
-  final double latitude;
-  final double longitude;
+part 'location.freezed.dart';
 
-  final LocationContext context;
+/// Represents a geographic location.
+/// Location always has valid lat/lng and context, so no draft needed.
+@freezed
+class Location with _$Location implements TripEntity<Location> {
+  const Location._();
+
+  const factory Location({
+    required double latitude,
+    required double longitude,
+    required LocationContext context,
+    String? id,
+  }) = _Location;
 
   @override
-  String? id;
-
-  LocationFacade(
-      {required this.latitude,
-      required this.longitude,
-      required this.context,
-      this.id});
+  Location clone() => copyWith();
 
   @override
-  LocationFacade clone() => LocationFacade(
-      latitude: latitude, longitude: longitude, context: context, id: id);
+  bool validate() => true;
 
   @override
   String toString() {
@@ -31,14 +32,9 @@ class LocationFacade extends Equatable implements TripEntity<LocationFacade> {
     }
     return context.name;
   }
-
-  @override
-  bool validate() => true;
-
-  @override
-  List<Object?> get props => [latitude, longitude, context];
 }
 
+/// Location types for categorizing places
 enum LocationType {
   continent,
   country,
@@ -56,3 +52,6 @@ enum LocationType {
   busStop,
   museum
 }
+
+// Legacy alias for backward compatibility
+typedef LocationFacade = Location;

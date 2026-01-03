@@ -1,48 +1,49 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
+import 'package:wandrr/data/trip/implementations/firestore_converters.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
+/// Repository implementation for TripMetadata model.
+/// Wraps TripMetadata model with Firestore-specific serialization.
 // ignore: must_be_immutable
-class TripMetadataModelImplementation extends TripMetadataFacade
-    implements LeafRepositoryItem<TripMetadataFacade> {
-  static const String _startDateField = 'startDate';
-  static const String _endDateField = 'endDate';
-  static const String _nameField = 'name';
-  static const String _contributorsField = 'contributors';
-  static const String _thumbnailTagField = 'thumbnailTag';
-  static const _budgetField = 'budget';
+class TripMetadataRepositoryItem implements LeafRepositoryItem<TripMetadata> {
+  TripMetadata _tripMetadata;
 
-  TripMetadataModelImplementation.fromModelFacade(
-      {required TripMetadataFacade tripMetadataModelFacade})
-      : super(
-            id: tripMetadataModelFacade.id,
-            startDate: tripMetadataModelFacade.startDate,
-            endDate: tripMetadataModelFacade.endDate,
-            name: tripMetadataModelFacade.name,
-            contributors: List.from(tripMetadataModelFacade.contributors),
-            thumbnailTag: tripMetadataModelFacade.thumbnailTag,
-            budget: tripMetadataModelFacade.budget);
+  @override
+  String? id;
 
-  static TripMetadataModelImplementation fromDocumentSnapshot(
-      DocumentSnapshot documentSnapshot) {
-    var documentData = documentSnapshot.data() as Map<String, dynamic>;
-    var startDateTime = (documentData[_startDateField] as Timestamp).toDate();
-    var endDateTime = (documentData[_endDateField] as Timestamp).toDate();
-    var contributors = List<String>.from(documentData[_contributorsField]);
-    var budgetValue = documentData[_budgetField] as String;
-    var thumbNailTag = documentData[_thumbnailTagField] as String;
-    var budget = Money.fromDocumentData(budgetValue);
+  // Expose properties for backward compatibility
+  String get name => _tripMetadata.name;
 
-    return TripMetadataModelImplementation._(
-        id: documentSnapshot.id,
-        startDate: startDateTime,
-        endDate: endDateTime,
-        name: documentData[_nameField],
-        contributors: contributors,
-        thumbnailTag: thumbNailTag,
-        budget: budget);
+  String get thumbnailTag => _tripMetadata.thumbnailTag;
+
+  List<String> get contributors => _tripMetadata.contributors;
+
+  Money get budget => _tripMetadata.budget;
+
+  DateTime? get startDate => _tripMetadata.startDate;
+
+  DateTime? get endDate => _tripMetadata.endDate;
+
+  TripMetadataRepositoryItem.fromModel(TripMetadata tripMetadata)
+      : _tripMetadata = tripMetadata,
+        id = tripMetadata.id;
+
+  /// Factory constructor for creating from a model facade
+  factory TripMetadataRepositoryItem.fromModelFacade({
+    required TripMetadata tripMetadataModelFacade,
+  }) {
+    return TripMetadataRepositoryItem.fromModel(tripMetadataModelFacade);
+  }
+
+  static TripMetadataRepositoryItem fromDocumentSnapshot(
+    DocumentSnapshot documentSnapshot,
+  ) {
+    final tripMetadata =
+        TripMetadataFirestoreConverter.fromFirestore(documentSnapshot);
+    return TripMetadataRepositoryItem.fromModel(tripMetadata);
   }
 
   @override
@@ -51,24 +52,26 @@ class TripMetadataModelImplementation extends TripMetadataFacade
       .doc(id);
 
   @override
-  Map<String, dynamic> toJson() => {
-        _startDateField: Timestamp.fromDate(startDate!),
-        _endDateField: Timestamp.fromDate(endDate!),
-        _contributorsField: contributors,
-        _nameField: name,
-        _budgetField: budget.toString(),
-        _thumbnailTagField: thumbnailTag
-      };
+  Map<String, dynamic> toJson() =>
+      TripMetadataFirestoreConverter.toFirestore(_tripMetadata);
 
   @override
-  TripMetadataFacade get facade => clone();
+  TripMetadata get facade {
+    if (id != null) {
+      return _tripMetadata.copyWith(id: id!);
+    }
+    return _tripMetadata;
+  }
 
-  TripMetadataModelImplementation._(
-      {required String super.id,
-      required DateTime super.startDate,
-      required DateTime super.endDate,
-      required super.name,
-      required super.contributors,
-      required super.thumbnailTag,
-      required super.budget});
+  /// Clone the underlying model
+  TripMetadata clone() => _tripMetadata.copyWith();
+
+  /// Update the internal model with new values using copyWith
+  void updateFrom(TripMetadata tripMetadata) {
+    _tripMetadata = tripMetadata;
+    id = tripMetadata.id;
+  }
 }
+
+// Legacy alias for backward compatibility
+typedef TripMetadataModelImplementation = TripMetadataRepositoryItem;

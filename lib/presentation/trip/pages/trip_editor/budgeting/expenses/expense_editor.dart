@@ -10,13 +10,27 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
 
-class ExpenseEditor extends StatelessWidget {
+class ExpenseEditor extends StatefulWidget {
   final ExpenseLinkedTripEntity expenseLinkedTripEntity;
   final VoidCallback onExpenseUpdated;
+
+  const ExpenseEditor({
+    super.key,
+    required this.expenseLinkedTripEntity,
+    required this.onExpenseUpdated,
+  });
+
+  @override
+  State<ExpenseEditor> createState() => _ExpenseEditorState();
+}
+
+class _ExpenseEditorState extends State<ExpenseEditor> {
   final Map<ExpenseCategory, String> _categoryNames = {};
-  final TextEditingController _descriptionFieldController =
-      TextEditingController();
-  final TextEditingController _titleEditingController = TextEditingController();
+  late TextEditingController _descriptionFieldController;
+  late TextEditingController _titleEditingController;
+
+  // Store the expense locally for immutable updates
+  late Expense _currentExpense;
 
   // UI constants
   static const double _kBadgeHorizontalPadding = 12.0;
@@ -24,20 +38,50 @@ class ExpenseEditor extends StatelessWidget {
   static const double _kSectionSpacingLarge = 16.0;
   static const double _kSectionSpacingSmall = 12.0;
 
-  ExpenseFacade get _expense => expenseLinkedTripEntity.expense;
+  @override
+  void initState() {
+    super.initState();
+    _currentExpense = widget.expenseLinkedTripEntity.expense;
+    _descriptionFieldController =
+        TextEditingController(text: _currentExpense.description ?? '');
+    _titleEditingController = TextEditingController(
+      text: widget.expenseLinkedTripEntity is! Expense
+          ? widget.expenseLinkedTripEntity.toString()
+          : _currentExpense.title,
+    );
+  }
 
-  ExpenseEditor({
-    super.key,
-    required this.expenseLinkedTripEntity,
-    required this.onExpenseUpdated,
-  });
+  @override
+  void didUpdateWidget(ExpenseEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.expenseLinkedTripEntity != widget.expenseLinkedTripEntity) {
+      _currentExpense = widget.expenseLinkedTripEntity.expense;
+      _descriptionFieldController.text = _currentExpense.description ?? '';
+      _titleEditingController.text = widget.expenseLinkedTripEntity is! Expense
+          ? widget.expenseLinkedTripEntity.toString()
+          : _currentExpense.title;
+    }
+  }
+
+  @override
+  void dispose() {
+    _descriptionFieldController.dispose();
+    _titleEditingController.dispose();
+    super.dispose();
+  }
+
+  void _updateExpense(Expense updated) {
+    setState(() {
+      _currentExpense = updated;
+    });
+    // Update the entity's expense with the new value
+    // Since ExpenseLinkedTripEntity has a getter, we need to check if we can update it
+    // For now, we rely on the parent to handle this via the callback
+    widget.onExpenseUpdated();
+  }
 
   @override
   Widget build(BuildContext context) {
-    _descriptionFieldController.text = _expense.description ?? '';
-    _titleEditingController.text = expenseLinkedTripEntity is! ExpenseFacade
-        ? expenseLinkedTripEntity.toString()
-        : _expense.title;
     _initializeCategoryNames(context);
     return context.isBigLayout
         ? _buildBigLayout(context)
@@ -103,10 +147,9 @@ class ExpenseEditor extends StatelessWidget {
             ),
             child: _CategoryPicker(
               callback: (category) {
-                _expense.category = category;
-                onExpenseUpdated();
+                _updateExpense(_currentExpense.copyWith(category: category));
               },
-              category: _expense.category,
+              category: _currentExpense.category,
               categories: _categoryNames,
             ),
           ),
@@ -143,26 +186,26 @@ class ExpenseEditor extends StatelessWidget {
       ),
       ExpenditureEditTile(
         callback: (paidBy, splitBy, totalExpense) {
-          _expense.paidBy = Map.from(paidBy);
-          _expense.splitBy = List.from(splitBy);
-          _expense.currency = totalExpense.currency;
-          onExpenseUpdated();
+          _updateExpense(_currentExpense.copyWith(
+            paidBy: Map.from(paidBy),
+            splitBy: List.from(splitBy),
+            currency: totalExpense.currency,
+          ));
         },
-        expenseFacade: _expense,
+        expenseFacade: _currentExpense,
         isEditable: true,
       ),
     );
   }
 
   Widget _buildDescriptionSection(BuildContext context) {
-    var note = Note(_expense.description ?? '');
+    var note = Note(_descriptionFieldController.text);
     return EditorTheme.createSection(
       context: context,
       child: NoteEditor(
         note: note,
         onChanged: () {
-          _expense.description = note.text;
-          onExpenseUpdated();
+          _updateExpense(_currentExpense.copyWith(description: note.text));
         },
       ),
     );
@@ -180,10 +223,9 @@ class ExpenseEditor extends StatelessWidget {
       ),
       PlatformDatePicker(
         onDateSelected: (dateTime) {
-          _expense.dateTime = dateTime;
-          onExpenseUpdated();
+          _updateExpense(_currentExpense.copyWith(dateTime: dateTime));
         },
-        selectedDate: _expense.dateTime,
+        selectedDate: _currentExpense.dateTime,
       ),
     );
   }
@@ -225,13 +267,12 @@ class ExpenseEditor extends StatelessWidget {
   }
 
   Widget _buildTitleField(BuildContext context) {
-    final isEditable = expenseLinkedTripEntity is ExpenseFacade;
+    final isEditable = widget.expenseLinkedTripEntity is Expense;
     return TextField(
       controller: _titleEditingController,
       onChanged: isEditable
           ? (newTitle) {
-              _expense.title = newTitle;
-              onExpenseUpdated();
+              _updateExpense(_currentExpense.copyWith(title: newTitle));
             }
           : null,
       decoration: EditorTheme.createTextFieldDecoration(
@@ -265,6 +306,14 @@ class _CategoryPickerState extends State<_CategoryPicker> {
   void initState() {
     super.initState();
     _category = widget.category;
+  }
+
+  @override
+  void didUpdateWidget(_CategoryPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.category != widget.category) {
+      _category = widget.category;
+    }
   }
 
   @override

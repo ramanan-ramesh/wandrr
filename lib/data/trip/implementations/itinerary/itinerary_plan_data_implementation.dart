@@ -1,116 +1,73 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
-import 'package:wandrr/data/trip/implementations/itinerary/check_list.dart';
-import 'package:wandrr/data/trip/models/datetime_extensions.dart';
-import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
+import 'package:wandrr/data/trip/implementations/firestore_converters.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
-import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 
-import 'sight.dart';
+/// Extension for DateTime formatting
+extension _DateExt on DateTime {
+  String get itineraryDateFormat => '$day$month$year';
+}
 
-class ItineraryPlanDataModelImplementation extends ItineraryPlanData
+/// Repository implementation for ItineraryPlanData model.
+/// Wraps ItineraryPlanData model with Firestore-specific serialization.
+// ignore: must_be_immutable
+class ItineraryPlanDataRepositoryItem
     implements LeafRepositoryItem<ItineraryPlanData> {
-  static const String _sightsField = 'sights';
-  static const String _notesField = 'notes';
-  static const String _checkListsField = 'checkLists';
+  final ItineraryPlanData _planData;
 
   @override
-  List<SightFacade> get sights =>
-      List.from(_sights.map((sight) => sight.clone()));
-  final List<SightFacade> _sights;
+  String? id;
 
-  @override
-  List<String> get notes => List.from(_notes);
-  final List<String> _notes;
+  ItineraryPlanDataRepositoryItem.fromModel(ItineraryPlanData planData)
+      : _planData = planData,
+        id = planData.id;
 
-  @override
-  List<CheckListFacade> get checkLists =>
-      List.from(_checkLists.map((checkList) => checkList.clone()));
-  final List<CheckListFacade> _checkLists;
-
-  ItineraryPlanDataModelImplementation({
-    required super.tripId,
-    required super.day,
-    required List<SightFacade> sights,
-    required List<String> notes,
-    required List<CheckListFacade> checkLists,
-    super.id,
-  })  : _sights = sights,
-        _notes = notes,
-        _checkLists = checkLists,
-        super(sights: [], notes: [], checkLists: []);
-
-  factory ItineraryPlanDataModelImplementation.fromModelFacade(
-      ItineraryPlanData planDataFacade) {
-    return ItineraryPlanDataModelImplementation(
-      tripId: planDataFacade.tripId,
-      id: planDataFacade.id,
-      day: planDataFacade.day,
-      sights: planDataFacade.sights
-          .map(SightModelImplementation.fromModelFacade)
-          .toList(),
-      notes: List.from(planDataFacade.notes),
-      checkLists: planDataFacade.checkLists
-          .map(CheckListModelImplementation.fromModelFacade)
-          .toList(),
-    );
+  /// Factory constructor for creating from a model facade
+  factory ItineraryPlanDataRepositoryItem.fromModelFacade(
+    ItineraryPlanData planDataFacade,
+  ) {
+    return ItineraryPlanDataRepositoryItem.fromModel(planDataFacade);
   }
 
-  factory ItineraryPlanDataModelImplementation.fromDocumentSnapshot({
+  factory ItineraryPlanDataRepositoryItem.fromDocumentSnapshot({
     required String tripId,
     required DocumentSnapshot documentSnapshot,
     required DateTime day,
   }) {
-    final data = documentSnapshot.data();
-    if (data is! Map<String, dynamic>) {
-      throw Exception('Document data is invalid');
-    }
+    final planData = ItineraryPlanDataFirestoreConverter.fromFirestore(
+      documentSnapshot,
+      tripId,
+      day,
+    );
+    return ItineraryPlanDataRepositoryItem.fromModel(planData);
+  }
 
-    return ItineraryPlanDataModelImplementation(
-      tripId: tripId,
-      id: documentSnapshot.id,
-      day: day,
-      sights: (data[_sightsField] as List?)
-              ?.map((json) => SightModelImplementation.fromJson(
-                  json as Map<String, dynamic>, day, tripId))
-              .toList() ??
-          [],
-      notes: (data[_notesField] as List?)
-              ?.map((noteValue) => noteValue.toString())
-              .toList() ??
-          [],
-      checkLists: (data[_checkListsField] as List?)
-              ?.map((json) => CheckListModelImplementation.fromDocumentData(
-                  documentData: json, tripId: tripId))
-              .toList() ??
-          [],
+  /// Creates an empty plan data for a given day
+  factory ItineraryPlanDataRepositoryItem.empty({
+    required String tripId,
+    required DateTime day,
+  }) {
+    return ItineraryPlanDataRepositoryItem.fromModel(
+      ItineraryPlanData.newEntry(tripId: tripId, day: day),
     );
   }
 
-  DocumentReference<Map<String, dynamic>> get documentReference {
-    return FirebaseFirestore.instance
-        .collection(FirestoreCollections.tripCollectionName)
-        .doc(tripId)
-        .collection(FirestoreCollections.itineraryDataCollectionName)
-        .doc(id ?? day.itineraryDateFormat);
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      if (_sights.isNotEmpty)
-        _sightsField: _sights
-            .map((sight) => (sight as SightModelImplementation).toJson())
-            .toList(),
-      if (_notes.isNotEmpty) _notesField: _notes,
-      if (_checkLists.isNotEmpty)
-        _checkListsField: _checkLists
-            .map((checkList) =>
-                (checkList as CheckListModelImplementation).toJson())
-            .toList(),
-    };
-  }
+  @override
+  DocumentReference<Map<String, dynamic>> get documentReference =>
+      FirebaseFirestore.instance
+          .collection(FirestoreCollections.tripCollectionName)
+          .doc(_planData.tripId)
+          .collection(FirestoreCollections.itineraryDataCollectionName)
+          .doc(id ?? _planData.day.itineraryDateFormat);
 
   @override
-  ItineraryPlanData get facade => this;
+  Map<String, dynamic> toJson() =>
+      ItineraryPlanDataFirestoreConverter.toFirestore(_planData);
+
+  @override
+  ItineraryPlanData get facade => _planData.copyWith(id: id);
 }
+
+// Legacy alias for backward compatibility
+typedef ItineraryPlanDataModelImplementation = ItineraryPlanDataRepositoryItem;

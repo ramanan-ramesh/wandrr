@@ -1,35 +1,69 @@
-import 'package:equatable/equatable.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'check_list_item.dart';
 
-// ignore: must_be_immutable
-class CheckListFacade extends Equatable implements TripEntity<CheckListFacade> {
-  String? title;
-  final List<CheckListItem> items;
-  final String tripId;
+part 'check_list.freezed.dart';
 
-  @override
-  String? id;
+/// Represents a checklist with items.
+///
+/// Uses freezed union types for draft/strict separation:
+/// - [CheckList.draft]: For forms where title can be null
+/// - [CheckList.strict]: For persisted data where title is required
+@freezed
+class CheckList with _$CheckList {
+  const CheckList._();
 
-  CheckListFacade(
-      {required this.items, required this.tripId, this.title, this.id});
+  /// Draft constructor for forms - title is nullable
+  const factory CheckList.draft({
+    required String tripId,
+    String? id,
+    String? title,
+    @Default([]) List<CheckListItem> items,
+  }) = CheckListDraft;
 
-  CheckListFacade.newUiEntry(
-      {required this.items, required this.tripId, this.title, this.id});
+  /// Strict constructor for persisted data - all required fields non-null
+  const factory CheckList.strict({
+    required String tripId,
+    required String id,
+    required String title,
+    required List<CheckListItem> items,
+  }) = CheckListStrict;
 
-  CheckListFacade clone() => CheckListFacade(
-      items: List.from(items.map((item) => item.clone())),
-      tripId: tripId,
-      title: title);
+  /// Creates a new empty checklist for UI entry
+  factory CheckList.newEntry({required String tripId}) => CheckList.draft(
+        tripId: tripId,
+        items: [CheckListItem.empty()],
+      );
 
-  @override
-  List<Object?> get props => [title, items, tripId];
+  /// Validates the checklist
+  bool get isValid {
+    return switch (this) {
+      CheckListDraft(:final title, :final items) => title != null &&
+          title.length >= 3 &&
+          items.isNotEmpty &&
+          items.every((item) => item.isValid),
+      CheckListStrict(:final title, :final items) => title.length >= 3 &&
+          items.isNotEmpty &&
+          items.every((item) => item.isValid),
+      _ => false,
+    };
+  }
 
-  @override
-  bool validate() {
-    return (title?.isNotEmpty ?? false) &&
-        items.isNotEmpty &&
-        items.every((item) => item.item.isNotEmpty);
+  /// Converts draft to strict after persistence
+  CheckListStrict toStrict({required String id}) {
+    return switch (this) {
+      CheckListDraft(:final tripId, :final title, :final items) =>
+        CheckList.strict(
+          tripId: tripId,
+          id: id,
+          title: title ?? '',
+          items: items,
+        ) as CheckListStrict,
+      CheckListStrict() => this as CheckListStrict,
+      _ => throw StateError('Unknown CheckList type'),
+    };
   }
 }
+
+// Legacy alias for backward compatibility
+typedef CheckListFacade = CheckList;

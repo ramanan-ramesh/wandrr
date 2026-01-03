@@ -214,7 +214,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Pure expenses only (transit/lodging/sight expenses are embedded in their respective collections)
 
   // Pure expenses
-  final expectedDinnerExpense = ExpenseFacade(
+  final expectedDinnerExpense = Expense.draft(
     tripId: tripId,
     title: 'Dinner at Le Comptoir',
     currency: defaultCurrency,
@@ -225,7 +225,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     description: 'French cuisine',
   );
 
-  final expectedSouvenirsExpense = ExpenseFacade(
+  final expectedSouvenirsExpense = Expense.draft(
     tripId: tripId,
     title: 'Souvenirs from Louvre',
     currency: defaultCurrency,
@@ -236,7 +236,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     description: 'Postcards and magnets',
   );
 
-  final expectedGroceriesExpense = ExpenseFacade(
+  final expectedGroceriesExpense = Expense.draft(
     tripId: tripId,
     title: 'Groceries',
     currency: defaultCurrency,
@@ -486,7 +486,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // === CREATE EXPECTED TRANSIT FACADES ===
   // Flight: London to Paris
-  final expectedFlightExpense = ExpenseFacade(
+  final expectedFlightExpense = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -494,7 +494,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 250.0},
     splitBy: contributors,
   );
-  final expectedFlightTransit = TransitFacade(
+  final expectedFlightTransit = Transit.draft(
     tripId: tripId,
     transitOption: TransitOption.flight,
     departureLocation: expectedLondonAirport,
@@ -508,7 +508,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
 
   // Train: Paris to Versailles
-  final expectedTrainExpense1 = ExpenseFacade(
+  final expectedTrainExpense1 = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -516,7 +516,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 7.5},
     splitBy: contributors,
   );
-  final expectedTrainToVersailles = TransitFacade(
+  final expectedTrainToVersailles = Transit.draft(
     tripId: tripId,
     transitOption: TransitOption.train,
     departureLocation: expectedParisCity,
@@ -529,7 +529,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
 
   // Train return: Versailles to Paris
-  final expectedTrainExpense2 = ExpenseFacade(
+  final expectedTrainExpense2 = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -537,7 +537,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 7.5},
     splitBy: contributors,
   );
-  final expectedTrainFromVersailles = TransitFacade(
+  final expectedTrainFromVersailles = Transit.draft(
     tripId: tripId,
     transitOption: TransitOption.train,
     departureLocation: expectedVersailles,
@@ -550,7 +550,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
 
   // Bus: Paris to Brussels
-  final expectedBusExpense = ExpenseFacade(
+  final expectedBusExpense = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -558,7 +558,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 35.0},
     splitBy: contributors,
   );
-  final expectedBusTransit = TransitFacade(
+  final expectedBusTransit = Transit.draft(
     tripId: tripId,
     transitOption: TransitOption.bus,
     departureLocation: expectedParisCity,
@@ -572,7 +572,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
 
   // Rented vehicle: Brussels to Atomium
-  final expectedRentedVehicleExpense = ExpenseFacade(
+  final expectedRentedVehicleExpense = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -580,7 +580,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 60.0},
     splitBy: contributors,
   );
-  final expectedRentedVehicleTransit = TransitFacade(
+  final expectedRentedVehicleTransit = Transit.draft(
     tripId: tripId,
     transitOption: TransitOption.rentedVehicle,
     departureLocation: expectedBrussels,
@@ -594,7 +594,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
 
   // Taxi: Atomium to Brussels
-  final expectedTaxiExpense = ExpenseFacade(
+  final expectedTaxiExpense = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -602,7 +602,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 25.0},
     splitBy: contributors,
   );
-  final expectedTaxiTransit = TransitFacade(
+  final expectedTaxiTransit = Transit.draft(
     tripId: tripId,
     transitOption: TransitOption.taxi,
     departureLocation: expectedAtomium,
@@ -615,7 +615,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
 
   // Ferry: Brussels to Amsterdam
-  final expectedFerryExpense = ExpenseFacade(
+  final expectedFerryExpense = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -623,7 +623,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 45.0},
     splitBy: contributors,
   );
-  final expectedFerryTransit = TransitFacade(
+  final expectedFerryTransit = Transit.draft(
     tripId: tripId,
     transitOption: TransitOption.ferry,
     departureLocation: expectedBrussels,
@@ -637,7 +637,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
 
   // Walk: Amsterdam to Rijksmuseum
-  final expectedWalkExpense = ExpenseFacade(
+  final expectedWalkExpense = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -645,7 +645,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 0.0},
     splitBy: contributors,
   );
-  final expectedWalkTransit = TransitFacade(
+  final expectedWalkTransit = Transit.draft(
     tripId: tripId,
     transitOption: TransitOption.walk,
     departureLocation: expectedAmsterdam,
@@ -657,7 +657,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
 
   // Public transport: Rijksmuseum to Amsterdam
-  final expectedPublicTransportExpense = ExpenseFacade(
+  final expectedPublicTransportExpense = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -665,7 +665,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 3.0},
     splitBy: contributors,
   );
-  final expectedPublicTransportTransit = TransitFacade(
+  final expectedPublicTransportTransit = Transit.draft(
     tripId: tripId,
     transitOption: TransitOption.publicTransport,
     departureLocation: expectedRijksmuseum,
@@ -679,7 +679,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // === CREATE EXPECTED LODGING FACADES ===
   // Paris hotel
-  final expectedParisLodgingExpense = ExpenseFacade(
+  final expectedParisLodgingExpense = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -687,7 +687,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 450.0},
     splitBy: contributors,
   );
-  final expectedParisLodging = LodgingFacade(
+  final expectedParisLodging = Lodging.draft(
     tripId: tripId,
     location: expectedParisCity,
     checkinDateTime: DateTime(2025, 9, 24, 14, 0),
@@ -698,7 +698,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
 
   // Brussels hotel (overnight)
-  final expectedBrusselsLodgingExpense = ExpenseFacade(
+  final expectedBrusselsLodgingExpense = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -706,7 +706,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 120.0},
     splitBy: contributors,
   );
-  final expectedBrusselsLodging = LodgingFacade(
+  final expectedBrusselsLodging = Lodging.draft(
     tripId: tripId,
     location: expectedBrussels,
     checkinDateTime: DateTime(2025, 9, 27, 3, 0),
@@ -717,7 +717,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
 
   // Amsterdam hostel
-  final expectedAmsterdamLodgingExpense = ExpenseFacade(
+  final expectedAmsterdamLodgingExpense = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -725,7 +725,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 60.0},
     splitBy: contributors,
   );
-  final expectedAmsterdamLodging = LodgingFacade(
+  final expectedAmsterdamLodging = Lodging.draft(
     tripId: tripId,
     location: expectedAmsterdam,
     checkinDateTime: DateTime(2025, 9, 28, 14, 0),
@@ -737,7 +737,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // === CREATE EXPECTED SIGHT FACADES ===
   // Eiffel Tower sight
-  final expectedEiffelTowerExpense = ExpenseFacade(
+  final expectedEiffelTowerExpense = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -745,7 +745,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 26.0},
     splitBy: contributors,
   );
-  final expectedEiffelTowerSight = SightFacade(
+  final expectedEiffelTowerSight = Sight.draft(
     tripId: tripId,
     name: 'Eiffel Tower',
     day: DateTime(2025, 9, 24),
@@ -756,7 +756,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
 
   // Palace of Versailles sight
-  final expectedVersaillesExpense = ExpenseFacade(
+  final expectedVersaillesExpense = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -764,7 +764,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 20.0},
     splitBy: contributors,
   );
-  final expectedVersaillesSight = SightFacade(
+  final expectedVersaillesSight = Sight.draft(
     tripId: tripId,
     name: 'Palace of Versailles',
     day: DateTime(2025, 9, 25),
@@ -775,7 +775,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
 
   // Louvre Museum sight
-  final expectedLouvreExpense = ExpenseFacade(
+  final expectedLouvreExpense = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -783,7 +783,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 17.0},
     splitBy: contributors,
   );
-  final expectedLouvreSight = SightFacade(
+  final expectedLouvreSight = Sight.draft(
     tripId: tripId,
     name: 'Louvre Museum',
     day: DateTime(2025, 9, 25),
@@ -794,7 +794,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
 
   // Atomium sight
-  final expectedAtomiumExpense = ExpenseFacade(
+  final expectedAtomiumExpense = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -802,7 +802,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 16.0},
     splitBy: contributors,
   );
-  final expectedAtomiumSight = SightFacade(
+  final expectedAtomiumSight = Sight.draft(
     tripId: tripId,
     name: 'Atomium',
     day: DateTime(2025, 9, 27),
@@ -813,7 +813,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
 
   // Rijksmuseum sight
-  final expectedRijksmuseumExpense = ExpenseFacade(
+  final expectedRijksmuseumExpense = Expense.draft(
     tripId: tripId,
     title: '',
     currency: defaultCurrency,
@@ -821,7 +821,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     paidBy: {TestConfig.testEmail: 22.5},
     splitBy: contributors,
   );
-  final expectedRijksmuseumSight = SightFacade(
+  final expectedRijksmuseumSight = Sight.draft(
     tripId: tripId,
     name: 'Rijksmuseum',
     day: DateTime(2025, 9, 28),
@@ -837,7 +837,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     CheckListItem(item: 'Exchange currency', isChecked: false),
     CheckListItem(item: 'Buy metro pass', isChecked: false),
   ];
-  final expectedDay1Checklist = CheckListFacade(
+  final expectedDay1Checklist = CheckList.draft(
     tripId: tripId,
     title: 'Day 1',
     items: expectedDay1ChecklistItems,
@@ -848,7 +848,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     CheckListItem(item: 'Book tour', isChecked: true),
     CheckListItem(item: 'Pack snacks', isChecked: false),
   ];
-  final expectedDay2Checklist = CheckListFacade(
+  final expectedDay2Checklist = CheckList.draft(
     tripId: tripId,
     title: 'Day 2',
     items: expectedDay2ChecklistItems,
@@ -859,7 +859,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     CheckListItem(item: 'Pack bags', isChecked: false),
     CheckListItem(item: 'Hotel checkout', isChecked: false),
   ];
-  final expectedDay3Checklist = CheckListFacade(
+  final expectedDay3Checklist = CheckList.draft(
     tripId: tripId,
     title: 'Travel day',
     items: expectedDay3ChecklistItems,
@@ -870,7 +870,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     CheckListItem(item: 'Try waffles', isChecked: false),
     CheckListItem(item: 'Buy chocolates', isChecked: false),
   ];
-  final expectedDay4Checklist = CheckListFacade(
+  final expectedDay4Checklist = CheckList.draft(
     tripId: tripId,
     title: 'Brussels',
     items: expectedDay4ChecklistItems,
@@ -881,7 +881,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     CheckListItem(item: 'Buy souvenirs', isChecked: false),
     CheckListItem(item: 'Pack bags', isChecked: false),
   ];
-  final expectedDay5Checklist = CheckListFacade(
+  final expectedDay5Checklist = CheckList.draft(
     tripId: tripId,
     title: 'Last day',
     items: expectedDay5ChecklistItems,
@@ -928,7 +928,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   print('✓ Expected facade instances created');
 
   // === VERIFY TRIP METADATA ===
-  var expectedTripMetadata = TripMetadataFacade(
+  var expectedTripMetadata = TripMetadata.strict(
     id: tripId,
     name: 'European Adventure',
     startDate: DateTime(2025, 9, 24),

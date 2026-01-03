@@ -78,18 +78,18 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
     var activeTrip = context.activeTrip;
     switch (this) {
       case TripEditorAction.travel:
-        return TransitFacade.newUiEntry(
+        return Transit.newEntry(
             tripId: activeTrip.tripMetadata.id!,
             transitOption: TransitOption.publicTransport,
             allTripContributors: activeTrip.tripMetadata.contributors,
             defaultCurrency: activeTrip.tripMetadata.budget.currency);
       case TripEditorAction.stay:
-        return LodgingFacade.newUiEntry(
+        return Lodging.newEntry(
             tripId: activeTrip.tripMetadata.id!,
             allTripContributors: activeTrip.tripMetadata.contributors,
             defaultCurrency: activeTrip.tripMetadata.budget.currency);
       case TripEditorAction.expense:
-        return ExpenseFacade.newUiEntry(
+        return Expense.newEntry(
             tripId: activeTrip.tripMetadata.id!,
             allTripContributors: activeTrip.tripMetadata.contributors,
             defaultCurrency: activeTrip.tripMetadata.budget.currency);
@@ -111,51 +111,64 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
     var actionIcon = isEditing ? Icons.check_rounded : Icons.add_rounded;
     void Function(BuildContext context)? onActionInvoked;
     Widget Function(ValueNotifier<bool> validityNotifier)? pageContentCreator;
-    var tripEntityToEdit = tripEntity.clone();
+    // Use a ValueNotifier to track the current entity state (mutable holder for immutable model)
+    final tripEntityNotifier = ValueNotifier<TripEntity>(tripEntity.clone());
+
     if (this == TripEditorAction.tripDetails &&
         tripEntity is TripMetadataFacade) {
       pageContentCreator = (validityNotifier) => TripDetailsEditor(
-            tripMetadataFacade: tripEntityToEdit,
-            onTripMetadataUpdated: () =>
-                validityNotifier.value = tripEntityToEdit.validate(),
+            tripMetadataFacade: tripEntityNotifier.value as TripMetadata,
+            onTripMetadataUpdated: (updated) {
+              tripEntityNotifier.value = updated;
+              validityNotifier.value = updated.validate();
+            },
           );
     } else if (this == TripEditorAction.itineraryData &&
         tripEntity is ItineraryPlanData) {
       pageContentCreator = (validityNotifier) => ItineraryPlanDataEditor(
-            planData: tripEntityToEdit,
-            onPlanDataUpdated: () =>
-                validityNotifier.value = tripEntityToEdit.validate(),
+            planData: tripEntityNotifier.value as ItineraryPlanData,
+            onPlanDataUpdated: (updated) {
+              tripEntityNotifier.value = updated;
+              validityNotifier.value = updated.validate();
+            },
             config: itineraryConfig!,
           );
     } else if (this == TripEditorAction.travel && tripEntity is TransitFacade) {
       pageContentCreator = (validityNotifier) => TravelEditor(
-            transitFacade: tripEntityToEdit,
-            onTransitUpdated: () =>
-                validityNotifier.value = tripEntityToEdit.validate(),
+            initialTransit: tripEntityNotifier.value as Transit,
+            onTransitUpdated: (updated) {
+              tripEntityNotifier.value = updated;
+              validityNotifier.value = updated.validate();
+            },
           );
     } else if (this == TripEditorAction.stay && tripEntity is LodgingFacade) {
       pageContentCreator = (validityNotifier) => LodgingEditor(
-            lodging: tripEntityToEdit,
-            onLodgingUpdated: () =>
-                validityNotifier.value = tripEntityToEdit.validate(),
+            initialLodging: tripEntityNotifier.value as Lodging,
+            onLodgingUpdated: (updated) {
+              tripEntityNotifier.value = updated;
+              validityNotifier.value = updated.validate();
+            },
           );
     } else if (this == TripEditorAction.expense &&
         tripEntity is ExpenseLinkedTripEntity) {
       pageContentCreator = (validityNotifier) => ExpenseEditor(
-            expenseLinkedTripEntity: tripEntityToEdit,
-            onExpenseUpdated: () =>
-                validityNotifier.value = tripEntityToEdit.validate(),
+            expenseLinkedTripEntity:
+                tripEntityNotifier.value as ExpenseLinkedTripEntity,
+            onExpenseUpdated: () {
+              // The expense editor mutates the entity directly, so just update validity
+              validityNotifier.value = tripEntityNotifier.value.validate();
+            },
           );
     }
 
     if (pageContentCreator != null) {
       onActionInvoked = (context) => context.addTripManagementEvent(isEditing
-          ? _eventEmittersPerUpdateActions[this]!(tripEntityToEdit)
-          : _eventEmittersPerAddActions[this]!(tripEntityToEdit));
+          ? _eventEmittersPerUpdateActions[this]!(tripEntityNotifier.value)
+          : _eventEmittersPerAddActions[this]!(tripEntityNotifier.value));
     }
     if (pageContentCreator != null && onActionInvoked != null) {
       return TripEditorActionPage(
-        tripEntity: tripEntityToEdit,
+        tripEntity: tripEntityNotifier.value,
         title: title,
         onClosePressed: onClosePressed,
         onActionInvoked: onActionInvoked,

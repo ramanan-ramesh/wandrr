@@ -1,59 +1,48 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:wandrr/data/trip/models/core/model_types.dart';
 import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 
-/// Itinerary-specific plan data with sights, notes, and checklists
-class ItineraryPlanData extends Equatable
+part 'itinerary_plan_data.freezed.dart';
+
+/// Itinerary-specific plan data with sights, notes, and checklists.
+@freezed
+class ItineraryPlanData
+    with _$ItineraryPlanData
     implements TripEntity<ItineraryPlanData> {
-  final String tripId;
+  const ItineraryPlanData._();
 
-  @override
-  String? id;
+  const factory ItineraryPlanData({
+    required String tripId,
+    required DateTime day,
+    String? id,
+    @Default([]) List<Sight> sights,
+    @Default([]) List<String> notes,
+    @Default([]) List<CheckList> checkLists,
+  }) = _ItineraryPlanData;
 
-  /// The date this itinerary plan is for
-  final DateTime day;
-
-  /// List of sights/attractions to visit
-  List<SightFacade> sights;
-
-  /// Notes for the day
-  List<String> notes;
-
-  /// Checklists for the day
-  List<CheckListFacade> checkLists;
-
-  ItineraryPlanData({
-    required this.tripId,
-    required this.day,
-    required this.sights,
-    required this.notes,
-    required this.checkLists,
-    this.id,
-  });
-
-  ItineraryPlanData.newEntry({
-    required this.tripId,
-    required this.day,
-  })  : sights = [],
-        notes = [],
-        checkLists = [];
-
-  @override
-  ItineraryPlanData clone() => ItineraryPlanData(
+  /// Creates a new empty itinerary plan
+  factory ItineraryPlanData.newEntry({
+    required String tripId,
+    required DateTime day,
+  }) =>
+      ItineraryPlanData(
         tripId: tripId,
-        id: id,
         day: day,
-        sights: List.from(sights.map((sight) => sight.clone())),
+      );
+
+  @override
+  ItineraryPlanData clone() => copyWith(
+        sights: sights.map((s) => s.clone()).toList(),
         notes: List.from(notes),
-        checkLists: List.from(checkLists.map((checkList) => checkList.clone())),
+        checkLists: checkLists.map((c) => c.copyWith()).toList(),
       );
 
   @override
   bool validate() {
-    var validationResult = getValidationResult();
-    return validationResult == ItineraryPlanDataValidationResult.valid ||
-        validationResult == ItineraryPlanDataValidationResult.noContent;
+    final result = getValidationResult();
+    return result == ItineraryPlanDataValidationResult.valid ||
+        result == ItineraryPlanDataValidationResult.noContent;
   }
 
   ItineraryPlanDataValidationResult getValidationResult() {
@@ -63,39 +52,24 @@ class ItineraryPlanData extends Equatable
     }
 
     // Validate sights
-    if (sights.isNotEmpty) {
-      if (sights.any((sight) => !sight.validate())) {
-        return ItineraryPlanDataValidationResult.sightInvalid;
-      }
+    if (sights.isNotEmpty && sights.any((sight) => !sight.validate())) {
+      return ItineraryPlanDataValidationResult.sightInvalid;
     }
 
     // Validate notes
-    if (notes.isNotEmpty) {
-      if (notes.any((note) => note.isEmpty)) {
-        return ItineraryPlanDataValidationResult.noteEmpty;
-      }
+    if (notes.isNotEmpty && notes.any((note) => note.isEmpty)) {
+      return ItineraryPlanDataValidationResult.noteEmpty;
     }
 
     // Validate checklists
     if (checkLists.isNotEmpty) {
-      if (checkLists.any((checkList) =>
-          checkList.title == null || checkList.title!.length < 3)) {
+      if (checkLists.any((c) => !c.isValid)) {
         return ItineraryPlanDataValidationResult.checkListTitleNotValid;
-      }
-      if (checkLists.any((checkList) =>
-          checkList.items.isEmpty ||
-          checkList.items
-              .where((checkListItem) => checkListItem.item.isEmpty)
-              .isNotEmpty)) {
-        return ItineraryPlanDataValidationResult.checkListItemEmpty;
       }
     }
 
     return ItineraryPlanDataValidationResult.valid;
   }
-
-  @override
-  List<Object?> get props => [tripId, id, day, sights, notes, checkLists];
 }
 
 enum ItineraryPlanDataValidationResult {
@@ -106,3 +80,6 @@ enum ItineraryPlanDataValidationResult {
   checkListTitleNotValid,
   checkListItemEmpty,
 }
+
+// Legacy alias for backward compatibility
+typedef ItineraryPlanDataFacade = ItineraryPlanData;

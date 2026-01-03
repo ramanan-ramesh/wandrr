@@ -14,8 +14,8 @@ import 'package:wandrr/presentation/trip/widgets/time_zone_indicator.dart';
 /// Tab content for managing sights (places) for a day's itinerary.
 /// Allows adding, editing (location/time/description/expense), deleting sights.
 class ItinerarySightsEditor extends StatefulWidget {
-  final List<SightFacade> sights;
-  final VoidCallback onSightsChanged;
+  final List<Sight> sights;
+  final void Function(List<Sight> updated) onSightsChanged;
   final DateTime day;
   final int? initialExpandedIndex;
 
@@ -32,27 +32,29 @@ class ItinerarySightsEditor extends StatefulWidget {
 }
 
 class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
-  // Reused layout constants
-  static const double _kSpacingMedium = 12.0;
-  static const double _kBorderRadiusLarge = 14.0;
+  void _updateSight(int index, Sight updated) {
+    final newList = List<Sight>.from(widget.sights);
+    newList[index] = updated;
+    widget.onSightsChanged(newList);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return CommonCollapsibleTab<SightFacade>(
+    return CommonCollapsibleTab<Sight>(
       items: widget.sights,
       addButtonLabel: context.localizations.addSight,
       addButtonIcon: Icons.add_location_alt_rounded,
       createItem: () {
         var activeTrip = context.activeTrip;
         var tripMetadata = activeTrip.tripMetadata;
-        return SightFacade.newEntry(
+        return Sight.newEntry(
           tripId: tripMetadata.id!,
           day: widget.day,
           defaultCurrency: tripMetadata.budget.currency,
           contributors: tripMetadata.contributors,
         );
       },
-      onItemsChanged: widget.onSightsChanged,
+      onItemsChanged: () => widget.onSightsChanged(widget.sights),
       titleBuilder: (s, context) => s.name.isNotEmpty
           ? s.name
           : (s.location?.context.name ?? context.localizations.untitledSight),
@@ -70,44 +72,103 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
       accentColorBuilder: (s) =>
           s.name.isNotEmpty ? AppColors.success : AppColors.error,
       isValidBuilder: (s) => s.validate(),
-      expandedBuilder: (ctx, index, sight, notifyParent) =>
-          _buildSightEditor(ctx, sight, notifyParent),
+      expandedBuilder: (ctx, index, sight, notifyParent) => _SightEditorContent(
+        sight: sight,
+        onSightChanged: (updated) {
+          _updateSight(index, updated);
+          notifyParent();
+        },
+      ),
       initialExpandedIndex: widget.initialExpandedIndex,
     );
   }
 
   String _formatTime(DateTime dt) =>
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+}
 
-  Widget _buildSightEditor(
-      BuildContext context, SightFacade sight, VoidCallback notifyParent) {
+/// Stateful editor content for a single sight
+class _SightEditorContent extends StatefulWidget {
+  final Sight sight;
+  final void Function(Sight updated) onSightChanged;
+
+  const _SightEditorContent({
+    required this.sight,
+    required this.onSightChanged,
+  });
+
+  @override
+  State<_SightEditorContent> createState() => _SightEditorContentState();
+}
+
+class _SightEditorContentState extends State<_SightEditorContent> {
+  static const double _kSpacingMedium = 12.0;
+  static const double _kBorderRadiusLarge = 14.0;
+
+  late TextEditingController _titleController;
+  late TextEditingController _descriptionController;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.sight.name);
+    _descriptionController =
+        TextEditingController(text: widget.sight.description ?? '');
+  }
+
+  @override
+  void didUpdateWidget(_SightEditorContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.sight != oldWidget.sight) {
+      _titleController.text = widget.sight.name;
+      _descriptionController.text = widget.sight.description ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildTitleField(sight, notifyParent, context),
+        _buildTitleField(context),
         const SizedBox(height: _kSpacingMedium),
-        _buildLocationSection(context, sight, notifyParent),
+        _buildLocationSection(context),
         const SizedBox(height: _kSpacingMedium),
-        _buildTimeSection(context, sight, notifyParent),
+        _buildTimeSection(context),
         const SizedBox(height: _kSpacingMedium),
-        _buildDescriptionSection(context, sight, notifyParent),
+        _buildDescriptionSection(context),
         const SizedBox(height: _kSpacingMedium),
-        _buildExpenseSection(context, sight, notifyParent),
+        _buildExpenseSection(context),
       ],
     );
   }
 
-  Widget _buildTitleField(
-      SightFacade sight, VoidCallback notifyParent, BuildContext context) {
-    return _SightTitleField(
-      sight: sight,
-      notifyParent: notifyParent,
-      borderRadius: _kBorderRadiusLarge,
+  Widget _buildTitleField(BuildContext context) {
+    return TextFormField(
+      controller: _titleController,
+      decoration: InputDecoration(
+        labelText: context.localizations.title,
+        border: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.all(Radius.circular(_kBorderRadiusLarge)),
+        ),
+        filled: true,
+      ),
+      scrollPadding: const EdgeInsets.only(bottom: 250),
+      onChanged: (value) {
+        widget.onSightChanged(widget.sight.copyWith(name: value));
+      },
     );
   }
 
-  Widget _buildLocationSection(
-      BuildContext context, SightFacade sight, VoidCallback notifyParent) {
+  Widget _buildLocationSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -119,20 +180,18 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
                 : AppColors.brandPrimaryLight),
         const SizedBox(height: _kSpacingMedium),
         PlatformGeoLocationAutoComplete(
-          selectedLocation: sight.location,
+          selectedLocation: widget.sight.location,
           onLocationSelected: (loc) {
-            sight.location = loc;
-            notifyParent();
+            widget.onSightChanged(widget.sight.copyWith(location: loc));
           },
         ),
       ],
     );
   }
 
-  Widget _buildTimeSection(
-      BuildContext context, SightFacade sight, VoidCallback notifyParent) {
-    final timeOfDay = sight.visitTime != null
-        ? TimeOfDay.fromDateTime(sight.visitTime!)
+  Widget _buildTimeSection(BuildContext context) {
+    final timeOfDay = widget.sight.visitTime != null
+        ? TimeOfDay.fromDateTime(widget.sight.visitTime!)
         : null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,12 +205,10 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
         const SizedBox(height: _kSpacingMedium),
         Row(
           children: [
-            if (sight.location != null)
-              TimezoneIndicator(location: sight.location!),
-            if (sight.location != null)
-              const SizedBox(
-                width: _kSpacingMedium,
-              ),
+            if (widget.sight.location != null)
+              TimezoneIndicator(location: widget.sight.location!),
+            if (widget.sight.location != null)
+              const SizedBox(width: _kSpacingMedium),
             Expanded(
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.access_time),
@@ -168,10 +225,11 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
                     ),
                   );
                   if (picked != null) {
-                    final d = sight.day;
-                    sight.visitTime = DateTime(
-                        d.year, d.month, d.day, picked.hour, picked.minute);
-                    notifyParent();
+                    final d = widget.sight.day;
+                    widget.onSightChanged(widget.sight.copyWith(
+                      visitTime: DateTime(
+                          d.year, d.month, d.day, picked.hour, picked.minute),
+                    ));
                   }
                 },
               ),
@@ -181,8 +239,17 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
               onPressed: timeOfDay == null
                   ? null
                   : () {
-                      sight.visitTime = null;
-                      notifyParent();
+                      // Create draft to allow null visitTime
+                      widget.onSightChanged(Sight.draft(
+                        tripId: widget.sight.tripId,
+                        id: widget.sight.id,
+                        day: widget.sight.day,
+                        name: widget.sight.name,
+                        expense: widget.sight.expense,
+                        location: widget.sight.location,
+                        visitTime: null,
+                        description: widget.sight.description,
+                      ));
                     },
               icon: const Icon(Icons.clear_rounded),
             ),
@@ -192,8 +259,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
     );
   }
 
-  Widget _buildExpenseSection(
-      BuildContext context, SightFacade sight, VoidCallback notifyParent) {
+  Widget _buildExpenseSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -205,102 +271,33 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
                 : AppColors.brandPrimaryLight),
         const SizedBox(height: _kSpacingMedium),
         ExpenditureEditTile(
-          expenseFacade: sight.expense,
+          expenseFacade: widget.sight.expense,
           isEditable: true,
           callback: (paidBy, splitBy, totalExpense) {
-            sight.expense.paidBy = Map.from(paidBy);
-            sight.expense.splitBy = List.from(splitBy);
-            sight.expense.currency = totalExpense.currency;
-            notifyParent();
+            widget.onSightChanged(widget.sight.copyWith(
+              expense: widget.sight.expense.copyWith(
+                paidBy: Map.from(paidBy),
+                splitBy: List.from(splitBy),
+                currency: totalExpense.currency,
+              ),
+            ));
           },
         ),
       ],
     );
   }
 
-  Widget _buildDescriptionSection(
-      BuildContext context, SightFacade sight, VoidCallback notifyParent) {
-    var note = Note(sight.description ?? '');
+  Widget _buildDescriptionSection(BuildContext context) {
+    var note = Note(_descriptionController.text);
     return EditorTheme.createSection(
       child: NoteEditor(
-        key: ValueKey('sight_description_${sight.id}'),
+        key: ValueKey('sight_description_${widget.sight.id}'),
         note: note,
         onChanged: () {
-          sight.description = note.text;
-          // Don't call notifyParent() here - it causes rebuilds on every keystroke
-          // The data is already mutated via the Note object
-          // Parent will be notified when the item is collapsed or on other actions
+          widget.onSightChanged(widget.sight.copyWith(description: note.text));
         },
       ),
       context: context,
-    );
-  }
-}
-
-/// Stateful widget for sight title field that maintains its own controller
-/// to prevent losing focus during parent rebuilds
-class _SightTitleField extends StatefulWidget {
-  final SightFacade sight;
-  final VoidCallback notifyParent;
-  final double borderRadius;
-
-  const _SightTitleField({
-    required this.sight,
-    required this.notifyParent,
-    required this.borderRadius,
-  });
-
-  @override
-  State<_SightTitleField> createState() => _SightTitleFieldState();
-}
-
-class _SightTitleFieldState extends State<_SightTitleField> {
-  late TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.sight.name);
-    _controller.addListener(_onTextChanged);
-  }
-
-  @override
-  void didUpdateWidget(_SightTitleField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Only update the controller if the sight object itself changed
-    if (widget.sight != oldWidget.sight) {
-      _controller.removeListener(_onTextChanged);
-      _controller.text = widget.sight.name;
-      _controller.addListener(_onTextChanged);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_onTextChanged);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onTextChanged() {
-    widget.sight.name = _controller.text;
-    // Notify parent to update the header with new title
-    widget.notifyParent();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: _controller,
-      decoration: InputDecoration(
-        labelText: context.localizations.title,
-        border: OutlineInputBorder(
-          borderSide: BorderSide.none,
-          borderRadius: BorderRadius.all(Radius.circular(widget.borderRadius)),
-        ),
-        filled: true,
-      ),
-      scrollPadding: const EdgeInsets.only(bottom: 250),
     );
   }
 }

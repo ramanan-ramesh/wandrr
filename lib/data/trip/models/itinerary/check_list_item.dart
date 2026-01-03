@@ -1,15 +1,22 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-// ignore: must_be_immutable
-class CheckListItem extends Equatable {
-  String item;
+part 'check_list_item.freezed.dart';
 
-  bool isChecked;
+/// Represents a single item in a checklist.
+/// Uses freezed for immutability and copyWith support.
+@freezed
+class CheckListItem with _$CheckListItem {
+  const CheckListItem._();
 
-  CheckListItem({required this.item, required this.isChecked});
+  const factory CheckListItem({
+    required String item,
+    required bool isChecked,
+  }) = _CheckListItem;
 
-  CheckListItem clone() => CheckListItem(item: item, isChecked: isChecked);
+  /// Create a new empty checklist item for forms
+  factory CheckListItem.empty() =>
+      const CheckListItem(item: '', isChecked: false);
 
-  @override
-  List<Object?> get props => [item, isChecked];
+  /// Validates the checklist item
+  bool get isValid => item.isNotEmpty;
 }

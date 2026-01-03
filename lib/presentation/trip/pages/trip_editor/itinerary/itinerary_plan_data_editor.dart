@@ -16,7 +16,7 @@ import 'editor/sights.dart';
 
 class ItineraryPlanDataEditor extends StatefulWidget {
   final ItineraryPlanData planData;
-  final VoidCallback onPlanDataUpdated;
+  final void Function(ItineraryPlanData) onPlanDataUpdated;
   final ItineraryPlanDataEditorConfig config;
 
   const ItineraryPlanDataEditor({
@@ -39,12 +39,12 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
   static const double _kHeaderIconSize = 26.0;
 
   late final TabController _tabController;
-
-  ItineraryPlanData get _planData => widget.planData;
+  late ItineraryPlanData _planData;
 
   @override
   void initState() {
     super.initState();
+    _planData = widget.planData;
     _tabController = TabController(length: 3, vsync: this);
     _tabController.index = _initialTabIndex(widget.config.planDataType);
 
@@ -71,9 +71,17 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
   @override
   void didUpdateWidget(covariant ItineraryPlanDataEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.planData != _planData) {
+    if (oldWidget.planData != widget.planData) {
+      _planData = widget.planData;
       setState(() {});
     }
+  }
+
+  void _updatePlanData(ItineraryPlanData updated) {
+    setState(() {
+      _planData = updated;
+    });
+    widget.onPlanDataUpdated(updated);
   }
 
   @override
@@ -142,7 +150,9 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
 
   Widget _buildSightsTab() => ItinerarySightsEditor(
         sights: _planData.sights,
-        onSightsChanged: widget.onPlanDataUpdated,
+        onSightsChanged: (List<Sight> updatedSights) {
+          _updatePlanData(_planData.copyWith(sights: updatedSights));
+        },
         day: _planData.day,
         initialExpandedIndex: _getInitialExpandedIndex(PlanDataType.sight),
       );
@@ -150,15 +160,18 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
   Widget _buildNotesTab() => ItineraryNotesEditor(
         notes: _planData.notes,
         onNotesChanged: (newNotes) {
-          _planData.notes = newNotes.map((e) => e.text).toList();
-          widget.onPlanDataUpdated();
+          _updatePlanData(_planData.copyWith(
+            notes: newNotes.map((e) => e.text).toList(),
+          ));
         },
         initialExpandedIndex: _getInitialExpandedIndex(PlanDataType.note),
       );
 
   Widget _buildCheckListsTab() => ItineraryChecklistsEditor(
         checklists: _planData.checkLists,
-        onChecklistsChanged: widget.onPlanDataUpdated,
+        onChecklistsChanged: (updatedChecklists) {
+          _updatePlanData(_planData.copyWith(checkLists: updatedChecklists));
+        },
         initialExpandedIndex: _getInitialExpandedIndex(PlanDataType.checklist),
       );
 
@@ -175,32 +188,34 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
     switch (kind) {
       case PlanDataType.sight:
         {
-          _planData.sights.add(
-            SightFacade.newEntry(
-              tripId: tripMetadata.id!,
-              day: _planData.day,
-              defaultCurrency: tripMetadata.budget.currency,
-              contributors: tripMetadata.contributors,
-            ),
+          final newSight = Sight.newEntry(
+            tripId: tripMetadata.id!,
+            day: _planData.day,
+            defaultCurrency: tripMetadata.budget.currency,
+            contributors: tripMetadata.contributors,
           );
+          _updatePlanData(_planData.copyWith(
+            sights: [..._planData.sights, newSight],
+          ));
           break;
         }
       case PlanDataType.note:
         {
-          _planData.notes.add('');
+          _updatePlanData(_planData.copyWith(
+            notes: [..._planData.notes, ''],
+          ));
           break;
         }
       case PlanDataType.checklist:
         {
-          _planData.checkLists.add(
-            CheckListFacade.newUiEntry(
-              tripId: tripMetadata.id!,
-              items: [],
-            ),
+          final newChecklist = CheckList.newEntry(
+            tripId: tripMetadata.id!,
           );
+          _updatePlanData(_planData.copyWith(
+            checkLists: [..._planData.checkLists, newChecklist],
+          ));
           break;
         }
     }
-    widget.onPlanDataUpdated();
   }
 }

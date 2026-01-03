@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/widgets/geo_location_auto_complete.dart';
 
 class StayDetails extends StatefulWidget {
-  final LodgingFacade lodging;
-  final void Function()? onLocationUpdated;
+  final Lodging lodging;
+  final void Function(Location? location)? onLocationUpdated;
 
   const StayDetails({
     required this.lodging,
@@ -31,6 +32,14 @@ class _StayDetailsState extends State<StayDetails> {
     setState(() {
       _cityName = widget.lodging.location?.context.city;
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant StayDetails oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.lodging != widget.lodging) {
+      _updateCityName();
+    }
   }
 
   @override
@@ -107,9 +116,8 @@ class _StayDetailsState extends State<StayDetails> {
     return PlatformGeoLocationAutoComplete(
       selectedLocation: widget.lodging.location,
       onLocationSelected: (newLocation) {
-        widget.lodging.location = newLocation;
         _updateCityName();
-        if (widget.onLocationUpdated != null) widget.onLocationUpdated!();
+        widget.onLocationUpdated?.call(newLocation);
       },
     );
   }

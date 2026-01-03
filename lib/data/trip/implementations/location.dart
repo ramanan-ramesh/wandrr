@@ -1,71 +1,51 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/trip/implementations/firestore_converters.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
-import 'package:wandrr/data/trip/models/location/location_context.dart';
 
+/// Repository implementation for Location model.
+/// Wraps Location model with Firestore-specific serialization.
 // ignore: must_be_immutable
-class LocationModelImplementation extends LocationFacade
-    implements LeafRepositoryItem<LocationFacade> {
-  static const String _contextField = 'context';
-  static const String _latitudeLongitudeField = 'latLon';
+class LocationRepositoryItem implements LeafRepositoryItem<Location> {
+  final Location _location;
 
-  LocationModelImplementation.fromModelFacade(
-      {required LocationFacade locationModelFacade, String? parentId})
-      : super(
-            latitude: locationModelFacade.latitude,
-            longitude: locationModelFacade.longitude,
-            context: locationModelFacade.context,
-            id: locationModelFacade.id);
+  @override
+  String? id;
 
-  static LocationModelImplementation fromDocumentSnapshot(
-      {required DocumentSnapshot documentSnapshot,
-      String? parentId,
-      String? collectionName}) {
-    var json = documentSnapshot.data() as Map<String, dynamic>;
-    var geoPoint = json[_latitudeLongitudeField] as GeoPoint;
-    var locationContext =
-        LocationContext.createInstance(json: json[_contextField]);
-    return LocationModelImplementation._(
-        latitude: geoPoint.latitude,
-        longitude: geoPoint.longitude,
-        id: documentSnapshot.id,
-        context: locationContext,
-        parentId: parentId,
-        collectionName: collectionName);
+  LocationRepositoryItem.fromModel(Location location)
+      : _location = location,
+        id = location.id;
+
+  static LocationRepositoryItem fromDocumentSnapshot({
+    required DocumentSnapshot documentSnapshot,
+  }) {
+    final json = documentSnapshot.data() as Map<String, dynamic>;
+    final location = LocationFirestoreConverter.fromFirestore(
+      json,
+      id: documentSnapshot.id,
+    );
+    return LocationRepositoryItem.fromModel(location);
+  }
+
+  /// Creates from JSON (for embedded locations in transit/lodging)
+  static LocationRepositoryItem fromJson({
+    required Map<String, dynamic> json,
+  }) {
+    final location = LocationFirestoreConverter.fromFirestore(json);
+    return LocationRepositoryItem.fromModel(location);
   }
 
   @override
-  DocumentReference<Object?> get documentReference =>
-      throw UnimplementedError();
+  DocumentReference<Object?> get documentReference => throw UnimplementedError(
+      'Location does not have a standalone document reference');
 
   @override
-  Map<String, dynamic> toJson() {
-    var geoPoint = GeoPoint(latitude, longitude);
-    return {
-      _latitudeLongitudeField: geoPoint,
-      _contextField: context.toJson(),
-    };
-  }
-
-  static LocationModelImplementation fromJson(
-      {required Map<String, dynamic> json}) {
-    var geoPoint = json[_latitudeLongitudeField] as GeoPoint;
-    var locationContext =
-        LocationContext.createInstance(json: json[_contextField]);
-    return LocationModelImplementation._(
-        latitude: geoPoint.latitude,
-        longitude: geoPoint.longitude,
-        context: locationContext);
-  }
+  Map<String, dynamic> toJson() =>
+      LocationFirestoreConverter.toFirestore(_location);
 
   @override
-  LocationFacade get facade => clone();
-
-  LocationModelImplementation._(
-      {required super.latitude,
-      required super.longitude,
-      required super.context,
-      super.id,
-      String? collectionName,
-      String? parentId});
+  Location get facade => _location.copyWith(id: id);
 }
+
+// Legacy alias for backward compatibility
+typedef LocationModelImplementation = LocationRepositoryItem;

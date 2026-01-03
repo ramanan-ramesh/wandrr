@@ -169,7 +169,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       await budgetingModule.recalculateTotalExpenditure(
           deletedTransits: deletedTransits, deletedLodgings: deletedLodgings);
     }
-    _tripMetadataModelImplementation.copyWith(tripMetadata);
+    _tripMetadataModelImplementation.updateFrom(tripMetadata);
   }
 
   @override

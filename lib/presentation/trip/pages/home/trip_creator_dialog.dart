@@ -18,11 +18,19 @@ import 'package:wandrr/presentation/trip/widgets/money_edit_field.dart';
 
 import 'thumbnail_selector.dart';
 
-class TripCreatorDialog extends StatelessWidget {
+class TripCreatorDialog extends StatefulWidget {
   static const String _defaultCurrency = 'INR';
 
-  final TripMetadataFacade _currentTripMetadata;
   final BuildContext widgetContext;
+
+  const TripCreatorDialog({required this.widgetContext, super.key});
+
+  @override
+  State<TripCreatorDialog> createState() => _TripCreatorDialogState();
+}
+
+class _TripCreatorDialogState extends State<TripCreatorDialog> {
+  late TripMetadata _currentTripMetadata;
 
   late final ValueNotifier<bool> _tripCreationMetadataValidityNotifier =
       ValueNotifier(false);
@@ -30,15 +38,19 @@ class TripCreatorDialog extends StatelessWidget {
       TextEditingController();
   final SizedBox _formElementsSpacer = const SizedBox(height: 8.0);
 
-  TripCreatorDialog({required this.widgetContext, super.key})
-      : _currentTripMetadata = TripMetadataFacade.newUiEntry(
-            defaultCurrency: _defaultCurrency,
-            thumbnailTag: Assets.images.tripThumbnails.roadTrip.fileName);
+  @override
+  void initState() {
+    super.initState();
+    _currentTripMetadata = TripMetadata.newEntry(
+        defaultCurrency: TripCreatorDialog._defaultCurrency,
+        thumbnailTag: Assets.images.tripThumbnails.roadTrip.fileName);
+  }
 
   @override
   Widget build(BuildContext context) {
     final isBig = context.isBigLayout;
-    var currencyInfo = widgetContext.supportedCurrencies.firstWhere((element) {
+    var currencyInfo =
+        widget.widgetContext.supportedCurrencies.firstWhere((element) {
       return element.code == _currentTripMetadata.budget.currency;
     });
     return LayoutBuilder(
@@ -147,7 +159,7 @@ class TripCreatorDialog extends StatelessWidget {
         Align(
           alignment: Alignment.center,
           child: Text(
-            widgetContext.localizations.chooseTripThumbnail,
+            widget.widgetContext.localizations.chooseTripThumbnail,
             style: Theme.of(context).textTheme.titleLarge,
           ),
         ),
@@ -155,7 +167,11 @@ class TripCreatorDialog extends StatelessWidget {
         TripThumbnailCarouselSelector(
           selectedThumbnailTag: _currentTripMetadata.thumbnailTag,
           onChanged: (thumbnailTag) {
-            _currentTripMetadata.thumbnailTag = thumbnailTag;
+            setState(() {
+              _currentTripMetadata = _currentTripMetadata.copyWith(
+                thumbnailTag: thumbnailTag,
+              );
+            });
           },
         ),
       ],
@@ -179,8 +195,25 @@ class TripCreatorDialog extends StatelessWidget {
     return PlatformDateRangePicker(
       firstDate: DateTime.now(),
       callback: (startDate, endDate) {
-        _currentTripMetadata.startDate = startDate;
-        _currentTripMetadata.endDate = endDate;
+        setState(() {
+          if (startDate != null && endDate != null) {
+            _currentTripMetadata = _currentTripMetadata.copyWith(
+              startDate: startDate,
+              endDate: endDate,
+            );
+          } else {
+            // Handle partial selection with draft
+            _currentTripMetadata = TripMetadata.draft(
+              id: _currentTripMetadata.id,
+              name: _currentTripMetadata.name,
+              thumbnailTag: _currentTripMetadata.thumbnailTag,
+              contributors: _currentTripMetadata.contributors,
+              budget: _currentTripMetadata.budget,
+              startDate: startDate,
+              endDate: endDate,
+            );
+          }
+        });
         _tripCreationMetadataValidityNotifier.value =
             _currentTripMetadata.validate();
       },
@@ -190,17 +223,27 @@ class TripCreatorDialog extends StatelessWidget {
   Widget _createBudgetEditingField(CurrencyData currencyInfo) {
     return PlatformMoneyEditField(
       textInputAction: TextInputAction.done,
-      allCurrencies: widgetContext.supportedCurrencies,
+      allCurrencies: widget.widgetContext.supportedCurrencies,
       selectedCurrency: currencyInfo,
       onAmountUpdated: (updatedAmount) {
-        _currentTripMetadata.budget = Money(
-            currency: _currentTripMetadata.budget.currency,
-            amount: updatedAmount);
+        setState(() {
+          _currentTripMetadata = _currentTripMetadata.copyWith(
+            budget: Money(
+              currency: _currentTripMetadata.budget.currency,
+              amount: updatedAmount,
+            ),
+          );
+        });
       },
       onCurrencySelected: (selectedCurrency) {
-        _currentTripMetadata.budget = Money(
-            currency: selectedCurrency.code,
-            amount: _currentTripMetadata.budget.amount);
+        setState(() {
+          _currentTripMetadata = _currentTripMetadata.copyWith(
+            budget: Money(
+              currency: selectedCurrency.code,
+              amount: _currentTripMetadata.budget.amount,
+            ),
+          );
+        });
         _tripCreationMetadataValidityNotifier.value =
             _currentTripMetadata.validate();
       },
@@ -244,14 +287,17 @@ class TripCreatorDialog extends StatelessWidget {
         centerTitle: true,
         title: FittedBox(
           child: PlatformTextElements.createHeader(
-              context: context, text: widgetContext.localizations.planTrip),
+              context: context,
+              text: widget.widgetContext.localizations.planTrip),
         ),
       ),
     );
   }
 
   void _updateTripName(String newTripName) {
-    _currentTripMetadata.name = newTripName;
+    setState(() {
+      _currentTripMetadata = _currentTripMetadata.copyWith(name: newTripName);
+    });
     _tripCreationMetadataValidityNotifier.value =
         _currentTripMetadata.validate();
   }
@@ -268,10 +314,11 @@ class TripCreatorDialog extends StatelessWidget {
   }
 
   void _submitTripCreationEvent() {
-    var userName = widgetContext.activeUser!.userName;
-    var tripMetadata = _currentTripMetadata.clone();
-    tripMetadata.contributors = [userName];
-    widgetContext.addTripManagementEvent(
+    var userName = widget.widgetContext.activeUser!.userName;
+    var tripMetadata = _currentTripMetadata.copyWith(
+      contributors: [userName],
+    );
+    widget.widgetContext.addTripManagementEvent(
       UpdateTripEntity<TripMetadataFacade>.create(tripEntity: tripMetadata),
     );
   }

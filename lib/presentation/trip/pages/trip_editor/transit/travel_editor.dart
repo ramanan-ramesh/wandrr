@@ -15,11 +15,22 @@ import 'transit_operator_editor_section.dart';
 import 'transit_option_picker.dart';
 
 class TravelEditor extends StatefulWidget {
-  final TransitFacade transitFacade;
-  final VoidCallback onTransitUpdated;
+  final Transit initialTransit;
+  final void Function(Transit updated) onTransitUpdated;
 
   const TravelEditor(
-      {required this.transitFacade, required this.onTransitUpdated, super.key});
+      {required this.initialTransit,
+      required this.onTransitUpdated,
+      super.key});
+
+  // Legacy constructor for backward compatibility
+  factory TravelEditor.legacy({
+    required Transit transitFacade,
+    required VoidCallback onTransitUpdated,
+  }) {
+    // Note: This doesn't propagate changes back properly
+    throw UnimplementedError('Use new constructor with callback');
+  }
 
   @override
   State<TravelEditor> createState() => _TravelEditorState();
@@ -27,14 +38,28 @@ class TravelEditor extends StatefulWidget {
 
 class _TravelEditorState extends State<TravelEditor>
     with SingleTickerProviderStateMixin {
-  TransitFacade get _transitFacade => widget.transitFacade;
+  late Transit _transit;
+
+  @override
+  void initState() {
+    super.initState();
+    _transit = widget.initialTransit;
+  }
 
   @override
   void didUpdateWidget(covariant TravelEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.transitFacade != _transitFacade) {
+    if (oldWidget.initialTransit != widget.initialTransit) {
+      _transit = widget.initialTransit;
       setState(() {});
     }
+  }
+
+  void _updateTransit(Transit updated) {
+    setState(() {
+      _transit = updated;
+    });
+    widget.onTransitUpdated(updated);
   }
 
   @override
@@ -45,7 +70,7 @@ class _TravelEditorState extends State<TravelEditor>
         _buildTransitTypeBadge(),
         if (_needsPriorBooking) _buildOperatorSection(),
         _JourneySection(
-          transitFacade: _transitFacade,
+          transitFacade: _transit,
           onLocationChanged: _updateLocation,
           onDateTimeChanged: _updateDateTime,
         ),
@@ -72,7 +97,7 @@ class _TravelEditorState extends State<TravelEditor>
           ),
           const SizedBox(height: 12),
           ExpenditureEditTile(
-            expenseFacade: _transitFacade.expense,
+            expenseFacade: _transit.expense,
             isEditable: true,
             callback: _handleExpenseUpdated,
           ),
@@ -82,7 +107,7 @@ class _TravelEditorState extends State<TravelEditor>
   }
 
   bool get _needsPriorBooking {
-    final option = _transitFacade.transitOption;
+    final option = _transit.transitOption;
     return option != TransitOption.walk &&
         option != TransitOption.vehicle &&
         option != TransitOption.rentedVehicle;
@@ -94,7 +119,7 @@ class _TravelEditorState extends State<TravelEditor>
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: TransitOptionPicker(
         options: context.activeTrip.transitOptionMetadatas,
-        initialTransitOption: _transitFacade.transitOption,
+        initialTransitOption: _transit.transitOption,
         onChanged: _handleTransitOptionChanged,
       ),
     );
@@ -115,50 +140,55 @@ class _TravelEditorState extends State<TravelEditor>
   }
 
   void _handleTransitOptionChanged(TransitOption newOption) {
-    setState(() {
-      _clearOperatorIfNotNeeded(newOption);
-      _clearFlightDataIfSwitchingFromFlight(newOption);
-      _updateTransitOption(newOption);
-    });
-    widget.onTransitUpdated();
-  }
-
-  void _clearOperatorIfNotNeeded(TransitOption option) {
     final optionsWithoutOperator = [
       TransitOption.walk,
       TransitOption.rentedVehicle,
       TransitOption.vehicle,
     ];
 
-    if (optionsWithoutOperator.contains(option)) {
-      _transitFacade.operator = null;
-    }
-  }
-
-  void _clearFlightDataIfSwitchingFromFlight(TransitOption newOption) {
     final isChangingToFlight = newOption == TransitOption.flight &&
-        _transitFacade.transitOption != TransitOption.flight;
+        _transit.transitOption != TransitOption.flight;
     final isChangingFromFlight =
-        _transitFacade.transitOption == TransitOption.flight &&
+        _transit.transitOption == TransitOption.flight &&
             newOption != TransitOption.flight;
 
-    if (isChangingToFlight || isChangingFromFlight) {
-      _transitFacade.operator = null;
-      _transitFacade.arrivalLocation = null;
-      _transitFacade.departureLocation = null;
-    }
-  }
+    var updated = _transit.copyWith(
+      transitOption: newOption,
+      expense: _transit.expense.copyWith(
+        category: Transit.getExpenseCategory(newOption),
+      ),
+    );
 
-  void _updateTransitOption(TransitOption newOption) {
-    _transitFacade.transitOption = newOption;
-    _transitFacade.expense.category =
-        TransitFacade.getExpenseCategory(newOption);
+    // Clear operator if not needed
+    if (optionsWithoutOperator.contains(newOption)) {
+      updated = updated.copyWith(operator: null);
+    }
+
+    // Clear flight data when switching to/from flight
+    if (isChangingToFlight || isChangingFromFlight) {
+      // Need to create a new draft since we're setting locations to null
+      updated = Transit.draft(
+        tripId: updated.tripId,
+        id: updated.id,
+        transitOption: updated.transitOption,
+        expense: updated.expense,
+        departureLocation: null,
+        departureDateTime: updated.departureDateTime,
+        arrivalLocation: null,
+        arrivalDateTime: updated.arrivalDateTime,
+        operator: null,
+        confirmationId: updated.confirmationId,
+        notes: updated.notes,
+      );
+    }
+
+    _updateTransit(updated);
   }
 
   Widget _buildOperatorSection() {
     return TransitOperatorEditorSection(
-      transitOption: _transitFacade.transitOption,
-      initialOperator: _transitFacade.operator,
+      transitOption: _transit.transitOption,
+      initialOperator: _transit.operator,
       onOperatorChanged: _handleOperatorChanged,
     );
   }
@@ -182,24 +212,22 @@ class _TravelEditorState extends State<TravelEditor>
           borderSide: BorderSide.none,
         ),
       ),
-      initialValue: _transitFacade.confirmationId,
+      initialValue: _transit.confirmationId,
       textInputAction: TextInputAction.next,
       onChanged: (value) {
-        _transitFacade.confirmationId = value;
-        widget.onTransitUpdated();
+        _updateTransit(_transit.copyWith(confirmationId: value));
       },
     );
   }
 
   Widget _buildNotesSection() {
-    var note = Note(_transitFacade.notes ?? '');
+    var note = Note(_transit.notes);
     return EditorTheme.createSection(
       context: context,
       child: NoteEditor(
           note: note,
           onChanged: () {
-            _transitFacade.notes = note.text;
-            widget.onTransitUpdated();
+            _updateTransit(_transit.copyWith(notes: note.text));
           }),
     );
   }
@@ -209,37 +237,54 @@ class _TravelEditorState extends State<TravelEditor>
     List<String> splitBy,
     Money totalExpense,
   ) {
-    _transitFacade.expense.paidBy = Map.from(paidBy);
-    _transitFacade.expense.splitBy = List.from(splitBy);
-    _transitFacade.expense.currency = totalExpense.currency;
-    widget.onTransitUpdated();
+    _updateTransit(_transit.copyWith(
+      expense: _transit.expense.copyWith(
+        paidBy: Map.from(paidBy),
+        splitBy: List.from(splitBy),
+        currency: totalExpense.currency,
+      ),
+    ));
   }
 
   void _handleOperatorChanged(String? newOperator) {
-    _transitFacade.operator = newOperator;
-    widget.onTransitUpdated();
+    _updateTransit(_transit.copyWith(operator: newOperator));
   }
 
-  void _updateLocation(bool isArrival, LocationFacade? newLocation) {
-    setState(() {
+  void _updateLocation(bool isArrival, Location? newLocation) {
+    // For nullable location updates, we may need to use draft if setting to null
+    // or if the model is strict and we can't use copyWith with nullable
+    Transit updated;
+    if (newLocation != null) {
       if (isArrival) {
-        _transitFacade.arrivalLocation = newLocation;
+        updated = _transit.copyWith(arrivalLocation: newLocation);
       } else {
-        _transitFacade.departureLocation = newLocation;
+        updated = _transit.copyWith(departureLocation: newLocation);
       }
-    });
-    widget.onTransitUpdated();
+    } else {
+      // Create a draft to allow null locations
+      updated = Transit.draft(
+        tripId: _transit.tripId,
+        id: _transit.id,
+        transitOption: _transit.transitOption,
+        expense: _transit.expense,
+        departureLocation: isArrival ? _transit.departureLocation : null,
+        departureDateTime: _transit.departureDateTime,
+        arrivalLocation: isArrival ? null : _transit.arrivalLocation,
+        arrivalDateTime: _transit.arrivalDateTime,
+        operator: _transit.operator,
+        confirmationId: _transit.confirmationId,
+        notes: _transit.notes,
+      );
+    }
+    _updateTransit(updated);
   }
 
   void _updateDateTime(bool isArrival, DateTime updatedDateTime) {
-    setState(() {
-      if (isArrival) {
-        _transitFacade.arrivalDateTime = updatedDateTime;
-      } else {
-        _transitFacade.departureDateTime = updatedDateTime;
-      }
-    });
-    widget.onTransitUpdated();
+    if (isArrival) {
+      _updateTransit(_transit.copyWith(arrivalDateTime: updatedDateTime));
+    } else {
+      _updateTransit(_transit.copyWith(departureDateTime: updatedDateTime));
+    }
   }
 }
 

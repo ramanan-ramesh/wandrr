@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
@@ -12,11 +13,11 @@ import 'date_time_selector.dart';
 import 'stay_details.dart';
 
 class LodgingEditor extends StatefulWidget {
-  final LodgingFacade lodging;
-  final void Function() onLodgingUpdated;
+  final Lodging initialLodging;
+  final void Function(Lodging updated) onLodgingUpdated;
 
   const LodgingEditor({
-    required this.lodging,
+    required this.initialLodging,
     required this.onLodgingUpdated,
     super.key,
   });
@@ -27,14 +28,28 @@ class LodgingEditor extends StatefulWidget {
 
 class _LodgingEditorState extends State<LodgingEditor>
     with SingleTickerProviderStateMixin {
-  LodgingFacade get _lodging => widget.lodging;
+  late Lodging _lodging;
+
+  @override
+  void initState() {
+    super.initState();
+    _lodging = widget.initialLodging;
+  }
 
   @override
   void didUpdateWidget(covariant LodgingEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.lodging != _lodging) {
+    if (oldWidget.initialLodging != widget.initialLodging) {
+      _lodging = widget.initialLodging;
       setState(() {});
     }
+  }
+
+  void _updateLodging(Lodging updated) {
+    setState(() {
+      _lodging = updated;
+    });
+    widget.onLodgingUpdated(updated);
   }
 
   @override
@@ -45,7 +60,23 @@ class _LodgingEditorState extends State<LodgingEditor>
       children: [
         StayDetails(
           lodging: _lodging,
-          onLocationUpdated: widget.onLodgingUpdated,
+          onLocationUpdated: (Location? location) {
+            if (location != null) {
+              _updateLodging(_lodging.copyWith(location: location));
+            } else {
+              // Create draft to allow null location
+              _updateLodging(Lodging.draft(
+                tripId: _lodging.tripId,
+                id: _lodging.id,
+                expense: _lodging.expense,
+                location: null,
+                checkinDateTime: _lodging.checkinDateTime,
+                checkoutDateTime: _lodging.checkoutDateTime,
+                confirmationId: _lodging.confirmationId,
+                notes: _lodging.notes,
+              ));
+            }
+          },
         ),
         _buildDatesSection(context, tripMetadata),
         _buildConfirmationSection(context),
@@ -65,16 +96,10 @@ class _LodgingEditorState extends State<LodgingEditor>
         lastDate: tripMetadata.endDate!,
         location: _lodging.location,
         onCheckinChanged: (newDateTime) {
-          setState(() {
-            _lodging.checkinDateTime = newDateTime;
-          });
-          widget.onLodgingUpdated();
+          _updateLodging(_lodging.copyWith(checkinDateTime: newDateTime));
         },
         onCheckoutChanged: (newDateTime) {
-          setState(() {
-            _lodging.checkoutDateTime = newDateTime;
-          });
-          widget.onLodgingUpdated();
+          _updateLodging(_lodging.copyWith(checkoutDateTime: newDateTime));
         },
       ),
     );
@@ -91,8 +116,7 @@ class _LodgingEditorState extends State<LodgingEditor>
         initialValue: _lodging.confirmationId,
         textInputAction: TextInputAction.next,
         onChanged: (confirmationId) {
-          _lodging.confirmationId = confirmationId;
-          widget.onLodgingUpdated();
+          _updateLodging(_lodging.copyWith(confirmationId: confirmationId));
         },
       ),
     );
@@ -117,10 +141,13 @@ class _LodgingEditorState extends State<LodgingEditor>
             expenseFacade: _lodging.expense,
             isEditable: true,
             callback: (paidBy, splitBy, totalExpense) {
-              _lodging.expense.paidBy = Map.from(paidBy);
-              _lodging.expense.splitBy = List.from(splitBy);
-              _lodging.expense.currency = totalExpense.currency;
-              widget.onLodgingUpdated();
+              _updateLodging(_lodging.copyWith(
+                expense: _lodging.expense.copyWith(
+                  paidBy: Map.from(paidBy),
+                  splitBy: List.from(splitBy),
+                  currency: totalExpense.currency,
+                ),
+              ));
             },
           ),
         ],
@@ -140,8 +167,7 @@ class _LodgingEditorState extends State<LodgingEditor>
     return NoteEditor(
         note: note,
         onChanged: () {
-          _lodging.notes = note.text;
-          widget.onLodgingUpdated();
+          _updateLodging(_lodging.copyWith(notes: note.text));
         });
   }
 }

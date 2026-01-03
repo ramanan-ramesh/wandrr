@@ -13,8 +13,8 @@ import 'trip_contributors_section.dart';
 const _kSectionHeaderSpacing = SizedBox(height: 12.0);
 
 class TripDetailsEditor extends StatefulWidget {
-  final TripMetadataFacade tripMetadataFacade;
-  final VoidCallback onTripMetadataUpdated;
+  final TripMetadata tripMetadataFacade;
+  final void Function(TripMetadata updated) onTripMetadataUpdated;
 
   const TripDetailsEditor({
     super.key,
@@ -29,18 +29,35 @@ class TripDetailsEditor extends StatefulWidget {
 class _TripDetailsEditorState extends State<TripDetailsEditor>
     with TickerProviderStateMixin {
   late final TextEditingController _titleController;
+  late TripMetadata _tripMetadata;
 
   @override
   void initState() {
     super.initState();
-    _titleController =
-        TextEditingController(text: widget.tripMetadataFacade.name);
+    _tripMetadata = widget.tripMetadataFacade;
+    _titleController = TextEditingController(text: _tripMetadata.name);
+  }
+
+  @override
+  void didUpdateWidget(TripDetailsEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.tripMetadataFacade != widget.tripMetadataFacade) {
+      _tripMetadata = widget.tripMetadataFacade;
+      _titleController.text = _tripMetadata.name;
+    }
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     super.dispose();
+  }
+
+  void _updateMetadata(TripMetadata updated) {
+    setState(() {
+      _tripMetadata = updated;
+    });
+    widget.onTripMetadataUpdated(updated);
   }
 
   @override
@@ -52,11 +69,11 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
         _buildDatesSection(context),
         _buildBudgetSection(context),
         TripContributorsEditorSection(
-          contributors: List.of(widget.tripMetadataFacade.contributors),
+          contributors: List.of(_tripMetadata.contributors),
           onContributorsChanged: (updatedContributors) {
-            widget.tripMetadataFacade.contributors =
-                List.of(updatedContributors);
-            widget.onTripMetadataUpdated();
+            _updateMetadata(_tripMetadata.copyWith(
+              contributors: List.of(updatedContributors),
+            ));
           },
         ),
       ],
@@ -79,8 +96,7 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
             ),
             textInputAction: TextInputAction.next,
             onChanged: (value) {
-              widget.tripMetadataFacade.name = value.trim();
-              widget.onTripMetadataUpdated();
+              _updateMetadata(_tripMetadata.copyWith(name: value.trim()));
             },
           ),
         ],
@@ -103,18 +119,30 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
           ),
           _kSectionHeaderSpacing,
           PlatformDateRangePicker(
-            startDate: widget.tripMetadataFacade.startDate,
-            endDate: widget.tripMetadataFacade.endDate,
+            startDate: _tripMetadata.startDate,
+            endDate: _tripMetadata.endDate,
             callback: (newStartDate, newEndDate) {
-              setState(() {
-                widget.tripMetadataFacade.startDate = newStartDate;
-                widget.tripMetadataFacade.endDate = newEndDate;
-              });
-              widget.onTripMetadataUpdated();
+              // Only update if we have valid dates
+              if (newStartDate != null && newEndDate != null) {
+                _updateMetadata(_tripMetadata.copyWith(
+                  startDate: newStartDate,
+                  endDate: newEndDate,
+                ));
+              } else {
+                // Handle partial date selection by creating draft
+                _updateMetadata(TripMetadata.draft(
+                  id: _tripMetadata.id,
+                  name: _tripMetadata.name,
+                  thumbnailTag: _tripMetadata.thumbnailTag,
+                  contributors: _tripMetadata.contributors,
+                  budget: _tripMetadata.budget,
+                  startDate: newStartDate,
+                  endDate: newEndDate,
+                ));
+              }
             },
           ),
-          if (widget.tripMetadataFacade.startDate != null &&
-              widget.tripMetadataFacade.endDate != null)
+          if (_tripMetadata.startDate != null && _tripMetadata.endDate != null)
             _buildDurationIndicator(context),
         ],
       ),
@@ -122,8 +150,8 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
   }
 
   Widget _buildDurationIndicator(BuildContext context) {
-    final startDate = widget.tripMetadataFacade.startDate!;
-    final endDate = widget.tripMetadataFacade.endDate!;
+    final startDate = _tripMetadata.startDate!;
+    final endDate = _tripMetadata.endDate!;
     final days = endDate.difference(startDate).inDays + 1;
     final isLightTheme = context.isLightTheme;
     return AnimatedSize(
@@ -172,7 +200,7 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final allCurrencies = context.supportedCurrencies.toList();
     final selectedCurrency = allCurrencies.firstWhere(
-      (currency) => currency.code == widget.tripMetadataFacade.budget.currency,
+      (currency) => currency.code == _tripMetadata.budget.currency,
       orElse: () => allCurrencies.first,
     );
     return EditorTheme.createSection(
@@ -192,21 +220,23 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
             selectedCurrency: selectedCurrency,
             allCurrencies: allCurrencies,
             onAmountUpdated: (updatedAmount) {
-              widget.tripMetadataFacade.budget = Money(
-                currency: widget.tripMetadataFacade.budget.currency,
-                amount: updatedAmount,
-              );
-              widget.onTripMetadataUpdated();
+              _updateMetadata(_tripMetadata.copyWith(
+                budget: Money(
+                  currency: _tripMetadata.budget.currency,
+                  amount: updatedAmount,
+                ),
+              ));
             },
             isAmountEditable: true,
             onCurrencySelected: (newCurrency) {
-              widget.tripMetadataFacade.budget = Money(
-                currency: newCurrency.code,
-                amount: widget.tripMetadataFacade.budget.amount,
-              );
-              widget.onTripMetadataUpdated();
+              _updateMetadata(_tripMetadata.copyWith(
+                budget: Money(
+                  currency: newCurrency.code,
+                  amount: _tripMetadata.budget.amount,
+                ),
+              ));
             },
-            initialAmount: widget.tripMetadataFacade.budget.amount,
+            initialAmount: _tripMetadata.budget.amount,
             textInputAction: TextInputAction.done,
           ),
         ],

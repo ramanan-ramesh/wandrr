@@ -60,7 +60,7 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
       _planDataSubscription;
 
   @override
-  ItineraryPlanData get planData => _planData;
+  ItineraryPlanData get planData => _planData.facade;
   ItineraryPlanDataModelImplementation _planData;
 
   var _shouldListenToPlanDataChanges = true;
@@ -93,13 +93,10 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
           day: day,
         );
       } else {
-        planDataModelImplementation = ItineraryPlanDataModelImplementation(
+        planDataModelImplementation =
+            ItineraryPlanDataModelImplementation.empty(
           tripId: tripId,
           day: day,
-          id: planDataId,
-          sights: [],
-          notes: [],
-          checkLists: [],
         );
       }
     }
@@ -213,13 +210,10 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
           day: day,
         );
       } else {
-        planDataModelImplementation = ItineraryPlanDataModelImplementation(
+        planDataModelImplementation =
+            ItineraryPlanDataModelImplementation.empty(
           tripId: tripId,
           day: day,
-          id: planDataId,
-          sights: [],
-          notes: [],
-          checkLists: [],
         );
       }
       var planDataBeforeUpdate = _planData.facade;
