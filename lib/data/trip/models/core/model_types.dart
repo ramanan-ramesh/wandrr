@@ -27,20 +27,3 @@ abstract class ExpenseLinkedTripEntity<T> implements TripEntity<T> {
   /// The expense associated with this entity (transit, lodging, sight).
   dynamic get expense;
 }
-
-/// Marker interface for strict (persisted) models.
-/// These models guarantee non-null required fields.
-abstract class StrictModel {
-  /// The guaranteed non-null identifier for persisted models.
-  String get id;
-}
-
-/// Extension to convert draft models to strict models after validation.
-extension DraftToStrict<Draft extends TripEntity<Draft>> on Draft {
-  /// Validates the draft and throws if invalid.
-  void ensureValid() {
-    if (!validate()) {
-      throw StateError('Cannot convert invalid draft to strict model');
-    }
-  }
-}

@@ -58,31 +58,6 @@ class TripMetadata with _$TripMetadata implements TripEntity<TripMetadata> {
         endDate!.compareTo(startDate!) >= 0;
     return hasValidName && hasValidDateRange;
   }
-
-  /// Convert to strict model after persistence
-  TripMetadataStrict toStrict({required String id}) {
-    return switch (this) {
-      TripMetadataDraft(
-        :final name,
-        :final thumbnailTag,
-        :final contributors,
-        :final budget,
-        :final startDate,
-        :final endDate,
-      ) =>
-        TripMetadata.strict(
-          id: id,
-          name: name,
-          thumbnailTag: thumbnailTag,
-          contributors: contributors,
-          budget: budget,
-          startDate: startDate!,
-          endDate: endDate!,
-        ) as TripMetadataStrict,
-      TripMetadataStrict() => this as TripMetadataStrict,
-      _ => throw StateError('Unknown TripMetadata type'),
-    };
-  }
 }
 
 // Legacy alias for backward compatibility

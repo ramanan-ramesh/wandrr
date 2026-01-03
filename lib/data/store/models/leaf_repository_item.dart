@@ -22,12 +22,3 @@ abstract interface class LeafRepositoryItem<T> {
   /// Returns the model facade for UI consumption.
   T get facade;
 }
-
-/// Extension to create repository items from models using converters.
-extension RepositoryItemCreator<T> on T {
-  /// Creates a LeafRepositoryItem wrapper for this model.
-  LeafRepositoryItem<T> toRepositoryItem(
-    LeafRepositoryItem<T> Function(T) creator,
-  ) =>
-      creator(this);
-}
