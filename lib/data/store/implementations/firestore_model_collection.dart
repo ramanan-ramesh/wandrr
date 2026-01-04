@@ -222,11 +222,14 @@ class FirestoreModelCollection<Model>
                 element.documentReference.id == documentSnapshot.id);
             var collectionItemBeforeUpdate =
                 _collectionItems[matchingElementIndex];
-            _collectionItems[matchingElementIndex] = leafRepositoryItem;
-            _updationStreamController.add(CollectionItemChangeMetadata(
-                CollectionItemChangeSet(collectionItemBeforeUpdate.facade,
-                    leafRepositoryItem.facade),
-                isFromExplicitAction: false));
+            if (collectionItemBeforeUpdate.facade !=
+                leafRepositoryItem.facade) {
+              _collectionItems[matchingElementIndex] = leafRepositoryItem;
+              _updationStreamController.add(CollectionItemChangeMetadata(
+                  CollectionItemChangeSet(collectionItemBeforeUpdate.facade,
+                      leafRepositoryItem.facade),
+                  isFromExplicitAction: false));
+            }
             break;
           }
       }
