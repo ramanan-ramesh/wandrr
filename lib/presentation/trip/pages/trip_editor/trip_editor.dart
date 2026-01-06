@@ -5,6 +5,7 @@ import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -16,6 +17,8 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_p
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/app_bar/app_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_bottom_sheet.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_model_factory.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
@@ -108,6 +111,18 @@ class _TripEditorPageInternal extends StatelessWidget {
         pageContext: context,
       );
     } else if (state is UpdatedTripEntity &&
+        state.dataState == DataState.update) {
+      // Check if this is a TripMetadataFacade update with date or contributor changes
+      final modifiedItem =
+          state.tripEntityModificationData.modifiedCollectionItem;
+      if (modifiedItem is CollectionItemChangeSet<TripMetadataFacade>) {
+        _handleTripMetadataUpdate(
+          context: context,
+          oldMetadata: modifiedItem.beforeUpdate,
+          newMetadata: modifiedItem.afterUpdate,
+        );
+      }
+    } else if (state is UpdatedTripEntity &&
         state.dataState == DataState.select) {
       final tripEntity =
           state.tripEntityModificationData.modifiedCollectionItem;
@@ -136,6 +151,30 @@ class _TripEditorPageInternal extends StatelessWidget {
         tripEntity: state.planData,
         pageContext: context,
         planDataEditorConfig: state.planDataEditorConfig,
+      );
+    }
+  }
+
+  void _handleTripMetadataUpdate({
+    required BuildContext context,
+    required TripMetadataFacade oldMetadata,
+    required TripMetadataFacade newMetadata,
+  }) {
+    // Check if we have affected entities that need user attention
+    final affectedEntitiesModel = AffectedEntitiesModelFactory.create(
+      oldMetadata: oldMetadata,
+      newMetadata: newMetadata,
+      tripData: context.activeTrip,
+    );
+
+    if (affectedEntitiesModel != null &&
+        affectedEntitiesModel.hasAffectedEntities) {
+      // Show the affected entities bottom sheet
+      _showModalBottomSheet(
+        AffectedEntitiesBottomSheet(
+          affectedEntitiesModel: affectedEntitiesModel,
+        ),
+        context,
       );
     }
   }
