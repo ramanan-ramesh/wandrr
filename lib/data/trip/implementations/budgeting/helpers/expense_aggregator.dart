@@ -3,6 +3,7 @@ import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 /// Aggregates expense data for reporting
 class ExpenseAggregator {
@@ -16,13 +17,13 @@ class ExpenseAggregator {
 
   /// Calculates total expense per category
   Future<Map<ExpenseCategory, double>> aggregateByCategory(
-    Iterable<ExpenseFacade> allExpenses,
+    Iterable<ExpenseBearingTripEntity> allExpenses,
   ) async {
     final categorizedExpenses = <ExpenseCategory, double>{};
 
     for (final expense in allExpenses) {
       final totalExpense = await currencyConverter
-          .queryData((expense.totalExpense, defaultCurrency));
+          .queryData((expense.expense.totalExpense, defaultCurrency));
 
       if (totalExpense != null) {
         categorizedExpenses[expense.category] =
@@ -77,4 +78,3 @@ class ExpenseAggregator {
     return DateTime(dateTime.year, dateTime.month, dateTime.day);
   }
 }
-

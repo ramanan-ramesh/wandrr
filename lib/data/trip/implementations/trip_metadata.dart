@@ -6,7 +6,7 @@ import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
 // ignore: must_be_immutable
 class TripMetadataModelImplementation extends TripMetadataFacade
-    implements LeafRepositoryItem<TripMetadataFacade> {
+    implements RepositoryDocument<TripMetadataFacade> {
   static const String _startDateField = 'startDate';
   static const String _endDateField = 'endDate';
   static const String _nameField = 'name';

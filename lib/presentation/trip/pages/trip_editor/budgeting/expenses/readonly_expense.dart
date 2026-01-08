@@ -10,16 +10,16 @@ import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edi
 import 'expenses_list_view.dart';
 
 class ReadonlyExpenseListItem extends StatelessWidget {
-  final ExpenseLinkedTripEntity expenseLinkedTripEntity;
+  final ExpenseBearingTripEntity expenseBearingTripEntity;
   final Map<ExpenseCategory, String> categoryNames;
 
   ReadonlyExpenseListItem({
-    required this.expenseLinkedTripEntity,
+    required this.expenseBearingTripEntity,
     required this.categoryNames,
     super.key,
   });
 
-  ExpenseFacade get _expense => expenseLinkedTripEntity.expense;
+  ExpenseFacade get _expense => expenseBearingTripEntity.expense;
 
   // UI constants
   static const double _kIconColumnWidth = 70.0;
@@ -45,7 +45,8 @@ class ReadonlyExpenseListItem extends StatelessWidget {
                 fit: BoxFit.scaleDown,
                 child: IconButton(
                   onPressed: null,
-                  icon: Icon(iconsForCategories[_expense.category]),
+                  icon: Icon(
+                      iconsForCategories[expenseBearingTripEntity.category]),
                 ),
               ),
             ),
@@ -75,9 +76,9 @@ class ReadonlyExpenseListItem extends StatelessWidget {
           padding: const EdgeInsets.all(_kInnerPadding),
           child: PlatformTextElements.createSubHeader(
             context: context,
-            text: expenseLinkedTripEntity is ExpenseFacade
-                ? _expense.title
-                : expenseLinkedTripEntity.toString(),
+            text: expenseBearingTripEntity is ExpenseFacade
+                ? expenseBearingTripEntity.title
+                : expenseBearingTripEntity.toString(),
           ),
         ),
         if (_subTitle.isNotEmpty)

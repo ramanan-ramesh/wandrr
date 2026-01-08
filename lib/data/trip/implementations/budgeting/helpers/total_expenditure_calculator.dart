@@ -16,7 +16,7 @@ class TotalExpenditureCalculator {
   Future<double> calculate({
     required ModelCollectionFacade<TransitFacade> transits,
     required ModelCollectionFacade<LodgingFacade> lodgings,
-    required ModelCollectionFacade<ExpenseFacade> expenses,
+    required ModelCollectionFacade<StandaloneExpense> expenses,
     required ItineraryFacadeCollectionEventHandler itineraries,
     required String defaultCurrency,
     required String currentUserName,
@@ -89,13 +89,13 @@ class TotalExpenditureCalculator {
   }
 
   void _collectStandaloneExpenses(
-    ModelCollectionFacade<ExpenseFacade> expenses,
+    ModelCollectionFacade<StandaloneExpense> expenses,
     String currentUserName,
     List<ExpenseFacade> expensesToConsider,
   ) {
     for (final expense in expenses.collectionItems) {
-      if (expense.splitBy.contains(currentUserName)) {
-        expensesToConsider.add(expense);
+      if (expense.expense.splitBy.contains(currentUserName)) {
+        expensesToConsider.add(expense.expense);
       }
     }
   }
@@ -121,8 +121,8 @@ class TotalExpenditureCalculator {
     var total = 0.0;
 
     for (final expense in expenses) {
-      final convertedExpense =
-          await currencyConverter.queryData((expense.totalExpense, defaultCurrency));
+      final convertedExpense = await currencyConverter
+          .queryData((expense.totalExpense, defaultCurrency));
       if (convertedExpense != null) {
         total += convertedExpense;
       }
@@ -131,4 +131,3 @@ class TotalExpenditureCalculator {
     return total;
   }
 }
-

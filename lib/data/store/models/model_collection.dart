@@ -19,7 +19,7 @@ abstract class ModelCollectionFacade<Model> {
 
 abstract class ModelCollectionModifier<Model>
     extends ModelCollectionFacade<Model> implements Dispose {
-  LeafRepositoryItem<Model> Function(Model) get repositoryItemCreator;
+  RepositoryDocument<Model> Function(Model) get repositoryItemCreator;
 
   Future<Model?> tryAdd(Model toAdd);
 

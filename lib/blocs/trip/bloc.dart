@@ -48,11 +48,11 @@ class TripManagementBloc
 
     on<_OnStartup>(_onStartup);
     on<LoadTrip>(_onLoadTrip);
-    on<SelectExpenseLinkedTripEntity>(_onSelectExpenseLinkedTripEntity);
+    on<SelectExpenseBearingTripEntity>(_onSelectExpenseBearingTripEntity);
     on<UpdateTripEntity<TransitFacade>>(_onUpdateTransit);
     on<UpdateTripEntity<LodgingFacade>>(_onUpdateLodging);
     on<GoToHome>(_onGoToHome);
-    on<UpdateTripEntity<ExpenseFacade>>(_onUpdateExpense);
+    on<UpdateTripEntity<StandaloneExpense>>(_onUpdateExpense);
     on<UpdateTripEntity<TripMetadataFacade>>(_onUpdateTripMetadata);
     on<UpdateTripEntity<ItineraryPlanData>>(_onUpdateItineraryData);
     on<_UpdateTripEntityInternalEvent>(_onTripEntityUpdateInternal);
@@ -144,15 +144,15 @@ class TripManagementBloc
     );
   }
 
-  FutureOr<void> _onUpdateExpense(UpdateTripEntity<ExpenseFacade> event,
+  FutureOr<void> _onUpdateExpense(UpdateTripEntity<StandaloneExpense> event,
       Emitter<TripManagementState> emit) async {
     if (event.dataState == DataState.newUiEntry) {
       var expense = _entityFactory!.createExpense(existing: event.tripEntity);
-      emit(UpdatedTripEntity<ExpenseFacade>.createdNewUiEntry(
+      emit(UpdatedTripEntity<StandaloneExpense>.createdNewUiEntry(
           tripEntity: expense, isOperationSuccess: true));
       return;
     }
-    await _updateHandler.updateTripEntityAndEmitState<ExpenseFacade>(
+    await _updateHandler.updateTripEntityAndEmitState<StandaloneExpense>(
       tripEntity: event.tripEntity!,
       requestedDataState: event.dataState,
       modelCollection: _activeTrip!.expenseCollection,
@@ -221,9 +221,9 @@ class TripManagementBloc
     }
   }
 
-  FutureOr<void> _onSelectExpenseLinkedTripEntity(
-      SelectExpenseLinkedTripEntity event, Emitter<TripManagementState> emit) {
-    emit(SelectedExpenseLinkedTripEntity(tripEntity: event.tripEntity!));
+  FutureOr<void> _onSelectExpenseBearingTripEntity(
+      SelectExpenseBearingTripEntity event, Emitter<TripManagementState> emit) {
+    emit(SelectedExpenseBearingTripEntity(tripEntity: event.tripEntity!));
   }
 
   FutureOr<void> _onEditItineraryPlanData(
@@ -271,7 +271,7 @@ class TripManagementBloc
     _subscribeToTripEntityCollection<LodgingFacade>(
       _activeTrip!.lodgingCollection,
     );
-    _subscribeToTripEntityCollection<ExpenseFacade>(
+    _subscribeToTripEntityCollection<StandaloneExpense>(
       _activeTrip!.expenseCollection,
     );
   }

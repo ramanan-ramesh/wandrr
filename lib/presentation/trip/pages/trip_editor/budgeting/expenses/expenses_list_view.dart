@@ -6,9 +6,9 @@ import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_sort_options.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
@@ -31,8 +31,8 @@ class _ExpenseListViewState extends State<ExpenseListView> {
   bool _costSortAscending = true;
   bool _dateSortNewestFirst = true;
   static late Map<ExpenseCategory, String> _categoryNames;
-  List<ExpenseLinkedTripEntity> _expenses = <ExpenseLinkedTripEntity>[];
-  Future<Iterable<ExpenseLinkedTripEntity>>? _sortingFuture;
+  List<ExpenseBearingTripEntity> _expenses = <ExpenseBearingTripEntity>[];
+  Future<Iterable<ExpenseBearingTripEntity>>? _sortingFuture;
   int _animationToken = 0;
 
   // UI constants
@@ -68,7 +68,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
             buildWhen: _shouldRebuildList,
             builder: (context, state) {
               _refreshExpenses();
-              return FutureBuilder<Iterable<ExpenseLinkedTripEntity>>(
+              return FutureBuilder<Iterable<ExpenseBearingTripEntity>>(
                 future: _sortingFuture,
                 builder: (context, snapshot) {
                   final isDone =
@@ -193,7 +193,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     );
   }
 
-  Widget _buildExpenseList(List<ExpenseLinkedTripEntity> sortedExpenses) {
+  Widget _buildExpenseList(List<ExpenseBearingTripEntity> sortedExpenses) {
     _expenses = sortedExpenses;
     if (_expenses.isEmpty) {
       return Center(
@@ -219,7 +219,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
             horizontal: _kListItemHorizontalPadding,
           ),
           child: _ExpenseListItem(
-            initialExpenseLinkedTripEntity: item,
+            initialExpenseBearingTripEntity: item,
             categoryNames: _categoryNames,
           ),
         );
@@ -274,7 +274,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     TripManagementState previousState,
     TripManagementState currentState,
   ) {
-    if (currentState.isTripEntityUpdated<ExpenseLinkedTripEntity>()) {
+    if (currentState.isTripEntityUpdated<ExpenseBearingTripEntity>()) {
       final updatedState = currentState as UpdatedTripEntity;
       if (updatedState.dataState == DataState.delete ||
           updatedState.dataState == DataState.create) {
@@ -286,7 +286,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
 
   void _refreshExpenses() {
     final activeTrip = context.activeTrip;
-    final list = <ExpenseLinkedTripEntity>[];
+    final list = <ExpenseBearingTripEntity>[];
     list.addAll(activeTrip.expenseCollection.collectionItems);
     list.addAll(activeTrip.transitCollection.collectionItems);
     list.addAll(activeTrip.lodgingCollection.collectionItems);
@@ -322,11 +322,11 @@ class _ExpenseListViewState extends State<ExpenseListView> {
 }
 
 class _ExpenseListItem extends StatefulWidget {
-  final ExpenseLinkedTripEntity initialExpenseLinkedTripEntity;
+  final ExpenseBearingTripEntity initialExpenseBearingTripEntity;
   final Map<ExpenseCategory, String> categoryNames;
 
   const _ExpenseListItem({
-    required this.initialExpenseLinkedTripEntity,
+    required this.initialExpenseBearingTripEntity,
     required this.categoryNames,
   });
 
@@ -335,19 +335,19 @@ class _ExpenseListItem extends StatefulWidget {
 }
 
 class _ExpenseListItemState extends State<_ExpenseListItem> {
-  late ExpenseLinkedTripEntity _expenseLinkedTripEntity;
+  late ExpenseBearingTripEntity _expenseBearingTripEntity;
 
   @override
   void initState() {
     super.initState();
-    _expenseLinkedTripEntity = widget.initialExpenseLinkedTripEntity;
+    _expenseBearingTripEntity = widget.initialExpenseBearingTripEntity;
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => context.addTripManagementEvent(
-        SelectExpenseLinkedTripEntity(tripEntity: _expenseLinkedTripEntity),
+        SelectExpenseBearingTripEntity(tripEntity: _expenseBearingTripEntity),
       ),
       child: Material(
         color: Theme.of(context)
@@ -364,10 +364,10 @@ class _ExpenseListItemState extends State<_ExpenseListItem> {
                 _ExpenseListViewState._kListItemBorderRadius),
             border: Border.all(width: 2.2),
           ),
-          child: TripEntityUpdateHandler<ExpenseLinkedTripEntity>(
+          child: TripEntityUpdateHandler<ExpenseBearingTripEntity>(
             shouldRebuild: (beforeUpdate, afterUpdate) {
-              if (beforeUpdate.id == _expenseLinkedTripEntity.id) {
-                _expenseLinkedTripEntity = afterUpdate;
+              if (beforeUpdate.id == _expenseBearingTripEntity.id) {
+                _expenseBearingTripEntity = afterUpdate;
                 return true;
               }
               return false;
@@ -375,7 +375,7 @@ class _ExpenseListItemState extends State<_ExpenseListItem> {
             widgetBuilder: (context) {
               return ReadonlyExpenseListItem(
                 categoryNames: widget.categoryNames,
-                expenseLinkedTripEntity: _expenseLinkedTripEntity,
+                expenseBearingTripEntity: _expenseBearingTripEntity,
               );
             },
           ),

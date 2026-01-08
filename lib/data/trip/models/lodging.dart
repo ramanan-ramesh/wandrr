@@ -8,7 +8,7 @@ import 'budgeting/expense_category.dart';
 
 // ignore: must_be_immutable
 class LodgingFacade extends Equatable
-    implements ExpenseLinkedTripEntity<LodgingFacade> {
+    implements ExpenseBearingTripEntity<LodgingFacade> {
   LocationFacade? location;
 
   DateTime? checkinDateTime;
@@ -27,6 +27,18 @@ class LodgingFacade extends Equatable
 
   String? notes;
 
+  @override
+  ExpenseCategory get category => ExpenseCategory.lodging;
+
+  @override
+  set category(ExpenseCategory value) {}
+
+  @override
+  String get title => toString();
+
+  @override
+  set title(String value) {}
+
   LodgingFacade(
       {required this.location,
       required this.checkinDateTime,
@@ -43,10 +55,7 @@ class LodgingFacade extends Equatable
       required String defaultCurrency,
       this.notes})
       : expense = ExpenseFacade(
-            tripId: tripId,
-            title: ' ',
             currency: defaultCurrency,
-            category: ExpenseCategory.lodging,
             paidBy: Map.fromIterables(allTripContributors,
                 List.filled(allTripContributors.length, 0)),
             splitBy: allTripContributors.toList());

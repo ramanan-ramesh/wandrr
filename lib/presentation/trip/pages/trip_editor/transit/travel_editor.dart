@@ -151,8 +151,6 @@ class _TravelEditorState extends State<TravelEditor>
 
   void _updateTransitOption(TransitOption newOption) {
     _transitFacade.transitOption = newOption;
-    _transitFacade.expense.category =
-        TransitFacade.getExpenseCategory(newOption);
   }
 
   Widget _buildOperatorSection() {
