@@ -7,7 +7,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_model.dart';
 
 class AffectedStaysSection extends StatefulWidget {
-  final List<AffectedEntityItem<LodgingFacade>> affectedStays;
+  final Iterable<AffectedEntityItem<LodgingFacade>> affectedStays;
   final DateTime tripStartDate;
   final DateTime tripEndDate;
   final VoidCallback onChanged;
@@ -52,6 +52,8 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
             onTap: () => setState(() => _isExpanded = !_isExpanded),
           ),
           if (_isExpanded) ...[
+            const SizedBox(height: 8),
+            _buildInfoMessage(context),
             const SizedBox(height: 12),
             ...widget.affectedStays
                 .map((item) => _buildStayItem(context, item)),
@@ -61,21 +63,19 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
     );
   }
 
-  Widget _buildStayItem(
-      BuildContext context, AffectedEntityItem<LodgingFacade> item) {
-    final lodging = item.modifiedEntity;
+  Widget _buildInfoMessage(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
-
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isLightTheme
-            ? Colors.grey.shade100
-            : Colors.grey.shade800.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(12),
+            ? AppColors.info.withValues(alpha: 0.1)
+            : AppColors.infoLight.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isLightTheme ? Colors.grey.shade300 : Colors.grey.shade700,
+          color: isLightTheme
+              ? AppColors.info.withValues(alpha: 0.3)
+              : AppColors.infoLight.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -83,56 +83,169 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.location_on,
-                size: 18,
-                color: isLightTheme
-                    ? AppColors.brandPrimary
-                    : AppColors.brandPrimaryLight,
-              ),
+              Icon(Icons.info_outline,
+                  size: 16,
+                  color: isLightTheme ? AppColors.info : AppColors.infoLight),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  lodging.location?.toString() ?? 'Unknown Location',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  'These stays fall outside the new trip dates',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color:
+                            isLightTheme ? AppColors.info : AppColors.infoLight,
                       ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          _buildOriginalDatesInfo(context, item.entity),
-          const SizedBox(height: 12),
-          _buildDateTimeRow(
-            context: context,
-            label: 'Check-in',
-            icon: Icons.login_rounded,
-            dateTime: lodging.checkinDateTime,
-            onChanged: (newDateTime) {
-              setState(() {
-                lodging.checkinDateTime = newDateTime;
-              });
-              widget.onChanged();
-            },
-          ),
-          const SizedBox(height: 8),
-          _buildDateTimeRow(
-            context: context,
-            label: 'Check-out',
-            icon: Icons.logout_rounded,
-            dateTime: lodging.checkoutDateTime,
-            onChanged: (newDateTime) {
-              setState(() {
-                lodging.checkoutDateTime = newDateTime;
-              });
-              widget.onChanged();
-            },
+          const SizedBox(height: 4),
+          Text(
+            '• Dates have been adjusted to fit within the new trip range where possible\n'
+            '• Set new check-in/check-out dates, or delete stays you no longer need\n'
+            '• Stays without valid dates will be skipped',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isLightTheme
+                      ? Colors.grey.shade700
+                      : Colors.grey.shade400,
+                ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStayItem(
+      BuildContext context, AffectedEntityItem<LodgingFacade> item) {
+    final lodging = item.modifiedEntity;
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final isMarkedForDeletion = item.isMarkedForDeletion;
+
+    return Opacity(
+      opacity: isMarkedForDeletion ? 0.5 : 1.0,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isMarkedForDeletion
+              ? (isLightTheme
+                  ? AppColors.error.withValues(alpha: 0.1)
+                  : AppColors.errorLight.withValues(alpha: 0.1))
+              : (isLightTheme
+                  ? Colors.grey.shade100
+                  : Colors.grey.shade800.withValues(alpha: 0.3)),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isMarkedForDeletion
+                ? (isLightTheme ? AppColors.error : AppColors.errorLight)
+                : (isLightTheme ? Colors.grey.shade300 : Colors.grey.shade700),
+            width: isMarkedForDeletion ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on,
+                  size: 18,
+                  color: isLightTheme
+                      ? AppColors.brandPrimary
+                      : AppColors.brandPrimaryLight,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    lodging.location?.toString() ?? 'Unknown Location',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          decoration: isMarkedForDeletion
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                _buildActionToggle(context, item),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _buildOriginalDatesInfo(context, item.entity),
+            if (!isMarkedForDeletion) ...[
+              const SizedBox(height: 12),
+              _buildDateTimeRow(
+                context: context,
+                label: 'Check-in',
+                icon: Icons.login_rounded,
+                dateTime: lodging.checkinDateTime,
+                onChanged: (newDateTime) {
+                  setState(() {
+                    lodging.checkinDateTime = newDateTime;
+                  });
+                  widget.onChanged();
+                },
+              ),
+              const SizedBox(height: 8),
+              _buildDateTimeRow(
+                context: context,
+                label: 'Check-out',
+                icon: Icons.logout_rounded,
+                dateTime: lodging.checkoutDateTime,
+                onChanged: (newDateTime) {
+                  setState(() {
+                    lodging.checkoutDateTime = newDateTime;
+                  });
+                  widget.onChanged();
+                },
+              ),
+            ] else ...[
+              const SizedBox(height: 8),
+              Center(
+                child: Text(
+                  'This stay will be deleted',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: isLightTheme
+                            ? AppColors.error
+                            : AppColors.errorLight,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionToggle(
+      BuildContext context, AffectedEntityItem<LodgingFacade> item) {
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final isMarkedForDeletion = item.isMarkedForDeletion;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: Icon(
+            isMarkedForDeletion ? Icons.restore : Icons.delete_outline,
+            color: isMarkedForDeletion
+                ? (isLightTheme ? AppColors.success : AppColors.successLight)
+                : (isLightTheme ? AppColors.error : AppColors.errorLight),
+          ),
+          tooltip: isMarkedForDeletion ? 'Restore' : 'Delete',
+          onPressed: () {
+            setState(() {
+              item.action = isMarkedForDeletion
+                  ? AffectedEntityAction.update
+                  : AffectedEntityAction.delete;
+            });
+            widget.onChanged();
+          },
+        ),
+      ],
     );
   }
 

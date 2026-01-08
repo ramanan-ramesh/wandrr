@@ -7,7 +7,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_model.dart';
 
 class AffectedSightsSection extends StatefulWidget {
-  final List<AffectedEntityItem<SightFacade>> affectedSights;
+  final Iterable<AffectedEntityItem<SightFacade>> affectedSights;
   final DateTime tripStartDate;
   final DateTime tripEndDate;
   final VoidCallback onChanged;
@@ -51,8 +51,8 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
             onTap: () => setState(() => _isExpanded = !_isExpanded),
           ),
           if (_isExpanded) ...[
-            const SizedBox(height: 12),
-            _buildUnassignedInfo(context),
+            const SizedBox(height: 8),
+            _buildInfoMessage(context),
             const SizedBox(height: 12),
             ...widget.affectedSights
                 .map((item) => _buildSightItem(context, item)),
@@ -62,29 +62,51 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
     );
   }
 
-  Widget _buildUnassignedInfo(BuildContext context) {
+  Widget _buildInfoMessage(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isLightTheme
             ? AppColors.info.withValues(alpha: 0.1)
             : AppColors.infoLight.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isLightTheme
+              ? AppColors.info.withValues(alpha: 0.3)
+              : AppColors.infoLight.withValues(alpha: 0.3),
+        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline,
-            size: 14,
-            color: isLightTheme ? AppColors.info : AppColors.infoLight,
+          Row(
+            children: [
+              Icon(Icons.info_outline,
+                  size: 16,
+                  color: isLightTheme ? AppColors.info : AppColors.infoLight),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'These sights fall outside the new trip dates',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color:
+                            isLightTheme ? AppColors.info : AppColors.infoLight,
+                      ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 4),
+          const SizedBox(height: 4),
           Text(
-            'Visit times are unassigned by default',
+            '• Visit dates have been cleared and need to be set again\n'
+            '• Set new visit dates, or delete sights you no longer plan to visit\n'
+            '• Sights without dates will remain in your itinerary but unscheduled',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: isLightTheme ? AppColors.info : AppColors.infoLight,
+                  color: isLightTheme
+                      ? Colors.grey.shade700
+                      : Colors.grey.shade400,
                 ),
           ),
         ],
@@ -96,93 +118,151 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
       BuildContext context, AffectedEntityItem<SightFacade> item) {
     final sight = item.modifiedEntity;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final isMarkedForDeletion = item.isMarkedForDeletion;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isLightTheme
-            ? Colors.grey.shade100
-            : Colors.grey.shade800.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isLightTheme ? Colors.grey.shade300 : Colors.grey.shade700,
+    return Opacity(
+      opacity: isMarkedForDeletion ? 0.5 : 1.0,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isMarkedForDeletion
+              ? (isLightTheme
+                  ? AppColors.error.withValues(alpha: 0.1)
+                  : AppColors.errorLight.withValues(alpha: 0.1))
+              : (isLightTheme
+                  ? Colors.grey.shade100
+                  : Colors.grey.shade800.withValues(alpha: 0.3)),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isMarkedForDeletion
+                ? (isLightTheme ? AppColors.error : AppColors.errorLight)
+                : (isLightTheme ? Colors.grey.shade300 : Colors.grey.shade700),
+            width: isMarkedForDeletion ? 2 : 1,
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.place_rounded,
-                size: 18,
-                color:
-                    isLightTheme ? AppColors.success : AppColors.successLight,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.place_rounded,
+                  size: 18,
+                  color:
+                      isLightTheme ? AppColors.success : AppColors.successLight,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    sight.name.isNotEmpty ? sight.name : 'Unnamed Sight',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          decoration: isMarkedForDeletion
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                _buildActionToggle(context, item),
+              ],
+            ),
+            if (sight.location != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                sight.location.toString(),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey,
+                    ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(width: 8),
-              Expanded(
+            ],
+            const SizedBox(height: 8),
+            _buildOriginalDateInfo(context, item.entity),
+            if (!isMarkedForDeletion) ...[
+              const SizedBox(height: 12),
+              _buildDateRow(
+                context: context,
+                label: 'Visit Date',
+                date: sight.visitTime,
+                onChanged: (newDate) {
+                  setState(() {
+                    sight.visitTime = newDate;
+                  });
+                  widget.onChanged();
+                },
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      sight.visitTime = null;
+                    });
+                    widget.onChanged();
+                  },
+                  icon: Icon(
+                    Icons.clear_rounded,
+                    size: 16,
+                    color: isLightTheme
+                        ? AppColors.warning
+                        : AppColors.warningLight,
+                  ),
+                  label: Text(
+                    'Clear date',
+                    style: TextStyle(
+                      color: isLightTheme
+                          ? AppColors.warning
+                          : AppColors.warningLight,
+                    ),
+                  ),
+                ),
+              ),
+            ] else ...[
+              const SizedBox(height: 8),
+              Center(
                 child: Text(
-                  sight.name.isNotEmpty ? sight.name : 'Unnamed Sight',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  'This sight will be removed from itinerary',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: isLightTheme
+                            ? AppColors.error
+                            : AppColors.errorLight,
                         fontWeight: FontWeight.bold,
                       ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
-          ),
-          if (sight.location != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              sight.location.toString(),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey,
-                  ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
           ],
-          const SizedBox(height: 8),
-          _buildOriginalDateInfo(context, item.entity),
-          const SizedBox(height: 12),
-          _buildDateRow(
-            context: context,
-            label: 'Visit Date',
-            date: sight.visitTime,
-            onChanged: (newDate) {
-              setState(() {
-                sight.visitTime = newDate;
-              });
-              widget.onChanged();
-            },
-          ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              onPressed: () {
-                setState(() {
-                  sight.visitTime = null;
-                });
-                widget.onChanged();
-              },
-              icon: Icon(
-                Icons.clear_rounded,
-                size: 16,
-                color: isLightTheme ? AppColors.error : AppColors.errorLight,
-              ),
-              label: Text(
-                'Clear date',
-                style: TextStyle(
-                  color: isLightTheme ? AppColors.error : AppColors.errorLight,
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildActionToggle(
+      BuildContext context, AffectedEntityItem<SightFacade> item) {
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final isMarkedForDeletion = item.isMarkedForDeletion;
+
+    return IconButton(
+      icon: Icon(
+        isMarkedForDeletion ? Icons.restore : Icons.delete_outline,
+        color: isMarkedForDeletion
+            ? (isLightTheme ? AppColors.success : AppColors.successLight)
+            : (isLightTheme ? AppColors.error : AppColors.errorLight),
+      ),
+      tooltip: isMarkedForDeletion ? 'Restore' : 'Delete',
+      onPressed: () {
+        setState(() {
+          item.action = isMarkedForDeletion
+              ? AffectedEntityAction.update
+              : AffectedEntityAction.delete;
+        });
+        widget.onChanged();
+      },
     );
   }
 

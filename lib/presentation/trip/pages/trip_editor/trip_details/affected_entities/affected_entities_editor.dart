@@ -57,6 +57,7 @@ class _AffectedEntitiesEditorState extends State<AffectedEntitiesEditor> {
         AffectedExpensesSection(
           allExpenses: model.allExpenses,
           addedContributors: model.addedContributors,
+          removedContributors: model.removedContributors,
           onChanged: widget.onModelUpdated,
         ),
       ],

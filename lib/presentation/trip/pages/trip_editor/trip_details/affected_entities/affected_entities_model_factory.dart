@@ -1,10 +1,10 @@
 import 'package:collection/collection.dart';
-import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_model.dart';
 
@@ -16,17 +16,18 @@ class AffectedEntitiesModelFactory {
     required TripMetadataFacade newMetadata,
     required TripDataFacade tripData,
   }) {
-    final hasDateChanges = _hasDateChanges(oldMetadata, newMetadata);
-    final hasContributorChanges =
-        _hasContributorChanges(oldMetadata, newMetadata);
+    final haveTripDatesChanged =
+        _haveTripDatesChanged(oldMetadata, newMetadata);
+    final haveContributorsChanged =
+        _haveContributorsChanged(oldMetadata, newMetadata);
 
-    if (!hasDateChanges && !hasContributorChanges) {
+    if (!haveTripDatesChanged && !haveContributorsChanged) {
       return null;
     }
 
     // Collect affected stays
     final affectedStays = <AffectedEntityItem<LodgingFacade>>[];
-    if (hasDateChanges) {
+    if (haveTripDatesChanged) {
       affectedStays.addAll(_findAffectedStays(
         tripData.lodgingCollection.collectionItems,
         oldMetadata,
@@ -36,7 +37,7 @@ class AffectedEntitiesModelFactory {
 
     // Collect affected transits
     final affectedTransits = <AffectedEntityItem<TransitFacade>>[];
-    if (hasDateChanges) {
+    if (haveTripDatesChanged) {
       affectedTransits.addAll(_findAffectedTransits(
         tripData.transitCollection.collectionItems,
         oldMetadata,
@@ -46,7 +47,7 @@ class AffectedEntitiesModelFactory {
 
     // Collect affected sights
     final affectedSights = <AffectedEntityItem<SightFacade>>[];
-    if (hasDateChanges) {
+    if (haveTripDatesChanged) {
       for (final itinerary in tripData.itineraryCollection) {
         affectedSights.addAll(_findAffectedSights(
           itinerary.planData.sights,
@@ -57,8 +58,8 @@ class AffectedEntitiesModelFactory {
     }
 
     // Collect all expenses for contributor changes
-    final allExpenses = <AffectedEntityItem<ExpenseFacade>>[];
-    if (hasContributorChanges) {
+    final allExpenses = <AffectedEntityItem<ExpenseLinkedTripEntity>>[];
+    if (haveContributorsChanged) {
       allExpenses.addAll(_collectAllExpenses(tripData));
     }
 
@@ -77,25 +78,24 @@ class AffectedEntitiesModelFactory {
       affectedTransits: affectedTransits,
       affectedSights: affectedSights,
       allExpenses: allExpenses,
+      tripData: tripData,
     );
   }
 
-  static bool _hasDateChanges(
+  static bool _haveTripDatesChanged(
       TripMetadataFacade oldMeta, TripMetadataFacade newMeta) {
-    return !_isSameDay(oldMeta.startDate, newMeta.startDate) ||
-        !_isSameDay(oldMeta.endDate, newMeta.endDate);
+    var oldStartDate = oldMeta.startDate!;
+    var oldEndDate = oldMeta.endDate!;
+    var newStartDate = newMeta.startDate!;
+    var newEndDate = newMeta.endDate!;
+    return !oldStartDate.isOnSameDayAs(newStartDate) ||
+        !oldEndDate.isOnSameDayAs(newEndDate);
   }
 
-  static bool _hasContributorChanges(
+  static bool _haveContributorsChanged(
       TripMetadataFacade oldMeta, TripMetadataFacade newMeta) {
     return !const ListEquality()
         .equals(oldMeta.contributors, newMeta.contributors);
-  }
-
-  static bool _isSameDay(DateTime? a, DateTime? b) {
-    if (a == null && b == null) return true;
-    if (a == null || b == null) return false;
-    return a.isOnSameDayAs(b);
   }
 
   /// Find stays that fall outside the new trip dates
@@ -111,10 +111,6 @@ class AffectedEntitiesModelFactory {
         newMetadata.endDate!.month, newMetadata.endDate!.day, 23, 59);
 
     for (final lodging in lodgings) {
-      if (lodging.checkinDateTime == null || lodging.checkoutDateTime == null) {
-        continue;
-      }
-
       final checkin = lodging.checkinDateTime!;
       final checkout = lodging.checkoutDateTime!;
 
@@ -146,7 +142,7 @@ class AffectedEntitiesModelFactory {
         }
 
         // Clamp checkout
-        if (checkout.isAfter(newEnd.add(const Duration(days: 1)))) {
+        if (checkout.isAfter(newEnd)) {
           clampedCheckout = DateTime(
             newEnd.year,
             newEnd.month,
@@ -190,20 +186,13 @@ class AffectedEntitiesModelFactory {
     final newEnd = newMetadata.endDate!;
 
     for (final transit in transits) {
-      if (transit.departureDateTime == null &&
-          transit.arrivalDateTime == null) {
-        continue;
-      }
+      final departure = transit.departureDateTime!;
+      final arrival = transit.arrivalDateTime!;
 
-      final departure = transit.departureDateTime;
-      final arrival = transit.arrivalDateTime;
-
-      final isDepartureOutside = departure != null &&
-          (departure.isBefore(newStart) ||
-              departure.isAfter(newEnd.add(const Duration(days: 1))));
-      final isArrivalOutside = arrival != null &&
-          (arrival.isBefore(newStart) ||
-              arrival.isAfter(newEnd.add(const Duration(days: 1))));
+      final isDepartureOutside =
+          departure.isBefore(newStart) || departure.isAfter(newEnd);
+      final isArrivalOutside =
+          arrival.isBefore(newStart) || arrival.isAfter(newEnd);
 
       if (isDepartureOutside || isArrivalOutside) {
         final modifiedTransit = transit.clone();
@@ -250,41 +239,42 @@ class AffectedEntitiesModelFactory {
   }
 
   /// Collect all expenses from transit, lodging, standalone expenses, and sights
-  static Iterable<AffectedEntityItem<ExpenseFacade>> _collectAllExpenses(
+  static Iterable<AffectedEntityItem<ExpenseLinkedTripEntity>>
+      _collectAllExpenses(
     TripDataFacade tripData,
   ) {
-    final allExpenses = <AffectedEntityItem<ExpenseFacade>>[];
+    final allExpenses = <AffectedEntityItem<ExpenseLinkedTripEntity>>[];
 
+    // Collect standalone expenses (not linked to any entity)
     for (final expense in tripData.expenseCollection.collectionItems) {
       allExpenses.add(AffectedEntityItem(
         entity: expense,
         modifiedEntity: expense.clone(),
-        includeInSplitBy: false,
       ));
     }
 
+    // Collect transit expenses and link them
     for (final transit in tripData.transitCollection.collectionItems) {
       allExpenses.add(AffectedEntityItem(
-        entity: transit.expense,
-        modifiedEntity: transit.expense.clone(),
-        includeInSplitBy: false,
+        entity: transit,
+        modifiedEntity: transit.clone(),
       ));
     }
 
+    // Collect lodging expenses and link them
     for (final lodging in tripData.lodgingCollection.collectionItems) {
       allExpenses.add(AffectedEntityItem(
-        entity: lodging.expense,
-        modifiedEntity: lodging.expense.clone(),
-        includeInSplitBy: false,
+        entity: lodging,
+        modifiedEntity: lodging,
       ));
     }
 
+    // Collect sight expenses and link them
     for (final itinerary in tripData.itineraryCollection) {
       for (final sight in itinerary.planData.sights) {
         allExpenses.add(AffectedEntityItem(
-          entity: sight.expense,
-          modifiedEntity: sight.expense.clone(),
-          includeInSplitBy: false,
+          entity: sight,
+          modifiedEntity: sight.clone(),
         ));
       }
     }

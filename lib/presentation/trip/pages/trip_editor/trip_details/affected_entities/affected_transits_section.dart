@@ -7,7 +7,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_model.dart';
 
 class AffectedTransitsSection extends StatefulWidget {
-  final List<AffectedEntityItem<TransitFacade>> affectedTransits;
+  final Iterable<AffectedEntityItem<TransitFacade>> affectedTransits;
   final DateTime tripStartDate;
   final DateTime tripEndDate;
   final VoidCallback onChanged;
@@ -51,6 +51,8 @@ class _AffectedTransitsSectionState extends State<AffectedTransitsSection> {
             onTap: () => setState(() => _isExpanded = !_isExpanded),
           ),
           if (_isExpanded) ...[
+            const SizedBox(height: 8),
+            _buildInfoMessage(context),
             const SizedBox(height: 12),
             ...widget.affectedTransits
                 .map((item) => _buildTransitItem(context, item)),
@@ -60,21 +62,19 @@ class _AffectedTransitsSectionState extends State<AffectedTransitsSection> {
     );
   }
 
-  Widget _buildTransitItem(
-      BuildContext context, AffectedEntityItem<TransitFacade> item) {
-    final transit = item.modifiedEntity;
+  Widget _buildInfoMessage(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
-
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isLightTheme
-            ? Colors.grey.shade100
-            : Colors.grey.shade800.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(12),
+            ? AppColors.info.withValues(alpha: 0.1)
+            : AppColors.infoLight.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isLightTheme ? Colors.grey.shade300 : Colors.grey.shade700,
+          color: isLightTheme
+              ? AppColors.info.withValues(alpha: 0.3)
+              : AppColors.infoLight.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -82,110 +82,190 @@ class _AffectedTransitsSectionState extends State<AffectedTransitsSection> {
         children: [
           Row(
             children: [
-              Icon(
-                _getTransitIcon(transit.transitOption),
-                size: 18,
-                color: isLightTheme ? AppColors.info : AppColors.infoLight,
-              ),
+              Icon(Icons.info_outline,
+                  size: 16,
+                  color: isLightTheme ? AppColors.info : AppColors.infoLight),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '${transit.departureLocation?.toString() ?? 'Unknown'} → ${transit.arrivalLocation?.toString() ?? 'Unknown'}',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  'These transits fall outside the new trip dates',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color:
+                            isLightTheme ? AppColors.info : AppColors.infoLight,
                       ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          _buildOriginalDatesInfo(context, item.entity),
-          const SizedBox(height: 12),
-          _buildUnassignedInfo(context),
-          const SizedBox(height: 12),
-          _buildDateTimeRow(
-            context: context,
-            label: 'Departure',
-            icon: Icons.flight_takeoff_rounded,
-            dateTime: transit.departureDateTime,
-            onChanged: (newDateTime) {
-              setState(() {
-                transit.departureDateTime = newDateTime;
-              });
-              widget.onChanged();
-            },
-          ),
-          const SizedBox(height: 8),
-          _buildDateTimeRow(
-            context: context,
-            label: 'Arrival',
-            icon: Icons.flight_land_rounded,
-            dateTime: transit.arrivalDateTime,
-            onChanged: (newDateTime) {
-              setState(() {
-                transit.arrivalDateTime = newDateTime;
-              });
-              widget.onChanged();
-            },
-          ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              onPressed: () {
-                setState(() {
-                  transit.departureDateTime = null;
-                  transit.arrivalDateTime = null;
-                });
-                widget.onChanged();
-              },
-              icon: Icon(
-                Icons.clear_rounded,
-                size: 16,
-                color: isLightTheme ? AppColors.error : AppColors.errorLight,
-              ),
-              label: Text(
-                'Clear dates',
-                style: TextStyle(
-                  color: isLightTheme ? AppColors.error : AppColors.errorLight,
+          const SizedBox(height: 4),
+          Text(
+            '• Dates have been cleared and need to be set again\n'
+            '• Set new departure/arrival times, or delete transits you no longer need\n'
+            '• Transits without valid dates will be skipped',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isLightTheme
+                      ? Colors.grey.shade700
+                      : Colors.grey.shade400,
                 ),
-              ),
-            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildUnassignedInfo(BuildContext context) {
+  Widget _buildTransitItem(
+      BuildContext context, AffectedEntityItem<TransitFacade> item) {
+    final transit = item.modifiedEntity;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: isLightTheme
-            ? AppColors.info.withValues(alpha: 0.1)
-            : AppColors.infoLight.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.info_outline,
-            size: 14,
-            color: isLightTheme ? AppColors.info : AppColors.infoLight,
+    final isMarkedForDeletion = item.isMarkedForDeletion;
+
+    return Opacity(
+      opacity: isMarkedForDeletion ? 0.5 : 1.0,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isMarkedForDeletion
+              ? (isLightTheme
+                  ? AppColors.error.withValues(alpha: 0.1)
+                  : AppColors.errorLight.withValues(alpha: 0.1))
+              : (isLightTheme
+                  ? Colors.grey.shade100
+                  : Colors.grey.shade800.withValues(alpha: 0.3)),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isMarkedForDeletion
+                ? (isLightTheme ? AppColors.error : AppColors.errorLight)
+                : (isLightTheme ? Colors.grey.shade300 : Colors.grey.shade700),
+            width: isMarkedForDeletion ? 2 : 1,
           ),
-          const SizedBox(width: 4),
-          Text(
-            'Dates are unassigned by default',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  _getTransitIcon(transit.transitOption),
+                  size: 18,
                   color: isLightTheme ? AppColors.info : AppColors.infoLight,
                 ),
-          ),
-        ],
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${transit.departureLocation?.toString() ?? 'Unknown'} → ${transit.arrivalLocation?.toString() ?? 'Unknown'}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          decoration: isMarkedForDeletion
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                _buildActionToggle(context, item),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _buildOriginalDatesInfo(context, item.entity),
+            if (!isMarkedForDeletion) ...[
+              const SizedBox(height: 12),
+              _buildDateTimeRow(
+                context: context,
+                label: 'Departure',
+                icon: Icons.flight_takeoff_rounded,
+                dateTime: transit.departureDateTime,
+                onChanged: (newDateTime) {
+                  setState(() {
+                    transit.departureDateTime = newDateTime;
+                  });
+                  widget.onChanged();
+                },
+              ),
+              const SizedBox(height: 8),
+              _buildDateTimeRow(
+                context: context,
+                label: 'Arrival',
+                icon: Icons.flight_land_rounded,
+                dateTime: transit.arrivalDateTime,
+                onChanged: (newDateTime) {
+                  setState(() {
+                    transit.arrivalDateTime = newDateTime;
+                  });
+                  widget.onChanged();
+                },
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      transit.departureDateTime = null;
+                      transit.arrivalDateTime = null;
+                    });
+                    widget.onChanged();
+                  },
+                  icon: Icon(
+                    Icons.clear_rounded,
+                    size: 16,
+                    color: isLightTheme
+                        ? AppColors.warning
+                        : AppColors.warningLight,
+                  ),
+                  label: Text(
+                    'Clear dates',
+                    style: TextStyle(
+                      color: isLightTheme
+                          ? AppColors.warning
+                          : AppColors.warningLight,
+                    ),
+                  ),
+                ),
+              ),
+            ] else ...[
+              const SizedBox(height: 8),
+              Center(
+                child: Text(
+                  'This transit will be deleted',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: isLightTheme
+                            ? AppColors.error
+                            : AppColors.errorLight,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildActionToggle(
+      BuildContext context, AffectedEntityItem<TransitFacade> item) {
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final isMarkedForDeletion = item.isMarkedForDeletion;
+
+    return IconButton(
+      icon: Icon(
+        isMarkedForDeletion ? Icons.restore : Icons.delete_outline,
+        color: isMarkedForDeletion
+            ? (isLightTheme ? AppColors.success : AppColors.successLight)
+            : (isLightTheme ? AppColors.error : AppColors.errorLight),
+      ),
+      tooltip: isMarkedForDeletion ? 'Restore' : 'Delete',
+      onPressed: () {
+        setState(() {
+          item.action = isMarkedForDeletion
+              ? AffectedEntityAction.update
+              : AffectedEntityAction.delete;
+        });
+        widget.onChanged();
+      },
     );
   }
 
