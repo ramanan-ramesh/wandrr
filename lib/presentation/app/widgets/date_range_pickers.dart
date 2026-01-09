@@ -38,6 +38,20 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
   }
 
   @override
+  void didUpdateWidget(covariant PlatformDateRangePicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final newStartDate = widget.startDate;
+    final newEndDate = widget.endDate;
+    if (oldWidget.startDate != newStartDate ||
+        oldWidget.endDate != newEndDate) {
+      setState(() {
+        _startDate = newStartDate;
+        _endDate = newEndDate;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isBigLayout = context.isBigLayout;
     var startDateText = _startDate?.dayDateMonthFormat ?? '';

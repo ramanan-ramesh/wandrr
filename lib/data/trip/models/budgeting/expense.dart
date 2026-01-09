@@ -4,17 +4,9 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'expense_category.dart';
 import 'money.dart';
 
-class ExpenseFacade extends Equatable
-    implements ExpenseLinkedTripEntity<ExpenseFacade> {
-  String tripId;
-
-  String title;
-
+/// Data holder for expense details.
+class ExpenseFacade extends Equatable {
   String? description;
-
-  @override
-  String? id;
-
   String currency;
 
   Money get totalExpense {
@@ -25,86 +17,109 @@ class ExpenseFacade extends Equatable
     return Money(amount: total, currency: currency);
   }
 
-  ExpenseCategory category;
-
   Map<String, double> paidBy;
-
   List<String> splitBy;
-
   DateTime? dateTime;
 
   ExpenseFacade(
-      {required this.tripId,
-      required this.title,
-      required this.currency,
-      required this.category,
+      {required this.currency,
       required this.paidBy,
       required this.splitBy,
       this.description,
-      this.id,
       this.dateTime});
 
   ExpenseFacade.newUiEntry(
-      {required this.tripId,
-      required Iterable<String> allTripContributors,
+      {required Iterable<String> allTripContributors,
       required String defaultCurrency,
       ExpenseCategory? category})
-      : title = '',
-        currency = defaultCurrency,
-        category = category ?? ExpenseCategory.other,
+      : currency = defaultCurrency,
         paidBy = Map.fromIterables(
             allTripContributors, List.filled(allTripContributors.length, 0)),
         splitBy = allTripContributors.toList();
 
-  @override
   ExpenseFacade clone() => ExpenseFacade(
-      tripId: tripId,
-      title: title,
       description: description,
-      id: id,
       currency: currency,
-      category: category,
-      paidBy: paidBy,
-      splitBy: splitBy,
-      dateTime: dateTime);
+      paidBy: Map.from(paidBy),
+      splitBy: List.from(splitBy),
+      dateTime: dateTime == null
+          ? null
+          : DateTime(dateTime!.year, dateTime!.month, dateTime!.day));
 
   void copyWith(ExpenseFacade expenseModelFacade) {
-    tripId = expenseModelFacade.tripId;
-    title = expenseModelFacade.title;
     description = expenseModelFacade.description;
-    id = expenseModelFacade.id;
     currency = expenseModelFacade.currency;
-    category = expenseModelFacade.category;
-    paidBy = expenseModelFacade.paidBy;
-    splitBy = expenseModelFacade.splitBy;
-    dateTime = DateTime(expenseModelFacade.dateTime!.year,
-        expenseModelFacade.dateTime!.month, expenseModelFacade.dateTime!.day);
+    paidBy = Map.from(expenseModelFacade.paidBy);
+    splitBy = List.from(expenseModelFacade.splitBy);
+    dateTime = expenseModelFacade.dateTime == null
+        ? null
+        : DateTime(
+            expenseModelFacade.dateTime!.year,
+            expenseModelFacade.dateTime!.month,
+            expenseModelFacade.dateTime!.day);
   }
 
-  //TODO: How to validate that title is not empty for pure expenses, and ensure that title for Transits/Stays/Sights are generated each time and not copied to DB/open to updation, and also passing validity API
-  @override
   bool validate() {
     return paidBy.isNotEmpty && splitBy.isNotEmpty;
   }
 
   @override
-  ExpenseFacade get expense => this;
+  List<Object?> get props => [description, currency, paidBy, splitBy, dateTime];
+}
+
+/// Interface for trip entities that carry an attached expense (facade).
+abstract class ExpenseBearingTripEntity<T> implements TripEntity<T> {
+  /// The facade data for the expense attached to this trip entity
+  ExpenseFacade expense;
+
+  String title;
+
+  ExpenseCategory category;
+
+  ExpenseBearingTripEntity(
+      {required this.expense,
+      this.category = ExpenseCategory.other,
+      this.title = ''});
+}
+
+class StandaloneExpense extends Equatable
+    implements ExpenseBearingTripEntity<StandaloneExpense> {
+  String tripId;
 
   @override
-  set expense(ExpenseFacade expense) {
-    copyWith(expense);
+  ExpenseFacade expense;
+
+  @override
+  String? id;
+
+  @override
+  String title;
+
+  @override
+  ExpenseCategory category;
+
+  StandaloneExpense(
+      {required this.tripId,
+      required this.expense,
+      this.category = ExpenseCategory.other,
+      this.id,
+      this.title = ''});
+
+  @override
+  StandaloneExpense clone() {
+    return StandaloneExpense(
+        tripId: tripId,
+        title: title,
+        category: category,
+        expense: expense.clone(),
+        id: id);
   }
 
   @override
-  List<Object?> get props => [
-        tripId,
-        title,
-        description,
-        id,
-        currency,
-        category,
-        paidBy,
-        splitBy,
-        dateTime
-      ];
+  List<Object?> get props => [expense, id];
+
+  @override
+  bool validate() {
+    return expense.validate();
+  }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/states.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/tab_bar.dart';
 
@@ -30,7 +30,7 @@ class BudgetBreakdownTile extends StatelessWidget {
         );
       },
       buildWhen: (previousState, currentState) {
-        return currentState.isTripEntityUpdated<ExpenseLinkedTripEntity>();
+        return currentState.isTripEntityUpdated<ExpenseBearingTripEntity>();
       },
       listener: (BuildContext context, TripManagementState state) {},
     );

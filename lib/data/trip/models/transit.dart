@@ -2,13 +2,12 @@ import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 import 'budgeting/expense_category.dart';
 
 // ignore: must_be_immutable
 class TransitFacade extends Equatable
-    implements ExpenseLinkedTripEntity<TransitFacade> {
+    implements ExpenseBearingTripEntity<TransitFacade> {
   final String tripId;
 
   @override
@@ -33,6 +32,18 @@ class TransitFacade extends Equatable
   @override
   ExpenseFacade expense;
 
+  @override
+  ExpenseCategory get category => getExpenseCategory(transitOption);
+
+  @override
+  set category(ExpenseCategory value) {}
+
+  @override
+  String get title => toString();
+
+  @override
+  set title(String value) {}
+
   TransitFacade(
       {required this.tripId,
       required this.transitOption,
@@ -55,10 +66,7 @@ class TransitFacade extends Equatable
       String? notes})
       : notes = notes ?? '',
         expense = ExpenseFacade(
-            tripId: tripId,
-            title: '',
             currency: defaultCurrency,
-            category: getExpenseCategory(transitOption),
             paidBy: Map.fromIterables(allTripContributors,
                 List.filled(allTripContributors.length, 0)),
             splitBy: allTripContributors.toList());

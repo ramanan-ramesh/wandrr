@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
@@ -41,13 +40,9 @@ class _TransitOptionPickerState extends State<TransitOptionPicker> {
   @override
   void didUpdateWidget(covariant TransitOptionPicker oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!listEquals(widget.options.toList(), oldWidget.options.toList())) {
+    if (_selectedValue != widget.initialTransitOption) {
       setState(() {
-        transitOptionMetadatas = widget.options.toList();
-        if (!transitOptionMetadatas
-            .any((m) => m.transitOption == _selectedValue)) {
-          _selectedValue = transitOptionMetadatas.first.transitOption;
-        }
+        _selectedValue = widget.initialTransitOption;
       });
     }
   }

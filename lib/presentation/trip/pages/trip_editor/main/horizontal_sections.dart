@@ -30,6 +30,7 @@ class HorizontalSectionsList extends StatelessWidget {
       height: 80,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
+        reverse: true,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         itemCount: sections.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),

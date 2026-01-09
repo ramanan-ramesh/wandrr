@@ -118,7 +118,7 @@ class _TravelEditorState extends State<TravelEditor>
     setState(() {
       _clearOperatorIfNotNeeded(newOption);
       _clearFlightDataIfSwitchingFromFlight(newOption);
-      _updateTransitOption(newOption);
+      _transitFacade.transitOption = newOption;
     });
     widget.onTransitUpdated();
   }
@@ -147,12 +147,6 @@ class _TravelEditorState extends State<TravelEditor>
       _transitFacade.arrivalLocation = null;
       _transitFacade.departureLocation = null;
     }
-  }
-
-  void _updateTransitOption(TransitOption newOption) {
-    _transitFacade.transitOption = newOption;
-    _transitFacade.expense.category =
-        TransitFacade.getExpenseCategory(newOption);
   }
 
   Widget _buildOperatorSection() {

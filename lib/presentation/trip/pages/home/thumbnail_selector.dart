@@ -66,27 +66,21 @@ class _TripThumbnailCarouselSelectorState
   @override
   void initState() {
     super.initState();
-    _selectedTag = widget.selectedThumbnailTag;
-
-    var initialIndex = thumbnails
-        .indexWhere((img) => img.fileName == widget.selectedThumbnailTag);
-    if (initialIndex < 0) {
-      if (thumbnails.isNotEmpty) {
-        _selectedTag = thumbnails.first.fileName;
-        initialIndex = 0;
-      }
-    }
-
-    _pageController = PageController(
-      initialPage: initialIndex,
-      viewportFraction: context.viewportFraction,
-    );
+    _initializeSelectionAndController();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant TripThumbnailCarouselSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedThumbnailTag != widget.selectedThumbnailTag) {
+      _initializeSelectionAndController();
+    }
   }
 
   @override
@@ -123,6 +117,24 @@ class _TripThumbnailCarouselSelectorState
           );
         },
       ),
+    );
+  }
+
+  void _initializeSelectionAndController() {
+    _selectedTag = widget.selectedThumbnailTag;
+
+    var initialIndex = thumbnails
+        .indexWhere((img) => img.fileName == widget.selectedThumbnailTag);
+    if (initialIndex < 0) {
+      if (thumbnails.isNotEmpty) {
+        _selectedTag = thumbnails.first.fileName;
+        initialIndex = 0;
+      }
+    }
+
+    _pageController = PageController(
+      initialPage: initialIndex,
+      viewportFraction: context.viewportFraction,
     );
   }
 

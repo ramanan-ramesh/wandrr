@@ -49,9 +49,7 @@ class SightModelImplementation extends SightFacade
       location: location,
       visitTime: visitTime,
       expense: ExpenseModelImplementation.fromJson(
-        json: json[_expenseField] as Map<String, dynamic>,
-        tripId: tripId,
-      ),
+          json[_expenseField] as Map<String, dynamic>),
       description: json[_descriptionField] as String?,
     );
   }
@@ -64,17 +62,13 @@ class SightModelImplementation extends SightFacade
       if (visitTime != null)
         _visitTimeField:
             visitTime != null ? Timestamp.fromDate(visitTime!) : null,
-      _expenseField: (expense as ExpenseModelImplementation).toJson(),
+      _expenseField: (expense as StandaloneExpenseModelImplementation).toJson(),
       if (description != null) _descriptionField: description,
     };
   }
 
   @override
   SightFacade get facade => this;
-
-  @override
-  DocumentReference<Object?> get documentReference =>
-      throw UnimplementedError();
 
   SightModelImplementation._({
     required super.tripId,

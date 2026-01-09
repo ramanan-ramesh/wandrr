@@ -35,10 +35,6 @@ class LocationModelImplementation extends LocationFacade
   }
 
   @override
-  DocumentReference<Object?> get documentReference =>
-      throw UnimplementedError();
-
-  @override
   Map<String, dynamic> toJson() {
     var geoPoint = GeoPoint(latitude, longitude);
     return {

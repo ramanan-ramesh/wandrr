@@ -23,28 +23,28 @@ class FirestoreModelCollection<Model>
   /// [query] - Optional query to filter the collection
   static Future<ModelCollectionModifier<Model>> createInstance<Model>(
       CollectionReference collectionReference,
-      LeafRepositoryItem<Model> Function(DocumentSnapshot documentSnapshot)
+      RepositoryDocument<Model> Function(DocumentSnapshot documentSnapshot)
           fromDocumentSnapshot,
-      LeafRepositoryItem<Model> Function(Model) leafRepositoryItemCreator,
+      RepositoryDocument<Model> Function(Model) leafRepositoryItemCreator,
       {Query? query}) async {
     // Create typed converter for Firestore
     final typedCollectionReference =
-        collectionReference.withConverter<LeafRepositoryItem<Model>>(
+        collectionReference.withConverter<RepositoryDocument<Model>>(
       fromFirestore: (snapshot, _) => fromDocumentSnapshot(snapshot),
       toFirestore: (item, _) => item.toJson(),
     );
 
     // Apply query with converter if provided
-    Query<LeafRepositoryItem<Model>>? typedQuery;
+    Query<RepositoryDocument<Model>>? typedQuery;
     if (query != null) {
-      typedQuery = query.withConverter<LeafRepositoryItem<Model>>(
+      typedQuery = query.withConverter<RepositoryDocument<Model>>(
         fromFirestore: (snapshot, _) => fromDocumentSnapshot(snapshot),
         toFirestore: (item, _) => item.toJson(),
       );
     }
 
     // Load initial collection items
-    var collectionItems = <LeafRepositoryItem<Model>>[];
+    var collectionItems = <RepositoryDocument<Model>>[];
     var queryResult = await (typedQuery ?? typedCollectionReference).get();
     for (final documentSnapshot in queryResult.docs) {
       collectionItems.add(documentSnapshot.data());
@@ -61,7 +61,7 @@ class FirestoreModelCollection<Model>
   @override
   Iterable<Model> get collectionItems =>
       _collectionItems.map((collectionItem) => collectionItem.facade);
-  final List<LeafRepositoryItem<Model>> _collectionItems;
+  final List<RepositoryDocument<Model>> _collectionItems;
 
   @override
   Future dispose() async {
@@ -96,7 +96,7 @@ class FirestoreModelCollection<Model>
               CollectionItemChangeSet<Model>>>.broadcast();
 
   @override
-  LeafRepositoryItem<Model> Function(Model model) repositoryItemCreator;
+  RepositoryDocument<Model> Function(Model model) repositoryItemCreator;
 
   @override
   Future<void> runUpdateTransaction(
@@ -110,7 +110,7 @@ class FirestoreModelCollection<Model>
 
   @override
   Future<Model?> tryAdd(Model toAdd) async {
-    LeafRepositoryItem<Model>? addedCollectionItem;
+    RepositoryDocument<Model>? addedCollectionItem;
 
     await runUpdateTransaction(() async {
       var leafRepositoryItem = repositoryItemCreator(toAdd);
@@ -178,7 +178,7 @@ class FirestoreModelCollection<Model>
   }
 
   void _onCollectionDataUpdate(
-      List<DocumentChange<LeafRepositoryItem<Model>>> documentChanges) {
+      List<DocumentChange<RepositoryDocument<Model>>> documentChanges) {
     if (!_shouldListenToUpdates || documentChanges.isEmpty) {
       return;
     }
@@ -236,7 +236,7 @@ class FirestoreModelCollection<Model>
     }
   }
 
-  FutureOr<bool> _tryDeleteCollectionItem(LeafRepositoryItem toDelete) async {
+  FutureOr<bool> _tryDeleteCollectionItem(RepositoryDocument toDelete) async {
     var didDelete = false;
     await toDelete.documentReference.delete().onError((error, stackTrace) {
       didDelete = false;
@@ -249,10 +249,10 @@ class FirestoreModelCollection<Model>
 
   FirestoreModelCollection._({
     required this.repositoryItemCreator,
-    required CollectionReference<LeafRepositoryItem<Model>>
+    required CollectionReference<RepositoryDocument<Model>>
         typedCollectionReference,
-    required Query<LeafRepositoryItem<Model>>? typedQuery,
-    required List<LeafRepositoryItem<Model>> collectionItems,
+    required Query<RepositoryDocument<Model>>? typedQuery,
+    required List<RepositoryDocument<Model>> collectionItems,
   })  : _typedCollectionReference = typedCollectionReference,
         _collectionItems = collectionItems {
     _shouldListenToUpdates = false;

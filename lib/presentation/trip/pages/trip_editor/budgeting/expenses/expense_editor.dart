@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/date_picker.dart';
@@ -11,7 +10,7 @@ import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edi
 import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
 
 class ExpenseEditor extends StatelessWidget {
-  final ExpenseLinkedTripEntity expenseLinkedTripEntity;
+  final ExpenseBearingTripEntity expenseBearingTripEntity;
   final VoidCallback onExpenseUpdated;
   final Map<ExpenseCategory, String> _categoryNames = {};
   final TextEditingController _descriptionFieldController =
@@ -24,20 +23,18 @@ class ExpenseEditor extends StatelessWidget {
   static const double _kSectionSpacingLarge = 16.0;
   static const double _kSectionSpacingSmall = 12.0;
 
-  ExpenseFacade get _expense => expenseLinkedTripEntity.expense;
+  ExpenseFacade get _expense => expenseBearingTripEntity.expense;
 
   ExpenseEditor({
     super.key,
-    required this.expenseLinkedTripEntity,
+    required this.expenseBearingTripEntity,
     required this.onExpenseUpdated,
   });
 
   @override
   Widget build(BuildContext context) {
     _descriptionFieldController.text = _expense.description ?? '';
-    _titleEditingController.text = expenseLinkedTripEntity is! ExpenseFacade
-        ? expenseLinkedTripEntity.toString()
-        : _expense.title;
+    _titleEditingController.text = expenseBearingTripEntity.title;
     _initializeCategoryNames(context);
     return context.isBigLayout
         ? _buildBigLayout(context)
@@ -103,10 +100,10 @@ class ExpenseEditor extends StatelessWidget {
             ),
             child: _CategoryPicker(
               callback: (category) {
-                _expense.category = category;
+                expenseBearingTripEntity.category = category;
                 onExpenseUpdated();
               },
-              category: _expense.category,
+              category: expenseBearingTripEntity.category,
               categories: _categoryNames,
             ),
           ),
@@ -225,12 +222,12 @@ class ExpenseEditor extends StatelessWidget {
   }
 
   Widget _buildTitleField(BuildContext context) {
-    final isEditable = expenseLinkedTripEntity is ExpenseFacade;
+    final isEditable = expenseBearingTripEntity is StandaloneExpense;
     return TextField(
       controller: _titleEditingController,
       onChanged: isEditable
           ? (newTitle) {
-              _expense.title = newTitle;
+              expenseBearingTripEntity.title = newTitle;
               onExpenseUpdated();
             }
           : null,
@@ -265,6 +262,16 @@ class _CategoryPickerState extends State<_CategoryPicker> {
   void initState() {
     super.initState();
     _category = widget.category;
+  }
+
+  @override
+  void didUpdateWidget(covariant _CategoryPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.category != widget.category) {
+      setState(() {
+        _category = widget.category;
+      });
+    }
   }
 
   @override

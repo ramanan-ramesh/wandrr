@@ -8,7 +8,7 @@ import 'budgeting/expense.dart';
 
 // ignore: must_be_immutable
 class LodgingModelImplementation extends LodgingFacade
-    implements LeafRepositoryItem<LodgingFacade> {
+    implements RepositoryDocument<LodgingFacade> {
   static const _locationField = 'location';
   static const _confirmationIdField = 'confirmationId';
   static const _expenseField = 'expense';
@@ -46,8 +46,7 @@ class LodgingModelImplementation extends LodgingFacade
             json: documentData[_locationField]),
         notes: documentData[_notesField],
         expense: ExpenseModelImplementation.fromJson(
-            tripId: tripId,
-            json: documentData[_expenseField] as Map<String, dynamic>),
+            documentData[_expenseField] as Map<String, dynamic>),
         confirmationId: documentData[_confirmationIdField]);
   }
 

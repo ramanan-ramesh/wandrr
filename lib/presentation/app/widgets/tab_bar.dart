@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'card.dart';
@@ -26,6 +27,17 @@ class _PlatformTabBarState extends State<PlatformTabBar>
     super.initState();
     _tabController = widget.tabController ??
         TabController(length: widget.tabBarItems.length, vsync: this);
+  }
+
+  @override
+  void didUpdateWidget(covariant PlatformTabBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!mapEquals(oldWidget.tabBarItems, widget.tabBarItems)) {
+      setState(() {
+        _tabController = widget.tabController ??
+            TabController(length: widget.tabBarItems.length, vsync: this);
+      });
+    }
   }
 
   @override

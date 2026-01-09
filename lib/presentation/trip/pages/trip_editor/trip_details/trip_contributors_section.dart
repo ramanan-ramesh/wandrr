@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
@@ -60,6 +61,17 @@ class _TripContributorsEditorSectionState
   void dispose() {
     _contributorController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant TripContributorsEditorSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!listEquals(
+        oldWidget.contributors.toList(), widget.contributors.toList())) {
+      setState(() {
+        _contributors = List.from(widget.contributors);
+      });
+    }
   }
 
   @override
