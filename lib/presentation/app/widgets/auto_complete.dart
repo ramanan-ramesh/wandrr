@@ -68,6 +68,16 @@ class _PlatformAutoCompleteState<T extends Object>
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(covariant PlatformAutoComplete<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedItem != widget.selectedItem) {
+      setState(() {
+        _internalSelectedItem = widget.selectedItem;
+      });
+    }
+  }
+
   Future<Iterable<T>> _debouncedOptionsBuilder(
       TextEditingValue textEditingValue) async {
     final String query = textEditingValue.text;

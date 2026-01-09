@@ -107,7 +107,12 @@ class StandaloneExpense extends Equatable
 
   @override
   StandaloneExpense clone() {
-    return StandaloneExpense(tripId: tripId, expense: expense.clone(), id: id);
+    return StandaloneExpense(
+        tripId: tripId,
+        title: title,
+        category: category,
+        expense: expense.clone(),
+        id: id);
   }
 
   @override

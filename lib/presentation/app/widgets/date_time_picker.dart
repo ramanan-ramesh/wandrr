@@ -33,6 +33,16 @@ class _PlatformDateTimePickerState extends State<PlatformDateTimePicker> {
   }
 
   @override
+  void didUpdateWidget(covariant PlatformDateTimePicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentDateTime != widget.currentDateTime) {
+      setState(() {
+        _dateTime = widget.currentDateTime;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isLightTheme = context.isLightTheme;
     var placeHolderString = context.localizations.dateTimeSelection;

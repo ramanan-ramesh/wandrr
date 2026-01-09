@@ -112,18 +112,6 @@ class StandaloneExpenseModelImplementation extends StandaloneExpense
     };
   }
 
-  static StandaloneExpenseModelImplementation fromJson(
-      {required String tripId, required Map<String, dynamic> json}) {
-    var category = ExpenseCategory.values
-        .firstWhere((element) => json[_categoryField] == element.name);
-
-    return StandaloneExpenseModelImplementation._(
-        tripId: tripId,
-        category: category,
-        title: json[_titleField] ?? '',
-        expense: ExpenseModelImplementation.fromJson(json));
-  }
-
   @override
   StandaloneExpense get facade => clone();
 

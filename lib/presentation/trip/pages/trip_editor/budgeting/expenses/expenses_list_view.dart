@@ -344,6 +344,17 @@ class _ExpenseListItemState extends State<_ExpenseListItem> {
   }
 
   @override
+  void didUpdateWidget(covariant _ExpenseListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialExpenseBearingTripEntity !=
+        widget.initialExpenseBearingTripEntity) {
+      setState(() {
+        _expenseBearingTripEntity = widget.initialExpenseBearingTripEntity;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => context.addTripManagementEvent(

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip/events.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 
@@ -32,36 +36,47 @@ class ReadonlyExpenseListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(_kOuterPadding),
-      child: Row(
-        children: [
-          SizedBox(
-            width: _kIconColumnWidth,
-            child: Padding(
-              padding: const EdgeInsets.only(right: 3.0),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: IconButton(
-                  onPressed: null,
-                  icon: Icon(
-                      iconsForCategories[expenseBearingTripEntity.category]),
+    return IntrinsicHeight(
+      child: Padding(
+        padding: const EdgeInsets.all(_kOuterPadding),
+        child: Row(
+          children: [
+            SizedBox(
+              width: _kIconColumnWidth,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 3.0),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: IconButton(
+                    onPressed: null,
+                    icon: Icon(
+                        iconsForCategories[expenseBearingTripEntity.category]),
+                  ),
                 ),
               ),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 3.0),
-              child: _buildTitleSubtitle(context),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                child: _buildTitleSubtitle(context),
+              ),
             ),
-          ),
-          ExpenditureEditTile(
-            expenseFacade: _expense,
-            isEditable: false,
-            callback: null,
-          ),
-        ],
+            Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                if (expenseBearingTripEntity is StandaloneExpense)
+                  _DeleteButton(
+                      standaloneExpense:
+                          expenseBearingTripEntity as StandaloneExpense),
+                ExpenditureEditTile(
+                  expenseFacade: _expense,
+                  isEditable: false,
+                  callback: null,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -92,6 +107,55 @@ class ReadonlyExpenseListItem extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+
+  Widget _createTitleWidget(BuildContext context) {
+    if (expenseBearingTripEntity is StandaloneExpense) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          PlatformTextElements.createSubHeader(
+            context: context,
+            text: expenseBearingTripEntity.title,
+          ),
+          _DeleteButton(
+              standaloneExpense: expenseBearingTripEntity as StandaloneExpense)
+        ],
+      );
+    } else
+      return PlatformTextElements.createSubHeader(
+        context: context,
+        text: expenseBearingTripEntity.title,
+      );
+  }
+}
+
+/// Delete button for event
+class _DeleteButton extends StatelessWidget {
+  final StandaloneExpense standaloneExpense;
+
+  const _DeleteButton({required this.standaloneExpense});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.addTripManagementEvent(
+          UpdateTripEntity.delete(tripEntity: standaloneExpense)),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: context.isLightTheme
+              ? AppColors.error.withValues(alpha: 0.1)
+              : AppColors.error.withValues(alpha: 0.2),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          Icons.delete_outline,
+          size: 18,
+          color: AppColors.error,
+        ),
+      ),
     );
   }
 }

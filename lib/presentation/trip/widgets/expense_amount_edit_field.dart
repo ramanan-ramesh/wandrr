@@ -36,12 +36,10 @@ class _PlatformExpenseAmountEditFieldState
   late TextEditingController _controller;
   late FocusNode _focusNode;
   String? _amount;
-  bool _isExternalController = false;
 
   @override
   void initState() {
     super.initState();
-    _isExternalController = widget.controller != null;
     _controller = widget.controller ??
         TextEditingController(
             text: widget.amount != null
@@ -53,8 +51,7 @@ class _PlatformExpenseAmountEditFieldState
   @override
   void didUpdateWidget(covariant PlatformExpenseAmountEditField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Only update text if we're using internal controller and amount changed
-    if (!_isExternalController && widget.amount != _amount) {
+    if (widget.amount != _amount) {
       _amount = widget.amount;
       _controller.text = (widget.amount != null
           ? (double.parse(widget.amount!) == 0 ? '0' : widget.amount)
@@ -65,7 +62,7 @@ class _PlatformExpenseAmountEditFieldState
   @override
   void dispose() {
     // Only dispose if we created them internally
-    if (!_isExternalController) {
+    if (widget.controller == null) {
       _controller.dispose();
     }
     if (widget.focusNode == null) {

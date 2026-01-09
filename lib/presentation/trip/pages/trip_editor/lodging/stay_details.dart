@@ -27,10 +27,12 @@ class _StayDetailsState extends State<StayDetails> {
     _updateCityName();
   }
 
-  void _updateCityName() {
-    setState(() {
-      _cityName = widget.lodging.location?.context.city;
-    });
+  @override
+  void didUpdateWidget(covariant StayDetails oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.lodging.location != oldWidget.lodging.location) {
+      setState(_updateCityName);
+    }
   }
 
   @override
@@ -47,6 +49,12 @@ class _StayDetailsState extends State<StayDetails> {
         ],
       ),
     );
+  }
+
+  void _updateCityName() {
+    setState(() {
+      _cityName = widget.lodging.location?.context.city;
+    });
   }
 
   Widget _buildStayAtHeader(BuildContext context, bool isLightTheme) {

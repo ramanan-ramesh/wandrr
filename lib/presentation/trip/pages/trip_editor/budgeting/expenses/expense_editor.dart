@@ -265,6 +265,16 @@ class _CategoryPickerState extends State<_CategoryPicker> {
   }
 
   @override
+  void didUpdateWidget(covariant _CategoryPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.category != widget.category) {
+      setState(() {
+        _category = widget.category;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return DropdownButton<ExpenseCategory>(
       value: _category,
