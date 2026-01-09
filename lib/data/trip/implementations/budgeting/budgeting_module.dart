@@ -20,7 +20,6 @@ import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 //TODO: BudgetingModule must have an API updateTripMetadata or listen to metadata updates, rather than individually listening to TripDates/Contributors changed/Currency changes
 /// Manages budgeting functionality for a trip including expenses, debts, and aggregations

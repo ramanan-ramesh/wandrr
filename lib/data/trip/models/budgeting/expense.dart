@@ -4,9 +4,7 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'expense_category.dart';
 import 'money.dart';
 
-/// Data holder for expense details. This used to be the main class; we
-/// moved properties here into `ExpenseFacade` and created `Expense` as the
-/// trip-entity wrapper.
+/// Data holder for expense details.
 class ExpenseFacade extends Equatable {
   String? description;
   String currency;

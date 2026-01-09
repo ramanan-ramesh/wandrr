@@ -1,5 +1,4 @@
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 /// Handles sorting of expense-linked trip entities
 class ExpenseSorter {

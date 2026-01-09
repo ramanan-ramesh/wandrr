@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/date_picker.dart';
@@ -35,9 +34,7 @@ class ExpenseEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     _descriptionFieldController.text = _expense.description ?? '';
-    _titleEditingController.text = expenseBearingTripEntity is! ExpenseFacade
-        ? expenseBearingTripEntity.toString()
-        : expenseBearingTripEntity.title;
+    _titleEditingController.text = expenseBearingTripEntity.title;
     _initializeCategoryNames(context);
     return context.isBigLayout
         ? _buildBigLayout(context)

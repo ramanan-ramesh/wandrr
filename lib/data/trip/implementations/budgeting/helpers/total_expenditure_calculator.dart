@@ -3,8 +3,10 @@ import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
+import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 /// Calculates total expenditure from all expense sources
 class TotalExpenditureCalculator {
@@ -26,89 +28,47 @@ class TotalExpenditureCalculator {
     final expensesToConsider = <ExpenseFacade>[];
 
     // Collect transit expenses
-    _collectTransitExpenses(
-      transits,
+    expensesToConsider.addAll(_collectExpenses<TransitFacade>(
+      transits.collectionItems,
       currentUserName,
       transitsToExclude,
-      expensesToConsider,
-    );
+    ));
 
     // Collect lodging expenses
-    _collectLodgingExpenses(
-      lodgings,
+    expensesToConsider.addAll(_collectExpenses<LodgingFacade>(
+      lodgings.collectionItems,
       currentUserName,
       lodgingsToExclude,
-      expensesToConsider,
-    );
+    ));
 
     // Collect standalone expenses
-    _collectStandaloneExpenses(
-      expenses,
+    expensesToConsider.addAll(_collectExpenses<StandaloneExpense>(
+      expenses.collectionItems,
       currentUserName,
-      expensesToConsider,
-    );
+      [],
+    ));
 
     // Collect sight expenses from itineraries
-    _collectSightExpenses(
-      itineraries,
+    expensesToConsider.addAll(_collectExpenses<SightFacade>(
+      itineraries.expand((itinerary) => itinerary.planData.sights),
       currentUserName,
-      expensesToConsider,
-    );
+      [],
+    ));
 
     return _sumExpenses(expensesToConsider, defaultCurrency);
   }
 
-  void _collectTransitExpenses(
-    ModelCollectionFacade<TransitFacade> transits,
+  Iterable<ExpenseFacade> _collectExpenses<T extends TripEntity>(
+    Iterable<ExpenseBearingTripEntity<T>> expenseBearingTripEntities,
     String currentUserName,
-    Iterable<TransitFacade> transitsToExclude,
-    List<ExpenseFacade> expensesToConsider,
-  ) {
-    for (final transit in transits.collectionItems) {
-      if (!transitsToExclude.any((e) => e.id == transit.id)) {
-        if (transit.expense.splitBy.contains(currentUserName)) {
-          expensesToConsider.add(transit.expense);
-        }
-      }
-    }
-  }
-
-  void _collectLodgingExpenses(
-    ModelCollectionFacade<LodgingFacade> lodgings,
-    String currentUserName,
-    Iterable<LodgingFacade> lodgingsToExclude,
-    List<ExpenseFacade> expensesToConsider,
-  ) {
-    for (final lodging in lodgings.collectionItems) {
-      if (!lodgingsToExclude.any((e) => e.id == lodging.id)) {
-        if (lodging.expense.splitBy.contains(currentUserName)) {
-          expensesToConsider.add(lodging.expense);
-        }
-      }
-    }
-  }
-
-  void _collectStandaloneExpenses(
-    ModelCollectionFacade<StandaloneExpense> expenses,
-    String currentUserName,
-    List<ExpenseFacade> expensesToConsider,
-  ) {
-    for (final expense in expenses.collectionItems) {
-      if (expense.expense.splitBy.contains(currentUserName)) {
-        expensesToConsider.add(expense.expense);
-      }
-    }
-  }
-
-  void _collectSightExpenses(
-    ItineraryFacadeCollectionEventHandler itineraries,
-    String currentUserName,
-    List<ExpenseFacade> expensesToConsider,
-  ) {
-    for (final itinerary in itineraries) {
-      for (final sight in itinerary.planData.sights) {
-        if (sight.expense.splitBy.contains(currentUserName)) {
-          expensesToConsider.add(sight.expense);
+    Iterable<ExpenseBearingTripEntity<T>> expenseBearingTripEntitiesToExclude,
+  ) sync* {
+    for (final expenseBearingTripEntity in expenseBearingTripEntities) {
+      if (!expenseBearingTripEntitiesToExclude
+          .any((e) => e.id == expenseBearingTripEntity.id)) {
+        if (expenseBearingTripEntity.expense.splitBy
+            .contains(currentUserName)) {
+          yield expenseBearingTripEntity.expense;
         }
       }
     }

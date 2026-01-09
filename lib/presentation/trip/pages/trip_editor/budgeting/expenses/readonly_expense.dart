@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
@@ -76,9 +75,7 @@ class ReadonlyExpenseListItem extends StatelessWidget {
           padding: const EdgeInsets.all(_kInnerPadding),
           child: PlatformTextElements.createSubHeader(
             context: context,
-            text: expenseBearingTripEntity is ExpenseFacade
-                ? expenseBearingTripEntity.title
-                : expenseBearingTripEntity.toString(),
+            text: expenseBearingTripEntity.title,
           ),
         ),
         if (_subTitle.isNotEmpty)

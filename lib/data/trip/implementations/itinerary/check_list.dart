@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/leaf_repository_item.dart';
 import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/itinerary/check_list_item.dart';
@@ -34,10 +33,6 @@ class CheckListModelImplementation extends CheckListFacade
 
   @override
   String? id;
-
-  @override
-  DocumentReference<Object?> get documentReference =>
-      throw UnimplementedError();
 
   @override
   Map<String, dynamic> toJson() {
