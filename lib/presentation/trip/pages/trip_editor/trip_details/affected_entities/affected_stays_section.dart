@@ -11,6 +11,8 @@ class AffectedStaysSection extends StatefulWidget {
   final DateTime tripStartDate;
   final DateTime tripEndDate;
   final VoidCallback onChanged;
+  final void Function(LodgingFacade entity, bool isDeleted)?
+      onEntityDeletionChanged;
 
   const AffectedStaysSection({
     super.key,
@@ -18,6 +20,7 @@ class AffectedStaysSection extends StatefulWidget {
     required this.tripStartDate,
     required this.tripEndDate,
     required this.onChanged,
+    this.onEntityDeletionChanged,
   });
 
   @override
@@ -25,7 +28,7 @@ class AffectedStaysSection extends StatefulWidget {
 }
 
 class _AffectedStaysSectionState extends State<AffectedStaysSection> {
-  bool _isExpanded = true;
+  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -241,11 +244,13 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
           ),
           tooltip: isMarkedForDeletion ? 'Restore' : 'Delete',
           onPressed: () {
+            final newIsDeleted = !isMarkedForDeletion;
             setState(() {
-              item.action = isMarkedForDeletion
-                  ? AffectedEntityAction.update
-                  : AffectedEntityAction.delete;
+              item.action = newIsDeleted
+                  ? AffectedEntityAction.delete
+                  : AffectedEntityAction.update;
             });
+            widget.onEntityDeletionChanged?.call(item.entity, newIsDeleted);
             widget.onChanged();
           },
         ),

@@ -41,18 +41,30 @@ class _AffectedEntitiesEditorState extends State<AffectedEntitiesEditor> {
           tripStartDate: model.newMetadata.startDate!,
           tripEndDate: model.newMetadata.endDate!,
           onChanged: widget.onModelUpdated,
+          onEntityDeletionChanged: (entity, isDeleted) {
+            model.onExpenseBearingTripEntityDeletionChanged(entity, isDeleted);
+            setState(() {});
+          },
         ),
         AffectedTransitsSection(
           affectedTransits: model.affectedTransits,
           tripStartDate: model.newMetadata.startDate!,
           tripEndDate: model.newMetadata.endDate!,
           onChanged: widget.onModelUpdated,
+          onEntityDeletionChanged: (entity, isDeleted) {
+            model.onExpenseBearingTripEntityDeletionChanged(entity, isDeleted);
+            setState(() {});
+          },
         ),
         AffectedSightsSection(
           affectedSights: model.affectedSights,
           tripStartDate: model.newMetadata.startDate!,
           tripEndDate: model.newMetadata.endDate!,
           onChanged: widget.onModelUpdated,
+          onEntityDeletionChanged: (entity, isDeleted) {
+            model.onExpenseBearingTripEntityDeletionChanged(entity, isDeleted);
+            setState(() {});
+          },
         ),
         AffectedExpensesSection(
           allExpenses: model.allExpenses,

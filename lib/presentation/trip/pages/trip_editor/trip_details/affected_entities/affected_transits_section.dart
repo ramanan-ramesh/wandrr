@@ -11,6 +11,8 @@ class AffectedTransitsSection extends StatefulWidget {
   final DateTime tripStartDate;
   final DateTime tripEndDate;
   final VoidCallback onChanged;
+  final void Function(TransitFacade entity, bool isDeleted)?
+      onEntityDeletionChanged;
 
   const AffectedTransitsSection({
     super.key,
@@ -18,6 +20,7 @@ class AffectedTransitsSection extends StatefulWidget {
     required this.tripStartDate,
     required this.tripEndDate,
     required this.onChanged,
+    this.onEntityDeletionChanged,
   });
 
   @override
@@ -26,7 +29,7 @@ class AffectedTransitsSection extends StatefulWidget {
 }
 
 class _AffectedTransitsSectionState extends State<AffectedTransitsSection> {
-  bool _isExpanded = true;
+  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -263,11 +266,13 @@ class _AffectedTransitsSectionState extends State<AffectedTransitsSection> {
       ),
       tooltip: isMarkedForDeletion ? 'Restore' : 'Delete',
       onPressed: () {
+        final newIsDeleted = !isMarkedForDeletion;
         setState(() {
-          item.action = isMarkedForDeletion
-              ? AffectedEntityAction.update
-              : AffectedEntityAction.delete;
+          item.action = newIsDeleted
+              ? AffectedEntityAction.delete
+              : AffectedEntityAction.update;
         });
+        widget.onEntityDeletionChanged?.call(item.entity, newIsDeleted);
         widget.onChanged();
       },
     );

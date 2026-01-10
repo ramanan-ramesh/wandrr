@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/app/widgets/date_picker.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_model.dart';
 
@@ -11,6 +10,8 @@ class AffectedSightsSection extends StatefulWidget {
   final DateTime tripStartDate;
   final DateTime tripEndDate;
   final VoidCallback onChanged;
+  final void Function(SightFacade entity, bool isDeleted)?
+      onEntityDeletionChanged;
 
   const AffectedSightsSection({
     super.key,
@@ -18,6 +19,7 @@ class AffectedSightsSection extends StatefulWidget {
     required this.tripStartDate,
     required this.tripEndDate,
     required this.onChanged,
+    this.onEntityDeletionChanged,
   });
 
   @override
@@ -25,7 +27,7 @@ class AffectedSightsSection extends StatefulWidget {
 }
 
 class _AffectedSightsSectionState extends State<AffectedSightsSection> {
-  bool _isExpanded = true;
+  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -184,17 +186,9 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
             _buildOriginalDateInfo(context, item.entity),
             if (!isMarkedForDeletion) ...[
               const SizedBox(height: 12),
-              _buildDateRow(
-                context: context,
-                label: 'Visit Date',
-                date: sight.visitTime,
-                onChanged: (newDate) {
-                  setState(() {
-                    sight.visitTime = newDate;
-                  });
-                  widget.onChanged();
-                },
-              ),
+              _buildDayPicker(context, item),
+              const SizedBox(height: 8),
+              _buildTimePicker(context, sight),
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
@@ -213,7 +207,7 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
                         : AppColors.warningLight,
                   ),
                   label: Text(
-                    'Clear date',
+                    'Clear time',
                     style: TextStyle(
                       color: isLightTheme
                           ? AppColors.warning
@@ -256,11 +250,13 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
       ),
       tooltip: isMarkedForDeletion ? 'Restore' : 'Delete',
       onPressed: () {
+        final newIsDeleted = !isMarkedForDeletion;
         setState(() {
-          item.action = isMarkedForDeletion
-              ? AffectedEntityAction.update
-              : AffectedEntityAction.delete;
+          item.action = newIsDeleted
+              ? AffectedEntityAction.delete
+              : AffectedEntityAction.update;
         });
+        widget.onEntityDeletionChanged?.call(item.entity, newIsDeleted);
         widget.onChanged();
       },
     );
@@ -297,29 +293,107 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
     );
   }
 
-  Widget _buildDateRow({
-    required BuildContext context,
-    required String label,
-    required DateTime? date,
-    required Function(DateTime) onChanged,
-  }) {
+  Widget _buildDayPicker(
+      BuildContext context, AffectedEntityItem<SightFacade> item) {
+    final sight = item.modifiedEntity;
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+
+    // Generate list of available days within trip range
+    final days = <DateTime>[];
+    var current = widget.tripStartDate;
+    while (!current.isAfter(widget.tripEndDate)) {
+      days.add(current);
+      current = current.add(const Duration(days: 1));
+    }
+
+    return Row(
+      children: [
+        Icon(
+          Icons.calendar_month_rounded,
+          size: 18,
+          color: isLightTheme ? AppColors.success : AppColors.successLight,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'Day:',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const Spacer(),
+        DropdownButton<DateTime>(
+          value: days.any((d) => d.isOnSameDayAs(sight.day))
+              ? days.firstWhere((d) => d.isOnSameDayAs(sight.day))
+              : null,
+          hint: Text('Select day'),
+          items: days.map((day) {
+            return DropdownMenuItem<DateTime>(
+              value: day,
+              child: Text(day.dayDateMonthFormat),
+            );
+          }).toList(),
+          onChanged: (newDay) {
+            if (newDay != null) {
+              setState(() {
+                item.modifiedEntity = SightFacade(
+                    tripId: sight.tripId,
+                    name: sight.name,
+                    location: sight.location,
+                    day: newDay,
+                    expense: sight.expense);
+              });
+              widget.onChanged();
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimePicker(BuildContext context, SightFacade sight) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     return Row(
       children: [
         Icon(
-          Icons.calendar_today_rounded,
+          Icons.access_time_rounded,
           size: 18,
           color: isLightTheme ? Colors.grey.shade600 : Colors.grey.shade400,
         ),
         const SizedBox(width: 8),
         Text(
-          '$label:',
+          'Visit time:',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const Spacer(),
-        PlatformDatePicker(
-          selectedDate: date,
-          onDateSelected: onChanged,
+        TextButton(
+          onPressed: () async {
+            final time = await showTimePicker(
+              context: context,
+              initialTime: sight.visitTime != null
+                  ? TimeOfDay.fromDateTime(sight.visitTime!)
+                  : TimeOfDay.now(),
+            );
+            if (time != null) {
+              setState(() {
+                sight.visitTime = DateTime(
+                  sight.day.year,
+                  sight.day.month,
+                  sight.day.day,
+                  time.hour,
+                  time.minute,
+                );
+              });
+              widget.onChanged();
+            }
+          },
+          child: Text(
+            sight.visitTime != null
+                ? '${sight.visitTime!.hour.toString().padLeft(2, '0')}:${sight.visitTime!.minute.toString().padLeft(2, '0')}'
+                : 'Set time',
+            style: TextStyle(
+              color: isLightTheme
+                  ? AppColors.brandPrimary
+                  : AppColors.brandPrimaryLight,
+            ),
+          ),
         ),
       ],
     );

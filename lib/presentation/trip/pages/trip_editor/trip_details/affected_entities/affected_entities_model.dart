@@ -121,6 +121,19 @@ class AffectedEntitiesModel {
     return events;
   }
 
+  /// Syncs expense deletion state when an ExpenseBearingTripEntity is deleted/restored
+  void onExpenseBearingTripEntityDeletionChanged(
+      ExpenseBearingTripEntity entity, bool isDeleted) {
+    for (final expenseItem in allExpenses) {
+      if (expenseItem.entity.id == entity.id) {
+        expenseItem.action = isDeleted
+            ? AffectedEntityAction.delete
+            : AffectedEntityAction.update;
+        break;
+      }
+    }
+  }
+
   void _createSightUpdateEvent(AffectedEntityItem<SightFacade> sightItem,
       List<UpdateTripEntity> events) {
     var originalSight = sightItem.entity;

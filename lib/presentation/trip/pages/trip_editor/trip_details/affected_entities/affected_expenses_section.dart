@@ -24,7 +24,10 @@ class AffectedExpensesSection extends StatefulWidget {
 }
 
 class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
-  bool _isExpanded = true;
+  bool _isExpanded = false;
+
+  int get _activeExpenseCount =>
+      widget.allExpenses.where((e) => !e.isMarkedForDeletion).length;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +50,8 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
           EditorTheme.createSectionHeader(
             context,
             icon: Icons.receipt_long_rounded,
-            title: 'Expenses (${widget.allExpenses.length})',
+            title:
+                'Expenses (${_activeExpenseCount}/${widget.allExpenses.length})',
             iconColor:
                 isLightTheme ? AppColors.warning : AppColors.warningLight,
             trailing: IconButton(
