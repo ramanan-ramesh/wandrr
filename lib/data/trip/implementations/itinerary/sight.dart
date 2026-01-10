@@ -33,6 +33,7 @@ class SightModelImplementation extends SightFacade
   factory SightModelImplementation.fromJson(
     Map<String, dynamic> json,
     DateTime day,
+    int index,
     String tripId,
   ) {
     var visitTime = json[_visitTimeField] != null
@@ -51,6 +52,7 @@ class SightModelImplementation extends SightFacade
       expense: ExpenseModelImplementation.fromJson(
           json[_expenseField] as Map<String, dynamic>),
       description: json[_descriptionField] as String?,
+      id: index.toString(),
     );
   }
 
@@ -62,7 +64,7 @@ class SightModelImplementation extends SightFacade
       if (visitTime != null)
         _visitTimeField:
             visitTime != null ? Timestamp.fromDate(visitTime!) : null,
-      _expenseField: (expense as StandaloneExpenseModelImplementation).toJson(),
+      _expenseField: (expense as ExpenseModelImplementation).toJson(),
       if (description != null) _descriptionField: description,
     };
   }

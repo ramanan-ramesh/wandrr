@@ -67,15 +67,23 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
       throw Exception('Document data is invalid');
     }
 
+    final sights = <SightModelImplementation>[];
+    final sightDataList = (data[_sightsField] as List?) ?? [];
+    for (var i = 0; i < sightDataList.length; i++) {
+      final sightData = sightDataList[i] as Map<String, dynamic>;
+      sights.add(SightModelImplementation.fromJson(
+        sightData,
+        day,
+        i,
+        tripId,
+      ));
+    }
+
     return ItineraryPlanDataModelImplementation(
       tripId: tripId,
       id: documentSnapshot.id,
       day: day,
-      sights: (data[_sightsField] as List?)
-              ?.map((json) => SightModelImplementation.fromJson(
-                  json as Map<String, dynamic>, day, tripId))
-              .toList() ??
-          [],
+      sights: sights,
       notes: (data[_notesField] as List?)
               ?.map((noteValue) => noteValue.toString())
               .toList() ??
