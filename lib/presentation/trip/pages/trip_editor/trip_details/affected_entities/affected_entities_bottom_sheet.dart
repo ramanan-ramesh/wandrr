@@ -35,8 +35,8 @@ class _AffectedEntitiesBottomSheetState
     return DraggableScrollableSheet(
       expand: false,
       shouldCloseOnMinExtent: false,
-      initialChildSize: 0.85,
-      maxChildSize: 0.95,
+      initialChildSize: 0.8,
+      maxChildSize: 0.85,
       minChildSize: 0.5,
       builder: _buildContent,
     );
