@@ -1,15 +1,14 @@
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 /// Handles sorting of expense-linked trip entities
 class ExpenseSorter {
   /// Sorts expenses by date and time
-  Iterable<ExpenseLinkedTripEntity> sortByDateTime(
-    List<ExpenseLinkedTripEntity> expenses, {
+  Iterable<ExpenseBearingTripEntity> sortByDateTime(
+    List<ExpenseBearingTripEntity> expenses, {
     bool isAscending = true,
   }) {
-    final withDateTime = <ExpenseLinkedTripEntity>[];
-    final withoutDateTime = <ExpenseLinkedTripEntity>[];
+    final withDateTime = <ExpenseBearingTripEntity>[];
+    final withoutDateTime = <ExpenseBearingTripEntity>[];
 
     for (final expense in expenses) {
       if (expense.expense.dateTime != null) {
@@ -28,18 +27,17 @@ class ExpenseSorter {
   }
 
   /// Sorts expenses by category name
-  void sortByCategory(List<ExpenseLinkedTripEntity> expenses) {
-    expenses.sort(
-        (a, b) => a.expense.category.name.compareTo(b.expense.category.name));
+  void sortByCategory(List<ExpenseBearingTripEntity> expenses) {
+    expenses.sort((a, b) => a.category.name.compareTo(b.category.name));
   }
 
   /// Sorts expenses by cost after currency conversion
-  Future<Iterable<ExpenseLinkedTripEntity>> sortByCost(
-    List<ExpenseLinkedTripEntity> expenses,
+  Future<Iterable<ExpenseBearingTripEntity>> sortByCost(
+    List<ExpenseBearingTripEntity> expenses,
     Future<double?> Function(ExpenseFacade) getCost, {
     bool isAscending = true,
   }) async {
-    final expenseWithCost = <ExpenseLinkedTripEntity, double>{};
+    final expenseWithCost = <ExpenseBearingTripEntity, double>{};
 
     for (final expense in expenses) {
       final cost = await getCost(expense.expense);

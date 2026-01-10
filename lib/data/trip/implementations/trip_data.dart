@@ -58,10 +58,12 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     var expenseModelCollection = await FirestoreModelCollection.createInstance(
         tripDocumentReference
             .collection(FirestoreCollections.expenseCollectionName),
-        (documentSnapshot) => ExpenseModelImplementation.fromDocumentSnapshot(
-            tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
-        (expenseModelFacade) => ExpenseModelImplementation.fromModelFacade(
-            expenseModelFacade: expenseModelFacade));
+        (documentSnapshot) =>
+            StandaloneExpenseModelImplementation.fromDocumentSnapshot(
+                tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
+        (expenseModelFacade) =>
+            StandaloneExpenseModelImplementation.fromModelFacade(
+                expenseModelFacade: expenseModelFacade));
 
     var itineraries = await ItineraryCollection.createInstance(
         transitCollection: transitModelCollection,
@@ -97,7 +99,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   final ModelCollectionModifier<LodgingFacade> lodgingCollection;
 
   @override
-  final ModelCollectionModifier<ExpenseFacade> expenseCollection;
+  final ModelCollectionModifier<StandaloneExpense> expenseCollection;
 
   @override
   final ItineraryCollection itineraryCollection;

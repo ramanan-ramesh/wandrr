@@ -16,13 +16,13 @@ class ExpenseAggregator {
 
   /// Calculates total expense per category
   Future<Map<ExpenseCategory, double>> aggregateByCategory(
-    Iterable<ExpenseFacade> allExpenses,
+    Iterable<ExpenseBearingTripEntity> allExpenses,
   ) async {
     final categorizedExpenses = <ExpenseCategory, double>{};
 
     for (final expense in allExpenses) {
       final totalExpense = await currencyConverter
-          .queryData((expense.totalExpense, defaultCurrency));
+          .queryData((expense.expense.totalExpense, defaultCurrency));
 
       if (totalExpense != null) {
         categorizedExpenses[expense.category] =
@@ -77,4 +77,3 @@ class ExpenseAggregator {
     return DateTime(dateTime.year, dateTime.month, dateTime.day);
   }
 }
-

@@ -40,6 +40,7 @@ class _NoteEditorState extends State<NoteEditor>
 
   // State
   String _previousText = '';
+  bool _currentLineHasBulletState = false;
 
   // Styling & formatting constants (reused UI values)
   static const double _kSpacingSmall = 8.0;
@@ -57,6 +58,9 @@ class _NoteEditorState extends State<NoteEditor>
 
     // Notify parent when focus is lost (user done editing)
     _textFieldFocusNode.addListener(_onFocusChanged);
+
+    // Update bullet state when cursor moves
+    _controller.addListener(_updateBulletState);
   }
 
   void _onFocusChanged() {
@@ -82,6 +86,7 @@ class _NoteEditorState extends State<NoteEditor>
   void dispose() {
     _textFieldFocusNode.removeListener(_onFocusChanged);
     _controller.removeListener(_onControllerChanged);
+    _controller.removeListener(_updateBulletState);
     _controller.dispose();
     _keyboardFocusNode.dispose();
     _textFieldFocusNode.dispose();
@@ -173,19 +178,16 @@ class _NoteEditorState extends State<NoteEditor>
   }
 
   Widget _buildToolbar() {
-    final hasBullet = _currentLineHasBullet();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
           icon: Icon(
             Icons.format_list_bulleted,
-            color: hasBullet
-                ? AppColors.brandPrimary
-                : null, //TODO: Icon not visible in light mode
+            color: _currentLineHasBulletState ? Colors.blue : null,
           ),
           onPressed: () {
-            _toggleBulletForCurrentLine(forceAdd: !hasBullet);
+            _toggleBulletForCurrentLine(forceAdd: !_currentLineHasBulletState);
             _textFieldFocusNode.requestFocus();
           },
         ),
@@ -218,6 +220,15 @@ class _NoteEditorState extends State<NoteEditor>
     return line.startsWith(_kBulletPrefix) ||
         line.startsWith('- ') ||
         line.startsWith('* ');
+  }
+
+  void _updateBulletState() {
+    final hasBullet = _currentLineHasBullet();
+    if (_currentLineHasBulletState != hasBullet) {
+      setState(() {
+        _currentLineHasBulletState = hasBullet;
+      });
+    }
   }
 
   void _toggleBulletForCurrentLine({bool forceAdd = false}) {

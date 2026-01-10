@@ -16,7 +16,7 @@ abstract class TripDataFacade {
 
   ModelCollectionFacade<LodgingFacade> get lodgingCollection;
 
-  ModelCollectionFacade<ExpenseFacade> get expenseCollection;
+  ModelCollectionFacade<StandaloneExpense> get expenseCollection;
 
   ItineraryFacadeCollection get itineraryCollection;
 
@@ -36,5 +36,5 @@ abstract class TripDataModelEventHandler extends TripDataFacade
 
   ModelCollectionModifier<LodgingFacade> get lodgingCollection;
 
-  ModelCollectionModifier<ExpenseFacade> get expenseCollection;
+  ModelCollectionModifier<StandaloneExpense> get expenseCollection;
 }

@@ -7,7 +7,7 @@ import 'package:wandrr/data/trip/models/transit.dart';
 
 // ignore: must_be_immutable
 class TransitImplementation extends TransitFacade
-    implements LeafRepositoryItem<TransitFacade> {
+    implements RepositoryDocument<TransitFacade> {
   static const _departureLocationField = 'departureLocation';
   static const _departureDateTimeField = 'departureDateTime';
   static const _arrivalLocationField = 'arrivalLocation';
@@ -50,8 +50,7 @@ class TransitImplementation extends TransitFacade
         transitOption: TransitOption.values.firstWhere(
             (element) => element.name == documentData[_transitOptionField]),
         expense: ExpenseModelImplementation.fromJson(
-            tripId: tripId,
-            json: documentData[_expenseField] as Map<String, dynamic>),
+            documentData[_expenseField] as Map<String, dynamic>),
         confirmationId: documentData[_confirmationIdField],
         departureDateTime:
             (documentData[_departureDateTimeField] as Timestamp).toDate(),

@@ -30,14 +30,6 @@ class _LodgingEditorState extends State<LodgingEditor>
   LodgingFacade get _lodging => widget.lodging;
 
   @override
-  void didUpdateWidget(covariant LodgingEditor oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.lodging != _lodging) {
-      setState(() {});
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final tripMetadata = context.activeTrip.tripMetadata;
     return Column(

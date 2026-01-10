@@ -58,9 +58,9 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   @override
   void didUpdateWidget(covariant ExpenditureEditTile oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!mapEquals(oldWidget.paidBy, _currentPaidBy) ||
-        !listEquals(oldWidget.splitBy, _currentSplitBy) ||
-        oldWidget.currency != _currentCurrencyInfo.code) {
+    if (!mapEquals(oldWidget.paidBy, widget.paidBy) ||
+        !listEquals(oldWidget.splitBy, widget.splitBy) ||
+        oldWidget.currency != widget.currency) {
       setState(_initializeExpense);
     }
   }

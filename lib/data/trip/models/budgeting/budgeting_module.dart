@@ -1,9 +1,9 @@
 import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 import 'debt_data.dart';
+import 'expense.dart';
 import 'expense_category.dart';
 import 'expense_sort_options.dart';
 import 'money.dart';
@@ -16,8 +16,8 @@ abstract class BudgetingModuleFacade {
   Future<Map<DateTime, double>> retrieveTotalExpensePerDay(
       DateTime startDay, DateTime endDay);
 
-  Future<Iterable<ExpenseLinkedTripEntity>> sortExpenses(
-      Iterable<ExpenseLinkedTripEntity> expenseUiElements,
+  Future<Iterable<ExpenseBearingTripEntity>> sortExpenses(
+      Iterable<ExpenseBearingTripEntity> expenseUiElements,
       ExpenseSortOption expenseSortOption);
 
   Stream<double> get totalExpenditureStream;

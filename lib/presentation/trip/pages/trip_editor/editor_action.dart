@@ -89,10 +89,11 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
             allTripContributors: activeTrip.tripMetadata.contributors,
             defaultCurrency: activeTrip.tripMetadata.budget.currency);
       case TripEditorAction.expense:
-        return ExpenseFacade.newUiEntry(
+        return StandaloneExpense(
             tripId: activeTrip.tripMetadata.id!,
-            allTripContributors: activeTrip.tripMetadata.contributors,
-            defaultCurrency: activeTrip.tripMetadata.budget.currency);
+            expense: ExpenseFacade.newUiEntry(
+                allTripContributors: activeTrip.tripMetadata.contributors,
+                defaultCurrency: activeTrip.tripMetadata.budget.currency));
       case TripEditorAction.itineraryData:
         throw UnimplementedError(); //TODO: Remove UnimplementedError in general
       case TripEditorAction.tripDetails:
@@ -140,9 +141,9 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
                 validityNotifier.value = tripEntityToEdit.validate(),
           );
     } else if (this == TripEditorAction.expense &&
-        tripEntity is ExpenseLinkedTripEntity) {
+        tripEntity is ExpenseBearingTripEntity) {
       pageContentCreator = (validityNotifier) => ExpenseEditor(
-            expenseLinkedTripEntity: tripEntityToEdit,
+            expenseBearingTripEntity: tripEntityToEdit,
             onExpenseUpdated: () =>
                 validityNotifier.value = tripEntityToEdit.validate(),
           );
@@ -178,8 +179,8 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
                 UpdateTripEntity<LodgingFacade>.create(
                     tripEntity: entity as LodgingFacade),
             TripEditorAction.expense: (entity) =>
-                UpdateTripEntity<ExpenseFacade>.create(
-                    tripEntity: entity as ExpenseFacade),
+                UpdateTripEntity<StandaloneExpense>.create(
+                    tripEntity: entity as StandaloneExpense),
           };
 
   Map<
@@ -202,8 +203,8 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
           } else if (entity is LodgingFacade) {
             return UpdateTripEntity<LodgingFacade>.update(tripEntity: entity);
           }
-          return UpdateTripEntity<ExpenseFacade>.update(
-              tripEntity: entity as ExpenseFacade);
+          return UpdateTripEntity<StandaloneExpense>.update(
+              tripEntity: entity as StandaloneExpense);
         },
         TripEditorAction.tripDetails: (entity) =>
             UpdateTripEntity<TripMetadataFacade>.update(
