@@ -13,11 +13,8 @@ class GoToHome extends TripManagementEvent {
 }
 
 class UpdateTripEntity<T extends TripEntity> extends TripManagementEvent {
-  final T? tripEntity;
+  final T tripEntity;
   final DataState dataState;
-
-  const UpdateTripEntity.createNewUiEntry({this.tripEntity})
-      : dataState = DataState.newUiEntry;
 
   const UpdateTripEntity.create({required this.tripEntity})
       : dataState = DataState.create;
