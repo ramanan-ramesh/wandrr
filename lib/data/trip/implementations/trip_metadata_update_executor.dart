@@ -5,11 +5,14 @@ import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
+
+import 'itinerary/itinerary_plan_data_implementation.dart';
 
 /// Implementation that uses Firestore batch writes
 ///
@@ -75,6 +78,14 @@ class TripMetadataUpdateExecutor {
 
     // Process transit updates
     for (final transit in plan.updatedTransits) {
+      final updatedTransitExpense = plan.expenseChanges
+          .where((e) =>
+              e.originalEntity is TransitFacade &&
+              e.originalEntity.id == transit.id)
+          .singleOrNull;
+      if (updatedTransitExpense != null) {
+        transit.expense = updatedTransitExpense.modifiedEntity.expense;
+      }
       final doc = transitCollection.repositoryItemCreator(transit);
       batch.update(doc.documentReference, doc.toJson());
     }
@@ -87,118 +98,162 @@ class TripMetadataUpdateExecutor {
 
     // Process stay updates
     for (final stay in plan.updatedStays) {
+      var updatedStayExpense = plan.expenseChanges
+          .where((e) =>
+              e.originalEntity is LodgingFacade &&
+              e.originalEntity.id == stay.id)
+          .singleOrNull;
+      if (updatedStayExpense != null) {
+        stay.expense = updatedStayExpense.modifiedEntity.expense;
+      }
       final doc = lodgingCollection.repositoryItemCreator(stay);
       batch.update(doc.documentReference, doc.toJson());
     }
 
     // Process sight changes through itinerary plan data updates
-    await _processSightChanges(plan, batch);
+    _processSightChanges(plan, batch);
 
     // Process expense split changes
-    await _processExpenseSplitChanges(plan, batch);
+    _processExpenseSplitChanges(plan, batch);
 
     // Commit all changes atomically
     await batch.commit();
   }
 
-  Future<void> _processSightChanges(
+  /// Process sight changes by computing the final state of each affected itinerary's plan data
+  /// and writing them in a batch.
+  ///
+  /// This handles:
+  /// - Deleting sights from their current day
+  /// - Moving sights to a different day (remove from old, add to new)
+  /// - Updating sights in place
+  ///
+  /// For days that don't have an itinerary yet (new days), we create the plan data document.
+  void _processSightChanges(
     TripMetadataUpdatePlan plan,
     WriteBatch batch,
-  ) async {
-    // Group sight changes by day for efficient itinerary updates
-    final sightsByDay = <DateTime, List<EntityChange<SightFacade>>>{};
+  ) {
+    if (plan.sightChanges.isEmpty) return;
+
+    // Build a map of day -> list of sights to remove (by id)
+    final sightsToRemoveByDay = <String, Set<String>>{};
+    // Build a map of day -> list of sights to add/update
+    final sightsToAddByDay = <String, List<SightFacade>>{};
+    // Track which existing itinerary plan data we need to read
+    final sightsToUpdateByDay = <SightFacade>[];
+    // Process each sight change
+    final affectedDays = <String>{};
 
     for (final change in plan.sightChanges) {
-      final day = change.originalEntity.day;
-      final normalizedDay = DateTime(day.year, day.month, day.day);
-      sightsByDay.putIfAbsent(normalizedDay, () => []).add(change);
+      final originalDay = change.originalEntity.day;
+      final originalDayKey = originalDay.itineraryDateFormat;
 
-      // If sight is being moved to a different day, also track the new day
-      if (change.isUpdate) {
+      if (change.isDelete) {
+        // Remove sight from its current day
+        sightsToRemoveByDay.putIfAbsent(originalDayKey, () => {});
+        sightsToRemoveByDay[originalDayKey]!.add(change.originalEntity.id!);
+        affectedDays.add(originalDayKey);
+      } else if (change.isUpdate) {
         final newDay = change.modifiedEntity.day;
-        final normalizedNewDay =
-            DateTime(newDay.year, newDay.month, newDay.day);
-        if (!normalizedDay.isOnSameDayAs(normalizedNewDay)) {
-          sightsByDay.putIfAbsent(normalizedNewDay, () => []).add(change);
+        final newDayKey = newDay.itineraryDateFormat;
+
+        if (!originalDay.isOnSameDayAs(newDay)) {
+          // Sight is moving to a different day
+          // Remove from original day
+          sightsToRemoveByDay.putIfAbsent(originalDayKey, () => {});
+          sightsToRemoveByDay[originalDayKey]!.add(change.originalEntity.id!);
+          affectedDays.add(originalDayKey);
+
+          // Add to new day
+          sightsToAddByDay.putIfAbsent(newDayKey, () => []);
+          sightsToAddByDay[newDayKey]!.add(change.modifiedEntity);
+          affectedDays.add(newDayKey);
+        } else {
+          // Sight stays on the same day, just update it
+          sightsToUpdateByDay.add(change.modifiedEntity);
+          affectedDays.add(originalDayKey);
         }
       }
     }
 
-    // Update each affected itinerary's plan data
-    for (final entry in sightsByDay.entries) {
-      final day = entry.key;
-      final changes = entry.value;
+    // Now process each affected day
+    for (final dayKey in affectedDays) {
+      // Try to find existing itinerary for this day
+      ItineraryModelEventHandler? existingItinerary = itineraryCollection
+          .where(
+            (it) => it.day.itineraryDateFormat == dayKey,
+          )
+          .firstOrNull;
 
-      try {
-        final itinerary = itineraryCollection.getItineraryForDay(day);
-        final planData = itinerary.planData;
+      // Start with existing sights or empty list
+      List<SightFacade> currentSights =
+          List.from(existingItinerary?.planData.sights ?? []);
+      List<String> currentNotes =
+          List.from(existingItinerary?.planData.notes ?? []);
+      List<CheckListFacade> currentCheckLists =
+          List.from(existingItinerary?.planData.checkLists ?? []);
 
-        for (final change in changes) {
-          if (change.isDelete) {
-            // Remove sight from this day
-            planData.sights
-                .removeWhere((s) => s.id == change.originalEntity.id);
-          } else if (change.isUpdate) {
-            final originalDay = change.originalEntity.day;
-            final newDay = change.modifiedEntity.day;
-
-            if (day.isOnSameDayAs(originalDay) &&
-                !originalDay.isOnSameDayAs(newDay)) {
-              // Remove from original day
-              planData.sights
-                  .removeWhere((s) => s.id == change.originalEntity.id);
-            } else if (day.isOnSameDayAs(newDay)) {
-              // Add/update on new day
-              final existingIndex = planData.sights.indexWhere(
-                (s) => s.id == change.originalEntity.id,
-              );
-              if (existingIndex >= 0) {
-                planData.sights[existingIndex] = change.modifiedEntity;
-              } else {
-                planData.sights.add(change.modifiedEntity);
-              }
-            }
+      //Update sights
+      for (final sight in sightsToUpdateByDay) {
+        final existingIndex = currentSights.indexWhere((s) => s.id == sight.id);
+        if (existingIndex >= 0) {
+          var updatedSightExpense = plan.expenseChanges
+              .where((e) =>
+                  e.originalEntity is SightFacade &&
+                  e.originalEntity.id == sight.id)
+              .singleOrNull;
+          if (updatedSightExpense != null) {
+            sight.expense = updatedSightExpense.modifiedEntity.expense;
           }
+          currentSights[existingIndex] = sight;
         }
-
-        // Queue the plan data update in the batch
-        await itinerary.updatePlanData(planData);
-      } catch (e) {
-        // Itinerary for this day doesn't exist (may have been removed)
-        // This is expected for deleted days
       }
+
+      // Remove sights marked for removal
+      final toRemove = sightsToRemoveByDay[dayKey] ?? {};
+      currentSights.removeWhere((s) => toRemove.contains(s.id));
+
+      // Add sights
+      currentSights.addAll(sightsToAddByDay[dayKey] ?? []);
+
+      final itineraryPlanData = ItineraryPlanDataModelImplementation(
+        tripId: plan.newMetadata.id!,
+        day: DateTime.parse(dayKey),
+        sights: currentSights,
+        notes: currentNotes,
+        checkLists: currentCheckLists,
+      );
+
+      // Use set with merge to create or update the document
+      batch.set(itineraryPlanData.documentReference, itineraryPlanData.toJson(),
+          SetOptions(merge: false));
     }
   }
 
-  Future<void> _processExpenseSplitChanges(
+  void _processExpenseSplitChanges(
     TripMetadataUpdatePlan plan,
     WriteBatch batch,
-  ) async {
-    for (final change in plan.expenseChanges) {
-      if (!change.includeInSplitBy || change.isMarkedForDeletion) continue;
+  ) {
+    for (final change in plan.expenseChanges
+        .where((expense) => expense.modifiedEntity is StandaloneExpense)) {
+      if (!change.includeInSplitBy && !change.isMarkedForDeletion) continue;
 
-      final entity = change.modifiedEntity;
-      final expense = entity.expense;
+      final entity = change.modifiedEntity as StandaloneExpense;
+      final doc = expenseCollection.repositoryItemCreator(entity);
+      if (change.isMarkedForDeletion) {
+        batch.delete(doc.documentReference);
+      } else {
+        final expense = entity.expense;
 
-      // Add new contributors to splitBy
-      for (final contributor in plan.addedContributors) {
-        if (!expense.splitBy.contains(contributor)) {
-          expense.splitBy.add(contributor);
+        // Add new contributors to splitBy
+        for (final contributor in plan.addedContributors) {
+          if (!expense.splitBy.contains(contributor)) {
+            expense.splitBy.add(contributor);
+          }
         }
-      }
 
-      // Update the entity based on its type
-      if (entity is StandaloneExpense) {
-        final doc = expenseCollection.repositoryItemCreator(entity);
-        batch.update(doc.documentReference, doc.toJson());
-      } else if (entity is TransitFacade) {
-        final doc = transitCollection.repositoryItemCreator(entity);
-        batch.update(doc.documentReference, doc.toJson());
-      } else if (entity is LodgingFacade) {
-        final doc = lodgingCollection.repositoryItemCreator(entity);
         batch.update(doc.documentReference, doc.toJson());
       }
-      // Sight expenses are handled through itinerary plan data updates
     }
   }
 }
