@@ -80,7 +80,7 @@ class AffectedEntitiesModel {
 
   /// Creates a list of bloc events for all the modifications
   List<TripManagementEvent> createUpdateEvents() {
-    final events = <TripManagementEvent>[];
+    final events = <UpdateTripEntity>[];
 
     // Handle stays - update or delete
     for (final stayItem in affectedStays) {
@@ -88,8 +88,7 @@ class AffectedEntitiesModel {
         events.add(UpdateTripEntity<LodgingFacade>.delete(
           tripEntity: stayItem.entity,
         ));
-      } else if (stayItem.modifiedEntity.checkinDateTime != null &&
-          stayItem.modifiedEntity.checkoutDateTime != null) {
+      } else {
         events.add(UpdateTripEntity<LodgingFacade>.update(
           tripEntity: stayItem.modifiedEntity,
         ));
@@ -102,8 +101,7 @@ class AffectedEntitiesModel {
         events.add(UpdateTripEntity<TransitFacade>.delete(
           tripEntity: transitItem.entity,
         ));
-      } else if (transitItem.modifiedEntity.departureDateTime != null &&
-          transitItem.modifiedEntity.arrivalDateTime != null) {
+      } else {
         events.add(UpdateTripEntity<TransitFacade>.update(
           tripEntity: transitItem.modifiedEntity,
         ));
@@ -112,39 +110,63 @@ class AffectedEntitiesModel {
 
     // Handle sights - we need to handle these through itinerary updates
     for (final sightItem in affectedSights) {
-      var originalSight = sightItem.entity;
-      if (sightItem.isMarkedForDeletion) {
-        var day = originalSight.day;
-        var itineraryPlanData = tripData.itineraryCollection
-            .firstWhere((itinerary) => itinerary.day.isOnSameDayAs(day))
-            .planData;
-        itineraryPlanData.sights.removeWhere((s) => s == originalSight);
-        events.add(UpdateTripEntity<ItineraryPlanData>.update(
-          tripEntity: itineraryPlanData,
-        ));
-      }
-      //TODO: Handle sight updates, especially cases where date itself has changed
+      _createSightUpdateEvent(sightItem, events);
     }
 
     // Handle expenses - add new contributors to splitBy if selected
     for (final expenseItem in allExpenses) {
-      final event = _createExpenseUpdateEvent(expenseItem);
-      if (event != null) {
-        events.add(event);
-      }
+      _createExpenseUpdateEvent(expenseItem, events);
     }
 
     return events;
   }
 
+  void _createSightUpdateEvent(AffectedEntityItem<SightFacade> sightItem,
+      List<UpdateTripEntity> events) {
+    var originalSight = sightItem.entity;
+    if (sightItem.isMarkedForDeletion) {
+      var day = originalSight.day;
+      var itineraryPlanData = tripData.itineraryCollection
+          .firstWhere((itinerary) => itinerary.day.isOnSameDayAs(day))
+          .planData;
+      itineraryPlanData.sights.removeWhere((s) => s == originalSight);
+      events.add(UpdateTripEntity<ItineraryPlanData>.update(
+        tripEntity: itineraryPlanData,
+      ));
+    } else {
+      var modifiedSight = sightItem.modifiedEntity;
+      if (!modifiedSight.day.isOnSameDayAs(originalSight.day)) {
+        final itineraryPlanData1 = tripData.itineraryCollection
+            .firstWhere(
+                (itinerary) => itinerary.day.isOnSameDayAs(originalSight.day))
+            .planData;
+        itineraryPlanData1.sights.removeWhere((s) => s.id == originalSight.id);
+        events.add(UpdateTripEntity<ItineraryPlanData>.update(
+          tripEntity: itineraryPlanData1,
+        ));
+      }
+      var itineraryPlanData = tripData.itineraryCollection
+          .firstWhere(
+              (itinerary) => itinerary.day.isOnSameDayAs(modifiedSight.day))
+          .planData;
+      var indexOfSight =
+          itineraryPlanData.sights.indexWhere((s) => s.id == originalSight.id);
+      itineraryPlanData.sights[indexOfSight] = modifiedSight;
+      events.add(UpdateTripEntity<ItineraryPlanData>.update(
+        tripEntity: itineraryPlanData,
+      ));
+    }
+  }
+
   UpdateTripEntity? _createExpenseUpdateEvent(
-      AffectedEntityItem<ExpenseBearingTripEntity> expenseItem) {
+      AffectedEntityItem<ExpenseBearingTripEntity> expenseItem,
+      List<UpdateTripEntity> events) {
     if (expenseItem.isMarkedForDeletion) {
-      var expenseLinkedTripEntity = expenseItem.entity;
-      if (expenseLinkedTripEntity
+      var expenseBearingTripEntity = expenseItem.entity;
+      if (expenseBearingTripEntity
           is ExpenseBearingTripEntity<StandaloneExpense>) {
         return UpdateTripEntity<StandaloneExpense>.delete(
-          tripEntity: expenseLinkedTripEntity as StandaloneExpense,
+          tripEntity: expenseBearingTripEntity as StandaloneExpense,
         );
       }
     } else if (expenseItem.includeInSplitBy) {
@@ -155,28 +177,23 @@ class AffectedEntitiesModel {
           expense.splitBy.add(contributor);
         }
       }
-      if (modifiedEntity is ExpenseBearingTripEntity<ExpenseFacade>) {
+      if (modifiedEntity is StandaloneExpense) {
         return UpdateTripEntity<StandaloneExpense>.update(
-          tripEntity: modifiedEntity as StandaloneExpense,
-        );
-      } else if (modifiedEntity is ExpenseBearingTripEntity<TransitFacade> &&
-          modifiedEntity is TransitFacade) {
-        return UpdateTripEntity<TransitFacade>.update(
           tripEntity: modifiedEntity,
         );
-      } else if (modifiedEntity is ExpenseBearingTripEntity<LodgingFacade> &&
-          modifiedEntity is LodgingFacade) {
-        return UpdateTripEntity<LodgingFacade>.update(
-          tripEntity: modifiedEntity,
-        );
-      } else if (modifiedEntity is ExpenseBearingTripEntity<SightFacade> &&
-          modifiedEntity is SightFacade) {
+      } else if (modifiedEntity is TransitFacade) {
+        return _createExpenseBearingTripEntityEvent<TransitFacade>(
+            events, modifiedEntity, expense);
+      } else if (modifiedEntity is LodgingFacade) {
+        return _createExpenseBearingTripEntityEvent<LodgingFacade>(
+            events, modifiedEntity, expense);
+      } else if (modifiedEntity is SightFacade) {
         var itineraryPlanData = tripData.itineraryCollection
             .firstWhere(
                 (itinerary) => itinerary.day.isOnSameDayAs(modifiedEntity.day))
             .planData;
-        var indexOfSight =
-            itineraryPlanData.sights.indexOf(expenseItem.entity as SightFacade);
+        var indexOfSight = itineraryPlanData.sights.indexWhere((sight) =>
+            (expenseItem.entity as SightFacade).id == modifiedEntity.id);
         itineraryPlanData.sights[indexOfSight] = modifiedEntity;
         return UpdateTripEntity<ItineraryPlanData>.update(
           tripEntity: itineraryPlanData,
@@ -184,5 +201,25 @@ class AffectedEntitiesModel {
       }
     }
     return null;
+  }
+
+  UpdateTripEntity<T>
+      _createExpenseBearingTripEntityEvent<T extends ExpenseBearingTripEntity>(
+          Iterable<UpdateTripEntity<TripEntity>> events,
+          T modifiedEntity,
+          ExpenseFacade expense) {
+    var existingEvents = events.where((event) =>
+        event.tripEntity is T && event.tripEntity.id == modifiedEntity.id);
+    if (existingEvents.isNotEmpty) {
+      var originalExpenseBearingTripEntity =
+          existingEvents.first.tripEntity as T;
+      originalExpenseBearingTripEntity.expense = expense;
+      return UpdateTripEntity<T>.update(
+        tripEntity: originalExpenseBearingTripEntity,
+      );
+    }
+    return UpdateTripEntity<T>.update(
+      tripEntity: modifiedEntity,
+    );
   }
 }
