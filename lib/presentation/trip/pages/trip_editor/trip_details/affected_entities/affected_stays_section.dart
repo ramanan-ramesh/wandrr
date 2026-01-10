@@ -180,6 +180,7 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
                 label: 'Check-in',
                 icon: Icons.login_rounded,
                 dateTime: lodging.checkinDateTime,
+                startDateTime: widget.tripStartDate,
                 onChanged: (newDateTime) {
                   setState(() {
                     lodging.checkinDateTime = newDateTime;
@@ -193,6 +194,9 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
                 label: 'Check-out',
                 icon: Icons.logout_rounded,
                 dateTime: lodging.checkoutDateTime,
+                startDateTime: lodging.checkinDateTime != null
+                    ? lodging.checkinDateTime!.add(Duration(hours: 1))
+                    : widget.tripStartDate.add(Duration(hours: 1)),
                 onChanged: (newDateTime) {
                   setState(() {
                     lodging.checkoutDateTime = newDateTime;
@@ -285,6 +289,7 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
     required String label,
     required IconData icon,
     required DateTime? dateTime,
+    required DateTime startDateTime,
     required Function(DateTime) onChanged,
   }) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
@@ -303,8 +308,9 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
         const Spacer(),
         PlatformDateTimePicker(
           currentDateTime: dateTime,
-          startDateTime: widget.tripStartDate,
-          endDateTime: widget.tripEndDate.add(const Duration(days: 1)),
+          startDateTime: startDateTime,
+          endDateTime: DateTime(widget.tripEndDate.year,
+              widget.tripEndDate.month, widget.tripEndDate.day, 23, 59),
           dateTimeUpdated: onChanged,
         ),
       ],

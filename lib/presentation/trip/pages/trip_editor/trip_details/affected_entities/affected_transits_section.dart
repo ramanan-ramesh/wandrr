@@ -177,6 +177,7 @@ class _AffectedTransitsSectionState extends State<AffectedTransitsSection> {
                 label: 'Departure',
                 icon: Icons.flight_takeoff_rounded,
                 dateTime: transit.departureDateTime,
+                startDateTime: widget.tripStartDate,
                 onChanged: (newDateTime) {
                   setState(() {
                     transit.departureDateTime = newDateTime;
@@ -190,6 +191,9 @@ class _AffectedTransitsSectionState extends State<AffectedTransitsSection> {
                 label: 'Arrival',
                 icon: Icons.flight_land_rounded,
                 dateTime: transit.arrivalDateTime,
+                startDateTime: transit.departureDateTime != null
+                    ? transit.departureDateTime!.add(Duration(minutes: 1))
+                    : widget.tripStartDate.add(Duration(minutes: 1)),
                 onChanged: (newDateTime) {
                   setState(() {
                     transit.arrivalDateTime = newDateTime;
@@ -305,6 +309,7 @@ class _AffectedTransitsSectionState extends State<AffectedTransitsSection> {
     required String label,
     required IconData icon,
     required DateTime? dateTime,
+    required DateTime startDateTime,
     required Function(DateTime) onChanged,
   }) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
@@ -323,8 +328,9 @@ class _AffectedTransitsSectionState extends State<AffectedTransitsSection> {
         const Spacer(),
         PlatformDateTimePicker(
           currentDateTime: dateTime,
-          startDateTime: widget.tripStartDate,
-          endDateTime: widget.tripEndDate.add(const Duration(days: 1)),
+          startDateTime: startDateTime,
+          endDateTime: DateTime(widget.tripEndDate.year,
+              widget.tripEndDate.month, widget.tripEndDate.day, 23, 59, 59),
           dateTimeUpdated: onChanged,
         ),
       ],
