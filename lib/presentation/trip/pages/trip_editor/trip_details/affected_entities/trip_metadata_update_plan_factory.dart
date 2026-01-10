@@ -5,12 +5,12 @@ import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_model.dart';
+import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
 
-/// Factory to create AffectedEntitiesModel from trip data
-class AffectedEntitiesModelFactory {
-  /// Creates an AffectedEntitiesModel by analyzing what changed between old and new metadata
-  static AffectedEntitiesModel? create({
+/// Factory to create TripMetadataUpdatePlan from trip data
+class TripMetadataUpdatePlanFactory {
+  /// Creates a TripMetadataUpdatePlan by analyzing what changed between old and new metadata
+  static TripMetadataUpdatePlan? create({
     required TripMetadataFacade oldMetadata,
     required TripMetadataFacade newMetadata,
     required TripDataFacade tripData,
@@ -25,7 +25,7 @@ class AffectedEntitiesModelFactory {
     }
 
     // Collect affected stays
-    final affectedStays = <AffectedEntityItem<LodgingFacade>>[];
+    final affectedStays = <EntityChange<LodgingFacade>>[];
     if (haveTripDatesChanged) {
       affectedStays.addAll(_findAffectedStays(
         tripData.lodgingCollection.collectionItems,
@@ -35,7 +35,7 @@ class AffectedEntitiesModelFactory {
     }
 
     // Collect affected transits
-    final affectedTransits = <AffectedEntityItem<TransitFacade>>[];
+    final affectedTransits = <EntityChange<TransitFacade>>[];
     if (haveTripDatesChanged) {
       affectedTransits.addAll(_findAffectedTransits(
         tripData.transitCollection.collectionItems,
@@ -45,7 +45,7 @@ class AffectedEntitiesModelFactory {
     }
 
     // Collect affected sights
-    final affectedSights = <AffectedEntityItem<SightFacade>>[];
+    final affectedSights = <EntityChange<SightFacade>>[];
     if (haveTripDatesChanged) {
       for (final itinerary in tripData.itineraryCollection) {
         affectedSights.addAll(_findAffectedSights(
@@ -57,12 +57,12 @@ class AffectedEntitiesModelFactory {
     }
 
     // Collect all expenses for contributor changes
-    final allExpenses = <AffectedEntityItem<ExpenseBearingTripEntity>>[];
+    final allExpenses = <EntityChange<ExpenseBearingTripEntity>>[];
     if (haveContributorsChanged) {
       allExpenses.addAll(_collectAllExpenses(tripData));
     }
 
-    // Only return model if there are affected entities or contributor changes with expenses
+    // Only return plan if there are affected entities or contributor changes with expenses
     if (affectedStays.isEmpty &&
         affectedTransits.isEmpty &&
         affectedSights.isEmpty &&
@@ -70,14 +70,13 @@ class AffectedEntitiesModelFactory {
       return null;
     }
 
-    return AffectedEntitiesModel(
+    return TripMetadataUpdatePlan(
       oldMetadata: oldMetadata,
       newMetadata: newMetadata,
-      affectedStays: affectedStays,
-      affectedTransits: affectedTransits,
-      affectedSights: affectedSights,
-      allExpenses: allExpenses,
-      tripData: tripData,
+      stayChanges: affectedStays,
+      transitChanges: affectedTransits,
+      sightChanges: affectedSights,
+      expenseChanges: allExpenses,
     );
   }
 
@@ -101,12 +100,12 @@ class AffectedEntitiesModelFactory {
 
   /// Find stays that fall outside the new trip dates
   /// Clamps stays where possible to fit within new dates
-  static Iterable<AffectedEntityItem<LodgingFacade>> _findAffectedStays(
+  static Iterable<EntityChange<LodgingFacade>> _findAffectedStays(
     Iterable<LodgingFacade> lodgings,
     TripMetadataFacade oldMetadata,
     TripMetadataFacade newMetadata,
   ) {
-    final affectedStays = <AffectedEntityItem<LodgingFacade>>[];
+    final affectedStays = <EntityChange<LodgingFacade>>[];
     final newTripStartDate = newMetadata.startDate!;
     var newTripEndDate = newMetadata.endDate!;
     final newEnd = DateTime(
@@ -168,8 +167,8 @@ class AffectedEntitiesModelFactory {
         modifiedLodging.checkinDateTime = clampedCheckin;
         modifiedLodging.checkoutDateTime = clampedCheckout;
 
-        affectedStays.add(AffectedEntityItem(
-          entity: lodging,
+        affectedStays.add(EntityChange(
+          originalEntity: lodging,
           modifiedEntity: modifiedLodging,
         ));
       }
@@ -179,12 +178,12 @@ class AffectedEntitiesModelFactory {
   }
 
   /// Find transits that fall outside the new trip dates
-  static Iterable<AffectedEntityItem<TransitFacade>> _findAffectedTransits(
+  static Iterable<EntityChange<TransitFacade>> _findAffectedTransits(
     Iterable<TransitFacade> transits,
     TripMetadataFacade oldMetadata,
     TripMetadataFacade newMetadata,
   ) {
-    final affectedTransits = <AffectedEntityItem<TransitFacade>>[];
+    final affectedTransits = <EntityChange<TransitFacade>>[];
     final newStart = newMetadata.startDate!;
     final newEnd = newMetadata.endDate!;
 
@@ -202,8 +201,8 @@ class AffectedEntitiesModelFactory {
         modifiedTransit.departureDateTime = null;
         modifiedTransit.arrivalDateTime = null;
 
-        affectedTransits.add(AffectedEntityItem(
-          entity: transit,
+        affectedTransits.add(EntityChange(
+          originalEntity: transit,
           modifiedEntity: modifiedTransit,
         ));
       }
@@ -213,12 +212,12 @@ class AffectedEntitiesModelFactory {
   }
 
   /// Find sights that fall outside the new trip dates
-  static Iterable<AffectedEntityItem<SightFacade>> _findAffectedSights(
+  static Iterable<EntityChange<SightFacade>> _findAffectedSights(
     Iterable<SightFacade> sights,
     TripMetadataFacade oldMetadata,
     TripMetadataFacade newMetadata,
   ) {
-    final affectedSights = <AffectedEntityItem<SightFacade>>[];
+    final affectedSights = <EntityChange<SightFacade>>[];
     final newStart = newMetadata.startDate!;
     final newEnd = newMetadata.endDate!;
 
@@ -231,8 +230,8 @@ class AffectedEntitiesModelFactory {
         final modifiedSight = sight.clone();
         modifiedSight.visitTime = null;
 
-        affectedSights.add(AffectedEntityItem(
-          entity: sight,
+        affectedSights.add(EntityChange(
+          originalEntity: sight,
           modifiedEntity: modifiedSight,
         ));
       }
@@ -242,41 +241,40 @@ class AffectedEntitiesModelFactory {
   }
 
   /// Collect all expenses from transit, lodging, standalone expenses, and sights
-  static Iterable<AffectedEntityItem<ExpenseBearingTripEntity>>
-      _collectAllExpenses(
+  static Iterable<EntityChange<ExpenseBearingTripEntity>> _collectAllExpenses(
     TripDataFacade tripData,
   ) {
-    final allExpenses = <AffectedEntityItem<ExpenseBearingTripEntity>>[];
+    final allExpenses = <EntityChange<ExpenseBearingTripEntity>>[];
 
     // Collect standalone expenses (not linked to any entity)
     for (final expense in tripData.expenseCollection.collectionItems) {
-      allExpenses.add(AffectedEntityItem(
-        entity: expense,
+      allExpenses.add(EntityChange(
+        originalEntity: expense,
         modifiedEntity: expense.clone(),
       ));
     }
 
     // Collect transit expenses and link them
     for (final transit in tripData.transitCollection.collectionItems) {
-      allExpenses.add(AffectedEntityItem(
-        entity: transit,
+      allExpenses.add(EntityChange(
+        originalEntity: transit,
         modifiedEntity: transit.clone(),
       ));
     }
 
     // Collect lodging expenses and link them
     for (final lodging in tripData.lodgingCollection.collectionItems) {
-      allExpenses.add(AffectedEntityItem(
-        entity: lodging,
-        modifiedEntity: lodging,
+      allExpenses.add(EntityChange(
+        originalEntity: lodging,
+        modifiedEntity: lodging.clone(),
       ));
     }
 
     // Collect sight expenses and link them
     for (final itinerary in tripData.itineraryCollection) {
       for (final sight in itinerary.planData.sights) {
-        allExpenses.add(AffectedEntityItem(
-          entity: sight,
+        allExpenses.add(EntityChange(
+          originalEntity: sight,
           modifiedEntity: sight.clone(),
         ));
       }

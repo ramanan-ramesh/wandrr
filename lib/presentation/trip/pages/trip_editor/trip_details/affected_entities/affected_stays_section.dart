@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/date_time_picker.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_model.dart';
 
 class AffectedStaysSection extends StatefulWidget {
-  final Iterable<AffectedEntityItem<LodgingFacade>> affectedStays;
+  final Iterable<EntityChange<LodgingFacade>> affectedStays;
   final DateTime tripStartDate;
   final DateTime tripEndDate;
   final VoidCallback onChanged;
@@ -119,7 +119,7 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
   }
 
   Widget _buildStayItem(
-      BuildContext context, AffectedEntityItem<LodgingFacade> item) {
+      BuildContext context, EntityChange<LodgingFacade> item) {
     final lodging = item.modifiedEntity;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final isMarkedForDeletion = item.isMarkedForDeletion;
@@ -175,7 +175,7 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
               ],
             ),
             const SizedBox(height: 8),
-            _buildOriginalDatesInfo(context, item.entity),
+            _buildOriginalDatesInfo(context, item.originalEntity),
             if (!isMarkedForDeletion) ...[
               const SizedBox(height: 12),
               _buildDateTimeRow(
@@ -228,7 +228,7 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
   }
 
   Widget _buildActionToggle(
-      BuildContext context, AffectedEntityItem<LodgingFacade> item) {
+      BuildContext context, EntityChange<LodgingFacade> item) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final isMarkedForDeletion = item.isMarkedForDeletion;
 
@@ -246,11 +246,14 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
           onPressed: () {
             final newIsDeleted = !isMarkedForDeletion;
             setState(() {
-              item.action = newIsDeleted
-                  ? AffectedEntityAction.delete
-                  : AffectedEntityAction.update;
+              if (newIsDeleted) {
+                item.markForDeletion();
+              } else {
+                item.restore();
+              }
             });
-            widget.onEntityDeletionChanged?.call(item.entity, newIsDeleted);
+            widget.onEntityDeletionChanged
+                ?.call(item.originalEntity, newIsDeleted);
             widget.onChanged();
           },
         ),

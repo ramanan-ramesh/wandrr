@@ -19,7 +19,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/app_bar/app_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_bottom_sheet.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_model_factory.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/trip_metadata_update_plan_factory.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
@@ -161,18 +161,17 @@ class _TripEditorPageInternal extends StatelessWidget {
     required TripMetadataFacade newMetadata,
   }) {
     // Check if we have affected entities that need user attention
-    final affectedEntitiesModel = AffectedEntitiesModelFactory.create(
+    final updatePlan = TripMetadataUpdatePlanFactory.create(
       oldMetadata: oldMetadata,
       newMetadata: newMetadata,
       tripData: context.activeTrip,
     );
 
-    if (affectedEntitiesModel != null &&
-        affectedEntitiesModel.hasAffectedEntities) {
+    if (updatePlan != null && updatePlan.hasAffectedEntities) {
       // Show the affected entities bottom sheet
       _showModalBottomSheet(
         AffectedEntitiesBottomSheet(
-          affectedEntitiesModel: affectedEntitiesModel,
+          updatePlan: updatePlan,
         ),
         context,
       );

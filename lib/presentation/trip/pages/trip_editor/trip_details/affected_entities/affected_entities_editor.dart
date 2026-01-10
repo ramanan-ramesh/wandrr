@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_model.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_expenses_section.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_sights_section.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_stays_section.dart';
@@ -8,12 +8,12 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected
 
 /// Editor for adjusting affected entities when trip metadata changes
 class AffectedEntitiesEditor extends StatefulWidget {
-  final AffectedEntitiesModel affectedEntitiesModel;
+  final TripMetadataUpdatePlan updatePlan;
   final VoidCallback onModelUpdated;
 
   const AffectedEntitiesEditor({
     super.key,
-    required this.affectedEntitiesModel,
+    required this.updatePlan,
     required this.onModelUpdated,
   });
 
@@ -24,7 +24,7 @@ class AffectedEntitiesEditor extends StatefulWidget {
 class _AffectedEntitiesEditorState extends State<AffectedEntitiesEditor> {
   @override
   Widget build(BuildContext context) {
-    final model = widget.affectedEntitiesModel;
+    final plan = widget.updatePlan;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
 
     return Column(
@@ -32,44 +32,44 @@ class _AffectedEntitiesEditorState extends State<AffectedEntitiesEditor> {
       children: [
         _buildSummaryHeader(context, isLightTheme),
         const SizedBox(height: 16),
-        if (model.hasDateChanges) _buildDateChangesInfo(context, isLightTheme),
-        if (model.hasContributorChanges)
+        if (plan.hasDateChanges) _buildDateChangesInfo(context, isLightTheme),
+        if (plan.hasContributorChanges)
           _buildContributorChangesInfo(context, isLightTheme),
         const SizedBox(height: 8),
         AffectedStaysSection(
-          affectedStays: model.affectedStays,
-          tripStartDate: model.newMetadata.startDate!,
-          tripEndDate: model.newMetadata.endDate!,
+          affectedStays: plan.stayChanges,
+          tripStartDate: plan.newMetadata.startDate!,
+          tripEndDate: plan.newMetadata.endDate!,
           onChanged: widget.onModelUpdated,
           onEntityDeletionChanged: (entity, isDeleted) {
-            model.onExpenseBearingTripEntityDeletionChanged(entity, isDeleted);
+            plan.syncExpenseDeletionState(entity, isDeleted);
             setState(() {});
           },
         ),
         AffectedTransitsSection(
-          affectedTransits: model.affectedTransits,
-          tripStartDate: model.newMetadata.startDate!,
-          tripEndDate: model.newMetadata.endDate!,
+          affectedTransits: plan.transitChanges,
+          tripStartDate: plan.newMetadata.startDate!,
+          tripEndDate: plan.newMetadata.endDate!,
           onChanged: widget.onModelUpdated,
           onEntityDeletionChanged: (entity, isDeleted) {
-            model.onExpenseBearingTripEntityDeletionChanged(entity, isDeleted);
+            plan.syncExpenseDeletionState(entity, isDeleted);
             setState(() {});
           },
         ),
         AffectedSightsSection(
-          affectedSights: model.affectedSights,
-          tripStartDate: model.newMetadata.startDate!,
-          tripEndDate: model.newMetadata.endDate!,
+          affectedSights: plan.sightChanges,
+          tripStartDate: plan.newMetadata.startDate!,
+          tripEndDate: plan.newMetadata.endDate!,
           onChanged: widget.onModelUpdated,
           onEntityDeletionChanged: (entity, isDeleted) {
-            model.onExpenseBearingTripEntityDeletionChanged(entity, isDeleted);
+            plan.syncExpenseDeletionState(entity, isDeleted);
             setState(() {});
           },
         ),
         AffectedExpensesSection(
-          allExpenses: model.allExpenses,
-          addedContributors: model.addedContributors,
-          removedContributors: model.removedContributors,
+          allExpenses: plan.expenseChanges,
+          addedContributors: plan.addedContributors,
+          removedContributors: plan.removedContributors,
           onChanged: widget.onModelUpdated,
         ),
       ],
@@ -142,7 +142,7 @@ class _AffectedEntitiesEditorState extends State<AffectedEntitiesEditor> {
   }
 
   Widget _buildDateChangesInfo(BuildContext context, bool isLightTheme) {
-    final model = widget.affectedEntitiesModel;
+    final plan = widget.updatePlan;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       padding: const EdgeInsets.all(12),
@@ -178,7 +178,7 @@ class _AffectedEntitiesEditorState extends State<AffectedEntitiesEditor> {
                       ),
                 ),
                 Text(
-                  '${_formatDate(model.oldMetadata.startDate)} - ${_formatDate(model.oldMetadata.endDate)} → ${_formatDate(model.newMetadata.startDate)} - ${_formatDate(model.newMetadata.endDate)}',
+                  '${_formatDate(plan.oldMetadata.startDate)} - ${_formatDate(plan.oldMetadata.endDate)} → ${_formatDate(plan.newMetadata.startDate)} - ${_formatDate(plan.newMetadata.endDate)}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: isLightTheme
                             ? Colors.grey.shade700
@@ -194,7 +194,7 @@ class _AffectedEntitiesEditorState extends State<AffectedEntitiesEditor> {
   }
 
   Widget _buildContributorChangesInfo(BuildContext context, bool isLightTheme) {
-    final model = widget.affectedEntitiesModel;
+    final plan = widget.updatePlan;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       padding: const EdgeInsets.all(12),
@@ -230,18 +230,18 @@ class _AffectedEntitiesEditorState extends State<AffectedEntitiesEditor> {
                             : AppColors.successLight,
                       ),
                 ),
-                if (model.addedContributors.isNotEmpty)
+                if (plan.addedContributors.isNotEmpty)
                   Text(
-                    'Added: ${model.addedContributors.join(", ")}',
+                    'Added: ${plan.addedContributors.join(", ")}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: isLightTheme
                               ? Colors.grey.shade700
                               : Colors.grey.shade400,
                         ),
                   ),
-                if (model.removedContributors.isNotEmpty)
+                if (plan.removedContributors.isNotEmpty)
                   Text(
-                    'Removed: ${model.removedContributors.join(", ")}',
+                    'Removed: ${plan.removedContributors.join(", ")}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: isLightTheme
                               ? AppColors.error

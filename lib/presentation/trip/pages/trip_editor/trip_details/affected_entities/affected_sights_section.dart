@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
+import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_model.dart';
 
 class AffectedSightsSection extends StatefulWidget {
-  final Iterable<AffectedEntityItem<SightFacade>> affectedSights;
+  final Iterable<EntityChange<SightFacade>> affectedSights;
   final DateTime tripStartDate;
   final DateTime tripEndDate;
   final VoidCallback onChanged;
@@ -116,8 +116,7 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
     );
   }
 
-  Widget _buildSightItem(
-      BuildContext context, AffectedEntityItem<SightFacade> item) {
+  Widget _buildSightItem(BuildContext context, EntityChange<SightFacade> item) {
     final sight = item.modifiedEntity;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final isMarkedForDeletion = item.isMarkedForDeletion;
@@ -183,7 +182,7 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
               ),
             ],
             const SizedBox(height: 8),
-            _buildOriginalDateInfo(context, item.entity),
+            _buildOriginalDateInfo(context, item.originalEntity),
             if (!isMarkedForDeletion) ...[
               const SizedBox(height: 12),
               _buildDayPicker(context, item),
@@ -237,7 +236,7 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
   }
 
   Widget _buildActionToggle(
-      BuildContext context, AffectedEntityItem<SightFacade> item) {
+      BuildContext context, EntityChange<SightFacade> item) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final isMarkedForDeletion = item.isMarkedForDeletion;
 
@@ -252,11 +251,13 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
       onPressed: () {
         final newIsDeleted = !isMarkedForDeletion;
         setState(() {
-          item.action = newIsDeleted
-              ? AffectedEntityAction.delete
-              : AffectedEntityAction.update;
+          if (newIsDeleted) {
+            item.markForDeletion();
+          } else {
+            item.restore();
+          }
         });
-        widget.onEntityDeletionChanged?.call(item.entity, newIsDeleted);
+        widget.onEntityDeletionChanged?.call(item.originalEntity, newIsDeleted);
         widget.onChanged();
       },
     );
@@ -293,8 +294,7 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
     );
   }
 
-  Widget _buildDayPicker(
-      BuildContext context, AffectedEntityItem<SightFacade> item) {
+  Widget _buildDayPicker(BuildContext context, EntityChange<SightFacade> item) {
     final sight = item.modifiedEntity;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
 

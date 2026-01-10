@@ -10,7 +10,7 @@ import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'sight.dart';
 
 class ItineraryPlanDataModelImplementation extends ItineraryPlanData
-    implements LeafRepositoryItem<ItineraryPlanData> {
+    implements RepositoryDocument<ItineraryPlanData> {
   static const String _sightsField = 'sights';
   static const String _notesField = 'notes';
   static const String _checkListsField = 'checkLists';

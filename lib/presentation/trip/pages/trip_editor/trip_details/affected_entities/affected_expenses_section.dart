@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_model.dart';
 
 class AffectedExpensesSection extends StatefulWidget {
-  final Iterable<AffectedEntityItem<ExpenseBearingTripEntity>> allExpenses;
+  final Iterable<EntityChange<ExpenseBearingTripEntity>> allExpenses;
   final Iterable<String> addedContributors;
   final Iterable<String> removedContributors;
   final VoidCallback onChanged;
@@ -51,7 +51,7 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
             context,
             icon: Icons.receipt_long_rounded,
             title:
-                'Expenses (${_activeExpenseCount}/${widget.allExpenses.length})',
+                'Expenses ($_activeExpenseCount/${widget.allExpenses.length})',
             iconColor:
                 isLightTheme ? AppColors.warning : AppColors.warningLight,
             trailing: IconButton(
@@ -333,7 +333,7 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
   }
 
   Widget _buildExpenseItem(
-      BuildContext context, AffectedEntityItem<ExpenseBearingTripEntity> item) {
+      BuildContext context, EntityChange<ExpenseBearingTripEntity> item) {
     var expenseBearingTripEntity = item.modifiedEntity;
     final expense = expenseBearingTripEntity.expense;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
@@ -470,9 +470,9 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
                 tooltip: isMarkedForDeletion ? 'Restore' : 'Delete',
                 onPressed: () {
                   setState(() {
-                    item.action = isMarkedForDeletion
-                        ? AffectedEntityAction.update
-                        : AffectedEntityAction.delete;
+                    item.changeType = isMarkedForDeletion
+                        ? EntityChangeType.update
+                        : EntityChangeType.delete;
                   });
                   widget.onChanged();
                 },

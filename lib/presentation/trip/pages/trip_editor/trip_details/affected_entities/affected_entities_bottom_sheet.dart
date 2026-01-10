@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_editor.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_model.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 
 /// Bottom sheet for adjusting affected entities when trip metadata changes
 class AffectedEntitiesBottomSheet extends StatefulWidget {
-  final AffectedEntitiesModel affectedEntitiesModel;
+  final TripMetadataUpdatePlan updatePlan;
 
   const AffectedEntitiesBottomSheet({
     super.key,
-    required this.affectedEntitiesModel,
+    required this.updatePlan,
   });
 
   @override
@@ -22,12 +24,12 @@ class AffectedEntitiesBottomSheet extends StatefulWidget {
 
 class _AffectedEntitiesBottomSheetState
     extends State<AffectedEntitiesBottomSheet> {
-  late final AffectedEntitiesModel _model;
+  late final TripMetadataUpdatePlan _updatePlan;
 
   @override
   void initState() {
     super.initState();
-    _model = widget.affectedEntitiesModel;
+    _updatePlan = widget.updatePlan;
   }
 
   @override
@@ -76,7 +78,7 @@ class _AffectedEntitiesBottomSheetState
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   child: AffectedEntitiesEditor(
-                    affectedEntitiesModel: _model,
+                    updatePlan: _updatePlan,
                     onModelUpdated: () => setState(() {}),
                   ),
                 ),
@@ -97,33 +99,22 @@ class _AffectedEntitiesBottomSheetState
   }
 
   Widget _buildActionButton(BuildContext context) {
-    final isLightTheme = context.isLightTheme;
     return SizedBox(
       height: TripEditorPageConstants.fabSize,
       width: TripEditorPageConstants.fabSize,
       child: FittedBox(
-        child: FloatingActionButton(
-          onPressed: () => _applyChanges(context),
-          backgroundColor:
-              isLightTheme ? AppColors.success : AppColors.successLight,
-          child: const Icon(
-            Icons.check_rounded,
-            size: 32,
-            color: Colors.white,
-          ),
+        child: PlatformSubmitterFAB(
+          callback: () => _applyChanges(context),
+          child: const Icon(Icons.check_rounded),
         ),
       ),
     );
   }
 
   void _applyChanges(BuildContext context) {
-    // Create and dispatch all update events
-    final events = _model.createUpdateEvents();
-
-    for (final event in events) {
-      context.addTripManagementEvent(event);
-    }
-
+    context.addTripManagementEvent(ApplyTripMetadataUpdatePlan(
+      updatePlan: _updatePlan,
+    ));
     // Close the bottom sheet
     Navigator.of(context).pop();
   }
