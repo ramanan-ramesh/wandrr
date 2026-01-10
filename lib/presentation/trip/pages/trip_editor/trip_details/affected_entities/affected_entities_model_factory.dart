@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
@@ -94,8 +93,10 @@ class AffectedEntitiesModelFactory {
 
   static bool _haveContributorsChanged(
       TripMetadataFacade oldMeta, TripMetadataFacade newMeta) {
-    return !const ListEquality()
-        .equals(oldMeta.contributors, newMeta.contributors);
+    var oldContributorsSet = oldMeta.contributors.toSet();
+    var newContributorsSet = newMeta.contributors.toSet();
+    return oldContributorsSet.difference(newContributorsSet).isNotEmpty ||
+        newContributorsSet.difference(oldContributorsSet).isNotEmpty;
   }
 
   /// Find stays that fall outside the new trip dates
@@ -106,9 +107,10 @@ class AffectedEntitiesModelFactory {
     TripMetadataFacade newMetadata,
   ) {
     final affectedStays = <AffectedEntityItem<LodgingFacade>>[];
-    final newStart = newMetadata.startDate!;
-    final newEnd = DateTime(newMetadata.endDate!.year,
-        newMetadata.endDate!.month, newMetadata.endDate!.day, 23, 59);
+    final newTripStartDate = newMetadata.startDate!;
+    var newTripEndDate = newMetadata.endDate!;
+    final newEnd = DateTime(
+        newTripEndDate.year, newTripEndDate.month, newTripEndDate.day, 23, 59);
 
     for (final lodging in lodgings) {
       final checkin = lodging.checkinDateTime!;
@@ -116,9 +118,9 @@ class AffectedEntitiesModelFactory {
 
       // Check if stay needs adjustment
       final isCheckinOutsideNewRange =
-          checkin.isBefore(newStart) || checkin.isAfter(newEnd);
+          checkin.isBefore(newTripStartDate) || checkin.isAfter(newEnd);
       final isCheckoutOutsideNewRange =
-          checkout.isBefore(newStart) || checkout.isAfter(newEnd);
+          checkout.isBefore(newTripStartDate) || checkout.isAfter(newEnd);
 
       if (isCheckinOutsideNewRange || isCheckoutOutsideNewRange) {
         // Create a modified copy with clamped dates
@@ -129,11 +131,11 @@ class AffectedEntitiesModelFactory {
         DateTime? clampedCheckout = checkout;
 
         // Clamp checkin
-        if (checkin.isBefore(newStart)) {
+        if (checkin.isBefore(newTripStartDate)) {
           clampedCheckin = DateTime(
-            newStart.year,
-            newStart.month,
-            newStart.day,
+            newTripStartDate.year,
+            newTripStartDate.month,
+            newTripStartDate.day,
             checkin.hour,
             checkin.minute,
           );
@@ -150,14 +152,15 @@ class AffectedEntitiesModelFactory {
             checkout.hour,
             checkout.minute,
           );
-        } else if (checkout.isBefore(newStart)) {
+        } else if (checkout.isBefore(newTripStartDate)) {
           clampedCheckout = null;
         }
 
         // Validate the clamped dates make sense
         if (clampedCheckin != null &&
             clampedCheckout != null &&
-            !clampedCheckin.isBefore(clampedCheckout)) {
+            (!clampedCheckin.isBefore(clampedCheckout) ||
+                clampedCheckin.isOnSameDayAs(clampedCheckout))) {
           clampedCheckin = null;
           clampedCheckout = null;
         }
