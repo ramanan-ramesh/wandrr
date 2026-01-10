@@ -109,26 +109,6 @@ class ReadonlyExpenseListItem extends StatelessWidget {
       ],
     );
   }
-
-  Widget _createTitleWidget(BuildContext context) {
-    if (expenseBearingTripEntity is StandaloneExpense) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          PlatformTextElements.createSubHeader(
-            context: context,
-            text: expenseBearingTripEntity.title,
-          ),
-          _DeleteButton(
-              standaloneExpense: expenseBearingTripEntity as StandaloneExpense)
-        ],
-      );
-    } else
-      return PlatformTextElements.createSubHeader(
-        context: context,
-        text: expenseBearingTripEntity.title,
-      );
-  }
 }
 
 /// Delete button for event

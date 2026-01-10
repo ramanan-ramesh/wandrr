@@ -6,6 +6,7 @@ import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/store/models/collection_item_change_set.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -102,17 +103,16 @@ class _TripEditorPageInternal extends StatelessWidget {
   }
 
   void _onBlocStateChanged(BuildContext context, TripManagementState state) {
-    if (state is SelectedExpenseLinkedTripEntity) {
-      final expenseLinkedTripEntity =
+    if (state is SelectedExpenseBearingTripEntity) {
+      final expenseBearingTripEntity =
           state.tripEntityModificationData.modifiedCollectionItem;
-      _showTripEntityEditorBottomSheet<ExpenseLinkedTripEntity>(
+      _showTripEntityEditorBottomSheet<ExpenseBearingTripEntity>(
         tripEditorAction: TripEditorAction.expense,
-        tripEntity: expenseLinkedTripEntity,
+        tripEntity: expenseBearingTripEntity,
         pageContext: context,
       );
     } else if (state is UpdatedTripEntity &&
         state.dataState == DataState.update) {
-      // Check if this is a TripMetadataFacade update with date or contributor changes
       final modifiedItem =
           state.tripEntityModificationData.modifiedCollectionItem;
       if (modifiedItem is CollectionItemChangeSet<TripMetadataFacade>) {

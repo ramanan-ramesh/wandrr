@@ -1,10 +1,10 @@
 import 'package:collection/collection.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_model.dart';
 
@@ -58,7 +58,7 @@ class AffectedEntitiesModelFactory {
     }
 
     // Collect all expenses for contributor changes
-    final allExpenses = <AffectedEntityItem<ExpenseLinkedTripEntity>>[];
+    final allExpenses = <AffectedEntityItem<ExpenseBearingTripEntity>>[];
     if (haveContributorsChanged) {
       allExpenses.addAll(_collectAllExpenses(tripData));
     }
@@ -239,11 +239,11 @@ class AffectedEntitiesModelFactory {
   }
 
   /// Collect all expenses from transit, lodging, standalone expenses, and sights
-  static Iterable<AffectedEntityItem<ExpenseLinkedTripEntity>>
+  static Iterable<AffectedEntityItem<ExpenseBearingTripEntity>>
       _collectAllExpenses(
     TripDataFacade tripData,
   ) {
-    final allExpenses = <AffectedEntityItem<ExpenseLinkedTripEntity>>[];
+    final allExpenses = <AffectedEntityItem<ExpenseBearingTripEntity>>[];
 
     // Collect standalone expenses (not linked to any entity)
     for (final expense in tripData.expenseCollection.collectionItems) {

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_model.dart';
 
 class AffectedExpensesSection extends StatefulWidget {
-  final Iterable<AffectedEntityItem<ExpenseLinkedTripEntity>> allExpenses;
+  final Iterable<AffectedEntityItem<ExpenseBearingTripEntity>> allExpenses;
   final Iterable<String> addedContributors;
   final Iterable<String> removedContributors;
   final VoidCallback onChanged;
@@ -330,8 +329,9 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
   }
 
   Widget _buildExpenseItem(
-      BuildContext context, AffectedEntityItem<ExpenseLinkedTripEntity> item) {
-    final expense = item.modifiedEntity.expense;
+      BuildContext context, AffectedEntityItem<ExpenseBearingTripEntity> item) {
+    var expenseBearingTripEntity = item.modifiedEntity;
+    final expense = expenseBearingTripEntity.expense;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final isMarkedForDeletion = item.isMarkedForDeletion;
     final hasAddedContributors = widget.addedContributors.isNotEmpty;
@@ -391,13 +391,15 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
                           : AppColors.successLight,
                     )
                   : Icon(
-                      _getCategoryIcon(expense.category.name),
+                      _getCategoryIcon(expenseBearingTripEntity.category.name),
                       color: isLightTheme
                           ? Colors.grey.shade600
                           : Colors.grey.shade400,
                     ),
               title: Text(
-                expense.title.isNotEmpty ? expense.title : 'Unnamed Expense',
+                expenseBearingTripEntity.title.isNotEmpty
+                    ? expenseBearingTripEntity.title
+                    : 'Unnamed Expense',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       decoration: isMarkedForDeletion
@@ -422,7 +424,8 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
                   Row(
                     children: [
                       Icon(
-                        _getCategoryIcon(expense.category.name),
+                        _getCategoryIcon(
+                            expenseBearingTripEntity.category.name),
                         size: 14,
                         color: isLightTheme
                             ? Colors.grey.shade600
@@ -430,7 +433,7 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        expense.category.name,
+                        expenseBearingTripEntity.category.name,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: isLightTheme
                                   ? Colors.grey.shade600

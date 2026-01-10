@@ -45,7 +45,7 @@ class AffectedEntitiesModel {
   final Iterable<AffectedEntityItem<LodgingFacade>> affectedStays;
   final Iterable<AffectedEntityItem<TransitFacade>> affectedTransits;
   final Iterable<AffectedEntityItem<SightFacade>> affectedSights;
-  final Iterable<AffectedEntityItem<ExpenseLinkedTripEntity>> allExpenses;
+  final Iterable<AffectedEntityItem<ExpenseBearingTripEntity>> allExpenses;
 
   /// New contributors that were added
   Iterable<String> get addedContributors => newMetadata.contributors
@@ -138,12 +138,13 @@ class AffectedEntitiesModel {
   }
 
   UpdateTripEntity? _createExpenseUpdateEvent(
-      AffectedEntityItem<ExpenseLinkedTripEntity> expenseItem) {
+      AffectedEntityItem<ExpenseBearingTripEntity> expenseItem) {
     if (expenseItem.isMarkedForDeletion) {
       var expenseLinkedTripEntity = expenseItem.entity;
-      if (expenseLinkedTripEntity is ExpenseLinkedTripEntity<ExpenseFacade>) {
-        return UpdateTripEntity<ExpenseFacade>.delete(
-          tripEntity: expenseLinkedTripEntity as ExpenseFacade,
+      if (expenseLinkedTripEntity
+          is ExpenseBearingTripEntity<StandaloneExpense>) {
+        return UpdateTripEntity<StandaloneExpense>.delete(
+          tripEntity: expenseLinkedTripEntity as StandaloneExpense,
         );
       }
     } else if (expenseItem.includeInSplitBy) {
@@ -154,21 +155,21 @@ class AffectedEntitiesModel {
           expense.splitBy.add(contributor);
         }
       }
-      if (modifiedEntity is ExpenseLinkedTripEntity<ExpenseFacade>) {
-        return UpdateTripEntity<ExpenseFacade>.update(
-          tripEntity: modifiedEntity as ExpenseFacade,
+      if (modifiedEntity is ExpenseBearingTripEntity<ExpenseFacade>) {
+        return UpdateTripEntity<StandaloneExpense>.update(
+          tripEntity: modifiedEntity as StandaloneExpense,
         );
-      } else if (modifiedEntity is ExpenseLinkedTripEntity<TransitFacade> &&
+      } else if (modifiedEntity is ExpenseBearingTripEntity<TransitFacade> &&
           modifiedEntity is TransitFacade) {
         return UpdateTripEntity<TransitFacade>.update(
           tripEntity: modifiedEntity,
         );
-      } else if (modifiedEntity is ExpenseLinkedTripEntity<LodgingFacade> &&
+      } else if (modifiedEntity is ExpenseBearingTripEntity<LodgingFacade> &&
           modifiedEntity is LodgingFacade) {
         return UpdateTripEntity<LodgingFacade>.update(
           tripEntity: modifiedEntity,
         );
-      } else if (modifiedEntity is ExpenseLinkedTripEntity<SightFacade> &&
+      } else if (modifiedEntity is ExpenseBearingTripEntity<SightFacade> &&
           modifiedEntity is SightFacade) {
         var itineraryPlanData = tripData.itineraryCollection
             .firstWhere(
