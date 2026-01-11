@@ -201,17 +201,9 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
                   icon: Icon(
                     Icons.clear_rounded,
                     size: 16,
-                    color: isLightTheme
-                        ? AppColors.warning
-                        : AppColors.warningLight,
                   ),
                   label: Text(
                     'Clear time',
-                    style: TextStyle(
-                      color: isLightTheme
-                          ? AppColors.warning
-                          : AppColors.warningLight,
-                    ),
                   ),
                 ),
               ),
@@ -237,15 +229,11 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
 
   Widget _buildActionToggle(
       BuildContext context, EntityChange<SightFacade> item) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final isMarkedForDeletion = item.isMarkedForDeletion;
 
     return IconButton(
       icon: Icon(
         isMarkedForDeletion ? Icons.restore : Icons.delete_outline,
-        color: isMarkedForDeletion
-            ? (isLightTheme ? AppColors.success : AppColors.successLight)
-            : (isLightTheme ? AppColors.error : AppColors.errorLight),
       ),
       tooltip: isMarkedForDeletion ? 'Restore' : 'Delete',
       onPressed: () {

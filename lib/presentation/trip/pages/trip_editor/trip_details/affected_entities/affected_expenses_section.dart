@@ -272,8 +272,6 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
   }
 
   Widget _buildSelectAllToggle(BuildContext context) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -299,13 +297,9 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
               },
               child: Text(
                 'None',
-                style: TextStyle(
-                  color: isLightTheme
-                      ? Colors.grey.shade600
-                      : Colors.grey.shade400,
-                ),
               ),
             ),
+            const SizedBox(width: 8),
             TextButton(
               onPressed: () {
                 setState(() {
@@ -319,11 +313,6 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
               },
               child: Text(
                 'All',
-                style: TextStyle(
-                  color: isLightTheme
-                      ? AppColors.brandPrimary
-                      : AppColors.brandPrimaryLight,
-                ),
               ),
             ),
           ],
@@ -461,11 +450,6 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
               trailing: IconButton(
                 icon: Icon(
                   isMarkedForDeletion ? Icons.restore : Icons.delete_outline,
-                  color: isMarkedForDeletion
-                      ? (isLightTheme
-                          ? AppColors.success
-                          : AppColors.successLight)
-                      : (isLightTheme ? AppColors.error : AppColors.errorLight),
                 ),
                 tooltip: isMarkedForDeletion ? 'Restore' : 'Delete',
                 onPressed: () {
