@@ -245,7 +245,7 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
                 .map((contributor) => Chip(
                       avatar: const Icon(Icons.person_off, size: 14),
                       label: Text(
-                        contributor.split('@').first,
+                        contributor,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       backgroundColor: isLightTheme
