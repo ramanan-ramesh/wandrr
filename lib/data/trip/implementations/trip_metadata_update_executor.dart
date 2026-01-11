@@ -70,44 +70,42 @@ class TripMetadataUpdateExecutor {
   Future<void> _executeEntityChanges(TripMetadataUpdatePlan plan) async {
     final batch = FirebaseFirestore.instance.batch();
 
-    // Process transit deletions
-    for (final transit in plan.deletedTransits) {
-      final doc = transitCollection.repositoryItemCreator(transit);
-      batch.delete(doc.documentReference);
-    }
-
-    // Process transit updates
-    for (final transit in plan.updatedTransits) {
-      final updatedTransitExpense = plan.expenseChanges
-          .where((e) =>
-              e.originalEntity is TransitFacade &&
-              e.originalEntity.id == transit.id)
-          .singleOrNull;
-      if (updatedTransitExpense != null) {
-        transit.expense = updatedTransitExpense.modifiedEntity.expense;
+    for (final transitPlan in plan.transitChanges) {
+      if (transitPlan.isDelete) {
+        final doc =
+            transitCollection.repositoryItemCreator(transitPlan.originalEntity);
+        batch.delete(doc.documentReference);
+      } else if (transitPlan.isUpdate) {
+        final modifiedTransit = transitPlan.modifiedEntity;
+        final updatedTransitExpense = plan.expenseChanges.singleWhere((e) =>
+            e.originalEntity is TransitFacade &&
+            e.originalEntity.id == modifiedTransit.id);
+        modifiedTransit.expense = updatedTransitExpense.modifiedEntity.expense;
+        if (modifiedTransit != transitPlan.originalEntity &&
+            modifiedTransit.validate()) {
+          final doc = transitCollection.repositoryItemCreator(modifiedTransit);
+          batch.update(doc.documentReference, doc.toJson());
+        }
       }
-      final doc = transitCollection.repositoryItemCreator(transit);
-      batch.update(doc.documentReference, doc.toJson());
     }
 
-    // Process stay deletions
-    for (final stay in plan.deletedStays) {
-      final doc = lodgingCollection.repositoryItemCreator(stay);
-      batch.delete(doc.documentReference);
-    }
-
-    // Process stay updates
-    for (final stay in plan.updatedStays) {
-      var updatedStayExpense = plan.expenseChanges
-          .where((e) =>
-              e.originalEntity is LodgingFacade &&
-              e.originalEntity.id == stay.id)
-          .singleOrNull;
-      if (updatedStayExpense != null) {
-        stay.expense = updatedStayExpense.modifiedEntity.expense;
+    for (final stayPlan in plan.stayChanges) {
+      if (stayPlan.isDelete) {
+        final doc =
+            lodgingCollection.repositoryItemCreator(stayPlan.originalEntity);
+        batch.delete(doc.documentReference);
+      } else if (stayPlan.isUpdate) {
+        final modifiedStay = stayPlan.modifiedEntity;
+        final updatedStayExpense = plan.expenseChanges.singleWhere((e) =>
+            e.originalEntity is LodgingFacade &&
+            e.originalEntity.id == modifiedStay.id);
+        modifiedStay.expense = updatedStayExpense.modifiedEntity.expense;
+        if (modifiedStay != stayPlan.originalEntity &&
+            modifiedStay.validate()) {
+          final doc = lodgingCollection.repositoryItemCreator(modifiedStay);
+          batch.update(doc.documentReference, doc.toJson());
+        }
       }
-      final doc = lodgingCollection.repositoryItemCreator(stay);
-      batch.update(doc.documentReference, doc.toJson());
     }
 
     // Process sight changes through itinerary plan data updates
@@ -165,10 +163,12 @@ class TripMetadataUpdateExecutor {
           affectedDays.add(originalDayKey);
 
           // Add to new day
-          sightsToAddByDay.putIfAbsent(newDayKey, () => []);
-          sightsToAddByDay[newDayKey]!.add(change.modifiedEntity);
-          affectedDays.add(newDayKey);
-        } else {
+          if (change.modifiedEntity.validate()) {
+            sightsToAddByDay.putIfAbsent(newDayKey, () => []);
+            sightsToAddByDay[newDayKey]!.add(change.modifiedEntity);
+            affectedDays.add(newDayKey);
+          }
+        } else if (change.modifiedEntity.validate()) {
           // Sight stays on the same day, just update it
           sightsToUpdateByDay.add(change.modifiedEntity);
           affectedDays.add(originalDayKey);
@@ -178,6 +178,14 @@ class TripMetadataUpdateExecutor {
 
     // Now process each affected day
     for (final dayKey in affectedDays) {
+      // Ignore if day is outside the trip's date range.
+      // Such Itineraries will be handled by ItineraryCollection.updateTripDays
+      final day = DateTime.parse(dayKey);
+      if (day.isBefore(plan.newMetadata.startDate!) ||
+          day.isAfter(plan.newMetadata.endDate!)) {
+        continue;
+      }
+
       // Try to find existing itinerary for this day
       ItineraryModelEventHandler? existingItinerary = itineraryCollection
           .where(
@@ -225,8 +233,14 @@ class TripMetadataUpdateExecutor {
       );
 
       // Use set with merge to create or update the document
-      batch.set(itineraryPlanData.documentReference, itineraryPlanData.toJson(),
-          SetOptions(merge: false));
+      if (existingItinerary != null &&
+          existingItinerary.planData != itineraryPlanData) {
+        batch.set(itineraryPlanData.documentReference,
+            itineraryPlanData.toJson(), SetOptions(merge: false));
+      } else {
+        batch.set(itineraryPlanData.documentReference,
+            itineraryPlanData.toJson(), SetOptions(merge: false));
+      }
     }
   }
 
@@ -236,7 +250,13 @@ class TripMetadataUpdateExecutor {
   ) {
     for (final change in plan.expenseChanges
         .where((expense) => expense.modifiedEntity is StandaloneExpense)) {
-      if (!change.includeInSplitBy && !change.isMarkedForDeletion) continue;
+      if (!change.includeInSplitBy && !change.isMarkedForDeletion) {
+        continue;
+      }
+
+      if (!change.modifiedEntity.validate()) {
+        continue;
+      }
 
       final entity = change.modifiedEntity as StandaloneExpense;
       final doc = expenseCollection.repositoryItemCreator(entity);

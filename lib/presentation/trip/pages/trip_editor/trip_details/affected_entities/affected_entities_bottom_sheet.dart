@@ -64,7 +64,7 @@ class _AffectedEntitiesBottomSheetState
                             WidgetStatePropertyAll(AppColors.brandSecondary),
                       )
                     : null,
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => _applyChanges(context),
               ),
               title: const Text('Adjust Affected Items'),
               centerTitle: true,

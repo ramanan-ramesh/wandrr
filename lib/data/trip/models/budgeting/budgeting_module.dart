@@ -34,6 +34,4 @@ abstract class BudgetingModuleEventHandler extends BudgetingModuleFacade
       Iterable<LodgingFacade> deletedLodgings = const []});
 
   void updateCurrency(String defaultCurrency);
-
-  Future<void> balanceExpensesOnContributorsChanged(List<String> contributors);
 }

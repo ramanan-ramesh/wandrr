@@ -180,25 +180,6 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   }
 
   @override
-  Future<void> balanceExpensesOnContributorsChanged(
-      Iterable<String> contributors) async {
-    final writeBatch = FirebaseFirestore.instance.batch();
-    _contributors = contributors;
-    await _balanceExpenses(_transitModelCollection, contributors, writeBatch);
-    await _balanceExpenses(_lodgingModelCollection, contributors, writeBatch);
-    await _balanceExpenses(_expenseModelCollection, contributors, writeBatch);
-    await writeBatch.commit();
-    for (final itinerary in _itineraryCollection) {
-      var updatedPlanData = itinerary.planData;
-      for (final sight in updatedPlanData.sights) {
-        final expense = sight.expense;
-        _balanceContributors(contributors, expense);
-      }
-      await itinerary.updatePlanData(updatedPlanData);
-    }
-  }
-
-  @override
   void updateCurrency(String defaultCurrency) {
     this.defaultCurrency = defaultCurrency;
   }
