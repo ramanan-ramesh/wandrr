@@ -167,8 +167,29 @@ class _TripEditorPageInternal extends StatelessWidget {
       tripData: context.activeTrip,
     );
 
-    if (updatePlan != null && updatePlan.hasAffectedEntities) {
-      // Show the affected entities bottom sheet
+    if (updatePlan == null) return;
+
+    // If only contributors were removed (no added contributors and no date changes),
+    // just show a snackbar - no need for the bottom sheet
+    final hasOnlyRemovedContributors =
+        updatePlan.removedContributors.isNotEmpty &&
+            updatePlan.addedContributors.isEmpty &&
+            !updatePlan.hasDateChanges;
+
+    if (hasOnlyRemovedContributors) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Past expenses with removed tripmates are preserved for historical accuracy',
+          ),
+          duration: Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
+    // Show bottom sheet if there are affected entities that need user attention
+    if (updatePlan.hasAffectedEntities) {
       _showModalBottomSheet(
         AffectedEntitiesBottomSheet(
           updatePlan: updatePlan,
