@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
@@ -77,10 +78,15 @@ class TripMetadataUpdateExecutor {
         batch.delete(doc.documentReference);
       } else if (transitPlan.isUpdate) {
         final modifiedTransit = transitPlan.modifiedEntity;
-        final updatedTransitExpense = plan.expenseChanges.singleWhere((e) =>
-            e.originalEntity is TransitFacade &&
-            e.originalEntity.id == modifiedTransit.id);
-        modifiedTransit.expense = updatedTransitExpense.modifiedEntity.expense;
+        final updatedTransitExpense = plan.expenseChanges
+            .where((e) =>
+                e.originalEntity is TransitFacade &&
+                e.originalEntity.id == modifiedTransit.id)
+            .singleOrNull;
+        if (updatedTransitExpense != null) {
+          modifiedTransit.expense =
+              updatedTransitExpense.modifiedEntity.expense;
+        }
         if (modifiedTransit != transitPlan.originalEntity &&
             modifiedTransit.validate()) {
           final doc = transitCollection.repositoryItemCreator(modifiedTransit);
@@ -96,10 +102,14 @@ class TripMetadataUpdateExecutor {
         batch.delete(doc.documentReference);
       } else if (stayPlan.isUpdate) {
         final modifiedStay = stayPlan.modifiedEntity;
-        final updatedStayExpense = plan.expenseChanges.singleWhere((e) =>
-            e.originalEntity is LodgingFacade &&
-            e.originalEntity.id == modifiedStay.id);
-        modifiedStay.expense = updatedStayExpense.modifiedEntity.expense;
+        final updatedStayExpense = plan.expenseChanges
+            .where((e) =>
+                e.originalEntity is LodgingFacade &&
+                e.originalEntity.id == modifiedStay.id)
+            .singleOrNull;
+        if (updatedStayExpense != null) {
+          modifiedStay.expense = updatedStayExpense.modifiedEntity.expense;
+        }
         if (modifiedStay != stayPlan.originalEntity &&
             modifiedStay.validate()) {
           final doc = lodgingCollection.repositoryItemCreator(modifiedStay);
@@ -180,7 +190,7 @@ class TripMetadataUpdateExecutor {
     for (final dayKey in affectedDays) {
       // Ignore if day is outside the trip's date range.
       // Such Itineraries will be handled by ItineraryCollection.updateTripDays
-      final day = DateTime.parse(dayKey);
+      final day = DateFormat('ddMMyyyy').parse(dayKey);
       if (day.isBefore(plan.newMetadata.startDate!) ||
           day.isAfter(plan.newMetadata.endDate!)) {
         continue;
