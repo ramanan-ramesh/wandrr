@@ -99,7 +99,8 @@ class _TotalExpenseDisplayState extends State<TotalExpenseDisplay> {
     final formattedAmount = widget.amount.toStringAsFixed(2);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: isLightTheme
             ? Colors.grey.shade100
@@ -111,7 +112,6 @@ class _TotalExpenseDisplayState extends State<TotalExpenseDisplay> {
       ),
       child: Row(
         key: _buttonKey,
-        mainAxisSize: MainAxisSize.min,
         children: [
           // Currency button
           Material(
@@ -120,7 +120,8 @@ class _TotalExpenseDisplayState extends State<TotalExpenseDisplay> {
               onTap: _toggleMode,
               borderRadius: BorderRadius.circular(8),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: isLightTheme
                       ? AppColors.brandPrimary.withValues(alpha: 0.1)
@@ -157,13 +158,15 @@ class _TotalExpenseDisplayState extends State<TotalExpenseDisplay> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           // Amount display (read-only)
-          Text(
-            formattedAmount,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+          Expanded(
+            child: Text(
+              formattedAmount,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
           ),
         ],
       ),
@@ -173,107 +176,111 @@ class _TotalExpenseDisplayState extends State<TotalExpenseDisplay> {
   Widget _buildCurrencySearchMode(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
 
-    return Container(
-      constraints: const BoxConstraints(minWidth: 280),
-      decoration: BoxDecoration(
-        color: isLightTheme ? Colors.white : Colors.grey.shade900,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Search field
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              focusNode: _searchFocusNode,
-              autofocus: true,
-              onChanged: _updateSearch,
-              decoration: InputDecoration(
-                hintText: context.localizations.searchForCurrency,
-                prefixIcon: IconButton(
-                  onPressed: _toggleMode,
-                  icon: Icon(
-                    Icons.close,
-                    color: isLightTheme
-                        ? Colors.grey.shade600
-                        : Colors.grey.shade400,
+    return TapRegion(
+      onTapOutside: (_) {
+        if (_isSearchingCurrency) {
+          _toggleMode();
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: isLightTheme ? Colors.white : Colors.grey.shade900,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Search field that replaces the totalExpense display
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                autofocus: true,
+                onChanged: _updateSearch,
+                decoration: InputDecoration(
+                  hintText: context.localizations.searchForCurrency,
+                  prefixIcon: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Icon(Icons.search),
                   ),
-                ),
-                suffixIcon: Icon(
-                  Icons.search,
-                  color: isLightTheme
-                      ? Colors.grey.shade600
-                      : Colors.grey.shade400,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              ),
-              textInputAction: TextInputAction.done,
-            ),
-          ),
-          // Currency list
-          if (_filteredCurrencies.isNotEmpty)
-            Container(
-              constraints: const BoxConstraints(maxHeight: 250),
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                shrinkWrap: true,
-                itemCount: _filteredCurrencies.length,
-                itemBuilder: (context, index) {
-                  final currency = _filteredCurrencies[index];
-                  final isSelected = currency == widget.selectedCurrency;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2.0),
-                    child: ListTile(
-                      dense: true,
-                      selected: isSelected,
-                      selectedTileColor: isLightTheme
-                          ? AppColors.brandPrimary.withValues(alpha: 0.1)
-                          : AppColors.brandPrimaryLight.withValues(alpha: 0.1),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      onTap: () => _selectCurrency(currency),
-                      leading: Text(
-                        currency.symbol,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                      ),
-                      title: Text(
-                        currency.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(currency.code),
-                      trailing: isSelected
-                          ? Icon(
-                              Icons.check,
-                              color: isLightTheme
-                                  ? AppColors.success
-                                  : AppColors.successLight,
-                            )
-                          : null,
+                  prefixIconConstraints: const BoxConstraints(minWidth: 60),
+                  suffixIcon: IconButton(
+                    onPressed: _toggleMode,
+                    icon: Icon(
+                      Icons.close,
                     ),
-                  );
-                },
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                textInputAction: TextInputAction.done,
               ),
             ),
-          const SizedBox(height: 8),
-        ],
+            // Currency list
+            if (_filteredCurrencies.isNotEmpty)
+              Container(
+                constraints: const BoxConstraints(maxHeight: 250),
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  shrinkWrap: true,
+                  itemCount: _filteredCurrencies.length,
+                  itemBuilder: (context, index) {
+                    final currency = _filteredCurrencies[index];
+                    final isSelected = currency == widget.selectedCurrency;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2.0),
+                      child: ListTile(
+                        dense: true,
+                        selected: isSelected,
+                        selectedTileColor: isLightTheme
+                            ? AppColors.brandPrimary.withValues(alpha: 0.1)
+                            : AppColors.brandPrimaryLight
+                                .withValues(alpha: 0.1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        onTap: () => _selectCurrency(currency),
+                        leading: Text(
+                          currency.symbol,
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                        ),
+                        title: Text(
+                          currency.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(currency.code),
+                        trailing: isSelected
+                            ? Icon(
+                                Icons.check,
+                                color: isLightTheme
+                                    ? AppColors.success
+                                    : AppColors.successLight,
+                              )
+                            : null,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
   }
