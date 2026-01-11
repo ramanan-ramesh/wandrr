@@ -104,6 +104,7 @@ class _AffectedEntitiesBottomSheetState
       width: TripEditorPageConstants.fabSize,
       child: FittedBox(
         child: PlatformSubmitterFAB(
+          isEnabledInitially: true,
           callback: () => _applyChanges(context),
           child: const Icon(Icons.check_rounded),
         ),
