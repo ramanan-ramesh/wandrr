@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/budgeting/helpers/currency_formatter.dart';
@@ -187,32 +186,6 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   @override
   String formatCurrency(Money money) {
     return _currencyFormatter.format(money);
-  }
-
-  /// Rebalances expenses for all entities when contributors change
-  Future<void> _balanceExpenses<T extends ExpenseBearingTripEntity<dynamic>>(
-    ModelCollectionModifier<T> modelCollection,
-    Iterable<String> contributors,
-    WriteBatch writeBatch,
-  ) async {
-    for (final collectionItem in modelCollection.collectionItems) {
-      final expense = collectionItem.expense;
-      _balanceContributors(contributors, expense);
-      final itemToUpdate =
-          modelCollection.repositoryItemCreator(collectionItem);
-      writeBatch.update(itemToUpdate.documentReference, itemToUpdate.toJson());
-    }
-  }
-
-  static void _balanceContributors(
-      Iterable<String> contributors, ExpenseFacade expense) {
-    for (final contributor in contributors) {
-      if (!expense.splitBy.contains(contributor)) {
-        expense.splitBy.add(contributor);
-      }
-    }
-    expense.splitBy.removeWhere((c) => !contributors.contains(c));
-    expense.paidBy.removeWhere((c, _) => !contributors.contains(c));
   }
 
   void _addSubscription(StreamSubscription subscription) {
