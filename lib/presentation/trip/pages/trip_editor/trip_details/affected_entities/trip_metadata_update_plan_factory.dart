@@ -185,7 +185,8 @@ class TripMetadataUpdatePlanFactory {
   ) {
     final affectedTransits = <EntityChange<TransitFacade>>[];
     final newStart = newMetadata.startDate!;
-    final newEnd = newMetadata.endDate!;
+    final newEnd = DateTime(newMetadata.endDate!.year,
+        newMetadata.endDate!.month, newMetadata.endDate!.day, 23, 59);
 
     for (final transit in transits) {
       final departure = transit.departureDateTime!;
@@ -219,7 +220,8 @@ class TripMetadataUpdatePlanFactory {
   ) {
     final affectedSights = <EntityChange<SightFacade>>[];
     final newStart = newMetadata.startDate!;
-    final newEnd = newMetadata.endDate!;
+    final newEnd = DateTime(newMetadata.endDate!.year,
+        newMetadata.endDate!.month, newMetadata.endDate!.day, 23, 59);
 
     for (final sight in sights) {
       final sightDay = sight.day;
