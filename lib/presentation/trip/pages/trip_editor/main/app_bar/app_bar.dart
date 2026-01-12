@@ -51,40 +51,39 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _createTitleAndDate(BuildContext context) {
-    var tripDateRange =
-        '${context.activeTrip.tripMetadata.startDate!.dateMonthFormat} - ${context.activeTrip.tripMetadata.endDate!.dateMonthFormat}';
     return TripEntityUpdateHandler<TripMetadataFacade>(
       shouldRebuild: (beforeUpdate, afterUpdate) {
         final newStartDate = afterUpdate.startDate!;
         final newEndDate = afterUpdate.endDate!;
-        if (!beforeUpdate.startDate!.isOnSameDayAs(newStartDate) ||
+        return !beforeUpdate.startDate!.isOnSameDayAs(newStartDate) ||
             !beforeUpdate.endDate!.isOnSameDayAs(newEndDate) ||
-            beforeUpdate.name != afterUpdate.name) {
-          return true;
-        }
-        return false;
+            beforeUpdate.name != afterUpdate.name;
       },
-      widgetBuilder: (context) => InkWell(
-        onTap: () => _selectTripMetadata(context),
-        child: Padding(
-          padding: const EdgeInsets.all(3.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                context.activeTrip.tripMetadata.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              Text(
-                tripDateRange,
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-            ],
+      widgetBuilder: (context) {
+        var tripDateRange =
+            '${context.activeTrip.tripMetadata.startDate!.dateMonthFormat} - ${context.activeTrip.tripMetadata.endDate!.dateMonthFormat}';
+        return InkWell(
+          onTap: () => _selectTripMetadata(context),
+          child: Padding(
+            padding: const EdgeInsets.all(3.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  context.activeTrip.tripMetadata.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  tripDateRange,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
