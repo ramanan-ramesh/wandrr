@@ -187,6 +187,8 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
               const SizedBox(height: 12),
               _buildDayPicker(context, item),
               const SizedBox(height: 8),
+              _buildCurrentVisitTime(context, sight),
+              const SizedBox(height: 8),
               _buildTimePicker(context, sight),
               const SizedBox(height: 8),
               Align(
@@ -340,11 +342,7 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     return Row(
       children: [
-        Icon(
-          Icons.access_time_rounded,
-          size: 18,
-          color: isLightTheme ? Colors.grey.shade600 : Colors.grey.shade400,
-        ),
+        Icon(Icons.access_time_rounded),
         const SizedBox(width: 8),
         Text(
           'Visit time:',
@@ -384,6 +382,50 @@ class _AffectedSightsSectionState extends State<AffectedSightsSection> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCurrentVisitTime(BuildContext context, SightFacade sight) {
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    if (sight.visitTime == null) {
+      return const SizedBox.shrink();
+    }
+
+    final timeString =
+        '${sight.visitTime!.hour.toString().padLeft(2, '0')}:${sight.visitTime!.minute.toString().padLeft(2, '0')}';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: isLightTheme
+            ? AppColors.success.withValues(alpha: 0.1)
+            : AppColors.successLight.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isLightTheme
+              ? AppColors.success.withValues(alpha: 0.3)
+              : AppColors.successLight.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.access_time,
+            size: 16,
+            color: isLightTheme ? AppColors.success : AppColors.successLight,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            'Current: $timeString',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color:
+                      isLightTheme ? AppColors.success : AppColors.successLight,
+                ),
+          ),
+        ],
+      ),
     );
   }
 }
