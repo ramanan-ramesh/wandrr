@@ -5,6 +5,7 @@ import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/date_time_picker.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
+import 'package:wandrr/presentation/trip/widgets/time_zone_indicator.dart';
 
 class AffectedStaysSection extends StatefulWidget {
   final Iterable<EntityChange<LodgingFacade>> affectedStays;
@@ -207,6 +208,19 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
                   widget.onChanged();
                 },
               ),
+              if (lodging.checkinDateTime != null &&
+                  lodging.checkoutDateTime != null) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    if (lodging.location != null)
+                      TimezoneIndicator(location: lodging.location!),
+                    if (lodging.location != null) const SizedBox(width: 12),
+                    _buildDurationIndicator(context, lodging.checkinDateTime!,
+                        lodging.checkoutDateTime!),
+                  ],
+                ),
+              ],
             ] else ...[
               const SizedBox(height: 8),
               Center(
@@ -318,6 +332,46 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
           dateTimeUpdated: onChanged,
         ),
       ],
+    );
+  }
+
+  Widget _buildDurationIndicator(
+      BuildContext context, DateTime checkin, DateTime checkout) {
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final days = checkout.calculateDaysInBetween(checkin);
+    final durationText = '$days ${days == 1 ? 'day' : 'days'}';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isLightTheme
+            ? AppColors.info.withValues(alpha: 0.1)
+            : AppColors.infoLight.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isLightTheme
+              ? AppColors.info.withValues(alpha: 0.3)
+              : AppColors.infoLight.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.schedule_rounded,
+            size: 16,
+            color: isLightTheme ? AppColors.info : AppColors.infoLight,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            durationText,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isLightTheme ? AppColors.info : AppColors.infoLight,
+                ),
+          ),
+        ],
+      ),
     );
   }
 }
