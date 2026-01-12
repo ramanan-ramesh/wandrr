@@ -16,6 +16,7 @@ import 'tests/itinerary_viewer_test.dart';
 import 'tests/multi_collaborator_test.dart';
 import 'tests/startup_page_test.dart';
 import 'tests/trip_editor_page_test.dart';
+import 'tests/trip_metadata_update_test.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -542,6 +543,75 @@ void main() {
       testWidgets('multiple contributors scenario',
           (WidgetTester tester) async {
         await runMultipleContributorsScenarioTest(tester, sharedPreferences);
+      });
+    });
+
+    group('Trip Metadata Update Tests', () {
+      setUpAll(() async {
+        await FirebaseEmulatorHelper.createFirebaseAuthUser(
+          email: TestConfig.testEmail,
+          password: TestConfig.testPassword,
+          shouldAddToFirestore: true,
+          shouldSignIn: true,
+        );
+        await MockLocationApiService.initialize();
+        await TestHelpers.createTestTrip();
+      });
+
+      tearDownAll(() async {
+        await FirebaseEmulatorHelper.cleanupAfterTest();
+        await sharedPreferences.clear();
+      });
+
+      testWidgets(
+          'adding contributors shows bottom sheet with expenses to split',
+          (WidgetTester tester) async {
+        await runAddContributorsOnlyTest(tester);
+      });
+
+      testWidgets('removing contributors only shows snackbar, no bottom sheet',
+          (WidgetTester tester) async {
+        await runRemoveContributorsOnlyTest(tester);
+      });
+
+      testWidgets('adding and removing contributors shows bottom sheet',
+          (WidgetTester tester) async {
+        await runAddAndRemoveContributorsTest(tester);
+      });
+
+      testWidgets('shortening trip dates shows affected entities bottom sheet',
+          (WidgetTester tester) async {
+        await runShortenTripDatesTest(tester);
+      });
+
+      testWidgets('extending trip dates does not show bottom sheet',
+          (WidgetTester tester) async {
+        await runExtendTripDatesTest(tester);
+      });
+
+      testWidgets('changing start date shows affected entities',
+          (WidgetTester tester) async {
+        await runChangeStartDateTest(tester);
+      });
+
+      testWidgets('combined date and contributor changes show bottom sheet',
+          (WidgetTester tester) async {
+        await runCombinedDatesAndContributorsTest(tester);
+      });
+
+      testWidgets('can delete and restore entities in bottom sheet',
+          (WidgetTester tester) async {
+        await runDeleteRestoreEntitiesTest(tester);
+      });
+
+      testWidgets('deleting expense-bearing entity syncs with expenses section',
+          (WidgetTester tester) async {
+        await runExpenseLinkedDeletionSyncTest(tester);
+      });
+
+      testWidgets('historical contributors are included in debt calculation',
+          (WidgetTester tester) async {
+        await runHistoricalContributorsDebtTest(tester);
       });
     });
   });
