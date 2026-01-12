@@ -58,7 +58,7 @@ Future<void> runTripEditorLayoutTest(
   // Get screen size and verify isBigLayout setting
   final screenSize = TestHelpers.getScreenSize(tester);
   final expectedIsBigLayout =
-      screenSize.width >= 1000.0; // TripProviderPageConstants.cutOffPageWidth
+      screenSize.width >= 1000.0; // TestConfig.bigLayoutBreakpoint
 
   // Get the BuildContext from the element
   final tripEditorFinder = find.byType(TripEditorPage);

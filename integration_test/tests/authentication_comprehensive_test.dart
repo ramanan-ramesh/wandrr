@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/data/auth/models/auth_type.dart';
 import 'package:wandrr/presentation/app/pages/login_page.dart';
 import 'package:wandrr/presentation/app/pages/startup_page.dart';
-import 'package:wandrr/presentation/trip/pages/trip_provider/trip_provider.dart';
+import 'package:wandrr/presentation/trip/pages/home/home_page.dart';
 
 import '../helpers/firebase_emulator_helper.dart';
 import '../helpers/test_config.dart';
@@ -691,9 +691,10 @@ class _LoginTestActions {
 
   /// Verify successful login navigation
   static Future<void> verifySuccessfulLogin(WidgetTester tester) async {
+    // With go_router, after successful login the app navigates to /trips which shows HomePage
     await TestHelpers.waitForWidget(
       tester,
-      find.byType(TripProvider),
+      find.byType(HomePage),
       timeout: const Duration(seconds: 8),
     );
   }

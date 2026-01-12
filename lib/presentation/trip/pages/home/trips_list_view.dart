@@ -40,7 +40,18 @@ class TripListView extends StatelessWidget {
           Expanded(
             child: BlocConsumer<TripManagementBloc, TripManagementState>(
               buildWhen: _shouldBuildListView,
-              listener: (context, state) {},
+              listener: (context, state) {
+                if (state is UpdatedTripEntity) {
+                  final modificationData = state.tripEntityModificationData;
+                  if (modificationData.isFromExplicitAction) {
+                    if (modificationData.modifiedCollectionItem
+                        is TripMetadataFacade) {
+                      context.go(AppRoutes.tripEditorPath(
+                          modificationData.modifiedCollectionItem.id));
+                    }
+                  }
+                }
+              },
               builder: (context, state) {
                 var tripMetadatas = context
                     .tripRepository.tripMetadataCollection.collectionItems
@@ -81,10 +92,8 @@ class TripListView extends StatelessWidget {
       TripManagementState previousState, TripManagementState currentState) {
     if (currentState.isTripEntityUpdated<TripMetadataFacade>()) {
       var tripMetadataUpdatedState = currentState as UpdatedTripEntity;
-      if (tripMetadataUpdatedState.dataState == DataState.delete ||
-          tripMetadataUpdatedState.dataState == DataState.create) {
-        return true;
-      }
+      final dataState = tripMetadataUpdatedState.dataState;
+      return dataState == DataState.delete || dataState == DataState.create;
     }
     return false;
   }

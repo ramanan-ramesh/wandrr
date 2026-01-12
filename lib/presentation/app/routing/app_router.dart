@@ -14,9 +14,9 @@ import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/pages/login_page.dart';
 import 'package:wandrr/presentation/app/pages/onboarding/onboarding_page.dart';
 import 'package:wandrr/presentation/app/pages/startup_page.dart';
+import 'package:wandrr/presentation/trip/pages/constants.dart';
 import 'package:wandrr/presentation/trip/pages/home/home_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
-import 'package:wandrr/presentation/trip/pages/trip_provider/constants.dart';
 
 /// Route path constants
 class AppRoutes {
@@ -271,8 +271,8 @@ class _TripShellContentState extends State<_TripShellContent> {
             value: _tripRepository!,
             child: LayoutBuilder(
               builder: (context, constraints) {
-                context.isBigLayout = constraints.maxWidth >=
-                    TripProviderPageConstants.cutOffPageWidth;
+                context.isBigLayout =
+                    constraints.maxWidth >= TripPageConstants.cutOffPageWidth;
                 return widget.child;
               },
             ),
