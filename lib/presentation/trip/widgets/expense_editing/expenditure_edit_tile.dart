@@ -69,7 +69,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   Widget build(BuildContext context) {
     _initializeContributors(context);
     if (widget.isEditable) {
-      if (context.activeTrip.tripMetadata.contributors.length == 1) {
+      if (_currentSplitBy.length == 1) {
         return _createTotalExpenseField(context, true);
       }
       return _createEditorForMultipleContributors(context);
