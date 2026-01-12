@@ -4,6 +4,7 @@ import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 
 /// Calculates debt settlements between contributors
+/// Accounts for both active and historical (deleted) contributors
 class DebtCalculator {
   final ApiService<(Money, String), double?> currencyConverter;
   final String defaultCurrency;
@@ -14,11 +15,21 @@ class DebtCalculator {
   });
 
   /// Calculates debt data list from all expenses
+  /// Includes historical contributors who may no longer be active but have
+  /// expenses preserved for historical accuracy
   Future<Iterable<DebtData>> calculateDebts(
     Iterable<ExpenseFacade> allExpenses,
-    Iterable<String> contributors,
+    Iterable<String> activeContributors,
   ) async {
-    if (contributors.length == 1 || allExpenses.isEmpty) {
+    if (allExpenses.isEmpty) {
+      return [];
+    }
+
+    // Collect all contributors (active + historical from expenses)
+    final allContributors =
+        _collectAllContributors(allExpenses, activeContributors);
+
+    if (allContributors.length <= 1) {
       return [];
     }
 
@@ -26,7 +37,25 @@ class DebtCalculator {
     return _settleDebts(netBalances);
   }
 
-  /// Calculates net balance for each contributor
+  /// Collects all contributors including historical ones from expenses
+  /// that may have been removed from active trip contributors
+  Set<String> _collectAllContributors(
+    Iterable<ExpenseFacade> allExpenses,
+    Iterable<String> activeContributors,
+  ) {
+    final allContributors = activeContributors.toSet();
+
+    for (final expense in allExpenses) {
+      // Add contributors from splitBy
+      allContributors.addAll(expense.splitBy);
+      // Add contributors from paidBy
+      allContributors.addAll(expense.paidBy.keys);
+    }
+
+    return allContributors;
+  }
+
+  /// Calculates net balance for each contributor (active and historical)
   Future<Map<String, double>> _calculateNetBalances(
     Iterable<ExpenseFacade> allExpenses,
   ) async {
@@ -36,8 +65,8 @@ class DebtCalculator {
       final splitBy = expense.splitBy;
       if (splitBy.length <= 1) continue;
 
-      final totalExpense =
-          await currencyConverter.queryData((expense.totalExpense, defaultCurrency));
+      final totalExpense = await currencyConverter
+          .queryData((expense.totalExpense, defaultCurrency));
       if (totalExpense == null) continue;
 
       final averageExpense = totalExpense / splitBy.length;
@@ -75,9 +104,8 @@ class DebtCalculator {
       for (final owedEntry in owed.entries) {
         if (amountOwed == 0) break;
 
-        final amountToSettle = amountOwed < owedEntry.value
-            ? amountOwed
-            : owedEntry.value;
+        final amountToSettle =
+            amountOwed < owedEntry.value ? amountOwed : owedEntry.value;
 
         debtList.add(DebtData(
           owedBy: owingEntry.key,
@@ -93,4 +121,3 @@ class DebtCalculator {
     return debtList;
   }
 }
-

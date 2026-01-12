@@ -4,7 +4,6 @@ import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 
@@ -323,35 +322,11 @@ class _TripContributorsEditorSectionState
         return;
       }
 
-      if (mounted) {
-        PlatformDialogElements.showAlertDialog(context, (dialogContext) {
-          return AlertDialog(
-            title:
-                Text(context.localizations.splitExpensesWithNewTripMateMessage),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                },
-                child: Text(context.localizations.no),
-              ),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _contributors.add(name);
-                    _contributorController.clear();
-                    _isAddContributorFieldVisible = false;
-                    _userExistenceError = null;
-                    widget.onContributorsChanged(_contributors);
-                  });
-                  Navigator.of(dialogContext).pop();
-                },
-                child: Text(context.localizations.yes),
-              ),
-            ],
-          );
-        });
-      }
+      _contributors.add(name);
+      _contributorController.clear();
+      _isAddContributorFieldVisible = false;
+      _userExistenceError = null;
+      widget.onContributorsChanged(_contributors);
     } catch (e) {
       // Set error and trigger validation
       setState(() {

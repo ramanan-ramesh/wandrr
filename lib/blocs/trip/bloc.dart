@@ -52,6 +52,7 @@ class TripManagementBloc
     on<UpdateTripEntity<TransitFacade>>(_onUpdateTransit);
     on<UpdateTripEntity<LodgingFacade>>(_onUpdateLodging);
     on<GoToHome>(_onGoToHome);
+    on<ApplyTripMetadataUpdatePlan>(_onApplyTripMetadataUpdatePlan);
     on<UpdateTripEntity<StandaloneExpense>>(_onUpdateExpense);
     on<UpdateTripEntity<TripMetadataFacade>>(_onUpdateTripMetadata);
     on<UpdateTripEntity<ItineraryPlanData>>(_onUpdateItineraryData);
@@ -121,7 +122,7 @@ class TripManagementBloc
       return;
     }
     await _updateHandler.updateTripEntityAndEmitState<TransitFacade>(
-      tripEntity: event.tripEntity!,
+      tripEntity: event.tripEntity,
       requestedDataState: event.dataState,
       modelCollection: _activeTrip!.transitCollection,
       emit: emit,
@@ -137,7 +138,7 @@ class TripManagementBloc
       return;
     }
     await _updateHandler.updateTripEntityAndEmitState<LodgingFacade>(
-      tripEntity: event.tripEntity!,
+      tripEntity: event.tripEntity,
       requestedDataState: event.dataState,
       modelCollection: _activeTrip!.lodgingCollection,
       emit: emit,
@@ -153,7 +154,7 @@ class TripManagementBloc
       return;
     }
     await _updateHandler.updateTripEntityAndEmitState<StandaloneExpense>(
-      tripEntity: event.tripEntity!,
+      tripEntity: event.tripEntity,
       requestedDataState: event.dataState,
       modelCollection: _activeTrip!.expenseCollection,
       emit: emit,
@@ -163,18 +164,15 @@ class TripManagementBloc
   FutureOr<void> _onUpdateItineraryData(
       UpdateTripEntity<ItineraryPlanData> event,
       Emitter<TripManagementState> emit) async {
-    if (event.tripEntity == null) {
-      return;
-    }
-    var itineraryDay = event.tripEntity!.day;
+    var itineraryDay = event.tripEntity.day;
     var itinerary =
         _activeTrip!.itineraryCollection.getItineraryForDay(itineraryDay);
     var itineraryPlanDataBeforeUpdate = itinerary.planData.clone();
-    var didUpdate = await itinerary.updatePlanData(event.tripEntity!);
+    var didUpdate = await itinerary.updatePlanData(event.tripEntity);
     emit(UpdatedTripEntity.updated(
         tripEntityModificationData: CollectionItemChangeMetadata(
             CollectionItemChangeSet<ItineraryPlanData>(
-                itineraryPlanDataBeforeUpdate, event.tripEntity!),
+                itineraryPlanDataBeforeUpdate, event.tripEntity),
             isFromExplicitAction: true),
         isOperationSuccess: didUpdate));
   }
@@ -183,7 +181,7 @@ class TripManagementBloc
       UpdateTripEntity<TripMetadataFacade> event,
       Emitter<TripManagementState> emit) async {
     await _updateHandler.updateTripEntityAndEmitState<TripMetadataFacade>(
-      tripEntity: event.tripEntity!,
+      tripEntity: event.tripEntity,
       requestedDataState: event.dataState,
       modelCollection: _tripRepository!.tripMetadataCollection,
       emit: emit,
@@ -223,7 +221,7 @@ class TripManagementBloc
 
   FutureOr<void> _onSelectExpenseBearingTripEntity(
       SelectExpenseBearingTripEntity event, Emitter<TripManagementState> emit) {
-    emit(SelectedExpenseBearingTripEntity(tripEntity: event.tripEntity!));
+    emit(SelectedExpenseBearingTripEntity(tripEntity: event.tripEntity));
   }
 
   FutureOr<void> _onEditItineraryPlanData(
@@ -325,6 +323,11 @@ class TripManagementBloc
       },
     );
     await _itinerarySubscriptionHandler!.createSubscriptions();
+  }
+
+  Future<void> _onApplyTripMetadataUpdatePlan(ApplyTripMetadataUpdatePlan event,
+      Emitter<TripManagementState> emit) async {
+    await _activeTrip?.applyUpdatePlan(event.updatePlan);
   }
 }
 

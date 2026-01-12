@@ -1,0 +1,287 @@
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/data/trip/models/itinerary/sight.dart';
+import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/data/trip/models/trip_data.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
+
+/// Factory to create TripMetadataUpdatePlan from trip data
+class TripMetadataUpdatePlanFactory {
+  /// Creates a TripMetadataUpdatePlan by analyzing what changed between old and new metadata
+  static TripMetadataUpdatePlan? create({
+    required TripMetadataFacade oldMetadata,
+    required TripMetadataFacade newMetadata,
+    required TripDataFacade tripData,
+  }) {
+    final haveTripDatesChanged =
+        _haveTripDatesChanged(oldMetadata, newMetadata);
+    final haveContributorsChanged =
+        _haveContributorsChanged(oldMetadata, newMetadata);
+
+    if (!haveTripDatesChanged && !haveContributorsChanged) {
+      return null;
+    }
+
+    // Collect affected stays
+    final affectedStays = <EntityChange<LodgingFacade>>[];
+    if (haveTripDatesChanged) {
+      affectedStays.addAll(_findAffectedStays(
+        tripData.lodgingCollection.collectionItems,
+        oldMetadata,
+        newMetadata,
+      ));
+    }
+
+    // Collect affected transits
+    final affectedTransits = <EntityChange<TransitFacade>>[];
+    if (haveTripDatesChanged) {
+      affectedTransits.addAll(_findAffectedTransits(
+        tripData.transitCollection.collectionItems,
+        oldMetadata,
+        newMetadata,
+      ));
+    }
+
+    // Collect affected sights
+    final affectedSights = <EntityChange<SightFacade>>[];
+    if (haveTripDatesChanged) {
+      for (final itinerary in tripData.itineraryCollection) {
+        affectedSights.addAll(_findAffectedSights(
+          itinerary.planData.sights,
+          oldMetadata,
+          newMetadata,
+        ));
+      }
+    }
+
+    // Collect all expenses for contributor changes
+    final allExpenses = <EntityChange<ExpenseBearingTripEntity>>[];
+    if (haveContributorsChanged) {
+      allExpenses.addAll(_collectAllExpenses(tripData));
+    }
+
+    // Only return plan if there are affected entities or contributor changes with expenses
+    if (affectedStays.isEmpty &&
+        affectedTransits.isEmpty &&
+        affectedSights.isEmpty &&
+        allExpenses.isEmpty) {
+      return null;
+    }
+
+    return TripMetadataUpdatePlan(
+      oldMetadata: oldMetadata,
+      newMetadata: newMetadata,
+      stayChanges: affectedStays,
+      transitChanges: affectedTransits,
+      sightChanges: affectedSights,
+      expenseChanges: allExpenses,
+    );
+  }
+
+  static bool _haveTripDatesChanged(
+      TripMetadataFacade oldMeta, TripMetadataFacade newMeta) {
+    var oldStartDate = oldMeta.startDate!;
+    var oldEndDate = oldMeta.endDate!;
+    var newStartDate = newMeta.startDate!;
+    var newEndDate = newMeta.endDate!;
+    return !oldStartDate.isOnSameDayAs(newStartDate) ||
+        !oldEndDate.isOnSameDayAs(newEndDate);
+  }
+
+  static bool _haveContributorsChanged(
+      TripMetadataFacade oldMeta, TripMetadataFacade newMeta) {
+    var oldContributorsSet = oldMeta.contributors.toSet();
+    var newContributorsSet = newMeta.contributors.toSet();
+    return oldContributorsSet.difference(newContributorsSet).isNotEmpty ||
+        newContributorsSet.difference(oldContributorsSet).isNotEmpty;
+  }
+
+  /// Find stays that fall outside the new trip dates
+  /// Clamps stays where possible to fit within new dates
+  static Iterable<EntityChange<LodgingFacade>> _findAffectedStays(
+    Iterable<LodgingFacade> lodgings,
+    TripMetadataFacade oldMetadata,
+    TripMetadataFacade newMetadata,
+  ) {
+    final affectedStays = <EntityChange<LodgingFacade>>[];
+    final newTripStartDate = newMetadata.startDate!;
+    var newTripEndDate = newMetadata.endDate!;
+    final newEnd = DateTime(
+        newTripEndDate.year, newTripEndDate.month, newTripEndDate.day, 23, 59);
+
+    for (final lodging in lodgings) {
+      final checkin = lodging.checkinDateTime!;
+      final checkout = lodging.checkoutDateTime!;
+
+      // Check if stay needs adjustment
+      final isCheckinOutsideNewRange =
+          checkin.isBefore(newTripStartDate) || checkin.isAfter(newEnd);
+      final isCheckoutOutsideNewRange =
+          checkout.isBefore(newTripStartDate) || checkout.isAfter(newEnd);
+
+      if (isCheckinOutsideNewRange || isCheckoutOutsideNewRange) {
+        // Create a modified copy with clamped dates
+        final modifiedLodging = lodging.clone();
+
+        // Try to clamp dates to fit within new range
+        DateTime? clampedCheckin = checkin;
+        DateTime? clampedCheckout = checkout;
+
+        // Clamp checkin
+        if (checkin.isBefore(newTripStartDate)) {
+          clampedCheckin = DateTime(
+            newTripStartDate.year,
+            newTripStartDate.month,
+            newTripStartDate.day,
+            checkin.hour,
+            checkin.minute,
+          );
+        } else if (checkin.isAfter(newEnd)) {
+          clampedCheckin = null;
+        }
+
+        // Clamp checkout
+        if (checkout.isAfter(newEnd)) {
+          clampedCheckout = DateTime(
+            newEnd.year,
+            newEnd.month,
+            newEnd.day,
+            checkout.hour,
+            checkout.minute,
+          );
+        } else if (checkout.isBefore(newTripStartDate)) {
+          clampedCheckout = null;
+        }
+
+        // Validate the clamped dates make sense
+        if (clampedCheckin != null &&
+            clampedCheckout != null &&
+            (!clampedCheckin.isBefore(clampedCheckout) ||
+                clampedCheckin.isOnSameDayAs(clampedCheckout))) {
+          clampedCheckin = null;
+          clampedCheckout = null;
+        }
+
+        modifiedLodging.checkinDateTime = clampedCheckin;
+        modifiedLodging.checkoutDateTime = clampedCheckout;
+
+        affectedStays.add(EntityChange(
+          originalEntity: lodging,
+          modifiedEntity: modifiedLodging,
+        ));
+      }
+    }
+
+    return affectedStays;
+  }
+
+  /// Find transits that fall outside the new trip dates
+  static Iterable<EntityChange<TransitFacade>> _findAffectedTransits(
+    Iterable<TransitFacade> transits,
+    TripMetadataFacade oldMetadata,
+    TripMetadataFacade newMetadata,
+  ) {
+    final affectedTransits = <EntityChange<TransitFacade>>[];
+    final newStart = newMetadata.startDate!;
+    final newEnd = DateTime(newMetadata.endDate!.year,
+        newMetadata.endDate!.month, newMetadata.endDate!.day, 23, 59);
+
+    for (final transit in transits) {
+      final departure = transit.departureDateTime!;
+      final arrival = transit.arrivalDateTime!;
+
+      final isDepartureOutside =
+          departure.isBefore(newStart) || departure.isAfter(newEnd);
+      final isArrivalOutside =
+          arrival.isBefore(newStart) || arrival.isAfter(newEnd);
+
+      if (isDepartureOutside || isArrivalOutside) {
+        final modifiedTransit = transit.clone();
+        modifiedTransit.departureDateTime = null;
+        modifiedTransit.arrivalDateTime = null;
+
+        affectedTransits.add(EntityChange(
+          originalEntity: transit,
+          modifiedEntity: modifiedTransit,
+        ));
+      }
+    }
+
+    return affectedTransits;
+  }
+
+  /// Find sights that fall outside the new trip dates
+  static Iterable<EntityChange<SightFacade>> _findAffectedSights(
+    Iterable<SightFacade> sights,
+    TripMetadataFacade oldMetadata,
+    TripMetadataFacade newMetadata,
+  ) {
+    final affectedSights = <EntityChange<SightFacade>>[];
+    final newStart = newMetadata.startDate!;
+    final newEnd = DateTime(newMetadata.endDate!.year,
+        newMetadata.endDate!.month, newMetadata.endDate!.day, 23, 59);
+
+    for (final sight in sights) {
+      final sightDay = sight.day;
+      final isDayOutside =
+          sightDay.isBefore(newStart) || sightDay.isAfter(newEnd);
+
+      if (isDayOutside) {
+        final modifiedSight = sight.clone();
+        modifiedSight.visitTime = null;
+
+        affectedSights.add(EntityChange(
+          originalEntity: sight,
+          modifiedEntity: modifiedSight,
+        ));
+      }
+    }
+
+    return affectedSights;
+  }
+
+  /// Collect all expenses from transit, lodging, standalone expenses, and sights
+  static Iterable<EntityChange<ExpenseBearingTripEntity>> _collectAllExpenses(
+    TripDataFacade tripData,
+  ) {
+    final allExpenses = <EntityChange<ExpenseBearingTripEntity>>[];
+
+    // Collect standalone expenses (not linked to any entity)
+    for (final expense in tripData.expenseCollection.collectionItems) {
+      allExpenses.add(EntityChange(
+        originalEntity: expense,
+        modifiedEntity: expense.clone(),
+      ));
+    }
+
+    // Collect transit expenses and link them
+    for (final transit in tripData.transitCollection.collectionItems) {
+      allExpenses.add(EntityChange(
+        originalEntity: transit,
+        modifiedEntity: transit.clone(),
+      ));
+    }
+
+    // Collect lodging expenses and link them
+    for (final lodging in tripData.lodgingCollection.collectionItems) {
+      allExpenses.add(EntityChange(
+        originalEntity: lodging,
+        modifiedEntity: lodging.clone(),
+      ));
+    }
+
+    // Collect sight expenses and link them
+    for (final itinerary in tripData.itineraryCollection) {
+      for (final sight in itinerary.planData.sights) {
+        allExpenses.add(EntityChange(
+          originalEntity: sight,
+          modifiedEntity: sight.clone(),
+        ));
+      }
+    }
+
+    return allExpenses;
+  }
+}

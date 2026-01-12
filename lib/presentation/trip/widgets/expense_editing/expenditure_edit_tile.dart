@@ -9,6 +9,7 @@ import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/chrome_tab.dart';
 import 'package:wandrr/presentation/trip/widgets/money_edit_field.dart';
+import 'package:wandrr/presentation/trip/widgets/total_expense_display.dart';
 
 import 'paid_by_tab.dart';
 import 'split_by_tab.dart';
@@ -68,7 +69,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   Widget build(BuildContext context) {
     _initializeContributors(context);
     if (widget.isEditable) {
-      if (context.activeTrip.tripMetadata.contributors.length == 1) {
+      if (_currentSplitBy.length == 1) {
         return _createTotalExpenseField(context, true);
       }
       return _createEditorForMultipleContributors(context);
@@ -101,7 +102,19 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
           child: ValueListenableBuilder(
               valueListenable: _totalExpenseValueNotifier,
               builder: (context, value, child) {
-                return _createTotalExpenseField(context, false);
+                // Use TotalExpenseDisplay for read-only total with currency picker
+                return TotalExpenseDisplay(
+                  amount: value.amount,
+                  selectedCurrency: _currentCurrencyInfo,
+                  allCurrencies: context.supportedCurrencies,
+                  onCurrencySelected: (_) {
+                    setState(() {
+                      _currentCurrencyInfo = _;
+                      _recalculateTotalExpense();
+                      _invokeUpdatedCallback();
+                    });
+                  },
+                );
               }),
         ),
         _buildTabBar(context),

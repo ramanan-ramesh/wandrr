@@ -4,6 +4,7 @@ import 'package:wandrr/data/trip/models/budgeting/debt_data.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/contributor_badge.dart';
 
 class DebtSummaryTile extends StatelessWidget {
   const DebtSummaryTile({super.key});
@@ -17,6 +18,7 @@ class DebtSummaryTile extends StatelessWidget {
     final currentUserName = context.activeUser!.userName;
     final budgetingModule = activeTrip.budgetingModule;
     final appLocalizations = context.localizations;
+    final currentContributors = activeTrip.tripMetadata.contributors;
 
     return FutureBuilder<Iterable<DebtData>>(
       future: budgetingModule.retrieveDebtDataList(),
@@ -41,6 +43,7 @@ class DebtSummaryTile extends StatelessWidget {
                           owedTo: e.owedTo,
                           amountText: budgetingModule.formatCurrency(e.money),
                           currentUserName: currentUserName,
+                          currentContributors: currentContributors,
                           appLocalizations: appLocalizations,
                         ))
                     .toList(),
@@ -60,6 +63,7 @@ class _DebtRow extends StatelessWidget {
   final String owedTo;
   final String amountText;
   final String currentUserName;
+  final List<String> currentContributors;
   final AppLocalizations appLocalizations;
 
   const _DebtRow({
@@ -67,6 +71,7 @@ class _DebtRow extends StatelessWidget {
     required this.owedTo,
     required this.amountText,
     required this.currentUserName,
+    required this.currentContributors,
     required this.appLocalizations,
   });
 
@@ -79,25 +84,25 @@ class _DebtRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _createContributorBadge(owedBy),
+          ContributorBadge(
+            contributorName: owedBy,
+            currentUserName: currentUserName,
+            currentContributors: currentContributors,
+            localizedYouText: appLocalizations.you,
+          ),
           const SizedBox(width: _kHorizontalSpacing / 3),
           FittedBox(child: Text(context.localizations.needsToPay)),
           const SizedBox(width: _kHorizontalSpacing / 3),
-          _createContributorBadge(owedTo),
+          ContributorBadge(
+            contributorName: owedTo,
+            currentUserName: currentUserName,
+            currentContributors: currentContributors,
+            localizedYouText: appLocalizations.you,
+          ),
           const SizedBox(width: _kHorizontalSpacing / 3),
           FittedBox(child: Text(amountText)),
         ],
       ),
-    );
-  }
-
-  Widget _createContributorBadge(String contributorName) {
-    final displayName = contributorName == currentUserName
-        ? appLocalizations.you
-        : contributorName.split('@').first;
-    return TextButton.icon(
-      onPressed: null,
-      label: Text(displayName),
     );
   }
 }

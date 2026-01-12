@@ -75,21 +75,21 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
     ItineraryPlanDataModelImplementation? planData,
   }) async {
     final planDataId = day.itineraryDateFormat;
-    final planDataDocRef = FirebaseFirestore.instance
-        .collection(FirestoreCollections.tripCollectionName)
-        .doc(tripId)
-        .collection(FirestoreCollections.itineraryDataCollectionName)
-        .doc(planDataId);
     ItineraryPlanDataModelImplementation planDataModelImplementation;
     if (planData != null) {
       planDataModelImplementation = planData;
     } else {
+      final planDataDocRef = FirebaseFirestore.instance
+          .collection(FirestoreCollections.tripCollectionName)
+          .doc(tripId)
+          .collection(FirestoreCollections.itineraryDataCollectionName)
+          .doc(planDataId);
       var planDataSnapshot = await planDataDocRef.get();
       if (planDataSnapshot.exists) {
         planDataModelImplementation =
             ItineraryPlanDataModelImplementation.fromDocumentSnapshot(
           tripId: tripId,
-          documentSnapshot: planDataSnapshot,
+          documentData: planDataSnapshot.data() as Map<String, dynamic>,
           day: day,
         );
       } else {
@@ -209,7 +209,7 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
         planDataModelImplementation =
             ItineraryPlanDataModelImplementation.fromDocumentSnapshot(
           tripId: tripId,
-          documentSnapshot: snapshot,
+          documentData: snapshot.data() as Map<String, dynamic>,
           day: day,
         );
       } else {

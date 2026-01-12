@@ -4,11 +4,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/itinerary/itinerary.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
+import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
 
 import 'itinerary_plan_data_implementation.dart';
 
@@ -57,53 +60,198 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
 
   @override
   Future<void> updateTripDays(DateTime startDate, DateTime endDate) async {
+    var writeBatch = FirebaseFirestore.instance.batch();
+    final updateLocalState = await prepareTripDaysUpdate(
+      writeBatch,
+      startDate,
+      endDate,
+      [], // No sight changes for simple updateTripDays
+      [], // No expense changes
+    );
+    await writeBatch.commit();
+    await updateLocalState();
+  }
+
+  @override
+  Future<Future<void> Function()> prepareTripDaysUpdate(
+    WriteBatch batch,
+    DateTime startDate,
+    DateTime endDate,
+    Iterable<EntityChange<SightFacade>> sightChanges,
+    Iterable<EntityChange<ExpenseBearingTripEntity>> expenseChanges,
+  ) async {
     final oldDates = _getDateRange(_startDate, _endDate);
     final newDates = _getDateRange(startDate, endDate);
 
     final datesToAdd = newDates.difference(oldDates);
     final datesToRemove = oldDates.difference(newDates);
 
-    var writeBatch = FirebaseFirestore.instance.batch();
+    // Build sight change maps
+    final sightOps =
+        _buildSightOperations(sightChanges, expenseChanges, startDate, endDate);
+
+    // Collect all days that need plan data updates
+    final daysNeedingUpdate = <String>{...sightOps.affectedDays};
+
+    // Queue deletions for removed days
     for (final date in datesToRemove) {
-      var itinerary = _itineraries
-          .singleWhere((itinerary) => itinerary.day.isOnSameDayAs(date));
+      final dayKey = date.itineraryDateFormat;
+      var itinerary =
+          _itineraries.singleWhere((it) => it.day.isOnSameDayAs(date));
       itinerary.dispose();
-      var planDataModelImplementation =
-          ItineraryPlanDataModelImplementation.fromModelFacade(
-              itinerary.planData);
-      writeBatch.delete(planDataModelImplementation.documentReference);
+      var planData = ItineraryPlanDataModelImplementation.fromModelFacade(
+          itinerary.planData);
+      batch.delete(planData.documentReference);
+      // Remove from days needing update since we're deleting them
+      daysNeedingUpdate.remove(dayKey);
     }
 
-    _itineraries
-        .removeWhere((itinerary) => datesToRemove.contains(itinerary.day));
-
+    // Create new itineraries for added days
+    final newItineraries = <ItineraryModelEventHandler>[];
     for (final date in datesToAdd) {
-      if (_itineraries.any((itinerary) => itinerary.day.isOnSameDayAs(date))) {
-        continue;
-      }
-      var itinerary = await ItineraryModelImplementation.createInstance(
-          tripId: tripId,
-          day: date,
-          transits: [],
-          checkinLodging: null,
-          checkoutLodging: null,
-          fullDayLodging: null,
-          planData: ItineraryPlanDataModelImplementation(
-              tripId: tripId,
-              id: date.itineraryDateFormat,
-              day: date,
-              sights: [],
-              notes: [],
-              checkLists: []));
-      _itineraries.add(
-        itinerary,
+      final dayKey = date.itineraryDateFormat;
+
+      // Get any sights being added to this new day
+      final sightsForDay = sightOps.sightsToAdd[dayKey] ?? [];
+
+      var planData = ItineraryPlanDataModelImplementation(
+        tripId: tripId,
+        id: dayKey,
+        day: date,
+        sights: sightsForDay,
+        notes: [],
+        checkLists: [],
       );
+      if (sightsForDay.isNotEmpty) {
+        batch.set(planData.documentReference, planData.toJson());
+      }
+
+      //Create an itinerary with just ItineraryPlanData for now. Transits and Stays should be filled when batch commits succeed and ModelCollection events fire.
+      var itinerary = await ItineraryModelImplementation.createInstance(
+        tripId: tripId,
+        day: date,
+        transits: [],
+        checkinLodging: null,
+        checkoutLodging: null,
+        fullDayLodging: null,
+        planData: planData,
+      );
+      newItineraries.add(itinerary);
+
+      // Remove from days needing update since we've handled it
+      daysNeedingUpdate.remove(dayKey);
     }
 
-    _itineraries.sort((a, b) => a.day.compareTo(b.day));
-    _startDate = startDate;
-    _endDate = endDate;
-    await writeBatch.commit();
+    // Update existing itineraries with sight changes
+    for (final dayKey in daysNeedingUpdate) {
+      final itinerary =
+          _itineraries.singleWhere((it) => it.planData.id == dayKey);
+
+      // Start with current sights
+      final currentSights = List<SightFacade>.from(itinerary.planData.sights);
+
+      // Apply updates first
+      for (final sight in sightOps.sightsToUpdate[dayKey] ?? <SightFacade>[]) {
+        final idx = currentSights.indexWhere((s) => s.id == sight.id);
+        if (idx >= 0) {
+          currentSights[idx] = sight;
+        }
+      }
+
+      // Apply removals
+      final toRemove = sightOps.sightsToRemove[dayKey] ?? {};
+      currentSights.removeWhere((s) => toRemove.contains(s.id));
+
+      // Apply additions
+      currentSights.addAll(sightOps.sightsToAdd[dayKey] ?? []);
+
+      // Create updated plan data
+      final updatedPlanData = ItineraryPlanDataModelImplementation(
+        tripId: tripId,
+        id: dayKey,
+        day: itinerary.day,
+        sights: currentSights,
+        notes: itinerary.planData.notes.toList(),
+        checkLists: itinerary.planData.checkLists.toList(),
+      );
+
+      batch.set(updatedPlanData.documentReference, updatedPlanData.toJson());
+    }
+
+    // Return function to update local state after batch commits
+    return () async {
+      _itineraries.removeWhere((it) => datesToRemove.contains(it.day));
+      _itineraries.addAll(newItineraries);
+      _itineraries.sort((a, b) => a.day.compareTo(b.day));
+      _startDate = startDate;
+      _endDate = endDate;
+    };
+  }
+
+  /// Builds organized sight operations from change lists
+  _SightOperations _buildSightOperations(
+    Iterable<EntityChange<SightFacade>> sightChanges,
+    Iterable<EntityChange<ExpenseBearingTripEntity>> expenseChanges,
+    DateTime startDate,
+    DateTime endDate,
+  ) {
+    final sightsToRemove = <String, Set<String>>{};
+    final sightsToAdd = <String, List<SightFacade>>{};
+    final sightsToUpdate = <String, List<SightFacade>>{};
+    final affectedDays = <String>{};
+
+    for (final change in sightChanges) {
+      final originalDay = change.originalEntity.day;
+      final originalDayKey = originalDay.itineraryDateFormat;
+
+      if (change.isDelete) {
+        sightsToRemove.putIfAbsent(originalDayKey, () => {});
+        sightsToRemove[originalDayKey]!.add(change.originalEntity.id!);
+        affectedDays.add(originalDayKey);
+      } else if (change.isUpdate) {
+        final modifiedSight = change.modifiedEntity;
+        final newDay = modifiedSight.day;
+        final newDayKey = newDay.itineraryDateFormat;
+
+        // Skip if outside new trip range
+        if (newDay.isBefore(startDate) || newDay.isAfter(endDate)) {
+          continue;
+        }
+
+        // Apply expense update if exists
+        final expenseChange = expenseChanges.singleWhereOrNull((e) =>
+            e.originalEntity is SightFacade &&
+            e.originalEntity.id == modifiedSight.id);
+        if (expenseChange != null) {
+          modifiedSight.expense = expenseChange.modifiedEntity.expense;
+        }
+
+        if (!originalDay.isOnSameDayAs(newDay)) {
+          // Moving to different day
+          sightsToRemove.putIfAbsent(originalDayKey, () => {});
+          sightsToRemove[originalDayKey]!.add(change.originalEntity.id!);
+          affectedDays.add(originalDayKey);
+
+          if (modifiedSight.validate()) {
+            sightsToAdd.putIfAbsent(newDayKey, () => []);
+            sightsToAdd[newDayKey]!.add(modifiedSight);
+            affectedDays.add(newDayKey);
+          }
+        } else if (modifiedSight.validate()) {
+          // Same day, just update
+          sightsToUpdate.putIfAbsent(originalDayKey, () => []);
+          sightsToUpdate[originalDayKey]!.add(modifiedSight);
+          affectedDays.add(originalDayKey);
+        }
+      }
+    }
+
+    return _SightOperations(
+      sightsToRemove: sightsToRemove,
+      sightsToAdd: sightsToAdd,
+      sightsToUpdate: sightsToUpdate,
+      affectedDays: affectedDays,
+    );
   }
 
   @override
@@ -312,4 +460,19 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
         _itineraries = itineraries {
     _initializeListeners(transitCollection, lodgingCollection);
   }
+}
+
+/// Helper class to organize sight operations by day
+class _SightOperations {
+  final Map<String, Set<String>> sightsToRemove;
+  final Map<String, List<SightFacade>> sightsToAdd;
+  final Map<String, List<SightFacade>> sightsToUpdate;
+  final Set<String> affectedDays;
+
+  const _SightOperations({
+    required this.sightsToRemove,
+    required this.sightsToAdd,
+    required this.sightsToUpdate,
+    required this.affectedDays,
+  });
 }
