@@ -41,7 +41,6 @@ class TestHelpers {
     final firestore = FirebaseFirestore.instance;
 
     // Test trip data
-    const tripId = 'test_trip_123';
     final startDate = DateTime(2025, 9, 24);
     final endDate = DateTime(2025, 9, 29);
     const tripName = 'European Adventure';
@@ -51,7 +50,7 @@ class TestHelpers {
     // Create trip metadata
     await firestore
         .collection(FirestoreCollections.tripMetadataCollectionName)
-        .doc(tripId)
+        .doc(TestConfig.testTripId)
         .set({
       'name': tripName,
       'startDate': Timestamp.fromDate(startDate),
@@ -270,7 +269,7 @@ class TestHelpers {
 
     var tripDataCollection = firestore
         .collection(FirestoreCollections.tripCollectionName)
-        .doc(tripId);
+        .doc(TestConfig.testTripId);
 
     var itineraryDataCollection = tripDataCollection
         .collection(FirestoreCollections.itineraryDataCollectionName);
@@ -643,7 +642,7 @@ class TestHelpers {
       'category': 'other',
       'paidBy': {TestConfig.testEmail: 25.0},
       'splitBy': contributors,
-      'dateTime': Timestamp.fromDate(DateTime(2025, 9, 25)),
+      'dateTime': Timestamp.fromDate(DateTime(2025, 9, 25, 12, 0)),
       'description': 'Postcards and magnets',
     });
 
@@ -658,7 +657,7 @@ class TestHelpers {
       'description': 'Snacks for the bus',
     });
 
-    print('✅ 5-day test trip created: $tripId');
+    print('✅ 5-day test trip created: ${TestConfig.testTripId}');
     print('   Route: London → Paris → Brussels → Amsterdam');
     print(
         '   Transits: flight, train, bus, rentedVehicle, taxi, ferry, walk, publicTransport');

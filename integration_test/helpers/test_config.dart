@@ -8,7 +8,7 @@ class TestConfig {
   static const String tripMateUserName = 'tripmate@example.com';
 
   // Test trip data
-  static const String testTripId = 'test_trip_id';
+  static const String testTripId = 'test_trip_123';
   static const String testTripName = 'Test Trip to Paris';
   static const String testTripThumbnail = 'roadTrip';
   static const String testTripCurrency = 'INR';
