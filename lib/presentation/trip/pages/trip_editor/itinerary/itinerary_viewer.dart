@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_event_factory.dart';
@@ -30,7 +31,7 @@ class ItineraryViewer extends StatefulWidget {
 class _ItineraryViewerState extends State<ItineraryViewer>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  late final TimelineRebuildHelper _rebuildHelper;
+  late TimelineRebuildHelper _rebuildHelper;
 
   @override
   void initState() {
@@ -43,6 +44,14 @@ class _ItineraryViewerState extends State<ItineraryViewer>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant ItineraryViewer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.itineraryDay.isOnSameDayAs(widget.itineraryDay)) {
+      _rebuildHelper = TimelineRebuildHelper(widget.itineraryDay);
+    }
   }
 
   @override

@@ -8,6 +8,8 @@ import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/common_collapsible_tab.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 import 'package:wandrr/presentation/trip/widgets/geo_location_auto_complete.dart';
+import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
+import 'package:wandrr/presentation/trip/widgets/time_zone_indicator.dart';
 
 /// Tab content for managing sights (places) for a day's itinerary.
 /// Allows adding, editing (location/time/description/expense), deleting sights.
@@ -33,7 +35,6 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
   // Reused layout constants
   static const double _kSpacingMedium = 12.0;
   static const double _kBorderRadiusLarge = 14.0;
-  static const double _kBorderRadiusMedium = 12.0;
 
   @override
   Widget build(BuildContext context) {
@@ -89,33 +90,19 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
         const SizedBox(height: _kSpacingMedium),
         _buildTimeSection(context, sight, notifyParent),
         const SizedBox(height: _kSpacingMedium),
-        _buildExpenseSection(context, sight, notifyParent),
-        const SizedBox(height: _kSpacingMedium),
         _buildDescriptionSection(context, sight, notifyParent),
+        const SizedBox(height: _kSpacingMedium),
+        _buildExpenseSection(context, sight, notifyParent),
       ],
     );
   }
 
   Widget _buildTitleField(
       SightFacade sight, VoidCallback notifyParent, BuildContext context) {
-    final controllerId = sight.id ?? sight.hashCode.toString();
-
-    return TextFormField(
-      key: ValueKey('sight_title_$controllerId'),
-      initialValue: sight.name,
-      decoration: InputDecoration(
-        labelText: context.localizations.title,
-        border: OutlineInputBorder(
-          borderSide: BorderSide.none,
-          borderRadius: BorderRadius.all(Radius.circular(_kBorderRadiusLarge)),
-        ),
-        filled: true,
-      ),
-      scrollPadding: const EdgeInsets.only(bottom: 250),
-      onChanged: (val) {
-        sight.name = val;
-        notifyParent();
-      },
+    return _SightTitleField(
+      sight: sight,
+      notifyParent: notifyParent,
+      borderRadius: _kBorderRadiusLarge,
     );
   }
 
@@ -159,6 +146,12 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
         const SizedBox(height: _kSpacingMedium),
         Row(
           children: [
+            if (sight.location != null)
+              TimezoneIndicator(location: sight.location!),
+            if (sight.location != null)
+              const SizedBox(
+                width: _kSpacingMedium,
+              ),
             Expanded(
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.access_time),
@@ -227,38 +220,87 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
 
   Widget _buildDescriptionSection(
       BuildContext context, SightFacade sight, VoidCallback notifyParent) {
-    final controllerId = sight.id ?? sight.hashCode.toString();
+    var note = Note(sight.description ?? '');
+    return EditorTheme.createSection(
+      child: NoteEditor(
+        key: ValueKey('sight_description_${sight.id}'),
+        note: note,
+        onChanged: () {
+          sight.description = note.text;
+          // Don't call notifyParent() here - it causes rebuilds on every keystroke
+          // The data is already mutated via the Note object
+          // Parent will be notified when the item is collapsed or on other actions
+        },
+      ),
+      context: context,
+    );
+  }
+}
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        EditorTheme.createSectionHeader(context,
-            icon: Icons.description_rounded,
-            title: context.localizations.description,
-            iconColor: context.isLightTheme
-                ? AppColors.brandPrimary
-                : AppColors.brandPrimaryLight),
-        const SizedBox(height: _kSpacingMedium),
-        TextFormField(
-          key: ValueKey('sight_description_$controllerId'),
-          initialValue: sight.description ?? '',
-          maxLines: 3,
-          decoration: InputDecoration(
-            hintText: '${context.localizations.detailsAboutSight}...',
-            border: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius:
-                  BorderRadius.all(Radius.circular(_kBorderRadiusMedium)),
-            ),
-            filled: true,
-          ),
-          scrollPadding: const EdgeInsets.only(bottom: 250),
-          onChanged: (val) {
-            sight.description = val;
-            notifyParent();
-          },
+/// Stateful widget for sight title field that maintains its own controller
+/// to prevent losing focus during parent rebuilds
+class _SightTitleField extends StatefulWidget {
+  final SightFacade sight;
+  final VoidCallback notifyParent;
+  final double borderRadius;
+
+  const _SightTitleField({
+    required this.sight,
+    required this.notifyParent,
+    required this.borderRadius,
+  });
+
+  @override
+  State<_SightTitleField> createState() => _SightTitleFieldState();
+}
+
+class _SightTitleFieldState extends State<_SightTitleField> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.sight.name);
+    _controller.addListener(_onTextChanged);
+  }
+
+  @override
+  void didUpdateWidget(_SightTitleField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Only update the controller if the sight object itself changed
+    if (widget.sight != oldWidget.sight) {
+      _controller.removeListener(_onTextChanged);
+      _controller.text = widget.sight.name;
+      _controller.addListener(_onTextChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onTextChanged);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    widget.sight.name = _controller.text;
+    // Notify parent to update the header with new title
+    widget.notifyParent();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: _controller,
+      decoration: InputDecoration(
+        labelText: context.localizations.title,
+        border: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.all(Radius.circular(widget.borderRadius)),
         ),
-      ],
+        filled: true,
+      ),
+      scrollPadding: const EdgeInsets.only(bottom: 250),
     );
   }
 }

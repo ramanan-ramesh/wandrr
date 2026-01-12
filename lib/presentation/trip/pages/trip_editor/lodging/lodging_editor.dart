@@ -6,6 +6,7 @@ import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
+import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
 
 import 'date_time_selector.dart';
 import 'stay_details.dart';
@@ -27,14 +28,6 @@ class LodgingEditor extends StatefulWidget {
 class _LodgingEditorState extends State<LodgingEditor>
     with SingleTickerProviderStateMixin {
   LodgingFacade get _lodging => widget.lodging;
-
-  @override
-  void didUpdateWidget(covariant LodgingEditor oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.lodging != _lodging) {
-      setState(() {});
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +55,7 @@ class _LodgingEditorState extends State<LodgingEditor>
         checkoutDateTime: _lodging.checkoutDateTime,
         firstDate: tripMetadata.startDate!,
         lastDate: tripMetadata.endDate!,
+        location: _lodging.location,
         onCheckinChanged: (newDateTime) {
           setState(() {
             _lodging.checkinDateTime = newDateTime;
@@ -127,44 +121,19 @@ class _LodgingEditorState extends State<LodgingEditor>
   }
 
   Widget _buildNotesSection(BuildContext context) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
-
     return EditorTheme.createSection(
       context: context,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          EditorTheme.createSectionHeader(
-            context,
-            icon: Icons.notes_outlined,
-            title: context.localizations.notes,
-            iconColor: isLightTheme
-                ? AppColors.brandPrimary
-                : AppColors.brandPrimaryLight,
-          ),
-          const SizedBox(height: 12),
-          _buildNotesField(context),
-        ],
-      ),
+      child: _buildNotesField(context),
     );
   }
 
   Widget _buildNotesField(BuildContext context) {
-    return TextFormField(
-      style: Theme.of(context).textTheme.bodyLarge,
-      decoration: EditorTheme.createTextFieldDecoration(
-        labelText: context.localizations.notes,
-        hintText: 'Add any additional notes...',
-        alignLabelWithHint: true,
-      ),
-      initialValue: _lodging.notes,
-      maxLines: 4,
-      minLines: 3,
-      textInputAction: TextInputAction.done,
-      onChanged: (newNotes) {
-        _lodging.notes = newNotes;
-        widget.onLodgingUpdated();
-      },
-    );
+    var note = Note(_lodging.notes ?? '');
+    return NoteEditor(
+        note: note,
+        onChanged: () {
+          _lodging.notes = note.text;
+          widget.onLodgingUpdated();
+        });
   }
 }

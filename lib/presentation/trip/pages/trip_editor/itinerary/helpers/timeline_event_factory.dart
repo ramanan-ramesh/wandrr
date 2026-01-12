@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lat_lng_to_timezone/lat_lng_to_timezone.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
@@ -125,9 +126,17 @@ class TimelineEventFactory {
         continue;
       }
 
+      String dateTimeDetails;
+      if (sight.location != null) {
+        var timezoneString = latLngToTimezoneString(
+            sight.location!.latitude, sight.location!.longitude);
+        dateTimeDetails = '${visitTime.hourMinuteAmPmFormat} ($timezoneString)';
+      } else {
+        dateTimeDetails = visitTime.hourMinuteAmPmFormat;
+      }
       yield TimelineEvent<SightFacade>(
         time: visitTime,
-        title: '${sight.name} • ${visitTime.hourMinuteAmPmFormat}',
+        title: '${sight.name} • $dateTimeDetails',
         subtitle: _formatter.getSightSubtitle(sight),
         icon: Icons.place_rounded,
         iconColor: AppColors.brandAccent,

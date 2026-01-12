@@ -18,10 +18,10 @@ import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/presentation/trip/pages/home/trips_list_view.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_page.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/editor/notes.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
+import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
 
 import '../helpers/facade_matchers.dart';
 import '../helpers/test_config.dart';
@@ -214,37 +214,43 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Pure expenses only (transit/lodging/sight expenses are embedded in their respective collections)
 
   // Pure expenses
-  final expectedDinnerExpense = ExpenseFacade(
+  final expectedDinnerExpense = StandaloneExpense(
     tripId: tripId,
     title: 'Dinner at Le Comptoir',
-    currency: defaultCurrency,
+    expense: ExpenseFacade(
+      currency: defaultCurrency,
+      paidBy: {TestConfig.testEmail: 45.0},
+      splitBy: contributors,
+      dateTime: DateTime(2025, 9, 24, 20, 0),
+      description: 'French cuisine',
+    ),
     category: ExpenseCategory.food,
-    paidBy: {TestConfig.testEmail: 45.0},
-    splitBy: contributors,
-    dateTime: DateTime(2025, 9, 24, 20, 0),
-    description: 'French cuisine',
   );
 
-  final expectedSouvenirsExpense = ExpenseFacade(
+  final expectedSouvenirsExpense = StandaloneExpense(
     tripId: tripId,
     title: 'Souvenirs from Louvre',
-    currency: defaultCurrency,
+    expense: ExpenseFacade(
+      currency: defaultCurrency,
+      paidBy: {TestConfig.testEmail: 25.0},
+      splitBy: contributors,
+      dateTime: DateTime(2025, 9, 25, 12, 0),
+      description: 'Gift cards',
+    ),
     category: ExpenseCategory.other,
-    paidBy: {TestConfig.testEmail: 25.0},
-    splitBy: contributors,
-    dateTime: DateTime(2025, 9, 25),
-    description: 'Postcards and magnets',
   );
 
-  final expectedGroceriesExpense = ExpenseFacade(
+  final expectedGroceriesExpense = StandaloneExpense(
     tripId: tripId,
     title: 'Groceries',
-    currency: defaultCurrency,
+    expense: ExpenseFacade(
+      currency: defaultCurrency,
+      paidBy: {TestConfig.testEmail: 15.5},
+      splitBy: contributors,
+      dateTime: DateTime(2025, 9, 26),
+      description: 'Snacks for the bus',
+    ),
     category: ExpenseCategory.food,
-    paidBy: {TestConfig.testEmail: 15.5},
-    splitBy: contributors,
-    description: 'Snacks for the bus',
-    dateTime: DateTime(2025, 9, 26),
   );
 
   // === CREATE EXPECTED LOCATION FACADES ===
@@ -487,10 +493,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // === CREATE EXPECTED TRANSIT FACADES ===
   // Flight: London to Paris
   final expectedFlightExpense = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.flights,
     paidBy: {TestConfig.testEmail: 250.0},
     splitBy: contributors,
   );
@@ -509,10 +512,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Train: Paris to Versailles
   final expectedTrainExpense1 = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.publicTransit,
     paidBy: {TestConfig.testEmail: 7.5},
     splitBy: contributors,
   );
@@ -530,10 +530,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Train return: Versailles to Paris
   final expectedTrainExpense2 = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.publicTransit,
     paidBy: {TestConfig.testEmail: 7.5},
     splitBy: contributors,
   );
@@ -551,10 +548,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Bus: Paris to Brussels
   final expectedBusExpense = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.publicTransit,
     paidBy: {TestConfig.testEmail: 35.0},
     splitBy: contributors,
   );
@@ -573,10 +567,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Rented vehicle: Brussels to Atomium
   final expectedRentedVehicleExpense = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.carRental,
     paidBy: {TestConfig.testEmail: 60.0},
     splitBy: contributors,
   );
@@ -595,10 +586,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Taxi: Atomium to Brussels
   final expectedTaxiExpense = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.taxi,
     paidBy: {TestConfig.testEmail: 25.0},
     splitBy: contributors,
   );
@@ -616,10 +604,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Ferry: Brussels to Amsterdam
   final expectedFerryExpense = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.publicTransit,
     paidBy: {TestConfig.testEmail: 45.0},
     splitBy: contributors,
   );
@@ -638,10 +623,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Walk: Amsterdam to Rijksmuseum
   final expectedWalkExpense = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.other,
     paidBy: {TestConfig.testEmail: 0.0},
     splitBy: contributors,
   );
@@ -658,10 +640,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Public transport: Rijksmuseum to Amsterdam
   final expectedPublicTransportExpense = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.publicTransit,
     paidBy: {TestConfig.testEmail: 3.0},
     splitBy: contributors,
   );
@@ -680,10 +659,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // === CREATE EXPECTED LODGING FACADES ===
   // Paris hotel
   final expectedParisLodgingExpense = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.lodging,
     paidBy: {TestConfig.testEmail: 450.0},
     splitBy: contributors,
   );
@@ -699,10 +675,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Brussels hotel (overnight)
   final expectedBrusselsLodgingExpense = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.lodging,
     paidBy: {TestConfig.testEmail: 120.0},
     splitBy: contributors,
   );
@@ -718,10 +691,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Amsterdam hostel
   final expectedAmsterdamLodgingExpense = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.lodging,
     paidBy: {TestConfig.testEmail: 60.0},
     splitBy: contributors,
   );
@@ -738,10 +708,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // === CREATE EXPECTED SIGHT FACADES ===
   // Eiffel Tower sight
   final expectedEiffelTowerExpense = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.sightseeing,
     paidBy: {TestConfig.testEmail: 26.0},
     splitBy: contributors,
   );
@@ -757,10 +724,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Palace of Versailles sight
   final expectedVersaillesExpense = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.sightseeing,
     paidBy: {TestConfig.testEmail: 20.0},
     splitBy: contributors,
   );
@@ -776,10 +740,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Louvre Museum sight
   final expectedLouvreExpense = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.sightseeing,
     paidBy: {TestConfig.testEmail: 17.0},
     splitBy: contributors,
   );
@@ -795,10 +756,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Atomium sight
   final expectedAtomiumExpense = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.sightseeing,
     paidBy: {TestConfig.testEmail: 16.0},
     splitBy: contributors,
   );
@@ -814,10 +772,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Rijksmuseum sight
   final expectedRijksmuseumExpense = ExpenseFacade(
-    tripId: tripId,
-    title: '',
     currency: defaultCurrency,
-    category: ExpenseCategory.sightseeing,
     paidBy: {TestConfig.testEmail: 22.5},
     splitBy: contributors,
   );
@@ -1083,7 +1038,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   for (var expectedExpense in expectedExpenses) {
     final matchFound = expensesCollection.any(
       (actualExpense) =>
-          matchesExpense(expectedExpense).matches(actualExpense, {}),
+          matchesStandaloneExpense(expectedExpense).matches(actualExpense, {}),
     );
     expect(matchFound, true,
         reason: 'Expenses collection should contain expense: $expectedExpense');

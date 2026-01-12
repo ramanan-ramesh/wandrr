@@ -7,18 +7,19 @@ import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/budgeting/budgeting_module.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/itinerary/itinerary_collection.dart';
+import 'package:wandrr/data/trip/implementations/trip_metadata_update_executor.dart';
 import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
 import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
-import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 
 import 'budgeting/expense.dart';
@@ -58,10 +59,12 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     var expenseModelCollection = await FirestoreModelCollection.createInstance(
         tripDocumentReference
             .collection(FirestoreCollections.expenseCollectionName),
-        (documentSnapshot) => ExpenseModelImplementation.fromDocumentSnapshot(
-            tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
-        (expenseModelFacade) => ExpenseModelImplementation.fromModelFacade(
-            expenseModelFacade: expenseModelFacade));
+        (documentSnapshot) =>
+            StandaloneExpenseModelImplementation.fromDocumentSnapshot(
+                tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
+        (expenseModelFacade) =>
+            StandaloneExpenseModelImplementation.fromModelFacade(
+                expenseModelFacade: expenseModelFacade));
 
     var itineraries = await ItineraryCollection.createInstance(
         transitCollection: transitModelCollection,
@@ -97,7 +100,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   final ModelCollectionModifier<LodgingFacade> lodgingCollection;
 
   @override
-  final ModelCollectionModifier<ExpenseFacade> expenseCollection;
+  final ModelCollectionModifier<StandaloneExpense> expenseCollection;
 
   @override
   final ItineraryCollection itineraryCollection;
@@ -112,11 +115,21 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   @override
   final BudgetingModuleEventHandler budgetingModule;
 
+  late final TripMetadataUpdateExecutor _tripMetadataUpdateExecutor;
+
+  @override
+  Future<void> applyUpdatePlan(TripMetadataUpdatePlan plan) async {
+    // Execute the update plan
+    await _tripMetadataUpdateExecutor.execute(plan);
+
+    // Update local metadata copy
+    _tripMetadataModelImplementation.copyWith(plan.newMetadata);
+  }
+
   @override
   Future updateTripMetadata(TripMetadataFacade tripMetadata) async {
-    var currentContributors = _tripMetadataModelImplementation.contributors;
-    var didContributorsChange = !(const ListEquality()
-        .equals(currentContributors, tripMetadata.contributors));
+    // This method now only updates the local metadata copy
+    // For full rebalancing, use applyUpdatePlan() with a TripMetadataUpdatePlan
     var didCurrencyChange = _tripMetadataModelImplementation.budget.currency !=
         tripMetadata.budget.currency;
 
@@ -124,53 +137,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       budgetingModule.updateCurrency(tripMetadata.budget.currency);
     }
 
-    var haveTripDatesChanged = !_tripMetadataModelImplementation.startDate!
-            .isOnSameDayAs(tripMetadata.startDate!) ||
-        !_tripMetadataModelImplementation.endDate!
-            .isOnSameDayAs(tripMetadata.endDate!);
-    var deletedLodgings = <LodgingFacade>[];
-    var deletedTransits = <TransitFacade>[];
-    if (haveTripDatesChanged) {
-      await itineraryCollection.updateTripDays(
-          tripMetadata.startDate!, tripMetadata.endDate!);
-      var oldDates = _createDateRange(
-          _tripMetadataModelImplementation.startDate!,
-          _tripMetadataModelImplementation.endDate!);
-      var newDates =
-          _createDateRange(tripMetadata.startDate!, tripMetadata.endDate!);
-      var datesToRemove = oldDates.difference(newDates);
-
-      var writeBatch = FirebaseFirestore.instance.batch();
-      deletedTransits.addAll(_updateTripEntityListOnDatesChanged<TransitFacade>(
-          datesToRemove,
-          transitCollection,
-          (dateTime, transit) =>
-              transit.departureDateTime!.isOnSameDayAs(dateTime) ||
-              transit.arrivalDateTime!.isOnSameDayAs(dateTime),
-          writeBatch));
-
-      deletedLodgings.addAll(_updateTripEntityListOnDatesChanged<LodgingFacade>(
-          datesToRemove,
-          lodgingCollection,
-          (dateTime, lodging) =>
-              lodging.checkinDateTime!.isOnSameDayAs(dateTime) ||
-              lodging.checkoutDateTime!.isOnSameDayAs(dateTime),
-          writeBatch));
-
-      await writeBatch.commit();
-    }
-
-    if (didContributorsChange) {
-      await budgetingModule
-          .balanceExpensesOnContributorsChanged(tripMetadata.contributors);
-    }
-
-    var shouldRecalculateTotalExpense =
-        haveTripDatesChanged || didContributorsChange || didCurrencyChange;
-    if (shouldRecalculateTotalExpense) {
-      await budgetingModule.recalculateTotalExpenditure(
-          deletedTransits: deletedTransits, deletedLodgings: deletedLodgings);
-    }
     _tripMetadataModelImplementation.copyWith(tripMetadata);
   }
 
@@ -186,27 +152,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     await expenseCollection.dispose();
     await itineraryCollection.dispose();
     await budgetingModule.dispose();
-  }
-
-  Iterable<T> _updateTripEntityListOnDatesChanged<T>(
-      Set<DateTime> removedDates,
-      ModelCollectionModifier<T> modelCollection,
-      bool Function(DateTime, T) itemsFilter,
-      WriteBatch writeBatch) sync* {
-    var updatedItems = <T>[];
-    var currentCollectionItems = modelCollection.collectionItems;
-    for (final collectionItem in currentCollectionItems) {
-      if (!removedDates
-          .any((removedDate) => itemsFilter(removedDate, collectionItem))) {
-        updatedItems.add(collectionItem);
-      } else {
-        var documentReference = modelCollection
-            .repositoryItemCreator(collectionItem)
-            .documentReference;
-        writeBatch.delete(documentReference);
-        yield collectionItem;
-      }
-    }
   }
 
   static Iterable<TransitOptionMetadata> _initializeIconsAndTransitOptions(
@@ -255,16 +200,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     return transitOptionMetadataList;
   }
 
-  Set<DateTime> _createDateRange(DateTime startDate, DateTime endDate) {
-    var dateSet = <DateTime>{};
-    for (var date = startDate;
-        date.isBefore(endDate) || date.isAtSameMomentAs(endDate);
-        date = date.add(const Duration(days: 1))) {
-      dateSet.add(date);
-    }
-    return dateSet;
-  }
-
   TripDataModelImplementation._(
       TripMetadataModelImplementation tripMetadata,
       this.transitCollection,
@@ -276,5 +211,13 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       AppLocalizations appLocalisations)
       : _tripMetadataModelImplementation = tripMetadata,
         _transitOptionMetadatas =
-            _initializeIconsAndTransitOptions(appLocalisations);
+            _initializeIconsAndTransitOptions(appLocalisations) {
+    _tripMetadataUpdateExecutor = TripMetadataUpdateExecutor(
+      transitCollection: transitCollection,
+      lodgingCollection: lodgingCollection,
+      expenseCollection: expenseCollection,
+      itineraryCollection: itineraryCollection,
+      budgetingModule: budgetingModule,
+    );
+  }
 }

@@ -10,7 +10,7 @@ import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'sight.dart';
 
 class ItineraryPlanDataModelImplementation extends ItineraryPlanData
-    implements LeafRepositoryItem<ItineraryPlanData> {
+    implements RepositoryDocument<ItineraryPlanData> {
   static const String _sightsField = 'sights';
   static const String _notesField = 'notes';
   static const String _checkListsField = 'checkLists';
@@ -18,7 +18,7 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
   @override
   List<SightFacade> get sights =>
       List.from(_sights.map((sight) => sight.clone()));
-  final List<SightFacade> _sights;
+  final List<SightModelImplementation> _sights;
 
   @override
   List<String> get notes => List.from(_notes);
@@ -27,7 +27,7 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
   @override
   List<CheckListFacade> get checkLists =>
       List.from(_checkLists.map((checkList) => checkList.clone()));
-  final List<CheckListFacade> _checkLists;
+  final List<CheckListModelImplementation> _checkLists;
 
   ItineraryPlanDataModelImplementation({
     required super.tripId,
@@ -36,9 +36,12 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
     required List<String> notes,
     required List<CheckListFacade> checkLists,
     super.id,
-  })  : _sights = sights,
+  })  : _sights = _generateSightModelImplementations(sights, tripId, day),
         _notes = notes,
-        _checkLists = checkLists,
+        _checkLists = List.generate(
+            checkLists.length,
+            (index) => CheckListModelImplementation.fromModelFacade(
+                checkLists[index])),
         super(sights: [], notes: [], checkLists: []);
 
   factory ItineraryPlanDataModelImplementation.fromModelFacade(
@@ -47,9 +50,8 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
       tripId: planDataFacade.tripId,
       id: planDataFacade.id,
       day: planDataFacade.day,
-      sights: planDataFacade.sights
-          .map(SightModelImplementation.fromModelFacade)
-          .toList(),
+      sights: _generateSightModelImplementations(
+          planDataFacade.sights, planDataFacade.tripId, planDataFacade.day),
       notes: List.from(planDataFacade.notes),
       checkLists: planDataFacade.checkLists
           .map(CheckListModelImplementation.fromModelFacade)
@@ -59,28 +61,33 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
 
   factory ItineraryPlanDataModelImplementation.fromDocumentSnapshot({
     required String tripId,
-    required DocumentSnapshot documentSnapshot,
+    required Map<String, dynamic> documentData,
     required DateTime day,
   }) {
-    final data = documentSnapshot.data();
-    if (data is! Map<String, dynamic>) {
-      throw Exception('Document data is invalid');
+    final formattedDay = day.itineraryDateFormat;
+
+    final sights = <SightModelImplementation>[];
+    final sightDataList = (documentData[_sightsField] as List?) ?? [];
+    for (var i = 0; i < sightDataList.length; i++) {
+      final sightData = sightDataList[i] as Map<String, dynamic>;
+      sights.add(SightModelImplementation.fromJson(
+        sightData,
+        day,
+        i,
+        tripId,
+      ));
     }
 
     return ItineraryPlanDataModelImplementation(
       tripId: tripId,
-      id: documentSnapshot.id,
+      id: formattedDay,
       day: day,
-      sights: (data[_sightsField] as List?)
-              ?.map((json) => SightModelImplementation.fromJson(
-                  json as Map<String, dynamic>, day, tripId))
-              .toList() ??
-          [],
-      notes: (data[_notesField] as List?)
+      sights: sights,
+      notes: (documentData[_notesField] as List?)
               ?.map((noteValue) => noteValue.toString())
               .toList() ??
           [],
-      checkLists: (data[_checkListsField] as List?)
+      checkLists: (documentData[_checkListsField] as List?)
               ?.map((json) => CheckListModelImplementation.fromDocumentData(
                   documentData: json, tripId: tripId))
               .toList() ??
@@ -99,18 +106,29 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
   Map<String, dynamic> toJson() {
     return {
       if (_sights.isNotEmpty)
-        _sightsField: _sights
-            .map((sight) => (sight as SightModelImplementation).toJson())
-            .toList(),
+        _sightsField: _sights.map((sight) => sight.toJson()).toList(),
       if (_notes.isNotEmpty) _notesField: _notes,
       if (_checkLists.isNotEmpty)
-        _checkListsField: _checkLists
-            .map((checkList) =>
-                (checkList as CheckListModelImplementation).toJson())
-            .toList(),
+        _checkListsField:
+            _checkLists.map((checkList) => checkList.toJson()).toList(),
     };
   }
 
   @override
   ItineraryPlanData get facade => this;
+
+  static List<SightModelImplementation> _generateSightModelImplementations(
+      List<SightFacade> sights, String tripId, DateTime day) {
+    return List.generate(
+        sights.length,
+        (index) => SightModelImplementation.fromModelFacade(SightFacade(
+            tripId: tripId,
+            id: index.toString(),
+            name: sights[index].name,
+            day: day,
+            description: sights[index].description,
+            expense: sights[index].expense,
+            location: sights[index].location,
+            visitTime: sights[index].visitTime)));
+  }
 }

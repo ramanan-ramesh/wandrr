@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/budgeting/helpers/currency_formatter.dart';
@@ -20,14 +19,13 @@ import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 //TODO: BudgetingModule must have an API updateTripMetadata or listen to metadata updates, rather than individually listening to TripDates/Contributors changed/Currency changes
 /// Manages budgeting functionality for a trip including expenses, debts, and aggregations
 class BudgetingModule implements BudgetingModuleEventHandler {
   final ModelCollectionModifier<TransitFacade> _transitModelCollection;
   final ModelCollectionModifier<LodgingFacade> _lodgingModelCollection;
-  final ModelCollectionModifier<ExpenseFacade> _expenseModelCollection;
+  final ModelCollectionModifier<StandaloneExpense> _expenseModelCollection;
   final ItineraryFacadeCollectionEventHandler _itineraryCollection;
   final ApiService<(Money, String), double?> currencyConverter;
   String defaultCurrency;
@@ -48,7 +46,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   static Future<BudgetingModuleEventHandler> createInstance(
       ModelCollectionModifier<TransitFacade> transitModelCollection,
       ModelCollectionModifier<LodgingFacade> lodgingModelCollection,
-      ModelCollectionModifier<ExpenseFacade> expenseModelCollection,
+      ModelCollectionModifier<StandaloneExpense> expenseModelCollection,
       ApiService<(Money, String), double?> currencyConverter,
       String defaultCurrency,
       Iterable<CurrencyData> supportedCurrencies,
@@ -85,19 +83,18 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   }
 
   /// Collects all expenses from transit, lodging, standalone expenses, and sights
-  Iterable<ExpenseFacade> _collectAllExpenses() {
-    return _transitModelCollection.collectionItems
-        .map((transit) => transit.expense)
-        .followedBy(_lodgingModelCollection.collectionItems
-            .map((lodging) => lodging.expense))
-        .followedBy(_expenseModelCollection.collectionItems)
-        .followedBy(_itineraryCollection.expand((itinerary) =>
-            itinerary.planData.sights.map((sight) => sight.expense)));
+  Iterable<ExpenseBearingTripEntity> _collectAllExpenses() sync* {
+    yield* _transitModelCollection.collectionItems;
+    yield* _lodgingModelCollection.collectionItems;
+    yield* _expenseModelCollection.collectionItems;
+    for (final itinerary in _itineraryCollection) {
+      yield* itinerary.planData.sights;
+    }
   }
 
   @override
   Future<Iterable<DebtData>> retrieveDebtDataList() async {
-    final allExpenses = _collectAllExpenses();
+    final allExpenses = _collectAllExpenses().map((expense) => expense.expense);
     return _debtCalculator.calculateDebts(allExpenses, _contributors);
   }
 
@@ -110,7 +107,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   @override
   Future<Map<DateTime, double>> retrieveTotalExpensePerDay(
       DateTime startDay, DateTime endDay) async {
-    final allExpenses = _collectAllExpenses();
+    final allExpenses = _collectAllExpenses().map((expense) => expense.expense);
     return _expenseAggregator.aggregateByDay(allExpenses, startDay, endDay);
   }
 
@@ -148,10 +145,10 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   }
 
   @override
-  Future<Iterable<ExpenseLinkedTripEntity>> sortExpenses(
-      Iterable<ExpenseLinkedTripEntity> expenseUiElements,
+  Future<Iterable<ExpenseBearingTripEntity>> sortExpenses(
+      Iterable<ExpenseBearingTripEntity> expenseUiElements,
       ExpenseSortOption expenseSortOption) async {
-    final expenseList = List<ExpenseLinkedTripEntity>.from(expenseUiElements);
+    final expenseList = List<ExpenseBearingTripEntity>.from(expenseUiElements);
 
     switch (expenseSortOption) {
       case ExpenseSortOption.oldToNew:
@@ -179,39 +176,6 @@ class BudgetingModule implements BudgetingModuleEventHandler {
           isAscending: false,
         );
     }
-  }
-
-  /// Rebalances expenses for all entities when contributors change
-  Future<void> _balanceExpenses<T extends ExpenseLinkedTripEntity>(
-    ModelCollectionModifier<T> modelCollection,
-    Iterable<String> contributors,
-    WriteBatch writeBatch,
-  ) async {
-    for (final collectionItem in modelCollection.collectionItems) {
-      final expense = collectionItem.expense;
-      for (final contributor in contributors) {
-        if (!expense.splitBy.contains(contributor)) {
-          expense.splitBy.add(contributor);
-        }
-      }
-      expense.splitBy.removeWhere((c) => !contributors.contains(c));
-      expense.paidBy.removeWhere((c, _) => !contributors.contains(c));
-      final itemToUpdate =
-          modelCollection.repositoryItemCreator(collectionItem);
-      writeBatch.update(itemToUpdate.documentReference, itemToUpdate.toJson());
-    }
-  }
-
-  //TODO: Expenses for sights also need to be split when new Contributor is added
-  @override
-  Future<void> balanceExpensesOnContributorsChanged(
-      Iterable<String> contributors) async {
-    final writeBatch = FirebaseFirestore.instance.batch();
-    _contributors = contributors;
-    await _balanceExpenses(_transitModelCollection, contributors, writeBatch);
-    await _balanceExpenses(_lodgingModelCollection, contributors, writeBatch);
-    await _balanceExpenses(_expenseModelCollection, contributors, writeBatch);
-    await writeBatch.commit();
   }
 
   @override

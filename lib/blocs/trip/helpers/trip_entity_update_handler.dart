@@ -57,7 +57,7 @@ class TripEntityUpdateHandler {
     if (addedEntity != null) {
       emit(UpdatedTripEntity<E>.created(
         tripEntityModificationData: CollectionItemChangeMetadata(
-          addedEntity.facade,
+          addedEntity,
           isFromExplicitAction: true,
         ),
         isOperationSuccess: true,

@@ -33,6 +33,7 @@ class SightModelImplementation extends SightFacade
   factory SightModelImplementation.fromJson(
     Map<String, dynamic> json,
     DateTime day,
+    int index,
     String tripId,
   ) {
     var visitTime = json[_visitTimeField] != null
@@ -49,10 +50,9 @@ class SightModelImplementation extends SightFacade
       location: location,
       visitTime: visitTime,
       expense: ExpenseModelImplementation.fromJson(
-        json: json[_expenseField] as Map<String, dynamic>,
-        tripId: tripId,
-      ),
+          json[_expenseField] as Map<String, dynamic>),
       description: json[_descriptionField] as String?,
+      id: index.toString(),
     );
   }
 
@@ -71,10 +71,6 @@ class SightModelImplementation extends SightFacade
 
   @override
   SightFacade get facade => this;
-
-  @override
-  DocumentReference<Object?> get documentReference =>
-      throw UnimplementedError();
 
   SightModelImplementation._({
     required super.tripId,

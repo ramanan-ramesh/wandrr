@@ -419,6 +419,11 @@ class AppLocalizationsHi extends AppLocalizations {
   String get transitCarrier => 'पारगमन वाहक';
 
   @override
+  String tripMateNotFound(Object email) {
+    return 'योगदानकर्ता \'$email\' नहीं मिल रहा है।';
+  }
+
+  @override
   String get tripName => 'यात्रा का नाम';
 
   @override

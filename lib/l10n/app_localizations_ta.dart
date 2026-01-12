@@ -424,6 +424,11 @@ class AppLocalizationsTa extends AppLocalizations {
   String get transitCarrier => 'போக்குவரத்து வாகனத்தின் பெயர்';
 
   @override
+  String tripMateNotFound(Object email) {
+    return 'பங்களிப்பாளர் \'$email\' கண்டறிய முடியவில்லை.';
+  }
+
+  @override
   String get tripName => 'பயணத்தின் பெயர்';
 
   @override

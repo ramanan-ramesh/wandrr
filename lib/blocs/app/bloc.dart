@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,7 +21,7 @@ class _UpdateAvailableInternal extends MasterPageEvent {
 
 class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
   static AppDataModifier? _appDataRepository;
-  late final StreamSubscription _updateRemoteConfigSubscription;
+  StreamSubscription? _updateRemoteConfigSubscription;
 
   MasterPageBloc(SharedPreferences sharedPreferences)
       : super(LoadedRepository(
@@ -42,7 +43,7 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
 
   @override
   Future<void> close() {
-    _updateRemoteConfigSubscription.cancel();
+    _updateRemoteConfigSubscription?.cancel();
     return super.close();
   }
 
@@ -128,14 +129,16 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
         minimumFetchInterval: const Duration(minutes: 5)));
     await remoteConfig.fetchAndActivate();
 
-    _updateRemoteConfigSubscription =
-        remoteConfig.onConfigUpdated.listen((event) async {
-      await remoteConfig.activate();
-      var updateInfo = await _checkForUpdate();
-      if (updateInfo != null) {
-        add(_UpdateAvailableInternal(updateInfo: updateInfo));
-      }
-    });
+    if (!kIsWeb) {
+      _updateRemoteConfigSubscription =
+          remoteConfig.onConfigUpdated.listen((event) async {
+        await remoteConfig.activate();
+        var updateInfo = await _checkForUpdate();
+        if (updateInfo != null) {
+          add(_UpdateAvailableInternal(updateInfo: updateInfo));
+        }
+      });
+    }
   }
 
   Future<UpdateInfo?> _checkForUpdate() async {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_amount_edit_field.dart';
 
@@ -19,13 +20,17 @@ class PaidByTab extends StatelessWidget {
   Widget build(BuildContext context) {
     var currentUserName = context.activeUser!.userName;
     var allContributions = _createContributions(context, currentUserName);
+    var currentContributors = context.activeTrip.tripMetadata.contributors;
+
     return ListView.builder(
       itemCount: allContributions.length,
       itemBuilder: (context, index) {
         var contributor = allContributions[index];
+        final isNoLongerTripmate = !currentContributors.contains(contributor);
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 3.0),
-          child: _buildPaidByContributor(contributor, context, currentUserName),
+          child: _buildPaidByContributor(
+              contributor, context, currentUserName, isNoLongerTripmate),
         );
       },
     );
@@ -33,21 +38,32 @@ class PaidByTab extends StatelessWidget {
 
   List<String> _createContributions(
       BuildContext context, String currentUserName) {
-    var allContributions =
-        context.activeTrip.tripMetadata.contributors.toList();
+    var contributors = context.activeTrip.tripMetadata.contributors.toList();
+
+    // Include people from paidBy who may no longer be contributors
+    final allPeople = <String>{...contributors, ...paidBy.keys};
+    var allContributions = allPeople.toList();
+
+    // Move current user to the top
+    allContributions.remove(currentUserName);
     allContributions.insert(0, currentUserName);
-    allContributions.remove(context.activeUser!.userName);
+
     return allContributions;
   }
 
-  Widget _buildPaidByContributor(
-      String contributor, BuildContext context, String currentUserName) {
+  Widget _buildPaidByContributor(String contributor, BuildContext context,
+      String currentUserName, bool isNoLongerTripmate) {
     double contribution;
     if (paidBy.containsKey(contributor)) {
       contribution = paidBy[contributor]!;
     } else {
       contribution = 0;
     }
+
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final displayName = contributor == currentUserName
+        ? context.localizations.you
+        : contributor.split('@').first;
 
     return ListTile(
       isThreeLine: true,
@@ -64,19 +80,42 @@ class PaidByTab extends StatelessWidget {
         initialExpense: contribution.toStringAsFixed(2),
         currencySymbol: defaultCurrencySymbol,
       ),
-      subtitle: Text(
-        contributor == currentUserName
-            ? context.localizations.you
-            : contributor,
-        softWrap: true,
-        maxLines: 2,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: contributor == currentUserName
-              ? FontWeight.w600
-              : FontWeight.normal,
-        ),
-        overflow: TextOverflow.ellipsis,
+      subtitle: Row(
+        children: [
+          if (isNoLongerTripmate) ...[
+            Tooltip(
+              message: 'No longer a tripmate',
+              child: Icon(
+                Icons.person_off,
+                size: 14,
+                color:
+                    isLightTheme ? AppColors.warning : AppColors.warningLight,
+              ),
+            ),
+            const SizedBox(width: 4),
+          ],
+          Expanded(
+            child: Text(
+              displayName,
+              softWrap: true,
+              maxLines: 2,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: contributor == currentUserName
+                    ? FontWeight.w600
+                    : FontWeight.normal,
+                color: isNoLongerTripmate
+                    ? (isLightTheme
+                        ? AppColors.warning
+                        : AppColors.warningLight)
+                    : null,
+                fontStyle:
+                    isNoLongerTripmate ? FontStyle.italic : FontStyle.normal,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

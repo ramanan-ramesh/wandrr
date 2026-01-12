@@ -1,4 +1,14 @@
 ## Release History
+- Version 3.1.1 (Commit: a198185975f9daffc38e47b56475c5dcad91008d)
+  - Update itinerary view when travel or stay plans are updated
+  - Apply theming to the date-time picker
+  - Deploy app as a website hosted on Netlify
+
+- Version 3.1.0 (Commit: e3055a84a2b8079d1bcd22d6f7505eb113ccf47b)
+  - Display time-zone aware date times for transits/stays/sights
+  - Ensure that only users registered with wandrr can be added as trip mates
+  - Balance attractions/sights related expenses on trip mates add/removal
+
 - Version 3.0.1 (Commit: d7bf42432b9443843bd6ee1d7bcde07ca230857f)
   - Ensure app initialization is synchronous to prevent the need for redundant loading animation on startup
 

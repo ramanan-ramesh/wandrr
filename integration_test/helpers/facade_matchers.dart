@@ -8,6 +8,10 @@ import 'package:wandrr/data/trip/models/transit.dart';
 Matcher matchesTransit(TransitFacade expected) => _TransitMatcher(expected);
 
 /// Custom matcher for ExpenseFacade that ignores the auto-generated id field
+Matcher matchesStandaloneExpense(StandaloneExpense expected) =>
+    _StandaloneExpenseMatcher(expected);
+
+/// Custom matcher for ExpenseFacade that ignores the auto-generated id field
 Matcher matchesExpense(ExpenseFacade expected) => _ExpenseMatcher(expected);
 
 /// Custom matcher for LodgingFacade that ignores the auto-generated id field
@@ -152,6 +156,106 @@ class _TransitMatcher extends Matcher {
   }
 }
 
+class _StandaloneExpenseMatcher extends Matcher {
+  final ExpenseFacade expected;
+
+  _StandaloneExpenseMatcher(StandaloneExpense standaloneExpense)
+      : expected = standaloneExpense.expense;
+
+  @override
+  bool matches(dynamic item, Map matchState) {
+    if (item is! StandaloneExpense) {
+      matchState['error'] =
+          'Expected StandaloneExpense but got ${item.runtimeType}';
+      return false;
+    }
+
+    final actual = item.expense;
+
+    if (actual.currency != expected.currency) {
+      matchState['field'] = 'currency';
+      matchState['expected'] = expected.currency;
+      matchState['actual'] = actual.currency;
+      return false;
+    }
+
+    if (actual.description != expected.description) {
+      matchState['field'] = 'description';
+      matchState['expected'] = expected.description;
+      matchState['actual'] = actual.description;
+      return false;
+    }
+
+    if (actual.dateTime != expected.dateTime) {
+      matchState['field'] = 'dateTime';
+      matchState['expected'] = expected.dateTime;
+      matchState['actual'] = actual.dateTime;
+      return false;
+    }
+
+    // Compare paidBy map
+    if (actual.paidBy.length != expected.paidBy.length) {
+      matchState['field'] = 'paidBy.length';
+      matchState['expected'] = expected.paidBy.length;
+      matchState['actual'] = actual.paidBy.length;
+      return false;
+    }
+
+    for (var key in expected.paidBy.keys) {
+      if (!actual.paidBy.containsKey(key)) {
+        matchState['field'] = 'paidBy[$key]';
+        matchState['expected'] = 'key exists';
+        matchState['actual'] = 'key missing';
+        return false;
+      }
+      if (actual.paidBy[key] != expected.paidBy[key]) {
+        matchState['field'] = 'paidBy[$key]';
+        matchState['expected'] = expected.paidBy[key];
+        matchState['actual'] = actual.paidBy[key];
+        return false;
+      }
+    }
+
+    // Compare splitBy list
+    if (actual.splitBy.length != expected.splitBy.length) {
+      matchState['field'] = 'splitBy.length';
+      matchState['expected'] = expected.splitBy.length;
+      matchState['actual'] = actual.splitBy.length;
+      return false;
+    }
+
+    for (int i = 0; i < expected.splitBy.length; i++) {
+      if (actual.splitBy[i] != expected.splitBy[i]) {
+        matchState['field'] = 'splitBy[$i]';
+        matchState['expected'] = expected.splitBy[i];
+        matchState['actual'] = actual.splitBy[i];
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  @override
+  Description describe(Description description) =>
+      description.add('matches ExpenseFacade ').addDescriptionOf(expected);
+
+  @override
+  Description describeMismatch(dynamic item, Description mismatchDescription,
+      Map matchState, bool verbose) {
+    if (matchState.containsKey('error')) {
+      return mismatchDescription.add(matchState['error']);
+    }
+    if (matchState.containsKey('field')) {
+      return mismatchDescription
+          .add('has different ${matchState['field']}: ')
+          .add('expected ${matchState['expected']}, ')
+          .add('but got ${matchState['actual']}');
+    }
+    return mismatchDescription;
+  }
+}
+
 class _ExpenseMatcher extends Matcher {
   final ExpenseFacade expected;
 
@@ -167,32 +271,10 @@ class _ExpenseMatcher extends Matcher {
 
     final actual = item;
 
-    // Compare all fields except id
-    if (actual.tripId != expected.tripId) {
-      matchState['field'] = 'tripId';
-      matchState['expected'] = expected.tripId;
-      matchState['actual'] = actual.tripId;
-      return false;
-    }
-
-    if (actual.title != expected.title) {
-      matchState['field'] = 'title';
-      matchState['expected'] = expected.title;
-      matchState['actual'] = actual.title;
-      return false;
-    }
-
     if (actual.currency != expected.currency) {
       matchState['field'] = 'currency';
       matchState['expected'] = expected.currency;
       matchState['actual'] = actual.currency;
-      return false;
-    }
-
-    if (actual.category != expected.category) {
-      matchState['field'] = 'category';
-      matchState['expected'] = expected.category;
-      matchState['actual'] = actual.category;
       return false;
     }
 

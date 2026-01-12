@@ -35,6 +35,7 @@
   "chooseDefaultCurrency": "डिफ़ॉल्ट मुद्रा:",
   "chooseTripThumbnail": "लघुचित्र चुनें",
   "confirmation": "पुष्टीकरण",
+  "tripMateNotFound": "योगदानकर्ता '{email}' नहीं मिल रहा है।",
   "cost": "लागत",
   "cruise": "क्रूज शिप",
   "dateRangePickerEnd": "अंतिम तिथि:",

@@ -8,10 +8,9 @@ import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
-import 'package:wandrr/presentation/app/pages/startup_page.dart';
+import 'package:wandrr/presentation/app/routing/app_router.dart';
 import 'package:wandrr/presentation/app/theming/dark_theme_data.dart';
 import 'package:wandrr/presentation/app/theming/light_theme_data.dart';
-import 'package:wandrr/presentation/trip/pages/trip_provider/trip_provider.dart';
 
 import 'update_dialog.dart';
 
@@ -42,6 +41,7 @@ class _ContentPageRouter extends StatefulWidget {
 
 class _ContentPageLoader extends State<_ContentPageRouter> {
   static const String _appTitle = 'Wandrr';
+  AppRouter? _appRouter;
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +49,12 @@ class _ContentPageLoader extends State<_ContentPageRouter> {
       builder: (BuildContext pageContext, MasterPageState state) {
         var appLevelData = context.appDataRepository;
         var currentTheme = appLevelData.activeThemeMode;
-        return MaterialApp(
+
+        // Initialize router lazily with app data repository
+        _appRouter ??= AppRouter(appDataRepository: appLevelData);
+
+        return MaterialApp.router(
+          routerConfig: _appRouter!.router,
           locale: Locale(appLevelData.activeLanguage),
           localizationsDelegates: const [
             AppLocalizations.delegate,
@@ -63,44 +68,25 @@ class _ContentPageLoader extends State<_ContentPageRouter> {
           darkTheme: createDarkThemeData(context),
           themeMode: currentTheme,
           theme: createLightThemeData(context),
-          home: _ContentPage(),
         );
       },
       buildWhen: (previousState, currentState) =>
           currentState is ActiveLanguageChanged ||
           currentState is ActiveThemeModeChanged,
-      listener: (BuildContext context, MasterPageState state) {},
+      listener: _handleAuthStateChange,
     );
   }
-}
 
-class _ContentPage extends StatelessWidget {
-  const _ContentPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<MasterPageBloc, MasterPageState>(
-      builder: (BuildContext pageContext, MasterPageState state) => Material(
-        child: DropdownButtonHideUnderline(
-          child: SafeArea(
-            child: context.activeUser == null
-                ? const StartupPage()
-                : const TripProvider(),
-          ),
-        ),
-      ),
-      buildWhen: (previousState, currentState) =>
-          currentState is AuthStateChanged &&
-          (currentState.authStatus == AuthStatus.loggedIn ||
-              currentState.authStatus == AuthStatus.loggedOut),
-      listenWhen: (previousState, currentState) =>
-          currentState is UpdateAvailable,
-      listener: (BuildContext context, MasterPageState state) {
-        if (state is UpdateAvailable) {
-          _showUpdateDialog(context, state);
-        }
-      },
-    );
+  void _handleAuthStateChange(BuildContext context, MasterPageState state) {
+    if (state is AuthStateChanged) {
+      if (state.authStatus == AuthStatus.loggedIn) {
+        _appRouter?.router.go(AppRoutes.trips);
+      } else if (state.authStatus == AuthStatus.loggedOut) {
+        _appRouter?.router.go(AppRoutes.root);
+      }
+    } else if (state is UpdateAvailable) {
+      _showUpdateDialog(context, state);
+    }
   }
 
   void _showUpdateDialog(BuildContext context, UpdateAvailable state) {

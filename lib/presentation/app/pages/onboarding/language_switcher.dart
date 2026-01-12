@@ -25,6 +25,7 @@ class _LanguageSwitcherState extends State<LanguageSwitcher> {
               child: e,
             )),
         FloatingActionButton.large(
+          heroTag: 'languageSwitcherButton',
           onPressed: _toggleExpand,
           child: const Icon(
             Icons.translate,
@@ -76,6 +77,7 @@ class _LanguageButton extends StatelessWidget {
             curve: Curves.fastOutSlowIn,
             opacity: _visible ? 1 : 0,
             child: FloatingActionButton.extended(
+              heroTag: 'languageButton_${_languageMetadata.locale}',
               onPressed: () {
                 onLanguageSelected();
                 context.addMasterPageEvent(ChangeLanguage(

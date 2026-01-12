@@ -30,6 +30,7 @@ class OnBoardingPage extends StatelessWidget {
                 const LanguageSwitcher(),
                 if (!isBigLayout)
                   FloatingActionButton.large(
+                    heroTag: 'onboardingNextButton',
                     onPressed: onNavigateToNextPage,
                     shape: const CircleBorder(),
                     child: const Icon(

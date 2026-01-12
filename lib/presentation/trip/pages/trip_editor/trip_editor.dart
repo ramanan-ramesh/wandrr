@@ -5,6 +5,8 @@ import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/store/models/collection_item_change_set.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -16,6 +18,8 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_p
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/app_bar/app_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_bottom_sheet.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/trip_metadata_update_plan_factory.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
@@ -99,14 +103,25 @@ class _TripEditorPageInternal extends StatelessWidget {
   }
 
   void _onBlocStateChanged(BuildContext context, TripManagementState state) {
-    if (state is SelectedExpenseLinkedTripEntity) {
-      final expenseLinkedTripEntity =
+    if (state is SelectedExpenseBearingTripEntity) {
+      final expenseBearingTripEntity =
           state.tripEntityModificationData.modifiedCollectionItem;
-      _showTripEntityEditorBottomSheet<ExpenseLinkedTripEntity>(
+      _showTripEntityEditorBottomSheet<ExpenseBearingTripEntity>(
         tripEditorAction: TripEditorAction.expense,
-        tripEntity: expenseLinkedTripEntity,
+        tripEntity: expenseBearingTripEntity,
         pageContext: context,
       );
+    } else if (state is UpdatedTripEntity &&
+        state.dataState == DataState.update) {
+      final modifiedItem =
+          state.tripEntityModificationData.modifiedCollectionItem;
+      if (modifiedItem is CollectionItemChangeSet<TripMetadataFacade>) {
+        _handleTripMetadataUpdate(
+          context: context,
+          oldMetadata: modifiedItem.beforeUpdate,
+          newMetadata: modifiedItem.afterUpdate,
+        );
+      }
     } else if (state is UpdatedTripEntity &&
         state.dataState == DataState.select) {
       final tripEntity =
@@ -140,6 +155,50 @@ class _TripEditorPageInternal extends StatelessWidget {
     }
   }
 
+  void _handleTripMetadataUpdate({
+    required BuildContext context,
+    required TripMetadataFacade oldMetadata,
+    required TripMetadataFacade newMetadata,
+  }) {
+    // Check if we have affected entities that need user attention
+    final updatePlan = TripMetadataUpdatePlanFactory.create(
+      oldMetadata: oldMetadata,
+      newMetadata: newMetadata,
+      tripData: context.activeTrip,
+    );
+
+    if (updatePlan == null) return;
+
+    // If only contributors were removed (no added contributors and no date changes),
+    // just show a snackbar - no need for the bottom sheet
+    final hasOnlyRemovedContributors =
+        updatePlan.removedContributors.isNotEmpty &&
+            updatePlan.addedContributors.isEmpty &&
+            !updatePlan.hasDateChanges;
+
+    if (hasOnlyRemovedContributors) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Past expenses with removed tripmates are preserved for historical accuracy',
+          ),
+          duration: Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
+    // Show bottom sheet if there are affected entities that need user attention
+    if (updatePlan.hasAffectedEntities) {
+      _showModalBottomSheet(
+        AffectedEntitiesBottomSheet(
+          updatePlan: updatePlan,
+        ),
+        context,
+      );
+    }
+  }
+
   Widget _createAddButton(BuildContext pageContext) {
     if (pageContext.isBigLayout) {
       return Padding(
@@ -149,6 +208,7 @@ class _TripEditorPageInternal extends StatelessWidget {
           width: TripEditorPageConstants.fabSize,
           child: FittedBox(
             child: FloatingActionButton(
+              heroTag: 'tripEditorAddButtonWithNav',
               onPressed: () => _onAddButtonPressed(pageContext),
               child: Icon(Icons.add),
             ),
@@ -161,6 +221,7 @@ class _TripEditorPageInternal extends StatelessWidget {
       width: TripEditorPageConstants.fabSize,
       child: FittedBox(
         child: FloatingActionButton(
+          heroTag: 'tripEditorAddButton',
           onPressed: () => _onAddButtonPressed(pageContext),
           child: const Icon(Icons.add),
         ),

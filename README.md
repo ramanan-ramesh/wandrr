@@ -3,6 +3,8 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.0+-blue.svg)](https://flutter.dev/)
 [![Firebase](https://img.shields.io/badge/Firebase-Enabled-orange.svg)](https://firebase.google.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Get it on Google Play](https://img.shields.io/badge/Get%20it%20on-Google%20Play-00A65A?style=flat&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=com.rareapps.wandrr)
+[![Website](https://img.shields.io/badge/Visit-Website-00A65A?style=flat&logo=globe&logoColor=white&labelColor=00A65A)](https://wandrr.netlify.app)
 
 A comprehensive travel planning app built with Flutter and ❤️, designed to make your travel
 experiences seamless and memorable. Wandrr helps you plan, track, and manage every aspect of your
@@ -324,7 +326,7 @@ gets missed.
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/wandrr.git
+   git clone https://github.com/ramanan-ramesh/wandrr.git
    cd wandrr
    ```
 
@@ -403,6 +405,6 @@ Have questions or suggestions? Feel free to reach out!
 
 ⭐ Star us on GitHub — it motivates us a lot!
 
-[Report Bug](https://github.com/yourusername/wandrr/issues) · [Request Feature](https://github.com/yourusername/wandrr/issues)
+[Report Bug](https://github.com/ramanan-ramesh/wandrr/issues) · [Request Feature](https://github.com/ramanan-ramesh/wandrr/issues)
 
 </div>

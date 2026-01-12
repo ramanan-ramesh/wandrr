@@ -3,8 +3,8 @@ import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 
@@ -92,9 +92,10 @@ class UpdatedTripEntity<T> extends TripManagementState {
             isFromExplicitAction: true);
 }
 
-class SelectedExpenseLinkedTripEntity
-    extends UpdatedTripEntity<ExpenseLinkedTripEntity> {
-  SelectedExpenseLinkedTripEntity({required ExpenseLinkedTripEntity tripEntity})
+class SelectedExpenseBearingTripEntity
+    extends UpdatedTripEntity<ExpenseBearingTripEntity> {
+  SelectedExpenseBearingTripEntity(
+      {required ExpenseBearingTripEntity tripEntity})
       : super.selected(tripEntity: tripEntity);
 }
 

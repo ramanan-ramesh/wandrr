@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/presentation/app/routing/app_router.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
@@ -49,47 +51,46 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _createTitleAndDate(BuildContext context) {
-    var tripDateRange =
-        '${context.activeTrip.tripMetadata.startDate!.dateMonthFormat} - ${context.activeTrip.tripMetadata.endDate!.dateMonthFormat}';
     return TripEntityUpdateHandler<TripMetadataFacade>(
       shouldRebuild: (beforeUpdate, afterUpdate) {
         final newStartDate = afterUpdate.startDate!;
         final newEndDate = afterUpdate.endDate!;
-        if (!beforeUpdate.startDate!.isOnSameDayAs(newStartDate) ||
+        return !beforeUpdate.startDate!.isOnSameDayAs(newStartDate) ||
             !beforeUpdate.endDate!.isOnSameDayAs(newEndDate) ||
-            beforeUpdate.name != afterUpdate.name) {
-          return true;
-        }
-        return false;
+            beforeUpdate.name != afterUpdate.name;
       },
-      widgetBuilder: (context) => InkWell(
-        onTap: () => _selectTripMetadata(context),
-        child: Padding(
-          padding: const EdgeInsets.all(3.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                context.activeTrip.tripMetadata.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              Text(
-                tripDateRange,
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-            ],
+      widgetBuilder: (context) {
+        var tripDateRange =
+            '${context.activeTrip.tripMetadata.startDate!.dateMonthFormat} - ${context.activeTrip.tripMetadata.endDate!.dateMonthFormat}';
+        return InkWell(
+          onTap: () => _selectTripMetadata(context),
+          child: Padding(
+            padding: const EdgeInsets.all(3.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  context.activeTrip.tripMetadata.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  tripDateRange,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   Widget _createHomeButton(BuildContext context) {
     return IconButton(
       onPressed: () {
-        context.addTripManagementEvent(GoToHome());
+        context.go(AppRoutes.trips);
       },
       icon: const Icon(Icons.home_rounded),
       style: context.isLightTheme

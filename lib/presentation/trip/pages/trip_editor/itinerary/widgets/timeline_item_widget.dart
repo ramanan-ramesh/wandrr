@@ -6,14 +6,14 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/timeline_ev
 
 /// Constants for timeline styling
 class TimelineConstants {
-  static const double iconSize = 24;
-  static const double iconContainerSize = 48;
-  static const double connectorWidth = 4;
-  static const double cardBorderWidth = 1.5;
-  static const double cardRadius = 16;
-  static const double cardPadding = 16;
-  static const double spacing = 16;
-  static const int notesMaxLength = 150;
+  static const double iconSize = 20;
+  static const double iconContainerSize = 40;
+  static const double connectorWidth = 3;
+  static const double cardBorderWidth = 1;
+  static const double cardRadius = 12;
+  static const double cardPadding = 12;
+  static const double spacing = 12;
+  static const int notesMaxLength = 120;
 }
 
 /// Widget for displaying a single timeline item
@@ -57,7 +57,7 @@ class _TimelineIconColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 60,
+      width: 48,
       child: Column(
         children: [
           _TimelineIcon(event: event),
@@ -90,8 +90,8 @@ class _TimelineIcon extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: event.iconColor.withValues(alpha: 0.3),
-            blurRadius: 8,
+            color: event.iconColor.withValues(alpha: 0.2),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -150,24 +150,45 @@ class _TimelineEventCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: themeHelper.getCardShadowColor(),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _EventHeader(event: event),
-          if (event.subtitle.isNotEmpty)
-            _EventSubtitle(subtitle: event.subtitle),
-          if (event.confirmationId?.isNotEmpty ?? false) ...[
-            const SizedBox(height: 8),
-            _ConfirmationChip(confirmationId: event.confirmationId!),
-            const SizedBox(height: 8),
-          ],
-          if (event.notes?.isNotEmpty ?? false)
-            _EventNotes(notes: event.notes!),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                flex: 1,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (event.subtitle.isNotEmpty)
+                      _EventSubtitle(subtitle: event.subtitle),
+                    if (event.confirmationId?.isNotEmpty ?? false) ...[
+                      const SizedBox(height: 8),
+                      _ConfirmationChip(confirmationId: event.confirmationId!),
+                    ],
+                  ],
+                ),
+              ),
+              if (event.notes?.isNotEmpty ?? false) ...[
+                const SizedBox(width: 8),
+                Flexible(
+                  flex: 1,
+                  child: _EventNotes(notes: event.notes!),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );
@@ -317,23 +338,20 @@ class _EventNotes extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeHelper = TimelineThemeHelper(context);
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: themeHelper.getNotesBackgroundColor(),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          _truncateNotes(notes),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: themeHelper.getSubtitleColor(),
-                fontStyle: FontStyle.italic,
-              ),
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
-        ),
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: themeHelper.getNotesBackgroundColor(),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        _truncateNotes(notes),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: themeHelper.getSubtitleColor(),
+              fontStyle: FontStyle.italic,
+            ),
+        maxLines: 5,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }

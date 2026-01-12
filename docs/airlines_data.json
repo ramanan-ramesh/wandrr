@@ -1948,7 +1948,7 @@
     "iata": "EA"
   },
   {
-    "name": "Emirates Airlines",
+    "name": "Emirates",
     "iata": "EK"
   },
   {
@@ -1970,6 +1970,10 @@
   {
     "name": "Eos Airlines",
     "iata": "E0"
+  },
+  {
+    "name": "Equatorial Congo Airlines",
+    "iata": "EJ"
   },
   {
     "name": "Eritrean Airlines",
@@ -4074,10 +4078,6 @@
   {
     "name": "Really Cool Airlines",
     "iata": "XW"
-  },
-  {
-    "name": "Redhill Aviation",
-    "iata": "8L"
   },
   {
     "name": "Reem Air",

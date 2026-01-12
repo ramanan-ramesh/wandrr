@@ -31,12 +31,14 @@ class TripEntityFactory {
   }
 
   /// Creates a new UI entry for expense
-  ExpenseFacade createExpense({ExpenseFacade? existing}) {
+  StandaloneExpense createExpense({StandaloneExpense? existing}) {
     return existing ??
-        ExpenseFacade.newUiEntry(
+        StandaloneExpense(
           tripId: activeTrip.tripMetadata.id!,
-          allTripContributors: activeTrip.tripMetadata.contributors,
-          defaultCurrency: activeTrip.tripMetadata.budget.currency,
+          expense: ExpenseFacade.newUiEntry(
+            allTripContributors: activeTrip.tripMetadata.contributors,
+            defaultCurrency: activeTrip.tripMetadata.budget.currency,
+          ),
         );
   }
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
-// TODO: Split into text button submitter and icon button submitter
 class PlatformSubmitterFAB extends StatefulWidget {
   final Widget child;
   final VoidCallback? callback;
@@ -108,6 +107,8 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
     final bool isButtonEnabled = canEnable && !_isLoading;
 
     return FloatingActionButton(
+      heroTag: null,
+      // Disable hero animation to prevent conflicts with go_router
       onPressed: _isLoading || !canEnable
           ? () {
               widget.callbackOnClickWhileDisabled?.call();

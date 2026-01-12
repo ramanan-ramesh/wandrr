@@ -35,6 +35,7 @@
   "chooseDefaultCurrency": "இயல்புநிலை நாணயம்:",
   "chooseTripThumbnail": "சிறுபடத்தைத் தேர்ந்தெடுக்கவும்",
   "confirmation": "உறுதிப்படுத்தல்",
+  "tripMateNotFound": "பங்களிப்பாளர் '{email}' கண்டறிய முடியவில்லை.",
   "cost": "செலவு",
   "cruise": "கப்பல் பயணம்",
   "dateRangePickerEnd": "முடிவு தேதி:",

@@ -892,6 +892,12 @@ abstract class AppLocalizations {
   /// **'Transit Carrier'**
   String get transitCarrier;
 
+  /// No description provided for @tripMateNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'The tripmate \'{email}\' cannot be found.'**
+  String tripMateNotFound(Object email);
+
   /// No description provided for @tripName.
   ///
   /// In en, this message translates to:
