@@ -272,11 +272,27 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
   }
 
   Widget _buildSelectAllToggle(BuildContext context) {
+    final activeExpenses =
+        widget.allExpenses.where((e) => !e.isMarkedForDeletion);
+    final selectedCount =
+        activeExpenses.where((e) => e.includeInSplitBy).length;
+    final totalCount = activeExpenses.length;
+
+    // Determine tri-state: none (0), some (1), all (2)
+    final SelectionState selectionState;
+    if (selectedCount == 0) {
+      selectionState = SelectionState.none;
+    } else if (selectedCount == totalCount) {
+      selectionState = SelectionState.all;
+    } else {
+      selectionState = SelectionState.some;
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'Include new tripmates in:',
+          'Include new tripmates in expenses:',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
@@ -284,36 +300,25 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  for (final item in widget.allExpenses) {
-                    if (!item.isMarkedForDeletion) {
-                      item.includeInSplitBy = false;
-                    }
-                  }
-                });
-                widget.onChanged();
-              },
-              child: Text(
-                'None',
-              ),
+            Text(
+              '$selectedCount/$totalCount',
+              style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(width: 8),
-            TextButton(
-              onPressed: () {
+            _TriStateCheckbox(
+              state: selectionState,
+              onTap: () {
                 setState(() {
+                  // Toggle between none and all
+                  final newValue = selectionState != SelectionState.all;
                   for (final item in widget.allExpenses) {
                     if (!item.isMarkedForDeletion) {
-                      item.includeInSplitBy = true;
+                      item.includeInSplitBy = newValue;
                     }
                   }
                 });
                 widget.onChanged();
               },
-              child: Text(
-                'All',
-              ),
             ),
           ],
         ),
@@ -350,7 +355,7 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
                   : (isLightTheme
                       ? Colors.grey.shade100
                       : Colors.grey.shade800.withValues(alpha: 0.3)),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isMarkedForDeletion
                 ? (isLightTheme ? AppColors.error : AppColors.errorLight)
@@ -581,6 +586,84 @@ class _AffectedExpensesSectionState extends State<AffectedExpensesSection> {
         return Icons.shopping_bag;
       default:
         return Icons.receipt;
+    }
+  }
+}
+
+/// Selection state for the tri-state checkbox
+enum SelectionState {
+  none, // Empty square
+  some, // Partially filled (dash/minus)
+  all, // Filled with gap
+}
+
+/// A custom tri-state checkbox that shows:
+/// - Empty square for none selected
+/// - Dash/minus for some selected
+/// - Filled square with gap for all selected
+class _TriStateCheckbox extends StatelessWidget {
+  final SelectionState state;
+  final VoidCallback onTap;
+
+  const _TriStateCheckbox({
+    required this.state,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final primaryColor =
+        isLightTheme ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: primaryColor,
+            width: 2,
+          ),
+          color: state == SelectionState.none
+              ? Colors.transparent
+              : primaryColor.withValues(alpha: 0.1),
+        ),
+        child: Center(
+          child: _buildIcon(primaryColor),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIcon(Color color) {
+    switch (state) {
+      case SelectionState.none:
+        // Empty square - no icon
+        return const SizedBox.shrink();
+      case SelectionState.some:
+        // Dash/minus for partial selection
+        return Container(
+          width: 12,
+          height: 2,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(1),
+          ),
+        );
+      case SelectionState.all:
+        // Filled square with gap (inner filled box)
+        return Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        );
     }
   }
 }
