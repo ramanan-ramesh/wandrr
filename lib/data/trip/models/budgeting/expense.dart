@@ -42,9 +42,7 @@ class ExpenseFacade extends Equatable {
       currency: currency,
       paidBy: Map.from(paidBy),
       splitBy: List.from(splitBy),
-      dateTime: dateTime == null
-          ? null
-          : DateTime(dateTime!.year, dateTime!.month, dateTime!.day));
+      dateTime: dateTime?.copyWith());
 
   void copyWith(ExpenseFacade expenseModelFacade) {
     description = expenseModelFacade.description;

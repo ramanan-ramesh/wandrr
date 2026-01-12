@@ -235,7 +235,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
       paidBy: {TestConfig.testEmail: 25.0},
       splitBy: contributors,
       dateTime: DateTime(2025, 9, 25, 12, 0),
-      description: 'Gift cards',
+      description: 'Postcards and magnets',
     ),
     category: ExpenseCategory.other,
   );

@@ -157,10 +157,10 @@ class _TransitMatcher extends Matcher {
 }
 
 class _StandaloneExpenseMatcher extends Matcher {
-  final ExpenseFacade expected;
+  final StandaloneExpense _expectedStandalone;
 
   _StandaloneExpenseMatcher(StandaloneExpense standaloneExpense)
-      : expected = standaloneExpense.expense;
+      : _expectedStandalone = standaloneExpense;
 
   @override
   bool matches(dynamic item, Map matchState) {
@@ -170,75 +170,37 @@ class _StandaloneExpenseMatcher extends Matcher {
       return false;
     }
 
-    final actual = item.expense;
+    final actualStandaloneExpense = item;
 
-    if (actual.currency != expected.currency) {
-      matchState['field'] = 'currency';
-      matchState['expected'] = expected.currency;
-      matchState['actual'] = actual.currency;
+    // Check wrapper properties first (title, category)
+    if (actualStandaloneExpense.title != _expectedStandalone.title) {
+      matchState['field'] = 'title';
+      matchState['expected'] = _expectedStandalone.title;
+      matchState['actual'] = actualStandaloneExpense.title;
       return false;
     }
 
-    if (actual.description != expected.description) {
-      matchState['field'] = 'description';
-      matchState['expected'] = expected.description;
-      matchState['actual'] = actual.description;
+    if (actualStandaloneExpense.category != _expectedStandalone.category) {
+      matchState['field'] = 'category';
+      matchState['expected'] = _expectedStandalone.category;
+      matchState['actual'] = actualStandaloneExpense.category;
       return false;
     }
 
-    if (actual.dateTime != expected.dateTime) {
-      matchState['field'] = 'dateTime';
-      matchState['expected'] = expected.dateTime;
-      matchState['actual'] = actual.dateTime;
+    // Compare expense using expense matcher
+    final expenseMatcher = _ExpenseMatcher(_expectedStandalone.expense);
+    if (!expenseMatcher.matches(actualStandaloneExpense.expense, matchState)) {
+      matchState['field'] = 'expense.${matchState['field']}';
       return false;
-    }
-
-    // Compare paidBy map
-    if (actual.paidBy.length != expected.paidBy.length) {
-      matchState['field'] = 'paidBy.length';
-      matchState['expected'] = expected.paidBy.length;
-      matchState['actual'] = actual.paidBy.length;
-      return false;
-    }
-
-    for (var key in expected.paidBy.keys) {
-      if (!actual.paidBy.containsKey(key)) {
-        matchState['field'] = 'paidBy[$key]';
-        matchState['expected'] = 'key exists';
-        matchState['actual'] = 'key missing';
-        return false;
-      }
-      if (actual.paidBy[key] != expected.paidBy[key]) {
-        matchState['field'] = 'paidBy[$key]';
-        matchState['expected'] = expected.paidBy[key];
-        matchState['actual'] = actual.paidBy[key];
-        return false;
-      }
-    }
-
-    // Compare splitBy list
-    if (actual.splitBy.length != expected.splitBy.length) {
-      matchState['field'] = 'splitBy.length';
-      matchState['expected'] = expected.splitBy.length;
-      matchState['actual'] = actual.splitBy.length;
-      return false;
-    }
-
-    for (int i = 0; i < expected.splitBy.length; i++) {
-      if (actual.splitBy[i] != expected.splitBy[i]) {
-        matchState['field'] = 'splitBy[$i]';
-        matchState['expected'] = expected.splitBy[i];
-        matchState['actual'] = actual.splitBy[i];
-        return false;
-      }
     }
 
     return true;
   }
 
   @override
-  Description describe(Description description) =>
-      description.add('matches ExpenseFacade ').addDescriptionOf(expected);
+  Description describe(Description description) => description
+      .add('matches StandaloneExpense ')
+      .addDescriptionOf(_expectedStandalone);
 
   @override
   Description describeMismatch(dynamic item, Description mismatchDescription,
