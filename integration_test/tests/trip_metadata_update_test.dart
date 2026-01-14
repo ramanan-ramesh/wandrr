@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
-import 'package:wandrr/presentation/trip/pages/home/trips_list_view.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_bottom_sheet.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_expenses_section.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_transits_section.dart';
@@ -29,14 +28,9 @@ class AffectedEntitiesTestKeys {
 /// Test 1: Only add contributors - should show bottom sheet with expenses to include in split
 Future<void> runAddContributorsOnlyTest(WidgetTester tester) async {
   await TestHelpers.pumpAndSettleApp(tester);
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripListView),
-    timeout: TestConfig.defaultTimeout,
-  );
 
   // Navigate to trip editor
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Open trip details editor
   await _openTripDetailsEditor(tester);
@@ -105,13 +99,8 @@ Future<void> runAddContributorsOnlyTest(WidgetTester tester) async {
 /// Test 2: Only remove contributors - should show snackbar, no bottom sheet
 Future<void> runRemoveContributorsOnlyTest(WidgetTester tester) async {
   await TestHelpers.pumpAndSettleApp(tester);
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripListView),
-    timeout: TestConfig.defaultTimeout,
-  );
 
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   await _openTripDetailsEditor(tester);
 
   final tripData = _getActiveTrip(tester);
@@ -160,13 +149,8 @@ Future<void> runRemoveContributorsOnlyTest(WidgetTester tester) async {
 /// Test 3: Both add and remove contributors - should show bottom sheet
 Future<void> runAddAndRemoveContributorsTest(WidgetTester tester) async {
   await TestHelpers.pumpAndSettleApp(tester);
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripListView),
-    timeout: TestConfig.defaultTimeout,
-  );
 
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   await _openTripDetailsEditor(tester);
 
   final tripData = _getActiveTrip(tester);
@@ -223,13 +207,8 @@ Future<void> runAddAndRemoveContributorsTest(WidgetTester tester) async {
 /// Test 4: Shorten trip dates - should show affected stays/transits/sights
 Future<void> runShortenTripDatesTest(WidgetTester tester) async {
   await TestHelpers.pumpAndSettleApp(tester);
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripListView),
-    timeout: TestConfig.defaultTimeout,
-  );
 
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   await _openTripDetailsEditor(tester);
 
   final tripData = _getActiveTrip(tester);
@@ -295,13 +274,8 @@ Future<void> runShortenTripDatesTest(WidgetTester tester) async {
 /// Test 5: Extend trip dates - should NOT show bottom sheet (no affected entities)
 Future<void> runExtendTripDatesTest(WidgetTester tester) async {
   await TestHelpers.pumpAndSettleApp(tester);
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripListView),
-    timeout: TestConfig.defaultTimeout,
-  );
 
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   await _openTripDetailsEditor(tester);
 
   final tripData = _getActiveTrip(tester);
@@ -335,13 +309,8 @@ Future<void> runExtendTripDatesTest(WidgetTester tester) async {
 /// Test 6: Change start date - should show affected entities that fall before new start
 Future<void> runChangeStartDateTest(WidgetTester tester) async {
   await TestHelpers.pumpAndSettleApp(tester);
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripListView),
-    timeout: TestConfig.defaultTimeout,
-  );
 
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   await _openTripDetailsEditor(tester);
 
   final tripData = _getActiveTrip(tester);
@@ -381,13 +350,8 @@ Future<void> runChangeStartDateTest(WidgetTester tester) async {
 /// Test 7: Combined - change dates AND add contributors
 Future<void> runCombinedDatesAndContributorsTest(WidgetTester tester) async {
   await TestHelpers.pumpAndSettleApp(tester);
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripListView),
-    timeout: TestConfig.defaultTimeout,
-  );
 
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   await _openTripDetailsEditor(tester);
 
   final tripData = _getActiveTrip(tester);
@@ -440,13 +404,8 @@ Future<void> runCombinedDatesAndContributorsTest(WidgetTester tester) async {
 /// Test 8: Delete and restore entities in bottom sheet
 Future<void> runDeleteRestoreEntitiesTest(WidgetTester tester) async {
   await TestHelpers.pumpAndSettleApp(tester);
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripListView),
-    timeout: TestConfig.defaultTimeout,
-  );
 
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   await _openTripDetailsEditor(tester);
 
   final tripData = _getActiveTrip(tester);
@@ -493,13 +452,8 @@ Future<void> runDeleteRestoreEntitiesTest(WidgetTester tester) async {
 /// Test 9: Verify expense linked entity deletion syncs with expenses section
 Future<void> runExpenseLinkedDeletionSyncTest(WidgetTester tester) async {
   await TestHelpers.pumpAndSettleApp(tester);
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripListView),
-    timeout: TestConfig.defaultTimeout,
-  );
 
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   await _openTripDetailsEditor(tester);
 
   final tripData = _getActiveTrip(tester);
@@ -552,13 +506,8 @@ Future<void> runExpenseLinkedDeletionSyncTest(WidgetTester tester) async {
 /// Test 10: Verify historical contributors in debt calculation
 Future<void> runHistoricalContributorsDebtTest(WidgetTester tester) async {
   await TestHelpers.pumpAndSettleApp(tester);
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripListView),
-    timeout: TestConfig.defaultTimeout,
-  );
 
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   final tripData = _getActiveTrip(tester);
 
@@ -601,18 +550,6 @@ Future<void> runHistoricalContributorsDebtTest(WidgetTester tester) async {
 TripDataFacade _getActiveTrip(WidgetTester tester) {
   final context = tester.element(find.byType(TripEditorPage));
   return context.activeTrip;
-}
-
-Future<void> _navigateToTripEditor(WidgetTester tester) async {
-  // Find and tap on the first trip in the list
-  final tripListItem = find.byType(InkWell).first;
-  await TestHelpers.tapWidget(tester, tripListItem);
-
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: TestConfig.longTimeout,
-  );
 }
 
 Future<void> _openTripDetailsEditor(WidgetTester tester) async {

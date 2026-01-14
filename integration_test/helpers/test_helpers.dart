@@ -8,6 +8,8 @@ import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/app/pages/master_page/master_page.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
+import 'package:wandrr/presentation/trip/pages/home/trips_list_view.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
 import 'test_config.dart';
 
@@ -28,6 +30,36 @@ class TestHelpers {
     await _waitForNativeSplashScreen(tester);
     // Log device size after splash screen
     print(_getDeviceSizeDescription(tester));
+  }
+
+  static Future<void> navigateToTripEditorPage(WidgetTester tester) async {
+    // Wait for TripsListView to appear
+    await TestHelpers.waitForWidget(
+      tester,
+      find.byType(TripListView),
+      timeout: const Duration(seconds: 5),
+    );
+
+    // Find the test trip grid item by its name "European Adventure"
+    final testTripItem = find.ancestor(
+      of: find.text('European Adventure'),
+      matching: find.byType(InkWell),
+    );
+
+    // Verify the test trip item is found
+    expect(testTripItem, findsOneWidget,
+        reason:
+            'Test trip "European Adventure" should be displayed in TripsListView');
+
+    // Click on the test trip item to navigate to TripEditorPage
+    await TestHelpers.tapWidget(tester, testTripItem);
+
+    // Wait for TripEditorPage to appear
+    await TestHelpers.waitForWidget(
+      tester,
+      find.byType(TripEditorPage),
+      timeout: const Duration(seconds: 10),
+    );
   }
 
   static AppLocalizations getAppLocalizations(WidgetTester tester, Type type) {

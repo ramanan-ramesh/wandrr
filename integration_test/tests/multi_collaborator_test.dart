@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/app_bar/collaborator_list.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
+import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
 
 /// Test: AppBar displays maximum of 3 contributors
@@ -15,32 +18,23 @@ Future<void> runCollaboratorListMaxThreeTest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Find CollaboratorList in AppBar
   final collaboratorList = find.byType(CollaboratorList);
+  expect(collaboratorList, findsOneWidget,
+      reason: 'CollaboratorList should be found in AppBar');
+  print('✓ CollaboratorList found in AppBar');
 
-  if (collaboratorList.evaluate().isNotEmpty) {
-    expect(collaboratorList, findsOneWidget);
-    print('✓ CollaboratorList found in AppBar');
+  // Find CircleAvatars (max 3 should be shown)
+  final avatars = find.byType(CircleAvatar);
+  final avatarCount = avatars.evaluate().length;
 
-    // Find CircleAvatars (max 3 should be shown)
-    final avatars = find.byType(CircleAvatar);
-    final avatarCount = avatars.evaluate().length;
-
-    print('✓ Number of avatars displayed: $avatarCount');
-    print('✓ Maximum of 3 contributors shown in UI');
-
-    if (avatarCount <= 3) {
-      print('✓ Collaborator display limit verified');
-    }
-  } else {
-    print('⚠ CollaboratorList not found');
-  }
+  // Verify we have the 2 collaborators from test data
+  expect(avatarCount, 2,
+      reason: 'Should have 2 avatars (test user and tripmate)');
+  print('✓ Number of avatars displayed: $avatarCount');
+  print('✓ Collaborator display verified (limit: max 3)');
 }
 
 /// Test: Clicking trip name/date opens trip metadata editor
@@ -52,35 +46,32 @@ Future<void> runTripNameOpensMetadataEditorTest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
+  await TestHelpers.navigateToTripEditorPage(tester);
+
+  // Find the InkWell with trip name "European Adventure"
+  final tripNameInkWell = find.ancestor(
+    of: find.text('European Adventure'),
+    matching: find.byType(InkWell),
   );
 
-  // Find the InkWell with trip name and date
-  final tripNameInkWell = find.byType(InkWell);
+  expect(tripNameInkWell, findsOneWidget,
+      reason: 'Trip name tappable area should be present');
 
-  if (tripNameInkWell.evaluate().isNotEmpty) {
-    // Tap on trip name/date area
-    await TestHelpers.tapWidget(tester, tripNameInkWell.first);
-    await tester.pumpAndSettle();
+  // Tap on trip name/date area
+  await TestHelpers.tapWidget(tester, tripNameInkWell.first);
+  await tester.pumpAndSettle();
 
-    print('✓ Trip name/date area tapped');
-    print('✓ Trip metadata editor should open');
+  print('✓ Trip name/date area tapped');
 
-    // Look for metadata editor indicators (dialog or bottom sheet)
-    final dialog = find.byType(Dialog);
-    final bottomSheet = find.byType(BottomSheet);
+  // Look for metadata editor indicators (dialog or bottom sheet)
+  final dialog = find.byType(Dialog);
+  final bottomSheet = find.byType(BottomSheet);
 
-    if (dialog.evaluate().isNotEmpty || bottomSheet.evaluate().isNotEmpty) {
-      print('✓ Trip metadata editor opened');
-    } else {
-      print('⚠ Trip metadata editor not visible (check implementation)');
-    }
-  } else {
-    print('⚠ Trip name/date tappable area not found');
-  }
+  final editorOpened =
+      dialog.evaluate().isNotEmpty || bottomSheet.evaluate().isNotEmpty;
+  expect(editorOpened, true,
+      reason: 'Trip metadata editor should open as dialog or bottom sheet');
+  print('✓ Trip metadata editor opened');
 }
 
 /// Test: Trip metadata editing - name change
@@ -92,30 +83,23 @@ Future<void> runEditTripNameTest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Tap to open metadata editor
-  final tripNameInkWell = find.byType(InkWell);
-  if (tripNameInkWell.evaluate().isNotEmpty) {
-    await TestHelpers.tapWidget(tester, tripNameInkWell.first);
-    await tester.pumpAndSettle();
+  final tripNameInkWell = find.ancestor(
+    of: find.text('European Adventure'),
+    matching: find.byType(InkWell),
+  );
+  await TestHelpers.tapWidget(tester, tripNameInkWell.first);
+  await tester.pumpAndSettle();
 
-    print('✓ Trip metadata editor opened');
+  print('✓ Trip metadata editor opened');
 
-    // Look for TextFormField to edit trip name
-    final textFields = find.byType(TextFormField);
-
-    if (textFields.evaluate().isNotEmpty) {
-      print('✓ Trip name field found');
-      print('✓ Can edit trip name');
-    } else {
-      print('⚠ Trip name field not found');
-    }
-  }
+  // Look for TextFormField to edit trip name
+  final textFields = find.byType(TextFormField);
+  expect(textFields, findsWidgets, reason: 'Trip name field should be found');
+  print('✓ Trip name field found');
+  print('✓ Can edit trip name');
 }
 
 /// Test: Trip metadata editing - date change
@@ -127,30 +111,24 @@ Future<void> runEditTripDatesTest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Tap to open metadata editor
-  final tripNameInkWell = find.byType(InkWell);
-  if (tripNameInkWell.evaluate().isNotEmpty) {
-    await TestHelpers.tapWidget(tester, tripNameInkWell.first);
-    await tester.pumpAndSettle();
+  final tripNameInkWell = find.ancestor(
+    of: find.text('European Adventure'),
+    matching: find.byType(InkWell),
+  );
+  await TestHelpers.tapWidget(tester, tripNameInkWell.first);
+  await tester.pumpAndSettle();
 
-    print('✓ Trip metadata editor opened');
+  print('✓ Trip metadata editor opened');
 
-    // Look for date picker or date display
-    final calendarIcon = find.byIcon(Icons.calendar_today);
-
-    if (calendarIcon.evaluate().isNotEmpty) {
-      print('✓ Date selection available');
-      print('✓ Can edit trip start/end dates');
-    } else {
-      print('⚠ Date selection not immediately visible');
-    }
-  }
+  // Look for date picker or date display
+  final calendarIcon = find.byIcon(Icons.calendar_today);
+  expect(calendarIcon, findsWidgets,
+      reason: 'Date selection should be available');
+  print('✓ Date selection available');
+  print('✓ Can edit trip start/end dates');
 }
 
 /// Test: Trip metadata editing - add/remove contributors
@@ -162,39 +140,45 @@ Future<void> runEditContributorsTest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
+
+  // Verify repository has expected contributors
+  final context = tester.element(find.byType(TripEditorPage));
+  final tripRepo = RepositoryProvider.of<TripRepositoryFacade>(context);
+  final contributors = tripRepo.activeTrip!.tripMetadata.contributors;
+
+  expect(contributors.length, 2,
+      reason: 'Should have 2 contributors from test data');
+  expect(contributors.contains(TestConfig.testEmail), true,
+      reason: 'Test user should be a contributor');
+  expect(contributors.contains(TestConfig.tripMateUserName), true,
+      reason: 'Trip mate should be a contributor');
+
+  print('✓ Verified 2 contributors: ${contributors.join(', ')}');
 
   // Tap to open metadata editor
-  final tripNameInkWell = find.byType(InkWell);
-  if (tripNameInkWell.evaluate().isNotEmpty) {
-    await TestHelpers.tapWidget(tester, tripNameInkWell.first);
-    await tester.pumpAndSettle();
+  final tripNameInkWell = find.ancestor(
+    of: find.text('European Adventure'),
+    matching: find.byType(InkWell),
+  );
+  await TestHelpers.tapWidget(tester, tripNameInkWell.first);
+  await tester.pumpAndSettle();
 
-    print('✓ Trip metadata editor opened');
+  print('✓ Trip metadata editor opened');
 
-    // Look for contributors section
-    // Typically has add contributor button
-    final addContributorButton = find.byIcon(Icons.person_add);
+  // Look for contributors section - add contributor button
+  final addContributorButton = find.byIcon(Icons.person_add);
+  expect(addContributorButton, findsWidgets,
+      reason: 'Add contributor button should be found');
+  print('✓ Add contributor button found');
 
-    if (addContributorButton.evaluate().isNotEmpty) {
-      print('✓ Add contributor button found');
-      print('✓ Can add new contributors');
-    }
+  // Look for remove contributor button (delete icon or close icon)
+  final removeContributorButton = find.byIcon(Icons.close);
+  expect(removeContributorButton, findsWidgets,
+      reason: 'Remove contributor button should be found');
+  print('✓ Remove contributor button found');
 
-    // Look for remove contributor button (delete icon)
-    final removeContributorButton = find.byIcon(Icons.remove_circle_outline);
-
-    if (removeContributorButton.evaluate().isNotEmpty) {
-      print('✓ Remove contributor button found');
-      print('✓ Can remove contributors');
-    }
-
-    print('✓ Contributor management available');
-  }
+  print('✓ Contributor management available');
 }
 
 /// Test: Trip metadata editing - budget change
@@ -206,28 +190,33 @@ Future<void> runEditTripBudgetTest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
+
+  // Verify budget from repository
+  final context = tester.element(find.byType(TripEditorPage));
+  final tripRepo = RepositoryProvider.of<TripRepositoryFacade>(context);
+  final budget = tripRepo.activeTrip!.tripMetadata.budget;
+  expect(budget.amount, 800.0, reason: 'Budget should be 800 from test data');
+  expect(budget.currency, 'EUR',
+      reason: 'Budget currency should be EUR from test data');
+  print('✓ Verified budget: ${budget.amount} ${budget.currency}');
 
   // Tap to open metadata editor
-  final tripNameInkWell = find.byType(InkWell);
-  if (tripNameInkWell.evaluate().isNotEmpty) {
-    await TestHelpers.tapWidget(tester, tripNameInkWell.first);
-    await tester.pumpAndSettle();
+  final tripNameInkWell = find.ancestor(
+    of: find.text('European Adventure'),
+    matching: find.byType(InkWell),
+  );
+  await TestHelpers.tapWidget(tester, tripNameInkWell.first);
+  await tester.pumpAndSettle();
 
-    print('✓ Trip metadata editor opened');
+  print('✓ Trip metadata editor opened');
 
-    // Look for budget fields (amount and currency)
-    final textFields = find.byType(TextFormField);
-
-    if (textFields.evaluate().length >= 2) {
-      print('✓ Budget fields available (amount & currency)');
-      print('✓ Can edit trip budget');
-    }
-  }
+  // Look for budget fields (amount and currency)
+  final textFields = find.byType(TextFormField);
+  expect(textFields.evaluate().length, greaterThanOrEqualTo(2),
+      reason: 'Budget fields should be available (amount & currency)');
+  print('✓ Budget fields available (amount & currency)');
+  print('✓ Can edit trip budget');
 }
 
 /// Test: Expense splitting - multiple contributors shown
@@ -238,12 +227,7 @@ Future<void> runExpenseSplittingDisplayTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Open FAB to add expense
   final fab = find.byType(FloatingActionButton);
@@ -273,13 +257,7 @@ Future<void> runTransitExpenseSplittingTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
-
+  await TestHelpers.navigateToTripEditorPage(tester);
   // Open FAB to add transit
   final fab = find.byType(FloatingActionButton);
   await TestHelpers.tapWidget(tester, fab);
@@ -306,12 +284,7 @@ Future<void> runStayExpenseSplittingTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Open FAB to add stay
   final fab = find.byType(FloatingActionButton);
@@ -340,11 +313,7 @@ Future<void> runSightExpenseSplittingTest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to Sights tab
   final sightsTab = find.byIcon(Icons.place_outlined);
@@ -375,11 +344,7 @@ Future<void> runDebtSummaryMultipleContributorsTest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to budgeting page
   if (!TestHelpers.isLargeScreen(tester)) {
@@ -412,11 +377,7 @@ Future<void> runDebtCalculationTest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   print('✓ Debt calculation logic:');
   print('  1. For each expense:');
@@ -443,11 +404,7 @@ Future<void> runAddContributorUpdatesExpensesTest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   print('✓ Adding new contributor:');
   print('  1. Open trip metadata editor');
@@ -467,11 +424,7 @@ Future<void> runRemoveContributorValidationTest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   print('✓ Removing contributor validation:');
   print('  1. Cannot remove if contributor has expenses');
@@ -490,11 +443,7 @@ Future<void> runExpenseSplittingUITest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   print('✓ Expense splitting UI structure:');
   print('  - Section 1: Who Paid (paidBy)');
@@ -522,11 +471,7 @@ Future<void> runCollaboratorAvatarsTest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Find CircleAvatars
   final avatars = find.byType(CircleAvatar);
@@ -550,11 +495,7 @@ Future<void> runTripMetadataPersistenceTest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   print('✓ Trip metadata update flow:');
   print('  1. User edits trip metadata (name/dates/budget/contributors)');
@@ -580,11 +521,7 @@ Future<void> runMultipleContributorsScenarioTest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   print('✓ Example scenario with 3 contributors:');
   print('  Alice, Bob, and Charlie are going on a trip');

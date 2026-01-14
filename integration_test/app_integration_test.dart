@@ -1,6 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'helpers/firebase_emulator_helper.dart';
@@ -18,8 +17,6 @@ import 'tests/trip_editor_page_test.dart';
 import 'tests/trip_metadata_update_test.dart';
 
 void main() {
-  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
   group('Wandrr Travel Planner Integration Tests', () {
     late SharedPreferences sharedPreferences;
 

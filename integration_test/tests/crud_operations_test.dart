@@ -14,12 +14,7 @@ Future<void> runAddTransitTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Verify FloatingActionButton exists
   final fab = find.byType(FloatingActionButton);
@@ -52,12 +47,7 @@ Future<void> runAddStayTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Tap the FAB
   final fab = find.byType(FloatingActionButton);
@@ -87,12 +77,7 @@ Future<void> runAddExpenseTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Tap the FAB
   final fab = find.byType(FloatingActionButton);
@@ -122,12 +107,7 @@ Future<void> runAddSightTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Verify ItineraryViewer is visible
   expect(find.byType(ItineraryViewer), findsOneWidget);
@@ -208,12 +188,7 @@ Future<void> runAddChecklistTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to Checklists tab
   final checklistsTab = find.byIcon(Icons.checklist_outlined);
@@ -249,12 +224,7 @@ Future<void> runEditTransitTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Make sure we're on timeline tab (default)
   final timelineTab = find.byIcon(Icons.timeline);
@@ -287,12 +257,7 @@ Future<void> runEditStayTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Timeline tab should be default
   final timelineItems = find.byType(Card);
@@ -317,12 +282,7 @@ Future<void> runEditExpenseTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to budgeting page if small screen
   if (!TestHelpers.isLargeScreen(tester)) {
@@ -359,12 +319,7 @@ Future<void> runEditSightTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to Sights tab
   final sightsTab = find.byIcon(Icons.place_outlined);
@@ -399,12 +354,7 @@ Future<void> runEditNoteTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to Notes tab
   final notesTab = find.byIcon(Icons.note_outlined);
@@ -439,12 +389,7 @@ Future<void> runEditChecklistTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to Checklists tab
   final checklistsTab = find.byIcon(Icons.checklist_outlined);
@@ -479,12 +424,7 @@ Future<void> runTransitUpdatesExpenseListTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Get initial expense count from budgeting page
   if (!TestHelpers.isLargeScreen(tester)) {
@@ -519,12 +459,7 @@ Future<void> runStayUpdatesMultipleViewsTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   print('✓ Adding stay should update:');
   print('  - Timeline in itinerary viewer');
@@ -541,12 +476,7 @@ Future<void> runSightUpdatesItineraryTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to Sights tab
   final sightsTab = find.byIcon(Icons.place_outlined);
@@ -569,12 +499,7 @@ Future<void> runExpenseEditUpdatesBudgetTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to budgeting page
   if (!TestHelpers.isLargeScreen(tester)) {
@@ -601,12 +526,7 @@ Future<void> runRepositoryPropagationTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   print('✓ Repository update flow:');
   print('  1. User adds/edits entity via editor');
@@ -631,12 +551,7 @@ Future<void> runNavigateToSpecificComponentTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   print('✓ Navigation to specific component:');
   print('  - Tap sight → Opens editor with sight tab selected');

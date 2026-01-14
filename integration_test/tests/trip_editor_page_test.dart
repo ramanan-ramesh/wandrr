@@ -16,7 +16,6 @@ import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
-import 'package:wandrr/presentation/trip/pages/home/trips_list_view.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
@@ -36,21 +35,7 @@ Future<void> runTripEditorLayoutTest(
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Wait for TripsListView to be displayed
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripListView),
-    timeout: const Duration(seconds: 5),
-  );
-
-  await _navigateToTripEditorPage(tester);
-
-  // Wait for navigation animation and TripEditorPage to appear
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10), // Allow extra time for Rive animation
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Verify TripEditorPage is displayed
   expect(find.byType(TripEditorPage), findsOneWidget);
@@ -197,7 +182,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleApp(tester);
 
-  await _navigateToTripEditorPage(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Get repository and active trip
   final context = tester.element(find.byType(TripEditorPage));
@@ -1155,20 +1140,4 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
       reason: 'Day 5 checklist is incorrect');
 
   print('✓ All itinerary data (sights, notes, checklists) verified');
-}
-
-Future<void> _navigateToTripEditorPage(WidgetTester tester) async {
-  // Find the test trip grid item by its name "European Adventure"
-  final testTripItem = find.ancestor(
-    of: find.text('European Adventure'),
-    matching: find.byType(InkWell),
-  );
-
-  // Verify the test trip item is found
-  expect(testTripItem, findsOneWidget,
-      reason:
-          'Test trip "European Adventure" should be displayed in TripsListView');
-
-  // Click on the test trip item to navigate to TripEditorPage
-  await TestHelpers.tapWidget(tester, testTripItem);
 }

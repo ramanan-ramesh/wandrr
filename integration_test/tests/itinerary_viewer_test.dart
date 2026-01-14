@@ -7,7 +7,6 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_n
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_viewer.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/timeline_event.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/timeline_item_widget.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
 import '../helpers/test_helpers.dart';
 
@@ -17,12 +16,7 @@ Future<void> runItineraryViewerDefaultDateTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Wait for TripEditorPage to appear
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Verify ItineraryNavigator is present
   expect(find.byType(ItineraryNavigator), findsOneWidget);
@@ -273,46 +267,127 @@ Future<void> runItineraryViewerDefaultDateTest(WidgetTester tester) async {
   print('✓ All itinerary components verified for first trip date');
 }
 
+/// Test: Verify itinerary plan data on Day 2 (multiple sights, different notes/checklists)
+Future<void> runItineraryViewerDay2Test(WidgetTester tester) async {
+  // Launch the app (already authenticated with test trip)
+  await TestHelpers.pumpAndSettleApp(tester);
+
+  await TestHelpers.navigateToTripEditorPage(tester);
+
+  // Navigate to Day 2 (click next button)
+  final nextButton = find.byIcon(Icons.chevron_right_rounded);
+  expect(nextButton, findsOneWidget, reason: 'Next button should be present');
+
+  await TestHelpers.tapWidget(tester, nextButton.first);
+  await tester.pump(const Duration(milliseconds: 500));
+  await tester.pumpAndSettle();
+
+  print('✓ Navigated to Day 2 (September 25)');
+
+  // === VERIFY SIGHTS TAB (Day 2 has 2 sights) ===
+  final sightsTab = find.byIcon(Icons.place_outlined);
+  expect(sightsTab, findsOneWidget, reason: 'Sights tab should be present');
+
+  await TestHelpers.tapWidget(tester, sightsTab);
+  await tester.pumpAndSettle();
+
+  // Day 2 sights: Palace of Versailles (10:30) and Louvre Museum (13:00)
+  expect(find.textContaining('Palace of Versailles'), findsWidgets,
+      reason: 'Should display Palace of Versailles name');
+  expect(find.textContaining('Louvre Museum'), findsWidgets,
+      reason: 'Should display Louvre Museum name');
+  expect(find.textContaining('Royal palace'), findsWidgets,
+      reason: 'Should display Versailles description');
+  expect(find.textContaining('Art museum'), findsWidgets,
+      reason: 'Should display Louvre description');
+
+  print('✓ Day 2 Sights tab: 2 sights verified (Versailles, Louvre)');
+
+  // === VERIFY NOTES TAB (Day 2 has 3 notes) ===
+  final notesTab = find.byIcon(Icons.note_outlined);
+  expect(notesTab, findsOneWidget, reason: 'Notes tab should be present');
+
+  await TestHelpers.tapWidget(tester, notesTab);
+  await tester.pumpAndSettle();
+
+  // Day 2 notes: "Versailles trip", "Louvre visit", "Dinner"
+  expect(find.textContaining('Versailles trip'), findsWidgets,
+      reason: 'Should display note 1: "Versailles trip"');
+  expect(find.textContaining('Louvre visit'), findsWidgets,
+      reason: 'Should display note 2: "Louvre visit"');
+  expect(find.textContaining('Dinner'), findsWidgets,
+      reason: 'Should display note 3: "Dinner"');
+
+  print('✓ Day 2 Notes tab: 3 notes verified');
+
+  // === VERIFY CHECKLISTS TAB (Day 2 checklist) ===
+  final checklistsTab = find.byIcon(Icons.checklist_outlined);
+  expect(checklistsTab, findsOneWidget,
+      reason: 'Checklists tab should be present');
+
+  await TestHelpers.tapWidget(tester, checklistsTab);
+  await tester.pumpAndSettle();
+
+  // Day 2 checklist: "Day 2" with items "Book tour" (checked) and "Pack snacks" (unchecked)
+  expect(find.textContaining('Day 2'), findsWidgets,
+      reason: 'Should display checklist title "Day 2"');
+  expect(find.textContaining('Book tour'), findsWidgets,
+      reason: 'Should display checklist item 1: "Book tour"');
+  expect(find.textContaining('Pack snacks'), findsWidgets,
+      reason: 'Should display checklist item 2: "Pack snacks"');
+
+  print('✓ Day 2 Checklists tab: checklist with 1 checked, 1 unchecked item');
+
+  // === VERIFY TIMELINE TAB ===
+  final timelineTab = find.byIcon(Icons.timeline_outlined);
+  expect(timelineTab, findsOneWidget, reason: 'Timeline tab should be present');
+
+  await TestHelpers.tapWidget(tester, timelineTab);
+  await tester.pumpAndSettle();
+
+  // Day 2 should have 2 transits (train to Versailles, train back)
+  // and lodging info
+  final timelineItems = find.byType(TimelineItemWidget);
+  expect(timelineItems, findsWidgets,
+      reason: 'Timeline should have events for Day 2');
+
+  print('✓ Day 2 Timeline tab: transits and lodging displayed');
+  print(
+      '✅ Day 2 itinerary plan data verified (multiple sights, notes, checklists)');
+}
+
 /// Test: Navigate to next date in itinerary
 Future<void> runItineraryViewerNavigateNextTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Wait for TripEditorPage to appear
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Find the next button (right chevron)
   final nextButton = find.byIcon(Icons.chevron_right_rounded);
+  expect(nextButton, findsOneWidget, reason: 'Next button should be present');
 
-  if (nextButton.evaluate().isNotEmpty) {
-    // Check if button is enabled
-    final parentButton = tester.widget<IconButton>(
-      find
-          .ancestor(
-            of: nextButton.first,
-            matching: find.byType(IconButton),
-          )
-          .first,
-    );
+  // Check if button is enabled
+  final parentButton = tester.widget<IconButton>(
+    find
+        .ancestor(
+          of: nextButton.first,
+          matching: find.byType(IconButton),
+        )
+        .first,
+  );
 
-    if (parentButton.onPressed != null) {
-      // Tap next button
-      await TestHelpers.tapWidget(tester, nextButton.first);
+  expect(parentButton.onPressed, isNotNull,
+      reason: 'Next button should be enabled (not at last day)');
 
-      // Wait for animation to complete
-      await tester.pump(const Duration(milliseconds: 500));
+  // Tap next button
+  await TestHelpers.tapWidget(tester, nextButton.first);
 
-      print('✓ Successfully navigated to next date');
-    } else {
-      print('⚠ Next button is disabled (might be at last day)');
-    }
-  } else {
-    print('⚠ Next button not found');
-  }
+  // Wait for animation to complete
+  await tester.pump(const Duration(milliseconds: 500));
+
+  print('✓ Successfully navigated to next date');
 }
 
 /// Test: Navigate to previous date in itinerary
@@ -320,58 +395,40 @@ Future<void> runItineraryViewerNavigatePreviousTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Wait for TripEditorPage to appear
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // First navigate to next day so we can go back
   final nextButton = find.byIcon(Icons.chevron_right_rounded);
-  if (nextButton.evaluate().isNotEmpty) {
-    final parentButton = tester.widget<IconButton>(
-      find
-          .ancestor(
-            of: nextButton.first,
-            matching: find.byType(IconButton),
-          )
-          .first,
-    );
+  expect(nextButton, findsOneWidget, reason: 'Next button should be present');
 
-    if (parentButton.onPressed != null) {
-      await TestHelpers.tapWidget(tester, nextButton.first);
-      await tester.pump(const Duration(milliseconds: 500));
-    }
-  }
+  await TestHelpers.tapWidget(tester, nextButton.first);
+  await tester.pump(const Duration(milliseconds: 500));
 
   // Find the previous button (left chevron)
   final previousButton = find.byIcon(Icons.chevron_left_rounded);
+  expect(previousButton, findsOneWidget,
+      reason: 'Previous button should be present');
 
-  if (previousButton.evaluate().isNotEmpty) {
-    final parentButton = tester.widget<IconButton>(
-      find
-          .ancestor(
-            of: previousButton.first,
-            matching: find.byType(IconButton),
-          )
-          .first,
-    );
+  final parentButton = tester.widget<IconButton>(
+    find
+        .ancestor(
+          of: previousButton.first,
+          matching: find.byType(IconButton),
+        )
+        .first,
+  );
 
-    if (parentButton.onPressed != null) {
-      // Tap previous button
-      await TestHelpers.tapWidget(tester, previousButton.first);
+  expect(parentButton.onPressed, isNotNull,
+      reason: 'Previous button should be enabled after navigating forward');
 
-      // Wait for animation to complete
-      await tester.pump(const Duration(milliseconds: 500));
+  // Tap previous button
+  await TestHelpers.tapWidget(tester, previousButton.first);
 
-      print('✓ Successfully navigated to previous date');
-    } else {
-      print('⚠ Previous button is disabled (at first day)');
-    }
-  } else {
-    print('⚠ Previous button not found');
-  }
+  // Wait for animation to complete
+  await tester.pump(const Duration(milliseconds: 500));
+
+  print('✓ Successfully navigated to previous date');
 }
 
 /// Test: Cannot navigate beyond trip start date
@@ -380,34 +437,26 @@ Future<void> runItineraryViewerNavigationBoundaryStartTest(
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Wait for TripEditorPage to appear
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Find the previous button (left chevron) - should be disabled on first day
   final previousButton = find.byIcon(Icons.chevron_left_rounded);
+  expect(previousButton, findsOneWidget,
+      reason: 'Previous button should be present');
 
-  if (previousButton.evaluate().isNotEmpty) {
-    final parentButton = tester.widget<IconButton>(
-      find
-          .ancestor(
-            of: previousButton.first,
-            matching: find.byType(IconButton),
-          )
-          .first,
-    );
+  final parentButton = tester.widget<IconButton>(
+    find
+        .ancestor(
+          of: previousButton.first,
+          matching: find.byType(IconButton),
+        )
+        .first,
+  );
 
-    if (parentButton.onPressed == null) {
-      print('✓ Previous button correctly disabled at trip start');
-    } else {
-      print('⚠ Previous button should be disabled at trip start');
-    }
-  } else {
-    print('⚠ Previous button not found');
-  }
+  expect(parentButton.onPressed, isNull,
+      reason: 'Previous button should be disabled at trip start');
+  print('✓ Previous button correctly disabled at trip start');
 }
 
 /// Test: Cannot navigate beyond trip end date
@@ -416,64 +465,15 @@ Future<void> runItineraryViewerNavigationBoundaryEndTest(
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Wait for TripEditorPage to appear
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to last day by clicking next button repeatedly
   final nextButton = find.byIcon(Icons.chevron_right_rounded);
+  expect(nextButton, findsOneWidget, reason: 'Next button should be present');
 
-  if (nextButton.evaluate().isNotEmpty) {
-    // Try to navigate to the end (max 10 attempts to avoid infinite loop)
-    for (int i = 0; i < 10; i++) {
-      final parentButton = tester.widget<IconButton>(
-        find
-            .ancestor(
-              of: nextButton.first,
-              matching: find.byType(IconButton),
-            )
-            .first,
-      );
-
-      if (parentButton.onPressed != null) {
-        await TestHelpers.tapWidget(tester, nextButton.first);
-        await tester.pump(const Duration(milliseconds: 500));
-      } else {
-        // Button is disabled, we've reached the end
-        print('✓ Next button correctly disabled at trip end');
-        return;
-      }
-    }
-    print('⚠ Unable to verify end boundary - too many days');
-  } else {
-    print('⚠ Next button not found');
-  }
-}
-
-/// Test: Itinerary viewer refreshes correctly when navigating between dates
-Future<void> runItineraryViewerRefreshOnNavigationTest(
-    WidgetTester tester) async {
-  // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
-
-  // Wait for TripEditorPage to appear
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
-
-  // Get initial timeline items count
-  final initialTimelineItems = find.byType(TimelineItemWidget);
-  final initialCount = initialTimelineItems.evaluate().length;
-
-  // Navigate to next date
-  final nextButton = find.byIcon(Icons.chevron_right_rounded);
-
-  if (nextButton.evaluate().isNotEmpty) {
+  // Try to navigate to the end (max 10 attempts to avoid infinite loop)
+  for (int i = 0; i < 10; i++) {
     final parentButton = tester.widget<IconButton>(
       find
           .ancestor(
@@ -485,25 +485,58 @@ Future<void> runItineraryViewerRefreshOnNavigationTest(
 
     if (parentButton.onPressed != null) {
       await TestHelpers.tapWidget(tester, nextButton.first);
-
-      // Wait for animation and rebuild
       await tester.pump(const Duration(milliseconds: 500));
-      await tester.pumpAndSettle();
-
-      // Get new timeline items count
-      final newTimelineItems = find.byType(TimelineItemWidget);
-      final newCount = newTimelineItems.evaluate().length;
-
-      // The itinerary viewer should have refreshed
-      // (count may or may not change, but the widget should have rebuilt)
-      print('✓ Itinerary viewer refreshed after navigation');
-      print('  Timeline items: $initialCount → $newCount');
     } else {
-      print('⚠ Next button disabled - cannot test refresh');
+      // Button is disabled, we've reached the end
+      print('✓ Next button correctly disabled at trip end');
+      return;
     }
-  } else {
-    print('⚠ Next button not found');
   }
+  fail('Unable to verify end boundary - too many days');
+}
+
+/// Test: Itinerary viewer refreshes correctly when navigating between dates
+Future<void> runItineraryViewerRefreshOnNavigationTest(
+    WidgetTester tester) async {
+  // Launch the app (already authenticated with test trip)
+  await TestHelpers.pumpAndSettleApp(tester);
+
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
+
+  // Get initial timeline items count
+  final initialTimelineItems = find.byType(TimelineItemWidget);
+  final initialCount = initialTimelineItems.evaluate().length;
+
+  // Navigate to next date
+  final nextButton = find.byIcon(Icons.chevron_right_rounded);
+  expect(nextButton, findsOneWidget, reason: 'Next button should be present');
+
+  final parentButton = tester.widget<IconButton>(
+    find
+        .ancestor(
+          of: nextButton.first,
+          matching: find.byType(IconButton),
+        )
+        .first,
+  );
+
+  expect(parentButton.onPressed, isNotNull,
+      reason: 'Next button should be enabled');
+
+  await TestHelpers.tapWidget(tester, nextButton.first);
+
+  // Wait for animation and rebuild
+  await tester.pump(const Duration(milliseconds: 500));
+  await tester.pumpAndSettle();
+
+  // Get new timeline items count
+  final newTimelineItems = find.byType(TimelineItemWidget);
+  final newCount = newTimelineItems.evaluate().length;
+
+  // The itinerary viewer should have refreshed
+  print('✓ Itinerary viewer refreshed after navigation');
+  print('  Timeline items: $initialCount → $newCount');
 }
 
 /// Helper class to represent expected timeline event data

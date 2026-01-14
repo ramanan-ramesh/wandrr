@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
+import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/breakdown/budget_breakdown_tile.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/debt_dummary.dart';
@@ -18,44 +21,39 @@ Future<void> runBudgetingPageStructureTest(
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Wait for TripEditorPage to appear
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage by clicking on the test trip
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to BudgetingPage if on small layout
   if (!TestHelpers.isLargeScreen(tester)) {
     // Find and tap the budgeting tab in bottom navigation
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-      await tester.pump(const Duration(milliseconds: 300));
-    }
+    expect(budgetingTab, findsOneWidget,
+        reason: 'Budgeting tab should be present in bottom navigation');
+    await TestHelpers.tapWidget(tester, budgetingTab);
+    await tester.pump(const Duration(milliseconds: 300));
   }
 
   // Verify BudgetingPage is displayed
-  expect(find.byType(BudgetingPage), findsOneWidget);
+  expect(find.byType(BudgetingPage), findsOneWidget,
+      reason: 'BudgetingPage should be displayed');
 
-  // Verify three collapsible sections exist
-  // 1. Expenses section
+  // Verify Expenses section exists
   final expensesSection = find.text('Expenses');
-  if (expensesSection.evaluate().isNotEmpty) {
-    print('✓ Expenses section found');
-  }
+  expect(expensesSection, findsOneWidget,
+      reason: 'Expenses section should be present');
+  print('✓ Expenses section found');
 
-  // 2. Debt section
+  // Verify Debt section exists
   final debtSection = find.text('Debt');
-  if (debtSection.evaluate().isNotEmpty) {
-    print('✓ Debt section found');
-  }
+  expect(debtSection, findsOneWidget, reason: 'Debt section should be present');
+  print('✓ Debt section found');
 
-  // 3. Breakdown section
+  // Verify Breakdown section exists
   final breakdownSection = find.text('Breakdown');
-  if (breakdownSection.evaluate().isNotEmpty) {
-    print('✓ Breakdown section found');
-  }
+  expect(breakdownSection, findsOneWidget,
+      reason: 'Breakdown section should be present');
+  print('✓ Breakdown section found');
 
   print('✓ BudgetingPage has all three sections');
 }
@@ -69,18 +67,14 @@ Future<void> runExpensesListViewStructureTest(
   await TestHelpers.pumpAndSettleApp(tester);
 
   // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to BudgetingPage if needed
   if (!TestHelpers.isLargeScreen(tester)) {
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-    }
+    expect(budgetingTab, findsOneWidget,
+        reason: 'Budgeting tab should be present');
+    await TestHelpers.tapWidget(tester, budgetingTab);
   }
 
   // Wait for ExpenseListView
@@ -88,24 +82,40 @@ Future<void> runExpensesListViewStructureTest(
 
   // Verify ExpenseListView exists
   final expenseListView = find.byType(ExpenseListView);
-  if (expenseListView.evaluate().isNotEmpty) {
-    expect(expenseListView, findsOneWidget);
-    print('✓ ExpenseListView found');
-  }
+  expect(expenseListView, findsOneWidget,
+      reason: 'ExpenseListView should be present');
+  print('✓ ExpenseListView found');
 
   // Verify BudgetTile exists (shows total expense percentage and budget)
   final budgetTile = find.byType(BudgetTile);
-  if (budgetTile.evaluate().isNotEmpty) {
-    expect(budgetTile, findsOneWidget);
-    print('✓ BudgetTile found (displays budget and percentage)');
-  }
+  expect(budgetTile, findsOneWidget,
+      reason: 'BudgetTile should display budget and percentage');
+  print('✓ BudgetTile found (displays budget and percentage)');
 
   // Verify sort toggle buttons exist
   final toggleButtons = find.byType(ToggleButtons);
-  if (toggleButtons.evaluate().isNotEmpty) {
-    expect(toggleButtons, findsOneWidget);
-    print('✓ Sort options toggle buttons found');
-  }
+  expect(toggleButtons, findsOneWidget,
+      reason: 'Sort options toggle buttons should be present');
+  print('✓ Sort options toggle buttons found');
+
+  // Verify repository has expected expense data
+  final context = tester.element(find.byType(TripEditorPage));
+  final tripRepo = RepositoryProvider.of<TripRepositoryFacade>(context);
+  final expenses = tripRepo.activeTrip!.expenseCollection.collectionItems;
+
+  // Verify we have the expected pure expenses from test data (3 total)
+  expect(expenses.length, 3,
+      reason: 'Should have 3 pure expenses from test data');
+  print('✓ Repository has ${expenses.length} pure expenses');
+
+  // Verify expense titles exist in the list
+  expect(find.text('Dinner at Le Comptoir'), findsOneWidget,
+      reason: 'Should display Dinner at Le Comptoir expense');
+  expect(find.text('Souvenirs from Louvre'), findsOneWidget,
+      reason: 'Should display Souvenirs from Louvre expense');
+  expect(find.text('Groceries'), findsOneWidget,
+      reason: 'Should display Groceries expense');
+  print('✓ All expense titles verified in ExpenseListView');
 }
 
 /// Test: BudgetTile displays correctly when expenses are under budget
@@ -116,38 +126,37 @@ Future<void> runBudgetTileUnderBudgetTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to budgeting page
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   if (!TestHelpers.isLargeScreen(tester)) {
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-    }
+    expect(budgetingTab, findsOneWidget);
+    await TestHelpers.tapWidget(tester, budgetingTab);
   }
 
   await tester.pumpAndSettle();
 
   // Check for LinearProgressIndicator (shown when under budget)
   final progressIndicator = find.byType(LinearProgressIndicator);
+  expect(progressIndicator, findsOneWidget,
+      reason: 'Progress indicator should be present for budget display');
 
-  if (progressIndicator.evaluate().isNotEmpty) {
-    print('✓ Progress indicator found (expenses under budget scenario)');
+  // Get the progress indicator widget
+  final LinearProgressIndicator indicator =
+      tester.widget(progressIndicator.first);
 
-    // Verify the progress indicator has a value (not indeterminate)
-    final LinearProgressIndicator indicator =
-        tester.widget(progressIndicator.first);
-    if (indicator.value != null) {
-      print(
-          '✓ Progress indicator shows percentage: ${(indicator.value! * 100).toStringAsFixed(1)}%');
-    }
-  } else {
-    print('⚠ No progress indicator found - may be over budget or no expenses');
-  }
+  // Verify the progress value is not null (has a value)
+  expect(indicator.value, isNotNull,
+      reason: 'Progress indicator should have a percentage value');
+
+  // Verify budget of 800 EUR from test data is shown
+  expect(find.textContaining('800'), findsWidgets,
+      reason: 'Budget amount 800 should be displayed');
+
+  print('✓ Progress indicator found (expenses under budget scenario)');
+  print(
+      '✓ Progress indicator shows percentage: ${(indicator.value! * 100).toStringAsFixed(1)}%');
 }
 
 /// Test: BudgetTile displays correctly when expenses are over budget
@@ -158,36 +167,32 @@ Future<void> runBudgetTileOverBudgetTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to budgeting page
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   if (!TestHelpers.isLargeScreen(tester)) {
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-    }
+    expect(budgetingTab, findsOneWidget);
+    await TestHelpers.tapWidget(tester, budgetingTab);
   }
 
   await tester.pumpAndSettle();
 
-  // When over budget, the app shows an animated progress bar
-  // This might be detected as LinearProgressIndicator or a different visual
+  // The test trip has budget of 800 EUR and expenses totaling around 1500+ EUR
+  // So it should be over budget
+
+  // Verify budget display is present
   final progressIndicator = find.byType(LinearProgressIndicator);
+  expect(progressIndicator, findsOneWidget,
+      reason: 'Progress indicator should be displayed');
 
-  if (progressIndicator.evaluate().isNotEmpty) {
-    print('✓ Budget display found');
+  // When over budget, the indicator value might be > 1.0 or clamped
+  // Verify the budget tile shows the expense amounts
+  final budgetTile = find.byType(BudgetTile);
+  expect(budgetTile, findsOneWidget, reason: 'BudgetTile should be displayed');
 
-    // Check if error color is applied (indicates over budget)
-    // This would require checking the actual color scheme
-    print(
-        '✓ Budget indicator present (check for red/error color if over budget)');
-  } else {
-    print('⚠ Budget indicator not found - check mock data');
-  }
+  print('✓ Budget display found');
+  print('✓ Budget indicator present (check for over budget visual indicator)');
 }
 
 /// Test: Sort options - Default sort (newToOld)
@@ -198,35 +203,30 @@ Future<void> runSortOptionsDefaultTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to budgeting page
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   if (!TestHelpers.isLargeScreen(tester)) {
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-    }
+    expect(budgetingTab, findsOneWidget);
+    await TestHelpers.tapWidget(tester, budgetingTab);
   }
 
   await tester.pumpAndSettle();
 
   // Verify ToggleButtons exist
   final toggleButtons = find.byType(ToggleButtons);
+  expect(toggleButtons, findsOneWidget,
+      reason: 'Sort toggle buttons should be present');
 
-  if (toggleButtons.evaluate().isNotEmpty) {
-    expect(toggleButtons, findsOneWidget);
+  // By default, the date sort should be selected (newest first)
+  // This is indicated by the calendar icon button being selected
+  final calendarIcon = find.byIcon(Icons.calendar_today_rounded);
+  expect(calendarIcon, findsOneWidget,
+      reason: 'Calendar (date sort) icon should be present');
 
-    // By default, the date sort should be selected (newest first)
-    // This is indicated by the calendar icon button being selected
-    print('✓ Sort options available');
-    print('✓ Default sort: Date (newest to oldest)');
-  } else {
-    print('⚠ Sort toggle buttons not found');
-  }
+  print('✓ Sort options available');
+  print('✓ Default sort: Date (newest to oldest)');
 }
 
 /// Test: Sort by cost ascending
@@ -237,40 +237,33 @@ Future<void> runSortByCostAscendingTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to budgeting page
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   if (!TestHelpers.isLargeScreen(tester)) {
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-    }
+    expect(budgetingTab, findsOneWidget);
+    await TestHelpers.tapWidget(tester, budgetingTab);
   }
 
   await tester.pumpAndSettle();
 
   // Find the cost sort button (first toggle button with dollar icon)
   final costSortButton = find.byIcon(Icons.attach_money_rounded);
+  expect(costSortButton, findsOneWidget,
+      reason: 'Cost sort button should be present');
 
-  if (costSortButton.evaluate().isNotEmpty) {
-    // Tap to sort by cost
-    await TestHelpers.tapWidget(tester, costSortButton.first);
-    await tester.pumpAndSettle();
+  // Tap to sort by cost
+  await TestHelpers.tapWidget(tester, costSortButton.first);
+  await tester.pumpAndSettle();
 
-    print('✓ Tapped cost sort button');
+  print('✓ Tapped cost sort button');
 
-    // Check for ascending arrow icon
-    final arrowDown = find.byIcon(Icons.arrow_downward_rounded);
-    if (arrowDown.evaluate().isNotEmpty) {
-      print('✓ Sort by cost ascending (low to high)');
-    }
-  } else {
-    print('⚠ Cost sort button not found');
-  }
+  // Check for ascending arrow icon
+  final arrowDown = find.byIcon(Icons.arrow_downward_rounded);
+  expect(arrowDown, findsOneWidget,
+      reason: 'Arrow down should appear for ascending sort');
+  print('✓ Sort by cost ascending (low to high)');
 }
 
 /// Test: Sort by cost descending
@@ -281,44 +274,37 @@ Future<void> runSortByCostDescendingTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to budgeting page
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   if (!TestHelpers.isLargeScreen(tester)) {
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-    }
+    expect(budgetingTab, findsOneWidget);
+    await TestHelpers.tapWidget(tester, budgetingTab);
   }
 
   await tester.pumpAndSettle();
 
   // Find the cost sort button
   final costSortButton = find.byIcon(Icons.attach_money_rounded);
+  expect(costSortButton, findsOneWidget,
+      reason: 'Cost sort button should be present');
 
-  if (costSortButton.evaluate().isNotEmpty) {
-    // Tap once to sort ascending
-    await TestHelpers.tapWidget(tester, costSortButton.first);
-    await tester.pumpAndSettle();
+  // Tap once to sort ascending
+  await TestHelpers.tapWidget(tester, costSortButton.first);
+  await tester.pumpAndSettle();
 
-    // Tap again to sort descending
-    await TestHelpers.tapWidget(tester, costSortButton.first);
-    await tester.pumpAndSettle();
+  // Tap again to sort descending
+  await TestHelpers.tapWidget(tester, costSortButton.first);
+  await tester.pumpAndSettle();
 
-    print('✓ Tapped cost sort button twice');
+  print('✓ Tapped cost sort button twice');
 
-    // Check for descending arrow icon
-    final arrowUp = find.byIcon(Icons.arrow_upward_rounded);
-    if (arrowUp.evaluate().isNotEmpty) {
-      print('✓ Sort by cost descending (high to low)');
-    }
-  } else {
-    print('⚠ Cost sort button not found');
-  }
+  // Check for descending arrow icon
+  final arrowUp = find.byIcon(Icons.arrow_upward_rounded);
+  expect(arrowUp, findsOneWidget,
+      reason: 'Arrow up should appear for descending sort');
+  print('✓ Sort by cost descending (high to low)');
 }
 
 /// Test: Sort by date ascending (oldest first)
@@ -329,40 +315,33 @@ Future<void> runSortByDateAscendingTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to budgeting page
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   if (!TestHelpers.isLargeScreen(tester)) {
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-    }
+    expect(budgetingTab, findsOneWidget);
+    await TestHelpers.tapWidget(tester, budgetingTab);
   }
 
   await tester.pumpAndSettle();
 
   // Find the date sort button (calendar icon)
   final dateSortButton = find.byIcon(Icons.calendar_today_rounded);
+  expect(dateSortButton, findsOneWidget,
+      reason: 'Date sort button should be present');
 
-  if (dateSortButton.evaluate().isNotEmpty) {
-    // Default is newest first, tap to change to oldest first
-    await TestHelpers.tapWidget(tester, dateSortButton.first);
-    await tester.pumpAndSettle();
+  // Default is newest first, tap to change to oldest first
+  await TestHelpers.tapWidget(tester, dateSortButton.first);
+  await tester.pumpAndSettle();
 
-    print('✓ Tapped date sort button');
+  print('✓ Tapped date sort button');
 
-    // Check for arrow indicating oldest first (downward)
-    final arrowDown = find.byIcon(Icons.arrow_downward_rounded);
-    if (arrowDown.evaluate().isNotEmpty) {
-      print('✓ Sort by date ascending (oldest to newest)');
-    }
-  } else {
-    print('⚠ Date sort button not found');
-  }
+  // Check for arrow indicating oldest first (downward)
+  final arrowDown = find.byIcon(Icons.arrow_downward_rounded);
+  expect(arrowDown, findsOneWidget,
+      reason: 'Arrow down should appear for ascending sort');
+  print('✓ Sort by date ascending (oldest to newest)');
 }
 
 /// Test: Sort by date descending (newest first)
@@ -373,18 +352,13 @@ Future<void> runSortByDateDescendingTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to budgeting page
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   if (!TestHelpers.isLargeScreen(tester)) {
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-    }
+    expect(budgetingTab, findsOneWidget);
+    await TestHelpers.tapWidget(tester, budgetingTab);
   }
 
   await tester.pumpAndSettle();
@@ -392,12 +366,10 @@ Future<void> runSortByDateDescendingTest(
   // Date sort defaults to newest first (descending)
   // Verify the upward arrow is shown
   final arrowUp = find.byIcon(Icons.arrow_upward_rounded);
+  expect(arrowUp, findsOneWidget,
+      reason: 'Arrow up should appear for default descending date sort');
 
-  if (arrowUp.evaluate().isNotEmpty) {
-    print('✓ Default date sort is descending (newest to oldest)');
-  } else {
-    print('⚠ Date sort indicators not found');
-  }
+  print('✓ Default date sort is descending (newest to oldest)');
 }
 
 /// Test: Sort by category
@@ -408,35 +380,28 @@ Future<void> runSortByCategoryTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to budgeting page
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   if (!TestHelpers.isLargeScreen(tester)) {
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-    }
+    expect(budgetingTab, findsOneWidget);
+    await TestHelpers.tapWidget(tester, budgetingTab);
   }
 
   await tester.pumpAndSettle();
 
   // Find the category sort button (middle button with category icon)
   final categorySortButton = find.byIcon(Icons.category_outlined);
+  expect(categorySortButton, findsOneWidget,
+      reason: 'Category sort button should be present');
 
-  if (categorySortButton.evaluate().isNotEmpty) {
-    // Tap to sort by category
-    await TestHelpers.tapWidget(tester, categorySortButton.first);
-    await tester.pumpAndSettle();
+  // Tap to sort by category
+  await TestHelpers.tapWidget(tester, categorySortButton.first);
+  await tester.pumpAndSettle();
 
-    print('✓ Tapped category sort button');
-    print('✓ Expenses sorted by category');
-  } else {
-    print('⚠ Category sort button not found');
-  }
+  print('✓ Tapped category sort button');
+  print('✓ Expenses sorted by category');
 }
 
 /// Test: DebtSummaryTile displays debt information
@@ -447,40 +412,39 @@ Future<void> runDebtSummaryTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to budgeting page
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   if (!TestHelpers.isLargeScreen(tester)) {
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-    }
+    expect(budgetingTab, findsOneWidget);
+    await TestHelpers.tapWidget(tester, budgetingTab);
   }
 
   await tester.pumpAndSettle();
 
   // Find and tap on Debt section to expand it
   final debtSection = find.text('Debt');
+  expect(debtSection, findsOneWidget, reason: 'Debt section should be present');
 
-  if (debtSection.evaluate().isNotEmpty) {
-    await TestHelpers.tapWidget(tester, debtSection);
-    await tester.pumpAndSettle();
+  await TestHelpers.tapWidget(tester, debtSection);
+  await tester.pumpAndSettle();
 
-    print('✓ Expanded Debt section');
+  print('✓ Expanded Debt section');
 
-    // Check for DebtSummaryTile
-    final debtSummaryTile = find.byType(DebtSummaryTile);
-    if (debtSummaryTile.evaluate().isNotEmpty) {
-      expect(debtSummaryTile, findsOneWidget);
-      print('✓ DebtSummaryTile found');
-    }
-  } else {
-    print('⚠ Debt section not found');
-  }
+  // Check for DebtSummaryTile
+  final debtSummaryTile = find.byType(DebtSummaryTile);
+  expect(debtSummaryTile, findsOneWidget,
+      reason: 'DebtSummaryTile should be present');
+  print('✓ DebtSummaryTile found');
+
+  // Verify debt calculation includes both contributors from test data
+  // Test data has 2 contributors: TestConfig.testEmail and TestConfig.tripMateUserName
+  // All expenses are paid by testEmail and split between both
+  // So tripMate owes testEmail money
+  expect(find.textContaining('owes'), findsWidgets,
+      reason: 'Debt summary should show who owes whom');
+  print('✓ Debt relationships displayed');
 }
 
 /// Test: BudgetBreakdownTile displays breakdown charts
@@ -491,49 +455,42 @@ Future<void> runBudgetBreakdownTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to budgeting page
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   if (!TestHelpers.isLargeScreen(tester)) {
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-    }
+    expect(budgetingTab, findsOneWidget);
+    await TestHelpers.tapWidget(tester, budgetingTab);
   }
 
   await tester.pumpAndSettle();
 
   // Find and tap on Breakdown section to expand it
   final breakdownSection = find.text('Breakdown');
+  expect(breakdownSection, findsOneWidget,
+      reason: 'Breakdown section should be present');
 
-  if (breakdownSection.evaluate().isNotEmpty) {
-    await TestHelpers.tapWidget(tester, breakdownSection);
-    await tester.pumpAndSettle();
+  await TestHelpers.tapWidget(tester, breakdownSection);
+  await tester.pumpAndSettle();
 
-    print('✓ Expanded Breakdown section');
+  print('✓ Expanded Breakdown section');
 
-    // Check for BudgetBreakdownTile
-    final budgetBreakdownTile = find.byType(BudgetBreakdownTile);
-    if (budgetBreakdownTile.evaluate().isNotEmpty) {
-      expect(budgetBreakdownTile, findsOneWidget);
-      print('✓ BudgetBreakdownTile found');
+  // Check for BudgetBreakdownTile
+  final budgetBreakdownTile = find.byType(BudgetBreakdownTile);
+  expect(budgetBreakdownTile, findsOneWidget,
+      reason: 'BudgetBreakdownTile should be present');
+  print('✓ BudgetBreakdownTile found');
 
-      // Check for tab options (Category and Day by Day)
-      final categoryTab = find.text('Category');
-      final dayByDayTab = find.text('Day by Day');
+  // Check for tab options (Category and Day by Day)
+  final categoryTab = find.text('Category');
+  final dayByDayTab = find.text('Day by Day');
 
-      if (categoryTab.evaluate().isNotEmpty ||
-          dayByDayTab.evaluate().isNotEmpty) {
-        print('✓ Breakdown tabs found');
-      }
-    }
-  } else {
-    print('⚠ Breakdown section not found');
-  }
+  expect(categoryTab, findsOneWidget,
+      reason: 'Category breakdown tab should be present');
+  expect(dayByDayTab, findsOneWidget,
+      reason: 'Day by Day breakdown tab should be present');
+  print('✓ Breakdown tabs found (Category and Day by Day)');
 }
 
 /// Test: Expenses with various categories display correctly
@@ -544,37 +501,49 @@ Future<void> runExpenseCategoriesTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to budgeting page
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   if (!TestHelpers.isLargeScreen(tester)) {
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-    }
+    expect(budgetingTab, findsOneWidget);
+    await TestHelpers.tapWidget(tester, budgetingTab);
   }
 
   await tester.pumpAndSettle();
 
   // Sort by category to see all categories grouped
   final categorySortButton = find.byIcon(Icons.category_outlined);
+  expect(categorySortButton, findsOneWidget,
+      reason: 'Category sort button should be present');
 
-  if (categorySortButton.evaluate().isNotEmpty) {
-    await TestHelpers.tapWidget(tester, categorySortButton.first);
-    await tester.pumpAndSettle();
+  await TestHelpers.tapWidget(tester, categorySortButton.first);
+  await tester.pumpAndSettle();
 
-    print('✓ Sorted by category');
-    print('✓ Expenses with various categories should be grouped');
+  print('✓ Sorted by category');
 
-    // Note: Actual categories would be visible in the list
-    // Categories include: transport, lodging, food, entertainment, sightseeing, misc
-  } else {
-    print('⚠ Category sort button not found');
-  }
+  // Verify actual expense categories from test data
+  // Test data has expenses in categories: food (2 pure expenses), other (1 pure expense)
+  // Plus transit expenses in various categories: flights, publicTransit, carRental, taxi
+  // Plus lodging expenses and sightseeing expenses
+
+  // Verify repository has expected categories
+  final context = tester.element(find.byType(TripEditorPage));
+  final tripRepo = RepositoryProvider.of<TripRepositoryFacade>(context);
+  final expenses = tripRepo.activeTrip!.expenseCollection.collectionItems;
+
+  // Check categories in pure expenses
+  final foodExpenses =
+      expenses.where((e) => e.category == ExpenseCategory.food);
+  final otherExpenses =
+      expenses.where((e) => e.category == ExpenseCategory.other);
+
+  expect(foodExpenses.length, 2,
+      reason: 'Should have 2 food expenses (Dinner and Groceries)');
+  expect(otherExpenses.length, 1,
+      reason: 'Should have 1 other expense (Souvenirs)');
+
+  print('✓ Verified expense categories: 2 food, 1 other');
 }
 
 /// Test: Expenses with and without dates display correctly
@@ -585,35 +554,39 @@ Future<void> runExpensesWithAndWithoutDatesTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to budgeting page
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   if (!TestHelpers.isLargeScreen(tester)) {
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-    }
+    expect(budgetingTab, findsOneWidget);
+    await TestHelpers.tapWidget(tester, budgetingTab);
   }
 
   await tester.pumpAndSettle();
 
   // Sort by date to see how expenses with/without dates are handled
   final dateSortButton = find.byIcon(Icons.calendar_today_rounded);
+  expect(dateSortButton, findsOneWidget,
+      reason: 'Date sort button should be present');
 
-  if (dateSortButton.evaluate().isNotEmpty) {
-    // Ensure date sort is active (it's default)
-    print('✓ Date sort available');
+  print('✓ Date sort available');
 
-    // Expenses without dates should appear at the end (or beginning depending on sort)
-    print(
-        '✓ Expenses can have dates (from transits/lodgings/sights) or no dates (pure expenses)');
-  } else {
-    print('⚠ Date sort button not found');
+  // Verify repository has expenses with dates
+  final context = tester.element(find.byType(TripEditorPage));
+  final tripRepo = RepositoryProvider.of<TripRepositoryFacade>(context);
+  final expenses = tripRepo.activeTrip!.expenseCollection.collectionItems;
+
+  // All pure expenses in test data have dates
+  for (var expense in expenses) {
+    expect(expense.expense.dateTime, isNotNull,
+        reason: 'Pure expense "${expense.title}" should have a date');
   }
+
+  print('✓ Verified all pure expenses have dates:');
+  print('  - Dinner at Le Comptoir: 2025-09-24 20:00');
+  print('  - Souvenirs from Louvre: 2025-09-25 12:00');
+  print('  - Groceries: 2025-09-26');
 }
 
 /// Test: Expenses from different sources display correctly
@@ -624,28 +597,51 @@ Future<void> runExpensesFromDifferentSourcesTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to budgeting page
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   if (!TestHelpers.isLargeScreen(tester)) {
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-    }
+    expect(budgetingTab, findsOneWidget);
+    await TestHelpers.tapWidget(tester, budgetingTab);
   }
 
   await tester.pumpAndSettle();
 
-  print('✓ ExpenseListView should display:');
-  print('  - Expenses from transits (flights, trains, taxis)');
-  print('  - Expenses from lodgings (hotels, hostels)');
-  print('  - Expenses from sights (museum tickets, tour fees)');
-  print('  - Pure expenses (meals, shopping, misc)');
-  print('  - All with various currencies (USD, EUR, GBP, etc.)');
+  // Verify different expense sources from repository
+  final context = tester.element(find.byType(TripEditorPage));
+  final tripRepo = RepositoryProvider.of<TripRepositoryFacade>(context);
+  final trip = tripRepo.activeTrip!;
+
+  // Verify transit expenses (9 transits from test data)
+  expect(trip.transitCollection.collectionItems.length, 9,
+      reason: 'Should have 9 transit expenses');
+  print(
+      '✓ Transit expenses: 9 (flight, trains, bus, car rental, taxi, ferry, walk, metro)');
+
+  // Verify lodging expenses (3 lodgings from test data)
+  expect(trip.lodgingCollection.collectionItems.length, 3,
+      reason: 'Should have 3 lodging expenses');
+  print('✓ Lodging expenses: 3 (Paris, Brussels, Amsterdam)');
+
+  // Verify sight expenses (5 sights from test data with expenses)
+  // Count sights across all itineraries (5 days: Sept 24-28)
+  var totalSights = 0;
+  for (int i = 0; i < 5; i++) {
+    final day = DateTime(2025, 9, 24 + i);
+    final itinerary = trip.itineraryCollection.getItineraryForDay(day);
+    totalSights += itinerary.planData.sights.length;
+  }
+  expect(totalSights, 5, reason: 'Should have 5 sight expenses');
+  print(
+      '✓ Sight expenses: 5 (Eiffel Tower, Versailles, Louvre, Atomium, Rijksmuseum)');
+
+  // Verify pure expenses (3 from test data)
+  expect(trip.expenseCollection.collectionItems.length, 3,
+      reason: 'Should have 3 pure expenses');
+  print('✓ Pure expenses: 3 (Dinner, Souvenirs, Groceries)');
+
+  print('✓ All expense sources verified in ExpenseListView');
 }
 
 /// Test: Currency handling in expenses
@@ -656,29 +652,25 @@ Future<void> runMultipleCurrenciesTest(
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to budgeting page
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  // Navigate to TripEditorPage
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   if (!TestHelpers.isLargeScreen(tester)) {
     final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    if (budgetingTab.evaluate().isNotEmpty) {
-      await TestHelpers.tapWidget(tester, budgetingTab);
-    }
+    expect(budgetingTab, findsOneWidget);
+    await TestHelpers.tapWidget(tester, budgetingTab);
   }
 
   await tester.pumpAndSettle();
 
-  // Budget tile should show total in trip's base currency
+  // Budget tile should show total in trip's base currency (EUR)
   final budgetTile = find.byType(BudgetTile);
+  expect(budgetTile, findsOneWidget, reason: 'BudgetTile should be present');
 
-  if (budgetTile.evaluate().isNotEmpty) {
-    print('✓ BudgetTile displays total converted to base currency');
-    print(
-        '✓ Individual expenses may have different currencies (USD, EUR, GBP, JPY, etc.)');
-    print('✓ Currency conversion should be applied for total calculation');
-  }
+  // Verify EUR currency is displayed (all test expenses are in EUR)
+  expect(find.textContaining('EUR'), findsWidgets,
+      reason: 'EUR currency should be displayed in budget tile');
+
+  print('✓ BudgetTile displays total converted to base currency (EUR)');
+  print('✓ All test expenses are in EUR from test data');
 }
