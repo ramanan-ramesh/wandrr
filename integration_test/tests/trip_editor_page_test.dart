@@ -20,7 +20,6 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_p
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
-import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
 
 import '../helpers/facade_matchers.dart';
 import '../helpers/test_config.dart';
@@ -829,39 +828,39 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // === CREATE EXPECTED NOTES ===
   // Day 1 notes
   final expectedDay1Notes = [
-    Note('Arrive from London'),
-    Note('Check in'),
-    Note('Visit Eiffel Tower'),
+    'Arrive from London',
+    'Check in',
+    'Visit Eiffel Tower',
   ];
 
   // Day 2 notes
   final expectedDay2Notes = [
-    Note('Versailles trip'),
-    Note('Louvre visit'),
-    Note('Dinner'),
+    'Versailles trip',
+    'Louvre visit',
+    'Dinner',
   ];
 
   // Day 3 notes
   final expectedDay3Notes = [
-    Note('Morning in Paris'),
-    Note('Check out'),
-    Note('Night bus to Brussels'),
+    'Morning in Paris',
+    'Check out',
+    'Night bus to Brussels',
   ];
 
   // Day 4 notes
   final expectedDay4Notes = [
-    Note('Early arrival'),
-    Note('Rest'),
-    Note('Visit Atomium'),
-    Note('Ferry to Amsterdam'),
+    'Early arrival',
+    'Rest',
+    'Visit Atomium',
+    'Ferry to Amsterdam',
   ];
 
   // Day 5 notes
   final expectedDay5Notes = [
-    Note('Final day'),
-    Note('Museum visit'),
-    Note('Canal walk'),
-    Note('Departure prep'),
+    'Final day',
+    'Museum visit',
+    'Canal walk',
+    'Departure prep',
   ];
 
   print('✓ Expected facade instances created');
@@ -899,7 +898,6 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   final trainToVersailles = day2Itinerary.transits.first;
   expect(trainToVersailles, matchesTransit(expectedTrainToVersailles),
       reason: 'Day 2 train to Versailles entry is incorrect');
-
   final trainFromVersailles = day2Itinerary.transits.last;
   expect(trainFromVersailles, matchesTransit(expectedTrainFromVersailles),
       reason: 'Day 2 train from Versailles entry is incorrect');
@@ -1076,10 +1074,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   expect(eiffelTower, matchesSight(expectedEiffelTowerSight),
       reason: 'Day 1 sight is incorrect');
 
-  expect(
-      listEquals(day1PlanData.notes,
-          expectedDay1Notes.map((note) => note.text).toList()),
-      true,
+  expect(listEquals(day1PlanData.notes, expectedDay1Notes), true,
       reason: 'Day 1 notes should match');
   expect(listEquals(day1PlanData.checkLists, [expectedDay1Checklist]), true,
       reason: 'Day 1 checklist is incorrect');
@@ -1093,10 +1088,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   expect(day2PlanData.sights[1], matchesSight(expectedLouvreSight),
       reason: 'Day 2 second sight should be Louvre Museum');
 
-  expect(
-      listEquals(day2PlanData.notes,
-          expectedDay2Notes.map((note) => note.text).toList()),
-      true,
+  expect(listEquals(day2PlanData.notes, expectedDay2Notes), true,
       reason: 'Day 2 notes should match');
   expect(listEquals(day2PlanData.checkLists, [expectedDay2Checklist]), true,
       reason: 'Day 2 checklist is incorrect');
@@ -1105,10 +1097,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   final day3PlanData = day3Itinerary.planData;
   expect(day3PlanData.sights.length, 0, reason: 'Day 3 should have no sights');
 
-  expect(
-      listEquals(day3PlanData.notes,
-          expectedDay3Notes.map((note) => note.text).toList()),
-      true,
+  expect(listEquals(day3PlanData.notes, expectedDay3Notes), true,
       reason: 'Day 3 notes should match');
   expect(listEquals(day3PlanData.checkLists, [expectedDay3Checklist]), true,
       reason: 'Day 3 checklist is incorrect');
@@ -1117,10 +1106,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   final day4PlanData = day4Itinerary.planData;
   expect(day4PlanData.sights.single, matchesSight(expectedAtomiumSight),
       reason: 'Day 4 sight should be Atomium');
-  expect(
-      listEquals(day4PlanData.notes,
-          expectedDay4Notes.map((note) => note.text).toList()),
-      true,
+  expect(listEquals(day4PlanData.notes, expectedDay4Notes), true,
       reason: 'Day 4 notes should match');
   expect(listEquals(day4PlanData.checkLists, [expectedDay4Checklist]), true,
       reason: 'Day 4 checklist is incorrect');
@@ -1131,10 +1117,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
       reason: 'Day 5 should have 1 sight (Rijksmuseum)');
   expect(day5PlanData.sights.single, matchesSight(expectedRijksmuseumSight),
       reason: 'Day 5 sight should be Rijksmuseum');
-  expect(
-      listEquals(day5PlanData.notes,
-          expectedDay5Notes.map((note) => note.text).toList()),
-      true,
+  expect(listEquals(day5PlanData.notes, expectedDay5Notes), true,
       reason: 'Day 5 notes should match');
   expect(listEquals(day5PlanData.checkLists, [expectedDay5Checklist]), true,
       reason: 'Day 5 checklist is incorrect');

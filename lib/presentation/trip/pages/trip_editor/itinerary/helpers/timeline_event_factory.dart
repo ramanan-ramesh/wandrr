@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lat_lng_to_timezone/lat_lng_to_timezone.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
-import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
@@ -99,7 +98,6 @@ class TimelineEventFactory {
       final transitEventData = _formatter.getTransitEventData(
         transit: transit,
         itineraryDay: itineraryDay,
-        isBigLayout: context.isBigLayout,
       );
 
       yield TimelineEvent<TransitFacade>(

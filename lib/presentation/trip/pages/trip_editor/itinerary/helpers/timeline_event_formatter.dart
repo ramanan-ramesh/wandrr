@@ -56,11 +56,8 @@ class TimelineEventFormatter {
   }
 
   /// Gets transit event data (time and title)
-  ({DateTime eventTime, String title}) getTransitEventData({
-    required TransitFacade transit,
-    required DateTime itineraryDay,
-    required bool isBigLayout,
-  }) {
+  ({DateTime eventTime, String title}) getTransitEventData(
+      {required TransitFacade transit, required DateTime itineraryDay}) {
     final departure = transit.departureDateTime!;
     final arrival = transit.arrivalDateTime!;
     final isDepartingToday = departure.isOnSameDayAs(itineraryDay);
