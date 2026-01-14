@@ -218,7 +218,9 @@ class ItinerarySightsViewer extends StatelessWidget {
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            s.expense.totalExpense.toString(),
+                                            context.activeTrip.budgetingModule
+                                                .formatCurrency(
+                                                    s.expense.totalExpense),
                                             style: Theme.of(c)
                                                 .textTheme
                                                 .bodySmall
