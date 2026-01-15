@@ -217,6 +217,10 @@ void main() {
         await runItineraryViewerDefaultDateTest(tester);
       });
 
+      testWidgets('navigates to selected date', (WidgetTester tester) async {
+        await runItineraryViewerNavigateToDateTest(tester);
+      });
+
       testWidgets('navigates to next date correctly',
           (WidgetTester tester) async {
         await runItineraryViewerNavigateNextTest(tester);
@@ -235,11 +239,6 @@ void main() {
       testWidgets('cannot navigate beyond trip end date',
           (WidgetTester tester) async {
         await runItineraryViewerNavigationBoundaryEndTest(tester);
-      });
-
-      testWidgets('refreshes correctly when navigating between dates',
-          (WidgetTester tester) async {
-        await runItineraryViewerRefreshOnNavigationTest(tester);
       });
     });
 

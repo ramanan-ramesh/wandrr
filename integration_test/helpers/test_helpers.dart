@@ -101,13 +101,6 @@ class TestHelpers {
         'city': 'London',
         "iata": 'YXU',
         'locationType': 'airport',
-        // bounding box added to satisfy BoundingBox.fromDocument requirements
-        'boundingbox': {
-          'maxLat': 51.5174,
-          'minLat': 51.4974,
-          'maxLon': -0.1178,
-          'minLon': -0.1378
-        }
       }
     };
 
@@ -119,13 +112,16 @@ class TestHelpers {
         'city': 'Paris (Roissy-en-France, Val-d\'Oise)',
         'iata': 'CDG',
         'locationType': 'airport',
-        // bounding box added to satisfy BoundingBox.fromDocument requirements
-        'boundingbox': {
-          'maxLat': 48.8666,
-          'minLat': 48.8466,
-          'maxLon': 2.3622,
-          'minLon': 2.3422
-        }
+      }
+    };
+    final amsterdamAirport = {
+      'latLon': GeoPoint(52.3779, 4.76389),
+      'context': {
+        'type': 'airport',
+        'name': 'Amsterdam Airport Schiphol',
+        'city': 'Amsterdam',
+        'iata': 'AMS',
+        'locationType': 'airport',
       }
     };
 
@@ -293,6 +289,28 @@ class TestHelpers {
           'minLon': 4.8800
         },
         'place_id': 'rijksmuseum_amsterdam',
+        'city': 'Amsterdam',
+        'state': 'North Holland',
+        'country': 'Netherlands',
+      }
+    };
+
+    final keukenhofLocation = {
+      'latLon': GeoPoint(52.3600, 4.8852),
+      'context': {
+        'type': 'attraction',
+        'locationType': 'attraction',
+        'class': 'tourism',
+        'name': 'Keukenhof flower show',
+        'address':
+            'Keukenhof flower show, Amsterdam, North Holland, Netherlands',
+        'boundingbox': {
+          'maxLat': 52.3610,
+          'minLat': 52.3590,
+          'maxLon': 4.8860,
+          'minLon': 4.88
+        },
+        'place_id': 'keukenhof_flower_show_amsterdam',
         'city': 'Amsterdam',
         'state': 'North Holland',
         'country': 'Netherlands',
@@ -469,6 +487,24 @@ class TestHelpers {
       'notes': 'Metro line 52',
     });
 
+    // Flight: Amsterdam to London
+    await transitCollection.add({
+      'transitOption': 'flight',
+      'departureLocation': amsterdamAirport,
+      'departureDateTime': Timestamp.fromDate(DateTime(2025, 9, 29, 13, 0)),
+      'arrivalLocation': londonAirport,
+      'arrivalDateTime': Timestamp.fromDate(DateTime(2025, 9, 29, 15, 30)),
+      'operator': 'British Airways BA 621',
+      'confirmationId': 'BA345612',
+      'totalExpense': {
+        'currency': defaultCurrency,
+        'category': 'flights',
+        'paidBy': {TestConfig.testEmail: 200.0},
+        'splitBy': contributors,
+      },
+      'notes': 'Direct flight',
+    });
+
     // === LODGINGS ===
     // Multi-day lodging: Paris (2 nights)
     await lodgingCollection.add({
@@ -485,7 +521,7 @@ class TestHelpers {
       'notes': 'City center, 2 nights',
     });
 
-    // Multi-day lodging: Brussels to Amsterdam (spans Sept 27-28)
+    // Multi-day lodging: Brussels  (spans Sept 27-28)
     await lodgingCollection.add({
       'location': brusselsLocation,
       'checkinDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 3, 0)),
@@ -643,13 +679,41 @@ class TestHelpers {
           'description': 'Dutch art',
         }
       ],
-      'notes': ['Final day', 'Museum visit', 'Canal walk', 'Departure prep'],
+      'notes': ['Museum visit', 'Canal walk', 'Departure prep'],
+      'checkLists': [
+        {
+          'title': 'Amsterdam exploration day',
+          'items': [
+            {'item': 'Buy souvenirs', 'status': false},
+            {'item': 'Eat waffles', 'status': true},
+          ]
+        }
+      ],
+    });
+
+    // Day 6: September 29
+    await itineraryDataCollection.doc('29092025').set({
+      'sights': [
+        {
+          'name': 'Keukenhof flower show',
+          'location': keukenhofLocation,
+          'visitTime': Timestamp.fromDate(DateTime(2025, 9, 29, 12, 0)),
+          'expense': {
+            'currency': defaultCurrency,
+            'category': 'sightseeing',
+            'paidBy': {TestConfig.testEmail: 40},
+            'splitBy': contributors,
+          },
+          'description': 'Flower show',
+        }
+      ],
+      'notes': ['Breakfast', 'Visit Keukenhof', 'Return home'],
       'checkLists': [
         {
           'title': 'Last day',
           'items': [
-            {'item': 'Buy souvenirs', 'status': false},
             {'item': 'Pack bags', 'status': false},
+            {'item': 'Prepare journal', 'status': false},
           ]
         }
       ],

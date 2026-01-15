@@ -1,14 +1,99 @@
+import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
-import 'package:wandrr/data/trip/models/trip_repository.dart';
+import 'package:wandrr/presentation/app/widgets/date_picker.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_viewer.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/timeline_event.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/checklists.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/notes.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/sights.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/timeline_item_widget.dart';
 
 import '../helpers/test_helpers.dart';
+
+final expectedDayOneEvents = <_ExpectedTimelineEvent>[
+  _ExpectedTimelineEvent(
+      title: 'YXU → CDG\n08:00 AM - 11:00 AM\nEurope/London - Europe/Paris',
+      subtitle: 'Air France AF 542',
+      notes: 'Direct flight',
+      confirmationId: 'AF123456',
+      icon: Icons.flight_rounded),
+  _ExpectedTimelineEvent(
+      title: 'Check-In • 02:00 PM',
+      subtitle: 'Paris',
+      notes: 'City center, 2 nights',
+      confirmationId: 'PARIS-HTL-001',
+      icon: Icons.login),
+  _ExpectedTimelineEvent(
+    title: 'Eiffel Tower • 03:30 PM (Europe/Paris)',
+    subtitle: 'Eiffel Tower, Paris • 26.00 EUR',
+    notes: 'Iconic landmark',
+    icon: Icons.place_rounded,
+  ),
+];
+final expectedLastDayEvents = <_ExpectedTimelineEvent>[
+  _ExpectedTimelineEvent(
+    title: 'Check-Out • 11:00 AM',
+    subtitle: 'Amsterdam',
+    notes: 'Budget hostel',
+    confirmationId: 'AMS-HSTL-123',
+    icon: Icons.logout,
+  ),
+  _ExpectedTimelineEvent(
+    title: 'Keukenhof flower show • 12:00 PM (Europe/Amsterdam)',
+    subtitle: 'Keukenhof flower show, Amsterdam • 40.00 EUR',
+    notes: 'Flower show',
+    icon: Icons.place_rounded,
+  ),
+  _ExpectedTimelineEvent(
+    title: 'AMS → YXU\n01:00 PM - 03:30 PM\nEurope/Amsterdam - Europe/London',
+    subtitle: 'British Airways BA 621',
+    notes: 'Direct flight',
+    confirmationId: 'BA345612',
+    icon: Icons.flight_rounded,
+  ),
+];
+
+final expectedDayOneItineraryData = _ExpectedItineraryData(
+  sights: <_ExpectedSightData>[
+    _ExpectedSightData(
+      name: 'Eiffel Tower',
+      expense: '26 €',
+      time: "15:30",
+    ),
+  ],
+  notes: <String>[
+    'Arrive from London',
+    'Check in',
+    'Visit Eiffel Tower',
+  ],
+  checklists: <_ExpectedChecklistData>[
+    _ExpectedChecklistData(
+      title: 'Day 1',
+      progressIndicator: 0,
+      progressText: "0/2",
+    ),
+  ],
+);
+
+final expectedLastDayItineraryData = _ExpectedItineraryData(
+  sights: [
+    _ExpectedSightData(
+      name: 'Keukenhof flower show',
+      expense: '40 €',
+      time: "12:00",
+    ),
+  ],
+  notes: ['Breakfast', 'Visit Keukenhof', 'Return home'],
+  checklists: [
+    _ExpectedChecklistData(
+      title: 'Last day',
+      progressIndicator: 0,
+      progressText: "0/2",
+    ),
+  ],
+);
 
 /// Test: ItineraryViewer displays first trip date's itinerary with all components by default
 /// Verifies transits, lodgings, sights, notes, and checklists are displayed
@@ -18,376 +103,77 @@ Future<void> runItineraryViewerDefaultDateTest(WidgetTester tester) async {
 
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  // Verify ItineraryNavigator is present
-  expect(find.byType(ItineraryNavigator), findsOneWidget);
+  await _verifyTimelineEvents(
+      tester, expectedDayOneEvents, DateTime(2025, 9, 24));
+  await _verifyItineraryPlanData(tester, expectedDayOneItineraryData);
 
-  // Verify ItineraryViewer is displayed
-  expect(find.byType(ItineraryViewer), findsOneWidget);
-
-  print('✓ Itinerary viewer displayed for first trip date');
-
-  // === BUILD EXPECTED TIMELINE EVENTS FROM REPOSITORY DATA ===
-  // Get repository and itinerary data
-  final context = tester.element(find.byType(ItineraryViewer));
-  final tripRepo = RepositoryProvider.of<TripRepositoryFacade>(context);
-  final itineraryDay = DateTime(2025, 9, 24); // Day 1
-  final itinerary =
-      tripRepo.activeTrip!.itineraryCollection.getItineraryForDay(itineraryDay);
-
-  // Collect expected timeline items from repository data
-  final expectedEvents = <_ExpectedTimelineEvent>[];
-
-  // Collect transits for this day
-  for (final transit in itinerary.transits) {
-    final departure = transit.departureDateTime!;
-    final arrival = transit.arrivalDateTime!;
-    final isDepartingToday = departure.isOnSameDayAs(itineraryDay);
-    final isArrivingToday = arrival.isOnSameDayAs(itineraryDay);
-
-    if (isDepartingToday || isArrivingToday) {
-      expectedEvents.add(_ExpectedTimelineEvent(
-        time: isDepartingToday ? departure : arrival,
-        type: 'Transit',
-        operator: transit.operator,
-        notes: transit.notes,
-        confirmationId: transit.confirmationId,
-      ));
-    }
-  }
-
-  // Collect lodgings for this day
-  final fullDay = itinerary.fullDayLodging;
-  final checkIn = itinerary.checkInLodging;
-  final checkOut = itinerary.checkOutLodging;
-
-  if (fullDay != null) {
-    expectedEvents.add(_ExpectedTimelineEvent(
-      time: fullDay.checkinDateTime!,
-      type: 'Lodging (All Day)',
-      location: fullDay.location!.context.name,
-      notes: fullDay.notes,
-      confirmationId: fullDay.confirmationId,
-    ));
-  } else {
-    if (checkIn != null) {
-      expectedEvents.add(_ExpectedTimelineEvent(
-        time: checkIn.checkinDateTime!,
-        type: 'Lodging (Check-in)',
-        location: checkIn.location!.context.name,
-        notes: checkIn.notes,
-        confirmationId: checkIn.confirmationId,
-      ));
-    }
-    if (checkOut != null) {
-      expectedEvents.add(_ExpectedTimelineEvent(
-        time: checkOut.checkoutDateTime!,
-        type: 'Lodging (Check-out)',
-        location: checkOut.location!.context.name,
-        notes: checkOut.notes,
-        confirmationId: checkOut.confirmationId,
-      ));
-    }
-  }
-
-  // Collect sights with visit times for this day
-  for (final sight in itinerary.planData.sights) {
-    if (sight.visitTime != null) {
-      expectedEvents.add(_ExpectedTimelineEvent(
-        time: sight.visitTime!,
-        type: 'Sight',
-        sightName: sight.name,
-        location: sight.location?.context.name,
-        notes: sight.description,
-        confirmationId: null, // Sights don't have confirmation IDs
-      ));
-    }
-  }
-
-  // Sort expected events by time (same as TimelineEventFactory does)
-  expectedEvents.sort((a, b) => a.time.compareTo(b.time));
-
-  print(
-      '✓ Built ${expectedEvents.length} expected timeline events from repository data');
-
-  // === FIND AND VERIFY ALL TIMELINE ITEM WIDGETS ===
-  // Scroll through the timeline to find all TimelineItemWidget instances
-  final scrollableFinder = find.descendant(
-    of: find.byType(ItineraryViewer),
-    matching: find.byType(SingleChildScrollView),
-  );
-  expect(scrollableFinder, findsOneWidget);
-
-  final actualEvents = <TimelineEvent>[];
-
-  // Find all TimelineItemWidget by scrolling
-  await tester.pumpAndSettle();
-
-  // Get all visible timeline items
-  var timelineItemFinders = find.byType(TimelineItemWidget);
-  while (timelineItemFinders.evaluate().isNotEmpty) {
-    // Extract events from visible widgets
-    for (final element in timelineItemFinders.evaluate()) {
-      final widget = element.widget as TimelineItemWidget;
-      if (!actualEvents.any((e) =>
-          e.time == widget.event.time && e.title == widget.event.title)) {
-        actualEvents.add(widget.event);
-      }
-    }
-
-    // Try to scroll down to reveal more items
-    await tester.drag(scrollableFinder, const Offset(0, -300));
-    await tester.pumpAndSettle();
-
-    // Check if we found new items
-    final newItemCount = find.byType(TimelineItemWidget).evaluate().length;
-    if (newItemCount == 0 || actualEvents.length >= expectedEvents.length) {
-      break;
-    }
-  }
-
-  print(
-      '✓ Found ${actualEvents.length} actual TimelineItemWidget instances (with scrolling)');
-
-  // === VERIFY COUNT MATCHES ===
-  expect(actualEvents.length, expectedEvents.length,
-      reason: 'Number of actual timeline events should match expected events');
-
-  // === VERIFY EACH EVENT MATCHES ===
-  for (int i = 0; i < expectedEvents.length; i++) {
-    final expected = expectedEvents[i];
-    final actual = actualEvents[i];
-
-    print('\n--- Verifying Event #${i + 1}: ${expected.type} ---');
-
-    // Verify time
-    expect(actual.time, expected.time,
-        reason: 'Event #${i + 1} time should be ${expected.time}');
-    print('  ✓ time: ${actual.time}');
-
-    // Verify type-specific fields
-    switch (expected.type) {
-      case 'Transit':
-        expect(actual.subtitle, expected.operator,
-            reason:
-                'Event #${i + 1} subtitle should be operator "${expected.operator}"');
-        print('  ✓ subtitle (operator): ${actual.subtitle}');
-        break;
-
-      case 'Lodging (Check-in)':
-      case 'Lodging (Check-out)':
-      case 'Lodging (All Day)':
-        expect(actual.subtitle.contains(expected.location!), true,
-            reason:
-                'Event #${i + 1} subtitle should contain location "${expected.location}"');
-        print('  ✓ subtitle (location): ${actual.subtitle}');
-        break;
-
-      case 'Sight':
-        expect(actual.title.contains(expected.sightName!), true,
-            reason:
-                'Event #${i + 1} title should contain sight name "${expected.sightName}"');
-        print('  ✓ title (sight): ${actual.title}');
-        break;
-    }
-
-    // Verify notes
-    expect(actual.notes, expected.notes,
-        reason: 'Event #${i + 1} notes should be "${expected.notes}"');
-    print('  ✓ notes: ${actual.notes}');
-
-    // Verify confirmationId
-    expect(actual.confirmationId, expected.confirmationId,
-        reason:
-            'Event #${i + 1} confirmationId should be "${expected.confirmationId}"');
-    print('  ✓ confirmationId: ${actual.confirmationId}');
-  }
-
-  // === VERIFY CHRONOLOGICAL ORDER ===
-  for (int i = 0; i < actualEvents.length - 1; i++) {
-    expect(
-        actualEvents[i].time.isBefore(actualEvents[i + 1].time) ||
-            actualEvents[i].time.isAtSameMomentAs(actualEvents[i + 1].time),
-        true,
-        reason:
-            'Event #${i + 1} should be before or at same time as Event #${i + 2}');
-  }
-
-  print('\n✓ All timeline events verified and in correct chronological order');
-
-  // === VERIFY SIGHTS TAB ===
-  final sightsTab = find.byIcon(Icons.place_outlined);
-  expect(sightsTab, findsOneWidget, reason: 'Sights tab should be present');
-
-  await TestHelpers.tapWidget(tester, sightsTab);
-
-  // Verify exact sight details from Day 1: Eiffel Tower (15:30)
-  expect(find.textContaining('Eiffel Tower'), findsWidgets,
-      reason: 'Should display Eiffel Tower name');
-  expect(find.textContaining('Iconic landmark'), findsWidgets,
-      reason: 'Should display Eiffel Tower description');
-  // Note: Time and expense verification depends on how ItinerarySightsViewer displays them
-
-  print('✓ Sights tab displays exact sight details (name, description)');
-
-  // === VERIFY NOTES TAB ===
-  final notesTab = find.byIcon(Icons.note_outlined);
-  expect(notesTab, findsOneWidget, reason: 'Notes tab should be present');
-
-  await TestHelpers.tapWidget(tester, notesTab);
-
-  // Verify exact notes from Day 1 test data (3 notes total)
-  expect(find.textContaining('Arrive from London'), findsWidgets,
-      reason: 'Should display note 1: "Arrive from London"');
-  expect(find.textContaining('Check in'), findsWidgets,
-      reason: 'Should display note 2: "Check in"');
-  expect(find.textContaining('Visit Eiffel Tower'), findsWidgets,
-      reason: 'Should display note 3: "Visit Eiffel Tower"');
-
-  print('✓ Notes tab displays all 3 exact notes from Day 1');
-
-  // === VERIFY CHECKLISTS TAB ===
-  final checklistsTab = find.byIcon(Icons.checklist_outlined);
-  expect(checklistsTab, findsOneWidget,
-      reason: 'Checklists tab should be present');
-
-  await TestHelpers.tapWidget(tester, checklistsTab);
-
-  // Verify exact checklist from Day 1 test data
-  // Checklist title: "Day 1"
-  // Items: "Exchange currency" (status: false), "Buy metro pass" (status: false)
-  expect(find.textContaining('Day 1'), findsWidgets,
-      reason: 'Should display checklist title "Day 1"');
-  expect(find.textContaining('Exchange currency'), findsWidgets,
-      reason: 'Should display checklist item 1: "Exchange currency"');
-  expect(find.textContaining('Buy metro pass'), findsWidgets,
-      reason: 'Should display checklist item 2: "Buy metro pass"');
-
-  print(
-      '✓ Checklists tab displays exact checklist (title + 2 items) from Day 1');
   print('✓ All itinerary components verified for first trip date');
 }
 
-/// Test: Verify itinerary plan data on Day 2 (multiple sights, different notes/checklists)
-Future<void> runItineraryViewerDay2Test(WidgetTester tester) async {
+/// Test: Verify itinerary navigation on choosing a date
+Future<void> runItineraryViewerNavigateToDateTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleApp(tester);
 
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  // Navigate to Day 2 (click next button)
-  final nextButton = find.byIcon(Icons.chevron_right_rounded);
-  expect(nextButton, findsOneWidget, reason: 'Next button should be present');
+  // Open date range picker
+  final datePicker = find.descendant(
+      of: find.byType(ItineraryNavigator),
+      matching: find.byType(PlatformDatePicker));
+  await TestHelpers.tapWidget(tester, datePicker);
 
-  await TestHelpers.tapWidget(tester, nextButton.first);
-  await tester.pump(const Duration(milliseconds: 500));
-  await tester.pumpAndSettle();
+  // Verify possible selectable dates
+  final calendarPicker = tester.widget<CalendarDatePicker2WithActionButtons>(
+      find.byType(CalendarDatePicker2WithActionButtons));
+  final calendarPickerConfig = calendarPicker.config;
+  _matchDate(calendarPickerConfig.firstDate, DateTime(2025, 9, 24),
+      reason: 'First possible selectable date should be trip start date');
+  _matchDate(calendarPickerConfig.lastDate, DateTime(2025, 9, 29),
+      reason: 'Last possible selectable date should be trip end date');
 
-  print('✓ Navigated to Day 2 (September 25)');
+  // Select 29th September
+  final lastDateButton = find.descendant(
+      of: find.byType(CalendarDatePicker2WithActionButtons),
+      matching: find.text('29'));
+  await TestHelpers.tapWidget(tester, lastDateButton);
+  final confirmButton = find.descendant(
+      of: find.byType(CalendarDatePicker2WithActionButtons),
+      matching: find.text('OK'));
+  await TestHelpers.tapWidget(tester, confirmButton, warnIfMissed: false);
 
-  // === VERIFY SIGHTS TAB (Day 2 has 2 sights) ===
-  final sightsTab = find.byIcon(Icons.place_outlined);
-  expect(sightsTab, findsOneWidget, reason: 'Sights tab should be present');
+  await _verifyTimelineEvents(
+      tester, expectedLastDayEvents, DateTime(2025, 9, 29));
+  await _verifyItineraryPlanData(tester, expectedLastDayItineraryData);
 
-  await TestHelpers.tapWidget(tester, sightsTab);
-  await tester.pumpAndSettle();
-
-  // Day 2 sights: Palace of Versailles (10:30) and Louvre Museum (13:00)
-  expect(find.textContaining('Palace of Versailles'), findsWidgets,
-      reason: 'Should display Palace of Versailles name');
-  expect(find.textContaining('Louvre Museum'), findsWidgets,
-      reason: 'Should display Louvre Museum name');
-  expect(find.textContaining('Royal palace'), findsWidgets,
-      reason: 'Should display Versailles description');
-  expect(find.textContaining('Art museum'), findsWidgets,
-      reason: 'Should display Louvre description');
-
-  print('✓ Day 2 Sights tab: 2 sights verified (Versailles, Louvre)');
-
-  // === VERIFY NOTES TAB (Day 2 has 3 notes) ===
-  final notesTab = find.byIcon(Icons.note_outlined);
-  expect(notesTab, findsOneWidget, reason: 'Notes tab should be present');
-
-  await TestHelpers.tapWidget(tester, notesTab);
-  await tester.pumpAndSettle();
-
-  // Day 2 notes: "Versailles trip", "Louvre visit", "Dinner"
-  expect(find.textContaining('Versailles trip'), findsWidgets,
-      reason: 'Should display note 1: "Versailles trip"');
-  expect(find.textContaining('Louvre visit'), findsWidgets,
-      reason: 'Should display note 2: "Louvre visit"');
-  expect(find.textContaining('Dinner'), findsWidgets,
-      reason: 'Should display note 3: "Dinner"');
-
-  print('✓ Day 2 Notes tab: 3 notes verified');
-
-  // === VERIFY CHECKLISTS TAB (Day 2 checklist) ===
-  final checklistsTab = find.byIcon(Icons.checklist_outlined);
-  expect(checklistsTab, findsOneWidget,
-      reason: 'Checklists tab should be present');
-
-  await TestHelpers.tapWidget(tester, checklistsTab);
-  await tester.pumpAndSettle();
-
-  // Day 2 checklist: "Day 2" with items "Book tour" (checked) and "Pack snacks" (unchecked)
-  expect(find.textContaining('Day 2'), findsWidgets,
-      reason: 'Should display checklist title "Day 2"');
-  expect(find.textContaining('Book tour'), findsWidgets,
-      reason: 'Should display checklist item 1: "Book tour"');
-  expect(find.textContaining('Pack snacks'), findsWidgets,
-      reason: 'Should display checklist item 2: "Pack snacks"');
-
-  print('✓ Day 2 Checklists tab: checklist with 1 checked, 1 unchecked item');
-
-  // === VERIFY TIMELINE TAB ===
-  final timelineTab = find.byIcon(Icons.timeline_outlined);
-  expect(timelineTab, findsOneWidget, reason: 'Timeline tab should be present');
-
-  await TestHelpers.tapWidget(tester, timelineTab);
-  await tester.pumpAndSettle();
-
-  // Day 2 should have 2 transits (train to Versailles, train back)
-  // and lodging info
-  final timelineItems = find.byType(TimelineItemWidget);
-  expect(timelineItems, findsWidgets,
-      reason: 'Timeline should have events for Day 2');
-
-  print('✓ Day 2 Timeline tab: transits and lodging displayed');
-  print(
-      '✅ Day 2 itinerary plan data verified (multiple sights, notes, checklists)');
+  print('✓ ItineraryViewer displays itinerary for selected date');
 }
 
-/// Test: Navigate to next date in itinerary
+/// Test: Verify itinerary plan data on Day 2 (multiple sights, different notes/checklists)
 Future<void> runItineraryViewerNavigateNextTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  // Find the next button (right chevron)
-  final nextButton = find.byIcon(Icons.chevron_right_rounded);
-  expect(nextButton, findsOneWidget, reason: 'Next button should be present');
+  // Navigate to Day 6 (September 29)
+  for (int i = 1; i <= 5; i++) {
+    final nextButton = find.descendant(
+        of: find.byType(ItineraryNavigator),
+        matching: find.byIcon(Icons.chevron_right_rounded));
+    await TestHelpers.tapWidget(tester, nextButton);
+  }
+  print('✓ Navigated to Day 6 (September 29)');
 
-  // Check if button is enabled
-  final parentButton = tester.widget<IconButton>(
-    find
-        .ancestor(
-          of: nextButton.first,
-          matching: find.byType(IconButton),
-        )
-        .first,
-  );
+  await _verifyTimelineEvents(
+      tester, expectedLastDayEvents, DateTime(2025, 9, 29));
 
-  expect(parentButton.onPressed, isNotNull,
-      reason: 'Next button should be enabled (not at last day)');
+  print('✓ Day 6 Timeline tab: transits and lodging displayed');
 
-  // Tap next button
-  await TestHelpers.tapWidget(tester, nextButton.first);
+  await _verifyItineraryPlanData(tester, expectedLastDayItineraryData);
 
-  // Wait for animation to complete
-  await tester.pump(const Duration(milliseconds: 500));
-
-  print('✓ Successfully navigated to next date');
+  print(
+      '✅ Day 6 itinerary plan data verified (multiple sights, notes, checklists)');
 }
 
 /// Test: Navigate to previous date in itinerary
@@ -400,33 +186,15 @@ Future<void> runItineraryViewerNavigatePreviousTest(WidgetTester tester) async {
 
   // First navigate to next day so we can go back
   final nextButton = find.byIcon(Icons.chevron_right_rounded);
-  expect(nextButton, findsOneWidget, reason: 'Next button should be present');
-
   await TestHelpers.tapWidget(tester, nextButton.first);
-  await tester.pump(const Duration(milliseconds: 500));
 
   // Find the previous button (left chevron)
   final previousButton = find.byIcon(Icons.chevron_left_rounded);
-  expect(previousButton, findsOneWidget,
-      reason: 'Previous button should be present');
-
-  final parentButton = tester.widget<IconButton>(
-    find
-        .ancestor(
-          of: previousButton.first,
-          matching: find.byType(IconButton),
-        )
-        .first,
-  );
-
-  expect(parentButton.onPressed, isNotNull,
-      reason: 'Previous button should be enabled after navigating forward');
-
-  // Tap previous button
   await TestHelpers.tapWidget(tester, previousButton.first);
 
-  // Wait for animation to complete
-  await tester.pump(const Duration(milliseconds: 500));
+  await _verifyTimelineEvents(
+      tester, expectedDayOneEvents, DateTime(2025, 9, 24));
+  await _verifyItineraryPlanData(tester, expectedDayOneItineraryData);
 
   print('✓ Successfully navigated to previous date');
 }
@@ -442,21 +210,14 @@ Future<void> runItineraryViewerNavigationBoundaryStartTest(
 
   // Find the previous button (left chevron) - should be disabled on first day
   final previousButton = find.byIcon(Icons.chevron_left_rounded);
-  expect(previousButton, findsOneWidget,
-      reason: 'Previous button should be present');
+  await TestHelpers.tapWidget(tester, previousButton);
 
-  final parentButton = tester.widget<IconButton>(
-    find
-        .ancestor(
-          of: previousButton.first,
-          matching: find.byType(IconButton),
-        )
-        .first,
-  );
+  await _verifyTimelineEvents(
+      tester, expectedDayOneEvents, DateTime(2025, 9, 24));
+  await _verifyItineraryPlanData(tester, expectedDayOneItineraryData);
 
-  expect(parentButton.onPressed, isNull,
-      reason: 'Previous button should be disabled at trip start');
-  print('✓ Previous button correctly disabled at trip start');
+  print(
+      '✓ Pressing Previous button on initial layout doesn\'t update ItineraryViewer');
 }
 
 /// Test: Cannot navigate beyond trip end date
@@ -468,95 +229,266 @@ Future<void> runItineraryViewerNavigationBoundaryEndTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  // Navigate to last day by clicking next button repeatedly
-  final nextButton = find.byIcon(Icons.chevron_right_rounded);
-  expect(nextButton, findsOneWidget, reason: 'Next button should be present');
-
-  // Try to navigate to the end (max 10 attempts to avoid infinite loop)
-  for (int i = 0; i < 10; i++) {
-    final parentButton = tester.widget<IconButton>(
-      find
-          .ancestor(
-            of: nextButton.first,
-            matching: find.byType(IconButton),
-          )
-          .first,
-    );
-
-    if (parentButton.onPressed != null) {
-      await TestHelpers.tapWidget(tester, nextButton.first);
-      await tester.pump(const Duration(milliseconds: 500));
-    } else {
-      // Button is disabled, we've reached the end
-      print('✓ Next button correctly disabled at trip end');
-      return;
-    }
+  // Navigate to Day 6 (September 29), and press an additional time
+  for (int i = 1; i <= 6; i++) {
+    final nextButton = find.descendant(
+        of: find.byType(ItineraryNavigator),
+        matching: find.byIcon(Icons.chevron_right_rounded));
+    await TestHelpers.tapWidget(tester, nextButton);
   }
-  fail('Unable to verify end boundary - too many days');
+  print('✓ Navigated to Day 6 (September 29)');
+
+  await _verifyTimelineEvents(
+      tester, expectedLastDayEvents, DateTime(2025, 9, 29));
+
+  print('✓ Day 6 Timeline tab: transits and lodging displayed');
+
+  await _verifyItineraryPlanData(tester, expectedLastDayItineraryData);
+
+  print(
+      '✓ Pressing Next button while on last trip date doesn\'t update ItineraryViewer');
 }
 
-/// Test: Itinerary viewer refreshes correctly when navigating between dates
-Future<void> runItineraryViewerRefreshOnNavigationTest(
-    WidgetTester tester) async {
-  // Launch the app (already authenticated with test trip)
-  await TestHelpers.pumpAndSettleApp(tester);
+Future<void> _verifyTimelineEvents(
+    WidgetTester tester,
+    Iterable<_ExpectedTimelineEvent> expectedEvents,
+    DateTime itineraryDate) async {
+  expect(find.byType(ItineraryViewer), findsOneWidget);
+  final itineraryViewerDate =
+      (find.byType(ItineraryViewer).evaluate().single.widget as ItineraryViewer)
+          .itineraryDay;
+  expect(itineraryViewerDate.isOnSameDayAs(itineraryDate), true,
+      reason: 'ItineraryViewer should display first trip date');
+  print(
+      '✓ Itinerary viewer displayed for trip date - ${itineraryDate.dateMonthFormat}');
 
-  // Navigate to TripEditorPage
-  await TestHelpers.navigateToTripEditorPage(tester);
-
-  // Get initial timeline items count
-  final initialTimelineItems = find.byType(TimelineItemWidget);
-  final initialCount = initialTimelineItems.evaluate().length;
-
-  // Navigate to next date
-  final nextButton = find.byIcon(Icons.chevron_right_rounded);
-  expect(nextButton, findsOneWidget, reason: 'Next button should be present');
-
-  final parentButton = tester.widget<IconButton>(
-    find
-        .ancestor(
-          of: nextButton.first,
-          matching: find.byType(IconButton),
-        )
-        .first,
+  // === FIND AND VERIFY ALL TIMELINE ITEM WIDGETS ===
+  // Scroll through the timeline to find all TimelineItemWidget instances
+  final scrollableFinder = find.descendant(
+    of: find.byType(ItineraryViewer),
+    matching: find.byType(SingleChildScrollView),
   );
+  expect(scrollableFinder, findsOneWidget);
 
-  expect(parentButton.onPressed, isNotNull,
-      reason: 'Next button should be enabled');
+  final timelineItemWidgets = <TimelineItemWidget>[];
 
-  await TestHelpers.tapWidget(tester, nextButton.first);
-
-  // Wait for animation and rebuild
-  await tester.pump(const Duration(milliseconds: 500));
+  // Find all TimelineItemWidget by scrolling
   await tester.pumpAndSettle();
 
-  // Get new timeline items count
-  final newTimelineItems = find.byType(TimelineItemWidget);
-  final newCount = newTimelineItems.evaluate().length;
+  // Get all visible timeline items
+  var timelineItemFinders = find.byType(TimelineItemWidget);
+  while (timelineItemFinders.evaluate().isNotEmpty) {
+    // Extract events from visible widgets
+    for (final element in timelineItemFinders.evaluate()) {
+      final widget = element.widget as TimelineItemWidget;
+      if (!timelineItemWidgets.any((e) =>
+          e.event.time == widget.event.time &&
+          e.event.title == widget.event.title)) {
+        timelineItemWidgets.add(widget);
+      }
+    }
 
-  // The itinerary viewer should have refreshed
-  print('✓ Itinerary viewer refreshed after navigation');
-  print('  Timeline items: $initialCount → $newCount');
+    // Try to scroll down to reveal more items
+    await tester.drag(scrollableFinder, const Offset(0, -300));
+    await tester.pumpAndSettle();
+
+    // Check if we found new items
+    final newItemCount = find.byType(TimelineItemWidget).evaluate().length;
+    if (newItemCount == 0 ||
+        timelineItemWidgets.length >= expectedEvents.length) {
+      break;
+    }
+  }
+
+  print(
+      '✓ Found ${timelineItemWidgets.length} actual TimelineItemWidget instances (with scrolling)');
+
+  // === VERIFY COUNT MATCHES ===
+  expect(timelineItemWidgets.length, expectedEvents.length,
+      reason: 'Number of actual timeline events should match expected events');
+
+  // === VERIFY EACH EVENT MATCHES ===
+  for (int i = 0; i < expectedEvents.length; i++) {
+    final expectedEvent = expectedEvents.elementAt(i);
+    final timelineItemWidget = timelineItemWidgets[i];
+
+    var timelineItemWidgetFinder = find.byWidget(timelineItemWidget);
+    final titleWidget = find.descendant(
+        of: timelineItemWidgetFinder, matching: find.text(expectedEvent.title));
+    expect(titleWidget, findsOneWidget,
+        reason: 'Event #${i + 1} title should be ${expectedEvent.title}');
+
+    final subtitleWidget = find.descendant(
+        of: timelineItemWidgetFinder,
+        matching: find.text(expectedEvent.subtitle));
+    expect(subtitleWidget, findsOneWidget,
+        reason: 'Event #${i + 1} subtitle should be ${expectedEvent.subtitle}');
+
+    if (expectedEvent.notes != null) {
+      final notesWidget = find.descendant(
+          of: timelineItemWidgetFinder,
+          matching: find.text(expectedEvent.notes!));
+      expect(notesWidget, findsOneWidget,
+          reason: 'Event #${i + 1} notes should be ${expectedEvent.notes}');
+    }
+
+    if (expectedEvent.confirmationId != null) {
+      final confirmationWidget = find.descendant(
+          of: timelineItemWidgetFinder,
+          matching: find.text(expectedEvent.confirmationId!));
+      expect(confirmationWidget, findsOneWidget,
+          reason:
+              'Event #${i + 1} confirmation ID should be ${expectedEvent.confirmationId}');
+    }
+  }
+
+  print('\n✓ All timeline events verified and in correct chronological order');
 }
 
-/// Helper class to represent expected timeline event data
+Future<void> _verifyItineraryPlanData(
+    WidgetTester tester, _ExpectedItineraryData expectedItineraryData) async {
+  final sightsTab = find.byIcon(Icons.place_outlined);
+  expect(sightsTab, findsOneWidget, reason: 'Sights tab should be present');
+  await TestHelpers.tapWidget(tester, sightsTab);
+
+  final sightsListWidget = find.descendant(
+      of: find.byType(ItinerarySightsViewer), matching: find.byType(ListView));
+
+  // Verify exact sight details
+  for (final sight in expectedItineraryData.sights) {
+    expect(
+        find.descendant(of: sightsListWidget, matching: find.text(sight.name)),
+        findsOneWidget,
+        reason: 'Should display ${sight.name} sight name');
+    if (sight.location != null) {
+      expect(
+          find.descendant(
+              of: sightsListWidget, matching: find.text(sight.location!)),
+          findsOneWidget,
+          reason: 'Should display ${sight.location} sight location');
+    }
+    expect(
+        find.descendant(of: sightsListWidget, matching: find.text(sight.time)),
+        findsOneWidget,
+        reason: 'Should display ${sight.time} sight time');
+    expect(
+        find.descendant(
+            of: sightsListWidget, matching: find.text(sight.expense)),
+        findsOneWidget,
+        reason: 'Should display ${sight.expense} sight price');
+  }
+  print(
+      '✓ Sights tab displays exact sight details (name, location and expense)');
+
+  // === VERIFY NOTES TAB ===
+  final notesTab = find.byIcon(Icons.note_outlined);
+  expect(notesTab, findsOneWidget, reason: 'Notes tab should be present');
+  await TestHelpers.tapWidget(tester, notesTab);
+
+  // Verify exact notes
+  final notesListWidget = find.descendant(
+      of: find.byType(ItineraryNotesViewer), matching: find.byType(ListView));
+  for (final note in expectedItineraryData.notes) {
+    expect(find.descendant(of: notesListWidget, matching: find.text(note)),
+        findsOneWidget,
+        reason: 'Should display note: "$note"');
+  }
+  print('✓ Notes tab displays all 3 exact notes from Day 1');
+
+  // === VERIFY CHECKLISTS TAB ===
+  final checklistsTab = find.byIcon(Icons.checklist_outlined);
+  expect(checklistsTab, findsOneWidget,
+      reason: 'Checklists tab should be present');
+  await TestHelpers.tapWidget(tester, checklistsTab);
+
+  // Verify exact checklist
+  final checklistsListWidget = find.descendant(
+      of: find.byType(ItineraryChecklistTab), matching: find.byType(ListView));
+  for (final checklist in expectedItineraryData.checklists) {
+    expect(
+        find.descendant(
+            of: checklistsListWidget, matching: find.text(checklist.title)),
+        findsOneWidget,
+        reason: 'Should display checklist title "${checklist.title}"');
+    final checklistCheckedItemsProgress = find.descendant(
+        of: checklistsListWidget,
+        matching: find.byType(LinearProgressIndicator));
+    expect(checklistCheckedItemsProgress, findsOneWidget,
+        reason: 'Should display checklist progress bar');
+    final progress =
+        tester.widget<LinearProgressIndicator>(checklistCheckedItemsProgress);
+    expect(progress.value, checklist.progressIndicator,
+        reason: 'Checklist progress should be ${checklist.progressIndicator}');
+    expect(
+        find.descendant(
+            of: checklistsListWidget,
+            matching: find.text(checklist.progressText)),
+        findsOneWidget,
+        reason: 'Should display checklist progress ${checklist.progressText}');
+  }
+
+  print('✓ Checklists tab displays exact checklist (title + progress)');
+}
+
 class _ExpectedTimelineEvent {
-  final DateTime time;
-  final String
-      type; // 'Transit', 'Lodging (Check-in)', 'Lodging (Check-out)', 'Lodging (All Day)', 'Sight'
-  final String? operator; // For transits
-  final String? location; // For lodgings
-  final String? sightName; // For sights
+  final String title;
+  final String subtitle;
   final String? notes;
   final String? confirmationId;
+  final IconData icon;
 
   _ExpectedTimelineEvent({
-    required this.time,
-    required this.type,
-    this.operator,
-    this.location,
-    this.sightName,
+    required this.title,
+    required this.subtitle,
     this.notes,
     this.confirmationId,
+    required this.icon,
   });
+}
+
+class _ExpectedItineraryData {
+  final Iterable<_ExpectedSightData> sights;
+  final Iterable<String> notes;
+  final Iterable<_ExpectedChecklistData> checklists;
+
+  _ExpectedItineraryData({
+    required this.sights,
+    required this.notes,
+    required this.checklists,
+  });
+}
+
+class _ExpectedChecklistData {
+  final String title;
+  final double progressIndicator;
+  final String progressText;
+
+  _ExpectedChecklistData({
+    required this.title,
+    required this.progressIndicator,
+    required this.progressText,
+  });
+}
+
+class _ExpectedSightData {
+  final String name;
+  final String? location;
+  final String expense;
+  final String time;
+
+  _ExpectedSightData({
+    required this.name,
+    this.location,
+    required this.expense,
+    required this.time,
+  });
+}
+
+void _matchDate(DateTime actualDateTime, DateTime expectedDateTime,
+    {String? reason}) {
+  expect(
+      actualDateTime,
+      predicate<DateTime>((DateTime date) {
+        return date.isOnSameDayAs(expectedDateTime);
+      }, reason ?? 'Date should be ${expectedDateTime.dayDateMonthFormat}'));
 }

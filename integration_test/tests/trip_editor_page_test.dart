@@ -369,6 +369,18 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     context: expectedAmsterdamContext,
   );
 
+  final amsterdamAirportLocationData = {
+    "name": "Amsterdam Airport Schiphol",
+    "city": "Amsterdam",
+    "iata": "AMS"
+  };
+  final amsterdamAirportLocationContext =
+      AirportLocationContext.fromDocument(amsterdamAirportLocationData);
+  final expectedAmsterdamAirport = LocationFacade(
+      latitude: 52.3779,
+      longitude: 4.76389,
+      context: amsterdamAirportLocationContext);
+
   // Eiffel Tower
   final eiffelTowerDocument = {
     'type': 'attraction',
@@ -473,21 +485,45 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     context: expectedRijksmuseumContext,
   );
 
+  //Keukenhof
+  final keukenhofLocation = {
+    'type': 'attraction',
+    'locationType': 'attraction',
+    'class': 'tourism',
+    'name': 'Keukenhof flower show',
+    'address': 'Keukenhof flower show, Amsterdam, North Holland, Netherlands',
+    'boundingbox': {
+      'maxLat': 52.3610,
+      'minLat': 52.3590,
+      'maxLon': 4.8860,
+      'minLon': 4.88
+    },
+    'place_id': 'keukenhof_flower_show_amsterdam',
+    'city': 'Amsterdam',
+    'state': 'North Holland',
+    'country': 'Netherlands',
+  };
+  final expectedKeukenhof = LocationFacade(
+    latitude: 52.3600,
+    longitude: 4.8852,
+    context: GeoLocationApiContext.fromDocument(keukenhofLocation),
+  );
+
   // === CREATE EXPECTED TRANSIT FACADES ===
   // Flight: London to Paris
-  final expectedFlightExpense = ExpenseFacade(
+  final expectedOnwardFlightExpense = ExpenseFacade(
     currency: defaultCurrency,
     paidBy: {TestConfig.testEmail: 250.0},
     splitBy: contributors,
   );
-  final expectedFlightTransit = TransitFacade(
+  final expectedOnwardFlightTransit = TransitFacade(
     tripId: TestConfig.testTripId,
     transitOption: TransitOption.flight,
     departureLocation: expectedLondonAirport,
     arrivalLocation: expectedParisAirport,
     departureDateTime: DateTime(2025, 9, 24, 8, 0),
     arrivalDateTime: DateTime(2025, 9, 24, 11, 0),
-    expense: expectedFlightExpense,
+    expense: expectedOnwardFlightExpense,
     operator: 'Air France AF 542',
     confirmationId: 'AF123456',
     notes: 'Direct flight',
@@ -639,6 +675,25 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     notes: 'Metro line 52',
   );
 
+  //Flight: Amsterdam to London
+  final expectedReturnFlightExpense = ExpenseFacade(
+    currency: defaultCurrency,
+    paidBy: {TestConfig.testEmail: 200.0},
+    splitBy: contributors,
+  );
+  final expectedReturnFlight = TransitFacade(
+    tripId: TestConfig.testTripId,
+    transitOption: TransitOption.flight,
+    departureLocation: expectedAmsterdamAirport,
+    arrivalLocation: expectedLondonAirport,
+    departureDateTime: DateTime(2025, 9, 29, 13, 0),
+    arrivalDateTime: DateTime(2025, 9, 29, 15, 30),
+    expense: expectedReturnFlightExpense,
+    operator: 'British Airways BA 621',
+    confirmationId: 'BA345612',
+    notes: 'Direct flight',
+  );
+
   // === CREATE EXPECTED LODGING FACADES ===
   // Paris hotel
   final expectedParisLodgingExpense = ExpenseFacade(
@@ -768,6 +823,20 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     visitTime: DateTime(2025, 9, 28, 10, 0),
     description: 'Dutch art',
   );
+  final expectedKeukenhofExpense = ExpenseFacade(
+    currency: defaultCurrency,
+    paidBy: {TestConfig.testEmail: 40.0},
+    splitBy: contributors,
+  );
+  final expectedKeukenhofSight = SightFacade(
+    tripId: TestConfig.testTripId,
+    name: 'Keukenhof flower show',
+    day: DateTime(2025, 9, 29),
+    expense: expectedKeukenhofExpense,
+    location: expectedKeukenhof,
+    visitTime: DateTime(2025, 9, 29, 12, 0),
+    description: 'Flower show',
+  );
 
   // === CREATE EXPECTED CHECKLIST FACADES ===
   // Day 1 checklist
@@ -817,12 +886,23 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Day 5 checklist
   final expectedDay5ChecklistItems = [
     CheckListItem(item: 'Buy souvenirs', isChecked: false),
-    CheckListItem(item: 'Pack bags', isChecked: false),
+    CheckListItem(item: 'Eat waffles', isChecked: true),
   ];
   final expectedDay5Checklist = CheckListFacade(
     tripId: TestConfig.testTripId,
-    title: 'Last day',
+    title: 'Amsterdam exploration day',
     items: expectedDay5ChecklistItems,
+  );
+
+  //Day 6 checklist
+  final expectedDay6ChecklistItems = [
+    CheckListItem(item: 'Pack bags', isChecked: false),
+    CheckListItem(item: 'Prepare journal', isChecked: false),
+  ];
+  final expectedDay6Checklist = CheckListFacade(
+    tripId: TestConfig.testTripId,
+    title: 'Last day',
+    items: expectedDay6ChecklistItems,
   );
 
   // === CREATE EXPECTED NOTES ===
@@ -857,11 +937,12 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Day 5 notes
   final expectedDay5Notes = [
-    'Final day',
     'Museum visit',
     'Canal walk',
     'Departure prep',
   ];
+
+  final expectedDay6Notes = ['Breakfast', 'Visit Keukenhof', 'Return home'];
 
   print('✓ Expected facade instances created');
 
@@ -887,7 +968,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   expect(day1Itinerary.transits.length, 1,
       reason: 'Day 1 should have 1 transit (flight)');
   final flight = day1Itinerary.transits.single;
-  expect(flight, matchesTransit(expectedFlightTransit),
+  expect(flight, matchesTransit(expectedOnwardFlightTransit),
       reason: 'Day 1 flight entry from London to Paris is incorrect');
 
   // Day 2: September 25 - Train from Paris to Versailles (2 transits)
@@ -948,12 +1029,19 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   expect(publicTransport, matchesTransit(expectedPublicTransportTransit),
       reason: 'Day 5 public transport entry is incorrect');
 
+  // Day 6: September 29 - Return flight from Amsterdam to London
+  final day6Itinerary =
+      trip.itineraryCollection.getItineraryForDay(DateTime(2025, 9, 29));
+  expect(day6Itinerary.transits.single, matchesTransit(expectedReturnFlight),
+      reason:
+          'Day 6 itinerary should have Return flight from Amsterdam to London');
+
   print('✓ All transits verified for itineraries');
 
   // === VERIFY TRANSIT COLLECTION ===
   final transitCollection = trip.transitCollection;
-  expect(transitCollection.collectionItems.length, 9,
-      reason: 'Transit collection should contain 9 transits');
+  expect(transitCollection.collectionItems.length, 10,
+      reason: 'Transit collection should contain 10 transits');
 
   // Verify transits in collection match expected facade instances
   final expectedTransits = [
@@ -963,9 +1051,10 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     expectedTaxiTransit,
     expectedRentedVehicleTransit,
     expectedBusTransit,
-    expectedFlightTransit,
+    expectedOnwardFlightTransit,
     expectedTrainFromVersailles,
     expectedTrainToVersailles,
+    expectedReturnFlight,
   ];
 
   // Check each expected transit has a match in the collection
@@ -1056,9 +1145,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   expect(day5CheckIn, matchesLodging(expectedAmsterdamLodging),
       reason: 'Day 5 check-in to Amsterdam should match expected');
 
-  // Day 6 (Sept 29): Amsterdam hotel check-in
-  final day6Itinerary =
-      trip.itineraryCollection.getItineraryForDay(DateTime(2025, 9, 29));
+  // Day 6 (Sept 29): Amsterdam hotel check-out
   final day6CheckOut = day6Itinerary.checkOutLodging;
   expect(day6CheckOut, matchesLodging(expectedAmsterdamLodging),
       reason: 'Day 6 check-out from Amsterdam should match expected');
@@ -1121,6 +1208,15 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
       reason: 'Day 5 notes should match');
   expect(listEquals(day5PlanData.checkLists, [expectedDay5Checklist]), true,
       reason: 'Day 5 checklist is incorrect');
+
+  // Day 6: September 29 (Amsterdam)
+  final day6PlanData = day6Itinerary.planData;
+  expect(day6PlanData.sights.single, matchesSight(expectedKeukenhofSight),
+      reason: 'Day 6 should have 1 sight (Keukenhof)');
+  expect(listEquals(day6PlanData.notes, expectedDay6Notes), true,
+      reason: 'Day 6 notes should match');
+  expect(listEquals(day6PlanData.checkLists, [expectedDay6Checklist]), true,
+      reason: 'Day 6 checklist is incorrect');
 
   print('✓ All itinerary data (sights, notes, checklists) verified');
 }
