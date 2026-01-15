@@ -206,7 +206,8 @@ class MockLocationApiService {
     return jsonEncode(matchingLocations);
   }
 
-  /// Initialize the mock service and set up HTTP overrides
+  // Initialize mock location API service to intercept HTTP requests
+  // Note: This creates a MockClient that can be injected into GeoLocator
   static Future<void> initialize() async {
     await _initializeApiServiceConfigurations();
     HttpOverrides.global = _MockHttpOverrides();

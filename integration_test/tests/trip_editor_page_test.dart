@@ -952,7 +952,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     name: 'European Adventure',
     startDate: DateTime(2025, 9, 24),
     endDate: DateTime(2025, 9, 29),
-    budget: Money(currency: 'EUR', amount: 800),
+    budget: Money(currency: 'EUR', amount: 1500),
     contributors: contributors,
     thumbnailTag: 'urban',
   );

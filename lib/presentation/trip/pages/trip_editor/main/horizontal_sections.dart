@@ -97,6 +97,7 @@ class _CompactSectionItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(_kCompactSectionIconBorderRadius),
       ),
       child: Icon(
+        key: ValueKey('compactSection_Icon'),
         section.icon,
         color: Colors.white,
         size: _kCompactSectionIconSize,
@@ -106,6 +107,7 @@ class _CompactSectionItem extends StatelessWidget {
 
   Widget _buildTitle(ThemeData theme, _CompactSectionColors colors) {
     return Text(
+      key: ValueKey('compactSection_title'),
       section.title,
       style: theme.textTheme.bodySmall?.copyWith(
         fontWeight: FontWeight.w600,

@@ -53,6 +53,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     _initializeCategoryNames();
     final sortDropdown = _buildSortToggleRow();
     return Column(
+      key: const ValueKey('expenseListRootColumn'),
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
@@ -93,13 +94,17 @@ class _ExpenseListViewState extends State<ExpenseListView> {
 
   Widget _buildSortToggleRow() {
     return Row(
+      key: const ValueKey('sortControlsRow'),
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child: BudgetTile(),
+          child: BudgetTile(
+            key: const ValueKey('budgetTile'),
+          ),
         ),
         const SizedBox(width: 8),
         ToggleButtons(
+          key: const ValueKey('sortToggleButtons'),
           isSelected: [
             _selectedSortOption == ExpenseSortOption.lowToHighCost ||
                 _selectedSortOption == ExpenseSortOption.highToLowCost,
@@ -116,6 +121,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
             Padding(
               padding: const EdgeInsets.all(3.0),
               child: Row(
+                key: ValueKey('expenseListView_sortByCost'),
                 children: [
                   const Icon(Icons.attach_money_rounded),
                   const SizedBox(width: _kIconSpacing),
@@ -134,6 +140,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
             Padding(
               padding: const EdgeInsets.all(3.0),
               child: Row(
+                key: ValueKey('expenseListView_sortByDate'),
                 children: [
                   const Icon(Icons.calendar_today_rounded),
                   const SizedBox(width: _kIconSpacing),
@@ -210,6 +217,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       );
     }
     return ListView.builder(
+      key: const ValueKey('expensesListView'),
       itemCount: _expenses.length,
       itemBuilder: (context, index) {
         final item = _expenses[index];

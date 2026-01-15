@@ -21,9 +21,9 @@ class BudgetBreakdownTile extends StatelessWidget {
           child: Card(
             child: PlatformTabBar(
               tabBarItems: <String, Widget>{
+                context.localizations.dayByDay: const BreakdownByDayChart(),
                 context.localizations.category:
                     const BreakdownByCategoryChart(),
-                context.localizations.dayByDay: const BreakdownByDayChart(),
               },
             ),
           ),

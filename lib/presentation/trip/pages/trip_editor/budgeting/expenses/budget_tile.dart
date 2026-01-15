@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
@@ -8,7 +9,7 @@ import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart
 class BudgetTile extends StatelessWidget {
   static const Duration _kAnimationDuration = Duration(milliseconds: 500);
 
-  const BudgetTile();
+  const BudgetTile({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +100,7 @@ class BudgetTile extends StatelessWidget {
 
   Widget _buildHorizontalBudgetDisplay(
     BuildContext context,
-    dynamic budgetingModule,
+    BudgetingModuleFacade budgetingModule,
     Money budget,
     Color color,
     double totalExpenditure,

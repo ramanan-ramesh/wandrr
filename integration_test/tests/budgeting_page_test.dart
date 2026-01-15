@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/events.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/breakdown/budget_breakdown_tile.dart';
@@ -9,8 +12,13 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_p
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/debt_dummary.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/budget_tile.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/expenses_list_view.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/main/collapsible_sections_page.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/main/horizontal_sections.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/main/section_header.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
+import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
 
 /// Test: BudgetingPage has three main sections
@@ -25,37 +33,72 @@ Future<void> runBudgetingPageStructureTest(
   await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to BudgetingPage if on small layout
-  if (!TestHelpers.isLargeScreen(tester)) {
-    // Find and tap the budgeting tab in bottom navigation
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget,
-        reason: 'Budgeting tab should be present in bottom navigation');
-    await TestHelpers.tapWidget(tester, budgetingTab);
-    await tester.pump(const Duration(milliseconds: 300));
-  }
+  await _tryNavigateToBudgetingPage(tester);
 
   // Verify BudgetingPage is displayed
   expect(find.byType(BudgetingPage), findsOneWidget,
       reason: 'BudgetingPage should be displayed');
 
-  // Verify Expenses section exists
-  final expensesSection = find.text('Expenses');
-  expect(expensesSection, findsOneWidget,
-      reason: 'Expenses section should be present');
-  print('✓ Expenses section found');
+  final expectedCollapsibleSectionsData = <_ExpectedSectionData>[
+    _ExpectedSectionData(
+      title: 'Expenses',
+      icon: Icons.wallet_travel_rounded,
+      isExpanded: true,
+      isHorizontalSection: false,
+      sectionBody: ExpenseListView,
+    ),
+    _ExpectedSectionData(
+      title: 'Debt',
+      icon: Icons.money_off_rounded,
+      isExpanded: false,
+      isHorizontalSection: true,
+      sectionBody: DebtSummaryTile,
+    ),
+    _ExpectedSectionData(
+      title: 'Breakdown',
+      icon: Icons.pie_chart_rounded,
+      isExpanded: false,
+      isHorizontalSection: true,
+      sectionBody: BudgetBreakdownTile,
+    ),
+  ];
+  _verifyCollapsibleSectionPageData(tester, expectedCollapsibleSectionsData);
+  print(
+      '✓ BudgetingPage has all three sections initially - ExpensesListView(Expanded), DebtSummaryTile, BudgetBreakdownTile');
 
-  // Verify Debt section exists
-  final debtSection = find.text('Debt');
-  expect(debtSection, findsOneWidget, reason: 'Debt section should be present');
-  print('✓ Debt section found');
+  final debtSummarySectionHeader = find.descendant(
+      of: find.byType(HorizontalSectionsList),
+      matching: find.byIcon(Icons.money_off_rounded));
+  await TestHelpers.tapWidget(tester, debtSummarySectionHeader);
+  expectedCollapsibleSectionsData.first.isExpanded = false;
+  expectedCollapsibleSectionsData[1].isExpanded = true;
+  expectedCollapsibleSectionsData[1].isHorizontalSection = false;
+  expectedCollapsibleSectionsData[2].isHorizontalSection = false;
+  _verifyCollapsibleSectionPageData(tester, expectedCollapsibleSectionsData);
+  print(
+      '✓ On clicking on debt header, BudgetingPage has- ExpensesListView, DebtSummaryTile(Expanded), BudgetBreakdownTile');
 
-  // Verify Breakdown section exists
-  final breakdownSection = find.text('Breakdown');
-  expect(breakdownSection, findsOneWidget,
-      reason: 'Breakdown section should be present');
-  print('✓ Breakdown section found');
+  final breakdownSectionHeader = find.descendant(
+      of: find.byType(SectionHeader),
+      matching: find.byIcon(Icons.pie_chart_rounded));
+  await TestHelpers.tapWidget(tester, breakdownSectionHeader);
+  expectedCollapsibleSectionsData.first.isHorizontalSection = true;
+  expectedCollapsibleSectionsData[1].isHorizontalSection = true;
+  expectedCollapsibleSectionsData[1].isExpanded = false;
+  expectedCollapsibleSectionsData[2].isExpanded = true;
+  expectedCollapsibleSectionsData[2].isHorizontalSection = false;
+  _verifyCollapsibleSectionPageData(tester, expectedCollapsibleSectionsData);
+  print(
+      '✓ On clicking on breakdown header, BudgetingPage has- ExpensesListView, DebtSummaryTile, BudgetBreakdownTile(Expanded)');
 
-  print('✓ BudgetingPage has all three sections');
+  await TestHelpers.tapWidget(tester, breakdownSectionHeader);
+  for (final section in expectedCollapsibleSectionsData) {
+    section.isExpanded = false;
+    section.isHorizontalSection = false;
+  }
+  _verifyCollapsibleSectionPageData(tester, expectedCollapsibleSectionsData);
+  print(
+      '✓ On clicking on breakdown header again, BudgetingPage has all collapsed sections- ExpensesListView, DebtSummaryTile, BudgetBreakdownTile');
 }
 
 /// Test: ExpenseListView displays BudgetTile with total expense percentage
@@ -69,53 +112,56 @@ Future<void> runExpensesListViewStructureTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  // Navigate to BudgetingPage if needed
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget,
-        reason: 'Budgeting tab should be present');
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
+  // -------------------------------------------------------------------------
+  // 1. Navigate to BudgetingPage if needed
+  // -------------------------------------------------------------------------
+  await _tryNavigateToBudgetingPage(tester);
 
-  // Wait for ExpenseListView
-  await tester.pumpAndSettle();
+  // -------------------------------------------------------------------------
+  // 2. Sort controls section (Row → BudgetTile + ToggleButtons)
+  // -------------------------------------------------------------------------
+  final sortRowFinder = find.byKey(const ValueKey('sortControlsRow'));
+  expect(sortRowFinder, findsOneWidget);
+  expect(tester.widget<Row>(sortRowFinder), isA<Row>());
 
-  // Verify ExpenseListView exists
-  final expenseListView = find.byType(ExpenseListView);
-  expect(expenseListView, findsOneWidget,
-      reason: 'ExpenseListView should be present');
-  print('✓ ExpenseListView found');
+  // BudgetTile
+  final budgetTileFinder = find.byKey(const ValueKey('budgetTile'));
+  expect(budgetTileFinder, findsOneWidget);
+  expect(
+    find.descendant(of: sortRowFinder, matching: budgetTileFinder),
+    findsOneWidget,
+  );
+  expect(find.byType(BudgetTile), findsOneWidget);
 
-  // Verify BudgetTile exists (shows total expense percentage and budget)
-  final budgetTile = find.byType(BudgetTile);
-  expect(budgetTile, findsOneWidget,
-      reason: 'BudgetTile should display budget and percentage');
-  print('✓ BudgetTile found (displays budget and percentage)');
+  // ToggleButtons
+  final toggleButtonsFinder = find.byKey(const ValueKey('sortToggleButtons'));
+  expect(toggleButtonsFinder, findsOneWidget);
+  expect(
+    find.descendant(of: sortRowFinder, matching: toggleButtonsFinder),
+    findsOneWidget,
+  );
+  expect(find.byType(ToggleButtons), findsOneWidget);
 
-  // Verify sort toggle buttons exist
-  final toggleButtons = find.byType(ToggleButtons);
-  expect(toggleButtons, findsOneWidget,
-      reason: 'Sort options toggle buttons should be present');
-  print('✓ Sort options toggle buttons found');
+  // -------------------------------------------------------------------------
+  // 3. Expense list area (ListView)
+  // -------------------------------------------------------------------------
+  final expenseListView = find.byKey(const ValueKey('expensesListView'));
+  expect(expenseListView, findsOneWidget);
+  expect(tester.widget<ListView>(expenseListView), isA<ListView>());
 
-  // Verify repository has expected expense data
-  final context = tester.element(find.byType(TripEditorPage));
-  final tripRepo = RepositoryProvider.of<TripRepositoryFacade>(context);
-  final expenses = tripRepo.activeTrip!.expenseCollection.collectionItems;
+  // -------------------------------------------------------------------------
+  // 4. Verify root structure
+  // -------------------------------------------------------------------------
+  final rootColumnFinder = find.byKey(const ValueKey('expenseListRootColumn'));
+  expect(rootColumnFinder, findsOneWidget);
+  expect(tester.widget<Column>(rootColumnFinder), isA<Column>());
 
-  // Verify we have the expected pure expenses from test data (3 total)
-  expect(expenses.length, 3,
-      reason: 'Should have 3 pure expenses from test data');
-  print('✓ Repository has ${expenses.length} pure expenses');
-
-  // Verify expense titles exist in the list
-  expect(find.text('Dinner at Le Comptoir'), findsOneWidget,
-      reason: 'Should display Dinner at Le Comptoir expense');
-  expect(find.text('Souvenirs from Louvre'), findsOneWidget,
-      reason: 'Should display Souvenirs from Louvre expense');
-  expect(find.text('Groceries'), findsOneWidget,
-      reason: 'Should display Groceries expense');
-  print('✓ All expense titles verified in ExpenseListView');
+  expect(find.descendant(of: rootColumnFinder, matching: sortRowFinder),
+      findsOneWidget);
+  expect(
+    find.descendant(of: rootColumnFinder, matching: expenseListView),
+    findsOneWidget,
+  );
 }
 
 /// Test: BudgetTile displays correctly when expenses are under budget
@@ -129,34 +175,41 @@ Future<void> runBudgetTileUnderBudgetTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget);
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
-
-  await tester.pumpAndSettle();
+  await _tryNavigateToBudgetingPage(tester);
 
   // Check for LinearProgressIndicator (shown when under budget)
-  final progressIndicator = find.byType(LinearProgressIndicator);
+  final progressIndicator = find.descendant(
+      of: find.byType(BudgetTile),
+      matching: find.byType(LinearProgressIndicator));
   expect(progressIndicator, findsOneWidget,
       reason: 'Progress indicator should be present for budget display');
+
+  final context = tester.element(find.byType(TripEditorPage));
+  final tripRepo = RepositoryProvider.of<TripRepositoryFacade>(context);
+  final totalExpenditure =
+      tripRepo.activeTrip!.budgetingModule.totalExpenditure;
+  final expenseToBudgetRatio =
+      totalExpenditure / tripRepo.activeTrip!.tripMetadata.budget.amount;
 
   // Get the progress indicator widget
   final LinearProgressIndicator indicator =
       tester.widget(progressIndicator.first);
 
   // Verify the progress value is not null (has a value)
-  expect(indicator.value, isNotNull,
-      reason: 'Progress indicator should have a percentage value');
+  expect(indicator.value == expenseToBudgetRatio, isTrue,
+      reason: 'Progress indicator should have correct percentage value');
 
-  // Verify budget of 800 EUR from test data is shown
-  expect(find.textContaining('800'), findsWidgets,
-      reason: 'Budget amount 800 should be displayed');
-
-  print('✓ Progress indicator found (expenses under budget scenario)');
-  print(
-      '✓ Progress indicator shows percentage: ${(indicator.value! * 100).toStringAsFixed(1)}%');
+  // Verify budget of 1500 EUR from test data is shown
+  expect(
+      find.descendant(
+          of: find.byType(BudgetTile), matching: find.text('1 490 €')),
+      findsOneWidget,
+      reason: 'Total expenditure - 1490 should be displayed');
+  expect(
+      find.descendant(
+          of: find.byType(BudgetTile), matching: find.text('1 500 €')),
+      findsOneWidget,
+      reason: 'Budget amount 1500 should be displayed');
 }
 
 /// Test: BudgetTile displays correctly when expenses are over budget
@@ -170,26 +223,43 @@ Future<void> runBudgetTileOverBudgetTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget);
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
+  await _tryNavigateToBudgetingPage(tester);
 
-  await tester.pumpAndSettle();
+  final context = tester.element(find.byType(TripEditorPage));
+  final tripRepo = RepositoryProvider.of<TripRepositoryFacade>(context);
+  var tripMetadata = tripRepo.activeTrip!.tripMetadata;
+  final newExpense = StandaloneExpense(
+    tripId: tripMetadata.id!,
+    title: 'Dummy expense',
+    expense: ExpenseFacade(
+        currency: TestConfig.testTripCurrency,
+        paidBy: {TestConfig.tripMateUserName: 200.0},
+        splitBy: tripMetadata.contributors),
+  );
+  BlocProvider.of<TripManagementBloc>(context)
+      .add(UpdateTripEntity.create(tripEntity: newExpense));
+  await Future.delayed(const Duration(milliseconds: 1000));
 
-  // The test trip has budget of 800 EUR and expenses totaling around 1500+ EUR
+  // The test trip has budget of 1500 EUR and expenses totaling around 1500+ EUR
   // So it should be over budget
-
   // Verify budget display is present
-  final progressIndicator = find.byType(LinearProgressIndicator);
+  final progressIndicator = find.descendant(
+      of: find.byType(ExpenseListView),
+      matching: find.byType(FractionallySizedBox));
   expect(progressIndicator, findsOneWidget,
-      reason: 'Progress indicator should be displayed');
+      reason: 'FractionallySizedBox should be displayed');
 
-  // When over budget, the indicator value might be > 1.0 or clamped
-  // Verify the budget tile shows the expense amounts
-  final budgetTile = find.byType(BudgetTile);
-  expect(budgetTile, findsOneWidget, reason: 'BudgetTile should be displayed');
+  // Get the progress indicator widget
+  final budgetPercentage = tripMetadata.budget.amount /
+      tripRepo.activeTrip!.budgetingModule.totalExpenditure;
+  final excessPercentage = 1.0 - budgetPercentage;
+  final FractionallySizedBox indicator = tester.widget(progressIndicator.first);
+  expect(indicator.widthFactor == excessPercentage, isTrue,
+      reason: 'Progress indicator should have correct percentage value');
+
+  BlocProvider.of<TripManagementBloc>(context)
+      .add(UpdateTripEntity.delete(tripEntity: newExpense));
+  await Future.delayed(const Duration(milliseconds: 500));
 
   print('✓ Budget display found');
   print('✓ Budget indicator present (check for over budget visual indicator)');
@@ -206,27 +276,54 @@ Future<void> runSortOptionsDefaultTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget);
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
-
-  await tester.pumpAndSettle();
+  await _tryNavigateToBudgetingPage(tester);
 
   // Verify ToggleButtons exist
-  final toggleButtons = find.byType(ToggleButtons);
-  expect(toggleButtons, findsOneWidget,
-      reason: 'Sort toggle buttons should be present');
+  final sortToggleButtonsContainer = find.byKey(ValueKey('sortToggleButtons'));
+
+  //Verify sort by cost button
+  final sortByCostButtonContainer = find.descendant(
+      of: sortToggleButtonsContainer,
+      matching: find.byKey(ValueKey('expenseListView_sortByCost')));
+  final sortByCostAscendingButton = find.descendant(
+      of: sortByCostButtonContainer,
+      matching: find.byIcon(Icons.arrow_downward_rounded));
+  expect(
+      find.descendant(
+          of: sortByCostButtonContainer,
+          matching: find.byIcon(Icons.attach_money_rounded)),
+      findsOneWidget,
+      reason: 'Cost sort button should be present');
+  expect(sortByCostAscendingButton, findsOneWidget,
+      reason: 'Default sort option for cost must be ascending order');
 
   // By default, the date sort should be selected (newest first)
   // This is indicated by the calendar icon button being selected
-  final calendarIcon = find.byIcon(Icons.calendar_today_rounded);
-  expect(calendarIcon, findsOneWidget,
-      reason: 'Calendar (date sort) icon should be present');
+  final sortByDateButtonContainer = find.descendant(
+      of: sortToggleButtonsContainer,
+      matching: find.byKey(ValueKey('expenseListView_sortByDate')));
+  final sortByDateNewestFirstButton = find.descendant(
+      of: sortByDateButtonContainer,
+      matching: find.byIcon(Icons.arrow_upward_rounded));
+  expect(
+      find.descendant(
+          of: sortByDateButtonContainer,
+          matching: find.byIcon(Icons.calendar_today_rounded)),
+      findsOneWidget,
+      reason: 'Date sort button should be present');
+  expect(sortByDateNewestFirstButton, findsOneWidget,
+      reason: 'Default sort option for date must be newest first');
 
-  print('✓ Sort options available');
-  print('✓ Default sort: Date (newest to oldest)');
+  //Sort by category button
+  expect(
+      find.descendant(
+          of: sortToggleButtonsContainer,
+          matching: find.byIcon(Icons.category_outlined)),
+      findsOneWidget,
+      reason: 'Category sort button should be present');
+
+  print(
+      '✓ Sort options available - Cost(Lowest first), Category, Date(Newest First)');
 }
 
 /// Test: Sort by cost ascending
@@ -240,13 +337,7 @@ Future<void> runSortByCostAscendingTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget);
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
-
-  await tester.pumpAndSettle();
+  await _tryNavigateToBudgetingPage(tester);
 
   // Find the cost sort button (first toggle button with dollar icon)
   final costSortButton = find.byIcon(Icons.attach_money_rounded);
@@ -277,13 +368,7 @@ Future<void> runSortByCostDescendingTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget);
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
-
-  await tester.pumpAndSettle();
+  await _tryNavigateToBudgetingPage(tester);
 
   // Find the cost sort button
   final costSortButton = find.byIcon(Icons.attach_money_rounded);
@@ -318,13 +403,7 @@ Future<void> runSortByDateAscendingTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget);
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
-
-  await tester.pumpAndSettle();
+  await _tryNavigateToBudgetingPage(tester);
 
   // Find the date sort button (calendar icon)
   final dateSortButton = find.byIcon(Icons.calendar_today_rounded);
@@ -355,13 +434,7 @@ Future<void> runSortByDateDescendingTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget);
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
-
-  await tester.pumpAndSettle();
+  await _tryNavigateToBudgetingPage(tester);
 
   // Date sort defaults to newest first (descending)
   // Verify the upward arrow is shown
@@ -383,13 +456,7 @@ Future<void> runSortByCategoryTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget);
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
-
-  await tester.pumpAndSettle();
+  await _tryNavigateToBudgetingPage(tester);
 
   // Find the category sort button (middle button with category icon)
   final categorySortButton = find.byIcon(Icons.category_outlined);
@@ -415,13 +482,7 @@ Future<void> runDebtSummaryTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget);
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
-
-  await tester.pumpAndSettle();
+  await _tryNavigateToBudgetingPage(tester);
 
   // Find and tap on Debt section to expand it
   final debtSection = find.text('Debt');
@@ -458,13 +519,7 @@ Future<void> runBudgetBreakdownTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget);
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
-
-  await tester.pumpAndSettle();
+  await _tryNavigateToBudgetingPage(tester);
 
   // Find and tap on Breakdown section to expand it
   final breakdownSection = find.text('Breakdown');
@@ -504,13 +559,7 @@ Future<void> runExpenseCategoriesTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget);
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
-
-  await tester.pumpAndSettle();
+  await _tryNavigateToBudgetingPage(tester);
 
   // Sort by category to see all categories grouped
   final categorySortButton = find.byIcon(Icons.category_outlined);
@@ -557,13 +606,7 @@ Future<void> runExpensesWithAndWithoutDatesTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget);
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
-
-  await tester.pumpAndSettle();
+  await _tryNavigateToBudgetingPage(tester);
 
   // Sort by date to see how expenses with/without dates are handled
   final dateSortButton = find.byIcon(Icons.calendar_today_rounded);
@@ -600,13 +643,7 @@ Future<void> runExpensesFromDifferentSourcesTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget);
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
-
-  await tester.pumpAndSettle();
+  await _tryNavigateToBudgetingPage(tester);
 
   // Verify different expense sources from repository
   final context = tester.element(find.byType(TripEditorPage));
@@ -655,13 +692,7 @@ Future<void> runMultipleCurrenciesTest(
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  if (!TestHelpers.isLargeScreen(tester)) {
-    final budgetingTab = find.byIcon(Icons.wallet_travel_rounded);
-    expect(budgetingTab, findsOneWidget);
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
-
-  await tester.pumpAndSettle();
+  await _tryNavigateToBudgetingPage(tester);
 
   // Budget tile should show total in trip's base currency (EUR)
   final budgetTile = find.byType(BudgetTile);
@@ -673,4 +704,179 @@ Future<void> runMultipleCurrenciesTest(
 
   print('✓ BudgetTile displays total converted to base currency (EUR)');
   print('✓ All test expenses are in EUR from test data');
+}
+
+Future<void> _tryNavigateToBudgetingPage(WidgetTester tester) async {
+  if (!TestHelpers.isLargeScreen(tester)) {
+    // Find and tap the budgeting tab in bottom navigation
+    final budgetingTab = find.descendant(
+        of: find.byType(BottomNavBar),
+        matching: find.byIcon(Icons.wallet_travel_rounded));
+    await TestHelpers.tapWidget(tester, budgetingTab);
+  }
+}
+
+void _verifyCollapsibleSectionPageData(WidgetTester tester,
+    Iterable<_ExpectedSectionData> expectedSectionDataList) {
+  final collapsibleSectionsPageFinder = find.byType(CollapsibleSectionsPage);
+  expect(
+      find.descendant(
+          of: find.byType(BudgetingPage),
+          matching: collapsibleSectionsPageFinder),
+      findsOneWidget,
+      reason: 'Collapsible sections page is expected in BudgetingPage');
+  final collapsibleSectionHeadersFinder = find.descendant(
+      of: collapsibleSectionsPageFinder, matching: find.byType(SectionHeader));
+
+  _verifyNonHorizontalSectionHeaders(tester, collapsibleSectionHeadersFinder,
+      collapsibleSectionsPageFinder, expectedSectionDataList);
+
+  _verifyHorizontalCollapsedSections(
+      collapsibleSectionsPageFinder, tester, expectedSectionDataList);
+}
+
+void _verifyNonHorizontalSectionHeaders(
+    WidgetTester tester,
+    Finder collapsibleSectionHeaderFinder,
+    Finder collapsibleSectionsPageFinder,
+    Iterable<_ExpectedSectionData> expectedSectionDataList) {
+  final sectionHeaderElements = collapsibleSectionHeaderFinder.evaluate();
+  final expectedExpandedSection = expectedSectionDataList
+      .where((element) => element.isExpanded)
+      .singleOrNull;
+  if (expectedExpandedSection != null) {
+    final expandedSectionHeader = sectionHeaderElements
+        .singleWhere((element) => (element.widget as SectionHeader).isExpanded)
+        .widget as SectionHeader;
+    _verifyNonHorizontalSectionContent(
+        expandedSectionHeader,
+        expectedExpandedSection,
+        collapsibleSectionHeaderFinder,
+        collapsibleSectionsPageFinder);
+  } else {
+    final expectedNonHorizontalSections = expectedSectionDataList.where(
+        (sectionData) =>
+            !sectionData.isExpanded && !sectionData.isHorizontalSection);
+    expect(collapsibleSectionHeaderFinder,
+        findsNWidgets(expectedNonHorizontalSections.length),
+        reason:
+            '${expectedNonHorizontalSections.length} non horizontal collapsed section headers should be present');
+    final nonExpandedSectionHeaderElements = sectionHeaderElements
+        .where((element) => !(element.widget as SectionHeader).isExpanded);
+    for (var index = 0; index < expectedNonHorizontalSections.length; index++) {
+      final expectedSectionData =
+          expectedNonHorizontalSections.elementAt(index);
+      final nonExpandedSectionHeader = nonExpandedSectionHeaderElements
+          .elementAt(index)
+          .widget as SectionHeader;
+      _verifyNonHorizontalSectionContent(
+          nonExpandedSectionHeader,
+          expectedSectionData,
+          collapsibleSectionHeaderFinder,
+          collapsibleSectionsPageFinder);
+    }
+  }
+}
+
+void _verifyNonHorizontalSectionContent(
+    SectionHeader sectionHeader,
+    _ExpectedSectionData expectedSectionData,
+    Finder collapsibleSectionHeaderFinder,
+    Finder collapsibleSectionsPageFinder) {
+  final sectionExpandedState =
+      sectionHeader.isExpanded ? 'Expanded' : 'Collapsed';
+  expect(sectionHeader.title == expectedSectionData.title, isTrue,
+      reason:
+          '${sectionExpandedState} Section header title should be - ${expectedSectionData.title}');
+  expect(
+      find.descendant(
+          of: collapsibleSectionHeaderFinder,
+          matching: find.text(expectedSectionData.title)),
+      findsOneWidget,
+      reason:
+          '${sectionExpandedState} Section header title text should be - ${expectedSectionData.title}');
+  expect(
+      find.descendant(
+          of: collapsibleSectionHeaderFinder,
+          matching: find.byIcon(expectedSectionData.icon)),
+      findsOneWidget,
+      reason: '${sectionExpandedState} Section header icon should be present');
+  expect(sectionHeader.isExpanded == expectedSectionData.isExpanded, isTrue,
+      reason:
+          'Section header isExpanded should be - ${expectedSectionData.isExpanded}');
+  if (expectedSectionData.isExpanded) {
+    expect(
+        find.descendant(
+            of: collapsibleSectionsPageFinder,
+            matching: find.byType(expectedSectionData.sectionBody)),
+        findsOneWidget,
+        reason: 'Expanded Section body should be present');
+  } else {
+    expect(
+        find.descendant(
+            of: collapsibleSectionsPageFinder,
+            matching: find.byType(expectedSectionData.sectionBody)),
+        findsNothing,
+        reason:
+            '${expectedSectionData.sectionBody.toString()} Section body should not be present');
+  }
+}
+
+void _verifyHorizontalCollapsedSections(
+    Finder collapsibleSectionsPageFinder,
+    WidgetTester tester,
+    Iterable<_ExpectedSectionData> expectedSectionDataList) {
+  final expectedCollapsedHorizontalSections = expectedSectionDataList.where(
+      (sectionData) =>
+          !sectionData.isExpanded && sectionData.isHorizontalSection);
+  if (expectedCollapsedHorizontalSections.isNotEmpty) {
+    final horizontalListViewFinder = find.descendant(
+        of: collapsibleSectionsPageFinder,
+        matching: find.byType(HorizontalSectionsList));
+    final horizontalListView =
+        tester.widget<HorizontalSectionsList>(horizontalListViewFinder);
+
+    expect(
+        horizontalListView.sections.length ==
+            expectedCollapsedHorizontalSections.length,
+        isTrue,
+        reason:
+            '${expectedCollapsedHorizontalSections.length} collapsed horizontal sections should be present');
+
+    for (var index = 0;
+        index < expectedCollapsedHorizontalSections.length;
+        index++) {
+      final expectedSectionData =
+          expectedCollapsedHorizontalSections.elementAt(index);
+      expect(
+          find.descendant(
+              of: horizontalListViewFinder,
+              matching: find.byIcon(expectedSectionData.icon)),
+          findsOneWidget,
+          reason: 'Collapsed Horizontal Section header icon should be present');
+      expect(
+          find.descendant(
+              of: horizontalListViewFinder,
+              matching: find.text(expectedSectionData.title)),
+          findsOneWidget,
+          reason:
+              'Collapsed Horizontal Section header title should be present');
+    }
+  }
+}
+
+class _ExpectedSectionData {
+  final String title;
+  final IconData icon;
+  bool isExpanded;
+  bool isHorizontalSection;
+  final Type sectionBody;
+
+  _ExpectedSectionData({
+    required this.title,
+    required this.icon,
+    required this.isExpanded,
+    required this.isHorizontalSection,
+    required this.sectionBody,
+  });
 }

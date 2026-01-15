@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -42,6 +43,7 @@ void main() {
       });
 
       tearDown(() async {
+        expect(find.byType(ErrorWidget), findsNothing);
         await sharedPreferences.clear();
         await FirebaseEmulatorHelper.cleanupAfterTest();
       });
@@ -60,6 +62,7 @@ void main() {
       });
 
       tearDown(() async {
+        expect(find.byType(ErrorWidget), findsNothing);
         await sharedPreferences.clear();
         await FirebaseEmulatorHelper.cleanupAfterTest();
       });
@@ -128,6 +131,10 @@ void main() {
         await MockLocationApiService.initialize();
       });
 
+      tearDown(() async {
+        expect(find.byType(ErrorWidget), findsNothing);
+      });
+
       tearDownAll(() async {
         await FirebaseEmulatorHelper.cleanupAfterTest();
         await sharedPreferences.clear();
@@ -174,6 +181,10 @@ void main() {
         await TestHelpers.createTestTrip();
       });
 
+      tearDown(() async {
+        expect(find.byType(ErrorWidget), findsNothing);
+      });
+
       tearDownAll(() async {
         await FirebaseEmulatorHelper.cleanupAfterTest();
         await sharedPreferences.clear();
@@ -204,6 +215,10 @@ void main() {
         // Note: This creates a MockClient that can be injected into GeoLocator
         await MockLocationApiService.initialize();
         await TestHelpers.createTestTrip();
+      });
+
+      tearDown(() async {
+        expect(find.byType(ErrorWidget), findsNothing);
       });
 
       tearDownAll(() async {
@@ -243,9 +258,24 @@ void main() {
     });
 
     group('Budgeting Page Tests', () {
-      setUp(() async {
-        // Setup authenticated state and create a test trip
+      setUpAll(() async {
+        await FirebaseEmulatorHelper.createFirebaseAuthUser(
+          email: TestConfig.testEmail,
+          password: TestConfig.testEmail,
+          shouldAddToFirestore: true,
+          shouldSignIn: true,
+        );
+        await MockLocationApiService.initialize();
         await TestHelpers.createTestTrip();
+      });
+
+      tearDown(() async {
+        expect(find.byType(ErrorWidget), findsNothing);
+      });
+
+      tearDownAll(() async {
+        await FirebaseEmulatorHelper.cleanupAfterTest();
+        await sharedPreferences.clear();
       });
 
       testWidgets('displays three main sections (Expenses, Debt, Breakdown)',

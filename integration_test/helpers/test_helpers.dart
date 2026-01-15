@@ -89,7 +89,7 @@ class TestHelpers {
       'endDate': Timestamp.fromDate(endDate),
       'thumbnailTag': 'urban',
       'contributors': contributors,
-      'budget': '800.00 EUR',
+      'budget': '1500.00 EUR',
     });
 
     // === LOCATIONS ===
