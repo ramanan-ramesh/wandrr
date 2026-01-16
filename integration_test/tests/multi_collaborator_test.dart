@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/app_bar/collaborator_list.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
 import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
@@ -127,8 +124,7 @@ Future<void> runEditContributorsTest(WidgetTester tester) async {
   await TestHelpers.navigateToTripEditorPage(tester);
 
   // Verify repository has expected contributors
-  final context = tester.element(find.byType(TripEditorPage));
-  final tripRepo = RepositoryProvider.of<TripRepositoryFacade>(context);
+  final tripRepo = TestHelpers.getTripRepository(tester);
   final contributors = tripRepo.activeTrip!.tripMetadata.contributors;
 
   expect(contributors.length, 2,
@@ -174,8 +170,7 @@ Future<void> runEditTripBudgetTest(WidgetTester tester) async {
   await TestHelpers.navigateToTripEditorPage(tester);
 
   // Verify budget from repository
-  final context = tester.element(find.byType(TripEditorPage));
-  final tripRepo = RepositoryProvider.of<TripRepositoryFacade>(context);
+  final tripRepo = TestHelpers.getTripRepository(tester);
   final budget = tripRepo.activeTrip!.tripMetadata.budget;
   expect(budget.amount, 800.0, reason: 'Budget should be 800 from test data');
   expect(budget.currency, 'EUR',

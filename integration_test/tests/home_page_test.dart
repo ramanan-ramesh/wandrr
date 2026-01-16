@@ -8,7 +8,6 @@ import 'package:wandrr/asset_manager/extension.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
-import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/trip/pages/home/app_bar/app_bar.dart';
@@ -18,7 +17,7 @@ import 'package:wandrr/presentation/trip/pages/home/trips_list_view.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
 import '../helpers/firebase_emulator_helper.dart';
-import '../helpers/mock_location_api_service.dart';
+import '../helpers/http_overrides/mock_location_api_service.dart';
 import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
 
@@ -182,11 +181,8 @@ Future<void> runHomePageCreateTripFlowTest(
   // Wait for navigation to TripEditorPage
   await TestHelpers.waitForWidget(tester, find.byType(TripEditorPage),
       timeout: const Duration(seconds: 5));
-  var context = tester.element(find.byType(TripEditorPage));
   final currentTripMetadata =
-      RepositoryProvider.of<TripRepositoryFacade>(context)
-          .activeTrip!
-          .tripMetadata;
+      TestHelpers.getTripRepository(tester).activeTrip!.tripMetadata;
   expect(currentTripMetadata.name, tripName);
   expect(currentTripMetadata.thumbnailTag, lastThumbnailImage.fileName);
   expect(currentTripMetadata.budget, equals(budget));

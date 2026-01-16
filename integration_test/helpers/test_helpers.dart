@@ -1,10 +1,13 @@
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
+import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
+import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/app/pages/master_page/master_page.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
@@ -65,6 +68,19 @@ class TestHelpers {
   static AppLocalizations getAppLocalizations(WidgetTester tester, Type type) {
     final context = tester.element(find.byType(type));
     return AppLocalizations.of(context)!;
+  }
+
+  static TripRepositoryFacade getTripRepository(WidgetTester tester,
+      {Type type = TripEditorPage}) {
+    final context = tester.element(find.byType(type));
+    return RepositoryProvider.of<TripRepositoryFacade>(context);
+  }
+
+  static ApiServicesRepositoryFacade getApiServicesRepository(
+      WidgetTester tester,
+      {Type type = TripEditorPage}) {
+    final context = tester.element(find.byType(type));
+    return RepositoryProvider.of<ApiServicesRepositoryFacade>(context);
   }
 
   /// Create a test trip for trip editor tests
@@ -301,7 +317,7 @@ class TestHelpers {
         'type': 'attraction',
         'locationType': 'attraction',
         'class': 'tourism',
-        'name': 'Keukenhof flower show',
+        'name': 'Keukenhof',
         'address':
             'Keukenhof flower show, Amsterdam, North Holland, Netherlands',
         'boundingbox': {
@@ -880,5 +896,68 @@ class TestHelpers {
     final size = getScreenSize(tester);
     final category = isLargeScreen(tester) ? 'Large' : 'Small';
     return '$category screen (${size.width.toInt()}x${size.height.toInt()})';
+  }
+
+  /// Collect widgets of a specific type by scrolling through a scrollable widget.
+  ///
+  /// Returns a list of widgets found by scrolling through the [scrollableFinder].
+  /// If [expectedCount] is provided, the function will fail if not all items are found
+  /// within the [timeout].
+  ///
+  /// The [getUniqueId] function is used to deduplicate widgets during scrolling.
+  /// Widgets are returned in the order they appear visually (top to bottom).
+  static Future<List<T>> collectWidgetsByScrolling<T extends Widget>({
+    required WidgetTester tester,
+    required Finder scrollableFinder,
+    required Finder widgetFinder,
+    required String Function(T widget) getUniqueId,
+    int? expectedCount,
+    Duration timeout = const Duration(seconds: 30),
+    Offset scrollDelta = const Offset(0, -300),
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    final seenIds = <String>{};
+    final orderedWidgets = <T>[];
+
+    await tester.pumpAndSettle();
+
+    // Scroll to top first
+    for (int i = 0; i < 5; i++) {
+      await tester.drag(scrollableFinder, const Offset(0, 500));
+      await tester.pumpAndSettle();
+    }
+
+    // Keep scrolling and collecting until we have enough or timeout
+    while (stopwatch.elapsed < timeout) {
+      // Collect all currently visible widgets
+      for (final element in widgetFinder.evaluate()) {
+        final widget = element.widget as T;
+        final id = getUniqueId(widget);
+        if (!seenIds.contains(id)) {
+          seenIds.add(id);
+          orderedWidgets.add(widget);
+        }
+      }
+
+      // Check if we have enough
+      if (expectedCount != null && orderedWidgets.length >= expectedCount) {
+        break;
+      }
+
+      // Scroll down
+      await tester.drag(scrollableFinder, scrollDelta);
+      await tester.pumpAndSettle();
+    }
+
+    // Validate
+    if (expectedCount != null && orderedWidgets.length != expectedCount) {
+      throw TestFailure(
+        'Expected $expectedCount widgets of type $T, '
+        'but found ${orderedWidgets.length}. '
+        'Found IDs: ${seenIds.join(", ")}',
+      );
+    }
+
+    return orderedWidgets;
   }
 }

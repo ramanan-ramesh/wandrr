@@ -9,7 +9,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 import '../helpers/firebase_emulator_helper.dart';
-import '../helpers/mock_location_api_service.dart';
+import '../helpers/http_overrides/mock_location_api_service.dart';
 import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
 

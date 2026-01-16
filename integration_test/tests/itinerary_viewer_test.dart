@@ -11,7 +11,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/sigh
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/timeline_item_widget.dart';
 
 import '../helpers/firebase_emulator_helper.dart';
-import '../helpers/mock_location_api_service.dart';
+import '../helpers/http_overrides/mock_location_api_service.dart';
 import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
 
@@ -84,6 +84,7 @@ final expectedLastDayItineraryData = _ExpectedItineraryData(
   sights: [
     _ExpectedSightData(
       name: 'Keukenhof flower show',
+      location: 'Keukenhof',
       expense: '40 €',
       time: "12:00",
     ),
@@ -273,35 +274,16 @@ Future<void> _verifyTimelineEvents(
   );
   expect(scrollableFinder, findsOneWidget);
 
-  final timelineItemWidgets = <TimelineItemWidget>[];
-
-  // Find all TimelineItemWidget by scrolling
-  await tester.pumpAndSettle();
-
-  // Get all visible timeline items
-  var timelineItemFinders = find.byType(TimelineItemWidget);
-  while (timelineItemFinders.evaluate().isNotEmpty) {
-    // Extract events from visible widgets
-    for (final element in timelineItemFinders.evaluate()) {
-      final widget = element.widget as TimelineItemWidget;
-      if (!timelineItemWidgets.any((e) =>
-          e.event.time == widget.event.time &&
-          e.event.title == widget.event.title)) {
-        timelineItemWidgets.add(widget);
-      }
-    }
-
-    // Try to scroll down to reveal more items
-    await tester.drag(scrollableFinder, const Offset(0, -300));
-    await tester.pumpAndSettle();
-
-    // Check if we found new items
-    final newItemCount = find.byType(TimelineItemWidget).evaluate().length;
-    if (newItemCount == 0 ||
-        timelineItemWidgets.length >= expectedEvents.length) {
-      break;
-    }
-  }
+  // Use the helper with timeout to collect timeline items
+  final timelineItemWidgets =
+      await TestHelpers.collectWidgetsByScrolling<TimelineItemWidget>(
+    tester: tester,
+    scrollableFinder: scrollableFinder,
+    widgetFinder: find.byType(TimelineItemWidget),
+    getUniqueId: (widget) => '${widget.event.time}_${widget.event.title}',
+    expectedCount: expectedEvents.length,
+    timeout: const Duration(seconds: 30),
+  );
 
   print(
       '✓ Found ${timelineItemWidgets.length} actual TimelineItemWidget instances (with scrolling)');

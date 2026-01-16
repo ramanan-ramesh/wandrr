@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
@@ -15,7 +14,6 @@ import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
@@ -23,7 +21,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
 import '../helpers/facade_matchers.dart';
 import '../helpers/firebase_emulator_helper.dart';
-import '../helpers/mock_location_api_service.dart';
+import '../helpers/http_overrides/mock_location_api_service.dart';
 import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
 
@@ -186,8 +184,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   await TestHelpers.navigateToTripEditorPage(tester);
 
   // Get repository and active trip
-  final context = tester.element(find.byType(TripEditorPage));
-  final tripRepo = RepositoryProvider.of<TripRepositoryFacade>(context);
+  final tripRepo = TestHelpers.getTripRepository(tester);
   final trip = tripRepo.activeTrip!;
   const defaultCurrency = 'EUR';
   final contributors = [TestConfig.testEmail, TestConfig.tripMateUserName];
@@ -492,7 +489,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     'type': 'attraction',
     'locationType': 'attraction',
     'class': 'tourism',
-    'name': 'Keukenhof flower show',
+    'name': 'Keukenhof',
     'address': 'Keukenhof flower show, Amsterdam, North Holland, Netherlands',
     'boundingbox': {
       'maxLat': 52.3610,
