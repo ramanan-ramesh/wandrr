@@ -10,6 +10,9 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/note
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/sights.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/timeline_item_widget.dart';
 
+import '../helpers/firebase_emulator_helper.dart';
+import '../helpers/mock_location_api_service.dart';
+import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
 
 final expectedDayOneEvents = <_ExpectedTimelineEvent>[
@@ -491,4 +494,56 @@ void _matchDate(DateTime actualDateTime, DateTime expectedDateTime,
       predicate<DateTime>((DateTime date) {
         return date.isOnSameDayAs(expectedDateTime);
       }, reason ?? 'Date should be ${expectedDateTime.dayDateMonthFormat}'));
+}
+
+void runTests() {
+  setUpAll(() async {
+    await FirebaseEmulatorHelper.createFirebaseAuthUser(
+      email: TestConfig.testEmail,
+      password: TestConfig.testEmail,
+      shouldAddToFirestore: true,
+      shouldSignIn: true,
+    );
+    // Initialize mock location API service to intercept HTTP requests
+    // Note: This creates a MockClient that can be injected into GeoLocator
+    await MockLocationApiService.initialize();
+    await TestHelpers.createTestTrip();
+  });
+
+  tearDown(() async {
+    expect(find.byType(ErrorWidget), findsNothing);
+  });
+
+  tearDownAll(() async {
+    await FirebaseEmulatorHelper.cleanupAfterTest();
+  });
+
+  testWidgets(
+      'displays first trip date with all components (transits, lodgings, sights, notes, checklists)',
+      (WidgetTester tester) async {
+    await runItineraryViewerDefaultDateTest(tester);
+  });
+
+  testWidgets('navigates to selected date', (WidgetTester tester) async {
+    await runItineraryViewerNavigateToDateTest(tester);
+  });
+
+  testWidgets('navigates to next date correctly', (WidgetTester tester) async {
+    await runItineraryViewerNavigateNextTest(tester);
+  });
+
+  testWidgets('navigates to previous date correctly',
+      (WidgetTester tester) async {
+    await runItineraryViewerNavigatePreviousTest(tester);
+  });
+
+  testWidgets('cannot navigate before trip start date',
+      (WidgetTester tester) async {
+    await runItineraryViewerNavigationBoundaryStartTest(tester);
+  });
+
+  testWidgets('cannot navigate beyond trip end date',
+      (WidgetTester tester) async {
+    await runItineraryViewerNavigationBoundaryEndTest(tester);
+  });
 }

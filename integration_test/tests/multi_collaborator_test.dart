@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/app_bar/collaborator_list.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
@@ -10,10 +9,7 @@ import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
 
 /// Test: AppBar displays maximum of 3 contributors
-Future<void> runCollaboratorListMaxThreeTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runCollaboratorListMaxThreeTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -38,10 +34,7 @@ Future<void> runCollaboratorListMaxThreeTest(
 }
 
 /// Test: Clicking trip name/date opens trip metadata editor
-Future<void> runTripNameOpensMetadataEditorTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runTripNameOpensMetadataEditorTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -75,10 +68,7 @@ Future<void> runTripNameOpensMetadataEditorTest(
 }
 
 /// Test: Trip metadata editing - name change
-Future<void> runEditTripNameTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditTripNameTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -103,10 +93,7 @@ Future<void> runEditTripNameTest(
 }
 
 /// Test: Trip metadata editing - date change
-Future<void> runEditTripDatesTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditTripDatesTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -132,10 +119,7 @@ Future<void> runEditTripDatesTest(
 }
 
 /// Test: Trip metadata editing - add/remove contributors
-Future<void> runEditContributorsTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditContributorsTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -182,10 +166,7 @@ Future<void> runEditContributorsTest(
 }
 
 /// Test: Trip metadata editing - budget change
-Future<void> runEditTripBudgetTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditTripBudgetTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -220,10 +201,7 @@ Future<void> runEditTripBudgetTest(
 }
 
 /// Test: Expense splitting - multiple contributors shown
-Future<void> runExpenseSplittingDisplayTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runExpenseSplittingDisplayTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -250,10 +228,7 @@ Future<void> runExpenseSplittingDisplayTest(
 }
 
 /// Test: Transit expense splitting
-Future<void> runTransitExpenseSplittingTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runTransitExpenseSplittingTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -277,10 +252,7 @@ Future<void> runTransitExpenseSplittingTest(
 }
 
 /// Test: Stay/lodging expense splitting
-Future<void> runStayExpenseSplittingTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runStayExpenseSplittingTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -305,10 +277,7 @@ Future<void> runStayExpenseSplittingTest(
 }
 
 /// Test: Sight expense splitting
-Future<void> runSightExpenseSplittingTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runSightExpenseSplittingTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -336,10 +305,7 @@ Future<void> runSightExpenseSplittingTest(
 }
 
 /// Test: Debt summary with multiple contributors
-Future<void> runDebtSummaryMultipleContributorsTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runDebtSummaryMultipleContributorsTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -369,10 +335,7 @@ Future<void> runDebtSummaryMultipleContributorsTest(
 }
 
 /// Test: Debt calculation accuracy
-Future<void> runDebtCalculationTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runDebtCalculationTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -396,10 +359,7 @@ Future<void> runDebtCalculationTest(
 }
 
 /// Test: Adding contributor updates expense splitting
-Future<void> runAddContributorUpdatesExpensesTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runAddContributorUpdatesExpensesTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -416,10 +376,7 @@ Future<void> runAddContributorUpdatesExpensesTest(
 }
 
 /// Test: Removing contributor validation
-Future<void> runRemoveContributorValidationTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runRemoveContributorValidationTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -435,10 +392,7 @@ Future<void> runRemoveContributorValidationTest(
 }
 
 /// Test: Expense splitting UI shows all contributors
-Future<void> runExpenseSplittingUITest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runExpenseSplittingUITest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -463,10 +417,7 @@ Future<void> runExpenseSplittingUITest(
 }
 
 /// Test: Collaborator avatars in app bar
-Future<void> runCollaboratorAvatarsTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runCollaboratorAvatarsTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -487,10 +438,7 @@ Future<void> runCollaboratorAvatarsTest(
 }
 
 /// Test: Trip metadata persistence after edit
-Future<void> runTripMetadataPersistenceTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runTripMetadataPersistenceTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -513,10 +461,7 @@ Future<void> runTripMetadataPersistenceTest(
 }
 
 /// Test: Multiple contributors scenario
-Future<void> runMultipleContributorsScenarioTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runMultipleContributorsScenarioTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -541,4 +486,93 @@ Future<void> runMultipleContributorsScenarioTest(
   print('    Charlie owes Alice: \$1');
   print('');
   print('✓ Debt summary simplifies and shows net debts');
+}
+
+void runTests() {
+  setUp(() async {
+    // Setup authenticated state and create a test trip
+    await TestHelpers.createTestTrip();
+  });
+
+  testWidgets('AppBar displays maximum of 3 contributors',
+      (WidgetTester tester) async {
+    await runCollaboratorListMaxThreeTest(tester);
+  });
+
+  testWidgets('clicking trip name/date opens trip metadata editor',
+      (WidgetTester tester) async {
+    await runTripNameOpensMetadataEditorTest(tester);
+  });
+
+  testWidgets('edit trip name in metadata editor', (WidgetTester tester) async {
+    await runEditTripNameTest(tester);
+  });
+
+  testWidgets('edit trip dates in metadata editor',
+      (WidgetTester tester) async {
+    await runEditTripDatesTest(tester);
+  });
+
+  testWidgets('add/remove contributors in metadata editor',
+      (WidgetTester tester) async {
+    await runEditContributorsTest(tester);
+  });
+
+  testWidgets('edit trip budget in metadata editor',
+      (WidgetTester tester) async {
+    await runEditTripBudgetTest(tester);
+  });
+
+  testWidgets('expense splitting displays all contributors',
+      (WidgetTester tester) async {
+    await runExpenseSplittingDisplayTest(tester);
+  });
+
+  testWidgets('transit expense splitting', (WidgetTester tester) async {
+    await runTransitExpenseSplittingTest(tester);
+  });
+
+  testWidgets('stay/lodging expense splitting', (WidgetTester tester) async {
+    await runStayExpenseSplittingTest(tester);
+  });
+
+  testWidgets('sight expense splitting', (WidgetTester tester) async {
+    await runSightExpenseSplittingTest(tester);
+  });
+
+  testWidgets('debt summary with multiple contributors',
+      (WidgetTester tester) async {
+    await runDebtSummaryMultipleContributorsTest(tester);
+  });
+
+  testWidgets('debt calculation logic', (WidgetTester tester) async {
+    await runDebtCalculationTest(tester);
+  });
+
+  testWidgets('adding contributor updates expense splitting',
+      (WidgetTester tester) async {
+    await runAddContributorUpdatesExpensesTest(tester);
+  });
+
+  testWidgets('removing contributor validation', (WidgetTester tester) async {
+    await runRemoveContributorValidationTest(tester);
+  });
+
+  testWidgets('expense splitting UI shows all contributors',
+      (WidgetTester tester) async {
+    await runExpenseSplittingUITest(tester);
+  });
+
+  testWidgets('collaborator avatars in app bar', (WidgetTester tester) async {
+    await runCollaboratorAvatarsTest(tester);
+  });
+
+  testWidgets('trip metadata persistence after edit',
+      (WidgetTester tester) async {
+    await runTripMetadataPersistenceTest(tester);
+  });
+
+  testWidgets('multiple contributors scenario', (WidgetTester tester) async {
+    await runMultipleContributorsScenarioTest(tester);
+  });
 }

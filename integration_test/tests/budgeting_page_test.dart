@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
@@ -18,14 +17,13 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/main/horizontal_secti
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/section_header.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
+import '../helpers/firebase_emulator_helper.dart';
+import '../helpers/mock_location_api_service.dart';
 import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
 
 /// Test: BudgetingPage has three main sections
-Future<void> runBudgetingPageStructureTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runBudgetingPageStructureTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -102,10 +100,7 @@ Future<void> runBudgetingPageStructureTest(
 }
 
 /// Test: ExpenseListView displays BudgetTile with total expense percentage
-Future<void> runExpensesListViewStructureTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runExpensesListViewStructureTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -165,10 +160,7 @@ Future<void> runExpensesListViewStructureTest(
 }
 
 /// Test: BudgetTile displays correctly when expenses are under budget
-Future<void> runBudgetTileUnderBudgetTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runBudgetTileUnderBudgetTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -213,10 +205,7 @@ Future<void> runBudgetTileUnderBudgetTest(
 }
 
 /// Test: BudgetTile displays correctly when expenses are over budget
-Future<void> runBudgetTileOverBudgetTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runBudgetTileOverBudgetTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -266,10 +255,7 @@ Future<void> runBudgetTileOverBudgetTest(
 }
 
 /// Test: Sort options - Default sort (newToOld)
-Future<void> runSortOptionsDefaultTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runSortOptionsDefaultTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -327,10 +313,7 @@ Future<void> runSortOptionsDefaultTest(
 }
 
 /// Test: Sort by cost ascending
-Future<void> runSortByCostAscendingTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runSortByCostAscendingTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -358,10 +341,7 @@ Future<void> runSortByCostAscendingTest(
 }
 
 /// Test: Sort by cost descending
-Future<void> runSortByCostDescendingTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runSortByCostDescendingTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -393,10 +373,7 @@ Future<void> runSortByCostDescendingTest(
 }
 
 /// Test: Sort by date ascending (oldest first)
-Future<void> runSortByDateAscendingTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runSortByDateAscendingTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -424,10 +401,7 @@ Future<void> runSortByDateAscendingTest(
 }
 
 /// Test: Sort by date descending (newest first)
-Future<void> runSortByDateDescendingTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runSortByDateDescendingTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -446,10 +420,7 @@ Future<void> runSortByDateDescendingTest(
 }
 
 /// Test: Sort by category
-Future<void> runSortByCategoryTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runSortByCategoryTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -472,10 +443,7 @@ Future<void> runSortByCategoryTest(
 }
 
 /// Test: DebtSummaryTile displays debt information
-Future<void> runDebtSummaryTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runDebtSummaryTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -509,10 +477,7 @@ Future<void> runDebtSummaryTest(
 }
 
 /// Test: BudgetBreakdownTile displays breakdown charts
-Future<void> runBudgetBreakdownTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runBudgetBreakdownTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -549,10 +514,7 @@ Future<void> runBudgetBreakdownTest(
 }
 
 /// Test: Expenses with various categories display correctly
-Future<void> runExpenseCategoriesTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runExpenseCategoriesTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -596,10 +558,7 @@ Future<void> runExpenseCategoriesTest(
 }
 
 /// Test: Expenses with and without dates display correctly
-Future<void> runExpensesWithAndWithoutDatesTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runExpensesWithAndWithoutDatesTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -633,10 +592,7 @@ Future<void> runExpensesWithAndWithoutDatesTest(
 }
 
 /// Test: Expenses from different sources display correctly
-Future<void> runExpensesFromDifferentSourcesTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runExpensesFromDifferentSourcesTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -682,10 +638,7 @@ Future<void> runExpensesFromDifferentSourcesTest(
 }
 
 /// Test: Currency handling in expenses
-Future<void> runMultipleCurrenciesTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runMultipleCurrenciesTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -787,20 +740,20 @@ void _verifyNonHorizontalSectionContent(
       sectionHeader.isExpanded ? 'Expanded' : 'Collapsed';
   expect(sectionHeader.title == expectedSectionData.title, isTrue,
       reason:
-          '${sectionExpandedState} Section header title should be - ${expectedSectionData.title}');
+          '$sectionExpandedState Section header title should be - ${expectedSectionData.title}');
   expect(
       find.descendant(
           of: collapsibleSectionHeaderFinder,
           matching: find.text(expectedSectionData.title)),
       findsOneWidget,
       reason:
-          '${sectionExpandedState} Section header title text should be - ${expectedSectionData.title}');
+          '$sectionExpandedState Section header title text should be - ${expectedSectionData.title}');
   expect(
       find.descendant(
           of: collapsibleSectionHeaderFinder,
           matching: find.byIcon(expectedSectionData.icon)),
       findsOneWidget,
-      reason: '${sectionExpandedState} Section header icon should be present');
+      reason: '$sectionExpandedState Section header icon should be present');
   expect(sectionHeader.isExpanded == expectedSectionData.isExpanded, isTrue,
       reason:
           'Section header isExpanded should be - ${expectedSectionData.isExpanded}');
@@ -878,5 +831,103 @@ class _ExpectedSectionData {
     required this.isExpanded,
     required this.isHorizontalSection,
     required this.sectionBody,
+  });
+}
+
+void runTests() {
+  setUpAll(() async {
+    await FirebaseEmulatorHelper.createFirebaseAuthUser(
+      email: TestConfig.testEmail,
+      password: TestConfig.testPassword,
+      shouldAddToFirestore: true,
+      shouldSignIn: true,
+    );
+    await MockLocationApiService.initialize();
+    await TestHelpers.createTestTrip();
+  });
+
+  tearDown(() async {
+    expect(find.byType(ErrorWidget), findsNothing);
+  });
+
+  tearDownAll(() async {
+    await FirebaseEmulatorHelper.cleanupAfterTest();
+  });
+
+  testWidgets('displays three main sections (Expenses, Debt, Breakdown)',
+      (WidgetTester tester) async {
+    await runBudgetingPageStructureTest(tester);
+  });
+
+  testWidgets('ExpenseListView displays BudgetTile and sort options',
+      (WidgetTester tester) async {
+    await runExpensesListViewStructureTest(tester);
+  });
+
+  testWidgets('BudgetTile displays correctly when expenses under budget',
+      (WidgetTester tester) async {
+    await runBudgetTileUnderBudgetTest(tester);
+  });
+
+  testWidgets('BudgetTile displays correctly when expenses over budget',
+      (WidgetTester tester) async {
+    await runBudgetTileOverBudgetTest(tester);
+  });
+
+  testWidgets('default sort option works (newest to oldest)',
+      (WidgetTester tester) async {
+    await runSortOptionsDefaultTest(tester);
+  });
+
+  testWidgets('sort by cost ascending works', (WidgetTester tester) async {
+    await runSortByCostAscendingTest(tester);
+  });
+
+  testWidgets('sort by cost descending works', (WidgetTester tester) async {
+    await runSortByCostDescendingTest(tester);
+  });
+
+  testWidgets('sort by date ascending works (oldest first)',
+      (WidgetTester tester) async {
+    await runSortByDateAscendingTest(tester);
+  });
+
+  testWidgets('sort by date descending works (newest first)',
+      (WidgetTester tester) async {
+    await runSortByDateDescendingTest(tester);
+  });
+
+  testWidgets('sort by category works', (WidgetTester tester) async {
+    await runSortByCategoryTest(tester);
+  });
+
+  testWidgets('DebtSummaryTile displays debt information',
+      (WidgetTester tester) async {
+    await runDebtSummaryTest(tester);
+  });
+
+  testWidgets('BudgetBreakdownTile displays breakdown charts',
+      (WidgetTester tester) async {
+    await runBudgetBreakdownTest(tester);
+  });
+
+  testWidgets('expenses with various categories display correctly',
+      (WidgetTester tester) async {
+    await runExpenseCategoriesTest(tester);
+  });
+
+  testWidgets('expenses with and without dates display correctly',
+      (WidgetTester tester) async {
+    await runExpensesWithAndWithoutDatesTest(tester);
+  });
+
+  testWidgets('expenses from different sources display correctly',
+      (WidgetTester tester) async {
+    await runExpensesFromDifferentSourcesTest(tester);
+  });
+
+  testWidgets('multiple currencies handled correctly',
+      (WidgetTester tester) async {
+    await runMultipleCurrenciesTest(tester);
   });
 }

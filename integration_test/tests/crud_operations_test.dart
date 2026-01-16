@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_viewer.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
 import '../helpers/test_helpers.dart';
 
 /// Test: Add new transit via FloatingActionButton
-Future<void> runAddTransitTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runAddTransitTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -40,10 +36,7 @@ Future<void> runAddTransitTest(
 }
 
 /// Test: Add new stay/lodging via FloatingActionButton
-Future<void> runAddStayTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runAddStayTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -70,10 +63,7 @@ Future<void> runAddStayTest(
 }
 
 /// Test: Add new expense via FloatingActionButton
-Future<void> runAddExpenseTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runAddExpenseTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -100,10 +90,7 @@ Future<void> runAddExpenseTest(
 }
 
 /// Test: Add new sight from itinerary viewer
-Future<void> runAddSightTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runAddSightTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -140,10 +127,7 @@ Future<void> runAddSightTest(
 }
 
 /// Test: Add new note from itinerary viewer
-Future<void> runAddNoteTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runAddNoteTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -181,10 +165,7 @@ Future<void> runAddNoteTest(
 }
 
 /// Test: Add new checklist from itinerary viewer
-Future<void> runAddChecklistTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runAddChecklistTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -217,10 +198,7 @@ Future<void> runAddChecklistTest(
 }
 
 /// Test: Edit existing transit from timeline
-Future<void> runEditTransitTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditTransitTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -250,10 +228,7 @@ Future<void> runEditTransitTest(
 }
 
 /// Test: Edit existing stay/lodging from timeline
-Future<void> runEditStayTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditStayTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -275,10 +250,7 @@ Future<void> runEditStayTest(
 }
 
 /// Test: Edit existing expense from budgeting page
-Future<void> runEditExpenseTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditExpenseTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -312,10 +284,7 @@ Future<void> runEditExpenseTest(
 }
 
 /// Test: Edit sight opens specific sight in editor
-Future<void> runEditSightTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditSightTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -347,10 +316,7 @@ Future<void> runEditSightTest(
 }
 
 /// Test: Edit note opens specific note in editor
-Future<void> runEditNoteTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditNoteTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -382,10 +348,7 @@ Future<void> runEditNoteTest(
 }
 
 /// Test: Edit checklist opens specific checklist in editor
-Future<void> runEditChecklistTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditChecklistTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -417,10 +380,7 @@ Future<void> runEditChecklistTest(
 }
 
 /// Test: Adding transit updates expense list view
-Future<void> runTransitUpdatesExpenseListTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runTransitUpdatesExpenseListTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -452,10 +412,7 @@ Future<void> runTransitUpdatesExpenseListTest(
 }
 
 /// Test: Adding stay updates expense list view and timeline
-Future<void> runStayUpdatesMultipleViewsTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runStayUpdatesMultipleViewsTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -469,10 +426,7 @@ Future<void> runStayUpdatesMultipleViewsTest(
 }
 
 /// Test: Adding sight updates sights tab
-Future<void> runSightUpdatesItineraryTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runSightUpdatesItineraryTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -492,10 +446,7 @@ Future<void> runSightUpdatesItineraryTest(
 }
 
 /// Test: Editing expense updates budget display
-Future<void> runExpenseEditUpdatesBudgetTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runExpenseEditUpdatesBudgetTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -519,10 +470,7 @@ Future<void> runExpenseEditUpdatesBudgetTest(
 }
 
 /// Test: Repository update propagates to all views
-Future<void> runRepositoryPropagationTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runRepositoryPropagationTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -544,10 +492,7 @@ Future<void> runRepositoryPropagationTest(
 }
 
 /// Test: Navigating to specific itinerary component
-Future<void> runNavigateToSpecificComponentTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runNavigateToSpecificComponentTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -559,4 +504,99 @@ Future<void> runNavigateToSpecificComponentTest(
   print('  - Tap checklist → Opens editor with checklist at specific index');
   print('  - Editor config specifies PlanDataType and index');
   print('  - Editor scrolls to and highlights selected item');
+}
+
+void runTests() {
+  setUp(() async {
+    // Setup authenticated state and create a test trip
+    await TestHelpers.createTestTrip();
+  });
+
+  testWidgets('add new transit via FloatingActionButton',
+      (WidgetTester tester) async {
+    await runAddTransitTest(tester);
+  });
+
+  testWidgets('add new stay via FloatingActionButton',
+      (WidgetTester tester) async {
+    await runAddStayTest(tester);
+  });
+
+  testWidgets('add new expense via FloatingActionButton',
+      (WidgetTester tester) async {
+    await runAddExpenseTest(tester);
+  });
+
+  testWidgets('add new sight from itinerary viewer',
+      (WidgetTester tester) async {
+    await runAddSightTest(tester);
+  });
+
+  testWidgets('add new note from itinerary viewer',
+      (WidgetTester tester) async {
+    await runAddNoteTest(tester);
+  });
+
+  testWidgets('add new checklist from itinerary viewer',
+      (WidgetTester tester) async {
+    await runAddChecklistTest(tester);
+  });
+
+  testWidgets('edit existing transit from timeline',
+      (WidgetTester tester) async {
+    await runEditTransitTest(tester);
+  });
+
+  testWidgets('edit existing stay from timeline', (WidgetTester tester) async {
+    await runEditStayTest(tester);
+  });
+
+  testWidgets('edit existing expense from budgeting page',
+      (WidgetTester tester) async {
+    await runEditExpenseTest(tester);
+  });
+
+  testWidgets('edit sight opens specific sight in editor',
+      (WidgetTester tester) async {
+    await runEditSightTest(tester);
+  });
+
+  testWidgets('edit note opens specific note in editor',
+      (WidgetTester tester) async {
+    await runEditNoteTest(tester);
+  });
+
+  testWidgets('edit checklist opens specific checklist in editor',
+      (WidgetTester tester) async {
+    await runEditChecklistTest(tester);
+  });
+
+  testWidgets('adding transit updates expense list view',
+      (WidgetTester tester) async {
+    await runTransitUpdatesExpenseListTest(tester);
+  });
+
+  testWidgets('adding stay updates multiple views',
+      (WidgetTester tester) async {
+    await runStayUpdatesMultipleViewsTest(tester);
+  });
+
+  testWidgets('adding sight updates itinerary', (WidgetTester tester) async {
+    await runSightUpdatesItineraryTest(tester);
+  });
+
+  testWidgets('editing expense updates budget display',
+      (WidgetTester tester) async {
+    await runExpenseEditUpdatesBudgetTest(tester);
+  });
+
+  testWidgets('repository updates propagate to all views',
+      (WidgetTester tester) async {
+    await runRepositoryPropagationTest(tester);
+  });
+
+  testWidgets('navigate to specific itinerary component',
+      (WidgetTester tester) async {
+    await runNavigateToSpecificComponentTest(tester);
+  });
 }

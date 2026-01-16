@@ -846,11 +846,69 @@ class _TestLogger {
     print('⚠ $message');
   }
 
-  static void logError(String message) {
-    print('✗ $message');
-  }
-
   static void logInfo(String message) {
     print('  - $message');
   }
+}
+
+void runTests() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  tearDown(() async {
+    expect(find.byType(ErrorWidget), findsNothing);
+    var sharedPreferences = await SharedPreferences.getInstance();
+    await sharedPreferences.clear();
+    await FirebaseEmulatorHelper.cleanupAfterTest();
+  });
+
+  testWidgets('Sign in with existing user (has Firestore document)',
+      (WidgetTester tester) async {
+    await runSignInExistingUserWithFirestoreDoc(tester);
+  });
+
+  testWidgets('Sign in with user without Firestore doc (creates one)',
+      (WidgetTester tester) async {
+    await runSignInNewUserWithoutFirestoreDoc(tester);
+  });
+
+  testWidgets('Sign in with unverified email (verification pending)',
+      (WidgetTester tester) async {
+    await runSignInUnverifiedEmail(tester);
+  });
+
+  testWidgets('Sign up new user (verification pending)',
+      (WidgetTester tester) async {
+    await runSignUpNewUser(tester);
+  });
+
+  testWidgets('Sign up with existing email (should fail)',
+      (WidgetTester tester) async {
+    await runSignUpExistingEmail(tester);
+  });
+
+  testWidgets('Sign in with wrong password (should fail)',
+      (WidgetTester tester) async {
+    await runSignInWrongPassword(tester);
+  });
+
+  testWidgets('Sign in with invalid email format (should fail)',
+      (WidgetTester tester) async {
+    await runSignInInvalidEmail(tester);
+  });
+
+  testWidgets('Sign in with weak password (should fail)',
+      (WidgetTester tester) async {
+    await runSignUpWeakPassword(tester);
+  });
+
+  testWidgets('Sign in with non-existent user (should fail)',
+      (WidgetTester tester) async {
+    await runSignInNonExistentUser(tester);
+  });
+
+  testWidgets('Sign out clears auth and cache', (WidgetTester tester) async {
+    await runSignOutTest(tester);
+  });
 }

@@ -22,6 +22,8 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.d
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
 import '../helpers/facade_matchers.dart';
+import '../helpers/firebase_emulator_helper.dart';
+import '../helpers/mock_location_api_service.dart';
 import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
 
@@ -1219,4 +1221,39 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
       reason: 'Day 6 checklist is incorrect');
 
   print('✓ All itinerary data (sights, notes, checklists) verified');
+}
+
+void runTests() {
+  setUpAll(() async {
+    await FirebaseEmulatorHelper.createFirebaseAuthUser(
+      email: TestConfig.testEmail,
+      password: TestConfig.testEmail,
+      shouldAddToFirestore: true,
+      shouldSignIn: true,
+    );
+    // Initialize mock location API service to intercept HTTP requests
+    // Note: This creates a MockClient that can be injected into GeoLocator
+    await MockLocationApiService.initialize();
+    await TestHelpers.createTestTrip();
+  });
+
+  tearDown(() async {
+    expect(find.byType(ErrorWidget), findsNothing);
+  });
+
+  tearDownAll(() async {
+    await FirebaseEmulatorHelper.cleanupAfterTest();
+  });
+
+  testWidgets(
+      'adapts layout based on screen size - side-by-side for large screens, bottom navigation for small screens',
+      (WidgetTester tester) async {
+    await runTripEditorLayoutTest(tester);
+  });
+
+  testWidgets(
+      'trip repository contains correct values from createTestTrip setup',
+      (WidgetTester tester) async {
+    await runTripRepositoryValuesTest(tester);
+  });
 }

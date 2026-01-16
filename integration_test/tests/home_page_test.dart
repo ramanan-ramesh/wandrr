@@ -17,6 +17,8 @@ import 'package:wandrr/presentation/trip/pages/home/trip_creator_dialog.dart';
 import 'package:wandrr/presentation/trip/pages/home/trips_list_view.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
+import '../helpers/firebase_emulator_helper.dart';
+import '../helpers/mock_location_api_service.dart';
 import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
 
@@ -284,4 +286,52 @@ Future<void> _switchAndVerifyThemeMode(
 Future<void> _openToolbar(WidgetTester tester) async {
   final toolbarButton = find.byIcon(Icons.settings);
   await TestHelpers.tapWidget(tester, toolbarButton);
+}
+
+void runTests() {
+  setUpAll(() async {
+    await FirebaseEmulatorHelper.createFirebaseAuthUser(
+      email: TestConfig.testEmail,
+      password: TestConfig.testPassword,
+      shouldAddToFirestore: true,
+      shouldSignIn: true,
+    );
+    // Initialize mock location API service to intercept HTTP requests
+    // Note: This creates a MockClient that can be injected into GeoLocator
+    await MockLocationApiService.initialize();
+  });
+
+  tearDown(() async {
+    expect(find.byType(ErrorWidget), findsNothing);
+  });
+
+  tearDownAll(() async {
+    await FirebaseEmulatorHelper.cleanupAfterTest();
+  });
+
+  testWidgets(
+      'sets isBigLayout to true when screen width >= 1000, and AppBar resizes accordingly',
+      (WidgetTester tester) async {
+    await runHomePageLayoutTest(tester);
+  });
+
+  testWidgets('updates locale when language is selected from toolbar',
+      (WidgetTester tester) async {
+    await runHomePageLanguageSwitchTest(tester);
+  });
+
+  testWidgets('updates theme mode when theme switcher is toggled',
+      (WidgetTester tester) async {
+    await runHomePageThemeSwitchTest(tester);
+  });
+
+  testWidgets('displays no trips initially in TripsListView',
+      (WidgetTester tester) async {
+    await runHomePageEmptyTripsTest(tester);
+  });
+
+  testWidgets('navigates to TripEditorPage after creating trip',
+      (WidgetTester tester) async {
+    await runHomePageCreateTripFlowTest(tester);
+  });
 }

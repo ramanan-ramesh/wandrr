@@ -105,3 +105,11 @@ Future<void> runStartupPageTest(
     print('✓ Navigation to LoginPage successful');
   }
 }
+
+void runTests() {
+  testWidgets(
+      'adapts layout based on screen size (large: side-by-side, small: navigation)',
+      (WidgetTester tester) async {
+    await runStartupPageTest(tester);
+  });
+}
