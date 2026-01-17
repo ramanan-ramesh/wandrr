@@ -135,21 +135,20 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   Widget _createReadonlyExpenditureTile(BuildContext context) {
     var formattedText = context.activeTrip.budgetingModule
         .formatCurrency(_totalExpenseValueNotifier.value);
-    var columnItems = <Widget>[
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2.0),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: PlatformTextElements.createSubHeader(
-              context: context,
-              shouldBold: widget.isEditable,
-              text: formattedText),
-        ),
-      ),
-    ];
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: columnItems,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2.0),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: PlatformTextElements.createSubHeader(
+                context: context,
+                shouldBold: widget.isEditable,
+                text: formattedText),
+          ),
+        ),
+      ],
     );
   }
 

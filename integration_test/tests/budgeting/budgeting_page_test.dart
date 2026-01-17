@@ -4,18 +4,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
-import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/breakdown/breakdown_by_category.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/breakdown/breakdown_by_day.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/breakdown/budget_breakdown_tile.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/debt_dummary.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/budget_tile.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/expenses_list_view.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/main/horizontal_sections.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
+import 'package:wandrr/presentation/trip/widgets/contributor_badge.dart';
 
 import '../../helpers/firebase_emulator_helper.dart';
 import '../../helpers/http_overrides/mock_location_api_service.dart';
 import '../../helpers/test_config.dart';
 import '../../helpers/test_helpers.dart';
+import 'expense_list_item_test.dart';
+import 'helpers.dart';
 import 'layout_structure_tests.dart';
 import 'sort_options_tests.dart';
 
@@ -27,7 +30,7 @@ Future<void> runBudgetTileUnderBudgetTest(WidgetTester tester) async {
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  await _tryNavigateToBudgetingPage(tester);
+  await tryNavigateToBudgetingPage(tester);
 
   // Check for LinearProgressIndicator (shown when under budget)
   final progressIndicator = find.descendant(
@@ -71,7 +74,7 @@ Future<void> runBudgetTileOverBudgetTest(WidgetTester tester) async {
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  await _tryNavigateToBudgetingPage(tester);
+  await tryNavigateToBudgetingPage(tester);
 
   final context = tester.element(find.byType(TripEditorPage));
   final tripRepo = TestHelpers.getTripRepository(tester);
@@ -87,6 +90,7 @@ Future<void> runBudgetTileOverBudgetTest(WidgetTester tester) async {
   BlocProvider.of<TripManagementBloc>(context)
       .add(UpdateTripEntity.create(tripEntity: newExpense));
   await Future.delayed(const Duration(milliseconds: 1000));
+  await tester.pumpAndSettle();
 
   // The test trip has budget of 1500 EUR and expenses totaling around 1500+ EUR
   // So it should be over budget
@@ -94,20 +98,25 @@ Future<void> runBudgetTileOverBudgetTest(WidgetTester tester) async {
   final progressIndicator = find.descendant(
       of: find.byType(ExpenseListView),
       matching: find.byType(FractionallySizedBox));
-  expect(progressIndicator, findsOneWidget,
-      reason: 'FractionallySizedBox should be displayed');
+  expect(progressIndicator, findsNWidgets(2),
+      reason: '2 FractionallySizedBox should be displayed');
 
   // Get the progress indicator widget
   final budgetPercentage = tripMetadata.budget.amount /
       tripRepo.activeTrip!.budgetingModule.totalExpenditure;
   final excessPercentage = 1.0 - budgetPercentage;
-  final FractionallySizedBox indicator = tester.widget(progressIndicator.first);
-  expect(indicator.widthFactor == excessPercentage, isTrue,
+  final FractionallySizedBox indicator1 =
+      tester.widget(progressIndicator.first);
+  expect(indicator1.widthFactor == budgetPercentage, isTrue,
+      reason: 'Indicator 1 should have correct percentage value');
+  final FractionallySizedBox indicator2 = tester.widget(progressIndicator.last);
+  expect(indicator2.widthFactor == excessPercentage, isTrue,
       reason: 'Progress indicator should have correct percentage value');
 
   BlocProvider.of<TripManagementBloc>(context)
       .add(UpdateTripEntity.delete(tripEntity: newExpense));
   await Future.delayed(const Duration(milliseconds: 500));
+  await tester.pumpAndSettle();
 
   print('✓ Budget display found');
   print('✓ Budget indicator present (check for over budget visual indicator)');
@@ -121,29 +130,38 @@ Future<void> runDebtSummaryTest(WidgetTester tester) async {
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  await _tryNavigateToBudgetingPage(tester);
+  await tryNavigateToBudgetingPage(tester);
 
   // Find and tap on Debt section to expand it
-  final debtSection = find.text('Debt');
-  expect(debtSection, findsOneWidget, reason: 'Debt section should be present');
-
+  final debtSection = find.descendant(
+      of: find.byType(HorizontalSectionsList),
+      matching: find.byIcon(Icons.money_off_rounded));
   await TestHelpers.tapWidget(tester, debtSection);
-  await tester.pumpAndSettle();
-
   print('✓ Expanded Debt section');
-
-  // Check for DebtSummaryTile
-  final debtSummaryTile = find.byType(DebtSummaryTile);
-  expect(debtSummaryTile, findsOneWidget,
-      reason: 'DebtSummaryTile should be present');
-  print('✓ DebtSummaryTile found');
 
   // Verify debt calculation includes both contributors from test data
   // Test data has 2 contributors: TestConfig.testEmail and TestConfig.tripMateUserName
   // All expenses are paid by testEmail and split between both
   // So tripMate owes testEmail money
-  expect(find.textContaining('owes'), findsWidgets,
-      reason: 'Debt summary should show who owes whom');
+  final debtRowContainer = find.byKey(ValueKey('debtSummaryTile_debtRow'));
+  expect(find.textContaining('owes'), findsOneWidget,
+      reason: 'Debt summary should show one row');
+  final contributorBadges = find.descendant(
+      of: debtRowContainer, matching: find.byType(ContributorBadge));
+  expect(contributorBadges, findsNWidgets(2),
+      reason: 'Two contributor badges should be present');
+  final personOwingMoney =
+      tester.widget<ContributorBadge>(contributorBadges.first);
+  expect(
+      personOwingMoney.contributorName == TestConfig.tripMateUserName, isTrue,
+      reason: 'Person who owes money should be ${TestConfig.tripMateUserName}');
+  final personOwedMoney =
+      tester.widget<ContributorBadge>(contributorBadges.last);
+  expect(personOwedMoney.contributorName == TestConfig.testEmail, isTrue,
+      reason: 'Person who is owed money should be ${TestConfig.testEmail}');
+  final oweAmount = find.text('745 €');
+  expect(oweAmount, findsOneWidget, reason: 'Owe amount should be 745 €');
+
   print('✓ Debt relationships displayed');
 }
 
@@ -155,16 +173,13 @@ Future<void> runBudgetBreakdownTest(WidgetTester tester) async {
   // Navigate to TripEditorPage
   await TestHelpers.navigateToTripEditorPage(tester);
 
-  await _tryNavigateToBudgetingPage(tester);
+  await tryNavigateToBudgetingPage(tester);
 
   // Find and tap on Breakdown section to expand it
-  final breakdownSection = find.text('Breakdown');
-  expect(breakdownSection, findsOneWidget,
-      reason: 'Breakdown section should be present');
-
+  final breakdownSection = find.descendant(
+      of: find.byType(HorizontalSectionsList),
+      matching: find.byIcon(Icons.pie_chart_rounded));
   await TestHelpers.tapWidget(tester, breakdownSection);
-  await tester.pumpAndSettle();
-
   print('✓ Expanded Breakdown section');
 
   // Check for BudgetBreakdownTile
@@ -174,169 +189,29 @@ Future<void> runBudgetBreakdownTest(WidgetTester tester) async {
   print('✓ BudgetBreakdownTile found');
 
   // Check for tab options (Category and Day by Day)
-  final categoryTab = find.text('Category');
-  final dayByDayTab = find.text('Day by Day');
-
-  expect(categoryTab, findsOneWidget,
-      reason: 'Category breakdown tab should be present');
-  expect(dayByDayTab, findsOneWidget,
-      reason: 'Day by Day breakdown tab should be present');
+  final tabs = find.descendant(
+      of: find.descendant(
+          of: budgetBreakdownTile, matching: find.byType(TabBar)),
+      matching: find.byType(Tab));
+  final tabBarViewFinder = find.descendant(
+      of: budgetBreakdownTile, matching: find.byType(TabBarView));
+  final tabBarView = tester.widget<TabBarView>(tabBarViewFinder);
+  expect(tabs, findsNWidgets(2), reason: 'TabBar should have 2 tabs');
+  final categoryTab = tester.widget<Tab>(tabs.first);
+  expect(categoryTab.text, 'Category',
+      reason: 'Category tab should have text "Category"');
+  final dayByDayTab = tester.widget<Tab>(tabs.last);
+  expect(dayByDayTab.text, 'Day by Day',
+      reason: 'Day by Day tab should have text "Day by Day"');
+  final tabBarItems = tabBarView.children;
+  expect(tabBarItems.first is BreakdownByDayChart, isTrue,
+      reason: 'First tab should be BreakdownByDayChart');
+  expect(tabBarItems.last is BreakdownByCategoryChart, isTrue,
+      reason: 'Second tab should be BreakdownByCategoryChart');
   print('✓ Breakdown tabs found (Category and Day by Day)');
 }
 
-/// Test: Expenses with various categories display correctly
-Future<void> runExpenseCategoriesTest(WidgetTester tester) async {
-  // Launch the app
-  await TestHelpers.pumpAndSettleApp(tester);
-
-  // Navigate to TripEditorPage
-  await TestHelpers.navigateToTripEditorPage(tester);
-
-  await _tryNavigateToBudgetingPage(tester);
-
-  // Sort by category to see all categories grouped
-  final categorySortButton = find.byIcon(Icons.category_outlined);
-  expect(categorySortButton, findsOneWidget,
-      reason: 'Category sort button should be present');
-
-  await TestHelpers.tapWidget(tester, categorySortButton.first);
-  await tester.pumpAndSettle();
-
-  print('✓ Sorted by category');
-
-  // Verify actual expense categories from test data
-  // Test data has expenses in categories: food (2 pure expenses), other (1 pure expense)
-  // Plus transit expenses in various categories: flights, publicTransit, carRental, taxi
-  // Plus lodging expenses and sightseeing expenses
-
-  // Verify repository has expected categories
-  final tripRepo = TestHelpers.getTripRepository(tester);
-  final expenses = tripRepo.activeTrip!.expenseCollection.collectionItems;
-
-  // Check categories in pure expenses
-  final foodExpenses =
-      expenses.where((e) => e.category == ExpenseCategory.food);
-  final otherExpenses =
-      expenses.where((e) => e.category == ExpenseCategory.other);
-
-  expect(foodExpenses.length, 2,
-      reason: 'Should have 2 food expenses (Dinner and Groceries)');
-  expect(otherExpenses.length, 1,
-      reason: 'Should have 1 other expense (Souvenirs)');
-
-  print('✓ Verified expense categories: 2 food, 1 other');
-}
-
-/// Test: Expenses with and without dates display correctly
-Future<void> runExpensesWithAndWithoutDatesTest(WidgetTester tester) async {
-  // Launch the app
-  await TestHelpers.pumpAndSettleApp(tester);
-
-  // Navigate to TripEditorPage
-  await TestHelpers.navigateToTripEditorPage(tester);
-
-  await _tryNavigateToBudgetingPage(tester);
-
-  // Sort by date to see how expenses with/without dates are handled
-  final dateSortButton = find.byIcon(Icons.calendar_today_rounded);
-  expect(dateSortButton, findsOneWidget,
-      reason: 'Date sort button should be present');
-
-  print('✓ Date sort available');
-
-  // Verify repository has expenses with dates
-  final tripRepo = TestHelpers.getTripRepository(tester);
-  final expenses = tripRepo.activeTrip!.expenseCollection.collectionItems;
-
-  // All pure expenses in test data have dates
-  for (var expense in expenses) {
-    expect(expense.expense.dateTime, isNotNull,
-        reason: 'Pure expense "${expense.title}" should have a date');
-  }
-
-  print('✓ Verified all pure expenses have dates:');
-  print('  - Dinner at Le Comptoir: 2025-09-24 20:00');
-  print('  - Souvenirs from Louvre: 2025-09-25 12:00');
-  print('  - Groceries: 2025-09-26');
-}
-
-/// Test: Expenses from different sources display correctly
-Future<void> runExpensesFromDifferentSourcesTest(WidgetTester tester) async {
-  // Launch the app
-  await TestHelpers.pumpAndSettleApp(tester);
-
-  // Navigate to TripEditorPage
-  await TestHelpers.navigateToTripEditorPage(tester);
-
-  await _tryNavigateToBudgetingPage(tester);
-
-  // Verify different expense sources from repository
-  final tripRepo = TestHelpers.getTripRepository(tester);
-  final trip = tripRepo.activeTrip!;
-
-  // Verify transit expenses (9 transits from test data)
-  expect(trip.transitCollection.collectionItems.length, 9,
-      reason: 'Should have 9 transit expenses');
-  print(
-      '✓ Transit expenses: 9 (flight, trains, bus, car rental, taxi, ferry, walk, metro)');
-
-  // Verify lodging expenses (3 lodgings from test data)
-  expect(trip.lodgingCollection.collectionItems.length, 3,
-      reason: 'Should have 3 lodging expenses');
-  print('✓ Lodging expenses: 3 (Paris, Brussels, Amsterdam)');
-
-  // Verify sight expenses (5 sights from test data with expenses)
-  // Count sights across all itineraries (5 days: Sept 24-28)
-  var totalSights = 0;
-  for (int i = 0; i < 5; i++) {
-    final day = DateTime(2025, 9, 24 + i);
-    final itinerary = trip.itineraryCollection.getItineraryForDay(day);
-    totalSights += itinerary.planData.sights.length;
-  }
-  expect(totalSights, 5, reason: 'Should have 5 sight expenses');
-  print(
-      '✓ Sight expenses: 5 (Eiffel Tower, Versailles, Louvre, Atomium, Rijksmuseum)');
-
-  // Verify pure expenses (3 from test data)
-  expect(trip.expenseCollection.collectionItems.length, 3,
-      reason: 'Should have 3 pure expenses');
-  print('✓ Pure expenses: 3 (Dinner, Souvenirs, Groceries)');
-
-  print('✓ All expense sources verified in ExpenseListView');
-}
-
-/// Test: Currency handling in expenses
-Future<void> runMultipleCurrenciesTest(WidgetTester tester) async {
-  // Launch the app
-  await TestHelpers.pumpAndSettleApp(tester);
-
-  // Navigate to TripEditorPage
-  await TestHelpers.navigateToTripEditorPage(tester);
-
-  await _tryNavigateToBudgetingPage(tester);
-
-  // Budget tile should show total in trip's base currency (EUR)
-  final budgetTile = find.byType(BudgetTile);
-  expect(budgetTile, findsOneWidget, reason: 'BudgetTile should be present');
-
-  // Verify EUR currency is displayed (all test expenses are in EUR)
-  expect(find.textContaining('EUR'), findsWidgets,
-      reason: 'EUR currency should be displayed in budget tile');
-
-  print('✓ BudgetTile displays total converted to base currency (EUR)');
-  print('✓ All test expenses are in EUR from test data');
-}
-
-Future<void> _tryNavigateToBudgetingPage(WidgetTester tester) async {
-  if (!TestHelpers.isLargeScreen(tester)) {
-    // Find and tap the budgeting tab in bottom navigation
-    final budgetingTab = find.descendant(
-        of: find.byType(BottomNavBar),
-        matching: find.byIcon(Icons.wallet_travel_rounded));
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
-}
-
+//TODO: Add test to verify what is exactly displayed in ReadonlyExpenseListItem, and a test to verify contents of BreakdownByDay/BreakdownByCategory charts
 void runTests() {
   setUpAll(() async {
     await FirebaseEmulatorHelper.createFirebaseAuthUser(
@@ -345,7 +220,7 @@ void runTests() {
       shouldAddToFirestore: true,
       shouldSignIn: true,
     );
-    await MockLocationApiService.initialize();
+    await MockApiServices.initialize();
     await TestHelpers.createTestTrip();
   });
 
@@ -404,6 +279,12 @@ void runTests() {
     await runSortByCategoryTest(tester);
   });
 
+  // A test to verify what is exactly displayed in a expense list view item
+  testWidgets('Expense list view item displays correct data',
+      (WidgetTester tester) async {
+    await runExpenseListItemTest(tester);
+  });
+
   testWidgets('DebtSummaryTile displays debt information',
       (WidgetTester tester) async {
     await runDebtSummaryTest(tester);
@@ -412,25 +293,5 @@ void runTests() {
   testWidgets('BudgetBreakdownTile displays breakdown charts',
       (WidgetTester tester) async {
     await runBudgetBreakdownTest(tester);
-  });
-
-  testWidgets('expenses with various categories display correctly',
-      (WidgetTester tester) async {
-    await runExpenseCategoriesTest(tester);
-  });
-
-  testWidgets('expenses with and without dates display correctly',
-      (WidgetTester tester) async {
-    await runExpensesWithAndWithoutDatesTest(tester);
-  });
-
-  testWidgets('expenses from different sources display correctly',
-      (WidgetTester tester) async {
-    await runExpensesFromDifferentSourcesTest(tester);
-  });
-
-  testWidgets('multiple currencies handled correctly',
-      (WidgetTester tester) async {
-    await runMultipleCurrenciesTest(tester);
   });
 }

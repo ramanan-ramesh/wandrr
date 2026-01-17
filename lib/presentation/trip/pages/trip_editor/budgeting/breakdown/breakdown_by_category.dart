@@ -65,6 +65,7 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
                         centerSpaceRadius: _kCenterSpaceRadius,
                         sections: _createExpenseCategorySections(data),
                       ),
+                      swapAnimationDuration: Duration.zero,
                     )
                   : const Center(child: Text('No expenses created yet.')),
         );

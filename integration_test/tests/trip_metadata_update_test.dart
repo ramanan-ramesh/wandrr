@@ -687,7 +687,7 @@ void runTests() {
       shouldAddToFirestore: true,
       shouldSignIn: true,
     );
-    await MockLocationApiService.initialize();
+    await MockApiServices.initialize();
     await TestHelpers.createTestTrip();
   });
 

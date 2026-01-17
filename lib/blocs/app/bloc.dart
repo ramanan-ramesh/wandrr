@@ -123,13 +123,13 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
   }
 
   Future<void> _initUpdateListener() async {
-    final remoteConfig = FirebaseRemoteConfig.instance;
-    await remoteConfig.setConfigSettings(RemoteConfigSettings(
-        fetchTimeout: const Duration(seconds: 30),
-        minimumFetchInterval: const Duration(minutes: 5)));
-    await remoteConfig.fetchAndActivate();
-
     if (!kIsWeb) {
+      final remoteConfig = FirebaseRemoteConfig.instance;
+      await remoteConfig.setConfigSettings(RemoteConfigSettings(
+          fetchTimeout: const Duration(seconds: 30),
+          minimumFetchInterval: const Duration(minutes: 5)));
+      await remoteConfig.fetchAndActivate();
+
       _updateRemoteConfigSubscription =
           remoteConfig.onConfigUpdated.listen((event) async {
         await remoteConfig.activate();

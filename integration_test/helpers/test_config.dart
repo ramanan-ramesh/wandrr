@@ -11,7 +11,7 @@ class TestConfig {
   static const String testTripId = 'test_trip_123';
   static const String testTripName = 'Test Trip to Paris';
   static const String testTripThumbnail = 'roadTrip';
-  static const String testTripCurrency = 'INR';
+  static const String testTripCurrency = 'EUR';
   static const double testTripBudget = 50000.0;
 
   // Timeout durations

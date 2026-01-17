@@ -31,7 +31,7 @@ void main() {
       );
       // Initialize mock location API service to intercept HTTP requests
       // Note: This creates a MockClient that can be injected into GeoLocator
-      await MockLocationApiService.initialize();
+      await MockApiServices.initialize();
       await TestHelpers.createTestTrip();
     });
 

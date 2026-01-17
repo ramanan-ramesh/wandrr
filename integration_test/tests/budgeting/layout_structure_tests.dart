@@ -5,12 +5,12 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_p
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/debt_dummary.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/budget_tile.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/expenses_list_view.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/collapsible_sections_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/horizontal_sections.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/section_header.dart';
 
 import '../../helpers/test_helpers.dart';
+import 'helpers.dart';
 
 /// Test: BudgetingPage has three main sections
 Future<void> runBudgetingPageStructureTest(WidgetTester tester) async {
@@ -21,7 +21,7 @@ Future<void> runBudgetingPageStructureTest(WidgetTester tester) async {
   await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to BudgetingPage if on small layout
-  await _tryNavigateToBudgetingPage(tester);
+  await tryNavigateToBudgetingPage(tester);
 
   // Verify BudgetingPage is displayed
   expect(find.byType(BudgetingPage), findsOneWidget,
@@ -100,7 +100,7 @@ Future<void> runExpensesListViewStructureTest(WidgetTester tester) async {
   // -------------------------------------------------------------------------
   // 1. Navigate to BudgetingPage if needed
   // -------------------------------------------------------------------------
-  await _tryNavigateToBudgetingPage(tester);
+  await tryNavigateToBudgetingPage(tester);
 
   // -------------------------------------------------------------------------
   // 2. Sort controls section (Row → BudgetTile + ToggleButtons)
@@ -147,16 +147,6 @@ Future<void> runExpensesListViewStructureTest(WidgetTester tester) async {
     find.descendant(of: rootColumnFinder, matching: expenseListView),
     findsOneWidget,
   );
-}
-
-Future<void> _tryNavigateToBudgetingPage(WidgetTester tester) async {
-  if (!TestHelpers.isLargeScreen(tester)) {
-    // Find and tap the budgeting tab in bottom navigation
-    final budgetingTab = find.descendant(
-        of: find.byType(BottomNavBar),
-        matching: find.byIcon(Icons.wallet_travel_rounded));
-    await TestHelpers.tapWidget(tester, budgetingTab);
-  }
 }
 
 void _verifyCollapsibleSectionPageData(WidgetTester tester,

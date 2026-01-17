@@ -68,7 +68,3 @@ class MockApiServices {
     MockCurrencyConverterHandler.clearCache();
   }
 }
-
-/// @deprecated Use [MockApiServices] instead
-/// Kept for backward compatibility
-typedef MockLocationApiService = MockApiServices;

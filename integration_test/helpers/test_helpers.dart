@@ -960,4 +960,64 @@ class TestHelpers {
 
     return orderedWidgets;
   }
+
+  static Future<void>
+      evaluateWidgetsByScrollingWithPredicate<T extends Widget>({
+    required WidgetTester tester,
+    required Finder scrollableFinder,
+    required Finder widgetFinder,
+    required String Function(T widget) getUniqueId,
+    required Future<String?> Function(T widget) predicate,
+    int? expectedCount,
+    Duration timeout = const Duration(minutes: 5),
+    Offset scrollDelta = const Offset(0, -300),
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    final seenIds = <String>{};
+    final orderedWidgets = <T>[];
+
+    await tester.pumpAndSettle();
+
+    // Scroll to top first
+    for (int i = 0; i < 5; i++) {
+      await tester.drag(scrollableFinder, const Offset(0, 500));
+      await tester.pumpAndSettle();
+    }
+
+    // Keep scrolling and collecting until we have enough or timeout
+    while (stopwatch.elapsed < timeout) {
+      // Collect all currently visible widgets
+      for (final element in widgetFinder.evaluate()) {
+        final widget = element.widget as T;
+        final id = getUniqueId(widget);
+        if (!seenIds.contains(id)) {
+          final evaluationResult = await predicate(widget);
+          if (evaluationResult == null) {
+            seenIds.add(id);
+            orderedWidgets.add(widget);
+          } else {
+            fail(evaluationResult);
+          }
+        }
+      }
+
+      // Check if we have enough
+      if (expectedCount != null && orderedWidgets.length >= expectedCount) {
+        break;
+      }
+
+      // Scroll down
+      await tester.drag(scrollableFinder, scrollDelta);
+      await tester.pumpAndSettle();
+    }
+
+    // Validate
+    if (expectedCount != null && orderedWidgets.length != expectedCount) {
+      throw TestFailure(
+        'Expected $expectedCount widgets of type $T, '
+        'but found ${orderedWidgets.length}. '
+        'Found IDs: ${seenIds.join(", ")}',
+      );
+    }
+  }
 }
