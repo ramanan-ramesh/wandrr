@@ -61,6 +61,7 @@ class TransitOperatorEditorSection extends StatelessWidget {
         TextEditingController(text: initialOperator ?? '');
 
     return TextField(
+      key: ValueKey('TransitEditor_TransitOperator_TextField'),
       minLines: 1,
       maxLines: 1,
       controller: transitOperatorEditingController,

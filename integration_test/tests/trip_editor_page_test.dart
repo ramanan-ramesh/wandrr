@@ -19,9 +19,9 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_n
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
-import '../helpers/facade_matchers.dart';
 import '../helpers/firebase_emulator_helper.dart';
 import '../helpers/http_overrides/mock_location_api_service.dart';
+import '../helpers/matchers.dart';
 import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
 

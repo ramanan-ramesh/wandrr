@@ -78,54 +78,6 @@ class _PlatformAutoCompleteState<T extends Object>
     }
   }
 
-  Future<Iterable<T>> _debouncedOptionsBuilder(
-      TextEditingValue textEditingValue) async {
-    final String query = textEditingValue.text;
-
-    if (query == _lastQueryForTimer && _completer != null) {
-      return _completer!.future;
-    }
-
-    _debounce?.cancel();
-
-    if (_completer != null && !_completer!.isCompleted) {
-      _completer!.complete([]);
-    }
-
-    final Completer<Iterable<T>> completer = Completer<Iterable<T>>();
-    _completer = completer;
-    _lastQueryForTimer = query;
-
-    if (query.isEmpty) {
-      completer.complete([]);
-      return completer.future;
-    }
-
-    _debounce = Timer(const Duration(milliseconds: 500), () async {
-      try {
-        final results = await widget.optionsBuilder(query);
-
-        if (completer == _completer && !completer.isCompleted) {
-          completer.complete(results);
-        }
-      } catch (e) {
-        if (completer == _completer && !completer.isCompleted) {
-          completer.completeError(e);
-        }
-      }
-    });
-
-    return completer.future;
-  }
-
-  /// Helper to get the display string for a given item
-  String _getDisplayString(T item) {
-    if (widget.displayTextCreator != null) {
-      return widget.displayTextCreator!(item);
-    }
-    return item.toString();
-  }
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -175,6 +127,7 @@ class _PlatformAutoCompleteState<T extends Object>
                     ),
                   Expanded(
                     child: TextFormField(
+                      key: ValueKey('PlatformAutoComplete_TextField'),
                       controller: _textEditingController,
                       focusNode: _focusNode,
                       style: Theme.of(context).textTheme.labelLarge ??
@@ -209,6 +162,7 @@ class _PlatformAutoCompleteState<T extends Object>
                       itemBuilder: (BuildContext context, int index) {
                         final option = options.elementAt(index);
                         return InkWell(
+                          key: ValueKey('PlatformAutoComplete_ListTile'),
                           onTap: () {
                             onSelected(option);
                           },
@@ -230,5 +184,53 @@ class _PlatformAutoCompleteState<T extends Object>
         );
       },
     );
+  }
+
+  Future<Iterable<T>> _debouncedOptionsBuilder(
+      TextEditingValue textEditingValue) async {
+    final String query = textEditingValue.text;
+
+    if (query == _lastQueryForTimer && _completer != null) {
+      return _completer!.future;
+    }
+
+    _debounce?.cancel();
+
+    if (_completer != null && !_completer!.isCompleted) {
+      _completer!.complete([]);
+    }
+
+    final Completer<Iterable<T>> completer = Completer<Iterable<T>>();
+    _completer = completer;
+    _lastQueryForTimer = query;
+
+    if (query.isEmpty) {
+      completer.complete([]);
+      return completer.future;
+    }
+
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      try {
+        final results = await widget.optionsBuilder(query);
+
+        if (completer == _completer && !completer.isCompleted) {
+          completer.complete(results);
+        }
+      } catch (e) {
+        if (completer == _completer && !completer.isCompleted) {
+          completer.completeError(e);
+        }
+      }
+    });
+
+    return completer.future;
+  }
+
+  /// Helper to get the display string for a given item
+  String _getDisplayString(T item) {
+    if (widget.displayTextCreator != null) {
+      return widget.displayTextCreator!(item);
+    }
+    return item.toString();
   }
 }

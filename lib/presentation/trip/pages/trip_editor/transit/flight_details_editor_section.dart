@@ -214,6 +214,7 @@ class _FlightDetailsEditorState extends State<FlightDetailsEditor>
                 const SizedBox(width: _kFlightNumberSectionSpacing),
                 Expanded(
                   child: TextField(
+                    key: ValueKey('FlightDetailsEditor_FlightNumber_TextField'),
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,

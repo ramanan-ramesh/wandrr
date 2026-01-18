@@ -3,37 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_viewer.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
-import '../helpers/test_helpers.dart';
-
-/// Test: Add new transit via FloatingActionButton
-Future<void> runAddTransitTest(WidgetTester tester) async {
-  // Launch the app
-  await TestHelpers.pumpAndSettleApp(tester);
-
-  await TestHelpers.navigateToTripEditorPage(tester);
-
-  // Verify FloatingActionButton exists
-  final fab = find.byType(FloatingActionButton);
-  expect(fab, findsOneWidget);
-
-  // Tap the FAB to open add menu
-  await TestHelpers.tapWidget(tester, fab);
-  await tester.pumpAndSettle();
-
-  // Look for "Travel Entry" or travel option
-  final travelOption = find.text('Travel Entry');
-
-  if (travelOption.evaluate().isNotEmpty) {
-    print('✓ Add menu opened');
-    await TestHelpers.tapWidget(tester, travelOption);
-    await tester.pumpAndSettle();
-
-    print('✓ Travel editor opened');
-    print('✓ Can add new transit entry');
-  } else {
-    print('⚠ Travel option not found in add menu');
-  }
-}
+import '../../helpers/firebase_emulator_helper.dart';
+import '../../helpers/http_overrides/mock_location_api_service.dart';
+import '../../helpers/test_config.dart';
+import '../../helpers/test_helpers.dart';
+import 'transit/add_transit_tests.dart';
 
 /// Test: Add new stay/lodging via FloatingActionButton
 Future<void> runAddStayTest(WidgetTester tester) async {
@@ -507,9 +481,32 @@ Future<void> runNavigateToSpecificComponentTest(WidgetTester tester) async {
 }
 
 void runTests() {
+  setUpAll(() async {
+    await FirebaseEmulatorHelper.createFirebaseAuthUser(
+      email: TestConfig.testEmail,
+      password: TestConfig.testPassword,
+      shouldAddToFirestore: true,
+      shouldSignIn: true,
+    );
+    await MockApiServices.initialize();
+  });
+
+  tearDownAll(() async {
+    await FirebaseEmulatorHelper.cleanupAfterTest();
+  });
+
   setUp(() async {
-    // Setup authenticated state and create a test trip
     await TestHelpers.createTestTrip();
+  });
+
+  tearDown(() async {
+    await FirebaseEmulatorHelper.clearAllFirestoreData();
+    expect(find.byType(ErrorWidget), findsNothing);
+  });
+
+  testWidgets('verify default state of TravelEditor on creation',
+      (WidgetTester tester) async {
+    await runVerifyDefaultStateTest(tester);
   });
 
   testWidgets('add new transit via FloatingActionButton',

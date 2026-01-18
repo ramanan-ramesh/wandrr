@@ -105,12 +105,13 @@ Future<void> runExpensesListViewStructureTest(WidgetTester tester) async {
   // -------------------------------------------------------------------------
   // 2. Sort controls section (Row → BudgetTile + ToggleButtons)
   // -------------------------------------------------------------------------
-  final sortRowFinder = find.byKey(const ValueKey('sortControlsRow'));
+  final sortRowFinder = find.byKey(const ValueKey('SortControls_Row'));
   expect(sortRowFinder, findsOneWidget);
   expect(tester.widget<Row>(sortRowFinder), isA<Row>());
 
   // BudgetTile
-  final budgetTileFinder = find.byKey(const ValueKey('budgetTile'));
+  final budgetTileFinder =
+      find.byKey(const ValueKey('ExpenseListView_BudgetTile'));
   expect(budgetTileFinder, findsOneWidget);
   expect(
     find.descendant(of: sortRowFinder, matching: budgetTileFinder),
@@ -119,7 +120,8 @@ Future<void> runExpensesListViewStructureTest(WidgetTester tester) async {
   expect(find.byType(BudgetTile), findsOneWidget);
 
   // ToggleButtons
-  final toggleButtonsFinder = find.byKey(const ValueKey('sortToggleButtons'));
+  final toggleButtonsFinder =
+      find.byKey(const ValueKey('ExpenseListView_Sorting_ToggleButtons'));
   expect(toggleButtonsFinder, findsOneWidget);
   expect(
     find.descendant(of: sortRowFinder, matching: toggleButtonsFinder),
@@ -130,14 +132,16 @@ Future<void> runExpensesListViewStructureTest(WidgetTester tester) async {
   // -------------------------------------------------------------------------
   // 3. Expense list area (ListView)
   // -------------------------------------------------------------------------
-  final expenseListView = find.byKey(const ValueKey('expensesListView'));
+  final expenseListView =
+      find.byKey(const ValueKey('ExpensesListView_ListView'));
   expect(expenseListView, findsOneWidget);
   expect(tester.widget<ListView>(expenseListView), isA<ListView>());
 
   // -------------------------------------------------------------------------
   // 4. Verify root structure
   // -------------------------------------------------------------------------
-  final rootColumnFinder = find.byKey(const ValueKey('expenseListRootColumn'));
+  final rootColumnFinder =
+      find.byKey(const ValueKey('ExpenseListView_Root_Column'));
   expect(rootColumnFinder, findsOneWidget);
   expect(tester.widget<Column>(rootColumnFinder), isA<Column>());
 

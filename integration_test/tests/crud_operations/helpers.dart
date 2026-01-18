@@ -1,0 +1,99 @@
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
+import 'package:wandrr/presentation/app/widgets/date_picker.dart';
+import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/transit/travel_editor.dart';
+
+import '../../helpers/test_helpers.dart';
+
+Future<bool> verifyAndOpenTripEntityEditor(
+    WidgetTester tester,
+    String entityName,
+    IconData icon,
+    String title,
+    String subTitle,
+    Type editorPage) async {
+  final entityCreatorActionFinder = find.descendant(
+      of: find.byType(DraggableScrollableSheet),
+      matching: find.descendant(
+          of: find.byType(ListView),
+          matching: find.byKey(ValueKey('TripEntityCreator_Action_ListTile'))));
+  for (final entityCreatorAction in entityCreatorActionFinder.evaluate()) {
+    final entityCreatorWidgetInstance = entityCreatorAction.widget;
+    var entityCreatorWidgetFinder = find.byWidget(entityCreatorWidgetInstance);
+    final isIconPresent = find
+        .descendant(of: entityCreatorWidgetFinder, matching: find.byIcon(icon))
+        .hasFound;
+    final isTitlePresent = find
+        .descendant(of: entityCreatorWidgetFinder, matching: find.text(title))
+        .hasFound;
+    final isSubtitlePresent = find
+        .descendant(
+            of: entityCreatorWidgetFinder, matching: find.text(subTitle))
+        .hasFound;
+    if (isIconPresent && isTitlePresent && isSubtitlePresent) {
+      print('✓ $entityName option found');
+      await TestHelpers.tapWidget(tester, entityCreatorWidgetFinder);
+      expect(
+          find.descendant(
+              of: find.byType(DraggableScrollableSheet),
+              matching: find.byType(TravelEditor)),
+          findsOneWidget,
+          reason: 'Travel editor should be opened');
+      print('✓ Travel editor opened');
+      return true;
+    }
+  }
+
+  return false;
+}
+
+class CommonFormElements {
+  final Type editorPage;
+
+  CommonFormElements(this.editorPage);
+
+  Finder get noteEditingField => find.descendant(
+      of: find.byType(editorPage),
+      matching: find.byKey(ValueKey('NoteEditor_TextField')));
+
+  Finder get datePicker => find.descendant(
+      of: find.byType(editorPage), matching: find.byType(PlatformDatePicker));
+
+  Finder get dateRangePicker => find.descendant(
+      of: find.byType(editorPage),
+      matching: find.byType(PlatformDateRangePicker));
+
+  Finder get paidByTabContributorTile => find.descendant(
+      of: find.byType(editorPage),
+      matching: find.byKey(ValueKey('PaidByTab_ContributorTile')));
+
+  Finder get splitByContributorTile => find.descendant(
+      of: find.byType(editorPage),
+      matching: find.byKey(ValueKey('SplitByTab_ContributorTile')));
+
+  Future<void> enterMoneyAmount(WidgetTester tester, Money money) async {
+    Finder editorPageFinder = find.byType(editorPage);
+    var textField = find.descendant(
+        of: editorPageFinder,
+        matching: find.byKey(Key('ExpenseAmountEditField_TextField')));
+    await tester.enterText(textField, money.amount.toString());
+    await TestHelpers.tapWidget(
+        tester,
+        find.descendant(
+            of: editorPageFinder,
+            matching: find
+                .byKey(Key('PlatformMoneyEditField_CurrencyPickerButton'))));
+    var searchField = find.descendant(
+        of: editorPageFinder,
+        matching: find.byKey(Key('PlatformMoneyEditField_TextField')));
+    await TestHelpers.enterText(tester, searchField, money.currency);
+
+    final currencyListTile = find.descendant(
+        of: editorPageFinder,
+        matching: find.byKey(
+            Key('PlatformMoneyEditField_CurrencyListTile_${money.currency}')));
+    await TestHelpers.tapWidget(tester, currencyListTile, warnIfMissed: false);
+  }
+}

@@ -20,6 +20,7 @@ import '../helpers/firebase_emulator_helper.dart';
 import '../helpers/http_overrides/mock_location_api_service.dart';
 import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
+import 'crud_operations/helpers.dart';
 
 /// Test: HomePage sets isBigLayout to true when screen width >= 1000, and AppBar resizes accordingly
 Future<void> runHomePageLayoutTest(
@@ -172,7 +173,7 @@ Future<void> runHomePageCreateTripFlowTest(
 
   // Enter budget
   var budget = Money(currency: 'EUR', amount: 50000);
-  await TestHelpers.enterMoneyAmount(tester, budget);
+  await CommonFormElements(TripCreatorDialog).enterMoneyAmount(tester, budget);
 
   // Tap submit button
   await TestHelpers.tapWidget(tester, find.byType(PlatformSubmitterFAB),

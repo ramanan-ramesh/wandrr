@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/checklists.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/notes.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/sights.dart';
@@ -144,13 +143,4 @@ class ExpectedSightData {
     required this.expense,
     required this.time,
   });
-}
-
-void matchDate(DateTime actualDateTime, DateTime expectedDateTime,
-    {String? reason}) {
-  expect(
-      actualDateTime,
-      predicate<DateTime>((DateTime date) {
-        return date.isOnSameDayAs(expectedDateTime);
-      }, reason ?? 'Date should be ${expectedDateTime.dayDateMonthFormat}'));
 }

@@ -121,11 +121,11 @@ class FirebaseEmulatorHelper {
       }
 
       // Sign out any authenticated user
-      await _signOutCurrentUser();
-      await _clearAllAuthUsers();
+      await signOutCurrentUser();
+      await clearAllAuthenticatedUsers();
 
       // Clear all Firestore data
-      await _clearAllFirestoreData();
+      await clearAllFirestoreData();
 
       if (kDebugMode) {
         print('✓ Test cleanup complete\n');
@@ -258,9 +258,10 @@ class FirebaseEmulatorHelper {
   }
 
   /// Sign out current user if signed in
-  static Future<void> _signOutCurrentUser() async {
+  static Future<void> signOutCurrentUser() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
+      print('Signing out current user...');
       await FirebaseAuth.instance.signOut();
       if (kDebugMode) {
         print('✓ Signed out user: ${currentUser.email}');
@@ -270,7 +271,7 @@ class FirebaseEmulatorHelper {
 
   /// Clear ALL users from Firebase Auth emulator via REST API
   /// This flushes the entire emulated Auth database for test isolation
-  static Future _clearAllAuthUsers() async {
+  static Future clearAllAuthenticatedUsers() async {
     try {
       if (kDebugMode) {
         print('\n--- Clearing ALL Auth users ---');
@@ -313,7 +314,7 @@ class FirebaseEmulatorHelper {
   /// Clear all Firestore data from specific collections
   /// Note: Firebase Auth emulator doesn't allow deleting users via SDK,
   /// but they are cleared when emulator restarts
-  static Future<void> _clearAllFirestoreData() async {
+  static Future<void> clearAllFirestoreData() async {
     try {
       if (kDebugMode) {
         print('\n--- Clearing Firestore data ---');

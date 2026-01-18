@@ -68,6 +68,7 @@ class _TripEntityCreatorBottomSheetState
     final title = action.getTripEntityCreatorTitle(context.localizations);
     final subtitle = action.createSubtitle(context.localizations, false);
     return ListTile(
+      key: ValueKey('TripEntityCreator_Action_ListTile'),
       contentPadding: const EdgeInsets.all(20.0),
       onTap: () {
         if (selectedAction == action) {

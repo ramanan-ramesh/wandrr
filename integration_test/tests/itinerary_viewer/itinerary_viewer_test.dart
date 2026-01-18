@@ -1,4 +1,3 @@
-import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
@@ -123,26 +122,9 @@ Future<void> runItineraryViewerNavigateToDateTest(WidgetTester tester) async {
   final datePicker = find.descendant(
       of: find.byType(ItineraryNavigator),
       matching: find.byType(PlatformDatePicker));
-  await TestHelpers.tapWidget(tester, datePicker);
-
-  // Verify possible selectable dates
-  final calendarPicker = tester.widget<CalendarDatePicker2WithActionButtons>(
-      find.byType(CalendarDatePicker2WithActionButtons));
-  final calendarPickerConfig = calendarPicker.config;
-  matchDate(calendarPickerConfig.firstDate, DateTime(2025, 9, 24),
-      reason: 'First possible selectable date should be trip start date');
-  matchDate(calendarPickerConfig.lastDate, DateTime(2025, 9, 29),
-      reason: 'Last possible selectable date should be trip end date');
-
-  // Select 29th September
-  final lastDateButton = find.descendant(
-      of: find.byType(CalendarDatePicker2WithActionButtons),
-      matching: find.text('29'));
-  await TestHelpers.tapWidget(tester, lastDateButton);
-  final confirmButton = find.descendant(
-      of: find.byType(CalendarDatePicker2WithActionButtons),
-      matching: find.text('OK'));
-  await TestHelpers.tapWidget(tester, confirmButton, warnIfMissed: false);
+  await TestHelpers.pickDate(tester, datePicker, '29',
+      expectedStartDate: DateTime(2025, 9, 24),
+      expectedEndDate: DateTime(2025, 9, 29));
 
   await verifyTimelineEvents(
       tester, expectedLastDayEvents, DateTime(2025, 9, 29));

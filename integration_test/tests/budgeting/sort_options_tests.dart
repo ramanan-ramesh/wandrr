@@ -6,7 +6,7 @@ import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 
-import '../../helpers/facade_matchers.dart';
+import '../../helpers/matchers.dart';
 import '../../helpers/test_helpers.dart';
 import 'helpers.dart';
 
@@ -21,12 +21,13 @@ Future<void> runSortOptionsDefaultTest(WidgetTester tester) async {
   await tryNavigateToBudgetingPage(tester);
 
   // Verify ToggleButtons exist
-  final sortToggleButtonsContainer = find.byKey(ValueKey('sortToggleButtons'));
+  final sortToggleButtonsContainer =
+      find.byKey(ValueKey('ExpenseListView_Sorting_ToggleButtons'));
 
   //Verify sort by cost button
   final sortByCostButtonContainer = find.descendant(
       of: sortToggleButtonsContainer,
-      matching: find.byKey(ValueKey('expenseListView_sortByCost')));
+      matching: find.byKey(ValueKey('ExpenseListView_SortByCost_Row')));
   final sortByCostAscendingButton = find.descendant(
       of: sortByCostButtonContainer,
       matching: find.byIcon(Icons.arrow_downward_rounded));
@@ -43,7 +44,7 @@ Future<void> runSortOptionsDefaultTest(WidgetTester tester) async {
   // This is indicated by the calendar icon button being selected
   final sortByDateButtonContainer = find.descendant(
       of: sortToggleButtonsContainer,
-      matching: find.byKey(ValueKey('expenseListView_sortByDate')));
+      matching: find.byKey(ValueKey('ExpenseListView_SortByDate_Row')));
   final sortByDateNewestFirstButton = find.descendant(
       of: sortByDateButtonContainer,
       matching: find.byIcon(Icons.arrow_upward_rounded));
@@ -84,7 +85,7 @@ Future<void> runSortByCostAscendingTest(WidgetTester tester) async {
       reason: 'Cost sort button should be present');
   await TestHelpers.tapWidget(tester, costSortButton);
   final arrowDown = find.descendant(
-      of: find.byKey(ValueKey('expenseListView_sortByCost')),
+      of: find.byKey(ValueKey('ExpenseListView_SortByCost_Row')),
       matching: find.byIcon(Icons.arrow_downward_rounded));
   expect(arrowDown, findsOneWidget,
       reason: 'Arrow down should appear for ascending sort');
@@ -109,7 +110,7 @@ Future<void> runSortByCostDescendingTest(WidgetTester tester) async {
   await TestHelpers.tapWidget(tester, costSortButton);
   await TestHelpers.tapWidget(tester, costSortButton);
   final arrowUp = find.descendant(
-      of: find.byKey(ValueKey('expenseListView_sortByCost')),
+      of: find.byKey(ValueKey('ExpenseListView_SortByCost_Row')),
       matching: find.byIcon(Icons.arrow_upward_rounded));
   expect(arrowUp, findsOneWidget,
       reason: 'Arrow up should appear for descending sort');
@@ -130,7 +131,7 @@ Future<void> runSortByDateAscendingTest(WidgetTester tester) async {
   await tryNavigateToBudgetingPage(tester);
 
   // Find the date sort button (calendar icon)
-  final dateSortButton = find.byKey(ValueKey('expenseListView_sortByDate'));
+  final dateSortButton = find.byKey(ValueKey('ExpenseListView_SortByDate_Row'));
   await TestHelpers.tapWidget(tester, dateSortButton);
   final arrowDown = find.descendant(
       of: dateSortButton, matching: find.byIcon(Icons.arrow_downward_rounded));
@@ -154,7 +155,7 @@ Future<void> runSortByDateDescendingTest(WidgetTester tester) async {
 
   // Date sort defaults to newest first (descending)
   // Verify the upward arrow is shown
-  final dateSortButton = find.byKey(ValueKey('expenseListView_sortByDate'));
+  final dateSortButton = find.byKey(ValueKey('ExpenseListView_SortByDate_Row'));
   final arrowUp = find.descendant(
       of: dateSortButton, matching: find.byIcon(Icons.arrow_upward_rounded));
   expect(arrowUp, findsOneWidget,

@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'helpers/firebase_emulator_helper.dart';
 import 'tests/authentication/authentication_comprehensive_test.dart' as auth;
 import 'tests/budgeting/budgeting_page_test.dart' as budgeting;
-import 'tests/crud_operations_test.dart' as crud;
+import 'tests/crud_operations/crud_operations_test.dart' as crud;
 import 'tests/home_page_test.dart' as home;
 import 'tests/itinerary_viewer/itinerary_viewer_test.dart' as itinerary;
 import 'tests/multi_collaborator_test.dart' as multi_collaborator;

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -19,6 +20,28 @@ Matcher matchesLodging(LodgingFacade expected) => _LodgingMatcher(expected);
 
 /// Custom matcher for SightFacade that ignores the auto-generated id field
 Matcher matchesSight(SightFacade expected) => _SightMatcher(expected);
+
+Matcher matchesDay(DateTime dateTime) => _DayMatcher(dateTime);
+
+class _DayMatcher extends Matcher {
+  final DateTime expected;
+
+  _DayMatcher(this.expected);
+
+  @override
+  bool matches(dynamic item, Map matchState) {
+    if (item is! DateTime) {
+      matchState['error'] = 'Expected DateTime but got ${item.runtimeType}';
+      return false;
+    }
+
+    return item.isOnSameDayAs(expected);
+  }
+
+  @override
+  Description describe(Description description) =>
+      description.add('matches day ').addDescriptionOf(expected);
+}
 
 class _TransitMatcher extends Matcher {
   final TransitFacade expected;

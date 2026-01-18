@@ -73,6 +73,7 @@ class _TransitOptionPickerState extends State<TransitOptionPicker> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<TransitOption>(
+          key: ValueKey('TransitEditor_TransitOptionPicker_DropdownButton'),
           value: _selectedValue,
           icon: Icon(Icons.arrow_drop_down_rounded, color: iconColor),
           items: transitOptionMetadatas.map((metadata) {

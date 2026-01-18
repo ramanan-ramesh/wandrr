@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
-import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/app/pages/master_page/master_page.dart';
@@ -14,6 +13,7 @@ import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/trip/pages/home/trips_list_view.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
+import 'matchers.dart';
 import 'test_config.dart';
 
 class TestHelpers {
@@ -850,18 +850,36 @@ class TestHelpers {
     await TestHelpers.tapWidget(tester, doneButton, warnIfMissed: false);
   }
 
-  static Future<void> enterMoneyAmount(WidgetTester tester, Money money) async {
-    var textField = find.byKey(Key('ExpenseAmountEditField_TextField'));
-    await tester.enterText(textField, money.amount.toString());
-    await TestHelpers.tapWidget(
-        tester, find.byKey(Key('PlatformMoneyEditField_CurrencyPickerButton')));
-    var searchField = find.byKey(Key('PlatformMoneyEditField_TextField'));
-    await tester.enterText(searchField, money.currency);
-    await tester.pumpAndSettle(); // Wait for filtered list to render
+  static Future<void> pickDate(
+      WidgetTester tester, Finder datePicker, String day,
+      {DateTime? expectedStartDate, DateTime? expectedEndDate}) async {
+    await TestHelpers.tapWidget(tester, datePicker);
 
-    final currencyListTile = find.byKey(
-        Key('PlatformMoneyEditField_CurrencyListTile_${money.currency}'));
-    await TestHelpers.tapWidget(tester, currencyListTile, warnIfMissed: false);
+    // Verify possible selectable dates
+    if (expectedStartDate != null || expectedEndDate != null) {
+      final calendarPicker =
+          tester.widget<CalendarDatePicker2WithActionButtons>(
+              find.byType(CalendarDatePicker2WithActionButtons));
+      final calendarPickerConfig = calendarPicker.config;
+      if (expectedStartDate != null) {
+        expect(calendarPickerConfig.firstDate, matchesDay(expectedStartDate),
+            reason: 'First possible selectable date should be trip start date');
+      }
+      if (expectedEndDate != null) {
+        expect(calendarPickerConfig.lastDate, matchesDay(expectedEndDate),
+            reason: 'Last possible selectable date should be trip end date');
+      }
+    }
+
+    // Select day
+    final lastDateButton = find.descendant(
+        of: find.byType(CalendarDatePicker2WithActionButtons),
+        matching: find.text(day));
+    await TestHelpers.tapWidget(tester, lastDateButton);
+    final confirmButton = find.descendant(
+        of: find.byType(CalendarDatePicker2WithActionButtons),
+        matching: find.text('OK'));
+    await TestHelpers.tapWidget(tester, confirmButton, warnIfMissed: false);
   }
 
   /// Wait for native splash screen to complete (Private helper)

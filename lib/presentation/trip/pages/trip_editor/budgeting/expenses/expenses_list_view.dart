@@ -53,7 +53,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     _initializeCategoryNames();
     final sortDropdown = _buildSortToggleRow();
     return Column(
-      key: const ValueKey('expenseListRootColumn'),
+      key: const ValueKey('ExpenseListView_Root_Column'),
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
@@ -94,17 +94,17 @@ class _ExpenseListViewState extends State<ExpenseListView> {
 
   Widget _buildSortToggleRow() {
     return Row(
-      key: const ValueKey('sortControlsRow'),
+      key: const ValueKey('SortControls_Row'),
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
           child: BudgetTile(
-            key: const ValueKey('budgetTile'),
+            key: const ValueKey('ExpenseListView_BudgetTile'),
           ),
         ),
         const SizedBox(width: 8),
         ToggleButtons(
-          key: const ValueKey('sortToggleButtons'),
+          key: const ValueKey('ExpenseListView_Sorting_ToggleButtons'),
           isSelected: [
             _selectedSortOption == ExpenseSortOption.lowToHighCost ||
                 _selectedSortOption == ExpenseSortOption.highToLowCost,
@@ -121,7 +121,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
             Padding(
               padding: const EdgeInsets.all(3.0),
               child: Row(
-                key: ValueKey('expenseListView_sortByCost'),
+                key: ValueKey('ExpenseListView_SortByCost_Row'),
                 children: [
                   const Icon(Icons.attach_money_rounded),
                   const SizedBox(width: _kIconSpacing),
@@ -140,7 +140,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
             Padding(
               padding: const EdgeInsets.all(3.0),
               child: Row(
-                key: ValueKey('expenseListView_sortByDate'),
+                key: ValueKey('ExpenseListView_SortByDate_Row'),
                 children: [
                   const Icon(Icons.calendar_today_rounded),
                   const SizedBox(width: _kIconSpacing),
@@ -217,7 +217,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       );
     }
     return ListView.builder(
-      key: const ValueKey('expensesListView'),
+      key: const ValueKey('ExpensesListView_ListView'),
       itemCount: _expenses.length,
       itemBuilder: (context, index) {
         final item = _expenses[index];

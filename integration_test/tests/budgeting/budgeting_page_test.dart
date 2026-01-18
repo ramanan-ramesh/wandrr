@@ -143,7 +143,7 @@ Future<void> runDebtSummaryTest(WidgetTester tester) async {
   // Test data has 2 contributors: TestConfig.testEmail and TestConfig.tripMateUserName
   // All expenses are paid by testEmail and split between both
   // So tripMate owes testEmail money
-  final debtRowContainer = find.byKey(ValueKey('debtSummaryTile_debtRow'));
+  final debtRowContainer = find.byKey(ValueKey('DebtSummaryTile_Debt_Row'));
   expect(find.textContaining('owes'), findsOneWidget,
       reason: 'Debt summary should show one row');
   final contributorBadges = find.descendant(
