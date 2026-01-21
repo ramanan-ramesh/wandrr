@@ -29,18 +29,30 @@ class TravelEditorForm {
 
   Finder get airportLocationAutoCompleteTextField => find.descendant(
       of: find.byType(AirportsDataEditorSection),
+      matching: find.byKey(ValueKey('PlatformAutoComplete_TextField')));
+
+  Finder get airportLocationOption => find.descendant(
+      of: find.byType(AirportsDataEditorSection),
       matching: find.byKey(ValueKey('PlatformAutoComplete_ListTile')));
 
   Finder get geoLocationAutoCompleteTextField => find.descendant(
       of: find.descendant(
           of: find.byType(TravelEditor),
           matching: find.byType(PlatformGeoLocationAutoComplete)),
+      matching: find.byKey(ValueKey('PlatformAutoComplete_TextField')));
+
+  Finder get geoLocationOption => find.descendant(
+      of: find.byType(PlatformGeoLocationAutoComplete),
       matching: find.byKey(ValueKey('PlatformAutoComplete_ListTile')));
 
   Finder get airlineNameAutoCompleteTextField => find.descendant(
       of: find.descendant(
           of: find.byType(FlightDetailsEditor),
           matching: find.byType(PlatformGeoLocationAutoComplete)),
+      matching: find.byKey(ValueKey('PlatformAutoComplete_TextField')));
+
+  Finder get airlineNameOption => find.descendant(
+      of: find.byType(FlightDetailsEditor),
       matching: find.byKey(ValueKey('PlatformAutoComplete_ListTile')));
 
   Finder get airlineNumberTextField => find.descendant(
@@ -58,5 +70,20 @@ class TravelEditorForm {
         .singleWhere((menuItem) => menuItem.value == option);
     final dropDownMenuItemFinder = find.byWidget(dropDownMenuItemToSelect);
     await TestHelpers.tapWidget(tester, dropDownMenuItemFinder);
+  }
+
+  // Enter the locationContext.name for departure and arrival
+  Future<void> selectDepartureAndArrivalGeoLocations(WidgetTester tester,
+      String departureLocation, String arrivalLocation) async {
+    final departureLocationField = geoLocationAutoCompleteTextField.first;
+    await TestHelpers.enterText(
+        tester, departureLocationField, departureLocation);
+    final departureLocationOption = geoLocationOption.first;
+    await TestHelpers.tapWidget(tester, departureLocationOption);
+
+    final arrivalLocationField = geoLocationAutoCompleteTextField.last;
+    await TestHelpers.enterText(tester, arrivalLocationField, arrivalLocation);
+    final arrivalLocationOption = geoLocationOption.last;
+    await TestHelpers.tapWidget(tester, arrivalLocationOption);
   }
 }

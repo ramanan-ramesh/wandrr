@@ -9,6 +9,8 @@ import '../../../helpers/test_helpers.dart';
 import '../helpers.dart';
 import 'helpers.dart';
 
+final _travelEditorForm = TravelEditorForm();
+
 /// Test: Add new transit via FloatingActionButton
 Future<void> runVerifyDefaultStateTest(WidgetTester tester) async {
   // Launch the app
@@ -17,32 +19,17 @@ Future<void> runVerifyDefaultStateTest(WidgetTester tester) async {
   await TestHelpers.navigateToTripEditorPage(tester);
 
   // Tap the FAB to open add menu
-  final addFabButton = find.descendant(
-      of: find.byType(Scaffold),
-      matching: find.descendant(
-          of: find.byType(FloatingActionButton),
-          matching: find.byIcon(Icons.add)));
-  await TestHelpers.tapWidget(tester, addFabButton);
+  await _openTransitCreatorPage(tester);
 
-  // Look for "Travel Entry" or travel option
-  await verifyAndOpenTripEntityEditor(tester, 'Transit', Icons.flight,
-      'Travel Entry', 'Add a new travel entry', TravelEditor);
-
-  final travelEditorForm = TravelEditorForm();
-
-  final transitOptionPicker =
-      tester.widget<DropdownButton>(travelEditorForm.transitOptionPicker);
-  expect(transitOptionPicker.value == TransitOption.publicTransport, isTrue,
-      reason: 'Public transport option should be selected by default');
-  _verifyAvailableTransitOptions(transitOptionPicker, tester);
+  await _verifyTransitOptions(tester, TransitOption.publicTransport);
 
   final tripMetadata =
       TestHelpers.getTripRepository(tester).activeTrip!.tripMetadata;
   for (final transitOption in TransitOption.values) {
-    await travelEditorForm.selectTransitOption(tester, transitOption);
+    await _travelEditorForm.selectTransitOption(tester, transitOption);
 
     final paidByContributorTileFinder =
-        travelEditorForm.commonFormElements.paidByTabContributorTile;
+        _travelEditorForm.commonFormElements.paidByTabContributorTile;
     final expenseAmountTextFieldFinder = find.descendant(
         of: paidByContributorTileFinder,
         matching: find.byKey(ValueKey('ExpenseAmountEditField_TextField')));
@@ -52,13 +39,10 @@ Future<void> runVerifyDefaultStateTest(WidgetTester tester) async {
       expect(expenseAmountTextFieldFinder, findsNothing,
           reason: 'Expense amount field should not be displayed for walk');
 
-      expect(travelEditorForm.transitOperatorEditingField, findsNothing,
+      expect(_travelEditorForm.transitOperatorEditingField, findsNothing,
           reason: 'Transit operator field should not be displayed for walk');
-      expect(travelEditorForm.geoLocationAutoCompleteTextField, findsNothing,
-          reason:
-              'Departure and arrival Geo location text fields should not be displayed for walk');
       expect(
-          travelEditorForm.airportLocationAutoCompleteTextField, findsNothing,
+          _travelEditorForm.airportLocationAutoCompleteTextField, findsNothing,
           reason:
               'Departure and arrival Airport location text fields should not be displayed for walk');
     } else {
@@ -78,83 +62,122 @@ Future<void> runVerifyDefaultStateTest(WidgetTester tester) async {
       }
       expect(
           find.descendant(
-              of: travelEditorForm.commonFormElements.paidByTabContributorTile,
+              of: _travelEditorForm.commonFormElements.paidByTabContributorTile,
               matching: find.text('You')),
           findsOneWidget,
           reason: 'You should be a contributor in PaidBy');
       expect(
           find.descendant(
-              of: travelEditorForm.commonFormElements.paidByTabContributorTile,
+              of: _travelEditorForm.commonFormElements.paidByTabContributorTile,
               matching:
                   find.text(TestConfig.tripMateUserName.split('@').first)),
           findsOneWidget,
           reason: 'Tripmate should be a contributor in PaidBy');
       expect(
           find.descendant(
-              of: travelEditorForm.commonFormElements.splitByContributorTile,
+              of: _travelEditorForm.commonFormElements.splitByContributorTile,
               matching: find.text('You')),
           findsOneWidget,
           reason: 'You should be a contributor to split');
       expect(
           find.descendant(
-              of: travelEditorForm.commonFormElements.splitByContributorTile,
+              of: _travelEditorForm.commonFormElements.splitByContributorTile,
               matching:
                   find.text(TestConfig.tripMateUserName.split('@').first)),
           findsOneWidget,
           reason: 'Tripmate should be a contributor to split');
       final splitByListTiles = tester.widgetList<ListTile>(
-          travelEditorForm.commonFormElements.splitByContributorTile);
+          _travelEditorForm.commonFormElements.splitByContributorTile);
       for (final splitByListTile in splitByListTiles) {
         expect(splitByListTile.selected, isTrue,
             reason: 'Entry should be selected in SplitBy');
       }
 
-      expect(travelEditorForm.transitOperatorEditingField,
+      expect(_travelEditorForm.transitOperatorEditingField,
           transitOption != TransitOption.flight ? findsOneWidget : findsNothing,
           reason:
               'Transit operator field should be displayed only for non-flight transit options');
-      expect(travelEditorForm.airlineNameAutoCompleteTextField,
+      expect(_travelEditorForm.airlineNameAutoCompleteTextField,
           transitOption == TransitOption.flight ? findsOneWidget : findsNothing,
           reason:
               'Airline name text field should be displayed only for flights');
-      expect(travelEditorForm.airlineNumberTextField,
+      expect(_travelEditorForm.airlineNumberTextField,
           transitOption == TransitOption.flight ? findsOneWidget : findsNothing,
           reason:
               'Airline number text field should be displayed only for flights');
 
       expect(
-          travelEditorForm.geoLocationAutoCompleteTextField,
-          transitOption != TransitOption.flight
-              ? findsNWidgets(2)
-              : findsNothing,
-          reason:
-              'Departure and arrival Geo location text fields should be displayed only for non-flight transit options');
-      expect(
-          travelEditorForm.airportLocationAutoCompleteTextField,
+          _travelEditorForm.airportLocationAutoCompleteTextField,
           transitOption == TransitOption.flight
               ? findsNWidgets(2)
               : findsNothing,
           reason:
               'Departure and arrival Airport location text fields should be displayed only for flights');
     }
-    expect(travelEditorForm.confirmationIdEditingField,
+    expect(_travelEditorForm.geoLocationAutoCompleteTextField,
+        transitOption != TransitOption.flight ? findsNWidgets(2) : findsNothing,
+        reason:
+            'Departure and arrival Geo location text fields should be displayed, but only for non-flight transit options');
+    expect(_travelEditorForm.confirmationIdEditingField,
         transitOption == TransitOption.walk ? findsNothing : findsOneWidget,
         reason:
             'Confirmation ID field should not be displayed for walk. It should be displayed otherwise.');
 
-    expect(travelEditorForm.commonFormElements.noteEditingField, findsOneWidget,
+    expect(
+        _travelEditorForm.commonFormElements.noteEditingField, findsOneWidget,
         reason: 'Note field should be displayed');
+
+    expect(
+        _travelEditorForm.commonFormElements.dateTimePicker, findsNWidgets(2),
+        reason: '2 Date and time pickers should be displayed');
   }
 }
 
 /// Test: Add new transit via FloatingActionButton
-Future<void> runAddTransitTest(WidgetTester tester) async {
+Future<void> runAddWalkTransitTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
   await TestHelpers.navigateToTripEditorPage(tester);
 
   // Tap the FAB to open add menu
+  await _openTransitCreatorPage(tester);
+
+  // Step 1: Select Transit Option as Walk
+  await _travelEditorForm.selectTransitOption(tester, TransitOption.walk);
+
+  var tripStartDate = DateTime(2025, 9, 24);
+  var tripStartDayItinerary = TestHelpers.getTripRepository(tester)
+      .activeTrip!
+      .itineraryCollection
+      .getItineraryForDay(tripStartDate);
+
+  // Step 2: Set the departure and arrival locations
+  final parisHotelLocationName =
+      tripStartDayItinerary.checkInLodging!.location!.context.name;
+  final parisSightLocationName =
+      tripStartDayItinerary.planData.sights.first.location!.context.name;
+  await _travelEditorForm.selectDepartureAndArrivalGeoLocations(
+      tester, parisHotelLocationName, parisSightLocationName);
+
+  // Step 3: Set the departure date and arrival time
+  var travelStartTime = DateTime(2025, 9, 24, 14, 0);
+  await _travelEditorForm.commonFormElements.selectDateTime(tester,
+      dateTime: travelStartTime,
+      startDateTime: tripStartDate,
+      indexOfDateTimePicker: 0);
+  var travelEndTime = DateTime(2025, 9, 24, 15, 30);
+  await _travelEditorForm.commonFormElements.selectDateTime(tester,
+      dateTime: travelEndTime,
+      startDateTime: travelStartTime,
+      indexOfDateTimePicker: 1);
+
+  // Step 4: Set the note
+  await TestHelpers.enterText(tester,
+      _travelEditorForm.commonFormElements.noteEditingField, 'Test note');
+}
+
+Future<void> _openTransitCreatorPage(WidgetTester tester) async {
   final addFabButton = find.descendant(
       of: find.byType(Scaffold),
       matching: find.descendant(
@@ -164,20 +187,22 @@ Future<void> runAddTransitTest(WidgetTester tester) async {
 
   // Look for "Travel Entry" or travel option
   await verifyAndOpenTripEntityEditor(tester, 'Transit', Icons.flight,
-      'Travel Entry', 'Add a new travel entry', TravelEditor);
-
-  final travelEditorForm = TravelEditorForm();
-
-  final transitOptionPicker =
-      tester.widget<DropdownButton>(travelEditorForm.transitOptionPicker);
-  expect(transitOptionPicker.value == TransitOption.publicTransport, isTrue,
-      reason: 'Public transport option should be selected by default');
-  _verifyAvailableTransitOptions(transitOptionPicker, tester);
+      'Travel Entry', 'Add transit information', TravelEditor);
 }
 
-void _verifyAvailableTransitOptions(
-    DropdownButton<dynamic> transitOptionPicker, WidgetTester tester) {
+Future<void> _verifyTransitOptions(
+    WidgetTester tester, TransitOption defaultTransitOption) async {
+  final transitOptionPicker =
+      tester.widget<DropdownButton>(_travelEditorForm.transitOptionPicker);
+  expect(transitOptionPicker.value == defaultTransitOption, isTrue,
+      reason: '$defaultTransitOption option should be selected by default');
+  await TestHelpers.tapWidget(tester, _travelEditorForm.transitOptionPicker);
+
+  Finder? selectedDropDownEntry;
   final displayedTransitOptions = transitOptionPicker.items!;
+  find.descendant(
+      of: find.byType(DropdownMenuItem),
+      matching: find.byWidget(displayedTransitOptions.first));
   final expectedTransitOptions = _getAllExpectedTransitOptionMetadatas(tester);
   expect(
       displayedTransitOptions.length == expectedTransitOptions.length, isTrue,
@@ -191,18 +216,25 @@ void _verifyAvailableTransitOptions(
         isTrue,
         reason:
             'Transit option ${expectedTransitOption.name} should be displayed');
+    if (displayedTransitOptionMenuItem.value == defaultTransitOption) {
+      selectedDropDownEntry =
+          find.byWidget(displayedTransitOptionMenuItem).last;
+    }
     expect(
         find.descendant(
-            of: find.byWidget(displayedTransitOptionMenuItem),
+            of: find.byWidget(displayedTransitOptionMenuItem).last,
             matching: find.byIcon(expectedTransitOption.icon)),
         findsOneWidget,
         reason: 'Transit option icon should be displayed');
     expect(
         find.descendant(
-            of: find.byWidget(displayedTransitOptionMenuItem),
+            of: find.byWidget(displayedTransitOptionMenuItem).last,
             matching: find.text(expectedTransitOption.name)),
         findsOneWidget,
         reason: 'Transit option name should be displayed');
+  }
+  if (selectedDropDownEntry != null) {
+    await TestHelpers.tapWidget(tester, selectedDropDownEntry);
   }
 }
 

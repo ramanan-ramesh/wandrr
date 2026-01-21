@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart'
     as app_data_picker;
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
@@ -46,9 +47,8 @@ class _PlatformDateTimePickerState extends State<PlatformDateTimePicker> {
   Widget build(BuildContext context) {
     final isLightTheme = context.isLightTheme;
     var placeHolderString = context.localizations.dateTimeSelection;
-    var dateTimeText = _dateTime != null
-        ? '${_dateTime!.day}/${_dateTime!.month}/${_dateTime!.year} ${_dateTime!.hour}:${_dateTime!.minute}'
-        : placeHolderString;
+    var dateTimeText =
+        _dateTime != null ? _dateTime!.hourMinuteDateFormat : placeHolderString;
 
     return TextButton(
       onPressed: () {

@@ -509,9 +509,9 @@ void runTests() {
     await runVerifyDefaultStateTest(tester);
   });
 
-  testWidgets('add new transit via FloatingActionButton',
+  testWidgets('add new walk transit via FloatingActionButton',
       (WidgetTester tester) async {
-    await runAddTransitTest(tester);
+    await runAddWalkTransitTest(tester);
   });
 
   testWidgets('add new stay via FloatingActionButton',
