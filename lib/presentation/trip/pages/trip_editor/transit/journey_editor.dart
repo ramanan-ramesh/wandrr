@@ -86,8 +86,15 @@ class JourneyEditorState extends State<JourneyEditor> {
       _legs = [widget.initialLeg.clone()];
     }
 
-    // First leg expanded by default
-    _expandedStates = List.generate(_legs.length, (i) => i == 0);
+    // Find the index of the clicked leg and expand it
+    int expandedIndex = 0;
+    for (int i = 0; i < _legs.length; i++) {
+      if (_legs[i].id == widget.initialLeg.id) {
+        expandedIndex = i;
+        break;
+      }
+    }
+    _expandedStates = List.generate(_legs.length, (i) => i == expandedIndex);
     _isInitialized = true;
   }
 
@@ -146,6 +153,7 @@ class JourneyEditorState extends State<JourneyEditor> {
     if (_legs.length <= 1) return; // Can't remove last leg
 
     final legToRemove = _legs[index];
+    TransitFacade? remainingLegToUpdate;
 
     setState(() {
       _legs.removeAt(index);
@@ -155,13 +163,25 @@ class JourneyEditorState extends State<JourneyEditor> {
       if (_legs.length == 1) {
         _legs.first.journeyId = null;
         _journeyId = null;
+        // Mark the remaining leg for update if it exists in DB
+        if (_legs.first.id != null && _legs.first.id!.isNotEmpty) {
+          remainingLegToUpdate = _legs.first;
+        }
       }
     });
 
-    // Delete the leg from database if it has an ID
+    // Delete the removed leg from database if it has an ID
     if (legToRemove.id != null && legToRemove.id!.isNotEmpty) {
       context.addTripManagementEvent(
         UpdateTripEntity<TransitFacade>.delete(tripEntity: legToRemove),
+      );
+    }
+
+    // Update the remaining leg to remove journeyId from database
+    if (remainingLegToUpdate != null) {
+      context.addTripManagementEvent(
+        UpdateTripEntity<TransitFacade>.update(
+            tripEntity: remainingLegToUpdate!),
       );
     }
 

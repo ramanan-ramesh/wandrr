@@ -85,6 +85,12 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _searchFocusNode.requestFocus();
         });
+      } else {
+        // When exiting search mode, request focus on amount field
+        // to ensure the numeric keyboard appears
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _amountFocusNode.requestFocus();
+        });
       }
     });
   }
@@ -115,6 +121,11 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
       _isSearchingCurrency = false;
     });
     widget.onCurrencySelected(currency);
+    // Request focus on the amount field after selecting currency
+    // to ensure the numeric keyboard appears
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _amountFocusNode.requestFocus();
+    });
   }
 
   @override
