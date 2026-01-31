@@ -916,6 +916,126 @@ class TestHelpers {
     return '$category screen (${size.width.toInt()}x${size.height.toInt()})';
   }
 
+  /// Scroll guard that ensures a widget is visible before verifying it.
+  ///
+  /// This method scrolls through a SingleChildScrollView to find the target widget
+  /// and executes the verification callback once the widget is found.
+  ///
+  /// [scrollableFinder] - Finder for the SingleChildScrollView or similar scrollable
+  /// [widgetFinder] - Finder for the target widget to locate and verify
+  /// [verification] - Callback to execute once the widget is found/visible
+  /// [scrollToTop] - Whether to scroll to top before starting (default: true)
+  /// [maxScrollAttempts] - Maximum number of scroll attempts (default: 10)
+  /// [scrollDelta] - Amount to scroll each attempt (default: -300 pixels down)
+  static Future<void> scrollGuardVerify(
+    WidgetTester tester, {
+    required Finder scrollableFinder,
+    ScrollController Function(Finder scrollableFinder)? getController,
+    required Finder widgetFinder,
+    required Future<void> Function() verification,
+    bool scrollToTop = true,
+    int maxScrollAttempts = 10,
+    Offset scrollDelta = const Offset(0, -300),
+  }) async {
+    await tester.pumpAndSettle();
+
+    // Scroll to top first if requested
+    if (scrollToTop) {
+      final controller = getController != null
+          ? getController(scrollableFinder)
+          : tester.widget<SingleChildScrollView>(scrollableFinder).controller;
+      controller?.jumpTo(0.0);
+      await tester.pumpAndSettle();
+    }
+
+    // Check if widget is already visible
+    if (widgetFinder.evaluate().isNotEmpty) {
+      await verification();
+      return;
+    }
+
+    // Scroll down to find the widget
+    for (int attempt = 0; attempt < maxScrollAttempts; attempt++) {
+      await tester.drag(scrollableFinder, scrollDelta);
+      await tester.pumpAndSettle();
+
+      if (widgetFinder.evaluate().isNotEmpty) {
+        await verification();
+        return;
+      }
+    }
+
+    // Widget not found after all scroll attempts - still run verification
+    // to get the proper failure message from the expect calls
+    await verification();
+  }
+
+  /// Scroll guard that verifies a widget is NOT present (after scrolling through entire view).
+  ///
+  /// This method scrolls through the entire scrollable to verify a widget is not present.
+  static Future<void> scrollGuardVerifyNotPresent(
+    WidgetTester tester, {
+    required Finder scrollableFinder,
+    required Finder widgetFinder,
+    required String reason,
+    int maxScrollAttempts = 10,
+    Offset scrollDelta = const Offset(0, -300),
+  }) async {
+    await tester.pumpAndSettle();
+
+    // Scroll to top first
+    for (int i = 0; i < 5; i++) {
+      await tester.drag(scrollableFinder, const Offset(0, 500));
+      await tester.pumpAndSettle();
+    }
+
+    // Check at top position
+    expect(widgetFinder, findsNothing, reason: reason);
+
+    // Scroll down and check at each position
+    for (int attempt = 0; attempt < maxScrollAttempts; attempt++) {
+      await tester.drag(scrollableFinder, scrollDelta);
+      await tester.pumpAndSettle();
+      expect(widgetFinder, findsNothing, reason: reason);
+    }
+  }
+
+  /// Scroll guard that does scroll until widget is present (after scrolling through entire view).
+  ///
+  /// This method scrolls through the entire scrollable to verify a widget is not present.
+  static Future<bool> scrollUntilPresent(
+    WidgetTester tester, {
+    required Finder scrollableFinder,
+    required Finder widgetFinder,
+    ScrollController Function(Finder scrollableFinder)? getController,
+    required String reason,
+    int maxScrollAttempts = 10,
+    Offset scrollDelta = const Offset(0, -300),
+  }) async {
+    await tester.pumpAndSettle();
+
+    // Scroll to top first
+    final controller = getController != null
+        ? getController(scrollableFinder)
+        : tester.widget<SingleChildScrollView>(scrollableFinder).controller;
+    controller?.jumpTo(0.0);
+    await tester.pumpAndSettle();
+
+    if (widgetFinder.evaluate().isNotEmpty) {
+      return true;
+    }
+
+    // Scroll down and check at each position
+    for (int attempt = 0; attempt < maxScrollAttempts; attempt++) {
+      await tester.drag(scrollableFinder, scrollDelta);
+      await tester.pumpAndSettle();
+      if (widgetFinder.evaluate().isNotEmpty) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// Collect widgets of a specific type by scrolling through a scrollable widget.
   ///
   /// Returns a list of widgets found by scrolling through the [scrollableFinder].

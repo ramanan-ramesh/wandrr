@@ -11,6 +11,47 @@ import 'helpers.dart';
 
 final _travelEditorForm = TravelEditorForm();
 
+/// Get the scrollable finder for the TravelEditor's parent scroll view
+Finder _getTravelEditorScrollable() {
+  return find.ancestor(
+    of: find.byType(TravelEditor),
+    matching: find.byType(SingleChildScrollView),
+  );
+}
+
+/// Helper method to verify widget presence with scroll guard
+Future<void> _verifyWithScrollGuard(
+  WidgetTester tester, {
+  required Finder widgetFinder,
+  required Matcher matcher,
+  required String reason,
+  bool scrollToTop = true,
+}) async {
+  await TestHelpers.scrollGuardVerify(
+    tester,
+    scrollableFinder: _getTravelEditorScrollable(),
+    widgetFinder: widgetFinder,
+    verification: () async {
+      expect(widgetFinder, matcher, reason: reason);
+    },
+    scrollToTop: scrollToTop,
+  );
+}
+
+/// Helper method to verify widget is NOT present with scroll guard
+Future<void> _verifyNotPresentWithScrollGuard(
+  WidgetTester tester, {
+  required Finder widgetFinder,
+  required String reason,
+}) async {
+  await TestHelpers.scrollGuardVerifyNotPresent(
+    tester,
+    scrollableFinder: _getTravelEditorScrollable(),
+    widgetFinder: widgetFinder,
+    reason: reason,
+  );
+}
+
 /// Test: Add new transit via FloatingActionButton
 Future<void> runVerifyDefaultStateTest(WidgetTester tester) async {
   // Launch the app
@@ -28,31 +69,58 @@ Future<void> runVerifyDefaultStateTest(WidgetTester tester) async {
   for (final transitOption in TransitOption.values) {
     await _travelEditorForm.selectTransitOption(tester, transitOption);
 
-    final paidByContributorTileFinder =
-        _travelEditorForm.commonFormElements.paidByTabContributorTile;
+    final paidByContributorTileFinder = _travelEditorForm
+        .commonFormElements.expenseEditor.paidByTabContributorTile;
+    final splitByContributorTileFinder = _travelEditorForm
+        .commonFormElements.expenseEditor.splitByContributorTile;
     final expenseAmountTextFieldFinder = find.descendant(
         of: paidByContributorTileFinder,
         matching: find.byKey(ValueKey('ExpenseAmountEditField_TextField')));
-    if (transitOption == TransitOption.walk) {
-      expect(paidByContributorTileFinder, findsNothing,
-          reason: 'Paid by contributor tile should not be displayed for walk');
-      expect(expenseAmountTextFieldFinder, findsNothing,
-          reason: 'Expense amount field should not be displayed for walk');
 
-      expect(_travelEditorForm.transitOperatorEditingField, findsNothing,
-          reason: 'Transit operator field should not be displayed for walk');
-      expect(
-          _travelEditorForm.airportLocationAutoCompleteTextField, findsNothing,
-          reason:
-              'Departure and arrival Airport location text fields should not be displayed for walk');
+    if (transitOption == TransitOption.walk) {
+      // For walk, verify widgets are NOT present by scrolling through entire view
+      await _verifyNotPresentWithScrollGuard(
+        tester,
+        widgetFinder: paidByContributorTileFinder,
+        reason: 'Paid by contributor tile should not be displayed for walk',
+      );
+      await _verifyNotPresentWithScrollGuard(
+        tester,
+        widgetFinder: splitByContributorTileFinder,
+        reason: 'Split by contributor tile should not be displayed for walk',
+      );
+      await _verifyNotPresentWithScrollGuard(
+        tester,
+        widgetFinder: expenseAmountTextFieldFinder,
+        reason: 'Expense amount field should not be displayed for walk',
+      );
+      await _verifyNotPresentWithScrollGuard(
+        tester,
+        widgetFinder: _travelEditorForm.transitOperatorEditingField,
+        reason: 'Transit operator field should not be displayed for walk',
+      );
+      await _verifyNotPresentWithScrollGuard(
+        tester,
+        widgetFinder: _travelEditorForm.airportLocationAutoCompleteTextField,
+        reason:
+            'Departure and arrival Airport location text fields should not be displayed for walk',
+      );
     } else {
+      // Verify that PaidBy is displayed by default and expense amount is 0
       var numberOfContributors = tripMetadata.contributors.length;
+
+      // Switch to SplitBy tab and verify that contributors are you and tripmate
+      await _travelEditorForm.commonFormElements.expenseEditor
+          .switchToPaidByTab(tester);
+
       expect(paidByContributorTileFinder, findsNWidgets(numberOfContributors),
           reason:
               '$numberOfContributors Paid by contributor tiles should be displayed');
+
       expect(expenseAmountTextFieldFinder, findsNWidgets(numberOfContributors),
           reason:
               '$numberOfContributors Expense amount fields should be displayed');
+
       final expenseAmountTextFields =
           tester.widgetList<TextField>(expenseAmountTextFieldFinder);
       for (final expenseAmountTextField in expenseAmountTextFields) {
@@ -60,76 +128,128 @@ Future<void> runVerifyDefaultStateTest(WidgetTester tester) async {
             double.parse(expenseAmountTextField.controller!.text) == 0, isTrue,
             reason: 'Expense amount should be 0');
       }
+
       expect(
           find.descendant(
-              of: _travelEditorForm.commonFormElements.paidByTabContributorTile,
-              matching: find.text('You')),
+              of: paidByContributorTileFinder, matching: find.text('You')),
           findsOneWidget,
           reason: 'You should be a contributor in PaidBy');
+
       expect(
           find.descendant(
-              of: _travelEditorForm.commonFormElements.paidByTabContributorTile,
+              of: paidByContributorTileFinder,
               matching:
                   find.text(TestConfig.tripMateUserName.split('@').first)),
           findsOneWidget,
           reason: 'Tripmate should be a contributor in PaidBy');
-      expect(
-          find.descendant(
-              of: _travelEditorForm.commonFormElements.splitByContributorTile,
-              matching: find.text('You')),
-          findsOneWidget,
-          reason: 'You should be a contributor to split');
-      expect(
-          find.descendant(
-              of: _travelEditorForm.commonFormElements.splitByContributorTile,
-              matching:
-                  find.text(TestConfig.tripMateUserName.split('@').first)),
-          findsOneWidget,
-          reason: 'Tripmate should be a contributor to split');
-      final splitByListTiles = tester.widgetList<ListTile>(
-          _travelEditorForm.commonFormElements.splitByContributorTile);
+
+      // Switch to SplitBy tab and verify that contributors are you and tripmate
+      await _travelEditorForm.commonFormElements.expenseEditor
+          .switchToSplitTab(tester);
+
+      expect(splitByContributorTileFinder, findsNWidgets(numberOfContributors),
+          reason:
+              '$numberOfContributors Split by contributor tiles should be displayed');
+      for (final contributor in tripMetadata.contributors) {
+        if (contributor == TestConfig.testEmail) {
+          expect(
+              find.descendant(
+                  of: splitByContributorTileFinder, matching: find.text('You')),
+              findsOneWidget,
+              reason: 'Tripmate should be a contributor to split');
+        } else {
+          final displayName = contributor.split('@').first;
+          expect(
+              find.descendant(
+                  of: splitByContributorTileFinder,
+                  matching: find.text(displayName)),
+              findsOneWidget,
+              reason: 'Contributor should be a contributor to split');
+        }
+      }
+
+      final splitByListTiles =
+          tester.widgetList<ListTile>(splitByContributorTileFinder);
       for (final splitByListTile in splitByListTiles) {
         expect(splitByListTile.selected, isTrue,
             reason: 'Entry should be selected in SplitBy');
       }
 
-      expect(_travelEditorForm.transitOperatorEditingField,
-          transitOption != TransitOption.flight ? findsOneWidget : findsNothing,
-          reason:
-              'Transit operator field should be displayed only for non-flight transit options');
-      expect(_travelEditorForm.airlineNameAutoCompleteTextField,
-          transitOption == TransitOption.flight ? findsOneWidget : findsNothing,
-          reason:
-              'Airline name text field should be displayed only for flights');
-      expect(_travelEditorForm.airlineNumberTextField,
-          transitOption == TransitOption.flight ? findsOneWidget : findsNothing,
-          reason:
-              'Airline number text field should be displayed only for flights');
+      // Verify flight-specific fields with scroll guard
+      if (transitOption == TransitOption.flight) {
+        await _verifyWithScrollGuard(tester,
+            widgetFinder: _travelEditorForm.airlineNameAutoCompleteTextField,
+            matcher: findsOneWidget,
+            reason: 'Airline name text field should be displayed');
 
-      expect(
-          _travelEditorForm.airportLocationAutoCompleteTextField,
-          transitOption == TransitOption.flight
+        await _verifyWithScrollGuard(
+          tester,
+          widgetFinder: _travelEditorForm.airlineNumberTextField,
+          matcher: transitOption == TransitOption.flight
+              ? findsOneWidget
+              : findsNothing,
+          reason:
+              'Airline number text field should be displayed only for flights',
+        );
+
+        await _verifyWithScrollGuard(
+          tester,
+          widgetFinder: _travelEditorForm.airportLocationAutoCompleteTextField,
+          matcher: transitOption == TransitOption.flight
               ? findsNWidgets(2)
               : findsNothing,
           reason:
-              'Departure and arrival Airport location text fields should be displayed only for flights');
+              'Departure and arrival Airport location text fields should be displayed only for flights',
+        );
+      } else {
+        await _verifyWithScrollGuard(
+          tester,
+          widgetFinder: _travelEditorForm.transitOperatorEditingField,
+          matcher: transitOption != TransitOption.flight
+              ? findsOneWidget
+              : findsNothing,
+          reason:
+              'Transit operator field should be displayed only for non-flight transit options',
+        );
+
+        // Verify geo location fields with scroll guard
+        await _verifyWithScrollGuard(
+          tester,
+          widgetFinder: _travelEditorForm.geoLocationAutoCompleteTextField,
+          matcher: transitOption != TransitOption.flight
+              ? findsNWidgets(2)
+              : findsNothing,
+          reason:
+              'Departure and arrival Geo location text fields should be displayed, but only for non-flight transit options',
+        );
+      }
     }
-    expect(_travelEditorForm.geoLocationAutoCompleteTextField,
-        transitOption != TransitOption.flight ? findsNWidgets(2) : findsNothing,
-        reason:
-            'Departure and arrival Geo location text fields should be displayed, but only for non-flight transit options');
-    expect(_travelEditorForm.confirmationIdEditingField,
-        transitOption == TransitOption.walk ? findsNothing : findsOneWidget,
-        reason:
-            'Confirmation ID field should not be displayed for walk. It should be displayed otherwise.');
 
-    expect(
-        _travelEditorForm.commonFormElements.noteEditingField, findsOneWidget,
-        reason: 'Note field should be displayed');
+    // Verify confirmation ID field with scroll guard
+    await _verifyWithScrollGuard(
+      tester,
+      widgetFinder: _travelEditorForm.confirmationIdEditingField,
+      matcher:
+          transitOption == TransitOption.walk ? findsNothing : findsOneWidget,
+      reason:
+          'Confirmation ID field should not be displayed for walk. It should be displayed otherwise.',
+    );
 
-    expect(
-        _travelEditorForm.commonFormElements.dateTimePicker, findsNWidgets(2),
-        reason: '2 Date and time pickers should be displayed');
+    // Verify note field with scroll guard
+    await _verifyWithScrollGuard(
+      tester,
+      widgetFinder: _travelEditorForm.commonFormElements.noteEditingField,
+      matcher: findsOneWidget,
+      reason: 'Note field should be displayed',
+    );
+
+    // Verify date time pickers with scroll guard
+    await _verifyWithScrollGuard(
+      tester,
+      widgetFinder: _travelEditorForm.commonFormElements.dateTimePicker,
+      matcher: findsNWidgets(2),
+      reason: '2 Date and time pickers should be displayed',
+    );
   }
 }
 

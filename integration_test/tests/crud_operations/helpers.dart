@@ -5,6 +5,9 @@ import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/presentation/app/widgets/date_picker.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/app/widgets/date_time_picker.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/transit/travel_editor.dart';
+import 'package:wandrr/presentation/trip/widgets/expense_editing/paid_by_tab.dart';
+import 'package:wandrr/presentation/trip/widgets/expense_editing/split_by_tab.dart';
 
 import '../../helpers/test_helpers.dart';
 
@@ -58,55 +61,25 @@ Future<bool> verifyAndOpenTripEntityEditor(
 
 class CommonFormElements {
   final Type editorPage;
+  final ExpenseEditorHelpers expenseEditor;
 
-  CommonFormElements(this.editorPage);
+  Finder descendantOfEditorPage(Finder finder) =>
+      find.descendant(of: find.byType(editorPage), matching: finder);
 
-  Finder get noteEditingField => find.descendant(
-      of: find.byType(editorPage),
-      matching: find.byKey(ValueKey('NoteEditor_TextField')));
+  CommonFormElements(this.editorPage)
+      : expenseEditor = ExpenseEditorHelpers(editorPage);
 
-  Finder get datePicker => find.descendant(
-      of: find.byType(editorPage), matching: find.byType(PlatformDatePicker));
+  Finder get noteEditingField =>
+      descendantOfEditorPage(find.byKey(ValueKey('NoteEditor_TextField')));
 
-  Finder get dateTimePicker => find.descendant(
-      of: find.byType(editorPage),
-      matching: find.byType(PlatformDateTimePicker));
+  Finder get datePicker =>
+      descendantOfEditorPage(find.byType(PlatformDatePicker));
 
-  Finder get dateRangePicker => find.descendant(
-      of: find.byType(editorPage),
-      matching: find.byType(PlatformDateRangePicker));
+  Finder get dateTimePicker =>
+      descendantOfEditorPage(find.byType(PlatformDateTimePicker));
 
-  Finder get paidByTabContributorTile => find.descendant(
-      of: find.byType(editorPage),
-      matching: find.byKey(ValueKey('PaidByTab_ContributorTile')));
-
-  Finder get splitByContributorTile => find.descendant(
-      of: find.byType(editorPage),
-      matching: find.byKey(ValueKey('SplitByTab_ContributorTile')));
-
-  Future<void> enterMoneyAmount(WidgetTester tester, Money money) async {
-    Finder editorPageFinder = find.byType(editorPage);
-    var textField = find.descendant(
-        of: editorPageFinder,
-        matching: find.byKey(Key('ExpenseAmountEditField_TextField')));
-    await tester.enterText(textField, money.amount.toString());
-    await TestHelpers.tapWidget(
-        tester,
-        find.descendant(
-            of: editorPageFinder,
-            matching: find
-                .byKey(Key('PlatformMoneyEditField_CurrencyPickerButton'))));
-    var searchField = find.descendant(
-        of: editorPageFinder,
-        matching: find.byKey(Key('PlatformMoneyEditField_TextField')));
-    await TestHelpers.enterText(tester, searchField, money.currency);
-
-    final currencyListTile = find.descendant(
-        of: editorPageFinder,
-        matching: find.byKey(
-            Key('PlatformMoneyEditField_CurrencyListTile_${money.currency}')));
-    await TestHelpers.tapWidget(tester, currencyListTile, warnIfMissed: false);
-  }
+  Finder get dateRangePicker =>
+      descendantOfEditorPage(find.byType(PlatformDateRangePicker));
 
   Future<void> selectDateTime(WidgetTester tester,
       {required DateTime dateTime,
@@ -129,5 +102,74 @@ class CommonFormElements {
         tester,
         find.descendant(
             of: find.byType(CupertinoButton), matching: find.text('Done')));
+  }
+}
+
+class ExpenseEditorHelpers {
+  final Type editorPage;
+
+  Finder descendantOfPaidByTab(Finder finder) => find.descendant(
+      of: find.byType(editorPage),
+      matching: find.descendant(of: find.byType(PaidByTab), matching: finder));
+
+  Finder descendantOfSplitByByTab(Finder finder) => find.descendant(
+      of: find.byType(editorPage),
+      matching: find.descendant(of: find.byType(SplitByTab), matching: finder));
+
+  ExpenseEditorHelpers(this.editorPage);
+
+  Finder get paidByTabContributorTile =>
+      descendantOfPaidByTab(find.byKey(ValueKey('PaidByTab_ContributorTile')));
+
+  Finder get splitByContributorTile => descendantOfSplitByByTab(
+      find.byKey(ValueKey('SplitByTab_ContributorTile')));
+
+  Future<void> enterMoneyAmount(WidgetTester tester, Money money) async {
+    var textField = descendantOfPaidByTab(
+        find.byKey(Key('ExpenseAmountEditField_TextField')));
+    await tester.enterText(textField, money.amount.toString());
+    await TestHelpers.tapWidget(
+        tester,
+        descendantOfPaidByTab(
+            find.byKey(Key('PlatformMoneyEditField_CurrencyPickerButton'))));
+    var searchField = descendantOfPaidByTab(
+        find.byKey(Key('PlatformMoneyEditField_TextField')));
+    await TestHelpers.enterText(tester, searchField, money.currency);
+
+    final currencyListTile = descendantOfPaidByTab(find.byKey(
+        Key('PlatformMoneyEditField_CurrencyListTile_${money.currency}')));
+    await TestHelpers.tapWidget(tester, currencyListTile, warnIfMissed: false);
+  }
+
+  Future<void> switchToPaidByTab(WidgetTester tester) async {
+    final controller = tester
+        .widget<SingleChildScrollView>(find.ancestor(
+          of: find.byType(TravelEditor),
+          matching: find.byType(SingleChildScrollView),
+        ))
+        .controller;
+    controller?.jumpTo(500.0);
+    await tester.pumpAndSettle();
+    final paidByTab = find.descendant(
+        of: find.byType(editorPage),
+        matching: find.descendant(
+            of: find.byType(Tab), matching: find.text('Paid By')));
+    return TestHelpers.tapWidget(tester, paidByTab);
+  }
+
+  Future<void> switchToSplitTab(WidgetTester tester) async {
+    final controller = tester
+        .widget<SingleChildScrollView>(find.ancestor(
+          of: find.byType(TravelEditor),
+          matching: find.byType(SingleChildScrollView),
+        ))
+        .controller;
+    controller?.jumpTo(500.0);
+    await tester.pumpAndSettle();
+    var splitByByTab = find.descendant(
+        of: find.byType(editorPage),
+        matching: find.descendant(
+            of: find.byType(Tab), matching: find.text('Split Among')));
+    await TestHelpers.tapWidget(tester, splitByByTab, warnIfMissed: false);
   }
 }

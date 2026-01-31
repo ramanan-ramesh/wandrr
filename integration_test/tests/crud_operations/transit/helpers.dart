@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/presentation/app/widgets/auto_complete.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/transit/airport_data_editor_section.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/transit/flight_details_editor_section.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/transit/travel_editor.dart';
@@ -48,7 +49,7 @@ class TravelEditorForm {
   Finder get airlineNameAutoCompleteTextField => find.descendant(
       of: find.descendant(
           of: find.byType(FlightDetailsEditor),
-          matching: find.byType(PlatformGeoLocationAutoComplete)),
+          matching: find.byType(PlatformAutoComplete)),
       matching: find.byKey(ValueKey('PlatformAutoComplete_TextField')));
 
   Finder get airlineNameOption => find.descendant(
@@ -69,7 +70,8 @@ class TravelEditorForm {
     final dropDownMenuItemToSelect = transitOptionPickerDropDown.items!
         .singleWhere((menuItem) => menuItem.value == option);
     final dropDownMenuItemFinder = find.byWidget(dropDownMenuItemToSelect);
-    await TestHelpers.tapWidget(tester, dropDownMenuItemFinder);
+    await TestHelpers.tapWidget(tester, dropDownMenuItemFinder,
+        warnIfMissed: false);
   }
 
   // Enter the locationContext.name for departure and arrival

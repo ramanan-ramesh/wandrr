@@ -173,7 +173,9 @@ Future<void> runHomePageCreateTripFlowTest(
 
   // Enter budget
   var budget = Money(currency: 'EUR', amount: 50000);
-  await CommonFormElements(TripCreatorDialog).enterMoneyAmount(tester, budget);
+  await CommonFormElements(TripCreatorDialog)
+      .expenseEditor
+      .enterMoneyAmount(tester, budget);
 
   // Tap submit button
   await TestHelpers.tapWidget(tester, find.byType(PlatformSubmitterFAB),
