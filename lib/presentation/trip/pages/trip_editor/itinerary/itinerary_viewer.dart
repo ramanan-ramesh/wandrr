@@ -125,8 +125,18 @@ class _ItineraryViewerState extends State<ItineraryViewer>
           const SizedBox(height: 16),
           ...timelineEvents.asMap().entries.map((entry) {
             final isLast = entry.key == timelineEvents.length - 1;
+            final event = entry.value;
+
+            // Use ConnectedTimelineItemWidget for connected transit legs
+            if (event is ConnectedTransitTimelineEvent) {
+              return ConnectedTimelineItemWidget(
+                event: event,
+                isLastInTimeline: isLast,
+              );
+            }
+
             return TimelineItemWidget(
-              event: entry.value,
+              event: event,
               isLast: isLast,
             );
           }),

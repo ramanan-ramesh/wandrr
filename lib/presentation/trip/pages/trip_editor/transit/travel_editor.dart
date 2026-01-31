@@ -27,10 +27,15 @@ class TravelEditor extends StatefulWidget {
   /// Notifier to track if FAB should be enabled (conflicts acknowledged)
   final ValueNotifier<bool>? validityNotifier;
 
+  /// Minimum allowed departure date time (e.g., previous leg's arrival time)
+  /// Used for connecting legs in a journey
+  final DateTime? minDepartureDateTime;
+
   const TravelEditor({
     required this.transitFacade,
     required this.onTransitUpdated,
     this.validityNotifier,
+    this.minDepartureDateTime,
     super.key,
   });
 
@@ -124,6 +129,7 @@ class _TravelEditorState extends State<TravelEditor>
           transitFacade: _transitFacade,
           onLocationChanged: _updateLocation,
           onDateTimeChanged: _updateDateTimeAndDetectConflicts,
+          minDepartureDateTime: widget.minDepartureDateTime,
         ),
         if (_needsPriorBooking) _buildConfirmationIdSection(),
         _buildNotesSection(),
@@ -405,11 +411,15 @@ class _JourneySection extends StatelessWidget {
   final void Function(bool isArrival, DateTime updatedDateTime)
       onDateTimeChanged;
 
+  /// Minimum allowed departure date time (e.g., previous leg's arrival time)
+  final DateTime? minDepartureDateTime;
+
   const _JourneySection({
     Key? key,
     required this.transitFacade,
     required this.onLocationChanged,
     required this.onDateTimeChanged,
+    this.minDepartureDateTime,
   }) : super(key: key);
 
   @override
@@ -465,6 +475,8 @@ class _JourneySection extends StatelessWidget {
       },
       onDateTimeChanged: (updatedDateTime) =>
           onDateTimeChanged(!isDeparture, updatedDateTime),
+      // Pass min departure time constraint for connecting legs
+      minDateTime: isDeparture ? minDepartureDateTime : null,
     );
   }
 

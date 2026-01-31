@@ -7,15 +7,13 @@ import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/conflict_resolution_subpage.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/editor_view_type.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
 import 'package:wandrr/presentation/trip/widgets/stay_date_time_range_editor.dart';
 
 import 'stay_details.dart';
-
-/// Enum to track which view is being shown
-enum LodgingEditorView { editor, conflictResolution }
 
 class LodgingEditor extends StatefulWidget {
   final LodgingFacade lodging;
@@ -39,7 +37,7 @@ class _LodgingEditorState extends State<LodgingEditor>
     with SingleTickerProviderStateMixin {
   LodgingFacade get _lodging => widget.lodging;
   TripEntityUpdatePlan? _conflictPlan;
-  LodgingEditorView _currentView = LodgingEditorView.editor;
+  EditorViewType _currentEditorViewType = EditorViewType.editor;
 
   bool get _isNewEntity => _lodging.id == null || _lodging.id!.isEmpty;
 
@@ -69,26 +67,26 @@ class _LodgingEditorState extends State<LodgingEditor>
 
   void _switchToConflictResolution() {
     setState(() {
-      _currentView = LodgingEditorView.conflictResolution;
+      _currentEditorViewType = EditorViewType.conflictResolution;
     });
   }
 
   void _switchToEditor() {
     setState(() {
-      _currentView = LodgingEditorView.editor;
+      _currentEditorViewType = EditorViewType.editor;
     });
   }
 
   void _onConflictsResolved() {
     setState(() {
-      _currentView = LodgingEditorView.editor;
+      _currentEditorViewType = EditorViewType.editor;
       _updateValidity();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_currentView == LodgingEditorView.conflictResolution &&
+    if (_currentEditorViewType == EditorViewType.conflictResolution &&
         _conflictPlan != null) {
       return ConflictResolutionSubpage(
         conflictPlan: _conflictPlan!,

@@ -16,7 +16,7 @@ import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'action_handling/action_page.dart';
 import 'budgeting/expenses/expense_editor.dart';
 import 'lodging/lodging_editor.dart';
-import 'transit/travel_editor.dart';
+import 'transit/journey_editor.dart';
 
 enum TripEditorAction {
   travel,
@@ -129,11 +129,19 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
             config: itineraryConfig!,
           );
     } else if (this == TripEditorAction.travel && tripEntity is TransitFacade) {
-      pageContentCreator = (validityNotifier) => TravelEditor(
-            transitFacade: tripEntityToEdit,
-            onTransitUpdated: () =>
-                validityNotifier.value = tripEntityToEdit.validate(),
+      final journeyEditorKey = GlobalKey<JourneyEditorState>();
+      pageContentCreator = (validityNotifier) => JourneyEditor(
+            key: journeyEditorKey,
+            initialLeg: tripEntityToEdit,
+            onJourneyUpdated: () {
+              // Validity is managed by JourneyEditor via validityNotifier
+            },
+            validityNotifier: validityNotifier,
           );
+      // Custom action for journey - saves all legs
+      onActionInvoked = (context) {
+        journeyEditorKey.currentState?.saveAllLegs(context);
+      };
     } else if (this == TripEditorAction.stay && tripEntity is LodgingFacade) {
       pageContentCreator = (validityNotifier) => LodgingEditor(
             lodging: tripEntityToEdit,
@@ -149,7 +157,7 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
           );
     }
 
-    if (pageContentCreator != null) {
+    if (pageContentCreator != null && onActionInvoked == null) {
       onActionInvoked = (context) => context.addTripManagementEvent(isEditing
           ? _eventEmittersPerUpdateActions[this]!(tripEntityToEdit)
           : _eventEmittersPerAddActions[this]!(tripEntityToEdit));

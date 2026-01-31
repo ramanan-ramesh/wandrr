@@ -21,6 +21,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get addChecklist => 'चेकलिस्ट जोड़ें';
 
   @override
+  String get addConnectingLeg => 'Add Connecting Leg';
+
+  @override
   String get addPlacesForThisDay => 'इस दिन के लिए स्थान जोड़ें';
 
   @override

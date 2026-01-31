@@ -124,6 +124,12 @@ abstract class AppLocalizations {
   /// **'Add Checklist'**
   String get addChecklist;
 
+  /// No description provided for @addConnectingLeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Connecting Leg'**
+  String get addConnectingLeg;
+
   /// No description provided for @addPlacesForThisDay.
   ///
   /// In en, this message translates to:
