@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/app/widgets/date_time_picker.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
-import 'package:wandrr/presentation/trip/widgets/time_zone_indicator.dart';
+import 'package:wandrr/presentation/trip/widgets/stay_date_time_range_editor.dart';
 
 class AffectedStaysSection extends StatefulWidget {
   final Iterable<EntityChange<LodgingFacade>> affectedStays;
@@ -122,6 +120,7 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
   Widget _buildStayItem(
       BuildContext context, EntityChange<LodgingFacade> item) {
     final lodging = item.modifiedEntity;
+    final originalLodging = item.originalEntity;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final isMarkedForDeletion = item.isMarkedForDeletion;
 
@@ -175,52 +174,30 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
                 _buildActionToggle(context, item),
               ],
             ),
-            const SizedBox(height: 8),
-            _buildOriginalDatesInfo(context, item.originalEntity),
             if (!isMarkedForDeletion) ...[
               const SizedBox(height: 12),
-              _buildDateTimeRow(
-                context: context,
-                label: 'Check-in',
-                icon: Icons.login_rounded,
-                dateTime: lodging.checkinDateTime,
-                startDateTime: widget.tripStartDate,
-                onChanged: (newDateTime) {
+              StayDateTimeRangeEditor(
+                checkinDateTime: lodging.checkinDateTime,
+                checkoutDateTime: lodging.checkoutDateTime,
+                tripStartDate: widget.tripStartDate,
+                tripEndDate: widget.tripEndDate,
+                location: lodging.location,
+                showOriginalTimes: true,
+                originalCheckinDateTime: originalLodging.checkinDateTime,
+                originalCheckoutDateTime: originalLodging.checkoutDateTime,
+                onCheckinChanged: (newDateTime) {
                   setState(() {
                     lodging.checkinDateTime = newDateTime;
                   });
                   widget.onChanged();
                 },
-              ),
-              const SizedBox(height: 8),
-              _buildDateTimeRow(
-                context: context,
-                label: 'Check-out',
-                icon: Icons.logout_rounded,
-                dateTime: lodging.checkoutDateTime,
-                startDateTime: lodging.checkinDateTime != null
-                    ? lodging.checkinDateTime!.add(Duration(hours: 1))
-                    : widget.tripStartDate.add(Duration(hours: 1)),
-                onChanged: (newDateTime) {
+                onCheckoutChanged: (newDateTime) {
                   setState(() {
                     lodging.checkoutDateTime = newDateTime;
                   });
                   widget.onChanged();
                 },
               ),
-              if (lodging.checkinDateTime != null &&
-                  lodging.checkoutDateTime != null) ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    if (lodging.location != null)
-                      TimezoneIndicator(location: lodging.location!),
-                    if (lodging.location != null) const SizedBox(width: 12),
-                    _buildDurationIndicator(context, lodging.checkinDateTime!,
-                        lodging.checkoutDateTime!),
-                  ],
-                ),
-              ],
             ] else ...[
               const SizedBox(height: 8),
               Center(
@@ -268,110 +245,6 @@ class _AffectedStaysSectionState extends State<AffectedStaysSection> {
           },
         ),
       ],
-    );
-  }
-
-  Widget _buildOriginalDatesInfo(BuildContext context, LodgingFacade original) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: isLightTheme
-            ? AppColors.warning.withValues(alpha: 0.1)
-            : AppColors.warningLight.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.history,
-            size: 14,
-            color: isLightTheme ? AppColors.warning : AppColors.warningLight,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            'Was: ${original.checkinDateTime?.dayDateMonthFormat ?? 'N/A'} - ${original.checkoutDateTime?.dayDateMonthFormat ?? 'N/A'}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color:
-                      isLightTheme ? AppColors.warning : AppColors.warningLight,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDateTimeRow({
-    required BuildContext context,
-    required String label,
-    required IconData icon,
-    required DateTime? dateTime,
-    required DateTime startDateTime,
-    required Function(DateTime) onChanged,
-  }) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 18,
-          color: isLightTheme ? Colors.grey.shade600 : Colors.grey.shade400,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          '$label:',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        const Spacer(),
-        PlatformDateTimePicker(
-          currentDateTime: dateTime,
-          startDateTime: startDateTime,
-          endDateTime: DateTime(widget.tripEndDate.year,
-              widget.tripEndDate.month, widget.tripEndDate.day, 23, 59),
-          dateTimeUpdated: onChanged,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDurationIndicator(
-      BuildContext context, DateTime checkin, DateTime checkout) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
-    final days = checkout.calculateDaysInBetween(checkin);
-    final durationText = '$days ${days == 1 ? 'day' : 'days'}';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: isLightTheme
-            ? AppColors.info.withValues(alpha: 0.1)
-            : AppColors.infoLight.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isLightTheme
-              ? AppColors.info.withValues(alpha: 0.3)
-              : AppColors.infoLight.withValues(alpha: 0.4),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.schedule_rounded,
-            size: 16,
-            color: isLightTheme ? AppColors.info : AppColors.infoLight,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            durationText,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isLightTheme ? AppColors.info : AppColors.infoLight,
-                ),
-          ),
-        ],
-      ),
     );
   }
 }

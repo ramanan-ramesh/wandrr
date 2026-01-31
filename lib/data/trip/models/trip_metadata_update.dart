@@ -16,7 +16,7 @@ enum EntityChangeType {
 }
 
 /// Represents a pending change to a trip entity
-/// Used by both the UI (AffectedEntitiesEditor) and the data layer (TripMetadataUpdateExecutor)
+/// Used by both the UI (AffectedEntitiesEditor) and the data layer
 class EntityChange<T extends TripEntity> {
   final T originalEntity;
   T modifiedEntity;
@@ -25,15 +25,25 @@ class EntityChange<T extends TripEntity> {
   /// For expenses: whether to add new contributors to splitBy
   bool includeInSplitBy;
 
+  /// Optional: description of the conflict (for timeline conflict UI)
+  final String? conflictDescription;
+
+  /// Optional: original time description (for timeline conflict UI)
+  final String? originalTimeDescription;
+
   EntityChange({
     required this.originalEntity,
     required this.modifiedEntity,
     this.changeType = EntityChangeType.update,
     this.includeInSplitBy = false,
+    this.conflictDescription,
+    this.originalTimeDescription,
   });
 
   EntityChange.forDeletion({
     required this.originalEntity,
+    this.conflictDescription,
+    this.originalTimeDescription,
   })  : modifiedEntity = originalEntity,
         changeType = EntityChangeType.delete,
         includeInSplitBy = false;
@@ -53,20 +63,100 @@ class EntityChange<T extends TripEntity> {
   }
 }
 
-/// Encapsulates all changes resulting from a trip metadata update
-/// This is the input to the batch update operation and is also used by the UI
-class TripMetadataUpdatePlan {
-  final TripMetadataFacade oldMetadata;
-  final TripMetadataFacade newMetadata;
-
+/// Base class for entity update plans (transits, stays, sights)
+/// Used for timeline conflict resolution
+class TripEntityUpdatePlan {
   /// Changes to stays (lodgings)
-  final Iterable<EntityChange<LodgingFacade>> stayChanges;
+  final List<EntityChange<LodgingFacade>> stayChanges;
 
   /// Changes to transits
-  final Iterable<EntityChange<TransitFacade>> transitChanges;
+  final List<EntityChange<TransitFacade>> transitChanges;
 
   /// Changes to sights
-  final Iterable<EntityChange<SightFacade>> sightChanges;
+  final List<EntityChange<SightFacade>> sightChanges;
+
+  /// Trip start date for date validation
+  final DateTime tripStartDate;
+
+  /// Trip end date for date validation
+  final DateTime tripEndDate;
+
+  /// Whether user has acknowledged/reviewed the conflicts
+  bool _isAcknowledged = false;
+
+  TripEntityUpdatePlan({
+    required this.stayChanges,
+    required this.transitChanges,
+    required this.sightChanges,
+    required this.tripStartDate,
+    required this.tripEndDate,
+  });
+
+  /// Factory to create from timeline conflict detection
+  factory TripEntityUpdatePlan.forTimelineConflicts({
+    required List<EntityChange<TransitFacade>> transitConflicts,
+    required List<EntityChange<LodgingFacade>> stayConflicts,
+    required List<EntityChange<SightFacade>> sightConflicts,
+    required DateTime tripStartDate,
+    required DateTime tripEndDate,
+  }) {
+    return TripEntityUpdatePlan(
+      transitChanges: transitConflicts,
+      stayChanges: stayConflicts,
+      sightChanges: sightConflicts,
+      tripStartDate: tripStartDate,
+      tripEndDate: tripEndDate,
+    );
+  }
+
+  /// Whether there are any conflicts
+  bool get hasConflicts =>
+      stayChanges.isNotEmpty ||
+      transitChanges.isNotEmpty ||
+      sightChanges.isNotEmpty;
+
+  /// Total number of conflicts
+  int get totalConflicts =>
+      stayChanges.length + transitChanges.length + sightChanges.length;
+
+  /// Whether user has acknowledged the conflicts
+  bool get isAcknowledged => _isAcknowledged;
+
+  /// Mark the plan as acknowledged by user
+  void acknowledge() {
+    _isAcknowledged = true;
+  }
+
+  /// Get stays marked for deletion
+  Iterable<LodgingFacade> get deletedStays =>
+      stayChanges.where((c) => c.isDelete).map((c) => c.originalEntity);
+
+  /// Get transits marked for deletion
+  Iterable<TransitFacade> get deletedTransits =>
+      transitChanges.where((c) => c.isDelete).map((c) => c.originalEntity);
+
+  /// Get sights marked for deletion
+  Iterable<SightFacade> get deletedSights =>
+      sightChanges.where((c) => c.isDelete).map((c) => c.originalEntity);
+
+  /// Get stays to be updated
+  Iterable<LodgingFacade> get updatedStays =>
+      stayChanges.where((c) => c.isUpdate).map((c) => c.modifiedEntity);
+
+  /// Get transits to be updated
+  Iterable<TransitFacade> get updatedTransits =>
+      transitChanges.where((c) => c.isUpdate).map((c) => c.modifiedEntity);
+
+  /// Get sights to be updated
+  Iterable<SightFacade> get updatedSights =>
+      sightChanges.where((c) => c.isUpdate).map((c) => c.modifiedEntity);
+}
+
+/// Encapsulates all changes resulting from a trip metadata update
+/// Extends TripEntityUpdatePlan to add contributor-related changes
+class TripMetadataUpdatePlan extends TripEntityUpdatePlan {
+  final TripMetadataFacade oldMetadata;
+  final TripMetadataFacade newMetadata;
 
   /// All expenses (standalone + from transits/lodgings/sights) for contributor changes
   final Iterable<EntityChange<ExpenseBearingTripEntity>> expenseChanges;
@@ -80,14 +170,21 @@ class TripMetadataUpdatePlan {
   TripMetadataUpdatePlan({
     required this.oldMetadata,
     required this.newMetadata,
-    required this.stayChanges,
-    required this.transitChanges,
-    required this.sightChanges,
+    required List<EntityChange<LodgingFacade>> stayChanges,
+    required List<EntityChange<TransitFacade>> transitChanges,
+    required List<EntityChange<SightFacade>> sightChanges,
     required this.expenseChanges,
   })  : addedContributors = newMetadata.contributors.where(
             (contributor) => !oldMetadata.contributors.contains(contributor)),
         removedContributors = oldMetadata.contributors.where(
-            (contributor) => !newMetadata.contributors.contains(contributor));
+            (contributor) => !newMetadata.contributors.contains(contributor)),
+        super(
+          stayChanges: stayChanges,
+          transitChanges: transitChanges,
+          sightChanges: sightChanges,
+          tripStartDate: newMetadata.startDate!,
+          tripEndDate: newMetadata.endDate!,
+        );
 
   /// Whether trip dates changed
   bool get hasDateChanges =>
@@ -115,22 +212,6 @@ class TripMetadataUpdatePlan {
       transitChanges.isNotEmpty ||
       sightChanges.isNotEmpty ||
       (hasContributorChanges && expenseChanges.isNotEmpty);
-
-  /// Get stays marked for deletion
-  Iterable<LodgingFacade> get deletedStays =>
-      stayChanges.where((c) => c.isDelete).map((c) => c.originalEntity);
-
-  /// Get transits marked for deletion
-  Iterable<TransitFacade> get deletedTransits =>
-      transitChanges.where((c) => c.isDelete).map((c) => c.originalEntity);
-
-  /// Get stays to be updated
-  Iterable<LodgingFacade> get updatedStays =>
-      stayChanges.where((c) => c.isUpdate).map((c) => c.modifiedEntity);
-
-  /// Get transits to be updated
-  Iterable<TransitFacade> get updatedTransits =>
-      transitChanges.where((c) => c.isUpdate).map((c) => c.modifiedEntity);
 
   /// Syncs expense deletion state when an ExpenseBearingTripEntity is deleted/restored
   void syncExpenseDeletionState(
