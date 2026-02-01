@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
+import 'package:wandrr/data/trip/models/trip_entity_update/entity_change.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/conflict_message_builder.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';

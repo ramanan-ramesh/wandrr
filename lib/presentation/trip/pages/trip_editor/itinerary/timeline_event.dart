@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
-import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/transit_journey.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-
-/// Position of a leg within a connected journey
-enum ConnectionPosition { start, middle, end, standalone }
 
 class TimelineEvent<T extends TripEntity> {
   final DateTime time;
@@ -47,50 +42,4 @@ class TimelineEvent<T extends TripEntity> {
         : UpdateTripEntity<T>.delete(tripEntity: data);
     context.addTripManagementEvent(tripManagementEvent);
   }
-}
-
-/// Enhanced timeline event for connected transit journeys
-class ConnectedTransitTimelineEvent extends TimelineEvent<TransitFacade> {
-  /// The journey ID that connects this leg to others
-  final String journeyId;
-
-  /// Position of this leg within the journey
-  final ConnectionPosition position;
-
-  /// Layover duration string (e.g., "2h 30m") - only for middle/end positions
-  final String? layoverDuration;
-
-  /// Reference to the full journey for navigation
-  final TransitJourneyFacade journey;
-
-  ConnectedTransitTimelineEvent({
-    required super.time,
-    required super.title,
-    required super.subtitle,
-    required super.icon,
-    required super.iconColor,
-    required super.data,
-    required this.journeyId,
-    required this.position,
-    required this.journey,
-    this.layoverDuration,
-    super.notes,
-    super.confirmationId,
-  });
-
-  /// Whether this is the first leg in the journey
-  bool get isFirstLeg => position == ConnectionPosition.start;
-
-  /// Whether this is the last leg in the journey
-  bool get isLastLeg => position == ConnectionPosition.end;
-
-  /// Whether this leg has a connection before it
-  bool get hasConnectionBefore =>
-      position == ConnectionPosition.middle ||
-      position == ConnectionPosition.end;
-
-  /// Whether this leg has a connection after it
-  bool get hasConnectionAfter =>
-      position == ConnectionPosition.start ||
-      position == ConnectionPosition.middle;
 }

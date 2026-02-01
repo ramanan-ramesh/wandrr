@@ -16,6 +16,7 @@ import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_event_formatter.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/timeline_event.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/transit_journey_timeline_event.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 /// Factory for creating timeline events from trip entities
@@ -113,7 +114,8 @@ class TimelineEventFactory {
 
     // Process standalone transits
     for (final transit in standaloneTransits) {
-      yield _createSingleTransitEvent(transit, ConnectionPosition.standalone);
+      yield _createSingleTransitEvent(
+          transit, TravelLegConnectionPosition.standalone);
     }
 
     // Process journey transits (grouped and sorted)
@@ -132,15 +134,15 @@ class TimelineEventFactory {
         final isFirst = legIndexInJourney == 0;
         final isLast = legIndexInJourney == journey.legs.length - 1;
 
-        ConnectionPosition position;
+        TravelLegConnectionPosition position;
         if (journey.legs.length == 1) {
-          position = ConnectionPosition.standalone;
+          position = TravelLegConnectionPosition.standalone;
         } else if (isFirst) {
-          position = ConnectionPosition.start;
+          position = TravelLegConnectionPosition.start;
         } else if (isLast) {
-          position = ConnectionPosition.end;
+          position = TravelLegConnectionPosition.end;
         } else {
-          position = ConnectionPosition.middle;
+          position = TravelLegConnectionPosition.middle;
         }
 
         // Calculate layover from previous leg
@@ -167,7 +169,7 @@ class TimelineEventFactory {
   /// Creates a single transit event (standalone)
   TimelineEvent<TransitFacade> _createSingleTransitEvent(
     TransitFacade transit,
-    ConnectionPosition position,
+    TravelLegConnectionPosition position,
   ) {
     final metadata = context.activeTrip.transitOptionMetadatas.firstWhere(
       (e) => e.transitOption == transit.transitOption,
@@ -192,9 +194,9 @@ class TimelineEventFactory {
   }
 
   /// Creates a connected transit event (part of a journey)
-  ConnectedTransitTimelineEvent _createConnectedTransitEvent({
+  TransitJourneyTimelineEvent _createConnectedTransitEvent({
     required TransitFacade transit,
-    required ConnectionPosition position,
+    required TravelLegConnectionPosition position,
     required String journeyId,
     required TransitJourneyFacade journey,
     String? layoverDuration,
@@ -215,7 +217,7 @@ class TimelineEventFactory {
     final subtitle =
         '$depTime → $arrTime${operatorInfo.isNotEmpty ? ' • $operatorInfo' : ''}';
 
-    return ConnectedTransitTimelineEvent(
+    return TransitJourneyTimelineEvent(
       time: transit.departureDateTime ?? DateTime.now(),
       title: title,
       subtitle: subtitle,

@@ -49,9 +49,6 @@ class TransitFacade extends Equatable
   @override
   set title(String value) {}
 
-  /// Whether this leg is part of a multi-leg journey
-  bool get isPartOfJourney => journeyId != null;
-
   TransitFacade(
       {required this.tripId,
       required this.transitOption,

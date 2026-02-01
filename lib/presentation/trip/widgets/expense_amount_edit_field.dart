@@ -100,6 +100,7 @@ class _PlatformExpenseAmountEditFieldState
 
 class _DecimalTextInputFormatter extends TextInputFormatter {
   final int decimalRange;
+  static final RegExp _allowedPattern = RegExp(r'^[0-9]*\.?[0-9]*$');
 
   _DecimalTextInputFormatter({this.decimalRange = 2})
       : assert(decimalRange > 0);
@@ -111,8 +112,17 @@ class _DecimalTextInputFormatter extends TextInputFormatter {
   ) {
     var newSelection = newValue.selection;
     var truncated = newValue.text;
-
     var value = newValue.text;
+
+    // Allow empty string
+    if (value.isEmpty) {
+      return newValue;
+    }
+
+    // Reject if the new value doesn't match allowed pattern (digits and decimal)
+    if (!_allowedPattern.hasMatch(value)) {
+      return oldValue;
+    }
 
     // Check if more than one decimal point exists
     if (value.indexOf('.') != value.lastIndexOf('.')) {

@@ -8,12 +8,17 @@ import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/data/trip/services/conflict_detection_provider.dart';
+import 'package:wandrr/data/trip/services/itinerary_plan_data_conflict_detection_provider.dart';
+import 'package:wandrr/data/trip/services/journey_conflict_detection_provider.dart';
+import 'package:wandrr/data/trip/services/stay_conflict_detection_provider.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_plan_data_editor.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/trip_details_editor.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 import 'action_handling/action_page.dart';
+import 'action_handling/conflict_aware_action_page.dart';
 import 'budgeting/expenses/expense_editor.dart';
 import 'lodging/lodging_editor.dart';
 import 'transit/journey_editor.dart';
@@ -101,7 +106,7 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
     }
   }
 
-  TripEditorActionPage? createActionPage({
+  Widget? createActionPage({
     required TripEntity tripEntity,
     required String title,
     required bool isEditing,
@@ -111,8 +116,16 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
   }) {
     var actionIcon = isEditing ? Icons.check_rounded : Icons.add_rounded;
     void Function(BuildContext context)? onActionInvoked;
+    Widget Function(
+            ValueNotifier<bool> validityNotifier, VoidCallback onEntityUpdated)?
+        conflictAwarePageContentCreator;
     Widget Function(ValueNotifier<bool> validityNotifier)? pageContentCreator;
+    ConflictDetectionProvider? conflictDetectionProvider;
     var tripEntityToEdit = tripEntity.clone();
+
+    // Track if we need conflict-aware action page
+    bool useConflictAwarePage = false;
+
     if (this == TripEditorAction.tripDetails &&
         tripEntity is TripMetadataFacade) {
       pageContentCreator = (validityNotifier) => TripDetailsEditor(
@@ -122,32 +135,55 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
           );
     } else if (this == TripEditorAction.itineraryData &&
         tripEntity is ItineraryPlanData) {
-      pageContentCreator = (validityNotifier) => ItineraryPlanDataEditor(
-            planData: tripEntityToEdit,
-            onPlanDataUpdated: () =>
-                validityNotifier.value = tripEntityToEdit.validate(),
-            config: itineraryConfig!,
-          );
+      useConflictAwarePage = true;
+      conflictDetectionProvider = ItineraryPlanDataConflictDetectionProvider(
+        planData: tripEntityToEdit as ItineraryPlanData,
+      );
+      conflictAwarePageContentCreator =
+          (validityNotifier, onEntityUpdated) => ItineraryPlanDataEditor(
+                planData: tripEntityToEdit,
+                onPlanDataUpdated: () {
+                  validityNotifier.value = tripEntityToEdit.validate();
+                  onEntityUpdated();
+                },
+                config: itineraryConfig!,
+              );
     } else if (this == TripEditorAction.travel && tripEntity is TransitFacade) {
+      useConflictAwarePage = true;
       final journeyEditorKey = GlobalKey<JourneyEditorState>();
-      pageContentCreator = (validityNotifier) => JourneyEditor(
-            key: journeyEditorKey,
-            initialLeg: tripEntityToEdit,
-            onJourneyUpdated: () {
-              // Validity is managed by JourneyEditor via validityNotifier
-            },
-            validityNotifier: validityNotifier,
-          );
+      conflictAwarePageContentCreator =
+          (validityNotifier, onEntityUpdated) => JourneyEditor(
+                key: journeyEditorKey,
+                initialLeg: tripEntityToEdit as TransitFacade,
+                onJourneyUpdated: () {
+                  onEntityUpdated();
+                },
+                validityNotifier: validityNotifier,
+              );
+      // Create conflict detection provider that dynamically gets legs from JourneyEditor
+      conflictDetectionProvider = JourneyConflictDetectionProvider.dynamic(
+        legsProvider: () =>
+            journeyEditorKey.currentState?.legs ??
+            [tripEntityToEdit as TransitFacade],
+      );
       // Custom action for journey - saves all legs
       onActionInvoked = (context) {
         journeyEditorKey.currentState?.saveAllLegs(context);
       };
     } else if (this == TripEditorAction.stay && tripEntity is LodgingFacade) {
-      pageContentCreator = (validityNotifier) => LodgingEditor(
-            lodging: tripEntityToEdit,
-            onLodgingUpdated: () =>
-                validityNotifier.value = tripEntityToEdit.validate(),
-          );
+      useConflictAwarePage = true;
+      conflictDetectionProvider = StayConflictDetectionProvider(
+        stay: tripEntityToEdit as LodgingFacade,
+      );
+      conflictAwarePageContentCreator =
+          (validityNotifier, onEntityUpdated) => LodgingEditor(
+                lodging: tripEntityToEdit,
+                onLodgingUpdated: () {
+                  validityNotifier.value = tripEntityToEdit.validate();
+                  onEntityUpdated();
+                },
+                validityNotifier: validityNotifier,
+              );
     } else if (this == TripEditorAction.expense &&
         tripEntity is ExpenseBearingTripEntity) {
       pageContentCreator = (validityNotifier) => ExpenseEditor(
@@ -157,22 +193,83 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
           );
     }
 
-    if (pageContentCreator != null && onActionInvoked == null) {
+    if (onActionInvoked == null) {
       onActionInvoked = (context) => context.addTripManagementEvent(isEditing
           ? _eventEmittersPerUpdateActions[this]!(tripEntityToEdit)
           : _eventEmittersPerAddActions[this]!(tripEntityToEdit));
     }
-    if (pageContentCreator != null && onActionInvoked != null) {
-      return TripEditorActionPage(
-        tripEntity: tripEntityToEdit,
-        title: title,
-        onClosePressed: onClosePressed,
-        onActionInvoked: onActionInvoked,
-        scrollController: scrollController,
-        pageContentCreator: (validityNotifier) =>
-            pageContentCreator!(validityNotifier),
-        actionIcon: actionIcon,
-      );
+
+    // Use ConflictAwareActionPage for entities that need conflict detection
+    if (useConflictAwarePage && conflictAwarePageContentCreator != null) {
+      if (tripEntity is ItineraryPlanData) {
+        final typedEntity = tripEntityToEdit as ItineraryPlanData;
+        return ConflictAwareActionPage<ItineraryPlanData>(
+          tripEntity: typedEntity,
+          title: title,
+          onClosePressed: onClosePressed,
+          onActionInvoked: onActionInvoked,
+          scrollController: scrollController,
+          pageContentCreator: conflictAwarePageContentCreator,
+          actionIcon: actionIcon,
+          conflictDetectionProvider: conflictDetectionProvider,
+        );
+      } else if (tripEntity is TransitFacade) {
+        final typedEntity = tripEntityToEdit as TransitFacade;
+        return ConflictAwareActionPage<TransitFacade>(
+          tripEntity: typedEntity,
+          title: title,
+          onClosePressed: onClosePressed,
+          onActionInvoked: onActionInvoked,
+          scrollController: scrollController,
+          pageContentCreator: conflictAwarePageContentCreator,
+          actionIcon: actionIcon,
+          conflictDetectionProvider: conflictDetectionProvider,
+        );
+      } else if (tripEntity is LodgingFacade) {
+        final typedEntity = tripEntityToEdit as LodgingFacade;
+        return ConflictAwareActionPage<LodgingFacade>(
+          tripEntity: typedEntity,
+          title: title,
+          onClosePressed: onClosePressed,
+          onActionInvoked: onActionInvoked,
+          scrollController: scrollController,
+          pageContentCreator: conflictAwarePageContentCreator,
+          actionIcon: actionIcon,
+          conflictDetectionProvider: conflictDetectionProvider,
+        );
+      }
+    }
+
+    // Use regular TripEditorActionPage for non-conflict-aware entities
+    if (pageContentCreator != null) {
+      if (tripEntity is TripMetadataFacade) {
+        final typedEntity = tripEntityToEdit as TripMetadataFacade;
+        return TripEditorActionPage<TripMetadataFacade>(
+          tripEntity: typedEntity,
+          title: title,
+          onClosePressed: onClosePressed,
+          onActionInvoked: onActionInvoked,
+          scrollController: scrollController,
+          pageContentCreator: (validityNotifier) =>
+              pageContentCreator!(validityNotifier),
+          actionIcon: actionIcon,
+        );
+      } else if (tripEntity is ExpenseBearingTripEntity) {
+        // ExpenseBearingTripEntity can be TransitFacade, LodgingFacade, or StandaloneExpense
+        if (tripEntity is StandaloneExpense) {
+          final typedEntity = tripEntityToEdit as StandaloneExpense;
+          return TripEditorActionPage<StandaloneExpense>(
+            tripEntity: typedEntity,
+            title: title,
+            onClosePressed: onClosePressed,
+            onActionInvoked: onActionInvoked,
+            scrollController: scrollController,
+            pageContentCreator: (validityNotifier) =>
+                pageContentCreator!(validityNotifier),
+            actionIcon: actionIcon,
+          );
+        }
+      }
     }
     return null;
   }

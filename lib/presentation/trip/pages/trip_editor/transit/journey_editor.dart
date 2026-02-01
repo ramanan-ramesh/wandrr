@@ -279,7 +279,10 @@ class JourneyEditorState extends State<JourneyEditor> {
 
         // Journey summary footer (only for multi-leg journeys)
         if (hasMultipleLegs && journey != null)
-          JourneySummaryFooter(journey: journey),
+          JourneySummaryFooter(
+            journey: journey,
+            targetCurrency: context.activeTrip.tripMetadata.budget.currency,
+          ),
       ],
     );
   }
@@ -855,19 +858,91 @@ class _LegNumberBadge extends StatelessWidget {
   }
 }
 
-/// Journey summary footer
-class JourneySummaryFooter extends StatelessWidget {
+/// Journey summary footer with total expense converted to trip currency
+class JourneySummaryFooter extends StatefulWidget {
   final TransitJourneyFacade journey;
 
-  const JourneySummaryFooter({required this.journey, super.key});
+  /// Target currency for expense display (usually trip's default currency)
+  final String targetCurrency;
+
+  const JourneySummaryFooter({
+    required this.journey,
+    required this.targetCurrency,
+    super.key,
+  });
+
+  @override
+  State<JourneySummaryFooter> createState() => _JourneySummaryFooterState();
+}
+
+class _JourneySummaryFooterState extends State<JourneySummaryFooter> {
+  double _totalExpense = 0.0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _calculateTotalExpense();
+  }
+
+  @override
+  void didUpdateWidget(covariant JourneySummaryFooter oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.journey != widget.journey ||
+        oldWidget.targetCurrency != widget.targetCurrency) {
+      _calculateTotalExpense();
+    }
+  }
+
+  void _calculateTotalExpense() async {
+    setState(() {
+      _isLoading = true;
+      _totalExpense = 0.0;
+    });
+
+    final currencyConverter = context.apiServicesRepository.currencyConverter;
+    final service = TransitJourneyService(
+      context.activeTrip.transitCollection,
+      currencyConverter: currencyConverter,
+    );
+
+    await for (final amount in service.getTotalExpenseStream(
+      legs: widget.journey.legs,
+      targetCurrency: widget.targetCurrency,
+    )) {
+      if (mounted) {
+        setState(() {
+          _totalExpense = amount;
+          _isLoading = false;
+        });
+      }
+    }
+
+    if (mounted && _isLoading) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  String? _calculateTotalDuration() {
+    if (widget.journey.departureDateTime == null ||
+        widget.journey.arrivalDateTime == null) {
+      return null;
+    }
+    final duration = widget.journey.arrivalDateTime!
+        .difference(widget.journey.departureDateTime!);
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+    if (hours > 0) {
+      return '${hours}h ${minutes}m';
+    }
+    return '${minutes}m';
+  }
 
   @override
   Widget build(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
-    final totalAmount = journey.totalExpenseAmount;
-    final currency = journey.currency;
-
-    // Calculate total duration
     final totalDuration = _calculateTotalDuration();
 
     return Container(
@@ -886,34 +961,27 @@ class JourneySummaryFooter extends StatelessWidget {
           _SummaryItem(
             icon: Icons.flight_takeoff,
             label:
-                '${journey.legs.length} leg${journey.legs.length > 1 ? 's' : ''}',
+                '${widget.journey.legs.length} leg${widget.journey.legs.length > 1 ? 's' : ''}',
           ),
           if (totalDuration != null)
             _SummaryItem(
               icon: Icons.schedule,
               label: totalDuration,
             ),
-          _SummaryItem(
-            icon: Icons.payments,
-            label: '${totalAmount.toStringAsFixed(2)} $currency',
-          ),
+          _isLoading
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : _SummaryItem(
+                  icon: Icons.payments,
+                  label:
+                      '${_totalExpense.toStringAsFixed(2)} ${widget.targetCurrency}',
+                ),
         ],
       ),
     );
-  }
-
-  String? _calculateTotalDuration() {
-    if (journey.departureDateTime == null || journey.arrivalDateTime == null) {
-      return null;
-    }
-    final duration =
-        journey.arrivalDateTime!.difference(journey.departureDateTime!);
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes % 60;
-    if (hours > 0) {
-      return '${hours}h ${minutes}m';
-    }
-    return '${minutes}m';
   }
 }
 

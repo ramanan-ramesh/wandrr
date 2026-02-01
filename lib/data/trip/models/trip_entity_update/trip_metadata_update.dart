@@ -3,65 +3,9 @@ import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
-/// Represents the type of change for a trip entity
-enum EntityChangeType {
-  /// Entity will be updated with new values
-  update,
-
-  /// Entity will be deleted
-  delete,
-}
-
-/// Represents a pending change to a trip entity
-/// Used by both the UI (AffectedEntitiesEditor) and the data layer
-class EntityChange<T extends TripEntity> {
-  final T originalEntity;
-  T modifiedEntity;
-  EntityChangeType changeType;
-
-  /// For expenses: whether to add new contributors to splitBy
-  bool includeInSplitBy;
-
-  /// Optional: description of the conflict (for timeline conflict UI)
-  final String? conflictDescription;
-
-  /// Optional: original time description (for timeline conflict UI)
-  final String? originalTimeDescription;
-
-  EntityChange({
-    required this.originalEntity,
-    required this.modifiedEntity,
-    this.changeType = EntityChangeType.update,
-    this.includeInSplitBy = false,
-    this.conflictDescription,
-    this.originalTimeDescription,
-  });
-
-  EntityChange.forDeletion({
-    required this.originalEntity,
-    this.conflictDescription,
-    this.originalTimeDescription,
-  })  : modifiedEntity = originalEntity,
-        changeType = EntityChangeType.delete,
-        includeInSplitBy = false;
-
-  bool get isUpdate => changeType == EntityChangeType.update;
-
-  bool get isDelete => changeType == EntityChangeType.delete;
-
-  bool get isMarkedForDeletion => changeType == EntityChangeType.delete;
-
-  void markForDeletion() {
-    changeType = EntityChangeType.delete;
-  }
-
-  void restore() {
-    changeType = EntityChangeType.update;
-  }
-}
+import 'entity_change.dart';
 
 /// Base class for entity update plans (transits, stays, sights)
 /// Used for timeline conflict resolution
@@ -91,23 +35,6 @@ class TripEntityUpdatePlan {
     required this.tripStartDate,
     required this.tripEndDate,
   });
-
-  /// Factory to create from timeline conflict detection
-  factory TripEntityUpdatePlan.forTimelineConflicts({
-    required List<EntityChange<TransitFacade>> transitConflicts,
-    required List<EntityChange<LodgingFacade>> stayConflicts,
-    required List<EntityChange<SightFacade>> sightConflicts,
-    required DateTime tripStartDate,
-    required DateTime tripEndDate,
-  }) {
-    return TripEntityUpdatePlan(
-      transitChanges: transitConflicts,
-      stayChanges: stayConflicts,
-      sightChanges: sightConflicts,
-      tripStartDate: tripStartDate,
-      tripEndDate: tripEndDate,
-    );
-  }
 
   /// Whether there are any conflicts
   bool get hasConflicts =>

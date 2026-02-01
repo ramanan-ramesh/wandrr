@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
-import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
+import 'package:wandrr/data/trip/models/trip_entity_update/entity_change.dart';
+import 'package:wandrr/data/trip/models/trip_entity_update/trip_metadata_update.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/conflict_message_builder.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
@@ -66,67 +65,85 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
   }
 
   Widget _buildHeader(BuildContext context, bool isLightTheme) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isLightTheme
-              ? [
-                  AppColors.warning.withValues(alpha: 0.15),
-                  AppColors.error.withValues(alpha: 0.1),
-                ]
-              : [
-                  AppColors.warning.withValues(alpha: 0.3),
-                  AppColors.errorLight.withValues(alpha: 0.15),
-                ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return InkWell(
+      onTap: widget.onBackPressed,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isLightTheme
+                ? [
+                    AppColors.brandPrimary.withValues(alpha: 0.1),
+                    AppColors.brandSecondary.withValues(alpha: 0.15),
+                  ]
+                : [
+                    AppColors.brandPrimaryLight.withValues(alpha: 0.2),
+                    AppColors.brandSecondaryLight.withValues(alpha: 0.15),
+                  ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isLightTheme
+                ? AppColors.brandPrimary.withValues(alpha: 0.3)
+                : AppColors.brandPrimaryLight.withValues(alpha: 0.3),
+          ),
         ),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: widget.onBackPressed,
-            style: IconButton.styleFrom(
-              backgroundColor: isLightTheme
-                  ? Colors.white.withValues(alpha: 0.8)
-                  : Colors.black.withValues(alpha: 0.3),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isLightTheme
+                    ? AppColors.brandPrimary.withValues(alpha: 0.15)
+                    : AppColors.brandPrimaryLight.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.edit_rounded,
+                color: isLightTheme
+                    ? AppColors.brandPrimary
+                    : AppColors.brandPrimaryLight,
+                size: 20,
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Icon(
-            Icons.warning_amber_rounded,
-            color: isLightTheme ? AppColors.warning : AppColors.warningLight,
-            size: 28,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Resolve Conflicts',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: isLightTheme
-                            ? AppColors.warning
-                            : AppColors.warningLight,
-                      ),
-                ),
-                Text(
-                  '${widget.conflictPlan.totalConflicts} item${widget.conflictPlan.totalConflicts > 1 ? 's' : ''} affected',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: isLightTheme
-                            ? Colors.grey.shade700
-                            : Colors.grey.shade300,
-                      ),
-                ),
-              ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Back to Editing',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: isLightTheme
+                              ? AppColors.brandPrimary
+                              : AppColors.brandPrimaryLight,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Tap to return to the editor',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: isLightTheme
+                              ? Colors.grey.shade600
+                              : Colors.grey.shade400,
+                        ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 18,
+              color: isLightTheme
+                  ? AppColors.brandPrimary
+                  : AppColors.brandPrimaryLight,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -194,7 +211,7 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
           Expanded(
             child: OutlinedButton(
               onPressed: widget.onBackPressed,
-              child: const Text('Cancel'),
+              child: const Text('Back to Editor'),
             ),
           ),
           const SizedBox(width: 16),
@@ -202,11 +219,12 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
             child: FilledButton.icon(
               onPressed: () {
                 widget.conflictPlan.acknowledge();
-                _applyConflictResolutions(context);
+                // Don't dispatch events here - they will be buffered
+                // and dispatched when the main FAB is clicked
                 widget.onConflictsResolved();
               },
               icon: const Icon(Icons.check),
-              label: const Text('Confirm'),
+              label: const Text('Confirm Changes'),
               style: FilledButton.styleFrom(
                 backgroundColor:
                     isLightTheme ? AppColors.success : AppColors.successLight,
@@ -216,55 +234,6 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
         ],
       ),
     );
-  }
-
-  void _applyConflictResolutions(BuildContext context) {
-    // Process transit changes
-    for (final change in widget.conflictPlan.transitChanges) {
-      if (change.isMarkedForDeletion) {
-        context.addTripManagementEvent(
-          UpdateTripEntity<TransitFacade>.delete(
-              tripEntity: change.originalEntity),
-        );
-      } else if (change.modifiedEntity.departureDateTime != null &&
-          change.modifiedEntity.arrivalDateTime != null) {
-        context.addTripManagementEvent(
-          UpdateTripEntity<TransitFacade>.update(
-              tripEntity: change.modifiedEntity),
-        );
-      }
-    }
-
-    // Process stay changes
-    for (final change in widget.conflictPlan.stayChanges) {
-      if (change.isMarkedForDeletion) {
-        context.addTripManagementEvent(
-          UpdateTripEntity<LodgingFacade>.delete(
-              tripEntity: change.originalEntity),
-        );
-      } else if (change.modifiedEntity.checkinDateTime != null &&
-          change.modifiedEntity.checkoutDateTime != null) {
-        context.addTripManagementEvent(
-          UpdateTripEntity<LodgingFacade>.update(
-              tripEntity: change.modifiedEntity),
-        );
-      }
-    }
-
-    // Process sight changes
-    for (final change in widget.conflictPlan.sightChanges) {
-      if (change.isMarkedForDeletion) {
-        context.addTripManagementEvent(
-          UpdateTripEntity<SightFacade>.delete(
-              tripEntity: change.originalEntity),
-        );
-      } else {
-        context.addTripManagementEvent(
-          UpdateTripEntity<SightFacade>.update(
-              tripEntity: change.modifiedEntity),
-        );
-      }
-    }
   }
 }
 
@@ -844,6 +813,15 @@ class _DateTimePickerRow extends StatelessWidget {
     required this.onChanged,
   });
 
+  String _formatDateTime(DateTime dt) {
+    final dayName =
+        ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dt.weekday - 1];
+    final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+    final amPm = dt.hour >= 12 ? 'PM' : 'AM';
+    final minute = dt.minute.toString().padLeft(2, '0');
+    return '$dayName ${dt.day}/${dt.month} $hour:$minute $amPm';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -854,9 +832,7 @@ class _DateTimePickerRow extends StatelessWidget {
         const Spacer(),
         OutlinedButton.icon(
           icon: const Icon(Icons.calendar_today, size: 16),
-          label: Text(dateTime != null
-              ? '${dateTime!.day}/${dateTime!.month}/${dateTime!.year}'
-              : 'Select'),
+          label: Text(dateTime != null ? _formatDateTime(dateTime!) : 'Select'),
           onPressed: () async {
             final pickedDate = await showDatePicker(
               context: context,

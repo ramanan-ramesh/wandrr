@@ -18,8 +18,8 @@ import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
+import 'package:wandrr/data/trip/models/trip_entity_update/trip_metadata_update.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 
 import 'budgeting/expense.dart';

@@ -7,7 +7,7 @@ import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
+import 'package:wandrr/data/trip/models/trip_entity_update/trip_metadata_update.dart';
 
 /// Implementation that uses Firestore batch writes
 ///
