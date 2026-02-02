@@ -6,7 +6,7 @@ import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/trip_metadata_update.dart';
+import 'package:wandrr/data/trip/models/trip_entity_update/trip_data_update_plan.dart';
 import 'package:wandrr/data/trip/services/conflict_detection_provider.dart';
 import 'package:wandrr/data/trip/services/timeline_conflict_detector.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
@@ -60,7 +60,7 @@ class _ConflictAwareActionPageState<T extends TripEntity>
   late final ValueNotifier<bool> _validityNotifier;
   late Widget _pageContent;
   bool _showConflictResolution = false;
-  TripEntityUpdatePlan? _conflictPlan;
+  TripDataUpdatePlan? _conflictPlan;
 
   @override
   void initState() {
@@ -345,7 +345,7 @@ class _ConflictAwareActionPageState<T extends TripEntity>
 /// Sticky conflict banner that stays at the top of the editor.
 /// Provides clear messaging and navigation to conflict resolution.
 class _StickyConflictBanner extends StatelessWidget {
-  final TripEntityUpdatePlan conflictPlan;
+  final TripDataUpdatePlan conflictPlan;
   final VoidCallback onViewConflicts;
 
   const _StickyConflictBanner({

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/trip_metadata_update.dart';
+import 'package:wandrr/data/trip/models/trip_entity_update/trip_data_update_plan.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_expenses_section.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_sights_section.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_stays_section.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_transits_section.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/common/entity_change_message_provider.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/common/unified_entity_change_editor.dart';
 
-/// Editor for adjusting affected entities when trip metadata changes
+/// Editor for adjusting affected entities when trip metadata changes.
+/// Uses the unified entity change components for consistency.
 class AffectedEntitiesEditor extends StatefulWidget {
   final TripMetadataUpdatePlan updatePlan;
   final VoidCallback onModelUpdated;
@@ -22,6 +21,14 @@ class AffectedEntitiesEditor extends StatefulWidget {
 }
 
 class _AffectedEntitiesEditorState extends State<AffectedEntitiesEditor> {
+  late final EntityChangeMessageProvider _messageProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    _messageProvider = EntityChangeMessageProvider.forMetadataUpdate();
+  }
+
   @override
   Widget build(BuildContext context) {
     final plan = widget.updatePlan;
@@ -36,41 +43,14 @@ class _AffectedEntitiesEditorState extends State<AffectedEntitiesEditor> {
         if (plan.hasContributorChanges)
           _buildContributorChangesInfo(context, isLightTheme),
         const SizedBox(height: 8),
-        AffectedStaysSection(
-          affectedStays: plan.stayChanges,
-          tripStartDate: plan.newMetadata.startDate!,
-          tripEndDate: plan.newMetadata.endDate!,
+        // Use the unified entity change editor
+        UnifiedEntityChangeEditor.forMetadataUpdate(
+          updatePlan: plan,
           onChanged: widget.onModelUpdated,
           onEntityDeletionChanged: (entity, isDeleted) {
             plan.syncExpenseDeletionState(entity, isDeleted);
             setState(() {});
           },
-        ),
-        AffectedTransitsSection(
-          affectedTransits: plan.transitChanges,
-          tripStartDate: plan.newMetadata.startDate!,
-          tripEndDate: plan.newMetadata.endDate!,
-          onChanged: widget.onModelUpdated,
-          onEntityDeletionChanged: (entity, isDeleted) {
-            plan.syncExpenseDeletionState(entity, isDeleted);
-            setState(() {});
-          },
-        ),
-        AffectedSightsSection(
-          affectedSights: plan.sightChanges,
-          tripStartDate: plan.newMetadata.startDate!,
-          tripEndDate: plan.newMetadata.endDate!,
-          onChanged: widget.onModelUpdated,
-          onEntityDeletionChanged: (entity, isDeleted) {
-            plan.syncExpenseDeletionState(entity, isDeleted);
-            setState(() {});
-          },
-        ),
-        AffectedExpensesSection(
-          allExpenses: plan.expenseChanges,
-          addedContributors: plan.addedContributors,
-          removedContributors: plan.removedContributors,
-          onChanged: widget.onModelUpdated,
         ),
       ],
     );
@@ -128,8 +108,7 @@ class _AffectedEntitiesEditorState extends State<AffectedEntitiesEditor> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Some items in your trip need attention after the changes. '
-            'Please review and update them as needed.',
+            _messageProvider.buildSummaryMessage(widget.updatePlan),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: isLightTheme
                       ? Colors.grey.shade700

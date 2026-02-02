@@ -2,7 +2,7 @@ import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity_update/entity_change.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/trip_metadata_update.dart';
+import 'package:wandrr/data/trip/models/trip_entity_update/trip_data_update_plan.dart';
 
 /// Utility class for generating descriptive conflict messages
 class ConflictMessageBuilder {
@@ -36,7 +36,7 @@ class ConflictMessageBuilder {
   }
 
   /// Generates a summary message for the conflict resolution header
-  static String buildSummaryMessage(TripEntityUpdatePlan plan) {
+  static String buildSummaryMessage(TripDataUpdatePlan plan) {
     final parts = <String>[];
 
     if (plan.transitChanges.isNotEmpty) {

@@ -1,5 +1,5 @@
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/trip_metadata_update.dart';
+import 'package:wandrr/data/trip/models/trip_entity_update/trip_data_update_plan.dart';
 import 'package:wandrr/data/trip/services/conflict_detection_provider.dart';
 import 'package:wandrr/data/trip/services/timeline_conflict_detector.dart';
 
@@ -16,7 +16,7 @@ class SightConflictDetectionProvider implements ConflictDetectionProvider {
   bool get isNewEntity => _sight.id == null || _sight.id!.isEmpty;
 
   @override
-  TripEntityUpdatePlan? detectConflicts(TimelineConflictDetector detector) {
+  TripDataUpdatePlan? detectConflicts(TimelineConflictDetector detector) {
     // Sights without visit time cannot have conflicts
     if (_sight.visitTime == null) {
       return null;

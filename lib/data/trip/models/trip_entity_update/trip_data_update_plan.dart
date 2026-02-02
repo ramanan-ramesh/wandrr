@@ -9,7 +9,7 @@ import 'entity_change.dart';
 
 /// Base class for entity update plans (transits, stays, sights)
 /// Used for timeline conflict resolution
-class TripEntityUpdatePlan {
+class TripDataUpdatePlan {
   /// Changes to stays (lodgings)
   final List<EntityChange<LodgingFacade>> stayChanges;
 
@@ -28,7 +28,7 @@ class TripEntityUpdatePlan {
   /// Whether user has acknowledged/reviewed the conflicts
   bool _isAcknowledged = false;
 
-  TripEntityUpdatePlan({
+  TripDataUpdatePlan({
     required this.stayChanges,
     required this.transitChanges,
     required this.sightChanges,
@@ -81,7 +81,7 @@ class TripEntityUpdatePlan {
 
 /// Encapsulates all changes resulting from a trip metadata update
 /// Extends TripEntityUpdatePlan to add contributor-related changes
-class TripMetadataUpdatePlan extends TripEntityUpdatePlan {
+class TripMetadataUpdatePlan extends TripDataUpdatePlan {
   final TripMetadataFacade oldMetadata;
   final TripMetadataFacade newMetadata;
 

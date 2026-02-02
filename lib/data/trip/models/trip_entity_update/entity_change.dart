@@ -1,18 +1,8 @@
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
+import 'entity_change_context.dart';
 import 'entity_change_type.dart';
-
-/// Type of timeline conflict
-enum ConflictType {
-  /// Entity overlaps with the edited entity's time range
-  overlap,
-
-  /// Entity's start time matches the edited entity's end time (or vice versa)
-  boundaryMatch,
-
-  /// Entity is completely within the edited entity's time range
-  contained,
-}
+import 'entity_timeline_position.dart';
 
 /// Represents a pending change to a trip entity
 /// Used by both the UI (AffectedEntitiesEditor) and the data layer
@@ -33,8 +23,11 @@ class EntityChange<T extends TripEntity> {
   /// User-friendly message explaining the conflict
   final String? conflictMessage;
 
-  /// Type of conflict detected
-  final ConflictType? conflictType;
+  /// The temporal relationship between this entity and the reference time range
+  final EntityTimelinePosition? timelinePosition;
+
+  /// The context in which this change is being applied
+  final EntityChangeContext context;
 
   /// Whether this change was auto-clamped (times adjusted to resolve conflict)
   bool isClamped;
@@ -47,7 +40,8 @@ class EntityChange<T extends TripEntity> {
     this.conflictDescription,
     this.originalTimeDescription,
     this.conflictMessage,
-    this.conflictType,
+    this.timelinePosition,
+    this.context = EntityChangeContext.tripMetadataUpdate,
     this.isClamped = false,
   });
 
@@ -56,7 +50,8 @@ class EntityChange<T extends TripEntity> {
     this.conflictDescription,
     this.originalTimeDescription,
     this.conflictMessage,
-    this.conflictType,
+    this.timelinePosition,
+    this.context = EntityChangeContext.tripMetadataUpdate,
   })  : modifiedEntity = originalEntity,
         changeType = EntityChangeType.delete,
         includeInSplitBy = false,
@@ -70,7 +65,8 @@ class EntityChange<T extends TripEntity> {
     this.conflictDescription,
     this.originalTimeDescription,
     this.conflictMessage,
-    this.conflictType,
+    this.timelinePosition,
+    this.context = EntityChangeContext.tripMetadataUpdate,
   })  : changeType = EntityChangeType.update,
         includeInSplitBy = false,
         isClamped = true;

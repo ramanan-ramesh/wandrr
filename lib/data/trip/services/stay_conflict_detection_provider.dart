@@ -1,5 +1,5 @@
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/trip_metadata_update.dart';
+import 'package:wandrr/data/trip/models/trip_entity_update/trip_data_update_plan.dart';
 import 'package:wandrr/data/trip/services/conflict_detection_provider.dart';
 import 'package:wandrr/data/trip/services/timeline_conflict_detector.dart';
 
@@ -16,7 +16,7 @@ class StayConflictDetectionProvider implements ConflictDetectionProvider {
   bool get isNewEntity => _stay.id == null || _stay.id!.isEmpty;
 
   @override
-  TripEntityUpdatePlan? detectConflicts(TimelineConflictDetector detector) {
+  TripDataUpdatePlan? detectConflicts(TimelineConflictDetector detector) {
     // Stays without check-in/checkout times cannot have conflicts
     if (_stay.checkinDateTime == null || _stay.checkoutDateTime == null) {
       return null;

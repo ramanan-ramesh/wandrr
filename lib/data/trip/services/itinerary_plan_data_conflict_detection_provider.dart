@@ -4,7 +4,7 @@ import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_entity_update/entity_change.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/trip_metadata_update.dart';
+import 'package:wandrr/data/trip/models/trip_entity_update/trip_data_update_plan.dart';
 import 'package:wandrr/data/trip/services/conflict_detection_provider.dart';
 import 'package:wandrr/data/trip/services/timeline_conflict_detector.dart';
 
@@ -22,7 +22,7 @@ class ItineraryPlanDataConflictDetectionProvider
   bool get isNewEntity => _planData.id == null || _planData.id!.isEmpty;
 
   @override
-  TripEntityUpdatePlan? detectConflicts(TimelineConflictDetector detector) {
+  TripDataUpdatePlan? detectConflicts(TimelineConflictDetector detector) {
     final allTransitChanges = <EntityChange<TransitFacade>>[];
     final allStayChanges = <EntityChange<LodgingFacade>>[];
     final allSightChanges = <EntityChange<SightFacade>>[];
@@ -73,7 +73,7 @@ class ItineraryPlanDataConflictDetectionProvider
     }
 
     final tripData = detector.tripData;
-    return TripEntityUpdatePlan(
+    return TripDataUpdatePlan(
       transitChanges: uniqueTransitChanges,
       stayChanges: uniqueStayChanges,
       sightChanges: uniqueSightChanges,

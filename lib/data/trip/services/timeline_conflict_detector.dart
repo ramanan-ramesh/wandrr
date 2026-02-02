@@ -3,8 +3,10 @@ import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_entity_update/entity_change.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/trip_metadata_update.dart';
+import 'package:wandrr/data/trip/models/trip_entity_update/entity_timeline_position.dart';
+import 'package:wandrr/data/trip/models/trip_entity_update/trip_data_update_plan.dart';
 
 /// Service to detect timeline conflicts when editing transits, stays, or sights.
 /// Detects conflicts across ALL entity types (transits, stays, sights).
@@ -18,7 +20,7 @@ class TimelineConflictDetector {
 
   /// Detects conflicts for a transit being added or edited.
   /// Checks for conflicting transits, stays, AND sights.
-  TripEntityUpdatePlan? detectTransitConflicts({
+  TripDataUpdatePlan? detectTransitConflicts({
     required TransitFacade transit,
     required bool isNewEntity,
   }) {
@@ -29,10 +31,50 @@ class TimelineConflictDetector {
     final depTime = transit.departureDateTime!;
     final arrTime = transit.arrivalDateTime!;
 
+    return _extractConflictingTripEntities(
+        depTime, arrTime, isNewEntity, transit);
+  }
+
+  /// Detects conflicts for a stay being added or edited.
+  /// Checks for conflicting stays, transits, AND sights.
+  TripDataUpdatePlan? detectStayConflicts({
+    required LodgingFacade stay,
+    required bool isNewEntity,
+  }) {
+    if (stay.checkinDateTime == null || stay.checkoutDateTime == null) {
+      return null;
+    }
+
+    final checkinTime = stay.checkinDateTime!;
+    final checkoutTime = stay.checkoutDateTime!;
+
+    return _extractConflictingTripEntities(
+        checkinTime, checkoutTime, isNewEntity, stay);
+  }
+
+  /// Detects conflicts for a sight being added or edited.
+  /// Checks for conflicting sights, transits, AND stays.
+  TripDataUpdatePlan? detectSightConflicts({
+    required SightFacade sight,
+    required bool isNewEntity,
+  }) {
+    if (sight.visitTime == null) {
+      return null;
+    }
+
+    final visitTime = sight.visitTime!;
+    // Assume sight visits last about a minute for conflict detection
+    final visitEndTime = visitTime.add(const Duration(minutes: 1));
+    return _extractConflictingTripEntities(
+        visitTime, visitEndTime, isNewEntity, sight);
+  }
+
+  TripDataUpdatePlan? _extractConflictingTripEntities(DateTime depTime,
+      DateTime arrTime, bool isNewEntity, TripEntity tripEntity) {
     final transitConflicts = _findConflictingTransits(
       depTime,
       arrTime,
-      excludeId: isNewEntity ? null : transit.id,
+      excludeId: isNewEntity ? null : tripEntity.id,
     );
     final stayConflicts = _findConflictingStays(depTime, arrTime);
     final sightConflicts = _findConflictingSights(depTime, arrTime);
@@ -44,83 +86,7 @@ class TimelineConflictDetector {
     }
 
     final metadata = tripData.tripMetadata;
-    return TripEntityUpdatePlan(
-      transitChanges: transitConflicts,
-      stayChanges: stayConflicts,
-      sightChanges: sightConflicts,
-      tripStartDate: metadata.startDate!,
-      tripEndDate: metadata.endDate!,
-    );
-  }
-
-  /// Detects conflicts for a stay being added or edited.
-  /// Checks for conflicting stays, transits, AND sights.
-  TripEntityUpdatePlan? detectStayConflicts({
-    required LodgingFacade stay,
-    required bool isNewEntity,
-  }) {
-    if (stay.checkinDateTime == null || stay.checkoutDateTime == null) {
-      return null;
-    }
-
-    final checkinTime = stay.checkinDateTime!;
-    final checkoutTime = stay.checkoutDateTime!;
-
-    final stayConflicts = _findConflictingStays(
-      checkinTime,
-      checkoutTime,
-      excludeId: isNewEntity ? null : stay.id,
-    );
-    final transitConflicts =
-        _findConflictingTransits(checkinTime, checkoutTime);
-    final sightConflicts = _findConflictingSights(checkinTime, checkoutTime);
-
-    if (stayConflicts.isEmpty &&
-        transitConflicts.isEmpty &&
-        sightConflicts.isEmpty) {
-      return null;
-    }
-
-    final metadata = tripData.tripMetadata;
-    return TripEntityUpdatePlan(
-      transitChanges: transitConflicts,
-      stayChanges: stayConflicts,
-      sightChanges: sightConflicts,
-      tripStartDate: metadata.startDate!,
-      tripEndDate: metadata.endDate!,
-    );
-  }
-
-  /// Detects conflicts for a sight being added or edited.
-  /// Checks for conflicting sights, transits, AND stays.
-  TripEntityUpdatePlan? detectSightConflicts({
-    required SightFacade sight,
-    required bool isNewEntity,
-  }) {
-    if (sight.visitTime == null) {
-      return null;
-    }
-
-    final visitTime = sight.visitTime!;
-    // Assume sight visits last about 2 hours for conflict detection
-    final visitEndTime = visitTime.add(const Duration(hours: 2));
-
-    final transitConflicts = _findConflictingTransits(visitTime, visitEndTime);
-    final stayConflicts = _findConflictingStays(visitTime, visitEndTime);
-    final sightConflicts = _findConflictingSights(
-      visitTime,
-      visitEndTime,
-      excludeId: isNewEntity ? null : sight.id,
-    );
-
-    if (transitConflicts.isEmpty &&
-        stayConflicts.isEmpty &&
-        sightConflicts.isEmpty) {
-      return null;
-    }
-
-    final metadata = tripData.tripMetadata;
-    return TripEntityUpdatePlan(
+    return TripDataUpdatePlan(
       transitChanges: transitConflicts,
       stayChanges: stayConflicts,
       sightChanges: sightConflicts,
@@ -148,11 +114,11 @@ class TimelineConflictDetector {
       final arrTime = transit.arrivalDateTime!;
 
       if (_hasConflict(newStart, newEnd, depTime, arrTime)) {
-        final conflictType =
-            _getConflictType(newStart, newEnd, depTime, arrTime);
+        final timelinePosition =
+            _getTimelinePosition(newStart, newEnd, depTime, arrTime);
         final routeDesc =
             '${transit.departureLocation?.context.name ?? "?"} → ${transit.arrivalLocation?.context.name ?? "?"}';
-        final message = _buildTransitConflictMessage(transit, conflictType);
+        final message = _buildTransitConflictMessage(transit, timelinePosition);
 
         // Try to clamp the transit times
         final clampedTransit = _clampTransitTimes(transit, newStart, newEnd);
@@ -164,7 +130,7 @@ class TimelineConflictDetector {
             conflictDescription: routeDesc,
             originalTimeDescription: _formatTransitTime(transit),
             conflictMessage: message,
-            conflictType: conflictType,
+            timelinePosition: timelinePosition,
           ));
         } else {
           // Can't clamp - mark for deletion
@@ -173,7 +139,7 @@ class TimelineConflictDetector {
             conflictDescription: routeDesc,
             originalTimeDescription: _formatTransitTime(transit),
             conflictMessage: message,
-            conflictType: conflictType,
+            timelinePosition: timelinePosition,
           ));
         }
       }
@@ -228,39 +194,20 @@ class TimelineConflictDetector {
   }
 
   String _buildTransitConflictMessage(
-      TransitFacade transit, ConflictType type) {
+      TransitFacade transit, EntityTimelinePosition pos) {
     final route =
         '${transit.departureLocation?.context.name ?? "Unknown"} → ${transit.arrivalLocation?.context.name ?? "Unknown"}';
-    switch (type) {
-      case ConflictType.overlap:
-        return 'Transit "$route" overlaps with your journey time';
-      case ConflictType.boundaryMatch:
+    switch (pos) {
+      case EntityTimelinePosition.duringEvent:
+        return 'Transit "$route" is entirely within the edited time range';
+      case EntityTimelinePosition.exactBoundaryMatch:
         return 'Transit "$route" departs/arrives at the same time as your journey';
-      case ConflictType.contained:
-        return 'Transit "$route" is completely within your journey time';
+      case EntityTimelinePosition.overlapWithStartBoundary:
+      case EntityTimelinePosition.overlapWithEndBoundary:
+      case EntityTimelinePosition.beforeEvent:
+      case EntityTimelinePosition.afterEvent:
+        return 'Transit "$route" overlaps with your journey time';
     }
-  }
-
-  ConflictType _getConflictType(
-    DateTime newStart,
-    DateTime newEnd,
-    DateTime existingStart,
-    DateTime existingEnd,
-  ) {
-    // Check for boundary matches first
-    if (_isSameTime(newStart, existingStart) ||
-        _isSameTime(newStart, existingEnd) ||
-        _isSameTime(newEnd, existingStart) ||
-        _isSameTime(newEnd, existingEnd)) {
-      return ConflictType.boundaryMatch;
-    }
-
-    // Check if existing is completely contained
-    if (existingStart.isAfter(newStart) && existingEnd.isBefore(newEnd)) {
-      return ConflictType.contained;
-    }
-
-    return ConflictType.overlap;
   }
 
   /// Finds stays that conflict with the given time range.
@@ -281,10 +228,10 @@ class TimelineConflictDetector {
       final checkout = stay.checkoutDateTime!;
 
       if (_hasConflict(newStart, newEnd, checkin, checkout)) {
-        final conflictType =
-            _getConflictType(newStart, newEnd, checkin, checkout);
+        final timelinePosition =
+            _getTimelinePosition(newStart, newEnd, checkin, checkout);
         final locationDesc = stay.location?.context.name ?? 'Unknown location';
-        final message = _buildStayConflictMessage(stay, conflictType);
+        final message = _buildStayConflictMessage(stay, timelinePosition);
 
         // Try to clamp the stay times
         final clampedStay = _clampStayTimes(stay, newStart, newEnd);
@@ -296,7 +243,7 @@ class TimelineConflictDetector {
             conflictDescription: locationDesc,
             originalTimeDescription: _formatStayTime(stay),
             conflictMessage: message,
-            conflictType: conflictType,
+            timelinePosition: timelinePosition,
           ));
         } else {
           // Can't clamp - mark for deletion
@@ -305,7 +252,7 @@ class TimelineConflictDetector {
             conflictDescription: locationDesc,
             originalTimeDescription: _formatStayTime(stay),
             conflictMessage: message,
-            conflictType: conflictType,
+            timelinePosition: timelinePosition,
           ));
         }
       }
@@ -359,15 +306,19 @@ class TimelineConflictDetector {
     return null;
   }
 
-  String _buildStayConflictMessage(LodgingFacade stay, ConflictType type) {
+  String _buildStayConflictMessage(
+      LodgingFacade stay, EntityTimelinePosition pos) {
     final location = stay.location?.context.name ?? 'your stay';
-    switch (type) {
-      case ConflictType.overlap:
-        return 'Stay at "$location" check-in/checkout overlaps with your journey';
-      case ConflictType.boundaryMatch:
+    switch (pos) {
+      case EntityTimelinePosition.duringEvent:
+        return 'Stay at "$location" is completely within the edited time range';
+      case EntityTimelinePosition.exactBoundaryMatch:
         return 'Stay at "$location" check-in/checkout time matches your journey time';
-      case ConflictType.contained:
-        return 'Stay at "$location" is completely within your journey time';
+      case EntityTimelinePosition.overlapWithStartBoundary:
+      case EntityTimelinePosition.overlapWithEndBoundary:
+      case EntityTimelinePosition.beforeEvent:
+      case EntityTimelinePosition.afterEvent:
+        return 'Stay at "$location" check-in/checkout overlaps with your journey';
     }
   }
 
@@ -388,9 +339,9 @@ class TimelineConflictDetector {
         final visitEnd = visitStart.add(const Duration(hours: 2));
 
         if (_hasConflict(newStart, newEnd, visitStart, visitEnd)) {
-          final conflictType =
-              _getConflictType(newStart, newEnd, visitStart, visitEnd);
-          final message = _buildSightConflictMessage(sight, conflictType);
+          final timelinePosition =
+              _getTimelinePosition(newStart, newEnd, visitStart, visitEnd);
+          final message = _buildSightConflictMessage(sight, timelinePosition);
 
           // Try to clamp the sight time
           final clampedSight = _clampSightTime(sight, newStart, newEnd);
@@ -402,7 +353,7 @@ class TimelineConflictDetector {
               conflictDescription: sight.name,
               originalTimeDescription: _formatSightTime(sight),
               conflictMessage: message,
-              conflictType: conflictType,
+              timelinePosition: timelinePosition,
             ));
           } else {
             // Can't clamp - mark for deletion (or clear visit time)
@@ -411,7 +362,7 @@ class TimelineConflictDetector {
               conflictDescription: sight.name,
               originalTimeDescription: _formatSightTime(sight),
               conflictMessage: message,
-              conflictType: conflictType,
+              timelinePosition: timelinePosition,
             ));
           }
         }
@@ -469,15 +420,19 @@ class TimelineConflictDetector {
     return null;
   }
 
-  String _buildSightConflictMessage(SightFacade sight, ConflictType type) {
+  String _buildSightConflictMessage(
+      SightFacade sight, EntityTimelinePosition pos) {
     final name = sight.name.isNotEmpty ? sight.name : 'this sight';
-    switch (type) {
-      case ConflictType.overlap:
-        return 'Visit to "$name" overlaps with your journey';
-      case ConflictType.boundaryMatch:
+    switch (pos) {
+      case EntityTimelinePosition.duringEvent:
+        return 'Visit to "$name" is during the edited time range';
+      case EntityTimelinePosition.exactBoundaryMatch:
         return 'Visit time for "$name" coincides with your journey time';
-      case ConflictType.contained:
-        return 'Visit to "$name" is during your journey';
+      case EntityTimelinePosition.overlapWithStartBoundary:
+      case EntityTimelinePosition.overlapWithEndBoundary:
+      case EntityTimelinePosition.beforeEvent:
+      case EntityTimelinePosition.afterEvent:
+        return 'Visit to "$name" overlaps with your journey';
     }
   }
 
@@ -534,5 +489,53 @@ class TimelineConflictDetector {
   String _formatSightTime(SightFacade s) {
     if (s.visitTime == null) return 'No time';
     return '${s.visitTime!.dayDateMonthFormat} ${s.visitTime!.hourMinuteAmPmFormat}';
+  }
+
+  /// New helper to compute timeline position instead of the old ConflictType
+  EntityTimelinePosition _getTimelinePosition(
+    DateTime newStart,
+    DateTime newEnd,
+    DateTime existingStart,
+    DateTime existingEnd,
+  ) {
+    // Boundary matches
+    if (_isSameTime(newStart, existingStart) ||
+        _isSameTime(newStart, existingEnd) ||
+        _isSameTime(newEnd, existingStart) ||
+        _isSameTime(newEnd, existingEnd)) {
+      return EntityTimelinePosition.exactBoundaryMatch;
+    }
+
+    // Existing is completely within new range
+    if (existingStart.isAfter(newStart) && existingEnd.isBefore(newEnd)) {
+      return EntityTimelinePosition.duringEvent;
+    }
+
+    // Existing overlaps start boundary
+    if (existingStart.isBefore(newStart) &&
+        existingEnd.isAfter(newStart) &&
+        existingEnd.isBefore(newEnd)) {
+      return EntityTimelinePosition.overlapWithStartBoundary;
+    }
+
+    // Existing overlaps end boundary
+    if (existingStart.isAfter(newStart) &&
+        existingStart.isBefore(newEnd) &&
+        existingEnd.isAfter(newEnd)) {
+      return EntityTimelinePosition.overlapWithEndBoundary;
+    }
+
+    // Existing entirely before new
+    if (existingEnd.isBefore(newStart)) {
+      return EntityTimelinePosition.beforeEvent;
+    }
+
+    // Existing entirely after new
+    if (existingStart.isAfter(newEnd)) {
+      return EntityTimelinePosition.afterEvent;
+    }
+
+    // Fallback to overlap
+    return EntityTimelinePosition.overlapWithStartBoundary;
   }
 }
