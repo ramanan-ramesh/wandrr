@@ -8,11 +8,9 @@ import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/data/trip/services/conflict_detection_provider.dart';
-import 'package:wandrr/data/trip/services/itinerary_plan_data_conflict_detection_provider.dart';
-import 'package:wandrr/data/trip/services/journey_conflict_detection_provider.dart';
-import 'package:wandrr/data/trip/services/stay_conflict_detection_provider.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/conflict_detection_callback.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/entity_conflict_coordinator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_plan_data_editor.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/trip_details_editor.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
@@ -112,6 +110,7 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
     required bool isEditing,
     required void Function(BuildContext context) onClosePressed,
     required ScrollController scrollController,
+    required BuildContext context,
     ItineraryPlanDataEditorConfig? itineraryConfig,
   }) {
     var actionIcon = isEditing ? Icons.check_rounded : Icons.add_rounded;
@@ -120,11 +119,16 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
             ValueNotifier<bool> validityNotifier, VoidCallback onEntityUpdated)?
         conflictAwarePageContentCreator;
     Widget Function(ValueNotifier<bool> validityNotifier)? pageContentCreator;
-    ConflictDetectionProvider? conflictDetectionProvider;
+    ConflictDetectionCallback? conflictDetectionCallback;
     var tripEntityToEdit = tripEntity.clone();
 
     // Track if we need conflict-aware action page
     bool useConflictAwarePage = false;
+
+    // Create conflict coordinator for entity-specific detection
+    final coordinator = EntityConflictCoordinator(
+      tripData: context.activeTrip,
+    );
 
     if (this == TripEditorAction.tripDetails &&
         tripEntity is TripMetadataFacade) {
@@ -136,9 +140,10 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
     } else if (this == TripEditorAction.itineraryData &&
         tripEntity is ItineraryPlanData) {
       useConflictAwarePage = true;
-      conflictDetectionProvider = ItineraryPlanDataConflictDetectionProvider(
-        planData: tripEntityToEdit as ItineraryPlanData,
-      );
+      final typedEntity = tripEntityToEdit as ItineraryPlanData;
+      conflictDetectionCallback = () => coordinator.detectItineraryConflicts(
+            typedEntity,
+          );
       conflictAwarePageContentCreator =
           (validityNotifier, onEntityUpdated) => ItineraryPlanDataEditor(
                 planData: tripEntityToEdit,
@@ -160,21 +165,23 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
                 },
                 validityNotifier: validityNotifier,
               );
-      // Create conflict detection provider that dynamically gets legs from JourneyEditor
-      conflictDetectionProvider = JourneyConflictDetectionProvider.dynamic(
-        legsProvider: () =>
-            journeyEditorKey.currentState?.legs ??
-            [tripEntityToEdit as TransitFacade],
-      );
+      // Create callback that dynamically gets legs from JourneyEditor
+      conflictDetectionCallback = () {
+        final legs = journeyEditorKey.currentState?.legs ??
+            [tripEntityToEdit as TransitFacade];
+        return coordinator.detectJourneyConflicts(legs);
+      };
       // Custom action for journey - saves all legs
       onActionInvoked = (context) {
         journeyEditorKey.currentState?.saveAllLegs(context);
       };
     } else if (this == TripEditorAction.stay && tripEntity is LodgingFacade) {
       useConflictAwarePage = true;
-      conflictDetectionProvider = StayConflictDetectionProvider(
-        stay: tripEntityToEdit as LodgingFacade,
-      );
+      final typedEntity = tripEntityToEdit as LodgingFacade;
+      conflictDetectionCallback = () => coordinator.detectStayConflicts(
+            typedEntity,
+            isNewEntity: !isEditing,
+          );
       conflictAwarePageContentCreator =
           (validityNotifier, onEntityUpdated) => LodgingEditor(
                 lodging: tripEntityToEdit,
@@ -211,7 +218,7 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
           scrollController: scrollController,
           pageContentCreator: conflictAwarePageContentCreator,
           actionIcon: actionIcon,
-          conflictDetectionProvider: conflictDetectionProvider,
+          conflictDetectionCallback: conflictDetectionCallback,
         );
       } else if (tripEntity is TransitFacade) {
         final typedEntity = tripEntityToEdit as TransitFacade;
@@ -223,7 +230,7 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
           scrollController: scrollController,
           pageContentCreator: conflictAwarePageContentCreator,
           actionIcon: actionIcon,
-          conflictDetectionProvider: conflictDetectionProvider,
+          conflictDetectionCallback: conflictDetectionCallback,
         );
       } else if (tripEntity is LodgingFacade) {
         final typedEntity = tripEntityToEdit as LodgingFacade;
@@ -235,7 +242,7 @@ extension TripEditorSupportedActionExtension on TripEditorAction {
           scrollController: scrollController,
           pageContentCreator: conflictAwarePageContentCreator,
           actionIcon: actionIcon,
-          conflictDetectionProvider: conflictDetectionProvider,
+          conflictDetectionCallback: conflictDetectionCallback,
         );
       }
     }

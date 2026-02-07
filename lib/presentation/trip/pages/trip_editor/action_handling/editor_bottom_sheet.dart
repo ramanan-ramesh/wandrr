@@ -31,6 +31,7 @@ class TripEntityEditorBottomSheet<T extends TripEntity>
             isEditing: true,
             onClosePressed: (context) => Navigator.of(context).pop(),
             scrollController: scrollController,
+            context: context,
             itineraryConfig: planDataEditorConfig,
             title:
                 tripEditorAction.createSubtitle(context.localizations, true))!;

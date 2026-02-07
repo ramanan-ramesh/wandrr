@@ -42,6 +42,7 @@ class _TripEntityCreatorBottomSheetState
                   selectedAction = null;
                 }),
             scrollController: scrollController,
+            context: context,
             title:
                 selectedAction!.createSubtitle(context.localizations, false))!;
       },
