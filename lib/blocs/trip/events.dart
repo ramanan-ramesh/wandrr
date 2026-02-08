@@ -1,8 +1,8 @@
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/trip_data_update_plan.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
 abstract class TripManagementEvent {
@@ -39,10 +39,10 @@ class SelectExpenseBearingTripEntity
 
 /// Event to apply a pre-computed update plan for trip metadata changes
 /// This is the preferred way to handle trip metadata changes as it uses batch writes
-class ApplyTripMetadataUpdatePlan extends TripManagementEvent {
-  final TripMetadataUpdatePlan updatePlan;
+class ApplyTripDataUpdatePlan extends TripManagementEvent {
+  final TripEntityUpdatePlan updatePlan;
 
-  const ApplyTripMetadataUpdatePlan({required this.updatePlan});
+  const ApplyTripDataUpdatePlan({required this.updatePlan});
 }
 
 class LoadTrip extends TripManagementEvent {

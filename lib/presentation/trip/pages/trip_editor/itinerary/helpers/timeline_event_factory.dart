@@ -9,9 +9,9 @@ import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/services/transit_journey_service.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_journey.dart';
-import 'package:wandrr/data/trip/services/transit_journey_service.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_event_formatter.dart';
@@ -98,7 +98,7 @@ class TimelineEventFactory {
   ) sync* {
     // Create journey service to group transits
     final journeyService =
-        TransitJourneyService(context.activeTrip.transitCollection);
+        TransitJourneyServiceFacade(context.activeTrip.transitCollection);
 
     // Group transits by journeyId
     final standaloneTransits = <TransitFacade>[];

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/services/entity_change.dart';
+import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/entity_change.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/entity_change_context.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/trip_data_update_plan.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/common/entity_change_message_provider.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/common/entity_change_section.dart';
@@ -18,7 +16,7 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
   final TripDataUpdatePlan updatePlan;
 
   /// The context in which changes are being displayed
-  final EntityChangeContext context;
+  final MessageContext context;
 
   /// Callback when any entity is modified
   final VoidCallback onChanged;
@@ -27,7 +25,7 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
   final void Function(dynamic entity, bool isDeleted)? onEntityDeletionChanged;
 
   /// Optional: expense changes for TripMetadataUpdatePlan
-  final Iterable<EntityChange<ExpenseBearingTripEntity>>? expenseChanges;
+  final Iterable<ExpenseSplitChange>? expenseChanges;
 
   /// Optional: added contributors for expense section
   final Iterable<String>? addedContributors;
@@ -56,7 +54,7 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
     return UnifiedEntityChangeEditor(
       key: key,
       updatePlan: updatePlan,
-      context: EntityChangeContext.tripMetadataUpdate,
+      context: MessageContext.metadataUpdate,
       onChanged: onChanged,
       onEntityDeletionChanged: onEntityDeletionChanged,
       expenseChanges: updatePlan.expenseChanges,
@@ -74,7 +72,7 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
     return UnifiedEntityChangeEditor(
       key: key,
       updatePlan: updatePlan,
-      context: EntityChangeContext.timelineConflict,
+      context: MessageContext.timelineConflict,
       onChanged: onChanged,
     );
   }
@@ -151,7 +149,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
         // Expenses section (only for TripMetadataUpdatePlan)
         if (widget.expenseChanges != null &&
             widget.expenseChanges!.isNotEmpty &&
-            widget.context == EntityChangeContext.tripMetadataUpdate)
+            widget.context == MessageContext.metadataUpdate)
           _ExpensesSection(
             expenseChanges: widget.expenseChanges!,
             addedContributors: widget.addedContributors ?? const [],
@@ -188,8 +186,8 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
 
   Widget _buildStayItem(
       BuildContext context, EntityChange<LodgingFacade> change) {
-    final lodging = change.modifiedEntity;
-    final originalLodging = change.originalEntity;
+    final lodging = change.modified;
+    final originalLodging = change.original;
     final isDeleted = change.isMarkedForDeletion;
 
     return EntityChangeItemCard(
@@ -198,6 +196,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
       iconColor: _getStaysIconColor(context),
       title: lodging.location?.toString() ?? 'Unknown Location',
       originalTimeDescription: change.originalTimeDescription,
+      actionMessage: _messageProvider.stayActionMessage(change),
       onToggleDelete: () => _toggleStayDeletion(change),
       deletedMessage: 'This stay will be deleted',
       child: StayDateTimeRangeEditor(
@@ -227,7 +226,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
 
   Widget _buildTransitItem(
       BuildContext context, EntityChange<TransitFacade> change) {
-    final transit = change.modifiedEntity;
+    final transit = change.modified;
     final isDeleted = change.isMarkedForDeletion;
 
     return EntityChangeItemCard(
@@ -237,6 +236,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
       title:
           '${transit.departureLocation?.toString() ?? 'Unknown'} → ${transit.arrivalLocation?.toString() ?? 'Unknown'}',
       originalTimeDescription: change.originalTimeDescription,
+      actionMessage: _messageProvider.transitActionMessage(change),
       onToggleDelete: () => _toggleTransitDeletion(change),
       deletedMessage: 'This transit will be deleted',
       child: _TransitDateTimeEditor(
@@ -279,7 +279,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
 
   Widget _buildSightItem(
       BuildContext context, EntityChange<SightFacade> change) {
-    final sight = change.modifiedEntity;
+    final sight = change.modified;
     final isDeleted = change.isMarkedForDeletion;
 
     return EntityChangeItemCard(
@@ -289,6 +289,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
       title: sight.name.isNotEmpty ? sight.name : 'Unnamed Sight',
       subtitle: sight.location?.toString(),
       originalTimeDescription: change.originalTimeDescription,
+      actionMessage: _messageProvider.sightActionMessage(change),
       onToggleDelete: () => _toggleSightDeletion(change),
       deletedMessage: 'This sight will be deleted',
       child: _SightTimeEditor(
@@ -313,7 +314,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
         change.restore();
       }
     });
-    widget.onEntityDeletionChanged?.call(change.originalEntity, newIsDeleted);
+    widget.onEntityDeletionChanged?.call(change.original, newIsDeleted);
     widget.onChanged();
   }
 
@@ -326,7 +327,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
         change.restore();
       }
     });
-    widget.onEntityDeletionChanged?.call(change.originalEntity, newIsDeleted);
+    widget.onEntityDeletionChanged?.call(change.original, newIsDeleted);
     widget.onChanged();
   }
 
@@ -339,7 +340,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
         change.restore();
       }
     });
-    widget.onEntityDeletionChanged?.call(change.originalEntity, newIsDeleted);
+    widget.onEntityDeletionChanged?.call(change.original, newIsDeleted);
     widget.onChanged();
   }
 }
@@ -418,7 +419,7 @@ class _SightTimeEditor extends StatefulWidget {
 }
 
 class _SightTimeEditorState extends State<_SightTimeEditor> {
-  SightFacade get sight => widget.change.modifiedEntity;
+  SightFacade get sight => widget.change.modified;
 
   @override
   Widget build(BuildContext context) {
@@ -489,7 +490,7 @@ class _SightTimeEditorState extends State<_SightTimeEditor> {
     if (picked != null) {
       setState(() {
         // Create a new SightFacade with the updated day since day is final
-        widget.change.modifiedEntity = SightFacade(
+        widget.change.modified = SightFacade(
           tripId: sight.tripId,
           id: sight.id,
           name: sight.name,
@@ -616,7 +617,7 @@ class _DateTimePickerRow extends StatelessWidget {
 // =============================================================================
 
 class _ExpensesSection extends StatefulWidget {
-  final Iterable<EntityChange<ExpenseBearingTripEntity>> expenseChanges;
+  final Iterable<ExpenseSplitChange> expenseChanges;
   final Iterable<String> addedContributors;
   final Iterable<String> removedContributors;
   final EntityChangeMessageProvider messageProvider;
@@ -642,7 +643,7 @@ class _ExpensesSectionState extends State<_ExpensesSection> {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final expensesList = widget.expenseChanges.toList();
 
-    return EntityChangeSection<EntityChange<ExpenseBearingTripEntity>>(
+    return EntityChangeSection<ExpenseSplitChange>(
       icon: Icons.payments_rounded,
       title: widget.messageProvider.expensesSectionTitle(expensesList.length),
       iconColor: isLightTheme ? AppColors.warning : AppColors.warningLight,
@@ -657,9 +658,9 @@ class _ExpensesSectionState extends State<_ExpensesSection> {
 
   Widget _buildExpenseItem(
     BuildContext context,
-    EntityChange<ExpenseBearingTripEntity> change,
+    ExpenseSplitChange change,
   ) {
-    final entity = change.modifiedEntity;
+    final entity = change.modified;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final displayTitle =
         entity.title.isNotEmpty ? entity.title : 'Untitled Expense';

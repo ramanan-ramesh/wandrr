@@ -1,13 +1,16 @@
+import 'package:wandrr/data/trip/implementations/services/entity_time_clamper.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/data/trip/models/itinerary/sight.dart';
+import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/services/entity_timeline_position.dart';
+import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/entity_timeline_position.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
-import 'conflict_result.dart';
-import 'entity_time_clamper.dart';
-import 'time_range.dart';
-import 'timeline_analyzer.dart';
+import '../../models/services/conflict_result.dart';
+import '../../models/services/time_range.dart';
 
 /// Exclusion criteria for scanning conflicts.
 /// Each entity type has its own exclusion list to avoid false positives.
@@ -55,13 +58,16 @@ class TripConflictScanner {
   /// Uses type-specific exclusions to avoid false positives.
   AggregatedConflicts scanForConflicts({
     required TimeRange referenceRange,
+    required TripEntity tripEntity,
     ConflictScanExclusions exclusions = const ConflictScanExclusions(),
   }) {
     return AggregatedConflicts(
-      transitConflicts:
-          _findTransitConflicts(referenceRange, exclusions.transitIds),
-      stayConflicts: _findStayConflicts(referenceRange, exclusions.stayIds),
-      sightConflicts: _findSightConflicts(referenceRange, exclusions.sightIds),
+      transitConflicts: _findTransitConflicts(
+          referenceRange, exclusions.transitIds, tripEntity),
+      stayConflicts:
+      _findStayConflicts(referenceRange, exclusions.stayIds, tripEntity),
+      sightConflicts:
+      _findSightConflicts(referenceRange, exclusions.sightIds, tripEntity),
     );
   }
 
@@ -75,7 +81,7 @@ class TripConflictScanner {
         !oldMetadata.startDate!.isOnSameDayAs(newMetadata.startDate!) ||
             !oldMetadata.endDate!.isOnSameDayAs(newMetadata.endDate!);
     final contributorsChanged =
-        _haveContributorsChanged(oldMetadata, newMetadata);
+    _haveContributorsChanged(oldMetadata, newMetadata);
 
     if (!datesChanged && !contributorsChanged) return null;
 
@@ -86,7 +92,7 @@ class TripConflictScanner {
     );
 
     final stayConflicts = datesChanged
-        ? _findStaysOutsideDateRange(newTripRange)
+        ? _findStaysConflictingWithTripDates(newTripRange)
         : <StayConflict>[];
     final transitConflicts = datesChanged
         ? _findTransitsOutsideDateRange(newTripRange)
@@ -115,35 +121,38 @@ class TripConflictScanner {
     );
   }
 
-  bool _haveContributorsChanged(
-      TripMetadataFacade oldMeta, TripMetadataFacade newMeta) {
+  bool _haveContributorsChanged(TripMetadataFacade oldMeta,
+      TripMetadataFacade newMeta) {
     final oldSet = oldMeta.contributors.toSet();
     final newSet = newMeta.contributors.toSet();
-    return oldSet.difference(newSet).isNotEmpty ||
-        newSet.difference(oldSet).isNotEmpty;
+    return oldSet
+        .difference(newSet)
+        .isNotEmpty ||
+        newSet
+            .difference(oldSet)
+            .isNotEmpty;
   }
 
-  List<StayConflict> _findStaysOutsideDateRange(TimeRange newTripRange) {
+  List<StayConflict> _findStaysConflictingWithTripDates(
+      TimeRange newTripRange) {
     final conflicts = <StayConflict>[];
     for (final stay in _tripData.lodgingCollection.collectionItems) {
-      if (stay.checkinDateTime == null || stay.checkoutDateTime == null)
-        continue;
-
       final checkin = stay.checkinDateTime!;
       final checkout = stay.checkoutDateTime!;
-      final isOutside = checkin.isBefore(newTripRange.start) ||
-          checkin.isAfter(newTripRange.end) ||
-          checkout.isBefore(newTripRange.start) ||
-          checkout.isAfter(newTripRange.end);
-
-      if (isOutside) {
+      var stayTimeRange =
+      TimeRange(start: stay.checkinDateTime!, end: stay.checkoutDateTime!);
+      final position = stayTimeRange.analyzePosition(newTripRange);
+      if (position == EntityTimelinePosition.beforeEvent ||
+          position == EntityTimelinePosition.afterEvent ||
+          position == EntityTimelinePosition.startsBeforeEndsDuring ||
+          position == EntityTimelinePosition.startsDuringEndsAfter ||
+          position == EntityTimelinePosition.contains) {
         final clamped =
-            EntityTimeClamper.clampStayToDateRange(stay, newTripRange);
+        EntityTimeClamper.clampStayToDateRange(stay, newTripRange);
         conflicts.add(StayConflict(
           entity: stay,
           entityTimeRange: TimeRange(start: checkin, end: checkout),
-          position: EntityTimelinePosition.beforeEvent,
-          // Simplified - outside range
+          position: position,
           clampedEntity: clamped,
         ));
       }
@@ -154,25 +163,22 @@ class TripConflictScanner {
   List<TransitConflict> _findTransitsOutsideDateRange(TimeRange newTripRange) {
     final conflicts = <TransitConflict>[];
     for (final transit in _tripData.transitCollection.collectionItems) {
-      if (transit.departureDateTime == null || transit.arrivalDateTime == null)
-        continue;
-
       final dep = transit.departureDateTime!;
       final arr = transit.arrivalDateTime!;
-      final isOutside = dep.isBefore(newTripRange.start) ||
-          dep.isAfter(newTripRange.end) ||
-          arr.isBefore(newTripRange.start) ||
-          arr.isAfter(newTripRange.end);
-
-      if (isOutside) {
-        // For transits outside date range, we clear times (user must re-set)
+      final travelTimeRange = TimeRange(start: dep, end: arr);
+      final position = travelTimeRange.analyzePosition(newTripRange);
+      if (position == EntityTimelinePosition.beforeEvent ||
+          position == EntityTimelinePosition.afterEvent ||
+          position == EntityTimelinePosition.startsBeforeEndsDuring ||
+          position == EntityTimelinePosition.startsDuringEndsAfter ||
+          position == EntityTimelinePosition.contains) {
         final modified = transit.clone();
         modified.departureDateTime = null;
         modified.arrivalDateTime = null;
         conflicts.add(TransitConflict(
           entity: transit,
           entityTimeRange: TimeRange(start: dep, end: arr),
-          position: EntityTimelinePosition.beforeEvent,
+          position: position,
           clampedEntity: modified,
         ));
       }
@@ -184,22 +190,29 @@ class TripConflictScanner {
     final conflicts = <SightConflict>[];
     for (final itinerary in _tripData.itineraryCollection) {
       for (final sight in itinerary.planData.sights) {
-        final sightDay = sight.day;
-        final isOutside = sightDay.isBefore(newTripRange.start) ||
-            sightDay.isAfter(newTripRange.end);
-
-        if (isOutside) {
-          final modified = sight.clone();
-          modified.visitTime = null;
-          conflicts.add(SightConflict(
-            entity: sight,
-            entityTimeRange: TimeRange(
-              start: sight.visitTime ?? sightDay,
-              end: (sight.visitTime ?? sightDay).add(_sightVisitDuration),
-            ),
-            position: EntityTimelinePosition.beforeEvent,
-            clampedEntity: modified,
-          ));
+        if (sight.visitTime != null) {
+          final sightDay = sight.day;
+          final visitTimeRange = TimeRange(
+              start: sight.visitTime!,
+              end: sight.visitTime!.add(_sightVisitDuration));
+          final position = visitTimeRange.analyzePosition(newTripRange);
+          if (position == EntityTimelinePosition.beforeEvent ||
+              position == EntityTimelinePosition.afterEvent ||
+              position == EntityTimelinePosition.contains ||
+              position == EntityTimelinePosition.startsBeforeEndsDuring ||
+              position == EntityTimelinePosition.startsDuringEndsAfter) {
+            final modified = sight.clone();
+            modified.visitTime = null;
+            conflicts.add(SightConflict(
+              entity: sight,
+              entityTimeRange: TimeRange(
+                start: sight.visitTime ?? sightDay,
+                end: (sight.visitTime ?? sightDay).add(_sightVisitDuration),
+              ),
+              position: EntityTimelinePosition.beforeEvent,
+              clampedEntity: modified,
+            ));
+          }
         }
       }
     }
@@ -217,10 +230,8 @@ class TripConflictScanner {
     return entities;
   }
 
-  List<TransitConflict> _findTransitConflicts(
-    TimeRange referenceRange,
-    Set<String> excludeTransitIds,
-  ) {
+  List<TransitConflict> _findTransitConflicts(TimeRange referenceRange,
+      Set<String> excludeTransitIds, TripEntity tripEntity) {
     final conflicts = <TransitConflict>[];
 
     for (final transit in _tripData.transitCollection.collectionItems) {
@@ -238,13 +249,26 @@ class TripConflictScanner {
         end: transit.arrivalDateTime!,
       );
 
-      if (TimelineAnalyzer.hasConflict(referenceRange, entityRange)) {
-        final position = TimelineAnalyzer.analyzePosition(
-          entityRange: entityRange,
-          referenceRange: referenceRange,
-        );
+      final position = entityRange.analyzePosition(referenceRange);
+      bool isConflictedWithTripEntity = false;
+      if (tripEntity is TransitFacade || tripEntity is SightFacade) {
+        isConflictedWithTripEntity =
+            position == EntityTimelinePosition.exactBoundaryMatch ||
+                position == EntityTimelinePosition.containedIn ||
+                position == EntityTimelinePosition.contains ||
+                position == EntityTimelinePosition.startsDuringEndsAfter ||
+                position == EntityTimelinePosition.startsBeforeEndsDuring;
+      } else if (tripEntity is LodgingFacade) {
+        isConflictedWithTripEntity =
+            position == EntityTimelinePosition.exactBoundaryMatch ||
+                position == EntityTimelinePosition.contains ||
+                position == EntityTimelinePosition.startsDuringEndsAfter ||
+                position == EntityTimelinePosition.startsBeforeEndsDuring;
+      }
+      if (isConflictedWithTripEntity) {
+        final position = entityRange.analyzePosition(referenceRange);
         final clampedTransit =
-            EntityTimeClamper.clampTransit(transit, referenceRange);
+        EntityTimeClamper.clampTransit(transit, referenceRange, tripEntity);
 
         conflicts.add(TransitConflict(
           entity: transit,
@@ -258,10 +282,8 @@ class TripConflictScanner {
     return conflicts;
   }
 
-  List<StayConflict> _findStayConflicts(
-    TimeRange referenceRange,
-    Set<String> excludeStayIds,
-  ) {
+  List<StayConflict> _findStayConflicts(TimeRange referenceRange,
+      Set<String> excludeStayIds, TripEntity tripEntity) {
     final conflicts = <StayConflict>[];
 
     for (final stay in _tripData.lodgingCollection.collectionItems) {
@@ -278,21 +300,26 @@ class TripConflictScanner {
         end: stay.checkoutDateTime!,
       );
 
-      // For stays, only check-in and check-out times are "blocked" points.
-      // Activities (sights/transits) can happen DURING a stay (between check-in and check-out).
-      // Only flag a conflict if the reference range's boundaries exactly match
-      // the stay's check-in or check-out times.
-      final hasCheckinConflict =
-          _isTimeInRange(stay.checkinDateTime!, referenceRange);
-      final hasCheckoutConflict =
-          _isTimeInRange(stay.checkoutDateTime!, referenceRange);
+      final position = entityRange.analyzePosition(referenceRange);
+      bool isConflictedWithTripEntity = false;
+      if (tripEntity is TransitFacade || tripEntity is SightFacade) {
+        isConflictedWithTripEntity =
+            position == EntityTimelinePosition.exactBoundaryMatch ||
+                position == EntityTimelinePosition.containedIn ||
+                position == EntityTimelinePosition.startsDuringEndsAfter ||
+                position == EntityTimelinePosition.startsBeforeEndsDuring;
+      } else if (tripEntity is LodgingFacade) {
+        isConflictedWithTripEntity =
+            position == EntityTimelinePosition.exactBoundaryMatch ||
+                position == EntityTimelinePosition.containedIn ||
+                position == EntityTimelinePosition.contains ||
+                position == EntityTimelinePosition.startsDuringEndsAfter ||
+                position == EntityTimelinePosition.startsBeforeEndsDuring;
+      }
 
-      if (hasCheckinConflict || hasCheckoutConflict) {
-        final position = TimelineAnalyzer.analyzePosition(
-          entityRange: entityRange,
-          referenceRange: referenceRange,
-        );
-        final clampedStay = EntityTimeClamper.clampStay(stay, referenceRange);
+      if (isConflictedWithTripEntity) {
+        final clampedStay =
+        EntityTimeClamper.clampStay(stay, referenceRange, tripEntity);
 
         conflicts.add(StayConflict(
           entity: stay,
@@ -306,26 +333,8 @@ class TripConflictScanner {
     return conflicts;
   }
 
-  /// Checks if a specific time falls within a range (exclusive of boundaries being during)
-  /// or exactly matches a boundary of the range
-  bool _isTimeInRange(DateTime time, TimeRange range) {
-    return _isSameTime(time, range.start) ||
-        _isSameTime(time, range.end) ||
-        (time.isAfter(range.start) && time.isBefore(range.end));
-  }
-
-  static bool _isSameTime(DateTime a, DateTime b) {
-    return a.year == b.year &&
-        a.month == b.month &&
-        a.day == b.day &&
-        a.hour == b.hour &&
-        a.minute == b.minute;
-  }
-
-  List<SightConflict> _findSightConflicts(
-    TimeRange referenceRange,
-    Set<String> excludeSightIds,
-  ) {
+  List<SightConflict> _findSightConflicts(TimeRange referenceRange,
+      Set<String> excludeSightIds, TripEntity tripEntity) {
     final conflicts = <SightConflict>[];
 
     for (final itinerary in _tripData.itineraryCollection) {
@@ -341,24 +350,32 @@ class TripConflictScanner {
           end: sight.visitTime!.add(_sightVisitDuration),
         );
 
-        if (TimelineAnalyzer.hasConflict(referenceRange, entityRange)) {
-          final position = TimelineAnalyzer.analyzePosition(
-            entityRange: entityRange,
-            referenceRange: referenceRange,
-          );
-          if (position == EntityTimelinePosition.exactBoundaryMatch ||
-              position == EntityTimelinePosition.overlapWithEndBoundary ||
-              position == EntityTimelinePosition.overlapWithStartBoundary) {
-            final clampedSight =
-                EntityTimeClamper.clampSight(sight, referenceRange);
+        final position = entityRange.analyzePosition(referenceRange);
+        bool isConflictedWithTripEntity = false;
+        if (tripEntity is TransitFacade || tripEntity is SightFacade) {
+          isConflictedWithTripEntity =
+              position == EntityTimelinePosition.exactBoundaryMatch ||
+                  position == EntityTimelinePosition.contains ||
+                  position == EntityTimelinePosition.containedIn ||
+                  position == EntityTimelinePosition.startsBeforeEndsDuring ||
+                  position == EntityTimelinePosition.startsDuringEndsAfter;
+        } else if (tripEntity is LodgingFacade) {
+          isConflictedWithTripEntity =
+              position == EntityTimelinePosition.exactBoundaryMatch ||
+                  position == EntityTimelinePosition.contains ||
+                  position == EntityTimelinePosition.startsBeforeEndsDuring ||
+                  position == EntityTimelinePosition.startsDuringEndsAfter;
+        }
+        if (isConflictedWithTripEntity) {
+          final clampedSight =
+          EntityTimeClamper.clampSight(sight, referenceRange, tripEntity);
 
-            conflicts.add(SightConflict(
-              entity: sight,
-              entityTimeRange: entityRange,
-              position: position,
-              clampedEntity: clampedSight,
-            ));
-          }
+          conflicts.add(SightConflict(
+            entity: sight,
+            entityTimeRange: entityRange,
+            position: position,
+            clampedEntity: clampedSight,
+          ));
         }
       }
     }

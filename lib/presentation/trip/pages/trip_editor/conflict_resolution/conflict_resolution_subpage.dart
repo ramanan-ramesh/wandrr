@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/trip_data_update_plan.dart';
+import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/common/entity_change_message_provider.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/common/unified_entity_change_editor.dart';
@@ -64,7 +64,10 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
                 onChanged: () => setState(() {}),
               ),
         const SizedBox(height: 24),
-        _buildActionButtons(context),
+        Align(
+          alignment: Alignment.center,
+          child: _buildConfirmButton(context),
+        ),
       ],
     );
   }
@@ -205,37 +208,24 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
+  Widget _buildConfirmButton(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: widget.onBackPressed,
-              child: const Text('Back to Editor'),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: FilledButton.icon(
-              onPressed: () {
-                widget.conflictPlan.acknowledge();
-                // Don't dispatch events here - they will be buffered
-                // and dispatched when the main FAB is clicked
-                widget.onConflictsResolved();
-              },
-              icon: const Icon(Icons.check),
-              label: const Text('Confirm Changes'),
-              style: FilledButton.styleFrom(
-                backgroundColor:
-                    isLightTheme ? AppColors.success : AppColors.successLight,
-              ),
-            ),
-          ),
-        ],
+      child: FilledButton.icon(
+        onPressed: () {
+          widget.conflictPlan.confirm();
+          // Don't dispatch events here - they will be buffered
+          // and dispatched when the main FAB is clicked
+          widget.onConflictsResolved();
+        },
+        icon: const Icon(Icons.check),
+        label: const Text('Confirm Changes'),
+        style: FilledButton.styleFrom(
+          backgroundColor:
+              isLightTheme ? AppColors.success : AppColors.successLight,
+        ),
       ),
     );
   }

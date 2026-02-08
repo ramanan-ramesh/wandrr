@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
@@ -50,7 +51,8 @@ class _LodgingEditorState extends State<LodgingEditor> {
     );
   }
 
-  Widget _buildDatesSection(BuildContext context, dynamic tripMetadata) {
+  Widget _buildDatesSection(
+      BuildContext context, TripMetadataFacade tripMetadata) {
     return EditorTheme.createSection(
       context: context,
       child: StayDateTimeRangeEditor(

@@ -1,7 +1,7 @@
 import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/trip_data_update_plan.dart';
+import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 
 import 'budgeting/budgeting_module.dart';
 import 'budgeting/expense.dart';
@@ -41,7 +41,7 @@ abstract class TripDataModelEventHandler extends TripDataFacade
   /// 2. Update/delete transits, stays, sights, expenses (entity changes)
   /// 3. Update itinerary days (add/remove days)
   /// 4. Recalculate total expenditure
-  Future<void> applyUpdatePlan(TripMetadataUpdatePlan plan);
+  Future<void> applyUpdatePlan(TripEntityUpdatePlan plan);
 
   ItineraryFacadeCollectionEventHandler get itineraryCollection;
 

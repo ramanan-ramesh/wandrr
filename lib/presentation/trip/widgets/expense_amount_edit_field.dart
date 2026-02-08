@@ -76,8 +76,7 @@ class _PlatformExpenseAmountEditFieldState
     return TextField(
       key: Key('ExpenseAmountEditField_TextField'),
       readOnly: widget.isReadonly,
-      // style: TextStyle(color: widget.textColor),
-      style: TextStyle(color: Colors.white),
+      style: TextStyle(color: widget.textColor),
       textInputAction: widget.textInputAction,
       controller: _controller,
       focusNode: _focusNode,

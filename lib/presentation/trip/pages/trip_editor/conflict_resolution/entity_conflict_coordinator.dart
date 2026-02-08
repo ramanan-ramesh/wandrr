@@ -1,11 +1,11 @@
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/services/entity_conflict_detectors.dart';
+import 'package:wandrr/data/trip/models/services/trip_conflict_scanner.dart';
+import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/entity_change_context.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/trip_data_update_plan.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/data/trip/services/conflict_detection/conflict_detection.dart';
 
 import 'conflict_to_entity_change_adapter.dart';
 
@@ -23,8 +23,9 @@ class EntityConflictCoordinator {
 
   /// Detects conflicts for trip metadata changes (dates/contributors).
   /// Uses TripConflictScanner.scanForMetadataUpdate() for consistency.
-  TripMetadataUpdatePlan? detectTripMetadataConflicts(
-      TripMetadataFacade editedMetadata,) {
+  TripEntityUpdatePlan<TripMetadataFacade>? detectTripMetadataConflicts(
+    TripMetadataFacade editedMetadata,
+  ) {
     final conflicts = _scanner.scanForMetadataUpdate(
       oldMetadata: _tripData.tripMetadata,
       newMetadata: editedMetadata,
@@ -35,62 +36,71 @@ class EntityConflictCoordinator {
   }
 
   /// Detects conflicts for a stay being added or edited.
-  TripDataUpdatePlan? detectStayConflicts(LodgingFacade stay, {
+  TripEntityUpdatePlan<LodgingFacade>? detectStayConflicts(
+    LodgingFacade oldStay,
+    LodgingFacade newStay, {
     required bool isNewEntity,
   }) {
     final detector = StayConflictDetector(
-      stay: stay,
+      stay: newStay,
       scanner: _scanner,
       isNewEntity: isNewEntity,
     );
 
-    final conflicts = detector.detectConflicts();
+    final conflicts = detector.detectConflicts(newStay);
     if (conflicts == null) return null;
 
-    return ConflictToEntityChangeAdapter.toUpdatePlan(
+    return ConflictToEntityChangeAdapter.toUpdatePlan<LodgingFacade>(
+      oldEntity: oldStay,
+      newEntity: newStay,
       conflicts: conflicts,
       tripStartDate: _tripData.tripMetadata.startDate!,
-      tripEndDate: _tripData.tripMetadata.endDate!,
-      context: EntityChangeContext.timelineConflict,
+      endDate: _tripData.tripMetadata.endDate!,
     );
   }
 
   /// Detects conflicts for a multi-leg journey.
-  TripDataUpdatePlan? detectJourneyConflicts(List<TransitFacade> legs) {
-    final detector = JourneyConflictDetector(
-      legs: legs,
-      scanner: _scanner,
-    );
+  TripEntityUpdatePlan<TransitFacade>? detectJourneyConflicts(
+    TransitFacade oldTransit,
+    List<TransitFacade> legs,
+  ) {
+    final detector = JourneyConflictDetector(legs: legs, scanner: _scanner);
 
-    final conflicts = detector.detectConflicts();
+    final conflicts = detector.detectConflicts(oldTransit);
     if (conflicts == null) return null;
 
-    return ConflictToEntityChangeAdapter.toUpdatePlan(
+    // Use first leg as the primary entity
+    final newTransit = legs.isNotEmpty ? legs.first : oldTransit;
+    return ConflictToEntityChangeAdapter.toUpdatePlan<TransitFacade>(
+      oldEntity: oldTransit,
+      newEntity: newTransit,
       conflicts: conflicts,
       tripStartDate: _tripData.tripMetadata.startDate!,
-      tripEndDate: _tripData.tripMetadata.endDate!,
-      context: EntityChangeContext.timelineConflict,
+      endDate: _tripData.tripMetadata.endDate!,
     );
   }
 
   /// Detects conflicts for itinerary plan data (multiple sights).
-  TripDataUpdatePlan? detectItineraryConflicts(ItineraryPlanData planData, {
+  TripEntityUpdatePlan<ItineraryPlanData>? detectItineraryConflicts(
+    ItineraryPlanData oldPlanData,
+    ItineraryPlanData newPlanData, {
     Duration visitDuration = const Duration(hours: 2),
   }) {
     final detector = ItineraryConflictDetector(
-      sights: planData.sights,
+      sights: newPlanData.sights,
       scanner: _scanner,
       visitDuration: visitDuration,
     );
 
-    final conflicts = detector.detectConflicts();
+    final conflicts = detector.detectConflicts(newPlanData);
     if (conflicts == null) return null;
 
-    return ConflictToEntityChangeAdapter.toUpdatePlan(
+    return ConflictToEntityChangeAdapter.toUpdatePlan<ItineraryPlanData>(
+      oldEntity: oldPlanData,
+      newEntity: newPlanData,
       conflicts: conflicts,
       tripStartDate: _tripData.tripMetadata.startDate!,
-      tripEndDate: _tripData.tripMetadata.endDate!,
-      context: EntityChangeContext.timelineConflict,
+      endDate: _tripData.tripMetadata.endDate!,
     );
   }
 }

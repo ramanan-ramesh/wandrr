@@ -1,9 +1,9 @@
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/services/entity_timeline_position.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/entity_timeline_position.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
 import 'time_range.dart';

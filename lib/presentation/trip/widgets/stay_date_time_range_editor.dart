@@ -176,7 +176,7 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
                 Navigator.of(dialogContext).pop();
               },
               config: _createCalendarConfig(isLightTheme),
-              onValueChanged: (dates) => _handleDateRangeChanged(dates),
+              onValueChanged: _handleDateRangeChanged,
               value: [widget.checkinDateTime, widget.checkoutDateTime],
             ),
           ),

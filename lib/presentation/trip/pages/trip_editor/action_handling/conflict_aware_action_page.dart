@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/data/trip/models/itinerary/sight.dart';
-import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/trip_data_update_plan.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/conflict_detection_callback.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/conflict_resolution_subpage.dart';
@@ -34,7 +31,7 @@ class ConflictAwareActionPage<T extends TripEntity> extends StatefulWidget {
 
   /// Optional callback for conflict detection.
   /// If null, no conflict detection is performed.
-  final ConflictDetectionCallback? conflictDetectionCallback;
+  final ConflictDetectionCallback<T>? conflictDetectionCallback;
 
   const ConflictAwareActionPage({
     super.key,
@@ -58,7 +55,7 @@ class _ConflictAwareActionPageState<T extends TripEntity>
   late final ValueNotifier<bool> _validityNotifier;
   late final Widget _pageContent;
   late final PageController _pageController;
-  TripDataUpdatePlan? _conflictPlan;
+  TripEntityUpdatePlan<T>? _conflictPlan;
   bool _isViewingConflictResolution = false;
 
   @override
@@ -105,7 +102,7 @@ class _ConflictAwareActionPageState<T extends TripEntity>
   bool get _hasUnresolvedConflicts =>
       _conflictPlan != null &&
       _conflictPlan!.hasConflicts &&
-      !_conflictPlan!.isAcknowledged;
+      !_conflictPlan!.isConfirmed;
 
   bool get _isShowingConflictResolution => _isViewingConflictResolution;
 
@@ -296,56 +293,11 @@ class _ConflictAwareActionPageState<T extends TripEntity>
 
   /// Dispatches all buffered conflict resolution events
   void _dispatchConflictResolutionEvents(BuildContext context) {
-    if (_conflictPlan == null || !_conflictPlan!.isAcknowledged) return;
+    if (_conflictPlan == null || !_conflictPlan!.isConfirmed) return;
 
     // Process transit changes
-    for (final change in _conflictPlan!.transitChanges) {
-      if (change.isMarkedForDeletion) {
-        context.addTripManagementEvent(
-          UpdateTripEntity<TransitFacade>.delete(
-              tripEntity: change.originalEntity),
-        );
-      } else if (change.isClamped ||
-          (change.modifiedEntity.departureDateTime != null &&
-              change.modifiedEntity.arrivalDateTime != null)) {
-        context.addTripManagementEvent(
-          UpdateTripEntity<TransitFacade>.update(
-              tripEntity: change.modifiedEntity),
-        );
-      }
-    }
-
-    // Process stay changes
-    for (final change in _conflictPlan!.stayChanges) {
-      if (change.isMarkedForDeletion) {
-        context.addTripManagementEvent(
-          UpdateTripEntity<LodgingFacade>.delete(
-              tripEntity: change.originalEntity),
-        );
-      } else if (change.isClamped ||
-          (change.modifiedEntity.checkinDateTime != null &&
-              change.modifiedEntity.checkoutDateTime != null)) {
-        context.addTripManagementEvent(
-          UpdateTripEntity<LodgingFacade>.update(
-              tripEntity: change.modifiedEntity),
-        );
-      }
-    }
-
-    // Process sight changes
-    for (final change in _conflictPlan!.sightChanges) {
-      if (change.isMarkedForDeletion) {
-        context.addTripManagementEvent(
-          UpdateTripEntity<SightFacade>.delete(
-              tripEntity: change.originalEntity),
-        );
-      } else {
-        context.addTripManagementEvent(
-          UpdateTripEntity<SightFacade>.update(
-              tripEntity: change.modifiedEntity),
-        );
-      }
-    }
+    context.addTripManagementEvent(
+        ApplyTripDataUpdatePlan(updatePlan: _conflictPlan!));
   }
 }
 

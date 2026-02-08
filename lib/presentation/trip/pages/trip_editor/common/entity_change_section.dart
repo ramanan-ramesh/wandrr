@@ -179,6 +179,9 @@ class EntityChangeItemCard extends StatelessWidget {
   /// Original time description (displayed as a chip)
   final String? originalTimeDescription;
 
+  /// Action message explaining what user should do (e.g., "Update check-in/check-out dates")
+  final String? actionMessage;
+
   /// Callback when delete/restore is toggled
   final VoidCallback onToggleDelete;
 
@@ -196,6 +199,7 @@ class EntityChangeItemCard extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.originalTimeDescription,
+    this.actionMessage,
     required this.onToggleDelete,
     this.child,
     this.deletedMessage,
@@ -281,6 +285,40 @@ class EntityChangeItemCard extends StatelessWidget {
             if (originalTimeDescription != null) ...[
               const SizedBox(height: 8),
               _OriginalTimeChip(description: originalTimeDescription!),
+            ],
+            // Action message (what user should do)
+            if (!isDeleted && actionMessage != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isLightTheme
+                      ? AppColors.info.withValues(alpha: 0.1)
+                      : AppColors.infoLight.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color:
+                          isLightTheme ? AppColors.info : AppColors.infoLight,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        actionMessage!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: isLightTheme
+                                  ? AppColors.info
+                                  : AppColors.infoLight,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
             // Content when not deleted
             if (!isDeleted && child != null) ...[

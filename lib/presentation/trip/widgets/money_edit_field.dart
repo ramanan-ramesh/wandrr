@@ -194,6 +194,7 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
             ),
           ),
           textInputAction: TextInputAction.done,
+          scrollPadding: const EdgeInsets.only(bottom: 250),
         ),
         if (_filteredCurrencies.isNotEmpty)
           Container(

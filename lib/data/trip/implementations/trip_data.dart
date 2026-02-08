@@ -7,7 +7,7 @@ import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/budgeting/budgeting_module.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/itinerary/itinerary_collection.dart';
-import 'package:wandrr/data/trip/implementations/trip_metadata_update_executor.dart';
+import 'package:wandrr/data/trip/implementations/services/trip_data_update_plan_executor.dart';
 import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
@@ -15,10 +15,10 @@ import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/trip_data_update_plan.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 
@@ -115,15 +115,17 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   @override
   final BudgetingModuleEventHandler budgetingModule;
 
-  late final TripMetadataUpdateExecutor _tripMetadataUpdateExecutor;
+  late final TripEntityDataUpdatePlanExecutor _updatePlanExecutor;
 
   @override
-  Future<void> applyUpdatePlan(TripMetadataUpdatePlan plan) async {
+  Future<void> applyUpdatePlan(TripEntityUpdatePlan plan) async {
     // Execute the update plan
-    await _tripMetadataUpdateExecutor.execute(plan);
+    await _updatePlanExecutor.execute(plan);
 
     // Update local metadata copy
-    _tripMetadataModelImplementation.copyWith(plan.newMetadata);
+    if (plan is TripEntityUpdatePlan<TripMetadataFacade>) {
+      _tripMetadataModelImplementation.copyWith(plan.newEntity);
+    }
   }
 
   @override
@@ -212,7 +214,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       : _tripMetadataModelImplementation = tripMetadata,
         _transitOptionMetadatas =
             _initializeIconsAndTransitOptions(appLocalisations) {
-    _tripMetadataUpdateExecutor = TripMetadataUpdateExecutor(
+    _updatePlanExecutor = TripEntityDataUpdatePlanExecutor(
       transitCollection: transitCollection,
       lodgingCollection: lodgingCollection,
       expenseCollection: expenseCollection,

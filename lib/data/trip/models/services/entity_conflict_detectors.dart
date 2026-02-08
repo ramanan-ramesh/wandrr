@@ -2,13 +2,16 @@ import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-import 'package:wandrr/data/trip/services/conflict_detection/conflict_detection.dart';
+
+import 'conflict_result.dart';
+import 'time_range.dart';
+import 'trip_conflict_scanner.dart';
 
 /// Base interface for entity-specific conflict detection.
 /// Each trip entity type (Transit, Stay, Sight) has its own implementation.
 abstract class EntityConflictDetector<T> {
   /// Detects conflicts for the given entity
-  AggregatedConflicts? detectConflicts();
+  AggregatedConflicts? detectConflicts(TripEntity tripEntity);
 }
 
 /// Conflict detector for multi-leg journeys
@@ -23,7 +26,7 @@ class JourneyConflictDetector
   });
 
   @override
-  AggregatedConflicts? detectConflicts() {
+  AggregatedConflicts? detectConflicts(TripEntity tripEntity) {
     final allConflicts = <TransitConflict>[];
     final allStayConflicts = <StayConflict>[];
     final allSightConflicts = <SightConflict>[];
@@ -47,9 +50,9 @@ class JourneyConflictDetector
       final exclusions = ConflictScanExclusions.forTransits(legIds);
 
       final conflicts = scanner.scanForConflicts(
-        referenceRange: referenceRange,
-        exclusions: exclusions,
-      );
+          referenceRange: referenceRange,
+          exclusions: exclusions,
+          tripEntity: tripEntity);
 
       allConflicts.addAll(conflicts.transitConflicts);
       allStayConflicts.addAll(conflicts.stayConflicts);
@@ -103,7 +106,7 @@ class StayConflictDetector implements EntityConflictDetector<LodgingFacade> {
   });
 
   @override
-  AggregatedConflicts? detectConflicts() {
+  AggregatedConflicts? detectConflicts(TripEntity tripEntity) {
     if (stay.checkinDateTime == null || stay.checkoutDateTime == null) {
       return null;
     }
@@ -118,9 +121,9 @@ class StayConflictDetector implements EntityConflictDetector<LodgingFacade> {
     );
 
     final conflicts = scanner.scanForConflicts(
-      referenceRange: referenceRange,
-      exclusions: exclusions,
-    );
+        referenceRange: referenceRange,
+        exclusions: exclusions,
+        tripEntity: tripEntity);
 
     return conflicts.isEmpty ? null : conflicts;
   }
@@ -140,7 +143,7 @@ class ItineraryConflictDetector
   });
 
   @override
-  AggregatedConflicts? detectConflicts() {
+  AggregatedConflicts? detectConflicts(TripEntity tripEntity) {
     final allConflicts = <TransitConflict>[];
     final allStayConflicts = <StayConflict>[];
     final allSightConflicts = <SightConflict>[];
@@ -162,9 +165,9 @@ class ItineraryConflictDetector
       final exclusions = ConflictScanExclusions.forSights(sightIds);
 
       final conflicts = scanner.scanForConflicts(
-        referenceRange: referenceRange,
-        exclusions: exclusions,
-      );
+          referenceRange: referenceRange,
+          exclusions: exclusions,
+          tripEntity: tripEntity);
 
       allConflicts.addAll(conflicts.transitConflicts);
       allStayConflicts.addAll(conflicts.stayConflicts);

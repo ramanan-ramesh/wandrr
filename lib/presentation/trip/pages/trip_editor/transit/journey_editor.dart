@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
+import 'package:wandrr/data/trip/models/services/transit_journey_service.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_journey.dart';
-import 'package:wandrr/data/trip/services/transit_journey_service.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/transit/travel_editor.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
@@ -45,8 +45,8 @@ class JourneyEditorState extends State<JourneyEditor> {
   bool get isNewJourney =>
       _legs.isEmpty || _legs.every((l) => l.id == null || l.id!.isEmpty);
 
-  TransitJourneyService get _journeyService =>
-      TransitJourneyService(context.activeTrip.transitCollection);
+  TransitJourneyServiceFacade get _journeyService =>
+      TransitJourneyServiceFacade(context.activeTrip.transitCollection);
 
   @override
   void initState() {
@@ -901,7 +901,7 @@ class _JourneySummaryFooterState extends State<JourneySummaryFooter> {
     });
 
     final currencyConverter = context.apiServicesRepository.currencyConverter;
-    final service = TransitJourneyService(
+    final service = TransitJourneyServiceFacade(
       context.activeTrip.transitCollection,
       currencyConverter: currencyConverter,
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/editor_page_factory.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 
 class TripEntityEditorBottomSheet<T extends TripEntity>
@@ -26,15 +27,15 @@ class TripEntityEditorBottomSheet<T extends TripEntity>
       maxChildSize: 0.85,
       minChildSize: 0.5,
       builder: (context, scrollController) {
-        return tripEditorAction.createActionPage(
-            tripEntity: tripEntity,
-            isEditing: true,
-            onClosePressed: (context) => Navigator.of(context).pop(),
-            scrollController: scrollController,
-            context: context,
-            itineraryConfig: planDataEditorConfig,
-            title:
-                tripEditorAction.createSubtitle(context.localizations, true))!;
+        final factory = EditorPageFactory(
+          context: context,
+          title: tripEditorAction.getSubtitle(context.localizations, true),
+          isEditing: true,
+          onClosePressed: (_) => Navigator.of(context).pop(),
+          scrollController: scrollController,
+          itineraryConfig: planDataEditorConfig,
+        );
+        return factory.createPage(tripEntity) ?? const SizedBox.shrink();
       },
     );
   }

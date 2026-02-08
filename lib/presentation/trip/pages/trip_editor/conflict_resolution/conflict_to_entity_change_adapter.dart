@@ -1,121 +1,112 @@
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
-import 'package:wandrr/data/trip/models/itinerary/sight.dart';
-import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/data/trip/models/services/conflict_result.dart';
+import 'package:wandrr/data/trip/models/services/entity_change.dart';
+import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/entity_change.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/entity_change_context.dart';
-import 'package:wandrr/data/trip/models/trip_entity_update/trip_data_update_plan.dart';
-import 'package:wandrr/data/trip/services/conflict_detection/conflict_detection.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
 /// Converts raw conflict data to UI-ready EntityChange objects.
-/// This is the bridge between the pure data layer and the presentation layer.
+/// Creates TripEntityUpdatePlan for both conflict resolution and metadata updates.
 class ConflictToEntityChangeAdapter {
   const ConflictToEntityChangeAdapter._();
 
-  /// Converts aggregated conflicts to a TripDataUpdatePlan with EntityChange objects.
-  static TripDataUpdatePlan toUpdatePlan({
+  /// Converts aggregated conflicts to a TripEntityUpdatePlan for conflict resolution.
+  static TripEntityUpdatePlan<T> toUpdatePlan<T extends TripEntity>({
+    required T oldEntity,
+    required T newEntity,
     required AggregatedConflicts conflicts,
     required DateTime tripStartDate,
-    required DateTime tripEndDate,
-    EntityChangeContext context = EntityChangeContext.timelineConflict,
+    required DateTime endDate,
   }) {
-    return TripDataUpdatePlan(
-      transitChanges: conflicts.transitConflicts
-          .map((c) => _toEntityChange(c, context))
-          .toList(),
-      stayChanges: conflicts.stayConflicts
-          .map((c) => _toEntityChange(c, context))
-          .toList(),
-      sightChanges: conflicts.sightConflicts
-          .map((c) => _toEntityChange(c, context))
-          .toList(),
+    return TripEntityUpdatePlan<T>(
       tripStartDate: tripStartDate,
-      tripEndDate: tripEndDate,
+      tripEndDate: endDate,
+      oldEntity: oldEntity,
+      newEntity: newEntity,
+      transitChanges: conflicts.transitConflicts.map(_toTransitChange).toList(),
+      stayChanges: conflicts.stayConflicts.map(_toStayChange).toList(),
+      sightChanges: conflicts.sightConflicts.map(_toSightChange).toList(),
     );
   }
 
-  /// Converts MetadataUpdateConflicts to a TripMetadataUpdatePlan.
-  /// This is for trip date/contributor changes specifically.
-  static TripMetadataUpdatePlan toMetadataUpdatePlan(
+  /// Converts MetadataUpdateConflicts to a TripEntityUpdatePlan for TripMetadata.
+  static TripEntityUpdatePlan<TripMetadataFacade> toMetadataUpdatePlan(
     MetadataUpdateConflicts conflicts,
   ) {
-    return TripMetadataUpdatePlan(
-      oldMetadata: conflicts.oldMetadata,
-      newMetadata: conflicts.newMetadata,
-      transitChanges: conflicts.transitConflicts
-          .map(
-              (c) => _toEntityChange(c, EntityChangeContext.tripMetadataUpdate))
-          .toList(),
-      stayChanges: conflicts.stayConflicts
-          .map(
-              (c) => _toEntityChange(c, EntityChangeContext.tripMetadataUpdate))
-          .toList(),
-      sightChanges: conflicts.sightConflicts
-          .map(
-              (c) => _toEntityChange(c, EntityChangeContext.tripMetadataUpdate))
-          .toList(),
-      expenseChanges:
-          conflicts.expenseEntities.map(_toExpenseEntityChange).toList(),
+    return TripEntityUpdatePlan<TripMetadataFacade>(
+      oldEntity: conflicts.oldMetadata,
+      newEntity: conflicts.newMetadata,
+      tripStartDate: conflicts.newMetadata.startDate!,
+      tripEndDate: conflicts.newMetadata.endDate!,
+      transitChanges: conflicts.transitConflicts.map(_toTransitChange).toList(),
+      stayChanges: conflicts.stayConflicts.map(_toStayChange).toList(),
+      sightChanges: conflicts.sightConflicts.map(_toSightChange).toList(),
+      expenseChanges: conflicts.expenseEntities.map(_toExpenseChange).toList(),
     );
   }
 
-  /// Converts an expense-bearing entity to an EntityChange for contributor updates.
-  static EntityChange<ExpenseBearingTripEntity> _toExpenseEntityChange(
-    ExpenseBearingTripEntity entity,
-  ) {
-    return EntityChange<ExpenseBearingTripEntity>.forClamping(
-      originalEntity: entity,
-      modifiedEntity: entity.clone(),
-      context: EntityChangeContext.tripMetadataUpdate,
-    );
-  }
-
-  /// Converts a single ConflictResult to an EntityChange.
-  static EntityChange<T> _toEntityChange<T extends TripEntity<T>>(
-    ConflictResult<T> conflict,
-    EntityChangeContext context,
-  ) {
+  static TransitChange _toTransitChange(TransitConflict conflict) {
     if (conflict.canBeClampedToResolve) {
-      return EntityChange<T>.forClamping(
-        originalEntity: conflict.entity,
-        modifiedEntity: conflict.clampedEntity as T,
-        conflictDescription: _getDescription(conflict.entity),
-        originalTimeDescription: _getTimeDescription(conflict),
+      return TransitChange.forClamping(
+        original: conflict.entity,
+        modified: conflict.clampedEntity!,
         timelinePosition: conflict.position,
-        context: context,
+        originalTimeDescription: _getTimeDescription(conflict),
       );
     } else {
-      return EntityChange<T>.forDeletion(
-        originalEntity: conflict.entity,
-        conflictDescription: _getDescription(conflict.entity),
-        originalTimeDescription: _getTimeDescription(conflict),
+      return TransitChange.forDeletion(
+        original: conflict.entity,
         timelinePosition: conflict.position,
-        context: context,
+        originalTimeDescription: _getTimeDescription(conflict),
       );
     }
   }
 
-  /// Gets a short description for the entity (used in UI)
-  static String _getDescription<T extends TripEntity>(T entity) {
-    if (entity is TransitFacade) {
-      final from = entity.departureLocation?.context.name ?? '?';
-      final to = entity.arrivalLocation?.context.name ?? '?';
-      return '$from → $to';
-    } else if (entity is LodgingFacade) {
-      return entity.location?.context.name ?? 'Unknown location';
-    } else if (entity is SightFacade) {
-      return entity.name.isNotEmpty ? entity.name : 'Unnamed sight';
+  static StayChange _toStayChange(StayConflict conflict) {
+    if (conflict.canBeClampedToResolve) {
+      return StayChange.forClamping(
+        original: conflict.entity,
+        modified: conflict.clampedEntity!,
+        timelinePosition: conflict.position,
+        originalTimeDescription: _getTimeDescription(conflict),
+      );
+    } else {
+      return StayChange.forDeletion(
+        original: conflict.entity,
+        timelinePosition: conflict.position,
+        originalTimeDescription: _getTimeDescription(conflict),
+      );
     }
-    return 'Unknown entity';
   }
 
-  /// Gets the original time description for the entity
+  static SightChange _toSightChange(SightConflict conflict) {
+    if (conflict.canBeClampedToResolve) {
+      return SightChange.forClamping(
+        original: conflict.entity,
+        modified: conflict.clampedEntity!,
+        timelinePosition: conflict.position,
+        originalTimeDescription: _getTimeDescription(conflict),
+      );
+    } else {
+      return SightChange.forDeletion(
+        original: conflict.entity,
+        timelinePosition: conflict.position,
+        originalTimeDescription: _getTimeDescription(conflict),
+      );
+    }
+  }
+
+  static ExpenseSplitChange _toExpenseChange(ExpenseBearingTripEntity entity) {
+    return ExpenseSplitChange(
+      original: entity,
+      modified: entity.clone(),
+    );
+  }
+
   static String _getTimeDescription<T extends TripEntity<T>>(
     ConflictResult<T> conflict,
   ) {
     final range = conflict.entityTimeRange;
-    // Format: "Mon, Jan 15 10:30 AM → Mon, Jan 15 2:30 PM"
     return '${_formatDateTime(range.start)} → ${_formatDateTime(range.end)}';
   }
 
