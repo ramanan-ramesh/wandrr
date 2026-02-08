@@ -11,42 +11,6 @@ abstract class EntityConflictDetector<T> {
   AggregatedConflicts? detectConflicts();
 }
 
-/// Conflict detector for transits
-class TransitConflictDetector implements EntityConflictDetector<TransitFacade> {
-  final TransitFacade transit;
-  final TripConflictScanner scanner;
-  final bool isNewEntity;
-
-  TransitConflictDetector({
-    required this.transit,
-    required this.scanner,
-    required this.isNewEntity,
-  });
-
-  @override
-  AggregatedConflicts? detectConflicts() {
-    if (transit.departureDateTime == null || transit.arrivalDateTime == null) {
-      return null;
-    }
-
-    final referenceRange = TimeRange(
-      start: transit.departureDateTime!,
-      end: transit.arrivalDateTime!,
-    );
-
-    final exclusions = ConflictScanExclusions.forTransit(
-      isNewEntity ? null : transit.id,
-    );
-
-    final conflicts = scanner.scanForConflicts(
-      referenceRange: referenceRange,
-      exclusions: exclusions,
-    );
-
-    return conflicts.isEmpty ? null : conflicts;
-  }
-}
-
 /// Conflict detector for multi-leg journeys
 class JourneyConflictDetector
     implements EntityConflictDetector<List<TransitFacade>> {
@@ -151,44 +115,6 @@ class StayConflictDetector implements EntityConflictDetector<LodgingFacade> {
 
     final exclusions = ConflictScanExclusions.forStay(
       isNewEntity ? null : stay.id,
-    );
-
-    final conflicts = scanner.scanForConflicts(
-      referenceRange: referenceRange,
-      exclusions: exclusions,
-    );
-
-    return conflicts.isEmpty ? null : conflicts;
-  }
-}
-
-/// Conflict detector for sights
-class SightConflictDetector implements EntityConflictDetector<SightFacade> {
-  final SightFacade sight;
-  final TripConflictScanner scanner;
-  final bool isNewEntity;
-  final Duration visitDuration;
-
-  SightConflictDetector({
-    required this.sight,
-    required this.scanner,
-    required this.isNewEntity,
-    this.visitDuration = const Duration(hours: 2),
-  });
-
-  @override
-  AggregatedConflicts? detectConflicts() {
-    if (sight.visitTime == null) {
-      return null;
-    }
-
-    final referenceRange = TimeRange(
-      start: sight.visitTime!,
-      end: sight.visitTime!.add(visitDuration),
-    );
-
-    final exclusions = ConflictScanExclusions.forSight(
-      isNewEntity ? null : sight.id,
     );
 
     final conflicts = scanner.scanForConflicts(

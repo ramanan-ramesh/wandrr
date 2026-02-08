@@ -176,11 +176,7 @@ class _ConflictAwareActionPageState<T extends TripEntity>
                         ? ConflictResolutionSubpage(
                             conflictPlan: _conflictPlan!,
                             onBackPressed: _navigateToEditor,
-                            onConflictsResolved: () {
-                              // Just navigate back - don't re-detect conflicts
-                              // The user's changes in conflict resolution are preserved
-                              _navigateToEditor();
-                            },
+                            onConflictsResolved: _navigateToEditor,
                           )
                         : const SizedBox
                             .shrink(), // Placeholder when no conflict plan

@@ -1,3 +1,4 @@
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -31,6 +32,42 @@ class ConflictToEntityChangeAdapter {
           .toList(),
       tripStartDate: tripStartDate,
       tripEndDate: tripEndDate,
+    );
+  }
+
+  /// Converts MetadataUpdateConflicts to a TripMetadataUpdatePlan.
+  /// This is for trip date/contributor changes specifically.
+  static TripMetadataUpdatePlan toMetadataUpdatePlan(
+    MetadataUpdateConflicts conflicts,
+  ) {
+    return TripMetadataUpdatePlan(
+      oldMetadata: conflicts.oldMetadata,
+      newMetadata: conflicts.newMetadata,
+      transitChanges: conflicts.transitConflicts
+          .map(
+              (c) => _toEntityChange(c, EntityChangeContext.tripMetadataUpdate))
+          .toList(),
+      stayChanges: conflicts.stayConflicts
+          .map(
+              (c) => _toEntityChange(c, EntityChangeContext.tripMetadataUpdate))
+          .toList(),
+      sightChanges: conflicts.sightConflicts
+          .map(
+              (c) => _toEntityChange(c, EntityChangeContext.tripMetadataUpdate))
+          .toList(),
+      expenseChanges:
+          conflicts.expenseEntities.map(_toExpenseEntityChange).toList(),
+    );
+  }
+
+  /// Converts an expense-bearing entity to an EntityChange for contributor updates.
+  static EntityChange<ExpenseBearingTripEntity> _toExpenseEntityChange(
+    ExpenseBearingTripEntity entity,
+  ) {
+    return EntityChange<ExpenseBearingTripEntity>.forClamping(
+      originalEntity: entity,
+      modifiedEntity: entity.clone(),
+      context: EntityChangeContext.tripMetadataUpdate,
     );
   }
 

@@ -42,14 +42,12 @@ class TripMetadataUpdateExecutor {
     }
 
     // Step 1: Execute all entity and itinerary changes in a single batch
-    if (plan.hasEntityChanges || plan.hasDateChanges) {
+    if (plan.hasConflicts || plan.hasDateChanges) {
       await _executeAllChanges(plan);
     }
 
     // Step 2: Recalculate total expenditure
-    if (plan.hasEntityChanges ||
-        plan.hasDateChanges ||
-        plan.hasCurrencyChange) {
+    if (plan.hasConflicts || plan.hasDateChanges || plan.hasCurrencyChange) {
       await budgetingModule.recalculateTotalExpenditure();
     }
   }

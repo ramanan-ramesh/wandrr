@@ -1,5 +1,8 @@
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity_update/entity_timeline_position.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
 import 'conflict_result.dart';
 import 'entity_time_clamper.dart';
@@ -19,13 +22,6 @@ class ConflictScanExclusions {
     this.sightIds = const {},
   });
 
-  /// Creates exclusions for a single transit
-  factory ConflictScanExclusions.forTransit(String? transitId) {
-    return ConflictScanExclusions(
-      transitIds: transitId != null ? {transitId} : {},
-    );
-  }
-
   /// Creates exclusions for multiple transits (e.g., journey legs)
   factory ConflictScanExclusions.forTransits(Iterable<String> transitIds) {
     return ConflictScanExclusions(transitIds: transitIds.toSet());
@@ -41,22 +37,6 @@ class ConflictScanExclusions {
   /// Creates exclusions for multiple sights (e.g., in same itinerary)
   factory ConflictScanExclusions.forSights(Iterable<String> sightIds) {
     return ConflictScanExclusions(sightIds: sightIds.toSet());
-  }
-
-  /// Creates exclusions for a single sight
-  factory ConflictScanExclusions.forSight(String? sightId) {
-    return ConflictScanExclusions(
-      sightIds: sightId != null ? {sightId} : {},
-    );
-  }
-
-  /// Combines multiple exclusion sets
-  ConflictScanExclusions merge(ConflictScanExclusions other) {
-    return ConflictScanExclusions(
-      transitIds: {...transitIds, ...other.transitIds},
-      stayIds: {...stayIds, ...other.stayIds},
-      sightIds: {...sightIds, ...other.sightIds},
-    );
   }
 }
 
@@ -85,28 +65,156 @@ class TripConflictScanner {
     );
   }
 
-  /// Scans for transit conflicts only
-  List<TransitConflict> scanTransitConflicts({
-    required TimeRange referenceRange,
-    Set<String> excludeTransitIds = const {},
+  /// Scans for entities affected by trip metadata changes (date/contributor changes).
+  /// Returns null if no changes require user attention.
+  MetadataUpdateConflicts? scanForMetadataUpdate({
+    required TripMetadataFacade oldMetadata,
+    required TripMetadataFacade newMetadata,
   }) {
-    return _findTransitConflicts(referenceRange, excludeTransitIds);
+    final datesChanged =
+        !oldMetadata.startDate!.isOnSameDayAs(newMetadata.startDate!) ||
+            !oldMetadata.endDate!.isOnSameDayAs(newMetadata.endDate!);
+    final contributorsChanged =
+        _haveContributorsChanged(oldMetadata, newMetadata);
+
+    if (!datesChanged && !contributorsChanged) return null;
+
+    final newTripRange = TimeRange(
+      start: newMetadata.startDate!,
+      end: DateTime(newMetadata.endDate!.year, newMetadata.endDate!.month,
+          newMetadata.endDate!.day, 23, 59),
+    );
+
+    final stayConflicts = datesChanged
+        ? _findStaysOutsideDateRange(newTripRange)
+        : <StayConflict>[];
+    final transitConflicts = datesChanged
+        ? _findTransitsOutsideDateRange(newTripRange)
+        : <TransitConflict>[];
+    final sightConflicts = datesChanged
+        ? _findSightsOutsideDateRange(newTripRange)
+        : <SightConflict>[];
+    final expenseEntities = contributorsChanged
+        ? _collectAllExpenseBearingEntities()
+        : <ExpenseBearingTripEntity>[];
+
+    if (stayConflicts.isEmpty &&
+        transitConflicts.isEmpty &&
+        sightConflicts.isEmpty &&
+        expenseEntities.isEmpty) {
+      return null;
+    }
+
+    return MetadataUpdateConflicts(
+      stayConflicts: stayConflicts,
+      transitConflicts: transitConflicts,
+      sightConflicts: sightConflicts,
+      expenseEntities: expenseEntities,
+      oldMetadata: oldMetadata,
+      newMetadata: newMetadata,
+    );
   }
 
-  /// Scans for stay conflicts only
-  List<StayConflict> scanStayConflicts({
-    required TimeRange referenceRange,
-    Set<String> excludeStayIds = const {},
-  }) {
-    return _findStayConflicts(referenceRange, excludeStayIds);
+  bool _haveContributorsChanged(
+      TripMetadataFacade oldMeta, TripMetadataFacade newMeta) {
+    final oldSet = oldMeta.contributors.toSet();
+    final newSet = newMeta.contributors.toSet();
+    return oldSet.difference(newSet).isNotEmpty ||
+        newSet.difference(oldSet).isNotEmpty;
   }
 
-  /// Scans for sight conflicts only
-  List<SightConflict> scanSightConflicts({
-    required TimeRange referenceRange,
-    Set<String> excludeSightIds = const {},
-  }) {
-    return _findSightConflicts(referenceRange, excludeSightIds);
+  List<StayConflict> _findStaysOutsideDateRange(TimeRange newTripRange) {
+    final conflicts = <StayConflict>[];
+    for (final stay in _tripData.lodgingCollection.collectionItems) {
+      if (stay.checkinDateTime == null || stay.checkoutDateTime == null)
+        continue;
+
+      final checkin = stay.checkinDateTime!;
+      final checkout = stay.checkoutDateTime!;
+      final isOutside = checkin.isBefore(newTripRange.start) ||
+          checkin.isAfter(newTripRange.end) ||
+          checkout.isBefore(newTripRange.start) ||
+          checkout.isAfter(newTripRange.end);
+
+      if (isOutside) {
+        final clamped =
+            EntityTimeClamper.clampStayToDateRange(stay, newTripRange);
+        conflicts.add(StayConflict(
+          entity: stay,
+          entityTimeRange: TimeRange(start: checkin, end: checkout),
+          position: EntityTimelinePosition.beforeEvent,
+          // Simplified - outside range
+          clampedEntity: clamped,
+        ));
+      }
+    }
+    return conflicts;
+  }
+
+  List<TransitConflict> _findTransitsOutsideDateRange(TimeRange newTripRange) {
+    final conflicts = <TransitConflict>[];
+    for (final transit in _tripData.transitCollection.collectionItems) {
+      if (transit.departureDateTime == null || transit.arrivalDateTime == null)
+        continue;
+
+      final dep = transit.departureDateTime!;
+      final arr = transit.arrivalDateTime!;
+      final isOutside = dep.isBefore(newTripRange.start) ||
+          dep.isAfter(newTripRange.end) ||
+          arr.isBefore(newTripRange.start) ||
+          arr.isAfter(newTripRange.end);
+
+      if (isOutside) {
+        // For transits outside date range, we clear times (user must re-set)
+        final modified = transit.clone();
+        modified.departureDateTime = null;
+        modified.arrivalDateTime = null;
+        conflicts.add(TransitConflict(
+          entity: transit,
+          entityTimeRange: TimeRange(start: dep, end: arr),
+          position: EntityTimelinePosition.beforeEvent,
+          clampedEntity: modified,
+        ));
+      }
+    }
+    return conflicts;
+  }
+
+  List<SightConflict> _findSightsOutsideDateRange(TimeRange newTripRange) {
+    final conflicts = <SightConflict>[];
+    for (final itinerary in _tripData.itineraryCollection) {
+      for (final sight in itinerary.planData.sights) {
+        final sightDay = sight.day;
+        final isOutside = sightDay.isBefore(newTripRange.start) ||
+            sightDay.isAfter(newTripRange.end);
+
+        if (isOutside) {
+          final modified = sight.clone();
+          modified.visitTime = null;
+          conflicts.add(SightConflict(
+            entity: sight,
+            entityTimeRange: TimeRange(
+              start: sight.visitTime ?? sightDay,
+              end: (sight.visitTime ?? sightDay).add(_sightVisitDuration),
+            ),
+            position: EntityTimelinePosition.beforeEvent,
+            clampedEntity: modified,
+          ));
+        }
+      }
+    }
+    return conflicts;
+  }
+
+  List<ExpenseBearingTripEntity> _collectAllExpenseBearingEntities() {
+    final entities = <ExpenseBearingTripEntity>[];
+    entities.addAll(_tripData.expenseCollection.collectionItems);
+    entities.addAll(_tripData.transitCollection.collectionItems);
+    entities.addAll(_tripData.lodgingCollection.collectionItems);
+    for (final itinerary in _tripData.itineraryCollection) {
+      entities.addAll(itinerary.planData.sights);
+    }
+    return entities;
   }
 
   List<TransitConflict> _findTransitConflicts(

@@ -18,8 +18,6 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_p
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/app_bar/app_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_bottom_sheet.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/trip_metadata_update_plan_factory.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
@@ -160,23 +158,15 @@ class _TripEditorPageInternal extends StatelessWidget {
     required TripMetadataFacade oldMetadata,
     required TripMetadataFacade newMetadata,
   }) {
-    // Check if we have affected entities that need user attention
-    final updatePlan = TripMetadataUpdatePlanFactory.create(
-      oldMetadata: oldMetadata,
-      newMetadata: newMetadata,
-      tripData: context.activeTrip,
-    );
+    // Conflict resolution now happens within ConflictAwareActionPage during editing.
+    // This method only handles the special case of showing a snackbar when
+    // contributors were removed (since their expenses are preserved for historical accuracy).
 
-    if (updatePlan == null) return;
+    final oldContributors = oldMetadata.contributors.toSet();
+    final newContributors = newMetadata.contributors.toSet();
+    final removedContributors = oldContributors.difference(newContributors);
 
-    // If only contributors were removed (no added contributors and no date changes),
-    // just show a snackbar - no need for the bottom sheet
-    final hasOnlyRemovedContributors =
-        updatePlan.removedContributors.isNotEmpty &&
-            updatePlan.addedContributors.isEmpty &&
-            !updatePlan.hasDateChanges;
-
-    if (hasOnlyRemovedContributors) {
+    if (removedContributors.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -184,17 +174,6 @@ class _TripEditorPageInternal extends StatelessWidget {
           ),
           duration: Duration(seconds: 4),
         ),
-      );
-      return;
-    }
-
-    // Show bottom sheet if there are affected entities that need user attention
-    if (updatePlan.hasAffectedEntities) {
-      _showModalBottomSheet(
-        AffectedEntitiesBottomSheet(
-          updatePlan: updatePlan,
-        ),
-        context,
       );
     }
   }

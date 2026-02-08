@@ -30,7 +30,9 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
   @override
   void initState() {
     super.initState();
-    _messageProvider = EntityChangeMessageProvider.forTimelineConflict();
+    _messageProvider = widget.conflictPlan is TripMetadataUpdatePlan
+        ? EntityChangeMessageProvider.forMetadataUpdate()
+        : EntityChangeMessageProvider.forTimelineConflict();
   }
 
   @override
@@ -47,10 +49,20 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
         const SizedBox(height: 16),
         // Use the unified entity change editor for conflict resolution
         // Note: No Expanded here - parent provides scrolling
-        UnifiedEntityChangeEditor.forConflictResolution(
-          updatePlan: widget.conflictPlan,
-          onChanged: () => setState(() {}),
-        ),
+        widget.conflictPlan is TripMetadataUpdatePlan
+            ? UnifiedEntityChangeEditor.forMetadataUpdate(
+                updatePlan: widget.conflictPlan as TripMetadataUpdatePlan,
+                onChanged: () => setState(() {}),
+                onEntityDeletionChanged: (entity, isDeleted) {
+                  (widget.conflictPlan as TripMetadataUpdatePlan)
+                      .syncExpenseDeletionState(entity, isDeleted);
+                  setState(() {});
+                },
+              )
+            : UnifiedEntityChangeEditor.forConflictResolution(
+                updatePlan: widget.conflictPlan,
+                onChanged: () => setState(() {}),
+              ),
         const SizedBox(height: 24),
         _buildActionButtons(context),
       ],

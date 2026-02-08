@@ -117,7 +117,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
           infoMessage: widget.updatePlan.stayChanges.isNotEmpty
               ? _messageProvider.staysSectionInfo()
               : null,
-          itemBuilder: (ctx, change) => _buildStayItem(ctx, change),
+          itemBuilder: _buildStayItem,
         ),
 
         // Transits section
@@ -131,7 +131,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
           infoMessage: widget.updatePlan.transitChanges.isNotEmpty
               ? _messageProvider.transitsSectionInfo()
               : null,
-          itemBuilder: (ctx, change) => _buildTransitItem(ctx, change),
+          itemBuilder: _buildTransitItem,
         ),
 
         // Sights section
@@ -145,7 +145,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
           infoMessage: widget.updatePlan.sightChanges.isNotEmpty
               ? _messageProvider.sightsSectionInfo()
               : null,
-          itemBuilder: (ctx, change) => _buildSightItem(ctx, change),
+          itemBuilder: _buildSightItem,
         ),
 
         // Expenses section (only for TripMetadataUpdatePlan)
@@ -651,7 +651,7 @@ class _ExpensesSectionState extends State<_ExpensesSection> {
         addedContributors: widget.addedContributors,
         removedContributors: widget.removedContributors,
       ),
-      itemBuilder: (ctx, change) => _buildExpenseItem(ctx, change),
+      itemBuilder: _buildExpenseItem,
     );
   }
 

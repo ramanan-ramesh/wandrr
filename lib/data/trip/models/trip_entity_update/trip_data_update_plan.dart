@@ -126,19 +126,18 @@ class TripMetadataUpdatePlan extends TripDataUpdatePlan {
   bool get hasCurrencyChange =>
       oldMetadata.budget.currency != newMetadata.budget.currency;
 
-  /// Whether there are any entity changes to apply
-  bool get hasEntityChanges =>
-      stayChanges.isNotEmpty ||
-      transitChanges.isNotEmpty ||
-      sightChanges.isNotEmpty ||
-      expenseChanges.any((e) => e.includeInSplitBy);
+  /// Whether there are any conflicts
+  @override
+  bool get hasConflicts =>
+      super.hasConflicts || expenseChanges.any((e) => e.includeInSplitBy);
 
-  /// Whether there are any affected entities that need user review
-  bool get hasAffectedEntities =>
-      stayChanges.isNotEmpty ||
-      transitChanges.isNotEmpty ||
-      sightChanges.isNotEmpty ||
-      (hasContributorChanges && expenseChanges.isNotEmpty);
+  /// Total number of conflicts
+  @override
+  int get totalConflicts =>
+      stayChanges.length +
+      transitChanges.length +
+      sightChanges.length +
+      expenseChanges.length;
 
   /// Syncs expense deletion state when an ExpenseBearingTripEntity is deleted/restored
   void syncExpenseDeletionState(

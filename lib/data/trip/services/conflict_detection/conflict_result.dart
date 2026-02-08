@@ -1,8 +1,10 @@
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_entity_update/entity_timeline_position.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
 import 'time_range.dart';
 
@@ -23,9 +25,6 @@ class ConflictResult<T extends TripEntity> {
 
   /// Whether the entity can be clamped to resolve the conflict
   bool get canBeClampedToResolve => clampedEntity != null;
-
-  /// Whether the entity must be deleted (cannot be clamped)
-  bool get mustBeDeleted => clampedEntity == null;
 
   const ConflictResult({
     required this.entity,
@@ -61,4 +60,31 @@ class AggregatedConflicts {
       transitConflicts.isEmpty &&
       stayConflicts.isEmpty &&
       sightConflicts.isEmpty;
+}
+
+/// Conflicts from trip metadata changes (date range or contributor changes).
+/// This is similar to AggregatedConflicts but also includes expense entities
+/// for contributor change handling.
+class MetadataUpdateConflicts extends AggregatedConflicts {
+  /// All expense-bearing entities (for contributor split updates)
+  final List<ExpenseBearingTripEntity> expenseEntities;
+
+  /// The old metadata before the update
+  final TripMetadataFacade oldMetadata;
+
+  /// The new metadata after the update
+  final TripMetadataFacade newMetadata;
+
+  const MetadataUpdateConflicts({
+    super.transitConflicts = const [],
+    super.stayConflicts = const [],
+    super.sightConflicts = const [],
+    this.expenseEntities = const [],
+    required this.oldMetadata,
+    required this.newMetadata,
+  });
+
+  /// Whether all conflicts have been resolved (no conflicts)
+  @override
+  bool get isEmpty => super.isEmpty && expenseEntities.isEmpty;
 }

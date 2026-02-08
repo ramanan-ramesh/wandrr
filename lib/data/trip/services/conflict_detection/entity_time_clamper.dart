@@ -158,4 +158,64 @@ class EntityTimeClamper {
 
     return null;
   }
+
+  /// Clamps a stay to fit within a new trip date range.
+  /// Used when trip dates change and stay falls outside new range.
+  /// Returns null if the stay cannot be reasonably clamped.
+  static LodgingFacade? clampStayToDateRange(
+    LodgingFacade stay,
+    TimeRange newTripRange,
+  ) {
+    if (stay.checkinDateTime == null || stay.checkoutDateTime == null) {
+      return null;
+    }
+
+    final checkin = stay.checkinDateTime!;
+    final checkout = stay.checkoutDateTime!;
+
+    DateTime? clampedCheckin = checkin;
+    DateTime? clampedCheckout = checkout;
+
+    // Clamp checkin to be within range
+    if (checkin.isBefore(newTripRange.start)) {
+      clampedCheckin = DateTime(
+        newTripRange.start.year,
+        newTripRange.start.month,
+        newTripRange.start.day,
+        checkin.hour,
+        checkin.minute,
+      );
+    } else if (checkin.isAfter(newTripRange.end)) {
+      return null; // Checkin after trip ends - cannot clamp
+    }
+
+    // Clamp checkout to be within range
+    if (checkout.isAfter(newTripRange.end)) {
+      clampedCheckout = DateTime(
+        newTripRange.end.year,
+        newTripRange.end.month,
+        newTripRange.end.day,
+        checkout.hour,
+        checkout.minute,
+      );
+    } else if (checkout.isBefore(newTripRange.start)) {
+      return null; // Checkout before trip starts - cannot clamp
+    }
+
+    // Validate clamped dates are valid (checkin before checkout, different days)
+    if (!clampedCheckin.isBefore(clampedCheckout)) {
+      return null;
+    }
+    // Same day check-in/check-out is not valid for overnight stays
+    if (clampedCheckin.year == clampedCheckout.year &&
+        clampedCheckin.month == clampedCheckout.month &&
+        clampedCheckin.day == clampedCheckout.day) {
+      return null;
+    }
+
+    final cloned = stay.clone();
+    cloned.checkinDateTime = clampedCheckin;
+    cloned.checkoutDateTime = clampedCheckout;
+    return cloned;
+  }
 }
