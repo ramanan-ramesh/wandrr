@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/services/trip_conflict_scanner.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
@@ -33,6 +34,9 @@ class ConflictAwareActionPage<T extends TripEntity> extends StatefulWidget {
   /// If null, no conflict detection is performed.
   final ConflictDetectionCallback<T>? conflictDetectionCallback;
 
+  /// Optional scanner for live conflict detection in resolution page
+  final TripConflictScanner? conflictScanner;
+
   const ConflictAwareActionPage({
     super.key,
     required this.tripEntity,
@@ -43,6 +47,7 @@ class ConflictAwareActionPage<T extends TripEntity> extends StatefulWidget {
     required this.pageContentCreator,
     required this.actionIcon,
     this.conflictDetectionCallback,
+    this.conflictScanner,
   });
 
   @override
@@ -174,6 +179,12 @@ class _ConflictAwareActionPageState<T extends TripEntity>
                             conflictPlan: _conflictPlan!,
                             onBackPressed: _navigateToEditor,
                             onConflictsResolved: _navigateToEditor,
+                            onConflictsChanged: () {
+                              // Rebuild when conflicts change (new ones detected)
+                              if (mounted) setState(() {});
+                            },
+                            conflictScanner: widget.conflictScanner,
+                            sourceEntity: widget.tripEntity,
                           )
                         : const SizedBox
                             .shrink(), // Placeholder when no conflict plan
@@ -241,7 +252,7 @@ class _ConflictAwareActionPageState<T extends TripEntity>
                       minHeight: 14,
                     ),
                     child: Text(
-                      '${_conflictPlan!.totalConflicts}',
+                      '${_conflictPlan!.conflictCount}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 10,
@@ -371,7 +382,7 @@ class _StickyConflictBanner extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
-                            '${conflictPlan.totalConflicts} CONFLICT${conflictPlan.totalConflicts > 1 ? 'S' : ''}',
+                            '${conflictPlan.conflictCount} CONFLICT${conflictPlan.conflictCount > 1 ? 'S' : ''}',
                             style: Theme.of(context)
                                 .textTheme
                                 .labelSmall

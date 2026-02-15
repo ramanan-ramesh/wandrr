@@ -1,7 +1,10 @@
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
+import 'conflict_result.dart';
 import 'entity_change.dart';
+import 'time_range.dart';
+import 'trip_conflict_scanner.dart';
 
 /// Unified plan for updating trip entities.
 /// Works for both TripMetadata updates and conflict resolution.
@@ -34,11 +37,14 @@ class TripEntityUpdatePlan<T extends TripEntity> {
     required this.newEntity,
     required this.tripStartDate,
     required this.tripEndDate,
-    this.stayChanges = const [],
-    this.transitChanges = const [],
-    this.sightChanges = const [],
-    this.expenseChanges = const [],
-  });
+    List<StayChange>? stayChanges,
+    List<TransitChange>? transitChanges,
+    List<SightChange>? sightChanges,
+    List<ExpenseSplitChange>? expenseChanges,
+  })  : stayChanges = stayChanges ?? [],
+        transitChanges = transitChanges ?? [],
+        sightChanges = sightChanges ?? [],
+        expenseChanges = expenseChanges ?? [];
 
   /// Whether there are any conflicts at all
   bool get hasConflicts =>
@@ -47,18 +53,39 @@ class TripEntityUpdatePlan<T extends TripEntity> {
       sightChanges.isNotEmpty ||
       expenseChanges.isNotEmpty;
 
-  /// Total number of conflicts
-  int get totalConflicts =>
-      stayChanges.length +
-      transitChanges.length +
-      sightChanges.length +
-      expenseChanges.length;
+  /// Total number of date/time conflicts (excluding expenses)
+  int get conflictCount =>
+      stayChanges.length + transitChanges.length + sightChanges.length;
+
+  /// Number of resolved conflicts (clamped or deleted)
+  int get resolvedCount {
+    int count = 0;
+    for (final c in stayChanges) {
+      if (c.isResolved) count++;
+    }
+    for (final c in transitChanges) {
+      if (c.isResolved) count++;
+    }
+    for (final c in sightChanges) {
+      if (c.isResolved) count++;
+    }
+    return count;
+  }
+
+  /// Number of pending conflicts
+  int get pendingCount => conflictCount - resolvedCount;
+
+  /// Whether all conflicts are resolved (ready to confirm)
+  bool get allConflictsResolved => pendingCount == 0;
 
   /// Whether user has confirmed the plan
   bool get isConfirmed => _isConfirmed;
 
   /// Mark the plan as confirmed by user
   void confirm() => _isConfirmed = true;
+
+  /// Reset confirmation
+  void resetConfirmation() => _isConfirmed = false;
 
   /// Contributors added (only for TripMetadata)
   Iterable<String> get addedContributors {
@@ -81,8 +108,38 @@ class TripEntityUpdatePlan<T extends TripEntity> {
   }
 
   // =========================================================================
-  // Utility Methods
+  // Expense Selection (Tri-State)
   // =========================================================================
+
+  /// Tri-state for expense selection: null = some, true = all, false = none
+  bool? get expenseSelectionState {
+    if (expenseChanges.isEmpty) return false;
+    final selectedCount =
+        expenseChanges.where((e) => e.includeInSplitBy).length;
+    if (selectedCount == 0) return false;
+    if (selectedCount == expenseChanges.length) return true;
+    return null;
+  }
+
+  void selectAllExpenses() {
+    for (final c in expenseChanges) {
+      c.includeInSplitBy = true;
+    }
+  }
+
+  void deselectAllExpenses() {
+    for (final c in expenseChanges) {
+      c.includeInSplitBy = false;
+    }
+  }
+
+  void toggleExpenseSelection() {
+    if (expenseSelectionState == true) {
+      deselectAllExpenses();
+    } else {
+      selectAllExpenses();
+    }
+  }
 
   /// Syncs expense deletion state when an ExpenseBearingTripEntity is deleted/restored
   void syncExpenseDeletionState(dynamic entity, bool isDeleted) {
@@ -96,6 +153,180 @@ class TripEntityUpdatePlan<T extends TripEntity> {
         break;
       }
     }
+  }
+
+  // =========================================================================
+  // Live Conflict Detection
+  // =========================================================================
+
+  /// Refreshes conflicts when a conflicted entity's times change.
+  /// Checks both TripRepo items and other items already in the plan.
+  /// Returns true if new conflicts were added.
+  bool refreshConflictsForChange(
+    EntityChangeBase change,
+    TripConflictScanner scanner,
+    TripEntity sourceEntity,
+  ) {
+    if (change.isMarkedForDeletion) return false;
+
+    TimeRange? modifiedRange;
+    ConflictScanExclusions exclusions;
+
+    // Get the time range of the modified entity
+    if (change is StayChange) {
+      final stay = change.modified;
+      if (stay.checkinDateTime == null || stay.checkoutDateTime == null) {
+        return false;
+      }
+      modifiedRange = TimeRange(
+        start: stay.checkinDateTime!,
+        end: stay.checkoutDateTime!,
+      );
+      exclusions = ConflictScanExclusions(
+        stayIds: _getExistingStayIds()..add(stay.id ?? ''),
+        transitIds: _getExistingTransitIds(),
+        sightIds: _getExistingSightIds(),
+      );
+    } else if (change is TransitChange) {
+      final transit = change.modified;
+      if (transit.departureDateTime == null ||
+          transit.arrivalDateTime == null) {
+        return false;
+      }
+      modifiedRange = TimeRange(
+        start: transit.departureDateTime!,
+        end: transit.arrivalDateTime!,
+      );
+      exclusions = ConflictScanExclusions(
+        transitIds: _getExistingTransitIds()..add(transit.id ?? ''),
+        stayIds: _getExistingStayIds(),
+        sightIds: _getExistingSightIds(),
+      );
+    } else if (change is SightChange) {
+      final sight = change.modified;
+      if (sight.visitTime == null) return false;
+      modifiedRange = TimeRange(
+        start: sight.visitTime!,
+        end: sight.visitTime!.add(const Duration(minutes: 30)),
+      );
+      exclusions = ConflictScanExclusions(
+        sightIds: _getExistingSightIds()..add(sight.id ?? ''),
+        transitIds: _getExistingTransitIds(),
+        stayIds: _getExistingStayIds(),
+      );
+    } else {
+      return false;
+    }
+
+    // Scan for new conflicts from TripRepo
+    final newConflicts = scanner.scanForConflicts(
+      referenceRange: modifiedRange,
+      tripEntity: change.modified,
+      exclusions: exclusions,
+    );
+
+    bool hasNewConflicts = false;
+
+    // Add new stay conflicts
+    for (final conflict in newConflicts.stayConflicts) {
+      if (!_hasStayChange(conflict.entity.id)) {
+        stayChanges.add(_conflictToStayChange(conflict, sourceEntity));
+        hasNewConflicts = true;
+      }
+    }
+
+    // Add new transit conflicts
+    for (final conflict in newConflicts.transitConflicts) {
+      if (!_hasTransitChange(conflict.entity.id)) {
+        transitChanges.add(_conflictToTransitChange(conflict, sourceEntity));
+        hasNewConflicts = true;
+      }
+    }
+
+    // Add new sight conflicts
+    for (final conflict in newConflicts.sightConflicts) {
+      if (!_hasSightChange(conflict.entity.id)) {
+        sightChanges.add(_conflictToSightChange(conflict, sourceEntity));
+        hasNewConflicts = true;
+      }
+    }
+
+    if (hasNewConflicts) {
+      _isConfirmed = false;
+    }
+
+    return hasNewConflicts;
+  }
+
+  Set<String> _getExistingStayIds() =>
+      stayChanges.map((c) => c.original.id ?? '').toSet();
+
+  Set<String> _getExistingTransitIds() =>
+      transitChanges.map((c) => c.original.id ?? '').toSet();
+
+  Set<String> _getExistingSightIds() =>
+      sightChanges.map((c) => c.original.id ?? '').toSet();
+
+  bool _hasStayChange(String? id) =>
+      id != null && stayChanges.any((c) => c.original.id == id);
+
+  bool _hasTransitChange(String? id) =>
+      id != null && transitChanges.any((c) => c.original.id == id);
+
+  bool _hasSightChange(String? id) =>
+      id != null && sightChanges.any((c) => c.original.id == id);
+
+  StayChange _conflictToStayChange(StayConflict conflict, TripEntity source) {
+    final conflictSource = ConflictSource.fromStay(conflict.entity);
+    if (conflict.clampedEntity != null) {
+      return StayChange.forClamping(
+        original: conflict.entity,
+        modified: conflict.clampedEntity!,
+        timelinePosition: conflict.position,
+        conflictSource: conflictSource,
+      );
+    }
+    return StayChange.forDeletion(
+      original: conflict.entity,
+      timelinePosition: conflict.position,
+      conflictSource: conflictSource,
+    );
+  }
+
+  TransitChange _conflictToTransitChange(
+      TransitConflict conflict, TripEntity source) {
+    final conflictSource = ConflictSource.fromTransit(conflict.entity);
+    if (conflict.clampedEntity != null) {
+      return TransitChange.forClamping(
+        original: conflict.entity,
+        modified: conflict.clampedEntity!,
+        timelinePosition: conflict.position,
+        conflictSource: conflictSource,
+      );
+    }
+    return TransitChange.forDeletion(
+      original: conflict.entity,
+      timelinePosition: conflict.position,
+      conflictSource: conflictSource,
+    );
+  }
+
+  SightChange _conflictToSightChange(
+      SightConflict conflict, TripEntity source) {
+    final conflictSource = ConflictSource.fromSight(conflict.entity);
+    if (conflict.clampedEntity != null) {
+      return SightChange.forClamping(
+        original: conflict.entity,
+        modified: conflict.clampedEntity!,
+        timelinePosition: conflict.position,
+        conflictSource: conflictSource,
+      );
+    }
+    return SightChange.forDeletion(
+      original: conflict.entity,
+      timelinePosition: conflict.position,
+      conflictSource: conflictSource,
+    );
   }
 }
 

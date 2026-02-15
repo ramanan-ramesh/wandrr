@@ -24,7 +24,7 @@ class TimeRange {
       return EntityTimelinePosition.startsBeforeEndsDuring;
     }
 
-    if (_areTimesSorted([start, other.start, end, other.end])) {
+    if (_areTimesSorted([other.start, start, other.end, end])) {
       return EntityTimelinePosition.startsDuringEndsAfter;
     }
 

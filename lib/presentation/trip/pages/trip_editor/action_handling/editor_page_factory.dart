@@ -66,6 +66,7 @@ class EditorPageFactory {
       actionIcon: _actionIcon,
       conflictDetectionCallback: () =>
           coordinator.detectTripMetadataConflicts(editableEntity),
+      conflictScanner: coordinator.scanner,
       pageContentCreator: (validityNotifier, onUpdated) => TripDetailsEditor(
         tripMetadataFacade: editableEntity,
         onTripMetadataUpdated: () {
@@ -91,6 +92,7 @@ class EditorPageFactory {
       actionIcon: _actionIcon,
       conflictDetectionCallback: () =>
           coordinator.detectItineraryConflicts(originalEntity, editableEntity),
+      conflictScanner: coordinator.scanner,
       pageContentCreator: (validityNotifier, onUpdated) =>
           ItineraryPlanDataEditor(
         planData: editableEntity,
@@ -120,6 +122,7 @@ class EditorPageFactory {
         final legs = journeyEditorKey.currentState?.legs ?? [editableEntity];
         return coordinator.detectJourneyConflicts(originalEntity, legs);
       },
+      conflictScanner: coordinator.scanner,
       pageContentCreator: (validityNotifier, onUpdated) => JourneyEditor(
         key: journeyEditorKey,
         initialLeg: editableEntity,
@@ -147,6 +150,7 @@ class EditorPageFactory {
         editableEntity,
         isNewEntity: !isEditing,
       ),
+      conflictScanner: coordinator.scanner,
       pageContentCreator: (validityNotifier, onUpdated) => LodgingEditor(
         lodging: editableEntity,
         onLodgingUpdated: () {

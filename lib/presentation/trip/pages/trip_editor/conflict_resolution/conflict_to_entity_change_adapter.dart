@@ -51,13 +51,11 @@ class ConflictToEntityChangeAdapter {
         original: conflict.entity,
         modified: conflict.clampedEntity!,
         timelinePosition: conflict.position,
-        originalTimeDescription: _getTimeDescription(conflict),
       );
     } else {
       return TransitChange.forDeletion(
         original: conflict.entity,
         timelinePosition: conflict.position,
-        originalTimeDescription: _getTimeDescription(conflict),
       );
     }
   }
@@ -68,13 +66,11 @@ class ConflictToEntityChangeAdapter {
         original: conflict.entity,
         modified: conflict.clampedEntity!,
         timelinePosition: conflict.position,
-        originalTimeDescription: _getTimeDescription(conflict),
       );
     } else {
       return StayChange.forDeletion(
         original: conflict.entity,
         timelinePosition: conflict.position,
-        originalTimeDescription: _getTimeDescription(conflict),
       );
     }
   }
@@ -85,13 +81,11 @@ class ConflictToEntityChangeAdapter {
         original: conflict.entity,
         modified: conflict.clampedEntity!,
         timelinePosition: conflict.position,
-        originalTimeDescription: _getTimeDescription(conflict),
       );
     } else {
       return SightChange.forDeletion(
         original: conflict.entity,
         timelinePosition: conflict.position,
-        originalTimeDescription: _getTimeDescription(conflict),
       );
     }
   }
@@ -101,45 +95,5 @@ class ConflictToEntityChangeAdapter {
       original: entity,
       modified: entity.clone(),
     );
-  }
-
-  static String _getTimeDescription<T extends TripEntity<T>>(
-    ConflictResult<T> conflict,
-  ) {
-    final range = conflict.entityTimeRange;
-    return '${_formatDateTime(range.start)} → ${_formatDateTime(range.end)}';
-  }
-
-  static String _formatDateTime(DateTime dt) {
-    final weekday = _weekdayShort(dt.weekday);
-    final month = _monthShort(dt.month);
-    final day = dt.day;
-    final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
-    final minute = dt.minute.toString().padLeft(2, '0');
-    final amPm = dt.hour >= 12 ? 'PM' : 'AM';
-    return '$weekday, $month $day $hour:$minute $amPm';
-  }
-
-  static String _weekdayShort(int weekday) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days[weekday - 1];
-  }
-
-  static String _monthShort(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return months[month - 1];
   }
 }

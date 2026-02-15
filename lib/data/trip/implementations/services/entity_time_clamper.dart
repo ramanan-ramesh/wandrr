@@ -37,16 +37,14 @@ class EntityTimeClamper {
           clampedDepartureDateTime = null;
         }
       }
-    } else if (position == EntityTimelinePosition.startsDuringEndsAfter &&
-        (tripEntity is TransitFacade || tripEntity is SightFacade)) {
+    } else if (position == EntityTimelinePosition.startsDuringEndsAfter) {
       var oneMinuteAfterConflictEnd =
           conflictRange.end.add(Duration(minutes: 1));
       clampedDepartureDateTime = oneMinuteAfterConflictEnd;
       if (!arrTime.isAfter(oneMinuteAfterConflictEnd)) {
         clampedArrivalDateTime = null;
       }
-    } else if (position == EntityTimelinePosition.startsBeforeEndsDuring &&
-        (tripEntity is TransitFacade || tripEntity is SightFacade)) {
+    } else if (position == EntityTimelinePosition.startsBeforeEndsDuring) {
       var oneMinuteBeforeConflictStart =
           conflictRange.start.subtract(Duration(minutes: 1));
       clampedArrivalDateTime = oneMinuteBeforeConflictStart;
@@ -57,8 +55,12 @@ class EntityTimeClamper {
 
     if (clampedDepartureDateTime != null || clampedArrivalDateTime != null) {
       clampedTransit = transit.clone();
-      clampedTransit.departureDateTime = clampedDepartureDateTime;
-      clampedTransit.arrivalDateTime = clampedArrivalDateTime;
+      if (clampedDepartureDateTime != null) {
+        clampedTransit.departureDateTime = clampedDepartureDateTime;
+      }
+      if (clampedArrivalDateTime != null) {
+        clampedTransit.arrivalDateTime = clampedArrivalDateTime;
+      }
     }
 
     return clampedTransit;
@@ -107,11 +109,15 @@ class EntityTimeClamper {
 
     if (clampedCheckin != null || clampedCheckout != null) {
       clampedStay = stay.clone();
-      clampedStay.checkinDateTime = clampedCheckin;
-      clampedStay.checkoutDateTime = clampedCheckout;
+      if (clampedCheckin != null) {
+        clampedStay.checkinDateTime = clampedCheckin;
+      }
+      if (clampedCheckout != null) {
+        clampedStay.checkoutDateTime = clampedCheckout;
+      }
     }
 
-    return null;
+    return clampedStay;
   }
 
   /// Tries to clamp sight visit time around a conflict range.

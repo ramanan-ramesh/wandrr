@@ -21,6 +21,9 @@ class EntityConflictCoordinator {
       : _tripData = tripData,
         _scanner = TripConflictScanner(tripData: tripData);
 
+  /// Exposes the scanner for live conflict detection in the conflict resolution page
+  TripConflictScanner get scanner => _scanner;
+
   /// Detects conflicts for trip metadata changes (dates/contributors).
   /// Uses TripConflictScanner.scanForMetadataUpdate() for consistency.
   TripEntityUpdatePlan<TripMetadataFacade>? detectTripMetadataConflicts(

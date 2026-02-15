@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/common/entity_change_message_provider.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
@@ -164,6 +165,9 @@ class EntityChangeItemCard extends StatelessWidget {
   /// Whether the item is marked for deletion
   final bool isDeleted;
 
+  /// Whether the item was clamped (auto-adjusted)
+  final bool isClamped;
+
   /// Leading icon
   final IconData icon;
 
@@ -176,33 +180,26 @@ class EntityChangeItemCard extends StatelessWidget {
   /// Optional subtitle
   final String? subtitle;
 
-  /// Original time description (displayed as a chip)
-  final String? originalTimeDescription;
-
-  /// Action message explaining what user should do (e.g., "Update check-in/check-out dates")
-  final String? actionMessage;
-
   /// Callback when delete/restore is toggled
   final VoidCallback onToggleDelete;
 
   /// Child widget to display when not deleted (e.g., datetime editors)
   final Widget? child;
 
-  /// Custom message to show when deleted
-  final String? deletedMessage;
+  /// Optional conflict source information
+  final ConflictSource? conflictSource;
 
   const EntityChangeItemCard({
     super.key,
     required this.isDeleted,
+    this.isClamped = false,
     required this.icon,
     this.iconColor,
     required this.title,
     this.subtitle,
-    this.originalTimeDescription,
-    this.actionMessage,
     required this.onToggleDelete,
     this.child,
-    this.deletedMessage,
+    this.conflictSource,
   });
 
   @override
@@ -214,28 +211,38 @@ class EntityChangeItemCard extends StatelessWidget {
     return Opacity(
       opacity: isDeleted ? 0.5 : 1.0,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: isDeleted
               ? (isLightTheme
-                  ? AppColors.error.withValues(alpha: 0.1)
-                  : AppColors.errorLight.withValues(alpha: 0.1))
-              : (isLightTheme
-                  ? Colors.grey.shade100
-                  : Colors.grey.shade800.withValues(alpha: 0.3)),
-          borderRadius: BorderRadius.circular(12),
+                  ? AppColors.error.withValues(alpha: 0.08)
+                  : AppColors.errorLight.withValues(alpha: 0.08))
+              : isClamped
+                  ? (isLightTheme
+                      ? AppColors.success.withValues(alpha: 0.06)
+                      : AppColors.successLight.withValues(alpha: 0.06))
+                  : (isLightTheme
+                      ? Colors.grey.shade100
+                      : Colors.grey.shade800.withValues(alpha: 0.3)),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isDeleted
                 ? (isLightTheme ? AppColors.error : AppColors.errorLight)
-                : (isLightTheme ? Colors.grey.shade300 : Colors.grey.shade700),
-            width: isDeleted ? 2 : 1,
+                : isClamped
+                    ? (isLightTheme
+                        ? AppColors.success
+                        : AppColors.successLight)
+                    : (isLightTheme
+                        ? Colors.grey.shade300
+                        : Colors.grey.shade700),
+            width: 1,
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header row with icon, title, and delete/restore button
+            // Header row with icon, title, status badge, and delete/restore button
             Row(
               children: [
                 Icon(icon, size: 18, color: effectiveIconColor),
@@ -246,15 +253,12 @@ class EntityChangeItemCard extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
                               decoration:
                                   isDeleted ? TextDecoration.lineThrough : null,
                             ),
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (subtitle != null) ...[
@@ -264,6 +268,7 @@ class EntityChangeItemCard extends StatelessWidget {
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: Colors.grey,
+                                    fontSize: 11,
                                   ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -272,73 +277,43 @@ class EntityChangeItemCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                // Status indicator
+                if (isClamped && !isDeleted)
+                  _StatusChip(
+                    label: 'Adjusted',
+                    color: isLightTheme
+                        ? AppColors.success
+                        : AppColors.successLight,
+                  ),
+                if (isDeleted)
+                  _StatusChip(
+                    label: 'Delete',
+                    color:
+                        isLightTheme ? AppColors.error : AppColors.errorLight,
+                  ),
+                const SizedBox(width: 4),
                 IconButton(
                   icon: Icon(
-                    isDeleted ? Icons.restore : Icons.delete_outline,
+                    isDeleted ? Icons.undo : Icons.delete_outline,
+                    size: 20,
                   ),
                   tooltip: isDeleted ? 'Restore' : 'Delete',
+                  padding: EdgeInsets.zero,
+                  constraints:
+                      const BoxConstraints(minWidth: 32, minHeight: 32),
                   onPressed: onToggleDelete,
                 ),
               ],
             ),
-            // Original time chip
-            if (originalTimeDescription != null) ...[
-              const SizedBox(height: 8),
-              _OriginalTimeChip(description: originalTimeDescription!),
-            ],
-            // Action message (what user should do)
-            if (!isDeleted && actionMessage != null) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isLightTheme
-                      ? AppColors.info.withValues(alpha: 0.1)
-                      : AppColors.infoLight.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 16,
-                      color:
-                          isLightTheme ? AppColors.info : AppColors.infoLight,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        actionMessage!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isLightTheme
-                                  ? AppColors.info
-                                  : AppColors.infoLight,
-                            ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            // Conflict source - compact single line
+            if (conflictSource != null && !isDeleted) ...[
+              const SizedBox(height: 6),
+              _ConflictSourceChip(source: conflictSource!),
             ],
             // Content when not deleted
             if (!isDeleted && child != null) ...[
-              const SizedBox(height: 12),
-              child!,
-            ],
-            // Deletion message
-            if (isDeleted) ...[
               const SizedBox(height: 8),
-              Center(
-                child: Text(
-                  deletedMessage ?? 'This item will be deleted',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isLightTheme
-                            ? AppColors.error
-                            : AppColors.errorLight,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ),
+              child!,
             ],
           ],
         ),
@@ -347,38 +322,67 @@ class EntityChangeItemCard extends StatelessWidget {
   }
 }
 
-/// Chip showing the original time of an entity
-class _OriginalTimeChip extends StatelessWidget {
-  final String description;
+/// Simple status chip
+class _StatusChip extends StatelessWidget {
+  final String label;
+  final Color color;
 
-  const _OriginalTimeChip({required this.description});
+  const _StatusChip({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
+      ),
+    );
+  }
+}
+
+/// Compact chip showing the source of a conflict with times
+class _ConflictSourceChip extends StatelessWidget {
+  final ConflictSource source;
+
+  const _ConflictSourceChip({required this.source});
 
   @override
   Widget build(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final color = isLightTheme ? Colors.grey.shade700 : Colors.grey.shade400;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: isLightTheme
-            ? AppColors.warning.withValues(alpha: 0.1)
-            : AppColors.warningLight.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+    return Text.rich(
+      TextSpan(
         children: [
-          Icon(
-            Icons.history,
-            size: 14,
-            color: isLightTheme ? AppColors.warning : AppColors.warningLight,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            'Was: $description',
+          TextSpan(
+            text: 'Conflicts with ',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color:
-                      isLightTheme ? AppColors.warning : AppColors.warningLight,
+                  color: color,
+                  fontSize: 11,
+                ),
+          ),
+          TextSpan(
+            text: source.shortMessage,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isLightTheme ? AppColors.error : AppColors.errorLight,
+                  fontSize: 11,
+                ),
+          ),
+          TextSpan(
+            text: ' (${source.compactTimeRange})',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: color,
+                  fontSize: 10,
                 ),
           ),
         ],

@@ -2,35 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
+import 'package:wandrr/data/trip/models/services/trip_conflict_scanner.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/common/entity_change_message_provider.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/common/entity_change_section.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/widgets/stay_date_time_range_editor.dart';
 
 /// A unified editor for entity changes that works for both
 /// TripMetadata updates and timeline conflict resolution.
 class UnifiedEntityChangeEditor extends StatefulWidget {
-  /// The update plan containing all entity changes
   final TripDataUpdatePlan updatePlan;
-
-  /// The context in which changes are being displayed
   final MessageContext context;
-
-  /// Callback when any entity is modified
   final VoidCallback onChanged;
-
-  /// Callback when an entity's deletion state changes (for expense sync)
   final void Function(dynamic entity, bool isDeleted)? onEntityDeletionChanged;
-
-  /// Optional: expense changes for TripMetadataUpdatePlan
+  final TripConflictScanner? conflictScanner;
+  final TripEntity? sourceEntity;
   final Iterable<ExpenseSplitChange>? expenseChanges;
-
-  /// Optional: added contributors for expense section
   final Iterable<String>? addedContributors;
-
-  /// Optional: removed contributors for expense section
   final Iterable<String>? removedContributors;
 
   const UnifiedEntityChangeEditor({
@@ -39,6 +31,8 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
     required this.context,
     required this.onChanged,
     this.onEntityDeletionChanged,
+    this.conflictScanner,
+    this.sourceEntity,
     this.expenseChanges,
     this.addedContributors,
     this.removedContributors,
@@ -50,6 +44,7 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
     required TripMetadataUpdatePlan updatePlan,
     required VoidCallback onChanged,
     void Function(dynamic entity, bool isDeleted)? onEntityDeletionChanged,
+    TripConflictScanner? conflictScanner,
   }) {
     return UnifiedEntityChangeEditor(
       key: key,
@@ -57,6 +52,8 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
       context: MessageContext.metadataUpdate,
       onChanged: onChanged,
       onEntityDeletionChanged: onEntityDeletionChanged,
+      conflictScanner: conflictScanner,
+      sourceEntity: updatePlan.newEntity,
       expenseChanges: updatePlan.expenseChanges,
       addedContributors: updatePlan.addedContributors,
       removedContributors: updatePlan.removedContributors,
@@ -68,12 +65,16 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
     Key? key,
     required TripDataUpdatePlan updatePlan,
     required VoidCallback onChanged,
+    TripConflictScanner? conflictScanner,
+    TripEntity? sourceEntity,
   }) {
     return UnifiedEntityChangeEditor(
       key: key,
       updatePlan: updatePlan,
       context: MessageContext.timelineConflict,
       onChanged: onChanged,
+      conflictScanner: conflictScanner,
+      sourceEntity: sourceEntity,
     );
   }
 
@@ -147,11 +148,11 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
         ),
 
         // Expenses section (only for TripMetadataUpdatePlan)
-        if (widget.expenseChanges != null &&
-            widget.expenseChanges!.isNotEmpty &&
+        if (widget.updatePlan is TripMetadataUpdatePlan &&
+            widget.updatePlan.expenseChanges.isNotEmpty &&
             widget.context == MessageContext.metadataUpdate)
           _ExpensesSection(
-            expenseChanges: widget.expenseChanges!,
+            updatePlan: widget.updatePlan as TripMetadataUpdatePlan,
             addedContributors: widget.addedContributors ?? const [],
             removedContributors: widget.removedContributors ?? const [],
             messageProvider: _messageProvider,
@@ -159,6 +160,23 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
           ),
       ],
     );
+  }
+
+  // =========================================================================
+  // Live Conflict Detection
+  // =========================================================================
+
+  /// Checks for new conflicts when an entity's times change
+  void _checkForNewConflicts(EntityChangeBase change) {
+    if (widget.conflictScanner != null && widget.sourceEntity != null) {
+      final hasNew = widget.updatePlan.refreshConflictsForChange(
+        change,
+        widget.conflictScanner!,
+        widget.sourceEntity!,
+      );
+      if (hasNew) setState(() {}); // Rebuild to show new conflicts
+    }
+    widget.onChanged();
   }
 
   // =========================================================================
@@ -188,33 +206,32 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
       BuildContext context, EntityChange<LodgingFacade> change) {
     final lodging = change.modified;
     final originalLodging = change.original;
-    final isDeleted = change.isMarkedForDeletion;
 
     return EntityChangeItemCard(
-      isDeleted: isDeleted,
-      icon: Icons.location_on,
+      isDeleted: change.isMarkedForDeletion,
+      isClamped: change.isClamped,
+      icon: Icons.hotel_rounded,
       iconColor: _getStaysIconColor(context),
-      title: lodging.location?.toString() ?? 'Unknown Location',
-      originalTimeDescription: change.originalTimeDescription,
-      actionMessage: _messageProvider.stayActionMessage(change),
+      title: lodging.location?.context.name ?? 'Unknown Location',
+      subtitle: lodging.location?.context.city,
       onToggleDelete: () => _toggleStayDeletion(change),
-      deletedMessage: 'This stay will be deleted',
+      conflictSource: change.conflictSource,
       child: StayDateTimeRangeEditor(
         checkinDateTime: lodging.checkinDateTime,
         checkoutDateTime: lodging.checkoutDateTime,
         tripStartDate: widget.updatePlan.tripStartDate,
         tripEndDate: widget.updatePlan.tripEndDate,
         location: lodging.location,
-        showOriginalTimes: true,
+        showOriginalTimes: change.isClamped,
         originalCheckinDateTime: originalLodging.checkinDateTime,
         originalCheckoutDateTime: originalLodging.checkoutDateTime,
         onCheckinChanged: (dt) {
           setState(() => lodging.checkinDateTime = dt);
-          widget.onChanged();
+          _checkForNewConflicts(change);
         },
         onCheckoutChanged: (dt) {
           setState(() => lodging.checkoutDateTime = dt);
-          widget.onChanged();
+          _checkForNewConflicts(change);
         },
       ),
     );
@@ -227,23 +244,22 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
   Widget _buildTransitItem(
       BuildContext context, EntityChange<TransitFacade> change) {
     final transit = change.modified;
-    final isDeleted = change.isMarkedForDeletion;
 
     return EntityChangeItemCard(
-      isDeleted: isDeleted,
+      isDeleted: change.isMarkedForDeletion,
+      isClamped: change.isClamped,
       icon: _getTransitIcon(transit.transitOption),
       iconColor: _getTransitsIconColor(context),
       title:
-          '${transit.departureLocation?.toString() ?? 'Unknown'} → ${transit.arrivalLocation?.toString() ?? 'Unknown'}',
-      originalTimeDescription: change.originalTimeDescription,
-      actionMessage: _messageProvider.transitActionMessage(change),
+          '${transit.departureLocation?.context.name ?? '?'} → ${transit.arrivalLocation?.context.name ?? '?'}',
       onToggleDelete: () => _toggleTransitDeletion(change),
-      deletedMessage: 'This transit will be deleted',
+      conflictSource: change.conflictSource,
       child: _TransitDateTimeEditor(
         transit: transit,
+        change: change,
         tripStartDate: widget.updatePlan.tripStartDate,
         tripEndDate: widget.updatePlan.tripEndDate,
-        onChanged: widget.onChanged,
+        onChanged: () => _checkForNewConflicts(change),
       ),
     );
   }
@@ -280,23 +296,21 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
   Widget _buildSightItem(
       BuildContext context, EntityChange<SightFacade> change) {
     final sight = change.modified;
-    final isDeleted = change.isMarkedForDeletion;
 
     return EntityChangeItemCard(
-      isDeleted: isDeleted,
+      isDeleted: change.isMarkedForDeletion,
+      isClamped: change.isClamped,
       icon: Icons.place_rounded,
       iconColor: _getSightsIconColor(context),
       title: sight.name.isNotEmpty ? sight.name : 'Unnamed Sight',
-      subtitle: sight.location?.toString(),
-      originalTimeDescription: change.originalTimeDescription,
-      actionMessage: _messageProvider.sightActionMessage(change),
+      subtitle: sight.location?.context.name,
       onToggleDelete: () => _toggleSightDeletion(change),
-      deletedMessage: 'This sight will be deleted',
+      conflictSource: change.conflictSource,
       child: _SightTimeEditor(
         change: change,
         tripStartDate: widget.updatePlan.tripStartDate,
         tripEndDate: widget.updatePlan.tripEndDate,
-        onChanged: widget.onChanged,
+        onChanged: () => _checkForNewConflicts(change),
       ),
     );
   }
@@ -351,12 +365,14 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
 
 class _TransitDateTimeEditor extends StatelessWidget {
   final TransitFacade transit;
+  final EntityChange<TransitFacade>? change;
   final DateTime tripStartDate;
   final DateTime tripEndDate;
   final VoidCallback onChanged;
 
   const _TransitDateTimeEditor({
     required this.transit,
+    this.change,
     required this.tripStartDate,
     required this.tripEndDate,
     required this.onChanged,
@@ -617,14 +633,14 @@ class _DateTimePickerRow extends StatelessWidget {
 // =============================================================================
 
 class _ExpensesSection extends StatefulWidget {
-  final Iterable<ExpenseSplitChange> expenseChanges;
+  final TripMetadataUpdatePlan updatePlan;
   final Iterable<String> addedContributors;
   final Iterable<String> removedContributors;
   final EntityChangeMessageProvider messageProvider;
   final VoidCallback onChanged;
 
   const _ExpensesSection({
-    required this.expenseChanges,
+    required this.updatePlan,
     required this.addedContributors,
     required this.removedContributors,
     required this.messageProvider,
@@ -636,23 +652,126 @@ class _ExpensesSection extends StatefulWidget {
 }
 
 class _ExpensesSectionState extends State<_ExpensesSection> {
+  bool _isExpanded = false;
+
   @override
   Widget build(BuildContext context) {
-    if (widget.expenseChanges.isEmpty) return const SizedBox.shrink();
+    final expenseChanges = widget.updatePlan.expenseChanges;
+    if (expenseChanges.isEmpty) return const SizedBox.shrink();
 
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
-    final expensesList = widget.expenseChanges.toList();
+    final iconColor = isLightTheme ? AppColors.warning : AppColors.warningLight;
 
-    return EntityChangeSection<ExpenseSplitChange>(
-      icon: Icons.payments_rounded,
-      title: widget.messageProvider.expensesSectionTitle(expensesList.length),
-      iconColor: isLightTheme ? AppColors.warning : AppColors.warningLight,
-      items: expensesList,
-      infoMessage: widget.messageProvider.expensesSectionInfo(
-        addedContributors: widget.addedContributors,
-        removedContributors: widget.removedContributors,
+    return EditorTheme.createSection(
+      context: context,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with tri-state checkbox
+          InkWell(
+            onTap: () => setState(() => _isExpanded = !_isExpanded),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  // Tri-state checkbox
+                  _TriStateCheckbox(
+                    state: widget.updatePlan.expenseSelectionState,
+                    onChanged: () {
+                      setState(() {
+                        widget.updatePlan.toggleExpenseSelection();
+                      });
+                      widget.onChanged();
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(Icons.payments_rounded, color: iconColor, size: 22),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.messageProvider
+                          .expensesSectionTitle(expenseChanges.length),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                        _isExpanded ? Icons.expand_less : Icons.expand_more),
+                    onPressed: () => setState(() => _isExpanded = !_isExpanded),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_isExpanded) ...[
+            const SizedBox(height: 8),
+            _buildInfoBanner(context),
+            const SizedBox(height: 12),
+            ...expenseChanges
+                .map((change) => _buildExpenseItem(context, change)),
+          ],
+        ],
       ),
-      itemBuilder: _buildExpenseItem,
+    );
+  }
+
+  Widget _buildInfoBanner(BuildContext context) {
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final message = widget.messageProvider.expensesSectionInfo(
+      addedContributors: widget.addedContributors,
+      removedContributors: widget.removedContributors,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isLightTheme
+            ? AppColors.info.withValues(alpha: 0.1)
+            : AppColors.infoLight.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isLightTheme
+              ? AppColors.info.withValues(alpha: 0.3)
+              : AppColors.infoLight.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 16,
+                color: isLightTheme ? AppColors.info : AppColors.infoLight,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  message.title,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color:
+                            isLightTheme ? AppColors.info : AppColors.infoLight,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            message.details,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isLightTheme
+                      ? Colors.grey.shade700
+                      : Colors.grey.shade400,
+                ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -712,5 +831,81 @@ class _ExpensesSectionState extends State<_ExpensesSection> {
         ],
       ),
     );
+  }
+}
+
+// =============================================================================
+// Tri-State Checkbox Widget
+// =============================================================================
+
+/// A tri-state checkbox widget:
+/// - null (some selected): shows filled square with gap
+/// - true (all selected): shows filled checkbox with checkmark
+/// - false (none selected): shows empty square
+class _TriStateCheckbox extends StatelessWidget {
+  /// The current state: null = some, true = all, false = none
+  final bool? state;
+
+  /// Called when the checkbox is tapped
+  final VoidCallback onChanged;
+
+  const _TriStateCheckbox({
+    required this.state,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final activeColor =
+        isLightTheme ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
+
+    return InkWell(
+      onTap: onChanged,
+      borderRadius: BorderRadius.circular(4),
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: state == false ? Colors.transparent : activeColor,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: state == false
+                ? (isLightTheme ? Colors.grey.shade500 : Colors.grey.shade400)
+                : activeColor,
+            width: 2,
+          ),
+        ),
+        child: _buildIcon(state),
+      ),
+    );
+  }
+
+  Widget _buildIcon(bool? state) {
+    if (state == false) {
+      // None selected - empty square (no icon)
+      return const SizedBox.shrink();
+    } else if (state == true) {
+      // All selected - checkmark
+      return const Icon(
+        Icons.check,
+        size: 18,
+        color: Colors.white,
+      );
+    } else {
+      // Some selected - horizontal line (indeterminate)
+      return const Center(
+        child: SizedBox(
+          width: 12,
+          height: 2,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(Radius.circular(1)),
+            ),
+          ),
+        ),
+      );
+    }
   }
 }
