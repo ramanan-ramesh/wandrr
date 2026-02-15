@@ -189,10 +189,14 @@ class JourneyEditorState extends State<JourneyEditor> {
     _updateValidity();
   }
 
-  void _onLegUpdated(int index) {
-    setState(() {
-      // Trigger rebuild to update header with new leg data
-    });
+  void _onLegUpdated(int index, {bool needsRebuild = true}) {
+    // Only call setState if the change requires a visual rebuild (e.g., location/time changes).
+    // Expense changes don't need rebuilds and calling setState disrupts text field editing.
+    if (needsRebuild) {
+      setState(() {
+        // Trigger rebuild to update header with new leg data
+      });
+    }
     widget.onJourneyUpdated();
     _updateValidity();
   }
@@ -354,7 +358,8 @@ class JourneyEditorState extends State<JourneyEditor> {
       canRemove: canRemove,
       onToggle: () => _toggleLegExpansion(index),
       onRemove: () => _removeLeg(index),
-      onLegUpdated: () => _onLegUpdated(index),
+      onLegUpdated: ({bool needsRebuild = true}) =>
+          _onLegUpdated(index, needsRebuild: needsRebuild),
       minDepartureDateTime: minDepartureDateTime,
     );
   }
@@ -651,7 +656,7 @@ class CollapsibleLegSection extends StatelessWidget {
   final bool canRemove;
   final VoidCallback onToggle;
   final VoidCallback onRemove;
-  final VoidCallback onLegUpdated;
+  final void Function({bool needsRebuild}) onLegUpdated;
 
   /// Minimum allowed departure date time (previous leg's arrival time)
   final DateTime? minDepartureDateTime;
@@ -703,6 +708,7 @@ class CollapsibleLegSection extends StatelessWidget {
             secondChild: Padding(
               padding: const EdgeInsets.all(12),
               child: TravelEditor(
+                key: ValueKey('travel_${leg.id ?? 'new_$legNumber'}'),
                 transitFacade: leg,
                 onTransitUpdated: onLegUpdated,
                 minDepartureDateTime: minDepartureDateTime,

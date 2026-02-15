@@ -16,7 +16,7 @@ import 'transit_option_picker.dart';
 
 class TravelEditor extends StatefulWidget {
   final TransitFacade transitFacade;
-  final VoidCallback onTransitUpdated;
+  final void Function({bool needsRebuild}) onTransitUpdated;
 
   /// Notifier to track if FAB should be enabled
   final ValueNotifier<bool>? validityNotifier;
@@ -84,6 +84,7 @@ class _TravelEditorState extends State<TravelEditor> {
           ),
           const SizedBox(height: 12),
           ExpenditureEditTile(
+            key: ValueKey('expense_${_transitFacade.id ?? 'new'}'),
             expenseFacade: _transitFacade.expense,
             isEditable: true,
             callback: _handleExpenseUpdated,
@@ -132,7 +133,7 @@ class _TravelEditorState extends State<TravelEditor> {
       _clearFlightDataIfSwitchingFromFlight(newOption);
       _transitFacade.transitOption = newOption;
     });
-    widget.onTransitUpdated();
+    widget.onTransitUpdated(needsRebuild: true);
   }
 
   void _clearOperatorIfNotNeeded(TransitOption option) {
@@ -192,7 +193,7 @@ class _TravelEditorState extends State<TravelEditor> {
       textInputAction: TextInputAction.next,
       onChanged: (value) {
         _transitFacade.confirmationId = value;
-        widget.onTransitUpdated();
+        widget.onTransitUpdated(needsRebuild: false);
       },
     );
   }
@@ -205,7 +206,7 @@ class _TravelEditorState extends State<TravelEditor> {
           note: note,
           onChanged: () {
             _transitFacade.notes = note.text;
-            widget.onTransitUpdated();
+            widget.onTransitUpdated(needsRebuild: false);
           }),
     );
   }
@@ -218,12 +219,12 @@ class _TravelEditorState extends State<TravelEditor> {
     _transitFacade.expense.paidBy = Map.from(paidBy);
     _transitFacade.expense.splitBy = List.from(splitBy);
     _transitFacade.expense.currency = totalExpense.currency;
-    widget.onTransitUpdated();
+    widget.onTransitUpdated(needsRebuild: false);
   }
 
   void _handleOperatorChanged(String? newOperator) {
     _transitFacade.operator = newOperator;
-    widget.onTransitUpdated();
+    widget.onTransitUpdated(needsRebuild: true);
   }
 
   void _updateLocation(bool isArrival, LocationFacade? newLocation) {
@@ -234,7 +235,7 @@ class _TravelEditorState extends State<TravelEditor> {
         _transitFacade.departureLocation = newLocation;
       }
     });
-    widget.onTransitUpdated();
+    widget.onTransitUpdated(needsRebuild: true);
   }
 
   void _updateDateTime(bool isArrival, DateTime updatedDateTime) {
@@ -245,7 +246,7 @@ class _TravelEditorState extends State<TravelEditor> {
         _transitFacade.departureDateTime = updatedDateTime;
       }
     });
-    widget.onTransitUpdated();
+    widget.onTransitUpdated(needsRebuild: true);
   }
 }
 
