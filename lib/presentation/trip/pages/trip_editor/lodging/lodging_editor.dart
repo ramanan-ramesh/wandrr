@@ -61,15 +61,10 @@ class _LodgingEditorState extends State<LodgingEditor> {
         tripStartDate: tripMetadata.startDate!,
         tripEndDate: tripMetadata.endDate!,
         location: _lodging.location,
-        onCheckinChanged: (newDateTime) {
+        onStayRangeChanged: (checkin, checkout) {
           setState(() {
-            _lodging.checkinDateTime = newDateTime;
-          });
-          widget.onLodgingUpdated();
-        },
-        onCheckoutChanged: (newDateTime) {
-          setState(() {
-            _lodging.checkoutDateTime = newDateTime;
+            _lodging.checkinDateTime = checkin;
+            _lodging.checkoutDateTime = checkout;
           });
           widget.onLodgingUpdated();
         },

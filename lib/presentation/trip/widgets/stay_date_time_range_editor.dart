@@ -20,8 +20,7 @@ class StayDateTimeRangeEditor extends StatefulWidget {
   final DateTime tripStartDate;
   final DateTime tripEndDate;
   final LocationFacade? location;
-  final ValueChanged<DateTime> onCheckinChanged;
-  final ValueChanged<DateTime> onCheckoutChanged;
+  final void Function(DateTime checkin, DateTime checkout) onStayRangeChanged;
 
   /// Optional: Show original times for conflict resolution
   final DateTime? originalCheckinDateTime;
@@ -35,8 +34,7 @@ class StayDateTimeRangeEditor extends StatefulWidget {
     required this.tripStartDate,
     required this.tripEndDate,
     this.location,
-    required this.onCheckinChanged,
-    required this.onCheckoutChanged,
+    required this.onStayRangeChanged,
     this.originalCheckinDateTime,
     this.originalCheckoutDateTime,
     this.showOriginalTimes = false,
@@ -124,13 +122,16 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
       onDateButtonPressed: () => _showDateRangePicker(context),
       onTimeChanged: (time) {
         final date = widget.checkinDateTime!;
-        widget.onCheckinChanged(DateTime(
-          date.year,
-          date.month,
-          date.day,
-          time.hour,
-          time.minute,
-        ));
+        widget.onStayRangeChanged(
+          DateTime(
+            date.year,
+            date.month,
+            date.day,
+            time.hour,
+            time.minute,
+          ),
+          widget.checkoutDateTime!,
+        );
       },
     );
   }
@@ -145,13 +146,16 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
       onDateButtonPressed: () => _showDateRangePicker(context),
       onTimeChanged: (time) {
         final date = widget.checkoutDateTime!;
-        widget.onCheckoutChanged(DateTime(
-          date.year,
-          date.month,
-          date.day,
-          time.hour,
-          time.minute,
-        ));
+        widget.onStayRangeChanged(
+          widget.checkinDateTime!,
+          DateTime(
+            date.year,
+            date.month,
+            date.day,
+            time.hour,
+            time.minute,
+          ),
+        );
       },
     );
   }
@@ -231,18 +235,23 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
   void _handleDateRangeChanged(List<DateTime?> dates) {
     if (dates.isEmpty) return;
 
+    DateTime checkin = widget.checkinDateTime ?? DateTime.now();
+    DateTime checkout = widget.checkoutDateTime ?? DateTime.now();
+    bool changed = false;
+
     if (dates.length >= 1 && dates.first != null) {
       final newCheckin = dates.first!;
       final currentCheckin = widget.checkinDateTime;
       final hour = currentCheckin?.hour ?? 14;
       final minute = currentCheckin?.minute ?? 0;
-      widget.onCheckinChanged(DateTime(
+      checkin = DateTime(
         newCheckin.year,
         newCheckin.month,
         newCheckin.day,
         hour,
         minute,
-      ));
+      );
+      changed = true;
     }
 
     if (dates.length >= 2 && dates[1] != null) {
@@ -250,13 +259,18 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
       final currentCheckout = widget.checkoutDateTime;
       final hour = currentCheckout?.hour ?? 11;
       final minute = currentCheckout?.minute ?? 0;
-      widget.onCheckoutChanged(DateTime(
+      checkout = DateTime(
         newCheckout.year,
         newCheckout.month,
         newCheckout.day,
         hour,
         minute,
-      ));
+      );
+      changed = true;
+    }
+
+    if (changed) {
+      widget.onStayRangeChanged(checkin, checkout);
     }
   }
 

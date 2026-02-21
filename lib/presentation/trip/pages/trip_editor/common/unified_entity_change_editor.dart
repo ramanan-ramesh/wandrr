@@ -219,12 +219,11 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
         showOriginalTimes: change.isClamped,
         originalCheckinDateTime: originalLodging.checkinDateTime,
         originalCheckoutDateTime: originalLodging.checkoutDateTime,
-        onCheckinChanged: (dt) {
-          setState(() => lodging.checkinDateTime = dt);
-          _checkForNewConflicts(change);
-        },
-        onCheckoutChanged: (dt) {
-          setState(() => lodging.checkoutDateTime = dt);
+        onStayRangeChanged: (checkin, checkout) {
+          setState(() {
+            lodging.checkinDateTime = checkin;
+            lodging.checkoutDateTime = checkout;
+          });
           _checkForNewConflicts(change);
         },
       ),
