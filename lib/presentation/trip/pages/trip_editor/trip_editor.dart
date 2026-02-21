@@ -246,7 +246,7 @@ class _TripEditorPageInternal extends StatelessWidget {
           RepositoryProvider.value(value: pageContext.apiServicesRepository),
         ],
         child: BlocProvider.value(
-          value: pageContext.read<TripManagementBloc>(),
+          value: BlocProvider.of<TripManagementBloc>(pageContext),
           child: child,
         ),
       ),

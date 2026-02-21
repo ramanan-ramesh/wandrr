@@ -1,3 +1,6 @@
+import 'package:wandrr/data/trip/models/itinerary/sight.dart';
+import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
@@ -142,7 +145,7 @@ class TripEntityUpdatePlan<T extends TripEntity> {
   }
 
   /// Syncs expense deletion state when an ExpenseBearingTripEntity is deleted/restored
-  void syncExpenseDeletionState(dynamic entity, bool isDeleted) {
+  void syncExpenseDeletionState(TripEntity entity, bool isDeleted) {
     for (final change in expenseChanges) {
       if (change.original.id == entity.id) {
         if (isDeleted) {
@@ -162,14 +165,13 @@ class TripEntityUpdatePlan<T extends TripEntity> {
   /// Refreshes conflicts when a conflicted entity's times change.
   /// Checks both TripRepo items and other items already in the plan.
   /// Returns true if new conflicts were added.
-  bool refreshConflictsForChange(
+  bool tryRefreshConflictsOnResolution(
     EntityChangeBase change,
     TripConflictScanner scanner,
-    TripEntity sourceEntity,
   ) {
     if (change.isMarkedForDeletion) return false;
 
-    TimeRange? modifiedRange;
+    TimeRange modifiedRange;
     ConflictScanExclusions exclusions;
 
     // Get the time range of the modified entity
@@ -183,7 +185,7 @@ class TripEntityUpdatePlan<T extends TripEntity> {
         end: stay.checkoutDateTime!,
       );
       exclusions = ConflictScanExclusions(
-        stayIds: _getExistingStayIds()..add(stay.id ?? ''),
+        stayIds: _getExistingStayIds()..add(stay.id!),
         transitIds: _getExistingTransitIds(),
         sightIds: _getExistingSightIds(),
       );
@@ -198,7 +200,7 @@ class TripEntityUpdatePlan<T extends TripEntity> {
         end: transit.arrivalDateTime!,
       );
       exclusions = ConflictScanExclusions(
-        transitIds: _getExistingTransitIds()..add(transit.id ?? ''),
+        transitIds: _getExistingTransitIds()..add(transit.id!),
         stayIds: _getExistingStayIds(),
         sightIds: _getExistingSightIds(),
       );
@@ -207,7 +209,7 @@ class TripEntityUpdatePlan<T extends TripEntity> {
       if (sight.visitTime == null) return false;
       modifiedRange = TimeRange(
         start: sight.visitTime!,
-        end: sight.visitTime!.add(const Duration(minutes: 30)),
+        end: sight.visitTime!.add(const Duration(minutes: 1)),
       );
       exclusions = ConflictScanExclusions(
         sightIds: _getExistingSightIds()..add(sight.id ?? ''),
@@ -230,7 +232,8 @@ class TripEntityUpdatePlan<T extends TripEntity> {
     // Add new stay conflicts
     for (final conflict in newConflicts.stayConflicts) {
       if (!_hasStayChange(conflict.entity.id)) {
-        stayChanges.add(_conflictToStayChange(conflict, sourceEntity));
+        stayChanges.add(_conflictToDateTimeChange<LodgingFacade>(
+            conflict, ConflictSource.fromStay(conflict.entity)));
         hasNewConflicts = true;
       }
     }
@@ -238,7 +241,8 @@ class TripEntityUpdatePlan<T extends TripEntity> {
     // Add new transit conflicts
     for (final conflict in newConflicts.transitConflicts) {
       if (!_hasTransitChange(conflict.entity.id)) {
-        transitChanges.add(_conflictToTransitChange(conflict, sourceEntity));
+        transitChanges.add(_conflictToDateTimeChange<TransitFacade>(
+            conflict, ConflictSource.fromTransit(conflict.entity)));
         hasNewConflicts = true;
       }
     }
@@ -246,7 +250,8 @@ class TripEntityUpdatePlan<T extends TripEntity> {
     // Add new sight conflicts
     for (final conflict in newConflicts.sightConflicts) {
       if (!_hasSightChange(conflict.entity.id)) {
-        sightChanges.add(_conflictToSightChange(conflict, sourceEntity));
+        sightChanges.add(_conflictToDateTimeChange<SightFacade>(
+            conflict, ConflictSource.fromSight(conflict.entity)));
         hasNewConflicts = true;
       }
     }
@@ -276,55 +281,19 @@ class TripEntityUpdatePlan<T extends TripEntity> {
   bool _hasSightChange(String? id) =>
       id != null && sightChanges.any((c) => c.original.id == id);
 
-  StayChange _conflictToStayChange(StayConflict conflict, TripEntity source) {
-    final conflictSource = ConflictSource.fromStay(conflict.entity);
-    if (conflict.clampedEntity != null) {
-      return StayChange.forClamping(
-        original: conflict.entity,
-        modified: conflict.clampedEntity!,
-        timelinePosition: conflict.position,
+  DateTimeChange<T> _conflictToDateTimeChange<T extends TripEntity>(
+      ConflictResult<T> conflictResult, ConflictSource conflictSource) {
+    if (conflictResult.clampedEntity != null) {
+      return DateTimeChange<T>.forClamping(
+        original: conflictResult.entity,
+        modified: conflictResult.clampedEntity!,
+        timelinePosition: conflictResult.position,
         conflictSource: conflictSource,
       );
     }
-    return StayChange.forDeletion(
-      original: conflict.entity,
-      timelinePosition: conflict.position,
-      conflictSource: conflictSource,
-    );
-  }
-
-  TransitChange _conflictToTransitChange(
-      TransitConflict conflict, TripEntity source) {
-    final conflictSource = ConflictSource.fromTransit(conflict.entity);
-    if (conflict.clampedEntity != null) {
-      return TransitChange.forClamping(
-        original: conflict.entity,
-        modified: conflict.clampedEntity!,
-        timelinePosition: conflict.position,
-        conflictSource: conflictSource,
-      );
-    }
-    return TransitChange.forDeletion(
-      original: conflict.entity,
-      timelinePosition: conflict.position,
-      conflictSource: conflictSource,
-    );
-  }
-
-  SightChange _conflictToSightChange(
-      SightConflict conflict, TripEntity source) {
-    final conflictSource = ConflictSource.fromSight(conflict.entity);
-    if (conflict.clampedEntity != null) {
-      return SightChange.forClamping(
-        original: conflict.entity,
-        modified: conflict.clampedEntity!,
-        timelinePosition: conflict.position,
-        conflictSource: conflictSource,
-      );
-    }
-    return SightChange.forDeletion(
-      original: conflict.entity,
-      timelinePosition: conflict.position,
+    return DateTimeChange<T>.forDeletion(
+      original: conflictResult.entity,
+      timelinePosition: conflictResult.position,
       conflictSource: conflictSource,
     );
   }

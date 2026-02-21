@@ -134,13 +134,8 @@ class ItineraryConflictDetector
     implements EntityConflictDetector<Iterable<SightFacade>> {
   final Iterable<SightFacade> sights;
   final TripConflictScanner scanner;
-  final Duration visitDuration;
 
-  ItineraryConflictDetector({
-    required this.sights,
-    required this.scanner,
-    this.visitDuration = const Duration(hours: 2),
-  });
+  ItineraryConflictDetector({required this.sights, required this.scanner});
 
   @override
   AggregatedConflicts? detectConflicts(TripEntity tripEntity) {
@@ -159,7 +154,7 @@ class ItineraryConflictDetector
 
       final referenceRange = TimeRange(
         start: sight.visitTime!,
-        end: sight.visitTime!.add(visitDuration),
+        end: sight.visitTime!.add(Duration(minutes: 1)),
       );
 
       final exclusions = ConflictScanExclusions.forSights(sightIds);

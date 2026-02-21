@@ -45,7 +45,7 @@ class TripEntityDataUpdatePlanExecutor {
 
     // Step 1: Execute all entity changes in a single batch
     if (plan.hasConflicts || haveTripDatesChanged) {
-      await _executeAllChanges(plan, isTripMetadataUpdate);
+      await _executeAllChanges(plan);
     }
 
     // Step 2: Recalculate total expenditure if needed
@@ -58,38 +58,33 @@ class TripEntityDataUpdatePlanExecutor {
 
   bool _haveTripDatesChanged<T extends TripEntity>(
       TripEntityUpdatePlan<T> plan) {
-    final oldEntity = plan.oldEntity;
-    final newEntity = plan.newEntity;
-    if (oldEntity is! TripMetadataFacade || newEntity is! TripMetadataFacade) {
+    if (plan is! TripEntityUpdatePlan<TripMetadataFacade>) {
       return false;
     }
-    final oldMeta = oldEntity as TripMetadataFacade;
-    final newMeta = newEntity as TripMetadataFacade;
+    final oldMeta = plan.oldEntity as TripMetadataFacade;
+    final newMeta = plan.newEntity as TripMetadataFacade;
     return !oldMeta.startDate!.isOnSameDayAs(newMeta.startDate!) ||
         !oldMeta.endDate!.isOnSameDayAs(newMeta.endDate!);
   }
 
   bool _hasDefaultCurrencyChanged<T extends TripEntity>(
       TripEntityUpdatePlan<T> plan) {
-    final oldEntity = plan.oldEntity;
-    final newEntity = plan.newEntity;
-    if (oldEntity is! TripMetadataFacade || newEntity is! TripMetadataFacade) {
+    if (plan is! TripEntityUpdatePlan<TripMetadataFacade>) {
       return false;
     }
-    final oldMeta = oldEntity as TripMetadataFacade;
-    final newMeta = newEntity as TripMetadataFacade;
+    final oldMeta = plan.oldEntity as TripMetadataFacade;
+    final newMeta = plan.newEntity as TripMetadataFacade;
     return oldMeta.budget.currency != newMeta.budget.currency;
   }
 
   Future<void> _executeAllChanges<T extends TripEntity>(
-    TripEntityUpdatePlan<T> plan,
-    bool isTripMetadataUpdate,
-  ) async {
+      TripEntityUpdatePlan<T> plan) async {
     final batch = FirebaseFirestore.instance.batch();
     Future<void> Function()? updateLocalItineraryState;
 
     // For TripMetadata updates, prepare itinerary day updates
-    if (isTripMetadataUpdate && _haveTripDatesChanged(plan)) {
+    if (plan is TripEntityUpdatePlan<TripMetadataFacade> &&
+        _haveTripDatesChanged(plan)) {
       final newMeta = plan.newEntity as TripMetadataFacade;
       updateLocalItineraryState =
           await itineraryCollection.prepareTripDaysUpdate(
@@ -102,19 +97,19 @@ class TripEntityDataUpdatePlanExecutor {
     } else if (plan.sightChanges.isNotEmpty) {
       // For conflict resolution, just update sights
       updateLocalItineraryState = await itineraryCollection.prepareSightUpdates(
-        batch,
-        plan.sightChanges,
-      );
+          batch, plan.sightChanges);
     }
 
     // Process transit changes
-    _processTransitChanges(plan.transitChanges, plan.addedContributors, batch);
+    _processChanges<TransitFacade>(plan.transitChanges, plan.expenseChanges,
+        plan.addedContributors, transitCollection, batch);
 
     // Process stay changes
-    _processStayChanges(plan.stayChanges, plan.addedContributors, batch);
+    _processChanges<LodgingFacade>(plan.stayChanges, plan.expenseChanges,
+        plan.addedContributors, lodgingCollection, batch);
 
     // Process standalone expense changes
-    if (isTripMetadataUpdate) {
+    if (plan is TripEntityUpdatePlan<TripMetadataFacade>) {
       _processExpenseChanges(
           plan.expenseChanges, plan.addedContributors, batch);
     }
@@ -128,41 +123,30 @@ class TripEntityDataUpdatePlanExecutor {
     }
   }
 
-  void _processTransitChanges(
-    List<TransitChange> changes,
+  void _processChanges<T extends TripEntity>(
+    List<DateTimeChange<T>> changes,
+    List<ExpenseSplitChange> expenseChanges,
     Iterable<String> addedContributors,
+    ModelCollectionModifier<T> modelCollection,
     WriteBatch batch,
   ) {
     for (final change in changes) {
       if (change.isDelete) {
-        final doc = transitCollection.repositoryItemCreator(change.original);
+        final doc = modelCollection.repositoryItemCreator(change.original);
         batch.delete(doc.documentReference);
       } else if (change.isUpdate && change.modified.validate()) {
         // Add new contributors to expense splitBy if needed
-        if (addedContributors.isNotEmpty) {
-          _addContributorsToExpense(change.modified.expense, addedContributors);
+        final expenseChange = expenseChanges
+            .where((expenseChange) =>
+                expenseChange.original is ExpenseBearingTripEntity<T>)
+            .singleOrNull;
+        if (expenseChange != null) {
+          if (expenseChange.includeInSplitBy) {
+            _addContributorsToExpense(
+                expenseChange.modified.expense, addedContributors);
+          }
         }
-        final doc = transitCollection.repositoryItemCreator(change.modified);
-        batch.update(doc.documentReference, doc.toJson());
-      }
-    }
-  }
-
-  void _processStayChanges(
-    List<StayChange> changes,
-    Iterable<String> addedContributors,
-    WriteBatch batch,
-  ) {
-    for (final change in changes) {
-      if (change.isDelete) {
-        final doc = lodgingCollection.repositoryItemCreator(change.original);
-        batch.delete(doc.documentReference);
-      } else if (change.isUpdate && change.modified.validate()) {
-        // Add new contributors to expense splitBy if needed
-        if (addedContributors.isNotEmpty) {
-          _addContributorsToExpense(change.modified.expense, addedContributors);
-        }
-        final doc = lodgingCollection.repositoryItemCreator(change.modified);
+        final doc = modelCollection.repositoryItemCreator(change.modified);
         batch.update(doc.documentReference, doc.toJson());
       }
     }

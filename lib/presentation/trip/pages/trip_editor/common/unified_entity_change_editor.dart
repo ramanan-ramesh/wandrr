@@ -18,9 +18,9 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
   final TripDataUpdatePlan updatePlan;
   final MessageContext context;
   final VoidCallback onChanged;
-  final void Function(dynamic entity, bool isDeleted)? onEntityDeletionChanged;
+  final void Function(TripEntity entity, bool isDeleted)?
+      onEntityDeletionChanged;
   final TripConflictScanner? conflictScanner;
-  final TripEntity? sourceEntity;
   final Iterable<ExpenseSplitChange>? expenseChanges;
   final Iterable<String>? addedContributors;
   final Iterable<String>? removedContributors;
@@ -32,7 +32,6 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
     required this.onChanged,
     this.onEntityDeletionChanged,
     this.conflictScanner,
-    this.sourceEntity,
     this.expenseChanges,
     this.addedContributors,
     this.removedContributors,
@@ -53,7 +52,6 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
       onChanged: onChanged,
       onEntityDeletionChanged: onEntityDeletionChanged,
       conflictScanner: conflictScanner,
-      sourceEntity: updatePlan.newEntity,
       expenseChanges: updatePlan.expenseChanges,
       addedContributors: updatePlan.addedContributors,
       removedContributors: updatePlan.removedContributors,
@@ -74,7 +72,6 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
       context: MessageContext.timelineConflict,
       onChanged: onChanged,
       conflictScanner: conflictScanner,
-      sourceEntity: sourceEntity,
     );
   }
 
@@ -168,12 +165,9 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
 
   /// Checks for new conflicts when an entity's times change
   void _checkForNewConflicts(EntityChangeBase change) {
-    if (widget.conflictScanner != null && widget.sourceEntity != null) {
-      final hasNew = widget.updatePlan.refreshConflictsForChange(
-        change,
-        widget.conflictScanner!,
-        widget.sourceEntity!,
-      );
+    if (widget.conflictScanner != null) {
+      final hasNew = widget.updatePlan
+          .tryRefreshConflictsOnResolution(change, widget.conflictScanner!);
       if (hasNew) setState(() {}); // Rebuild to show new conflicts
     }
     widget.onChanged();

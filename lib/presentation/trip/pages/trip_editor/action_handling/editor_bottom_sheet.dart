@@ -4,6 +4,7 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/editor_page_factory.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class TripEntityEditorBottomSheet<T extends TripEntity>
     extends StatelessWidget {
@@ -28,10 +29,10 @@ class TripEntityEditorBottomSheet<T extends TripEntity>
       minChildSize: 0.5,
       builder: (context, scrollController) {
         final factory = EditorPageFactory(
-          context: context,
+          tripData: context.activeTrip,
           title: tripEditorAction.getSubtitle(context.localizations, true),
           isEditing: true,
-          onClosePressed: (_) => Navigator.of(context).pop(),
+          onClosePressed: Navigator.of(context).pop,
           scrollController: scrollController,
           itineraryConfig: planDataEditorConfig,
         );

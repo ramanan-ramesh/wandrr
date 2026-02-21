@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/services/trip_conflict_scanner.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/common/unified_entity_change_editor.dart';
 
@@ -16,9 +15,6 @@ class ConflictResolutionSubpage extends StatefulWidget {
   /// Scanner for live conflict detection when editing conflicted entities
   final TripConflictScanner? conflictScanner;
 
-  /// The source entity being edited (for conflict source tracking)
-  final TripEntity? sourceEntity;
-
   const ConflictResolutionSubpage({
     super.key,
     required this.conflictPlan,
@@ -26,7 +22,6 @@ class ConflictResolutionSubpage extends StatefulWidget {
     required this.onConflictsResolved,
     this.onConflictsChanged,
     this.conflictScanner,
-    this.sourceEntity,
   });
 
   @override
@@ -63,7 +58,6 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
                 updatePlan: plan,
                 onChanged: _handleConflictChanged,
                 conflictScanner: widget.conflictScanner,
-                sourceEntity: widget.sourceEntity,
               ),
         const SizedBox(height: 16),
         Align(

@@ -6,10 +6,16 @@ import 'package:wandrr/data/trip/models/services/trip_conflict_scanner.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/conflict_detection_callback.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/conflict_resolution_subpage.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
+
+/// Callback for entity-specific conflict detection.
+/// Returns null if no conflicts exist.
+///
+/// This replaces the deprecated ConflictDetectionProvider pattern.
+typedef ConflictDetectionCallback<T extends TripEntity>
+    = TripEntityUpdatePlan<T>? Function();
 
 /// Enhanced action page that integrates conflict detection and resolution.
 /// Supports any entity type (Transit/Lodging/Sight) that can have timeline conflicts.
@@ -20,7 +26,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants
 /// - Users can navigate to the conflict resolution subpage to resolve conflicts.
 /// - FAB is disabled until conflicts are acknowledged.
 class ConflictAwareActionPage<T extends TripEntity> extends StatefulWidget {
-  final void Function(BuildContext context) onClosePressed;
+  final VoidCallback onClosePressed;
   final void Function(BuildContext context) onActionInvoked;
   final IconData actionIcon;
   final Widget Function(
@@ -29,13 +35,8 @@ class ConflictAwareActionPage<T extends TripEntity> extends StatefulWidget {
   final String title;
   final ScrollController? scrollController;
   final T tripEntity;
-
-  /// Optional callback for conflict detection.
-  /// If null, no conflict detection is performed.
-  final ConflictDetectionCallback<T>? conflictDetectionCallback;
-
-  /// Optional scanner for live conflict detection in resolution page
-  final TripConflictScanner? conflictScanner;
+  final ConflictDetectionCallback<T> conflictDetectionCallback;
+  final TripConflictScanner conflictScanner;
 
   const ConflictAwareActionPage({
     super.key,
@@ -46,8 +47,8 @@ class ConflictAwareActionPage<T extends TripEntity> extends StatefulWidget {
     required this.onActionInvoked,
     required this.pageContentCreator,
     required this.actionIcon,
-    this.conflictDetectionCallback,
-    this.conflictScanner,
+    required this.conflictDetectionCallback,
+    required this.conflictScanner,
   });
 
   @override
@@ -80,6 +81,68 @@ class _ConflictAwareActionPageState<T extends TripEntity>
     super.dispose();
   }
 
+  @override
+  Widget build(BuildContext context) {
+    const double fabBottomMargin = 25.0;
+    final double bottomPadding =
+        TripEditorPageConstants.fabSize + fabBottomMargin + 16.0;
+
+    return Stack(
+      children: [
+        Column(
+          children: [
+            _buildAppBar(context),
+            if (_hasUnresolvedConflicts && !_isViewingConflictResolution)
+              _StickyConflictBanner(
+                conflictPlan: _conflictPlan!,
+                onViewConflicts: _navigateToConflictResolution,
+              ),
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                onPageChanged: (index) {
+                  setState(() {});
+                },
+                children: [
+                  SingleChildScrollView(
+                    controller: widget.scrollController,
+                    padding: EdgeInsets.fromLTRB(0, 0, 0, bottomPadding),
+                    child: _AnimatedActionPage(child: _pageContent),
+                  ),
+                  SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(0, 0, 0, bottomPadding),
+                    child: _conflictPlan != null
+                        ? ConflictResolutionSubpage(
+                            conflictPlan: _conflictPlan!,
+                            onBackPressed: _navigateToEditor,
+                            onConflictsResolved: _navigateToEditor,
+                            onConflictsChanged: () {
+                              if (mounted) setState(() {});
+                            },
+                            conflictScanner: widget.conflictScanner,
+                          )
+                        : const SizedBox
+                            .shrink(), // Placeholder when no conflict plan
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        if (!_isViewingConflictResolution)
+          Positioned(
+            bottom: fabBottomMargin,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: _createActionButton(context),
+            ),
+          ),
+      ],
+    );
+  }
+
   void _onEntityUpdated() {
     // Note: Validation is handled by the page content itself (e.g., JourneyEditor).
     // The pageContent sets the validityNotifier value directly.
@@ -93,9 +156,7 @@ class _ConflictAwareActionPageState<T extends TripEntity>
   }
 
   void _detectConflicts() {
-    if (widget.conflictDetectionCallback == null) return;
-
-    final newPlan = widget.conflictDetectionCallback!();
+    final newPlan = widget.conflictDetectionCallback();
 
     if (mounted) {
       setState(() {
@@ -108,8 +169,6 @@ class _ConflictAwareActionPageState<T extends TripEntity>
       _conflictPlan != null &&
       _conflictPlan!.hasConflicts &&
       !_conflictPlan!.isConfirmed;
-
-  bool get _isShowingConflictResolution => _isViewingConflictResolution;
 
   void _navigateToConflictResolution() {
     if (_pageController.hasClients) {
@@ -137,83 +196,13 @@ class _ConflictAwareActionPageState<T extends TripEntity>
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    const double fabBottomMargin = 25.0;
-    final double bottomPadding =
-        TripEditorPageConstants.fabSize + fabBottomMargin + 16.0;
-
-    return Stack(
-      children: [
-        Column(
-          children: [
-            _buildAppBar(context),
-            // Sticky conflict banner - always visible at top when there are conflicts
-            if (_hasUnresolvedConflicts && !_isShowingConflictResolution)
-              _StickyConflictBanner(
-                conflictPlan: _conflictPlan!,
-                onViewConflicts: _navigateToConflictResolution,
-              ),
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(), // Disable swipe
-                onPageChanged: (index) {
-                  // Trigger rebuild when page changes
-                  setState(() {});
-                },
-                children: [
-                  // Editor page (index 0)
-                  SingleChildScrollView(
-                    key: const PageStorageKey('editor_page'),
-                    controller: widget.scrollController,
-                    padding: EdgeInsets.fromLTRB(0, 0, 0, bottomPadding),
-                    child: _AnimatedActionPage(child: _pageContent),
-                  ),
-                  // Conflict resolution page (index 1)
-                  SingleChildScrollView(
-                    key: const PageStorageKey('conflict_resolution_page'),
-                    padding: EdgeInsets.fromLTRB(0, 0, 0, bottomPadding),
-                    child: _conflictPlan != null
-                        ? ConflictResolutionSubpage(
-                            conflictPlan: _conflictPlan!,
-                            onBackPressed: _navigateToEditor,
-                            onConflictsResolved: _navigateToEditor,
-                            onConflictsChanged: () {
-                              // Rebuild when conflicts change (new ones detected)
-                              if (mounted) setState(() {});
-                            },
-                            conflictScanner: widget.conflictScanner,
-                            sourceEntity: widget.tripEntity,
-                          )
-                        : const SizedBox
-                            .shrink(), // Placeholder when no conflict plan
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        if (!_isShowingConflictResolution)
-          Positioned(
-            bottom: fabBottomMargin,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: _createActionButton(context),
-            ),
-          ),
-      ],
-    );
-  }
-
   Widget _buildAppBar(BuildContext context) {
     final isLightTheme = context.isLightTheme;
 
     return AppBar(
       leading: IconButton(
         icon:
-            Icon(_isShowingConflictResolution ? Icons.arrow_back : Icons.close),
+            Icon(_isViewingConflictResolution ? Icons.arrow_back : Icons.close),
         style: isLightTheme
             ? ButtonStyle(
                 backgroundColor:
@@ -221,20 +210,26 @@ class _ConflictAwareActionPageState<T extends TripEntity>
               )
             : null,
         onPressed: () {
-          if (_isShowingConflictResolution) {
+          if (_isViewingConflictResolution) {
             _navigateToEditor();
           } else {
-            widget.onClosePressed(context);
+            widget.onClosePressed();
           }
         },
       ),
       title: Text(
-          _isShowingConflictResolution ? 'Resolve Conflicts' : widget.title),
+          _isViewingConflictResolution ? 'Resolve Conflicts' : widget.title),
       centerTitle: true,
       elevation: 0,
       actions: [
-        if (_hasUnresolvedConflicts && !_isShowingConflictResolution)
+        if (_hasUnresolvedConflicts && !_isViewingConflictResolution)
           IconButton(
+            style: isLightTheme
+                ? ButtonStyle(
+                    backgroundColor:
+                        WidgetStatePropertyAll(AppColors.brandSecondary),
+                  )
+                : null,
             icon: Stack(
               children: [
                 const Icon(Icons.warning_amber_rounded),
@@ -265,7 +260,6 @@ class _ConflictAwareActionPageState<T extends TripEntity>
               ],
             ),
             onPressed: _navigateToConflictResolution,
-            tooltip: 'View conflicts',
           ),
       ],
     );
@@ -283,11 +277,10 @@ class _ConflictAwareActionPageState<T extends TripEntity>
             opacity: 1.0,
             duration: const Duration(milliseconds: 300),
             child: FloatingActionButton(
+              heroTag: null,
               onPressed: canSubmit
                   ? () {
-                      // First dispatch any buffered conflict resolution events
                       _dispatchConflictResolutionEvents(context);
-                      // Then invoke the main action (create/update the entity)
                       widget.onActionInvoked(context);
                       Navigator.of(context).pop();
                     }
@@ -337,15 +330,10 @@ class _StickyConflictBanner extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: isLightTheme
-                  ? [
-                      AppColors.warning.withValues(alpha: 0.2),
-                      AppColors.error.withValues(alpha: 0.15),
-                    ]
-                  : [
-                      AppColors.warning.withValues(alpha: 0.4),
-                      AppColors.errorLight.withValues(alpha: 0.25),
-                    ],
+              colors: [
+                AppColors.warning.withValues(alpha: 0.4),
+                AppColors.errorLight.withValues(alpha: 0.25),
+              ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -410,9 +398,10 @@ class _StickyConflictBanner extends StatelessWidget {
                     Text(
                       _buildDetailedMessage(clampedCount, deletionCount),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w400,
                             color: isLightTheme
-                                ? Colors.grey.shade600
-                                : Colors.grey.shade400,
+                                ? Colors.grey.shade700
+                                : Colors.grey.shade300,
                             fontSize: 11,
                           ),
                     ),

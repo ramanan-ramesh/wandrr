@@ -33,7 +33,7 @@ class EntityConflictCoordinator {
       oldMetadata: _tripData.tripMetadata,
       newMetadata: editedMetadata,
     );
-    if (conflicts == null) return null;
+    if (conflicts == null || conflicts.isEmpty) return null;
 
     return ConflictToEntityChangeAdapter.toMetadataUpdatePlan(conflicts);
   }
@@ -51,7 +51,7 @@ class EntityConflictCoordinator {
     );
 
     final conflicts = detector.detectConflicts(newStay);
-    if (conflicts == null) return null;
+    if (conflicts == null || conflicts.isEmpty) return null;
 
     return ConflictToEntityChangeAdapter.toUpdatePlan<LodgingFacade>(
       oldEntity: oldStay,
@@ -70,7 +70,7 @@ class EntityConflictCoordinator {
     final detector = JourneyConflictDetector(legs: legs, scanner: _scanner);
 
     final conflicts = detector.detectConflicts(oldTransit);
-    if (conflicts == null) return null;
+    if (conflicts == null || conflicts.isEmpty) return null;
 
     // Use first leg as the primary entity
     final newTransit = legs.isNotEmpty ? legs.first : oldTransit;
@@ -85,18 +85,14 @@ class EntityConflictCoordinator {
 
   /// Detects conflicts for itinerary plan data (multiple sights).
   TripEntityUpdatePlan<ItineraryPlanData>? detectItineraryConflicts(
-    ItineraryPlanData oldPlanData,
-    ItineraryPlanData newPlanData, {
-    Duration visitDuration = const Duration(hours: 2),
-  }) {
+      ItineraryPlanData oldPlanData, ItineraryPlanData newPlanData) {
     final detector = ItineraryConflictDetector(
       sights: newPlanData.sights,
       scanner: _scanner,
-      visitDuration: visitDuration,
     );
 
     final conflicts = detector.detectConflicts(newPlanData);
-    if (conflicts == null) return null;
+    if (conflicts == null || conflicts.isEmpty) return null;
 
     return ConflictToEntityChangeAdapter.toUpdatePlan<ItineraryPlanData>(
       oldEntity: oldPlanData,

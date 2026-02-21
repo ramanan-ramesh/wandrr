@@ -7,7 +7,6 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 
 class TripEditorActionPage<T extends TripEntity> extends StatefulWidget {
-  final void Function(BuildContext context) onClosePressed;
   final void Function(BuildContext context) onActionInvoked;
   final IconData actionIcon;
   final Widget Function(ValueNotifier<bool> validityNotifier)
@@ -21,7 +20,6 @@ class TripEditorActionPage<T extends TripEntity> extends StatefulWidget {
     required this.tripEntity,
     required this.scrollController,
     required this.title,
-    required this.onClosePressed,
     required this.onActionInvoked,
     required this.pageContentCreator,
     required this.actionIcon,
@@ -69,7 +67,7 @@ class _TripEditorActionPageState<T extends TripEntity>
                               WidgetStatePropertyAll(AppColors.brandSecondary),
                         )
                       : null,
-                  onPressed: () => widget.onClosePressed(context)),
+                  onPressed: () => Navigator.of(context).pop),
               title: Text(widget.title),
               centerTitle: true,
               elevation: 0,

@@ -3,6 +3,7 @@ import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/editor_page_factory.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class TripEntityCreatorBottomSheet extends StatefulWidget {
   final Iterable<TripEditorAction> supportedActions;
@@ -37,10 +38,10 @@ class _TripEntityCreatorBottomSheetState
         }
         final entity = selectedAction!.createEntity(context);
         final factory = EditorPageFactory(
-          context: context,
+          tripData: context.activeTrip,
           title: selectedAction!.getSubtitle(context.localizations, false),
           isEditing: false,
-          onClosePressed: (_) => setState(() => selectedAction = null),
+          onClosePressed: () => setState(() => selectedAction = null),
           scrollController: scrollController,
         );
         return factory.createPage(entity) ?? const SizedBox.shrink();

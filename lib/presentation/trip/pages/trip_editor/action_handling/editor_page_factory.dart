@@ -6,6 +6,7 @@ import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/action_page.dart';
@@ -16,20 +17,19 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_p
 import 'package:wandrr/presentation/trip/pages/trip_editor/lodging/lodging_editor.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/transit/journey_editor.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/trip_details_editor.dart';
-import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 /// Factory for creating editor action pages.
 /// Centralizes all editor page creation logic.
 class EditorPageFactory {
-  final BuildContext context;
+  final TripDataFacade tripData;
   final String title;
   final bool isEditing;
-  final void Function(BuildContext) onClosePressed;
+  final VoidCallback onClosePressed;
   final ScrollController scrollController;
   final ItineraryPlanDataEditorConfig? itineraryConfig;
 
   EditorPageFactory({
-    required this.context,
+    required this.tripData,
     required this.title,
     required this.isEditing,
     required this.onClosePressed,
@@ -54,7 +54,7 @@ class EditorPageFactory {
 
   Widget _createTripDetailsPage(TripMetadataFacade entity) {
     final editableEntity = entity.clone();
-    final coordinator = EntityConflictCoordinator(tripData: context.activeTrip);
+    final coordinator = EntityConflictCoordinator(tripData: tripData);
 
     return ConflictAwareActionPage<TripMetadataFacade>(
       tripEntity: editableEntity,
@@ -80,7 +80,7 @@ class EditorPageFactory {
   Widget _createItineraryPage(ItineraryPlanData entity) {
     final originalEntity = entity.clone();
     final editableEntity = entity.clone();
-    final coordinator = EntityConflictCoordinator(tripData: context.activeTrip);
+    final coordinator = EntityConflictCoordinator(tripData: tripData);
 
     return ConflictAwareActionPage<ItineraryPlanData>(
       tripEntity: editableEntity,
@@ -108,7 +108,7 @@ class EditorPageFactory {
   Widget _createTransitPage(TransitFacade entity) {
     final originalEntity = entity.clone();
     final editableEntity = entity.clone();
-    final coordinator = EntityConflictCoordinator(tripData: context.activeTrip);
+    final coordinator = EntityConflictCoordinator(tripData: tripData);
     final journeyEditorKey = GlobalKey<JourneyEditorState>();
 
     return ConflictAwareActionPage<TransitFacade>(
@@ -135,7 +135,7 @@ class EditorPageFactory {
   Widget _createStayPage(LodgingFacade entity) {
     final originalEntity = entity.clone();
     final editableEntity = entity.clone();
-    final coordinator = EntityConflictCoordinator(tripData: context.activeTrip);
+    final coordinator = EntityConflictCoordinator(tripData: tripData);
 
     return ConflictAwareActionPage<LodgingFacade>(
       tripEntity: editableEntity,
@@ -168,7 +168,6 @@ class EditorPageFactory {
     return TripEditorActionPage<StandaloneExpense>(
       tripEntity: editableEntity,
       title: title,
-      onClosePressed: onClosePressed,
       onActionInvoked: (ctx) =>
           _emitUpdateEvent<StandaloneExpense>(ctx, editableEntity),
       scrollController: scrollController,
