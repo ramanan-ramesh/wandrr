@@ -222,7 +222,8 @@ class _ConflictAwareActionPageState<T extends TripEntity>
       centerTitle: true,
       elevation: 0,
       actions: [
-        if (_hasUnresolvedConflicts && !_isViewingConflictResolution)
+        if ((_conflictPlan?.hasConflicts ?? false) &&
+            !_isViewingConflictResolution)
           IconButton(
             style: isLightTheme
                 ? ButtonStyle(

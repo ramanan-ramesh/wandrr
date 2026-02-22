@@ -6,6 +6,7 @@ import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
 import 'conflict_result.dart';
 import 'entity_change.dart';
+import 'entity_timeline_position.dart';
 import 'time_range.dart';
 import 'trip_conflict_scanner.dart';
 
@@ -60,26 +61,44 @@ class TripEntityUpdatePlan<T extends TripEntity> {
   int get conflictCount =>
       stayChanges.length + transitChanges.length + sightChanges.length;
 
-  /// Number of resolved conflicts (clamped or deleted)
-  int get resolvedCount {
-    int count = 0;
-    for (final c in stayChanges) {
-      if (c.isResolved) count++;
+// Removed properties: resolvedCount, pendingCount, allConflictsResolved
+
+  /// Checks if the provided time range conflicts with the entity being edited.
+  /// Used for validation when resolving conflicts.
+  bool conflictsWithNewEntity(TimeRange editedRange) {
+    if (newEntity is TripMetadataFacade) return false;
+
+    TimeRange? referenceRange;
+    if (newEntity is LodgingFacade) {
+      final stay = newEntity as LodgingFacade;
+      if (stay.checkinDateTime == null || stay.checkoutDateTime == null)
+        return false;
+      referenceRange =
+          TimeRange(start: stay.checkinDateTime!, end: stay.checkoutDateTime!);
+    } else if (newEntity is TransitFacade) {
+      final transit = newEntity as TransitFacade;
+      if (transit.departureDateTime == null || transit.arrivalDateTime == null)
+        return false;
+      referenceRange = TimeRange(
+          start: transit.departureDateTime!, end: transit.arrivalDateTime!);
+    } else if (newEntity is SightFacade) {
+      final sight = newEntity as SightFacade;
+      if (sight.visitTime == null) return false;
+      referenceRange = TimeRange(
+        start: sight.visitTime!,
+        end: sight.visitTime!.add(const Duration(minutes: 1)),
+      );
     }
-    for (final c in transitChanges) {
-      if (c.isResolved) count++;
-    }
-    for (final c in sightChanges) {
-      if (c.isResolved) count++;
-    }
-    return count;
+
+    if (referenceRange == null) return false;
+
+    final position = editedRange.analyzePosition(referenceRange);
+    return position == EntityTimelinePosition.exactBoundaryMatch ||
+        position == EntityTimelinePosition.containedIn ||
+        position == EntityTimelinePosition.contains ||
+        position == EntityTimelinePosition.startsDuringEndsAfter ||
+        position == EntityTimelinePosition.startsBeforeEndsDuring;
   }
-
-  /// Number of pending conflicts
-  int get pendingCount => conflictCount - resolvedCount;
-
-  /// Whether all conflicts are resolved (ready to confirm)
-  bool get allConflictsResolved => pendingCount == 0;
 
   /// Whether user has confirmed the plan
   bool get isConfirmed => _isConfirmed;

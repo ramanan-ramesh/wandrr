@@ -122,7 +122,7 @@ abstract class EntityChangeBase<T extends TripEntity> {
   final ConflictSource? conflictSource;
 
   /// Whether times were auto-clamped to resolve conflict
-  final bool isClamped;
+  bool isClamped;
 
   EntityChangeBase({
     required this.original,
@@ -140,6 +140,8 @@ abstract class EntityChangeBase<T extends TripEntity> {
 
   /// A conflict is resolved if it's clamped OR marked for deletion
   bool get isResolved => isClamped || isMarkedForDeletion;
+
+  void markAsResolved() => isClamped = true;
 
   void markForDeletion() => _action = ChangeAction.delete;
 

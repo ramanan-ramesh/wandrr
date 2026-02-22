@@ -128,14 +128,8 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
   }
 
   Widget _buildStatusBar(BuildContext context, bool isLightTheme) {
-    final plan = widget.conflictPlan;
-    final total = plan.conflictCount;
-    final resolved = plan.resolvedCount;
-    final isAllResolved = plan.allConflictsResolved;
-
-    final statusColor = isAllResolved
-        ? (isLightTheme ? AppColors.success : AppColors.successLight)
-        : (isLightTheme ? AppColors.warning : AppColors.warningLight);
+    final statusColor =
+        isLightTheme ? AppColors.warning : AppColors.warningLight;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -147,32 +141,15 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
       child: Row(
         children: [
           Icon(
-            isAllResolved ? Icons.check_circle : Icons.pending,
+            Icons.info_outline_rounded,
             size: 18,
             color: statusColor,
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              isAllResolved
-                  ? 'All $total conflict${total != 1 ? 's' : ''} resolved'
-                  : '${total - resolved} of $total need attention',
+              'Please review and confirm changes',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: statusColor,
-                  ),
-            ),
-          ),
-          // Resolved count badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              '$resolved/$total',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: statusColor,
                   ),
@@ -184,21 +161,16 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
   }
 
   Widget _buildConfirmButton(BuildContext context, bool isLightTheme) {
-    final isReady = widget.conflictPlan.allConflictsResolved;
-
     return FilledButton.icon(
-      onPressed: isReady
-          ? () {
-              widget.conflictPlan.confirm();
-              widget.onConflictsResolved();
-            }
-          : null,
+      onPressed: () {
+        widget.conflictPlan.confirm();
+        widget.onConflictsResolved();
+      },
       icon: const Icon(Icons.check, size: 18),
       label: const Text('Confirm'),
       style: FilledButton.styleFrom(
-        backgroundColor: isReady
-            ? (isLightTheme ? AppColors.success : AppColors.successLight)
-            : Colors.grey,
+        backgroundColor:
+            isLightTheme ? AppColors.success : AppColors.successLight,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       ),
     );

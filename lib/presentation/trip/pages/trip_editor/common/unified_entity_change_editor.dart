@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
+import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/services/trip_conflict_scanner.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -165,6 +166,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
 
   /// Checks for new conflicts when an entity's times change
   void _checkForNewConflicts(EntityChangeBase change) {
+    change.markAsResolved();
     if (widget.conflictScanner != null) {
       final hasNew = widget.updatePlan
           .tryRefreshConflictsOnResolution(change, widget.conflictScanner!);
@@ -220,6 +222,19 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
         originalCheckinDateTime: originalLodging.checkinDateTime,
         originalCheckoutDateTime: originalLodging.checkoutDateTime,
         onStayRangeChanged: (checkin, checkout) {
+          final isValid = !widget.updatePlan
+              .conflictsWithNewEntity(TimeRange(start: checkin, end: checkout));
+          if (!isValid) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content:
+                      Text('Cannot conflict with the entity being edited.')),
+            );
+            // Force rebuild to reset UI
+            setState(() {});
+            return;
+          }
+
           setState(() {
             lodging.checkinDateTime = checkin;
             lodging.checkoutDateTime = checkout;
@@ -252,6 +267,8 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
         change: change,
         tripStartDate: widget.updatePlan.tripStartDate,
         tripEndDate: widget.updatePlan.tripEndDate,
+        onValidateRange: (range) =>
+            !widget.updatePlan.conflictsWithNewEntity(range),
         onChanged: () => _checkForNewConflicts(change),
       ),
     );
@@ -303,6 +320,8 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
         change: change,
         tripStartDate: widget.updatePlan.tripStartDate,
         tripEndDate: widget.updatePlan.tripEndDate,
+        onValidateRange: (range) =>
+            !widget.updatePlan.conflictsWithNewEntity(range),
         onChanged: () => _checkForNewConflicts(change),
       ),
     );
@@ -356,11 +375,12 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
 // Transit DateTime Editor
 // =============================================================================
 
-class _TransitDateTimeEditor extends StatelessWidget {
+class _TransitDateTimeEditor extends StatefulWidget {
   final TransitFacade transit;
   final EntityChange<TransitFacade>? change;
   final DateTime tripStartDate;
   final DateTime tripEndDate;
+  final bool Function(TimeRange range) onValidateRange;
   final VoidCallback onChanged;
 
   const _TransitDateTimeEditor({
@@ -368,9 +388,15 @@ class _TransitDateTimeEditor extends StatelessWidget {
     this.change,
     required this.tripStartDate,
     required this.tripEndDate,
+    required this.onValidateRange,
     required this.onChanged,
   });
 
+  @override
+  State<_TransitDateTimeEditor> createState() => _TransitDateTimeEditorState();
+}
+
+class _TransitDateTimeEditorState extends State<_TransitDateTimeEditor> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -379,26 +405,61 @@ class _TransitDateTimeEditor extends StatelessWidget {
         _DateTimePickerRow(
           label: 'Departure',
           icon: Icons.flight_takeoff_rounded,
-          dateTime: transit.departureDateTime,
-          startDateTime: tripStartDate,
-          endDateTime: tripEndDate,
+          dateTime: widget.transit.departureDateTime,
+          startDateTime: widget.tripStartDate,
+          endDateTime: widget.tripEndDate,
           onChanged: (dt) {
-            transit.departureDateTime = dt;
-            onChanged();
+            final oldDt = widget.transit.departureDateTime;
+            widget.transit.departureDateTime = dt;
+
+            if (widget.transit.departureDateTime != null &&
+                widget.transit.arrivalDateTime != null) {
+              if (!widget.onValidateRange(TimeRange(
+                  start: widget.transit.departureDateTime!,
+                  end: widget.transit.arrivalDateTime!))) {
+                widget.transit.departureDateTime = oldDt;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text(
+                          'Cannot conflict with the entity being edited.')),
+                );
+                setState(() {});
+                return;
+              }
+            }
+            widget.onChanged();
           },
         ),
         const SizedBox(height: 8),
         _DateTimePickerRow(
           label: 'Arrival',
           icon: Icons.flight_land_rounded,
-          dateTime: transit.arrivalDateTime,
-          startDateTime: transit.departureDateTime != null
-              ? transit.departureDateTime!.add(const Duration(minutes: 1))
-              : tripStartDate.add(const Duration(minutes: 1)),
-          endDateTime: tripEndDate,
+          dateTime: widget.transit.arrivalDateTime,
+          startDateTime: widget.transit.departureDateTime != null
+              ? widget.transit.departureDateTime!
+                  .add(const Duration(minutes: 1))
+              : widget.tripStartDate.add(const Duration(minutes: 1)),
+          endDateTime: widget.tripEndDate,
           onChanged: (dt) {
-            transit.arrivalDateTime = dt;
-            onChanged();
+            final oldDt = widget.transit.arrivalDateTime;
+            widget.transit.arrivalDateTime = dt;
+
+            if (widget.transit.departureDateTime != null &&
+                widget.transit.arrivalDateTime != null) {
+              if (!widget.onValidateRange(TimeRange(
+                  start: widget.transit.departureDateTime!,
+                  end: widget.transit.arrivalDateTime!))) {
+                widget.transit.arrivalDateTime = oldDt;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text(
+                          'Cannot conflict with the entity being edited.')),
+                );
+                setState(() {});
+                return;
+              }
+            }
+            widget.onChanged();
           },
         ),
       ],
@@ -414,12 +475,14 @@ class _SightTimeEditor extends StatefulWidget {
   final EntityChange<SightFacade> change;
   final DateTime tripStartDate;
   final DateTime tripEndDate;
+  final bool Function(TimeRange range) onValidateRange;
   final VoidCallback onChanged;
 
   const _SightTimeEditor({
     required this.change,
     required this.tripStartDate,
     required this.tripEndDate,
+    required this.onValidateRange,
     required this.onChanged,
   });
 
@@ -497,6 +560,28 @@ class _SightTimeEditorState extends State<_SightTimeEditor> {
       lastDate: widget.tripEndDate,
     );
     if (picked != null) {
+      if (sight.visitTime != null) {
+        final newVisitTime = DateTime(
+          picked.year,
+          picked.month,
+          picked.day,
+          sight.visitTime!.hour,
+          sight.visitTime!.minute,
+        );
+        if (!widget.onValidateRange(TimeRange(
+            start: newVisitTime,
+            end: newVisitTime.add(const Duration(minutes: 1))))) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content:
+                      Text('Cannot conflict with the entity being edited.')),
+            );
+          }
+          return;
+        }
+      }
+
       setState(() {
         // Create a new SightFacade with the updated day since day is final
         widget.change.modified = SightFacade(
@@ -530,10 +615,23 @@ class _SightTimeEditorState extends State<_SightTimeEditor> {
           : TimeOfDay.now(),
     );
     if (picked != null) {
+      final d = sight.day;
+      final newTime =
+          DateTime(d.year, d.month, d.day, picked.hour, picked.minute);
+
+      if (!widget.onValidateRange(TimeRange(
+          start: newTime, end: newTime.add(const Duration(minutes: 1))))) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Cannot conflict with the entity being edited.')),
+          );
+        }
+        return;
+      }
+
       setState(() {
-        final d = sight.day;
-        sight.visitTime =
-            DateTime(d.year, d.month, d.day, picked.hour, picked.minute);
+        sight.visitTime = newTime;
       });
       widget.onChanged();
     }
