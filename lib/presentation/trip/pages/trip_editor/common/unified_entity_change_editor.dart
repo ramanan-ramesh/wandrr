@@ -3,7 +3,6 @@ import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/services/time_range.dart';
-import 'package:wandrr/data/trip/models/services/trip_conflict_scanner.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
@@ -18,10 +17,8 @@ import 'package:wandrr/presentation/trip/widgets/stay_date_time_range_editor.dar
 class UnifiedEntityChangeEditor extends StatefulWidget {
   final TripDataUpdatePlan updatePlan;
   final MessageContext context;
-  final VoidCallback onChanged;
-  final void Function(TripEntity entity, bool isDeleted)?
-      onEntityDeletionChanged;
-  final TripConflictScanner? conflictScanner;
+  final void Function(EntityChangeBase change) onTimeRangeUpdated;
+  final void Function(EntityChangeBase change) onDeletionToggled;
   final Iterable<ExpenseSplitChange>? expenseChanges;
   final Iterable<String>? addedContributors;
   final Iterable<String>? removedContributors;
@@ -30,9 +27,8 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
     super.key,
     required this.updatePlan,
     required this.context,
-    required this.onChanged,
-    this.onEntityDeletionChanged,
-    this.conflictScanner,
+    required this.onTimeRangeUpdated,
+    required this.onDeletionToggled,
     this.expenseChanges,
     this.addedContributors,
     this.removedContributors,
@@ -42,17 +38,15 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
   factory UnifiedEntityChangeEditor.forMetadataUpdate({
     Key? key,
     required TripMetadataUpdatePlan updatePlan,
-    required VoidCallback onChanged,
-    void Function(dynamic entity, bool isDeleted)? onEntityDeletionChanged,
-    TripConflictScanner? conflictScanner,
+    required void Function(EntityChangeBase change) onTimeRangeUpdated,
+    required void Function(EntityChangeBase change) onDeletionToggled,
   }) {
     return UnifiedEntityChangeEditor(
       key: key,
       updatePlan: updatePlan,
       context: MessageContext.metadataUpdate,
-      onChanged: onChanged,
-      onEntityDeletionChanged: onEntityDeletionChanged,
-      conflictScanner: conflictScanner,
+      onTimeRangeUpdated: onTimeRangeUpdated,
+      onDeletionToggled: onDeletionToggled,
       expenseChanges: updatePlan.expenseChanges,
       addedContributors: updatePlan.addedContributors,
       removedContributors: updatePlan.removedContributors,
@@ -63,16 +57,16 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
   factory UnifiedEntityChangeEditor.forConflictResolution({
     Key? key,
     required TripDataUpdatePlan updatePlan,
-    required VoidCallback onChanged,
-    TripConflictScanner? conflictScanner,
+    required void Function(EntityChangeBase change) onTimeRangeUpdated,
+    required void Function(EntityChangeBase change) onDeletionToggled,
     TripEntity? sourceEntity,
   }) {
     return UnifiedEntityChangeEditor(
       key: key,
       updatePlan: updatePlan,
       context: MessageContext.timelineConflict,
-      onChanged: onChanged,
-      conflictScanner: conflictScanner,
+      onTimeRangeUpdated: onTimeRangeUpdated,
+      onDeletionToggled: onDeletionToggled,
     );
   }
 
@@ -154,25 +148,9 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
             addedContributors: widget.addedContributors ?? const [],
             removedContributors: widget.removedContributors ?? const [],
             messageProvider: _messageProvider,
-            onChanged: widget.onChanged,
           ),
       ],
     );
-  }
-
-  // =========================================================================
-  // Live Conflict Detection
-  // =========================================================================
-
-  /// Checks for new conflicts when an entity's times change
-  void _checkForNewConflicts(EntityChangeBase change) {
-    change.markAsResolved();
-    if (widget.conflictScanner != null) {
-      final hasNew = widget.updatePlan
-          .tryRefreshConflictsOnResolution(change, widget.conflictScanner!);
-      if (hasNew) setState(() {}); // Rebuild to show new conflicts
-    }
-    widget.onChanged();
   }
 
   // =========================================================================
@@ -210,7 +188,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
       iconColor: _getStaysIconColor(context),
       title: lodging.location?.context.name ?? 'Unknown Location',
       subtitle: lodging.location?.context.city,
-      onToggleDelete: () => _toggleStayDeletion(change),
+      onToggleDelete: () => widget.onDeletionToggled(change),
       conflictSource: change.conflictSource,
       child: StayDateTimeRangeEditor(
         checkinDateTime: lodging.checkinDateTime,
@@ -222,24 +200,11 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
         originalCheckinDateTime: originalLodging.checkinDateTime,
         originalCheckoutDateTime: originalLodging.checkoutDateTime,
         onStayRangeChanged: (checkin, checkout) {
-          final isValid = !widget.updatePlan
-              .conflictsWithNewEntity(TimeRange(start: checkin, end: checkout));
-          if (!isValid) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content:
-                      Text('Cannot conflict with the entity being edited.')),
-            );
-            // Force rebuild to reset UI
-            setState(() {});
-            return;
-          }
-
           setState(() {
             lodging.checkinDateTime = checkin;
             lodging.checkoutDateTime = checkout;
           });
-          _checkForNewConflicts(change);
+          widget.onTimeRangeUpdated(change);
         },
       ),
     );
@@ -260,16 +225,15 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
       iconColor: _getTransitsIconColor(context),
       title:
           '${transit.departureLocation?.context.name ?? '?'} → ${transit.arrivalLocation?.context.name ?? '?'}',
-      onToggleDelete: () => _toggleTransitDeletion(change),
+      onToggleDelete: () => widget.onDeletionToggled(change),
       conflictSource: change.conflictSource,
       child: _TransitDateTimeEditor(
         transit: transit,
         change: change,
         tripStartDate: widget.updatePlan.tripStartDate,
         tripEndDate: widget.updatePlan.tripEndDate,
-        onValidateRange: (range) =>
-            !widget.updatePlan.conflictsWithNewEntity(range),
-        onChanged: () => _checkForNewConflicts(change),
+        onValidateRange: (_) => true,
+        onChanged: () => widget.onTimeRangeUpdated(change),
       ),
     );
   }
@@ -314,60 +278,16 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
       iconColor: _getSightsIconColor(context),
       title: sight.name.isNotEmpty ? sight.name : 'Unnamed Sight',
       subtitle: sight.location?.context.name,
-      onToggleDelete: () => _toggleSightDeletion(change),
+      onToggleDelete: () => widget.onDeletionToggled(change),
       conflictSource: change.conflictSource,
       child: _SightTimeEditor(
         change: change,
         tripStartDate: widget.updatePlan.tripStartDate,
         tripEndDate: widget.updatePlan.tripEndDate,
-        onValidateRange: (range) =>
-            !widget.updatePlan.conflictsWithNewEntity(range),
-        onChanged: () => _checkForNewConflicts(change),
+        onValidateRange: (_) => true,
+        onChanged: () => widget.onTimeRangeUpdated(change),
       ),
     );
-  }
-
-  // =========================================================================
-  // Toggle Deletion
-  // =========================================================================
-
-  void _toggleStayDeletion(EntityChange<LodgingFacade> change) {
-    final newIsDeleted = !change.isMarkedForDeletion;
-    setState(() {
-      if (newIsDeleted) {
-        change.markForDeletion();
-      } else {
-        change.restore();
-      }
-    });
-    widget.onEntityDeletionChanged?.call(change.original, newIsDeleted);
-    widget.onChanged();
-  }
-
-  void _toggleTransitDeletion(EntityChange<TransitFacade> change) {
-    final newIsDeleted = !change.isMarkedForDeletion;
-    setState(() {
-      if (newIsDeleted) {
-        change.markForDeletion();
-      } else {
-        change.restore();
-      }
-    });
-    widget.onEntityDeletionChanged?.call(change.original, newIsDeleted);
-    widget.onChanged();
-  }
-
-  void _toggleSightDeletion(EntityChange<SightFacade> change) {
-    final newIsDeleted = !change.isMarkedForDeletion;
-    setState(() {
-      if (newIsDeleted) {
-        change.markForDeletion();
-      } else {
-        change.restore();
-      }
-    });
-    widget.onEntityDeletionChanged?.call(change.original, newIsDeleted);
-    widget.onChanged();
   }
 }
 
@@ -728,14 +648,12 @@ class _ExpensesSection extends StatefulWidget {
   final Iterable<String> addedContributors;
   final Iterable<String> removedContributors;
   final EntityChangeMessageProvider messageProvider;
-  final VoidCallback onChanged;
 
   const _ExpensesSection({
     required this.updatePlan,
     required this.addedContributors,
     required this.removedContributors,
     required this.messageProvider,
-    required this.onChanged,
   });
 
   @override
@@ -773,7 +691,6 @@ class _ExpensesSectionState extends State<_ExpensesSection> {
                       setState(() {
                         widget.updatePlan.toggleExpenseSelection();
                       });
-                      widget.onChanged();
                     },
                   ),
                   const SizedBox(width: 8),
@@ -896,7 +813,6 @@ class _ExpensesSectionState extends State<_ExpensesSection> {
               setState(() {
                 change.includeInSplitBy = value ?? false;
               });
-              widget.onChanged();
             },
           ),
           const SizedBox(width: 8),

@@ -1,10 +1,9 @@
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_timeline_position.dart';
+import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-
-import '../../models/services/time_range.dart';
 
 /// Pure logic for clamping entity times to resolve conflicts.
 /// Contains no UI-specific code.

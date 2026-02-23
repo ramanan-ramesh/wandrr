@@ -1,10 +1,10 @@
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 import 'conflict_result.dart';
-import 'time_range.dart';
 import 'trip_conflict_scanner.dart';
 
 /// Base interface for entity-specific conflict detection.

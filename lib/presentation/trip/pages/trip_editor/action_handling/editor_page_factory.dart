@@ -12,7 +12,6 @@ import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/action_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/conflict_aware_action_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/expense_editor.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/entity_conflict_coordinator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_plan_data_editor.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/lodging/lodging_editor.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/transit/journey_editor.dart';
@@ -53,21 +52,18 @@ class EditorPageFactory {
   }
 
   Widget _createTripDetailsPage(TripMetadataFacade entity) {
-    final editableEntity = entity.clone();
-    final coordinator = EntityConflictCoordinator(tripData: tripData);
-
     return ConflictAwareActionPage<TripMetadataFacade>(
-      tripEntity: editableEntity,
+      tripEntity: entity,
+      tripData: tripData,
+      isEditing: isEditing,
       title: title,
       onClosePressed: onClosePressed,
       onActionInvoked: (ctx) =>
-          _emitUpdateEvent<TripMetadataFacade>(ctx, editableEntity),
+          _emitUpdateEvent<TripMetadataFacade>(ctx, entity),
       scrollController: scrollController,
       actionIcon: _actionIcon,
-      conflictDetectionCallback: () =>
-          coordinator.detectTripMetadataConflicts(editableEntity),
-      conflictScanner: coordinator.scanner,
-      pageContentCreator: (validityNotifier, onUpdated) => TripDetailsEditor(
+      pageContentCreator: (editableEntity, validityNotifier, onUpdated) =>
+          TripDetailsEditor(
         tripMetadataFacade: editableEntity,
         onTripMetadataUpdated: () {
           validityNotifier.value = editableEntity.validate();
@@ -78,22 +74,17 @@ class EditorPageFactory {
   }
 
   Widget _createItineraryPage(ItineraryPlanData entity) {
-    final originalEntity = entity.clone();
-    final editableEntity = entity.clone();
-    final coordinator = EntityConflictCoordinator(tripData: tripData);
-
     return ConflictAwareActionPage<ItineraryPlanData>(
-      tripEntity: editableEntity,
+      tripEntity: entity,
+      tripData: tripData,
+      isEditing: isEditing,
       title: title,
       onClosePressed: onClosePressed,
       onActionInvoked: (ctx) =>
-          _emitUpdateEvent<ItineraryPlanData>(ctx, editableEntity),
+          _emitUpdateEvent<ItineraryPlanData>(ctx, entity),
       scrollController: scrollController,
       actionIcon: _actionIcon,
-      conflictDetectionCallback: () =>
-          coordinator.detectItineraryConflicts(originalEntity, editableEntity),
-      conflictScanner: coordinator.scanner,
-      pageContentCreator: (validityNotifier, onUpdated) =>
+      pageContentCreator: (editableEntity, validityNotifier, onUpdated) =>
           ItineraryPlanDataEditor(
         planData: editableEntity,
         onPlanDataUpdated: () {
@@ -106,24 +97,19 @@ class EditorPageFactory {
   }
 
   Widget _createTransitPage(TransitFacade entity) {
-    final originalEntity = entity.clone();
-    final editableEntity = entity.clone();
-    final coordinator = EntityConflictCoordinator(tripData: tripData);
     final journeyEditorKey = GlobalKey<JourneyEditorState>();
 
     return ConflictAwareActionPage<TransitFacade>(
-      tripEntity: editableEntity,
+      tripEntity: entity,
+      tripData: tripData,
+      isEditing: isEditing,
       title: title,
       onClosePressed: onClosePressed,
       onActionInvoked: (ctx) => journeyEditorKey.currentState?.saveAllLegs(ctx),
       scrollController: scrollController,
       actionIcon: _actionIcon,
-      conflictDetectionCallback: () {
-        final legs = journeyEditorKey.currentState?.legs ?? [editableEntity];
-        return coordinator.detectJourneyConflicts(originalEntity, legs);
-      },
-      conflictScanner: coordinator.scanner,
-      pageContentCreator: (validityNotifier, onUpdated) => JourneyEditor(
+      pageContentCreator: (editableEntity, validityNotifier, onUpdated) =>
+          JourneyEditor(
         key: journeyEditorKey,
         initialLeg: editableEntity,
         onJourneyUpdated: onUpdated,
@@ -133,25 +119,17 @@ class EditorPageFactory {
   }
 
   Widget _createStayPage(LodgingFacade entity) {
-    final originalEntity = entity.clone();
-    final editableEntity = entity.clone();
-    final coordinator = EntityConflictCoordinator(tripData: tripData);
-
     return ConflictAwareActionPage<LodgingFacade>(
-      tripEntity: editableEntity,
+      tripEntity: entity,
+      tripData: tripData,
+      isEditing: isEditing,
       title: title,
       onClosePressed: onClosePressed,
-      onActionInvoked: (ctx) =>
-          _emitUpdateEvent<LodgingFacade>(ctx, editableEntity),
+      onActionInvoked: (ctx) => _emitUpdateEvent<LodgingFacade>(ctx, entity),
       scrollController: scrollController,
       actionIcon: _actionIcon,
-      conflictDetectionCallback: () => coordinator.detectStayConflicts(
-        originalEntity,
-        editableEntity,
-        isNewEntity: !isEditing,
-      ),
-      conflictScanner: coordinator.scanner,
-      pageContentCreator: (validityNotifier, onUpdated) => LodgingEditor(
+      pageContentCreator: (editableEntity, validityNotifier, onUpdated) =>
+          LodgingEditor(
         lodging: editableEntity,
         onLodgingUpdated: () {
           validityNotifier.value = editableEntity.validate();

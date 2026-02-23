@@ -1,16 +1,16 @@
-import 'package:wandrr/data/trip/implementations/services/entity_time_clamper.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_timeline_position.dart';
+import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
-import '../../models/services/conflict_result.dart';
-import '../../models/services/time_range.dart';
+import 'conflict_result.dart';
+import 'entity_time_clamper.dart';
 
 /// Exclusion criteria for scanning conflicts.
 /// Each entity type has its own exclusion list to avoid false positives.
@@ -65,9 +65,9 @@ class TripConflictScanner {
       transitConflicts: _findTransitConflicts(
           referenceRange, exclusions.transitIds, tripEntity),
       stayConflicts:
-      _findStayConflicts(referenceRange, exclusions.stayIds, tripEntity),
+          _findStayConflicts(referenceRange, exclusions.stayIds, tripEntity),
       sightConflicts:
-      _findSightConflicts(referenceRange, exclusions.sightIds, tripEntity),
+          _findSightConflicts(referenceRange, exclusions.sightIds, tripEntity),
     );
   }
 
@@ -81,7 +81,7 @@ class TripConflictScanner {
         !oldMetadata.startDate!.isOnSameDayAs(newMetadata.startDate!) ||
             !oldMetadata.endDate!.isOnSameDayAs(newMetadata.endDate!);
     final contributorsChanged =
-    _haveContributorsChanged(oldMetadata, newMetadata);
+        _haveContributorsChanged(oldMetadata, newMetadata);
 
     if (!datesChanged && !contributorsChanged) return null;
 
@@ -121,16 +121,12 @@ class TripConflictScanner {
     );
   }
 
-  bool _haveContributorsChanged(TripMetadataFacade oldMeta,
-      TripMetadataFacade newMeta) {
+  bool _haveContributorsChanged(
+      TripMetadataFacade oldMeta, TripMetadataFacade newMeta) {
     final oldSet = oldMeta.contributors.toSet();
     final newSet = newMeta.contributors.toSet();
-    return oldSet
-        .difference(newSet)
-        .isNotEmpty ||
-        newSet
-            .difference(oldSet)
-            .isNotEmpty;
+    return oldSet.difference(newSet).isNotEmpty ||
+        newSet.difference(oldSet).isNotEmpty;
   }
 
   List<StayConflict> _findStaysConflictingWithTripDates(
@@ -140,7 +136,7 @@ class TripConflictScanner {
       final checkin = stay.checkinDateTime!;
       final checkout = stay.checkoutDateTime!;
       var stayTimeRange =
-      TimeRange(start: stay.checkinDateTime!, end: stay.checkoutDateTime!);
+          TimeRange(start: stay.checkinDateTime!, end: stay.checkoutDateTime!);
       final position = stayTimeRange.analyzePosition(newTripRange);
       if (position == EntityTimelinePosition.beforeEvent ||
           position == EntityTimelinePosition.afterEvent ||
@@ -148,7 +144,7 @@ class TripConflictScanner {
           position == EntityTimelinePosition.startsDuringEndsAfter ||
           position == EntityTimelinePosition.contains) {
         final clamped =
-        EntityTimeClamper.clampStayToDateRange(stay, newTripRange);
+            EntityTimeClamper.clampStayToDateRange(stay, newTripRange);
         conflicts.add(StayConflict(
           entity: stay,
           entityTimeRange: TimeRange(start: checkin, end: checkout),
@@ -268,7 +264,7 @@ class TripConflictScanner {
       if (isConflictedWithTripEntity) {
         final position = entityRange.analyzePosition(referenceRange);
         final clampedTransit =
-        EntityTimeClamper.clampTransit(transit, referenceRange, tripEntity);
+            EntityTimeClamper.clampTransit(transit, referenceRange, tripEntity);
 
         conflicts.add(TransitConflict(
           entity: transit,
@@ -319,7 +315,7 @@ class TripConflictScanner {
 
       if (isConflictedWithTripEntity) {
         final clampedStay =
-        EntityTimeClamper.clampStay(stay, referenceRange, tripEntity);
+            EntityTimeClamper.clampStay(stay, referenceRange, tripEntity);
 
         conflicts.add(StayConflict(
           entity: stay,
@@ -368,7 +364,7 @@ class TripConflictScanner {
         }
         if (isConflictedWithTripEntity) {
           final clampedSight =
-          EntityTimeClamper.clampSight(sight, referenceRange, tripEntity);
+              EntityTimeClamper.clampSight(sight, referenceRange, tripEntity);
 
           conflicts.add(SightConflict(
             entity: sight,

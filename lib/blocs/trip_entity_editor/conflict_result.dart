@@ -6,7 +6,7 @@ import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
-import 'time_range.dart';
+import 'package:wandrr/data/trip/models/services/time_range.dart';
 
 /// Raw conflict data without UI-specific information.
 /// This is pure data - no messages or formatting.

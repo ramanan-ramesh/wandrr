@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/services/trip_conflict_scanner.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_events.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/common/unified_entity_change_editor.dart';
@@ -7,21 +8,15 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/common/unified_entity
 /// A subpage for resolving timeline conflicts within an entity editor.
 /// Supports live conflict detection - when resolving one conflict creates another.
 class ConflictResolutionSubpage extends StatefulWidget {
-  final TripDataUpdatePlan conflictPlan;
   final VoidCallback onBackPressed;
   final VoidCallback onConflictsResolved;
   final VoidCallback? onConflictsChanged;
 
-  /// Scanner for live conflict detection when editing conflicted entities
-  final TripConflictScanner? conflictScanner;
-
   const ConflictResolutionSubpage({
     super.key,
-    required this.conflictPlan,
     required this.onBackPressed,
     required this.onConflictsResolved,
     this.onConflictsChanged,
-    this.conflictScanner,
   });
 
   @override
@@ -33,7 +28,11 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
   @override
   Widget build(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
-    final plan = widget.conflictPlan;
+    final plan = context.tripEntityUpdatePlan;
+
+    if (plan == null) {
+      return const SizedBox.shrink();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,21 +42,33 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
         const SizedBox(height: 12),
         _buildStatusBar(context, isLightTheme),
         const SizedBox(height: 12),
-        // Conflict editor with live conflict detection
+        // Conflict editor connected to BLoC
         plan is TripMetadataUpdatePlan
             ? UnifiedEntityChangeEditor.forMetadataUpdate(
                 updatePlan: plan,
-                onChanged: _handleConflictChanged,
-                onEntityDeletionChanged: (entity, isDeleted) {
-                  plan.syncExpenseDeletionState(entity, isDeleted);
+                onTimeRangeUpdated: (change) {
+                  context.addTripEntityEditorEvent(
+                      UpdateConflictedEntityTimeRange(change));
                   _handleConflictChanged();
                 },
-                conflictScanner: widget.conflictScanner,
+                onDeletionToggled: (change) {
+                  context.addTripEntityEditorEvent(
+                      ToggleConflictedEntityDeletion(change));
+                  _handleConflictChanged();
+                },
               )
             : UnifiedEntityChangeEditor.forConflictResolution(
                 updatePlan: plan,
-                onChanged: _handleConflictChanged,
-                conflictScanner: widget.conflictScanner,
+                onTimeRangeUpdated: (change) {
+                  context.addTripEntityEditorEvent(
+                      UpdateConflictedEntityTimeRange(change));
+                  _handleConflictChanged();
+                },
+                onDeletionToggled: (change) {
+                  context.addTripEntityEditorEvent(
+                      ToggleConflictedEntityDeletion(change));
+                  _handleConflictChanged();
+                },
               ),
         const SizedBox(height: 16),
         Align(
@@ -163,7 +174,7 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
   Widget _buildConfirmButton(BuildContext context, bool isLightTheme) {
     return FilledButton.icon(
       onPressed: () {
-        widget.conflictPlan.confirm();
+        context.addTripEntityEditorEvent(const ConfirmConflictPlan());
         widget.onConflictsResolved();
       },
       icon: const Icon(Icons.check, size: 18),
