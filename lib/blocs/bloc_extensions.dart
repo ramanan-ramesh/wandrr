@@ -5,6 +5,7 @@ import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_bloc.dart';
 import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_events.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 import 'app/bloc.dart';
 import 'app/events.dart';
@@ -24,10 +25,17 @@ extension BlocProviderExt on BuildContext {
 }
 
 extension TripEntityEditorBlocExt on BuildContext {
-  TripEntityUpdatePlan? get tripEntityUpdatePlan =>
-      BlocProvider.of<TripEntityEditorBloc>(this).currentPlan;
+  TripEntityEditorBloc<T> getTripEntityEditorBloc<T extends TripEntity>() =>
+      BlocProvider.of<TripEntityEditorBloc<T>>(this);
 
-  void addTripEntityEditorEvent(TripEntityEditorEvent event) {
-    BlocProvider.of<TripEntityEditorBloc>(this).add(event);
+  TripEntityUpdatePlan<T>? tripEntityUpdatePlan<T extends TripEntity>() =>
+      getTripEntityEditorBloc<T>().currentPlan;
+
+  T editableEntity<T extends TripEntity>() =>
+      getTripEntityEditorBloc<T>().editableEntity;
+
+  void addTripEntityEditorEvent<T extends TripEntity>(
+      TripEntityEditorEvent event) {
+    getTripEntityEditorBloc<T>().add(event);
   }
 }

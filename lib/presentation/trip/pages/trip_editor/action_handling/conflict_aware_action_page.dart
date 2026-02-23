@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
+import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_bloc.dart';
+import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_events.dart';
+import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_state.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
+import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/conflict_resolution_subpage.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
-
-import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_bloc.dart';
-import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_state.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Enhanced action page that integrates conflict detection and resolution.
 /// Supports any entity type (Transit/Lodging/Sight) that can have timeline conflicts.
@@ -91,95 +91,124 @@ class _ConflictAwareActionPageState<T extends TripEntity>
               tripData: widget.tripData,
               entity: widget.tripEntity,
             ),
-      child: BlocListener<TripEntityEditorBloc<T>, TripEntityEditorState<T>>(
-        listener: (context, state) {
-          if (state is EntitySubmitted<T>) {
-            // Processing happens in _dispatchConflictResolutionEvents.
-          } else if (state is ConflictedEntityTimeRangeError) {
-            final errorState = state as ConflictedEntityTimeRangeError;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(errorState.errorMessage)),
-            );
-          } else if (state is ConflictsAdded<T>) {
-            _navigateToConflictResolution();
-          } else if (state is ConflictsRemoved<T>) {
-            _navigateToEditor();
-          }
-        },
-        child: BlocBuilder<TripEntityEditorBloc<T>, TripEntityEditorState<T>>(
-          builder: (context, state) {
-            final conflictPlan =
-                context.read<TripEntityEditorBloc<T>>().currentPlan;
-            final hasUnresolvedConflicts = conflictPlan != null &&
-                conflictPlan.hasConflicts &&
-                !conflictPlan.isConfirmed;
-
-            return Stack(
-              children: [
-                Column(
-                  children: [
-                    _buildAppBar(context, conflictPlan),
-                    if (hasUnresolvedConflicts && !_isViewingConflictResolution)
-                      _StickyConflictBanner(
-                        conflictPlan: conflictPlan,
-                        onViewConflicts: _navigateToConflictResolution,
-                      ),
-                    Expanded(
-                      child: PageView(
-                        controller: _pageController,
-                        physics: const NeverScrollableScrollPhysics(),
-                        onPageChanged: (index) {
-                          setState(() {});
-                        },
-                        children: [
-                          SingleChildScrollView(
-                            controller: widget.scrollController,
-                            padding:
-                                EdgeInsets.fromLTRB(0, 0, 0, bottomPadding),
-                            child: _AnimatedActionPage(child: _pageContent),
+      child: Builder(builder: (context) {
+        return BlocListener<TripEntityEditorBloc<T>, TripEntityEditorState<T>>(
+          listener: (context, state) {
+            if (state is EntitySubmitted<T>) {
+              _handleEntitySubmitted(context, state.editableEntity);
+            } else if (state is ConflictedEntityTimeRangeError) {
+              final errorState = state as ConflictedEntityTimeRangeError;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(errorState.errorMessage)),
+              );
+            } else if (state is ConflictsAdded<T>) {
+              _navigateToConflictResolution();
+            } else if (state is ConflictsRemoved<T>) {
+              _navigateToEditor();
+            }
+          },
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  BlocSelector<TripEntityEditorBloc<T>,
+                      TripEntityEditorState<T>, TripEntityUpdatePlan<T>?>(
+                    selector: (state) => state.currentPlan,
+                    builder: _buildAppBar,
+                  ),
+                  BlocSelector<TripEntityEditorBloc<T>,
+                      TripEntityEditorState<T>, bool>(
+                    selector: (state) {
+                      final plan = state.currentPlan;
+                      return plan != null &&
+                          plan.hasConflicts &&
+                          !plan.isConfirmed;
+                    },
+                    builder: (context, hasUnresolvedConflicts) {
+                      if (hasUnresolvedConflicts &&
+                          !_isViewingConflictResolution) {
+                        final conflictPlan =
+                            context.read<TripEntityEditorBloc<T>>().currentPlan;
+                        return _StickyConflictBanner<T>(
+                          conflictPlan: conflictPlan!,
+                          onViewConflicts: _navigateToConflictResolution,
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      physics: const NeverScrollableScrollPhysics(),
+                      onPageChanged: (index) {
+                        setState(() {});
+                      },
+                      children: [
+                        SingleChildScrollView(
+                          controller: widget.scrollController,
+                          padding: EdgeInsets.fromLTRB(0, 0, 0, bottomPadding),
+                          child: _AnimatedActionPage(child: _pageContent),
+                        ),
+                        SingleChildScrollView(
+                          padding: EdgeInsets.fromLTRB(0, 0, 0, bottomPadding),
+                          child: BlocSelector<TripEntityEditorBloc<T>,
+                              TripEntityEditorState<T>, bool>(
+                            selector: (state) => state.currentPlan != null,
+                            builder: (context, hasPlan) {
+                              return hasPlan
+                                  ? ConflictResolutionSubpage<T>(
+                                      onBackPressed: _navigateToEditor,
+                                      onConflictsResolved: _navigateToEditor,
+                                      onConflictsChanged: () {
+                                        if (mounted) setState(() {});
+                                      },
+                                    )
+                                  : const SizedBox.shrink();
+                            },
                           ),
-                          SingleChildScrollView(
-                            padding:
-                                EdgeInsets.fromLTRB(0, 0, 0, bottomPadding),
-                            child: conflictPlan != null
-                                ? ConflictResolutionSubpage(
-                                    onBackPressed: _navigateToEditor,
-                                    onConflictsResolved: _navigateToEditor,
-                                    onConflictsChanged: () {
-                                      if (mounted) setState(() {});
-                                    },
-                                  )
-                                : const SizedBox.shrink(),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                if (!_isViewingConflictResolution)
-                  Positioned(
-                    bottom: fabBottomMargin,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: _createActionButton(
-                          context, hasUnresolvedConflicts, conflictPlan),
+                        ),
+                      ],
                     ),
                   ),
-              ],
-            );
-          },
-        ),
-      ),
+                ],
+              ),
+              if (!_isViewingConflictResolution)
+                Positioned(
+                  bottom: fabBottomMargin,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: BlocBuilder<TripEntityEditorBloc<T>,
+                        TripEntityEditorState<T>>(
+                      buildWhen: (previous, current) =>
+                          current is ConflictsAdded ||
+                          current is ConflictsRemoved ||
+                          current is ConflictsUpdated ||
+                          current is ConflictPlanConfirmed,
+                      builder: (context, state) {
+                        final conflictPlan = state.currentPlan;
+                        final hasUnresolvedConflicts = conflictPlan != null &&
+                            conflictPlan.hasConflicts &&
+                            !conflictPlan.isConfirmed;
+                        return _createActionButton(
+                            context, hasUnresolvedConflicts, conflictPlan);
+                      },
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      }),
     );
   }
 
   void _onEntityUpdated() {
-    // Note: Validation is handled by the page content itself (e.g., JourneyEditor).
-    // The pageContent sets the validityNotifier value directly.
+    // Individual editors now dispatch their own events (LodgingEditor, TripDetailsEditor,
+    // ItineraryPlanDataEditor, JourneyEditor) using their own valid BuildContext.
+    // This removes the dependency on ConflictAwareActionPage's context for BLoC access.
   }
-
-  // Removed _hasUnresolvedConflicts property as it's computed in the builder
 
   void _navigateToConflictResolution() {
     if (_pageController.hasClients) {
@@ -294,9 +323,7 @@ class _ConflictAwareActionPageState<T extends TripEntity>
               heroTag: null,
               onPressed: canSubmit
                   ? () {
-                      _dispatchConflictResolutionEvents(context, conflictPlan);
-                      widget.onActionInvoked(context);
-                      Navigator.of(context).pop();
+                      context.addTripEntityEditorEvent<T>(const SubmitEntity());
                     }
                   : null,
               backgroundColor:
@@ -309,21 +336,21 @@ class _ConflictAwareActionPageState<T extends TripEntity>
     );
   }
 
-  /// Dispatches all buffered conflict resolution events
-  void _dispatchConflictResolutionEvents(
-      BuildContext context, TripEntityUpdatePlan<T>? conflictPlan) {
-    if (conflictPlan == null || !conflictPlan.isConfirmed) return;
-
-    // Process transit changes
-    context.addTripManagementEvent(
-        ApplyTripDataUpdatePlan(updatePlan: conflictPlan));
+  void _handleEntitySubmitted(BuildContext context, T editableEntity) {
+    final conflictPlan = context.read<TripEntityEditorBloc<T>>().currentPlan;
+    if (conflictPlan != null && conflictPlan.isConfirmed) {
+      context.addTripManagementEvent(
+          ApplyTripDataUpdatePlan(updatePlan: conflictPlan));
+    }
+    widget.onActionInvoked(context);
+    Navigator.of(context).pop();
   }
 }
 
 /// Sticky conflict banner that stays at the top of the editor.
 /// Provides clear messaging and navigation to conflict resolution.
-class _StickyConflictBanner extends StatelessWidget {
-  final TripDataUpdatePlan conflictPlan;
+class _StickyConflictBanner<T extends TripEntity> extends StatelessWidget {
+  final TripEntityUpdatePlan<T> conflictPlan;
   final VoidCallback onViewConflicts;
 
   const _StickyConflictBanner({

@@ -21,4 +21,7 @@ enum EntityTimelinePosition {
 
   /// Entity's time overlaps the end boundary of the reference time range
   startsDuringEndsAfter,
+
+  /// Entity overlaps with another entity of the same type (intra-day)
+  isOverlapping,
 }

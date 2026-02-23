@@ -1,8 +1,10 @@
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
+import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 abstract class TripEntityEditorState<T extends TripEntity> {
-  const TripEntityEditorState();
+  final TripEntityUpdatePlan<T>? currentPlan;
+  const TripEntityEditorState(this.currentPlan);
 }
 
 /// Initial state right after construction.
@@ -10,30 +12,28 @@ class TripEntityInitialized<T extends TripEntity>
     extends TripEntityEditorState<T> {
   final T editableEntity;
 
-  const TripEntityInitialized(this.editableEntity);
+  const TripEntityInitialized(this.editableEntity,
+      [TripEntityUpdatePlan<T>? currentPlan])
+      : super(currentPlan);
 }
 
 /// Emitted after a successful compilation of conflict plan containing conflicts.
 class ConflictsAdded<T extends TripEntity> extends TripEntityEditorState<T> {
-  const ConflictsAdded();
+  const ConflictsAdded(TripEntityUpdatePlan<T> currentPlan)
+      : super(currentPlan);
 }
 
 /// Emitted when time ranges are updated without yielding conflicts.
 class ConflictsRemoved<T extends TripEntity> extends TripEntityEditorState<T> {
-  const ConflictsRemoved();
+  const ConflictsRemoved() : super(null);
 }
 
 /// Emitted when the existing conflict plan is updated.
 class ConflictsUpdated<T extends TripEntity> extends TripEntityEditorState<T> {
-  const ConflictsUpdated();
-}
+  final EntityChangeBase? change;
 
-/// Emitted when a conflicted entity is legitimately updated.
-class ConflictedEntityTimeRangeUpdated<T extends TripEntity>
-    extends TripEntityEditorState<T> {
-  final EntityChangeBase change;
-
-  const ConflictedEntityTimeRangeUpdated(this.change);
+  const ConflictsUpdated(TripEntityUpdatePlan<T> currentPlan, [this.change])
+      : super(currentPlan);
 }
 
 /// Emitted when editing a conflicted entity results in another unresolvable conflict.
@@ -41,28 +41,25 @@ class ConflictedEntityTimeRangeError<T extends TripEntity>
     extends TripEntityEditorState<T> {
   final EntityChangeBase change;
   final String errorMessage;
+  final dynamic oldTimeValues;
 
-  const ConflictedEntityTimeRangeError(this.change, this.errorMessage);
-}
-
-/// Emitted when a conflicted entity's deletion status is toggled.
-class ConflictedEntityDeletionToggled<T extends TripEntity>
-    extends TripEntityEditorState<T> {
-  final EntityChangeBase change;
-  final bool isDeleted;
-
-  const ConflictedEntityDeletionToggled(this.change, this.isDeleted);
+  const ConflictedEntityTimeRangeError(this.change, this.errorMessage,
+      this.oldTimeValues, TripEntityUpdatePlan<T>? currentPlan)
+      : super(currentPlan);
 }
 
 /// Emitted when the user confirms the conflict plan.
 class ConflictPlanConfirmed<T extends TripEntity>
     extends TripEntityEditorState<T> {
-  const ConflictPlanConfirmed();
+  const ConflictPlanConfirmed(TripEntityUpdatePlan<T> currentPlan)
+      : super(currentPlan);
 }
 
 /// Emitted when final submission happens, dispatching to TripManagementBloc.
 class EntitySubmitted<T extends TripEntity> extends TripEntityEditorState<T> {
   final T editableEntity;
 
-  const EntitySubmitted(this.editableEntity);
+  const EntitySubmitted(
+      this.editableEntity, TripEntityUpdatePlan<T>? currentPlan)
+      : super(currentPlan);
 }

@@ -198,7 +198,8 @@ class JourneyEditorState extends State<JourneyEditor> {
         // Trigger rebuild to update header with new leg data
       });
       // Time or location might have changed, trigger conflict scan
-      context.addTripEntityEditorEvent(UpdateJourneyTimeRange(_legs));
+      context.addTripEntityEditorEvent<TransitFacade>(
+          UpdateJourneyTimeRange(_legs));
     }
     widget.onJourneyUpdated();
     _updateValidity();

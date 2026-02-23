@@ -63,4 +63,8 @@ class TimeRange {
     }
     return true;
   }
+
+  bool overlapsWith(TimeRange other) {
+    return start.isBefore(other.end) && other.start.isBefore(end);
+  }
 }

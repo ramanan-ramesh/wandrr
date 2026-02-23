@@ -1,3 +1,4 @@
+import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -23,6 +24,11 @@ class UpdateJourneyTimeRange extends TripEntityEditorEvent {
 }
 
 /// Time range changed on a conflicted entity.
+class UpdateSightsTimeRange extends TripEntityEditorEvent {
+  final List<SightFacade> sights;
+  UpdateSightsTimeRange(this.sights);
+}
+
 class UpdateConflictedEntityTimeRange extends TripEntityEditorEvent {
   final EntityChangeBase change;
 

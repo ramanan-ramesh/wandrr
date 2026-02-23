@@ -130,6 +130,32 @@ class TripEntityUpdatePlan<T extends TripEntity> {
       }
     }
   }
+
+  /// Updates the conflict lists in-place.
+  void updateConflicts({
+    List<StayChange>? stays,
+    List<TransitChange>? transits,
+    List<SightChange>? sights,
+    List<ExpenseSplitChange>? expenses,
+  }) {
+    if (stays != null) {
+      stayChanges.clear();
+      stayChanges.addAll(stays);
+    }
+    if (transits != null) {
+      transitChanges.clear();
+      transitChanges.addAll(transits);
+    }
+    if (sights != null) {
+      sightChanges.clear();
+      sightChanges.addAll(sights);
+    }
+    if (expenses != null) {
+      expenseChanges.clear();
+      expenseChanges.addAll(expenses);
+    }
+    _isConfirmed = false;
+  }
 }
 
 /// Backward-compatible type aliases

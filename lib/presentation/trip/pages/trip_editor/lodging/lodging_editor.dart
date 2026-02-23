@@ -70,7 +70,7 @@ class _LodgingEditorState extends State<LodgingEditor> {
             _lodging.checkoutDateTime = checkout;
           });
           widget.onLodgingUpdated();
-          context.addTripEntityEditorEvent(
+          context.addTripEntityEditorEvent<LodgingFacade>(
             UpdateEntityTimeRange<LodgingFacade>(
               TimeRange(start: checkin, end: checkout),
             ),

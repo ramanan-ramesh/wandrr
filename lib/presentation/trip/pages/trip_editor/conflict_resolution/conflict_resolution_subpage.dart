@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_events.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
+import 'package:wandrr/data/trip/models/trip_entity.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/common/unified_entity_change_editor.dart';
 
 /// A subpage for resolving timeline conflicts within an entity editor.
 /// Supports live conflict detection - when resolving one conflict creates another.
-class ConflictResolutionSubpage extends StatefulWidget {
+class ConflictResolutionSubpage<T extends TripEntity> extends StatefulWidget {
   final VoidCallback onBackPressed;
   final VoidCallback onConflictsResolved;
   final VoidCallback? onConflictsChanged;
@@ -20,15 +22,16 @@ class ConflictResolutionSubpage extends StatefulWidget {
   });
 
   @override
-  State<ConflictResolutionSubpage> createState() =>
-      _ConflictResolutionSubpageState();
+  State<ConflictResolutionSubpage<T>> createState() =>
+      _ConflictResolutionSubpageState<T>();
 }
 
-class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
+class _ConflictResolutionSubpageState<T extends TripEntity>
+    extends State<ConflictResolutionSubpage<T>> {
   @override
   Widget build(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
-    final plan = context.tripEntityUpdatePlan;
+    final plan = context.tripEntityUpdatePlan<T>();
 
     if (plan == null) {
       return const SizedBox.shrink();
@@ -43,29 +46,29 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
         _buildStatusBar(context, isLightTheme),
         const SizedBox(height: 12),
         // Conflict editor connected to BLoC
-        plan is TripMetadataUpdatePlan
+        context.editableEntity<T>() is TripMetadataFacade
             ? UnifiedEntityChangeEditor.forMetadataUpdate(
-                updatePlan: plan,
+                updatePlan: plan as TripMetadataUpdatePlan,
                 onTimeRangeUpdated: (change) {
-                  context.addTripEntityEditorEvent(
+                  context.addTripEntityEditorEvent<T>(
                       UpdateConflictedEntityTimeRange(change));
                   _handleConflictChanged();
                 },
                 onDeletionToggled: (change) {
-                  context.addTripEntityEditorEvent(
+                  context.addTripEntityEditorEvent<T>(
                       ToggleConflictedEntityDeletion(change));
                   _handleConflictChanged();
                 },
               )
             : UnifiedEntityChangeEditor.forConflictResolution(
-                updatePlan: plan,
+                updatePlan: plan as TripDataUpdatePlan,
                 onTimeRangeUpdated: (change) {
-                  context.addTripEntityEditorEvent(
+                  context.addTripEntityEditorEvent<T>(
                       UpdateConflictedEntityTimeRange(change));
                   _handleConflictChanged();
                 },
                 onDeletionToggled: (change) {
-                  context.addTripEntityEditorEvent(
+                  context.addTripEntityEditorEvent<T>(
                       ToggleConflictedEntityDeletion(change));
                   _handleConflictChanged();
                 },
@@ -174,7 +177,7 @@ class _ConflictResolutionSubpageState extends State<ConflictResolutionSubpage> {
   Widget _buildConfirmButton(BuildContext context, bool isLightTheme) {
     return FilledButton.icon(
       onPressed: () {
-        context.addTripEntityEditorEvent(const ConfirmConflictPlan());
+        context.addTripEntityEditorEvent<T>(const ConfirmConflictPlan());
         widget.onConflictsResolved();
       },
       icon: const Icon(Icons.check, size: 18),
