@@ -205,6 +205,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
                 : AppColors.brandPrimaryLight),
         const SizedBox(height: _kSpacingMedium),
         ExpenditureEditTile(
+          key: ValueKey('expense_${sight.id ?? 'new'}'),
           expenseFacade: sight.expense,
           isEditable: true,
           callback: (paidBy, splitBy, totalExpense) {

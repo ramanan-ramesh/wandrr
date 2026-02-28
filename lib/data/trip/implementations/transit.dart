@@ -17,6 +17,7 @@ class TransitImplementation extends TransitFacade
   static const _confirmationIdField = 'confirmationId';
   static const _expenseField = 'totalExpense';
   static const _notesField = 'notes';
+  static const _journeyIdField = 'journeyId';
 
   TransitImplementation.fromModelFacade(
       {required TransitFacade transitModelFacade})
@@ -35,6 +36,7 @@ class TransitImplementation extends TransitFacade
                     locationModelFacade: transitModelFacade.arrivalLocation!),
             expense: ExpenseModelImplementation.fromModelFacade(
                 expenseModelFacade: transitModelFacade.expense),
+            journeyId: transitModelFacade.journeyId,
             confirmationId: transitModelFacade.confirmationId,
             id: transitModelFacade.id,
             operator: transitModelFacade.operator,
@@ -51,6 +53,7 @@ class TransitImplementation extends TransitFacade
             (element) => element.name == documentData[_transitOptionField]),
         expense: ExpenseModelImplementation.fromJson(
             documentData[_expenseField] as Map<String, dynamic>),
+        journeyId: documentData[_journeyIdField],
         confirmationId: documentData[_confirmationIdField],
         departureDateTime:
             (documentData[_departureDateTimeField] as Timestamp).toDate(),
@@ -80,6 +83,8 @@ class TransitImplementation extends TransitFacade
       _departureLocationField:
           (departureLocation as LeafRepositoryItem?)?.toJson(),
       _arrivalLocationField: (arrivalLocation as LeafRepositoryItem?)?.toJson(),
+      if (journeyId != null && journeyId!.isNotEmpty)
+        _journeyIdField: journeyId,
       if (confirmationId != null && confirmationId!.isNotEmpty)
         _confirmationIdField: confirmationId,
       if (operator != null && operator!.isNotEmpty) _operatorField: operator,
@@ -99,6 +104,7 @@ class TransitImplementation extends TransitFacade
       required LocationModelImplementation arrivalLocation,
       required ExpenseModelImplementation expense,
       required String super.id,
+      super.journeyId,
       super.confirmationId,
       super.operator,
       super.notes})

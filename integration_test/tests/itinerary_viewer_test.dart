@@ -6,7 +6,7 @@ import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_viewer.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/timeline_event.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/timeline_item_widget.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/timeline_item.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
 import '../helpers/test_helpers.dart';
@@ -129,11 +129,11 @@ Future<void> runItineraryViewerDefaultDateTest(WidgetTester tester) async {
   await tester.pumpAndSettle();
 
   // Get all visible timeline items
-  var timelineItemFinders = find.byType(TimelineItemWidget);
+  var timelineItemFinders = find.byType(TimelineItem);
   while (timelineItemFinders.evaluate().isNotEmpty) {
     // Extract events from visible widgets
     for (final element in timelineItemFinders.evaluate()) {
-      final widget = element.widget as TimelineItemWidget;
+      final widget = element.widget as TimelineItem;
       if (!actualEvents.any((e) =>
           e.time == widget.event.time && e.title == widget.event.title)) {
         actualEvents.add(widget.event);
@@ -145,7 +145,7 @@ Future<void> runItineraryViewerDefaultDateTest(WidgetTester tester) async {
     await tester.pumpAndSettle();
 
     // Check if we found new items
-    final newItemCount = find.byType(TimelineItemWidget).evaluate().length;
+    final newItemCount = find.byType(TimelineItem).evaluate().length;
     if (newItemCount == 0 || actualEvents.length >= expectedEvents.length) {
       break;
     }
@@ -467,7 +467,7 @@ Future<void> runItineraryViewerRefreshOnNavigationTest(
   );
 
   // Get initial timeline items count
-  final initialTimelineItems = find.byType(TimelineItemWidget);
+  final initialTimelineItems = find.byType(TimelineItem);
   final initialCount = initialTimelineItems.evaluate().length;
 
   // Navigate to next date
@@ -491,7 +491,7 @@ Future<void> runItineraryViewerRefreshOnNavigationTest(
       await tester.pumpAndSettle();
 
       // Get new timeline items count
-      final newTimelineItems = find.byType(TimelineItemWidget);
+      final newTimelineItems = find.byType(TimelineItem);
       final newCount = newTimelineItems.evaluate().length;
 
       // The itinerary viewer should have refreshed

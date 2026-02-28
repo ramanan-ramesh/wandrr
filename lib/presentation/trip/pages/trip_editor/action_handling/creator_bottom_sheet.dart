@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/editor_page_factory.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class TripEntityCreatorBottomSheet extends StatefulWidget {
   final Iterable<TripEditorAction> supportedActions;
@@ -34,16 +36,15 @@ class _TripEntityCreatorBottomSheetState
           return _createSupportedActionsListView(
               scrollController, _bottomPadding);
         }
-        var tripEntityToAdd = selectedAction!.createTripEntity(context);
-        return selectedAction!.createActionPage(
-            tripEntity: tripEntityToAdd,
-            isEditing: false,
-            onClosePressed: (context) => setState(() {
-                  selectedAction = null;
-                }),
-            scrollController: scrollController,
-            title:
-                selectedAction!.createSubtitle(context.localizations, false))!;
+        final entity = selectedAction!.createEntity(context);
+        final factory = EditorPageFactory(
+          tripData: context.activeTrip,
+          title: selectedAction!.getSubtitle(context.localizations, false),
+          isEditing: false,
+          onClosePressed: () => setState(() => selectedAction = null),
+          scrollController: scrollController,
+        );
+        return factory.createPage(entity) ?? const SizedBox.shrink();
       },
     );
   }
@@ -65,8 +66,8 @@ class _TripEntityCreatorBottomSheetState
   Widget _buildSupportedActionTile(
       TripEditorAction action, BuildContext context) {
     final icon = action.icon;
-    final title = action.getTripEntityCreatorTitle(context.localizations);
-    final subtitle = action.createSubtitle(context.localizations, false);
+    final title = action.getCreatorTitle(context.localizations);
+    final subtitle = action.getSubtitle(context.localizations, false);
     return ListTile(
       contentPadding: const EdgeInsets.all(20.0),
       onTap: () {

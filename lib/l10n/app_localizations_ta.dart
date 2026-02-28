@@ -22,6 +22,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get addChecklist => 'சரிபார்ப்புப் பட்டியலைச் சேர்க்கவும்';
 
   @override
+  String get addConnectingLeg => 'Add Connecting Leg';
+
+  @override
   String get addPlacesForThisDay => 'இந்த நாளுக்கான இடங்களைச் சேர்க்கவும்';
 
   @override

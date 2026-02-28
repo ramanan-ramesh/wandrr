@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
+import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
@@ -111,6 +114,13 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
                 widget.tripMetadataFacade.endDate = newEndDate;
               });
               widget.onTripMetadataUpdated();
+              if (newStartDate != null && newEndDate != null) {
+                context.addTripEntityEditorEvent<TripMetadataFacade>(
+                  UpdateEntityTimeRange<TripMetadataFacade>(
+                    TimeRange(start: newStartDate, end: newEndDate),
+                  ),
+                );
+              }
             },
           ),
           if (widget.tripMetadataFacade.startDate != null &&

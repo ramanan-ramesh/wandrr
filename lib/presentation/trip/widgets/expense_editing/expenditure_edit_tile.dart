@@ -58,9 +58,9 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   @override
   void didUpdateWidget(covariant ExpenditureEditTile oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!mapEquals(oldWidget.paidBy, widget.paidBy) ||
-        !listEquals(oldWidget.splitBy, widget.splitBy) ||
-        oldWidget.currency != widget.currency) {
+    if (!mapEquals(_currentPaidBy, widget.paidBy) ||
+        !listEquals(_currentSplitBy, widget.splitBy) ||
+        _currentCurrencyInfo.code != widget.currency) {
       setState(_initializeExpense);
     }
   }
@@ -156,6 +156,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
   Widget _createTotalExpenseField(
       BuildContext context, bool canEditAmountField) {
     return PlatformMoneyEditField(
+      key: const ValueKey('single_contributor_money_field'),
       isAmountEditable: canEditAmountField,
       initialAmount: _totalExpenseValueNotifier.value.amount,
       allCurrencies: context.supportedCurrencies,

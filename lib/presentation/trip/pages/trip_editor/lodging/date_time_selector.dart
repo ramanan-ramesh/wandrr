@@ -105,14 +105,14 @@ class _DateTimeSelectorState extends State<DateTimeSelector> {
           icon: Icons.login_rounded,
           iconColor: AppColors.success,
           dateTime: widget.checkinDateTime!,
-          onChanged: (newHour) {
+          onChanged: (hour, minute) {
             final current = widget.checkinDateTime!;
             widget.onCheckinChanged(DateTime(
               current.year,
               current.month,
               current.day,
-              newHour.toInt(),
-              0,
+              hour,
+              minute,
             ));
           },
         ),
@@ -122,14 +122,14 @@ class _DateTimeSelectorState extends State<DateTimeSelector> {
           icon: Icons.logout_rounded,
           iconColor: AppColors.warning,
           dateTime: widget.checkoutDateTime!,
-          onChanged: (newHour) {
+          onChanged: (hour, minute) {
             final current = widget.checkoutDateTime!;
             widget.onCheckoutChanged(DateTime(
               current.year,
               current.month,
               current.day,
-              newHour.toInt(),
-              0,
+              hour,
+              minute,
             ));
           },
         ),
@@ -138,12 +138,13 @@ class _DateTimeSelectorState extends State<DateTimeSelector> {
   }
 }
 
+/// Time slider that supports half-hour increments (00 and 30 minutes)
 class _TimeSlider extends StatelessWidget {
   final String label;
   final IconData icon;
   final Color iconColor;
   final DateTime dateTime;
-  final ValueChanged<double> onChanged;
+  final void Function(int hour, int minute) onChanged;
   static const Duration _animationDuration = Duration(milliseconds: 300);
   static const Duration _slowAnimationDuration = Duration(milliseconds: 400);
 
@@ -155,11 +156,25 @@ class _TimeSlider extends StatelessWidget {
     required this.onChanged,
   });
 
+  /// Convert DateTime to slider value (0-47 for half-hour increments)
+  double get _sliderValue {
+    return dateTime.hour * 2 + (dateTime.minute >= 30 ? 1 : 0).toDouble();
+  }
+
+  /// Convert slider value to hour and minute
+  (int hour, int minute) _valueToTime(double value) {
+    final intValue = value.round();
+    final hour = intValue ~/ 2;
+    final minute = (intValue % 2) * 30;
+    return (hour, minute);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final hour = dateTime.hour;
-    final timeString = _formatTime(hour);
+    final minute = dateTime.minute;
+    final timeString = _formatTime(hour, minute);
     return AnimatedContainer(
       duration: _animationDuration,
       curve: Curves.easeInOut,
@@ -275,11 +290,14 @@ class _TimeSlider extends StatelessWidget {
             overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
           ),
           child: Slider(
-            value: dateTime.hour.toDouble(),
+            value: _sliderValue,
             min: 0,
-            max: 23,
-            divisions: 23,
-            onChanged: onChanged,
+            max: 47, // 24 hours * 2 (half-hour increments) - 1
+            divisions: 47,
+            onChanged: (value) {
+              final (hour, minute) = _valueToTime(value);
+              onChanged(hour, minute);
+            },
           ),
         );
       },
@@ -294,7 +312,7 @@ class _TimeSlider extends StatelessWidget {
         children: [
           _buildTimeLabel(context, '12 AM', isLightTheme),
           _buildTimeLabel(context, '12 PM', isLightTheme),
-          _buildTimeLabel(context, '11 PM', isLightTheme),
+          _buildTimeLabel(context, '11:30 PM', isLightTheme),
         ],
       ),
     );
@@ -311,11 +329,12 @@ class _TimeSlider extends StatelessWidget {
     );
   }
 
-  String _formatTime(int hour) {
-    if (hour == 0) return '12:00 AM';
-    if (hour < 12) return '$hour:00 AM';
-    if (hour == 12) return '12:00 PM';
-    return '${hour - 12}:00 PM';
+  String _formatTime(int hour, int minute) {
+    final minuteStr = minute.toString().padLeft(2, '0');
+    if (hour == 0) return '12:$minuteStr AM';
+    if (hour < 12) return '$hour:$minuteStr AM';
+    if (hour == 12) return '12:$minuteStr PM';
+    return '${hour - 12}:$minuteStr PM';
   }
 }
 

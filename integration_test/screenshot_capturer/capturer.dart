@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/timeline_item_widget.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/timeline_item.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
@@ -41,14 +41,13 @@ Future<void> runScreenshotCapturer(
   await _generateScreenshot(tester, binding, _tripEditorPage);
 
   final flightTimelineEntry = find.descendant(
-      of: find.byType(TimelineItemWidget),
-      matching: find.text('Air France AF 542'));
+      of: find.byType(TimelineItem), matching: find.text('Air France AF 542'));
   await TestHelpers.tapWidget(tester, flightTimelineEntry);
   await _generateScreenshot(tester, binding, _flightEditor);
   await _closeActionPage(tester);
 
   final stayTimelineEntry = find.descendant(
-      of: find.byType(TimelineItemWidget),
+      of: find.byType(TimelineItem),
       matching: find.text('Check-In • 02:00 PM'));
   await TestHelpers.tapWidget(tester, stayTimelineEntry);
   await _generateScreenshot(tester, binding, _stayEditor);

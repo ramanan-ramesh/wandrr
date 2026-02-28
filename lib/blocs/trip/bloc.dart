@@ -52,7 +52,7 @@ class TripManagementBloc
     on<UpdateTripEntity<TransitFacade>>(_onUpdateTransit);
     on<UpdateTripEntity<LodgingFacade>>(_onUpdateLodging);
     on<GoToHome>(_onGoToHome);
-    on<ApplyTripMetadataUpdatePlan>(_onApplyTripMetadataUpdatePlan);
+    on<ApplyTripDataUpdatePlan>(_onApplyTripMetadataUpdatePlan);
     on<UpdateTripEntity<StandaloneExpense>>(_onUpdateExpense);
     on<UpdateTripEntity<TripMetadataFacade>>(_onUpdateTripMetadata);
     on<UpdateTripEntity<ItineraryPlanData>>(_onUpdateItineraryData);
@@ -325,8 +325,8 @@ class TripManagementBloc
     await _itinerarySubscriptionHandler!.createSubscriptions();
   }
 
-  Future<void> _onApplyTripMetadataUpdatePlan(ApplyTripMetadataUpdatePlan event,
-      Emitter<TripManagementState> emit) async {
+  Future<void> _onApplyTripMetadataUpdatePlan(
+      ApplyTripDataUpdatePlan event, Emitter<TripManagementState> emit) async {
     await _activeTrip?.applyUpdatePlan(event.updatePlan);
   }
 }

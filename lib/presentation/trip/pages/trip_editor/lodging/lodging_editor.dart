@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/services/time_range.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
+import 'package:wandrr/presentation/trip/widgets/stay_date_time_range_editor.dart';
 
-import 'date_time_selector.dart';
 import 'stay_details.dart';
 
 class LodgingEditor extends StatefulWidget {
   final LodgingFacade lodging;
   final void Function() onLodgingUpdated;
 
+  /// Notifier to track if FAB should be enabled
+  final ValueNotifier<bool>? validityNotifier;
+
   const LodgingEditor({
     required this.lodging,
     required this.onLodgingUpdated,
+    this.validityNotifier,
     super.key,
   });
 
@@ -25,8 +33,7 @@ class LodgingEditor extends StatefulWidget {
   State<LodgingEditor> createState() => _LodgingEditorState();
 }
 
-class _LodgingEditorState extends State<LodgingEditor>
-    with SingleTickerProviderStateMixin {
+class _LodgingEditorState extends State<LodgingEditor> {
   LodgingFacade get _lodging => widget.lodging;
 
   @override
@@ -47,26 +54,27 @@ class _LodgingEditorState extends State<LodgingEditor>
     );
   }
 
-  Widget _buildDatesSection(BuildContext context, dynamic tripMetadata) {
+  Widget _buildDatesSection(
+      BuildContext context, TripMetadataFacade tripMetadata) {
     return EditorTheme.createSection(
       context: context,
-      child: DateTimeSelector(
+      child: StayDateTimeRangeEditor(
         checkinDateTime: _lodging.checkinDateTime,
         checkoutDateTime: _lodging.checkoutDateTime,
-        firstDate: tripMetadata.startDate!,
-        lastDate: tripMetadata.endDate!,
+        tripStartDate: tripMetadata.startDate!,
+        tripEndDate: tripMetadata.endDate!,
         location: _lodging.location,
-        onCheckinChanged: (newDateTime) {
+        onStayRangeChanged: (checkin, checkout) {
           setState(() {
-            _lodging.checkinDateTime = newDateTime;
+            _lodging.checkinDateTime = checkin;
+            _lodging.checkoutDateTime = checkout;
           });
           widget.onLodgingUpdated();
-        },
-        onCheckoutChanged: (newDateTime) {
-          setState(() {
-            _lodging.checkoutDateTime = newDateTime;
-          });
-          widget.onLodgingUpdated();
+          context.addTripEntityEditorEvent<LodgingFacade>(
+            UpdateEntityTimeRange<LodgingFacade>(
+              TimeRange(start: checkin, end: checkout),
+            ),
+          );
         },
       ),
     );

@@ -100,7 +100,7 @@ class PlatformDatePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var buttonText = selectedDate != null
-        ? selectedDate!.monthDateYearFormat
+        ? selectedDate!.dayDateMonthFormat // Shows: Wed, Sep 24
         : 'Date:       ';
     return TextButton.icon(
       onPressed: () {

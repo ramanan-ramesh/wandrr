@@ -397,10 +397,7 @@ class _CollapsibleEntry<T> extends StatelessWidget {
   Widget _buildExpanded(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: ValueListenableBuilder<int>(
-        valueListenable: itemNotifier,
-        builder: (context, _, __) => expandedBuilder(context, notifyChanged),
-      ),
+      child: expandedBuilder(context, notifyChanged),
     );
   }
 }

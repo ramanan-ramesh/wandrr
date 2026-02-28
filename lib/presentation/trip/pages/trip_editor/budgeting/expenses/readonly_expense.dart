@@ -103,7 +103,8 @@ class ReadonlyExpenseListItem extends StatelessWidget {
             padding: const EdgeInsets.all(_kInnerPadding),
             child: Text(
               "${context.localizations.description}\n$description",
-              maxLines: null,
+              maxLines: 4,
+              overflow: TextOverflow.fade,
             ),
           ),
       ],

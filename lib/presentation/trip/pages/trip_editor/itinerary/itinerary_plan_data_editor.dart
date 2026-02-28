@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
+import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
@@ -142,7 +144,12 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
 
   Widget _buildSightsTab() => ItinerarySightsEditor(
         sights: _planData.sights,
-        onSightsChanged: widget.onPlanDataUpdated,
+        onSightsChanged: () {
+          widget.onPlanDataUpdated();
+          context.addTripEntityEditorEvent<ItineraryPlanData>(
+            UpdateSightsTimeRange(_planData.sights),
+          );
+        },
         day: _planData.day,
         initialExpandedIndex: _getInitialExpandedIndex(PlanDataType.sight),
       );

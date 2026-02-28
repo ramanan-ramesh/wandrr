@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
@@ -300,8 +299,7 @@ class _TripContributorsEditorSectionState
     });
 
     try {
-      final userManagement =
-          (context.appDataRepository as AppDataModifier).userManagement;
+      final userManagement = context.appDataRepository.userManagement;
 
       final results = await Future.wait([
         userManagement.doesUserNameExist(name),

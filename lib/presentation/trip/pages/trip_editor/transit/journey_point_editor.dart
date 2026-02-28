@@ -19,12 +19,18 @@ class JourneyPointEditor extends StatelessWidget {
   final ValueChanged<LocationFacade?> onLocationChanged;
   final ValueChanged<DateTime> onDateTimeChanged;
 
+  /// Minimum allowed date time for this point
+  /// For departure: this is the previous leg's arrival time (for connecting legs)
+  /// For arrival: this is automatically set to departure time + 1 minute
+  final DateTime? minDateTime;
+
   const JourneyPointEditor({
     Key? key,
     required this.transitFacade,
     required this.isDeparture,
     required this.onLocationChanged,
     required this.onDateTimeChanged,
+    this.minDateTime,
   }) : super(key: key);
 
   @override
@@ -35,9 +41,18 @@ class JourneyPointEditor extends StatelessWidget {
     final location = isDeparture
         ? transitFacade.departureLocation
         : transitFacade.arrivalLocation;
-    final startDateTime = isDeparture
-        ? tripMetadata.startDate!
-        : _getStartDateTime(true, tripMetadata.startDate!);
+
+    // Calculate start date time constraint
+    DateTime startDateTime;
+    if (isDeparture) {
+      // For departure: use minDateTime (previous leg's arrival) if provided,
+      // otherwise use trip start date
+      startDateTime = minDateTime ?? tripMetadata.startDate!;
+    } else {
+      // For arrival: must be at least 1 minute after departure
+      startDateTime = _getStartDateTime(true, tripMetadata.startDate!);
+    }
+
     final endDateTime = _getEndDateTime(tripMetadata.endDate!);
     return EditorTheme.createSection(
       context: context,
