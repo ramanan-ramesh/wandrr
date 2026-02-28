@@ -1128,6 +1128,9 @@ class _OptimizedEntityChangeSectionState<T extends TripEntity>
 }
 
 /// An individual change item that uses [ConflictItemBuilder] for localized rebuilds.
+///
+/// This widget only rebuilds when [ConflictItemUpdated] state is emitted for
+/// this specific entity (matched by type AND ID).
 class _OptimizedChangeItem<T extends TripEntity> extends StatelessWidget {
   final EntityChangeBase change;
   final ConflictSectionType sectionType;
@@ -1147,108 +1150,107 @@ class _OptimizedChangeItem<T extends TripEntity> extends StatelessWidget {
   Widget build(BuildContext context) {
     return ConflictItemBuilder<T>(
       change: change,
-      builder: (context, updatedChange) {
-        // The builder is called with the original change reference,
-        // which has been mutated in place by the bloc
-        return _buildItemContent(context);
-      },
+      builder: _buildItemContent,
     );
   }
 
-  Widget _buildItemContent(BuildContext context) {
+  Widget _buildItemContent(
+      BuildContext context, EntityChangeBase activeChange) {
     switch (sectionType) {
       case ConflictSectionType.stays:
-        return _buildStayItem(context, change as EntityChange<LodgingFacade>);
+        return _buildStayItem(
+            context, activeChange as EntityChange<LodgingFacade>);
       case ConflictSectionType.transits:
         return _buildTransitItem(
-            context, change as EntityChange<TransitFacade>);
+            context, activeChange as EntityChange<TransitFacade>);
       case ConflictSectionType.sights:
-        return _buildSightItem(context, change as EntityChange<SightFacade>);
+        return _buildSightItem(
+            context, activeChange as EntityChange<SightFacade>);
     }
   }
 
   Widget _buildStayItem(
-      BuildContext context, EntityChange<LodgingFacade> change) {
-    final lodging = change.modified;
-    final originalLodging = change.original;
+      BuildContext context, EntityChange<LodgingFacade> activeChange) {
+    final lodging = activeChange.modified;
+    final originalLodging = activeChange.original;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final iconColor =
         isLightTheme ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
 
     return EntityChangeItemCard(
-      isDeleted: change.isMarkedForDeletion,
-      isClamped: change.isClamped,
+      isDeleted: activeChange.isMarkedForDeletion,
+      isClamped: activeChange.isClamped,
       icon: Icons.hotel_rounded,
       iconColor: iconColor,
       title: lodging.location?.context.name ?? 'Unknown Location',
       subtitle: lodging.location?.context.city,
-      onToggleDelete: () => onDeletionToggled(change),
-      conflictSource: change.conflictSource,
+      onToggleDelete: () => onDeletionToggled(activeChange),
+      conflictSource: activeChange.conflictSource,
       child: StayDateTimeRangeEditor(
         checkinDateTime: lodging.checkinDateTime,
         checkoutDateTime: lodging.checkoutDateTime,
         tripStartDate: plan.tripStartDate,
         tripEndDate: plan.tripEndDate,
         location: lodging.location,
-        showOriginalTimes: change.isClamped,
+        showOriginalTimes: activeChange.isClamped,
         originalCheckinDateTime: originalLodging.checkinDateTime,
         originalCheckoutDateTime: originalLodging.checkoutDateTime,
         onStayRangeChanged: (checkin, checkout) {
           lodging.checkinDateTime = checkin;
           lodging.checkoutDateTime = checkout;
-          onTimeRangeUpdated(change);
+          onTimeRangeUpdated(activeChange);
         },
       ),
     );
   }
 
   Widget _buildTransitItem(
-      BuildContext context, EntityChange<TransitFacade> change) {
-    final transit = change.modified;
+      BuildContext context, EntityChange<TransitFacade> activeChange) {
+    final transit = activeChange.modified;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final iconColor = isLightTheme ? AppColors.info : AppColors.infoLight;
 
     return EntityChangeItemCard(
-      isDeleted: change.isMarkedForDeletion,
-      isClamped: change.isClamped,
+      isDeleted: activeChange.isMarkedForDeletion,
+      isClamped: activeChange.isClamped,
       icon: _getTransitIcon(transit.transitOption),
       iconColor: iconColor,
       title:
           '${transit.departureLocation?.context.name ?? '?'} → ${transit.arrivalLocation?.context.name ?? '?'}',
-      onToggleDelete: () => onDeletionToggled(change),
-      conflictSource: change.conflictSource,
+      onToggleDelete: () => onDeletionToggled(activeChange),
+      conflictSource: activeChange.conflictSource,
       child: _TransitDateTimeEditor(
         transit: transit,
-        change: change,
+        change: activeChange,
         tripStartDate: plan.tripStartDate,
         tripEndDate: plan.tripEndDate,
         onValidateRange: (_) => true,
-        onChanged: () => onTimeRangeUpdated(change),
+        onChanged: () => onTimeRangeUpdated(activeChange),
       ),
     );
   }
 
   Widget _buildSightItem(
-      BuildContext context, EntityChange<SightFacade> change) {
-    final sight = change.modified;
+      BuildContext context, EntityChange<SightFacade> activeChange) {
+    final sight = activeChange.modified;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final iconColor = isLightTheme ? AppColors.success : AppColors.successLight;
 
     return EntityChangeItemCard(
-      isDeleted: change.isMarkedForDeletion,
-      isClamped: change.isClamped,
+      isDeleted: activeChange.isMarkedForDeletion,
+      isClamped: activeChange.isClamped,
       icon: Icons.place_rounded,
       iconColor: iconColor,
       title: sight.name.isNotEmpty ? sight.name : 'Unnamed Sight',
       subtitle: sight.location?.context.name,
-      onToggleDelete: () => onDeletionToggled(change),
-      conflictSource: change.conflictSource,
+      onToggleDelete: () => onDeletionToggled(activeChange),
+      conflictSource: activeChange.conflictSource,
       child: _SightTimeEditor(
-        change: change,
+        change: activeChange,
         tripStartDate: plan.tripStartDate,
         tripEndDate: plan.tripEndDate,
         onValidateRange: (_) => true,
-        onChanged: () => onTimeRangeUpdated(change),
+        onChanged: () => onTimeRangeUpdated(activeChange),
       ),
     );
   }

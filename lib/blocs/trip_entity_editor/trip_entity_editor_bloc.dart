@@ -170,7 +170,13 @@ class TripEntityEditorBloc<T extends TripEntity>
     }
 
     // Add new conflicts to the plan if any
+    final hasNewConflicts = result.newConflicts.isNotEmpty;
     _addNewConflictsToPlan(result.newConflicts);
+
+    // If new conflicts were added, emit ConflictsUpdated first so sections can rebuild
+    if (hasNewConflicts) {
+      emit(ConflictsUpdated<T>(_currentPlan!));
+    }
 
     // Emit updates for each affected change (enables localized UI rebuilds)
     for (final change in result.allUpdatedChanges) {
