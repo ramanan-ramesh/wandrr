@@ -7,8 +7,9 @@ import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/common/entity_change_message_provider.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/common/entity_change_section.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/conflict_section_builder.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/entity_change_message_provider.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/entity_change_section.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/widgets/stay_date_time_range_editor.dart';
 
@@ -913,6 +914,367 @@ class _TriStateCheckbox extends StatelessWidget {
           ),
         ),
       );
+    }
+  }
+}
+
+// =============================================================================
+// Optimized Entity Change Section
+// =============================================================================
+
+/// An optimized section for displaying entity changes that uses [ConflictItemBuilder]
+/// to rebuild individual items only when they are updated.
+///
+/// This widget should be used within a [ConflictSectionBuilder] which handles
+/// section-level rebuilds when conflicts are added/removed.
+class OptimizedEntityChangeSection<T extends TripEntity>
+    extends StatefulWidget {
+  final ConflictSectionType sectionType;
+  final TripDataUpdatePlan plan;
+  final MessageContext messageContext;
+  final void Function(EntityChangeBase change) onTimeRangeUpdated;
+  final void Function(EntityChangeBase change) onDeletionToggled;
+
+  const OptimizedEntityChangeSection({
+    super.key,
+    required this.sectionType,
+    required this.plan,
+    required this.messageContext,
+    required this.onTimeRangeUpdated,
+    required this.onDeletionToggled,
+  });
+
+  @override
+  State<OptimizedEntityChangeSection<T>> createState() =>
+      _OptimizedEntityChangeSectionState<T>();
+}
+
+class _OptimizedEntityChangeSectionState<T extends TripEntity>
+    extends State<OptimizedEntityChangeSection<T>> {
+  late EntityChangeMessageProvider _messageProvider;
+  bool _isExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _messageProvider = EntityChangeMessageProvider(widget.messageContext);
+  }
+
+  @override
+  void didUpdateWidget(OptimizedEntityChangeSection<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.messageContext != widget.messageContext) {
+      _messageProvider = EntityChangeMessageProvider(widget.messageContext);
+    }
+  }
+
+  List<EntityChangeBase> get _changes {
+    switch (widget.sectionType) {
+      case ConflictSectionType.stays:
+        return widget.plan.stayChanges.cast<EntityChangeBase>();
+      case ConflictSectionType.transits:
+        return widget.plan.transitChanges.cast<EntityChangeBase>();
+      case ConflictSectionType.sights:
+        return widget.plan.sightChanges.cast<EntityChangeBase>();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final changes = _changes;
+    if (changes.isEmpty) return const SizedBox.shrink();
+
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final iconColor = _getIconColor(isLightTheme);
+
+    return EditorTheme.createSection(
+      context: context,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          EditorTheme.createSectionHeader(
+            context,
+            icon: _getSectionIcon(),
+            title: _getSectionTitle(changes.length),
+            iconColor: iconColor,
+            trailing: IconButton(
+              icon: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
+              onPressed: _toggleExpansion,
+            ),
+            onTap: _toggleExpansion,
+          ),
+          if (_isExpanded) ...[
+            const SizedBox(height: 8),
+            _buildInfoBanner(),
+            const SizedBox(height: 12),
+            // Each item uses ConflictItemBuilder for localized updates
+            ...changes.map((change) => _OptimizedChangeItem<T>(
+                  change: change,
+                  sectionType: widget.sectionType,
+                  plan: widget.plan,
+                  onTimeRangeUpdated: widget.onTimeRangeUpdated,
+                  onDeletionToggled: widget.onDeletionToggled,
+                )),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _toggleExpansion() {
+    setState(() => _isExpanded = !_isExpanded);
+  }
+
+  IconData _getSectionIcon() {
+    switch (widget.sectionType) {
+      case ConflictSectionType.stays:
+        return Icons.hotel_rounded;
+      case ConflictSectionType.transits:
+        return Icons.directions_transit_rounded;
+      case ConflictSectionType.sights:
+        return Icons.attractions_rounded;
+    }
+  }
+
+  String _getSectionTitle(int count) {
+    switch (widget.sectionType) {
+      case ConflictSectionType.stays:
+        return _messageProvider.staysSectionTitle(count);
+      case ConflictSectionType.transits:
+        return _messageProvider.transitsSectionTitle(count);
+      case ConflictSectionType.sights:
+        return _messageProvider.sightsSectionTitle(count);
+    }
+  }
+
+  Color _getIconColor(bool isLightTheme) {
+    switch (widget.sectionType) {
+      case ConflictSectionType.stays:
+        return isLightTheme
+            ? AppColors.brandPrimary
+            : AppColors.brandPrimaryLight;
+      case ConflictSectionType.transits:
+        return isLightTheme ? AppColors.info : AppColors.infoLight;
+      case ConflictSectionType.sights:
+        return isLightTheme ? AppColors.success : AppColors.successLight;
+    }
+  }
+
+  Widget _buildInfoBanner() {
+    final infoMessage = _getInfoMessage();
+    if (infoMessage == null) return const SizedBox.shrink();
+
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isLightTheme
+            ? AppColors.info.withValues(alpha: 0.1)
+            : AppColors.infoLight.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isLightTheme
+              ? AppColors.info.withValues(alpha: 0.3)
+              : AppColors.infoLight.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 16,
+                color: isLightTheme ? AppColors.info : AppColors.infoLight,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  infoMessage.title,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color:
+                            isLightTheme ? AppColors.info : AppColors.infoLight,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            infoMessage.details,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isLightTheme
+                      ? Colors.grey.shade700
+                      : Colors.grey.shade400,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  EntityChangeInfoMessage? _getInfoMessage() {
+    switch (widget.sectionType) {
+      case ConflictSectionType.stays:
+        return _messageProvider.staysSectionInfo();
+      case ConflictSectionType.transits:
+        return _messageProvider.transitsSectionInfo();
+      case ConflictSectionType.sights:
+        return _messageProvider.sightsSectionInfo();
+    }
+  }
+}
+
+/// An individual change item that uses [ConflictItemBuilder] for localized rebuilds.
+class _OptimizedChangeItem<T extends TripEntity> extends StatelessWidget {
+  final EntityChangeBase change;
+  final ConflictSectionType sectionType;
+  final TripDataUpdatePlan plan;
+  final void Function(EntityChangeBase change) onTimeRangeUpdated;
+  final void Function(EntityChangeBase change) onDeletionToggled;
+
+  const _OptimizedChangeItem({
+    required this.change,
+    required this.sectionType,
+    required this.plan,
+    required this.onTimeRangeUpdated,
+    required this.onDeletionToggled,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ConflictItemBuilder<T>(
+      change: change,
+      builder: (context, updatedChange) {
+        // The builder is called with the original change reference,
+        // which has been mutated in place by the bloc
+        return _buildItemContent(context);
+      },
+    );
+  }
+
+  Widget _buildItemContent(BuildContext context) {
+    switch (sectionType) {
+      case ConflictSectionType.stays:
+        return _buildStayItem(context, change as EntityChange<LodgingFacade>);
+      case ConflictSectionType.transits:
+        return _buildTransitItem(
+            context, change as EntityChange<TransitFacade>);
+      case ConflictSectionType.sights:
+        return _buildSightItem(context, change as EntityChange<SightFacade>);
+    }
+  }
+
+  Widget _buildStayItem(
+      BuildContext context, EntityChange<LodgingFacade> change) {
+    final lodging = change.modified;
+    final originalLodging = change.original;
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final iconColor =
+        isLightTheme ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
+
+    return EntityChangeItemCard(
+      isDeleted: change.isMarkedForDeletion,
+      isClamped: change.isClamped,
+      icon: Icons.hotel_rounded,
+      iconColor: iconColor,
+      title: lodging.location?.context.name ?? 'Unknown Location',
+      subtitle: lodging.location?.context.city,
+      onToggleDelete: () => onDeletionToggled(change),
+      conflictSource: change.conflictSource,
+      child: StayDateTimeRangeEditor(
+        checkinDateTime: lodging.checkinDateTime,
+        checkoutDateTime: lodging.checkoutDateTime,
+        tripStartDate: plan.tripStartDate,
+        tripEndDate: plan.tripEndDate,
+        location: lodging.location,
+        showOriginalTimes: change.isClamped,
+        originalCheckinDateTime: originalLodging.checkinDateTime,
+        originalCheckoutDateTime: originalLodging.checkoutDateTime,
+        onStayRangeChanged: (checkin, checkout) {
+          lodging.checkinDateTime = checkin;
+          lodging.checkoutDateTime = checkout;
+          onTimeRangeUpdated(change);
+        },
+      ),
+    );
+  }
+
+  Widget _buildTransitItem(
+      BuildContext context, EntityChange<TransitFacade> change) {
+    final transit = change.modified;
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final iconColor = isLightTheme ? AppColors.info : AppColors.infoLight;
+
+    return EntityChangeItemCard(
+      isDeleted: change.isMarkedForDeletion,
+      isClamped: change.isClamped,
+      icon: _getTransitIcon(transit.transitOption),
+      iconColor: iconColor,
+      title:
+          '${transit.departureLocation?.context.name ?? '?'} → ${transit.arrivalLocation?.context.name ?? '?'}',
+      onToggleDelete: () => onDeletionToggled(change),
+      conflictSource: change.conflictSource,
+      child: _TransitDateTimeEditor(
+        transit: transit,
+        change: change,
+        tripStartDate: plan.tripStartDate,
+        tripEndDate: plan.tripEndDate,
+        onValidateRange: (_) => true,
+        onChanged: () => onTimeRangeUpdated(change),
+      ),
+    );
+  }
+
+  Widget _buildSightItem(
+      BuildContext context, EntityChange<SightFacade> change) {
+    final sight = change.modified;
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final iconColor = isLightTheme ? AppColors.success : AppColors.successLight;
+
+    return EntityChangeItemCard(
+      isDeleted: change.isMarkedForDeletion,
+      isClamped: change.isClamped,
+      icon: Icons.place_rounded,
+      iconColor: iconColor,
+      title: sight.name.isNotEmpty ? sight.name : 'Unnamed Sight',
+      subtitle: sight.location?.context.name,
+      onToggleDelete: () => onDeletionToggled(change),
+      conflictSource: change.conflictSource,
+      child: _SightTimeEditor(
+        change: change,
+        tripStartDate: plan.tripStartDate,
+        tripEndDate: plan.tripEndDate,
+        onValidateRange: (_) => true,
+        onChanged: () => onTimeRangeUpdated(change),
+      ),
+    );
+  }
+
+  IconData _getTransitIcon(TransitOption? option) {
+    switch (option) {
+      case TransitOption.flight:
+        return Icons.flight;
+      case TransitOption.train:
+        return Icons.train;
+      case TransitOption.bus:
+        return Icons.directions_bus;
+      case TransitOption.rentedVehicle:
+      case TransitOption.vehicle:
+        return Icons.directions_car;
+      case TransitOption.ferry:
+      case TransitOption.cruise:
+        return Icons.directions_boat;
+      case TransitOption.walk:
+        return Icons.directions_walk;
+      case TransitOption.publicTransport:
+        return Icons.commute;
+      case TransitOption.taxi:
+        return Icons.local_taxi;
+      default:
+        return Icons.directions_transit;
     }
   }
 }

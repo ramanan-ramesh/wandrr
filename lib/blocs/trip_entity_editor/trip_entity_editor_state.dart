@@ -4,6 +4,7 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 abstract class TripEntityEditorState<T extends TripEntity> {
   final TripEntityUpdatePlan<T>? currentPlan;
+
   const TripEntityEditorState(this.currentPlan);
 }
 
@@ -30,9 +31,18 @@ class ConflictsRemoved<T extends TripEntity> extends TripEntityEditorState<T> {
 
 /// Emitted when the existing conflict plan is updated.
 class ConflictsUpdated<T extends TripEntity> extends TripEntityEditorState<T> {
-  final EntityChangeBase? change;
+  const ConflictsUpdated(TripEntityUpdatePlan<T> currentPlan)
+      : super(currentPlan);
+}
 
-  const ConflictsUpdated(TripEntityUpdatePlan<T> currentPlan, [this.change])
+/// Emitted when a specific conflict item is updated (e.g., time changed, deletion toggled).
+/// Contains the specific change that was updated for localized rebuilds.
+class ConflictItemUpdated<T extends TripEntity>
+    extends TripEntityEditorState<T> {
+  final EntityChangeBase updatedChange;
+
+  const ConflictItemUpdated(
+      TripEntityUpdatePlan<T> currentPlan, this.updatedChange)
       : super(currentPlan);
 }
 

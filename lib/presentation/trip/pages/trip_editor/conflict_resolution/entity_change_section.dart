@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/common/entity_change_message_provider.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/entity_change_message_provider.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 
 /// A reusable expandable section for displaying a list of items with a header.

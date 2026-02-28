@@ -101,10 +101,6 @@ class _ConflictAwareActionPageState<T extends TripEntity>
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(errorState.errorMessage)),
               );
-            } else if (state is ConflictsAdded<T>) {
-              _navigateToConflictResolution();
-            } else if (state is ConflictsRemoved<T>) {
-              _navigateToEditor();
             }
           },
           child: Stack(
@@ -112,8 +108,8 @@ class _ConflictAwareActionPageState<T extends TripEntity>
               Column(
                 children: [
                   BlocSelector<TripEntityEditorBloc<T>,
-                      TripEntityEditorState<T>, TripEntityUpdatePlan<T>?>(
-                    selector: (state) => state.currentPlan,
+                      TripEntityEditorState<T>, int>(
+                    selector: (state) => state.currentPlan?.conflictCount ?? 0,
                     builder: _buildAppBar,
                   ),
                   BlocSelector<TripEntityEditorBloc<T>,
@@ -124,13 +120,10 @@ class _ConflictAwareActionPageState<T extends TripEntity>
                           plan.hasConflicts &&
                           !plan.isConfirmed;
                     },
-                    builder: (context, hasUnresolvedConflicts) {
-                      if (hasUnresolvedConflicts &&
+                    builder: (context, hasUnconfirmedConflicts) {
+                      if (hasUnconfirmedConflicts &&
                           !_isViewingConflictResolution) {
-                        final conflictPlan =
-                            context.read<TripEntityEditorBloc<T>>().currentPlan;
                         return _StickyConflictBanner<T>(
-                          conflictPlan: conflictPlan!,
                           onViewConflicts: _navigateToConflictResolution,
                         );
                       }
@@ -185,6 +178,7 @@ class _ConflictAwareActionPageState<T extends TripEntity>
                           current is ConflictsAdded ||
                           current is ConflictsRemoved ||
                           current is ConflictsUpdated ||
+                          current is ConflictItemUpdated ||
                           current is ConflictPlanConfirmed,
                       builder: (context, state) {
                         final conflictPlan = state.currentPlan;
@@ -236,74 +230,80 @@ class _ConflictAwareActionPageState<T extends TripEntity>
     }
   }
 
-  Widget _buildAppBar(
-      BuildContext context, TripEntityUpdatePlan<T>? conflictPlan) {
+  Widget _buildAppBar(BuildContext context, int conflictsCount) {
     final isLightTheme = context.isLightTheme;
 
     return AppBar(
-      leading: IconButton(
-        icon:
-            Icon(_isViewingConflictResolution ? Icons.arrow_back : Icons.close),
-        style: isLightTheme
-            ? ButtonStyle(
-                backgroundColor:
-                    WidgetStatePropertyAll(AppColors.brandSecondary),
-              )
-            : null,
-        onPressed: () {
-          if (_isViewingConflictResolution) {
-            _navigateToEditor();
-          } else {
-            widget.onClosePressed();
-          }
-        },
-      ),
+      leading: _isViewingConflictResolution
+          ? IconButton(
+              icon: Icon(Icons.arrow_back),
+              style: isLightTheme
+                  ? ButtonStyle(
+                      backgroundColor:
+                          WidgetStatePropertyAll(AppColors.brandSecondary),
+                    )
+                  : null,
+              onPressed: _navigateToEditor,
+            )
+          : IconButton(
+              icon: Icon(Icons.close),
+              style: isLightTheme
+                  ? ButtonStyle(
+                      backgroundColor:
+                          WidgetStatePropertyAll(AppColors.brandSecondary),
+                    )
+                  : null,
+              onPressed: widget.onClosePressed,
+            ),
       title: Text(
           _isViewingConflictResolution ? 'Resolve Conflicts' : widget.title),
       centerTitle: true,
       elevation: 0,
       actions: [
-        if ((conflictPlan?.hasConflicts ?? false) &&
-            !_isViewingConflictResolution)
-          IconButton(
-            style: isLightTheme
-                ? ButtonStyle(
-                    backgroundColor:
-                        WidgetStatePropertyAll(AppColors.brandSecondary),
-                  )
-                : null,
-            icon: Stack(
-              children: [
-                const Icon(Icons.warning_amber_rounded),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: AppColors.error,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 14,
-                      minHeight: 14,
-                    ),
-                    child: Text(
-                      '${conflictPlan!.conflictCount}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            onPressed: _navigateToConflictResolution,
-          ),
+        if (conflictsCount > 0 && !_isViewingConflictResolution)
+          _createConflictCountIndicator(isLightTheme, conflictsCount),
       ],
+    );
+  }
+
+  IconButton _createConflictCountIndicator(
+      bool isLightTheme, int conflictsCount) {
+    return IconButton(
+      style: isLightTheme
+          ? ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll(AppColors.brandSecondary),
+            )
+          : null,
+      icon: Stack(
+        children: [
+          const Icon(Icons.warning_amber_rounded),
+          Positioned(
+            right: 0,
+            top: 0,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: AppColors.error,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 14,
+                minHeight: 14,
+              ),
+              child: Text(
+                conflictsCount.toString(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
+      ),
+      onPressed: _navigateToConflictResolution,
     );
   }
 
@@ -350,19 +350,18 @@ class _ConflictAwareActionPageState<T extends TripEntity>
 /// Sticky conflict banner that stays at the top of the editor.
 /// Provides clear messaging and navigation to conflict resolution.
 class _StickyConflictBanner<T extends TripEntity> extends StatelessWidget {
-  final TripEntityUpdatePlan<T> conflictPlan;
   final VoidCallback onViewConflicts;
 
   const _StickyConflictBanner({
-    required this.conflictPlan,
     required this.onViewConflicts,
   });
 
   @override
   Widget build(BuildContext context) {
+    final conflictPlan = context.tripEntityUpdatePlan<T>()!;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
-    final clampedCount = _countClampedEntities();
-    final deletionCount = _countDeletionEntities();
+    final clampedCount = _countClampedEntities(conflictPlan);
+    final deletionCount = _countDeletionEntities(conflictPlan);
 
     return Material(
       elevation: 4,
@@ -402,40 +401,7 @@ class _StickyConflictBanner<T extends TripEntity> extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.error,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            '${conflictPlan.conflictCount} CONFLICT${conflictPlan.conflictCount > 1 ? 'S' : ''}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 10,
-                                ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Resolve to save',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: isLightTheme
-                                        ? Colors.grey.shade700
-                                        : Colors.grey.shade300,
-                                  ),
-                        ),
-                      ],
-                    ),
+                    _createConflictCountText(conflictPlan, context),
                     const SizedBox(height: 4),
                     Text(
                       _buildDetailedMessage(clampedCount, deletionCount),
@@ -451,34 +417,7 @@ class _StickyConflictBanner<T extends TripEntity> extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color:
-                      isLightTheme ? AppColors.warning : AppColors.warningLight,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Review',
-                      style: TextStyle(
-                        color: isLightTheme ? Colors.white : Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 12,
-                      color: isLightTheme ? Colors.white : Colors.black,
-                    ),
-                  ],
-                ),
-              ),
+              _createReviewButton(isLightTheme),
             ],
           ),
         ),
@@ -486,7 +425,69 @@ class _StickyConflictBanner<T extends TripEntity> extends StatelessWidget {
     );
   }
 
-  int _countClampedEntities() {
+  Widget _createConflictCountText(
+      TripEntityUpdatePlan conflictPlan, BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: AppColors.error,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            '${conflictPlan.conflictCount} CONFLICT${conflictPlan.conflictCount > 1 ? 'S' : ''}',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'Resolve to save',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: context.isLightTheme
+                    ? Colors.grey.shade700
+                    : Colors.grey.shade300,
+              ),
+        ),
+      ],
+    );
+  }
+
+  Widget _createReviewButton(bool isLightTheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: isLightTheme ? AppColors.warning : AppColors.warningLight,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Review',
+            style: TextStyle(
+              color: isLightTheme ? Colors.white : Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            Icons.arrow_forward_ios,
+            size: 12,
+            color: isLightTheme ? Colors.white : Colors.black,
+          ),
+        ],
+      ),
+    );
+  }
+
+  int _countClampedEntities(TripEntityUpdatePlan conflictPlan) {
     int count = 0;
     for (final change in conflictPlan.transitChanges) {
       if (change.isClamped) count++;
@@ -500,7 +501,7 @@ class _StickyConflictBanner<T extends TripEntity> extends StatelessWidget {
     return count;
   }
 
-  int _countDeletionEntities() {
+  int _countDeletionEntities(TripEntityUpdatePlan conflictPlan) {
     int count = 0;
     for (final change in conflictPlan.transitChanges) {
       if (change.isMarkedForDeletion) count++;

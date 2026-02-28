@@ -25,17 +25,16 @@ extension BlocProviderExt on BuildContext {
 }
 
 extension TripEntityEditorBlocExt on BuildContext {
-  TripEntityEditorBloc<T> getTripEntityEditorBloc<T extends TripEntity>() =>
+  TripEntityEditorBloc<T> _getBloc<T extends TripEntity>() =>
       BlocProvider.of<TripEntityEditorBloc<T>>(this);
 
   TripEntityUpdatePlan<T>? tripEntityUpdatePlan<T extends TripEntity>() =>
-      getTripEntityEditorBloc<T>().currentPlan;
+      _getBloc<T>().currentPlan;
 
-  T editableEntity<T extends TripEntity>() =>
-      getTripEntityEditorBloc<T>().editableEntity;
+  T editableEntity<T extends TripEntity>() => _getBloc<T>().editableEntity;
 
   void addTripEntityEditorEvent<T extends TripEntity>(
       TripEntityEditorEvent event) {
-    getTripEntityEditorBloc<T>().add(event);
+    _getBloc<T>().add(event);
   }
 }
