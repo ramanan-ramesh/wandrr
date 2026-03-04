@@ -154,5 +154,11 @@
   "writeYourNoteHere": "உங்கள் குறிப்பை இங்கே எழுதுங்கள்",
   "wrong_password_entered": "தவறான கடவுச்சொல் உள்ளிடப்பட்டது",
   "yes": "ஆம்",
-  "you": "நீங்கள்"
+  "you": "நீங்கள்",
+  "copyTrip": "Copy Trip",
+  "copyTripTitle": "Copy Trip",
+  "chooseStartDate": "Choose a start date",
+  "tripDatesShifted": "Trip dates shifted from {oldDates} to {newDates}",
+  "upcomingTrips": "Upcoming Trips",
+  "pastTrips": "Past Trips"
 }

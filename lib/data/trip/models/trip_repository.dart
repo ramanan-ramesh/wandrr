@@ -24,6 +24,9 @@ abstract class TripRepositoryEventHandler extends TripRepositoryFacade
   Future loadTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository);
 
+  Future deleteTrip(TripMetadataFacade tripMetadata,
+      ApiServicesRepositoryFacade apiServicesRepository);
+
   Future unloadActiveTrip();
 
   void updateLocalizations(AppLocalizations appLocalizations);

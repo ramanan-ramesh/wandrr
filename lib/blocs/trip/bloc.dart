@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip/helpers/itinerary_subscription_handler.dart';
 import 'package:wandrr/blocs/trip/helpers/subscription_manager.dart';
@@ -11,6 +12,7 @@ import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/api_services/repository.dart';
+import 'package:wandrr/data/trip/implementations/services/trip_copy_service.dart';
 import 'package:wandrr/data/trip/implementations/trip_repository.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
@@ -31,7 +33,7 @@ class TripManagementBloc
   TripRepositoryEventHandler? _tripRepository;
   final SubscriptionManager _subscriptionManager = SubscriptionManager();
   final AppLocalizations appLocalizations;
-  final String currentUserName;
+  final String _currentUserName;
   ApiServicesRepositoryModifier? _apiServicesRepository;
 
   // Helper classes
@@ -42,7 +44,7 @@ class TripManagementBloc
 
   TripDataModelEventHandler? get _activeTrip => _tripRepository?.activeTrip;
 
-  TripManagementBloc(this.currentUserName, this.appLocalizations)
+  TripManagementBloc(this._currentUserName, this.appLocalizations)
       : super(LoadingTripManagement()) {
     _updateHandler = TripEntityUpdateHandler();
 
@@ -58,6 +60,7 @@ class TripManagementBloc
     on<UpdateTripEntity<ItineraryPlanData>>(_onUpdateItineraryData);
     on<_UpdateTripEntityInternalEvent>(_onTripEntityUpdateInternal);
     on<EditItineraryPlanData>(_onEditItineraryPlanData);
+    on<CopyTrip>(_onCopyTrip);
 
     add(_OnStartup());
   }
@@ -72,7 +75,7 @@ class TripManagementBloc
       _OnStartup event, Emitter<TripManagementState> emit) async {
     if (_tripRepository == null) {
       _tripRepository = await TripRepositoryImplementation.createInstance(
-          userName: currentUserName, appLocalizations: appLocalizations);
+          userName: _currentUserName, appLocalizations: appLocalizations);
       _initializeMetadataSubscriptionHandler();
       _metadataSubscriptionHandler!.createSubscriptions();
     }
@@ -180,6 +183,14 @@ class TripManagementBloc
   FutureOr<void> _onUpdateTripMetadata(
       UpdateTripEntity<TripMetadataFacade> event,
       Emitter<TripManagementState> emit) async {
+    if (event.dataState == DataState.delete) {
+      _apiServicesRepository = await ApiServicesRepositoryImpl.createInstance();
+      await _tripRepository!
+          .deleteTrip(event.tripEntity, _apiServicesRepository!);
+      await _apiServicesRepository!.dispose();
+      _apiServicesRepository = null;
+      return;
+    }
     await _updateHandler.updateTripEntityAndEmitState<TripMetadataFacade>(
       tripEntity: event.tripEntity,
       requestedDataState: event.dataState,
@@ -328,6 +339,40 @@ class TripManagementBloc
   Future<void> _onApplyTripMetadataUpdatePlan(
       ApplyTripDataUpdatePlan event, Emitter<TripManagementState> emit) async {
     await _activeTrip?.applyUpdatePlan(event.updatePlan);
+  }
+
+  FutureOr<void> _onCopyTrip(
+      CopyTrip event, Emitter<TripManagementState> emit) async {
+    final copyService = TripCopyService();
+    try {
+      final newTripMetadata = await copyService.copyTrip(
+        sourceTripMetadata: event.sourceTripMetadata,
+        newName: event.newName,
+        newStartDate: event.newStartDate,
+        newEndDate: event.newEndDate,
+        contributors: event.contributors,
+        budget: event.budget,
+        thumbnailTag: event.thumbnailTag,
+      );
+
+      // Emit success state (UI can listen and show a snackbar)
+      emit(UpdatedTripEntity<TripMetadataFacade>.created(
+        tripEntityModificationData: CollectionItemChangeMetadata(
+            newTripMetadata,
+            isFromExplicitAction: true),
+        isOperationSuccess: true,
+      ));
+    } catch (e) {
+      // In case of error
+      final fallbackMetadata = event.sourceTripMetadata.clone()
+        ..id = 'ERROR_COPYING';
+      emit(UpdatedTripEntity<TripMetadataFacade>.created(
+        tripEntityModificationData: CollectionItemChangeMetadata(
+            fallbackMetadata,
+            isFromExplicitAction: true),
+        isOperationSuccess: false,
+      ));
+    }
   }
 }
 

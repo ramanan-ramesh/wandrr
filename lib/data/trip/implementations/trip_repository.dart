@@ -6,7 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/data/store/implementations/firestore_model_collection.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
+import 'package:wandrr/data/trip/implementations/budgeting/expense.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
+import 'package:wandrr/data/trip/implementations/itinerary/itinerary.dart';
+import 'package:wandrr/data/trip/implementations/itinerary/itinerary_plan_data_implementation.dart';
+import 'package:wandrr/data/trip/implementations/lodging.dart';
+import 'package:wandrr/data/trip/implementations/transit.dart';
 import 'package:wandrr/data/trip/implementations/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
@@ -122,5 +127,50 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
         await unloadActiveTrip();
       }
     });
+  }
+
+  @override
+  Future deleteTrip(TripMetadataFacade tripMetadata,
+      ApiServicesRepositoryFacade apiServicesRepository) async {
+    await tripMetadataCollection.tryDeleteItem(tripMetadata);
+    final trip = await TripDataModelImplementation.createInstance(
+        tripMetadata,
+        apiServicesRepository,
+        _appLocalizations,
+        currentUserName,
+        supportedCurrencies);
+    final batch = FirebaseFirestore.instance.batch();
+    for (var itinerary in trip.itineraryCollection) {
+      final itineraryPlanDataModelImplementation =
+          ItineraryPlanDataModelImplementation(
+              tripId: tripMetadata.id!,
+              day: itinerary.day,
+              sights: itinerary.planData.sights,
+              notes: itinerary.planData.notes,
+              checkLists: itinerary.planData.checkLists);
+      batch.delete(itineraryPlanDataModelImplementation.documentReference);
+    }
+    for (var transit in trip.transitCollection.collectionItems) {
+      final transitModelImplementation =
+          TransitImplementation.fromModelFacade(transitModelFacade: transit);
+      batch.delete(transitModelImplementation.documentReference);
+    }
+    for (var lodging in trip.lodgingCollection.collectionItems) {
+      final lodgingModelImplementation =
+          LodgingModelImplementation.fromModelFacade(
+              lodgingModelFacade: lodging);
+      batch.delete(lodgingModelImplementation.documentReference);
+    }
+    for (var expense in trip.expenseCollection.collectionItems) {
+      final expenseModelImplementation =
+          StandaloneExpenseModelImplementation.fromModelFacade(
+              expenseModelFacade: expense);
+      batch.delete(expenseModelImplementation.documentReference);
+    }
+    batch.delete(FirebaseFirestore.instance
+        .collection(FirestoreCollections.tripCollectionName)
+        .doc(tripMetadata.id));
+    await trip.dispose();
+    await batch.commit();
   }
 }

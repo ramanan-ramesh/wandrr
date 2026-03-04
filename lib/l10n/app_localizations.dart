@@ -1029,6 +1029,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You'**
   String get you;
+
+  /// No description provided for @copyTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Trip'**
+  String get copyTrip;
+
+  /// No description provided for @copyTripTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Trip'**
+  String get copyTripTitle;
+
+  /// No description provided for @chooseStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a start date'**
+  String get chooseStartDate;
+
+  /// No description provided for @tripDatesShifted.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip dates shifted from {oldDates} to {newDates}'**
+  String tripDatesShifted(String oldDates, String newDates);
+
+  /// No description provided for @upcomingTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming Trips'**
+  String get upcomingTrips;
+
+  /// No description provided for @pastTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Past Trips'**
+  String get pastTrips;
 }
 
 class _AppLocalizationsDelegate

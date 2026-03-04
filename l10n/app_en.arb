@@ -153,5 +153,21 @@
   "writeYourNoteHere": "Write your note here",
   "wrong_password_entered": "Wrong password entered",
   "yes": "Yes",
-  "you": "You"
+  "you": "You",
+  "copyTrip": "Copy Trip",
+  "copyTripTitle": "Copy Trip",
+  "chooseStartDate": "Choose a start date",
+  "tripDatesShifted": "Trip dates shifted from {oldDates} to {newDates}",
+  "@tripDatesShifted": {
+    "placeholders": {
+      "oldDates": {
+        "type": "String"
+      },
+      "newDates": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingTrips": "Upcoming Trips",
+  "pastTrips": "Past Trips"
 }
