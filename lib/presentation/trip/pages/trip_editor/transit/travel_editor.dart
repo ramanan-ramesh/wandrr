@@ -106,7 +106,7 @@ class _TravelEditorState extends State<TravelEditor> {
       decoration: _buildBadgeDecoration(),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: TransitOptionPicker(
-        options: context.activeTrip.transitOptionMetadatas,
+        options: context.transitOptionMetadatas,
         initialTransitOption: _transitFacade.transitOption,
         onChanged: _handleTransitOptionChanged,
       ),

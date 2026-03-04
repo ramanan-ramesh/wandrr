@@ -75,7 +75,7 @@ class TripManagementBloc
       _OnStartup event, Emitter<TripManagementState> emit) async {
     if (_tripRepository == null) {
       _tripRepository = await TripRepositoryImplementation.createInstance(
-          userName: _currentUserName, appLocalizations: appLocalizations);
+          userName: _currentUserName);
       _initializeMetadataSubscriptionHandler();
       _metadataSubscriptionHandler!.createSubscriptions();
     }

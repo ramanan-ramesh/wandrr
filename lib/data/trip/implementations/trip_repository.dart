@@ -8,7 +8,6 @@ import 'package:wandrr/data/store/implementations/firestore_model_collection.dar
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/budgeting/expense.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
-import 'package:wandrr/data/trip/implementations/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/implementations/itinerary/itinerary_plan_data_implementation.dart';
 import 'package:wandrr/data/trip/implementations/lodging.dart';
 import 'package:wandrr/data/trip/implementations/transit.dart';
@@ -17,21 +16,17 @@ import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
-import 'package:wandrr/l10n/app_localizations.dart';
 
 import 'trip_data.dart';
 
 class TripRepositoryImplementation implements TripRepositoryEventHandler {
   static const _contributorsField = 'contributors';
 
-  AppLocalizations _appLocalizations;
-
   late final StreamSubscription _tripMetadataUpdatedEventSubscription;
   late final StreamSubscription _tripMetadataDeletedEventSubscription;
 
   static Future<TripRepositoryImplementation> createInstance(
-      {required String userName,
-      required AppLocalizations appLocalizations}) async {
+      {required String userName}) async {
     var tripsCollectionReference = FirebaseFirestore.instance
         .collection(FirestoreCollections.tripMetadataCollectionName);
 
@@ -52,7 +47,6 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
 
     return TripRepositoryImplementation._(
       tripMetadataModelCollection,
-      appLocalizations,
       userName,
       currencyDataList,
     );
@@ -76,17 +70,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   Future loadTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository) async {
     await activeTrip?.dispose();
-    activeTrip = await TripDataModelImplementation.createInstance(
-        tripMetadata,
-        apiServicesRepository,
-        _appLocalizations,
-        currentUserName,
-        supportedCurrencies);
-  }
-
-  @override
-  void updateLocalizations(AppLocalizations appLocalizations) {
-    _appLocalizations = appLocalizations;
+    activeTrip = await TripDataModelImplementation.createInstance(tripMetadata,
+        apiServicesRepository, currentUserName, supportedCurrencies);
   }
 
   @override
@@ -103,7 +88,6 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
 
   TripRepositoryImplementation._(
     this.tripMetadataCollection,
-    this._appLocalizations,
     this.currentUserName,
     this.supportedCurrencies,
   ) {
@@ -133,12 +117,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   Future deleteTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository) async {
     await tripMetadataCollection.tryDeleteItem(tripMetadata);
-    final trip = await TripDataModelImplementation.createInstance(
-        tripMetadata,
-        apiServicesRepository,
-        _appLocalizations,
-        currentUserName,
-        supportedCurrencies);
+    final trip = await TripDataModelImplementation.createInstance(tripMetadata,
+        apiServicesRepository, currentUserName, supportedCurrencies);
     final batch = FirebaseFirestore.instance.batch();
     for (var itinerary in trip.itineraryCollection) {
       final itineraryPlanDataModelImplementation =
