@@ -37,12 +37,12 @@ Prioritize a unique, expressive design that feels modern and adventurous, inspir
     * Component styles
 * Use screen space efficiently. Layout must adapt smoothly to:
     * Small phones
-    * Large phones
     * Tablets
 * Prefer progressive disclosure over dense layouts
 * No business logic in UI
 * Avoid tightly coupling layers
 * Ensure responsive layouts
+* Always update requirements.md file
 
 ## Testing
 

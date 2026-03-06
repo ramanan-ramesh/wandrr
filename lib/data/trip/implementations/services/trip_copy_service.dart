@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/trip/implementations/budgeting/expense.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
-import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/implementations/itinerary/itinerary_plan_data_implementation.dart';
 import 'package:wandrr/data/trip/implementations/lodging.dart';
 import 'package:wandrr/data/trip/implementations/transit.dart';
 import 'package:wandrr/data/trip/implementations/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
@@ -138,11 +138,6 @@ class TripCopyService {
 
       final shiftedDay = _shiftDate(originalDay, dateOffset);
 
-      // Check if the shifted day falls within the new trip range
-      if (shiftedDay.isBefore(newStartDate) || shiftedDay.isAfter(newEndDate)) {
-        continue;
-      }
-
       final planData =
           ItineraryPlanDataModelImplementation.fromDocumentSnapshot(
         tripId: newTripId,
@@ -221,7 +216,8 @@ class TripCopyService {
       departureLocation: transit.departureLocation?.clone(),
       arrivalLocation: transit.arrivalLocation?.clone(),
       expense: _resetExpense(transit.expense, contributors, currency),
-      journeyId: null, // Don't copy journey grouping
+      journeyId: null,
+      // Don't copy journey grouping
       confirmationId: transit.confirmationId,
       operator: transit.operator,
       notes: transit.notes,
@@ -251,8 +247,7 @@ class TripCopyService {
       ExpenseFacade original, List<String> contributors, String currency) {
     return ExpenseFacade(
       currency: currency,
-      paidBy: Map.fromIterables(
-          contributors, List.filled(contributors.length, 0.0)),
+      paidBy: Map.from(original.paidBy),
       splitBy: List.from(contributors),
       description: original.description,
       dateTime: original.dateTime,

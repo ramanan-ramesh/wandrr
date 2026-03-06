@@ -112,7 +112,10 @@ class EditorPageFactory {
           JourneyEditor(
         key: journeyEditorKey,
         initialLeg: editableEntity,
-        onJourneyUpdated: onUpdated,
+        onJourneyUpdated: () {
+          validityNotifier.value = editableEntity.validate();
+          onUpdated();
+        },
         validityNotifier: validityNotifier,
       ),
     );
