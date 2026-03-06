@@ -55,6 +55,15 @@ class JourneyEditorState extends State<JourneyEditor> {
     _initializeLegs();
   }
 
+  @override
+  void didUpdateWidget(covariant JourneyEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialLeg.journeyId != widget.initialLeg.journeyId) {
+      _initializeLegs();
+      setState(() {});
+    }
+  }
+
   /// Save all legs of the journey to the database
   void saveAllLegs(BuildContext context) {
     for (final leg in _legs) {
@@ -97,15 +106,6 @@ class JourneyEditorState extends State<JourneyEditor> {
     }
     _expandedStates = List.generate(_legs.length, (i) => i == expandedIndex);
     _isInitialized = true;
-  }
-
-  @override
-  void didUpdateWidget(covariant JourneyEditor oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.initialLeg.journeyId != widget.initialLeg.journeyId) {
-      _initializeLegs();
-      setState(() {});
-    }
   }
 
   void _toggleLegExpansion(int index) {

@@ -558,6 +558,15 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 - Example valid: `"IndiGo 6E 2341"`.
 - Example invalid: `"IndiGo"`, `""`, `"IndiGo "`.
 
+### REQ-TR-006 — Smart Timezone Display
+
+- When both departure and arrival locations are set, a single timezone indicator is shown.
+- If both locations share the same timezone, only one timezone string is displayed.
+- If both locations are in different timezones but the same region (e.g., Europe/Berlin and
+  Europe/Amsterdam), the region is shown once with both cities: "Europe: Berlin → Amsterdam".
+- If the locations are in different regions, both full timezone strings are shown: "America/New
+  York → Europe/London".
+
 ---
 
 ## 16. Module: Multi-Leg Journey Editor
@@ -616,7 +625,7 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 ### REQ-IPD-001 — Entry Modes
 
 - **Create New Component:** Opens the editor with a new item already appended (sight, note, or
-  checklist per config).
+  checklist). The new item is created for the date currently displayed in the itinerary viewer.
 - **Update Existing Component:** Opens the editor scrolled/focused to the component at the specified
   index.
 
@@ -742,6 +751,9 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ## 20. Module: Budgeting — Expenses List, Debt Summary, Breakdown
 
+The budgeting service is available across the entire trip editor, including in dialogs and bottom
+sheets. When the trip's currency is updated, the service reflects the change automatically.
+
 ### REQ-BU-001 — Budgeting Page Structure
 
 - Three collapsible sections:
@@ -751,11 +763,11 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-BU-002 — Expenses List
 
-- Shows all `ExpenseBearingTripEntity` items (stays, transits, sights, standalone expenses).
+- Shows all expense-bearing items (stays, transits, sights, standalone expenses).
 - **Budget tile:** At the top, shows total budget vs. total spent.
 - **Sort toggles:** Three toggle buttons:
     - **Cost:** Toggles between low→high and high→low.
-    - **Category:** Groups by `ExpenseCategory`.
+    - **Category:** Groups by expense category.
     - **Date:** Toggles between old→new and new→old.
 - Default sort: newest first.
 
@@ -767,25 +779,22 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
     - Formatted total amount.
     - Payer initials/badges.
 - Tapping opens the Expense Editor (for standalone) or the parent entity editor.
-- Swipe-to-delete supported (dispatches `delete`).
+- Swipe to delete.
 
 ### REQ-BU-004 — Debt Summary
 
-- Computed via `BudgetingModuleFacade.retrieveDebtDataList()`.
-- Shows each debt as: `<owedBy> needs to pay <owedTo> <formatted amount>`.
+- Shows each debt as: "[person] needs to pay [person] [amount]".
 - Contributors are shown as badges; the current user is labelled "You".
 - If no expenses or total expenditure is 0, shows "No expenses to split".
 
 ### REQ-BU-005 — Budget Breakdown
 
-- **By Category:** Pie/bar chart of total spending per `ExpenseCategory`.
-- **By Day:** Chart of total spending per trip day.
-- Data fetched via `retrieveTotalExpensePerCategory()` and `retrieveTotalExpensePerDay()`.
+- **By Category:** Pie chart of total spending per expense category.
+- **By Day:** Bar chart of total spending per trip day.
 
 ### REQ-BU-006 — Expense List Rebuild Rules
 
-- Rebuilds when any `ExpenseBearingTripEntity` (transit, lodging, standalone expense) or
-  `ItineraryPlanData` is created, updated, or deleted.
+- Updates when expenses are added, changed, or removed.
 
 ---
 

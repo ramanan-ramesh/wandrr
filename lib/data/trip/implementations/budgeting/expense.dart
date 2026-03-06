@@ -22,11 +22,6 @@ class ExpenseModelImplementation extends ExpenseFacade
             dateTime: expenseModelFacade.dateTime);
 
   static ExpenseModelImplementation fromJson(Map<String, dynamic> json) {
-    if (!json.containsKey(_currencyField) ||
-        !json.containsKey(_paidByField) ||
-        !json.containsKey(_splitByField)) {
-      var a = 10;
-    }
     var currency = json[_currencyField] as String;
     var splitBy = List<String>.from(json[_splitByField]);
     var paidBy = <String, double>{};

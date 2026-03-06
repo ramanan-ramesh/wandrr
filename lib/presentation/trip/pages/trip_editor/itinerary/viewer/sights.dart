@@ -279,6 +279,7 @@ class ItinerarySightsViewer extends StatelessWidget {
                 day: day,
                 planDataEditorConfig: CreateNewItineraryPlanDataComponentConfig(
                   planDataType: PlanDataType.sight,
+                  date: day,
                 ),
               ),
             ),
