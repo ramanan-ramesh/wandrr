@@ -154,5 +154,11 @@
   "writeYourNoteHere": "अपनी टिप्पणी यहाँ लिखें",
   "wrong_password_entered": "गलत पासवर्ड दर्ज किया गया",
   "yes": "हाँ",
-  "you": "आप"
+  "you": "आप",
+  "copyTrip": "Copy Trip",
+  "copyTripTitle": "Copy Trip",
+  "chooseStartDate": "Choose a start date",
+  "tripDatesShifted": "Trip dates shifted from {oldDates} to {newDates}",
+  "upcomingTrips": "Upcoming Trips",
+  "pastTrips": "Past Trips"
 }

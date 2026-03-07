@@ -171,9 +171,7 @@ class TimelineEventFactory {
     TransitFacade transit,
     TravelLegConnectionPosition position,
   ) {
-    final metadata = context.activeTrip.transitOptionMetadatas.firstWhere(
-      (e) => e.transitOption == transit.transitOption,
-    );
+    final metadata = context.getTransitOptionMetadata(transit.transitOption);
 
     final transitEventData = _formatter.getTransitEventData(
       transit: transit,
@@ -201,9 +199,7 @@ class TimelineEventFactory {
     required TransitJourneyFacade journey,
     String? layoverDuration,
   }) {
-    final metadata = context.activeTrip.transitOptionMetadatas.firstWhere(
-      (e) => e.transitOption == transit.transitOption,
-    );
+    final metadata = context.getTransitOptionMetadata(transit.transitOption);
 
     // Use city names for compact display
     final depCity = _getCityName(transit.departureLocation);

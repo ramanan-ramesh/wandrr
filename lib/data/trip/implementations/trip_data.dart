@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:wandrr/data/store/implementations/firestore_model_collection.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/budgeting/budgeting_module.dart';
@@ -17,10 +16,8 @@ import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/l10n/app_localizations.dart';
 
 import 'budgeting/expense.dart';
 import 'lodging.dart';
@@ -31,7 +28,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   static Future<TripDataModelImplementation> createInstance(
       TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository,
-      AppLocalizations appLocalizations,
       String currentUserName,
       Iterable<CurrencyData> supportedCurrencies) async {
     var tripMetadataModelImplementation =
@@ -89,8 +85,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         expenseModelCollection,
         itineraries,
         apiServicesRepository.currencyConverter,
-        budgetingModule,
-        appLocalizations);
+        budgetingModule);
   }
 
   @override
@@ -143,63 +138,12 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   }
 
   @override
-  Iterable<TransitOptionMetadata> get transitOptionMetadatas =>
-      _transitOptionMetadatas;
-  final Iterable<TransitOptionMetadata> _transitOptionMetadatas;
-
-  @override
   Future dispose() async {
     await transitCollection.dispose();
     await lodgingCollection.dispose();
     await expenseCollection.dispose();
     await itineraryCollection.dispose();
     await budgetingModule.dispose();
-  }
-
-  static Iterable<TransitOptionMetadata> _initializeIconsAndTransitOptions(
-      AppLocalizations appLocalizations) {
-    var transitOptionMetadataList = <TransitOptionMetadata>[];
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.publicTransport,
-        icon: Icons.emoji_transportation_rounded,
-        name: appLocalizations.publicTransit));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.flight,
-        icon: Icons.flight_rounded,
-        name: appLocalizations.flight));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.bus,
-        icon: Icons.directions_bus_rounded,
-        name: appLocalizations.bus));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.cruise,
-        icon: Icons.kayaking_rounded,
-        name: appLocalizations.cruise));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.ferry,
-        icon: Icons.directions_ferry_outlined,
-        name: appLocalizations.ferry));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.rentedVehicle,
-        icon: Icons.car_rental_rounded,
-        name: appLocalizations.carRental));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.train,
-        icon: Icons.train_rounded,
-        name: appLocalizations.train));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.vehicle,
-        icon: Icons.bike_scooter_rounded,
-        name: appLocalizations.personalVehicle));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.walk,
-        icon: Icons.directions_walk_rounded,
-        name: appLocalizations.walk));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.taxi,
-        icon: Icons.local_taxi_rounded,
-        name: appLocalizations.taxi));
-    return transitOptionMetadataList;
   }
 
   TripDataModelImplementation._(
@@ -209,11 +153,8 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       this.expenseCollection,
       this.itineraryCollection,
       this.currencyConverter,
-      this.budgetingModule,
-      AppLocalizations appLocalisations)
-      : _tripMetadataModelImplementation = tripMetadata,
-        _transitOptionMetadatas =
-            _initializeIconsAndTransitOptions(appLocalisations) {
+      this.budgetingModule)
+      : _tripMetadataModelImplementation = tripMetadata {
     _updatePlanExecutor = TripEntityDataUpdatePlanExecutor(
       transitCollection: transitCollection,
       lodgingCollection: lodgingCollection,

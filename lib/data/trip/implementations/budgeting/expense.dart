@@ -71,6 +71,7 @@ class StandaloneExpenseModelImplementation extends StandaloneExpense
     implements RepositoryDocument<StandaloneExpense> {
   static const _titleField = 'title';
   static const _categoryField = 'category';
+  static const _expenseField = 'expense';
 
   StandaloneExpenseModelImplementation.fromModelFacade(
       {required StandaloneExpense expenseModelFacade})
@@ -93,7 +94,8 @@ class StandaloneExpenseModelImplementation extends StandaloneExpense
         category: category,
         id: documentSnapshot.id,
         title: documentData[_titleField],
-        expense: ExpenseModelImplementation.fromJson(documentData));
+        expense: ExpenseModelImplementation.fromJson(
+            documentData[_expenseField] as Map<String, dynamic>));
   }
 
   @override
@@ -108,7 +110,7 @@ class StandaloneExpenseModelImplementation extends StandaloneExpense
     return {
       if (title.isNotEmpty) _titleField: title,
       _categoryField: category.name,
-      ...(expense as LeafRepositoryItem).toJson(),
+      _expenseField: (expense as LeafRepositoryItem).toJson(),
     };
   }
 

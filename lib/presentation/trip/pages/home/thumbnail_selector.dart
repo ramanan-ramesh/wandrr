@@ -6,9 +6,8 @@ import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/theming/constants.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
-import 'package:wandrr/presentation/trip/pages/trip_provider/constants.dart';
+import 'package:wandrr/presentation/trip/widgets/unified_trip_dialog.dart';
 
 const double _kSelectedImageScaleFactor = 1.18;
 const double _kThumbnailContainerBorderRadius = 18.0;
@@ -58,7 +57,7 @@ class TripThumbnailCarouselSelector extends StatefulWidget {
 
 class _TripThumbnailCarouselSelectorState
     extends State<TripThumbnailCarouselSelector> {
-  late final PageController _pageController;
+  late PageController _pageController;
   late String _selectedTag;
 
   List<AssetGenImage> get thumbnails => Assets.images.tripThumbnails.values;
@@ -202,50 +201,27 @@ class ThumbnailPicker extends StatelessWidget {
           PlatformDialogElements.showGeneralDialog<String>(
             context,
             (dialogContext) {
-              return Container(
-                constraints: BoxConstraints(
-                  maxWidth: TripProviderPageConstants.maximumPageWidth,
+              return UnifiedTripDialog(
+                title: dialogContext.localizations.chooseTripThumbnail,
+                icon: const Icon(Icons.image_rounded),
+                content: TripThumbnailCarouselSelector(
+                  selectedThumbnailTag: selectedThumbnailTag,
+                  onChanged: (thumbnailTag) {
+                    selectedThumbnailTag = thumbnailTag;
+                    (dialogContext as Element).markNeedsBuild();
+                  },
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _createAppBar(dialogContext),
-                    const SizedBox(height: 16),
-                    TripThumbnailCarouselSelector(
-                      selectedThumbnailTag: selectedThumbnailTag,
-                      onChanged: (thumbnailTag) {
-                        selectedThumbnailTag = thumbnailTag;
-                        (dialogContext as Element).markNeedsBuild();
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextButton(
-                            onPressed: () {
-                              Navigator.of(dialogContext).pop();
-                            },
-                            child: Text(context.localizations.cancel),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextButton(
-                            onPressed: () {
-                              Navigator.of(dialogContext)
-                                  .pop(selectedThumbnailTag);
-                            },
-                            child: Text(context.localizations.select),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    child: Text(dialogContext.localizations.cancel),
+                  ),
+                  ElevatedButton(
+                    onPressed: () =>
+                        Navigator.of(dialogContext).pop(selectedThumbnailTag),
+                    child: Text(dialogContext.localizations.select),
+                  ),
+                ],
               );
             },
             onDialogResult: _onDialogResult,
@@ -273,24 +249,5 @@ class ThumbnailPicker extends StatelessWidget {
             tripEntity: clonedTripMetadataFacade),
       );
     }
-  }
-
-  Material _createAppBar(BuildContext dialogContext) {
-    return Material(
-      shape: Theme.of(dialogContext).appBarTheme.shape,
-      clipBehavior: Clip.hardEdge,
-      color: Colors.transparent,
-      child: AppBar(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-              top: Radius.circular(ThemeConstants.appBarBorderRadius)),
-        ),
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        title: FittedBox(
-          child: Text(dialogContext.localizations.chooseTripThumbnail),
-        ),
-      ),
-    );
   }
 }

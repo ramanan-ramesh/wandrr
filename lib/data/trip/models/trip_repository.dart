@@ -1,6 +1,5 @@
 import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
-import 'package:wandrr/l10n/app_localizations.dart';
 
 import 'api_services_repository.dart';
 import 'budgeting/currency_data.dart';
@@ -24,7 +23,8 @@ abstract class TripRepositoryEventHandler extends TripRepositoryFacade
   Future loadTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository);
 
-  Future unloadActiveTrip();
+  Future deleteTrip(TripMetadataFacade tripMetadata,
+      ApiServicesRepositoryFacade apiServicesRepository);
 
-  void updateLocalizations(AppLocalizations appLocalizations);
+  Future unloadActiveTrip();
 }

@@ -325,9 +325,9 @@ class _ItineraryChecklistTabState extends State<ItineraryChecklistTab> {
             onPressed: () => context.addTripManagementEvent(
               EditItineraryPlanData(
                 day: widget.day,
-                planDataEditorConfig:
-                    const CreateNewItineraryPlanDataComponentConfig(
+                planDataEditorConfig: CreateNewItineraryPlanDataComponentConfig(
                   planDataType: PlanDataType.checklist,
+                  date: widget.day,
                 ),
               ),
             ),

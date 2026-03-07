@@ -9,6 +9,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
+import 'package:wandrr/presentation/trip/widgets/time_zone_indicator.dart';
 
 import 'journey_point_editor.dart';
 import 'transit_operator_editor_section.dart';
@@ -106,7 +107,7 @@ class _TravelEditorState extends State<TravelEditor> {
       decoration: _buildBadgeDecoration(),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: TransitOptionPicker(
-        options: context.activeTrip.transitOptionMetadatas,
+        options: context.transitOptionMetadatas,
         initialTransitOption: _transitFacade.transitOption,
         onChanged: _handleTransitOptionChanged,
       ),
@@ -224,7 +225,7 @@ class _TravelEditorState extends State<TravelEditor> {
 
   void _handleOperatorChanged(String? newOperator) {
     _transitFacade.operator = newOperator;
-    widget.onTransitUpdated(needsRebuild: true);
+    widget.onTransitUpdated(needsRebuild: false);
   }
 
   void _updateLocation(bool isArrival, LocationFacade? newLocation) {
@@ -270,12 +271,27 @@ class _JourneySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasBothLocations = transitFacade.departureLocation != null &&
+        transitFacade.arrivalLocation != null;
     if (context.isBigLayout) {
-      return Row(
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: _buildDeparturePoint(context)),
-          _buildJourneyConnector(context),
-          Expanded(child: _buildArrivalPoint(context)),
+          Row(
+            children: [
+              Expanded(child: _buildDeparturePoint(context)),
+              _buildJourneyConnector(context),
+              Expanded(child: _buildArrivalPoint(context)),
+            ],
+          ),
+          if (hasBothLocations)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, left: 16.0),
+              child: DualTimezoneIndicator(
+                departureLocation: transitFacade.departureLocation!,
+                arrivalLocation: transitFacade.arrivalLocation!,
+              ),
+            ),
         ],
       );
     }
@@ -291,6 +307,14 @@ class _JourneySection extends StatelessWidget {
           ),
         ),
         _buildArrivalPoint(context),
+        if (hasBothLocations)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: DualTimezoneIndicator(
+              departureLocation: transitFacade.departureLocation!,
+              arrivalLocation: transitFacade.arrivalLocation!,
+            ),
+          ),
       ],
     );
   }

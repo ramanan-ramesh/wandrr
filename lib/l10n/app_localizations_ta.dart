@@ -497,4 +497,24 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get you => 'நீங்கள்';
+
+  @override
+  String get copyTrip => 'Copy Trip';
+
+  @override
+  String get copyTripTitle => 'Copy Trip';
+
+  @override
+  String get chooseStartDate => 'Choose a start date';
+
+  @override
+  String tripDatesShifted(String oldDates, String newDates) {
+    return 'Trip dates shifted from $oldDates to $newDates';
+  }
+
+  @override
+  String get upcomingTrips => 'Upcoming Trips';
+
+  @override
+  String get pastTrips => 'Past Trips';
 }

@@ -7,7 +7,6 @@ import 'budgeting/budgeting_module.dart';
 import 'budgeting/expense.dart';
 import 'lodging.dart';
 import 'transit.dart';
-import 'transit_option_metadata.dart';
 import 'trip_metadata.dart';
 
 abstract class TripDataFacade {
@@ -22,9 +21,6 @@ abstract class TripDataFacade {
   ItineraryFacadeCollection get itineraryCollection;
 
   BudgetingModuleFacade get budgetingModule;
-
-  //TODO: Is repository the right place for localizations related constants? If so, then create a repository at TripEditor page level only
-  Iterable<TransitOptionMetadata> get transitOptionMetadatas;
 }
 
 abstract class TripDataModelEventHandler extends TripDataFacade

@@ -20,6 +20,11 @@ class TimezoneIndicator extends StatelessWidget {
     var timezoneString =
         latLngToTimezoneString(location.latitude, location.longitude);
     timezoneString = timezoneString.replaceAll('_', ' ');
+    return _buildAnimatedChip(context, isLightTheme, timezoneString);
+  }
+
+  static Widget _buildAnimatedChip(
+      BuildContext context, bool isLightTheme, String text) {
     return TweenAnimationBuilder<double>(
       duration: _scaleAnimationDuration,
       curve: Curves.easeOutBack,
@@ -37,7 +42,7 @@ class TimezoneIndicator extends StatelessWidget {
               children: [
                 _buildIcon(isLightTheme),
                 const SizedBox(width: 10),
-                _buildTimezoneText(context, isLightTheme, timezoneString),
+                _buildTimezoneText(context, isLightTheme, text),
               ],
             ),
           ),
@@ -46,7 +51,7 @@ class TimezoneIndicator extends StatelessWidget {
     );
   }
 
-  BoxDecoration _buildDecoration(bool isLightTheme) {
+  static BoxDecoration _buildDecoration(bool isLightTheme) {
     return BoxDecoration(
       gradient: LinearGradient(
         colors: [
@@ -66,7 +71,7 @@ class TimezoneIndicator extends StatelessWidget {
     );
   }
 
-  Widget _buildIcon(bool isLightTheme) {
+  static Widget _buildIcon(bool isLightTheme) {
     return Icon(
       Icons.public_rounded,
       size: 20,
@@ -74,7 +79,7 @@ class TimezoneIndicator extends StatelessWidget {
     );
   }
 
-  Widget _buildTimezoneText(
+  static Widget _buildTimezoneText(
       BuildContext context, bool isLightTheme, String timezoneString) {
     return Text(
       timezoneString,
@@ -84,5 +89,59 @@ class TimezoneIndicator extends StatelessWidget {
             letterSpacing: 0.2,
           ),
     );
+  }
+}
+
+/// A smart dual-timezone indicator for departure/arrival pairs.
+///
+/// Display logic:
+/// - Same timezone → show only one indicator.
+/// - Different timezone, same region (e.g. Europe/Berlin & Europe/Amsterdam)
+///   → show region once, then both cities.
+/// - Different region → show both full timezone strings.
+class DualTimezoneIndicator extends StatelessWidget {
+  final LocationFacade departureLocation;
+  final LocationFacade arrivalLocation;
+
+  const DualTimezoneIndicator({
+    super.key,
+    required this.departureLocation,
+    required this.arrivalLocation,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isLightTheme = context.isLightTheme;
+
+    final departureTz = latLngToTimezoneString(
+            departureLocation.latitude, departureLocation.longitude)
+        .replaceAll('_', ' ');
+    final arrivalTz = latLngToTimezoneString(
+            arrivalLocation.latitude, arrivalLocation.longitude)
+        .replaceAll('_', ' ');
+
+    // Same timezone → show only one
+    if (departureTz == arrivalTz) {
+      return TimezoneIndicator._buildAnimatedChip(
+          context, isLightTheme, departureTz);
+    }
+
+    final depParts = departureTz.split('/');
+    final arrParts = arrivalTz.split('/');
+
+    // Same region, different city → show "Region: City1 → City2"
+    if (depParts.length >= 2 &&
+        arrParts.length >= 2 &&
+        depParts.first == arrParts.first) {
+      final region = depParts.first;
+      final depCity = depParts.sublist(1).join('/');
+      final arrCity = arrParts.sublist(1).join('/');
+      return TimezoneIndicator._buildAnimatedChip(
+          context, isLightTheme, '$region: $depCity → $arrCity');
+    }
+
+    // Different regions → show "FullTz1 → FullTz2"
+    return TimezoneIndicator._buildAnimatedChip(
+        context, isLightTheme, '$departureTz → $arrivalTz');
   }
 }
