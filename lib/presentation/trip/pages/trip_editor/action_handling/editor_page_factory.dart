@@ -74,21 +74,31 @@ class EditorPageFactory {
   }
 
   Widget _createItineraryPage(ItineraryPlanData entity) {
+    // Clone so the editor never mutates the repository's live object.
+    final editableClone = entity.clone();
+    final editorKey = GlobalKey<ItineraryPlanDataEditorState>();
+
     return ConflictAwareActionPage<ItineraryPlanData>(
-      tripEntity: entity,
+      tripEntity: editableClone,
       tripData: tripData,
       isEditing: isEditing,
       title: title,
       onClosePressed: onClosePressed,
-      onActionInvoked: (ctx) =>
-          _emitUpdateEvent<ItineraryPlanData>(ctx, entity),
+      onActionInvoked: (ctx) {
+        // Write stable lists → clone right before the update event is emitted.
+        editorKey.currentState?.syncToEntity();
+        _emitUpdateEvent<ItineraryPlanData>(ctx, editableClone);
+      },
       scrollController: scrollController,
       actionIcon: _actionIcon,
       pageContentCreator: (editableEntity, validityNotifier, onUpdated) =>
           ItineraryPlanDataEditor(
+        key: editorKey,
         planData: editableEntity,
         onPlanDataUpdated: () {
-          validityNotifier.value = editableEntity.validate();
+          validityNotifier.value =
+              editorKey.currentState?.validateCurrentState() ??
+                  editableEntity.validate();
           onUpdated();
         },
         config: itineraryConfig!,

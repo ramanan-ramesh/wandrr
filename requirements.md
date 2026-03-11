@@ -1,7 +1,7 @@
 # Wandrr — Product Requirements Specification
 
 > **Version:** 1.0  
-> **Last Updated:** 2026-03-06  
+> **Last Updated:** 2026-03-08  
 > **Status:** Active
 
 ---
@@ -350,7 +350,16 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 - A centered add (+) FAB.
 - Tapping opens a bottom sheet (mobile) or dialog showing entity creation options:
-    - Stay, Travel, Expense (plus Transit mode sub-selection for Travel).
+    - **Expense** — Opens expense editor.
+    - **Travel** — Opens transit/journey editor (plus Transit mode sub-selection).
+    - **Stay** — Opens lodging editor.
+    - **Itinerary Item** — Shows three sub-action buttons inline:
+        - **Sight** — Dispatches creation of a new sight for the day currently displayed in the
+          itinerary viewer.
+        - **Note** — Dispatches creation of a new note for the current itinerary day.
+        - **Checklist** — Dispatches creation of a new checklist for the current itinerary day.
+    - Tapping any itinerary sub-action closes the bottom sheet and opens the itinerary plan data
+      editor with the corresponding tab and a new item appended.
 
 ### REQ-TE-004 — Entity Editor Presentation
 
@@ -633,6 +642,9 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 - Three tabs: **Sights**, **Notes**, **Checklists**.
 - Initial tab is determined by `ItineraryPlanDataEditorConfig.planDataType`.
+- Switching tabs shows the selected tab's content directly; there is no separate scroll area per
+  tab.
+  All content scrolls with the page's single scroll area.
 
 ### REQ-IPD-003 — Sights Tab
 
@@ -647,7 +659,10 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-IPD-004 — Sight Overlap Detection
 
-- When any sight's visit time changes, dispatches `UpdateSightsTimeRange(sights)`.
+- Conflict detection for sights is triggered **only** when visit times actually change — when a time
+  is set, cleared, or modified via the time picker, or when a sight with a time is added or deleted.
+- Editing non-time fields (title, location, description, expense) does **not** trigger conflict
+  detection.
 - If two sights on the same day have the same visit time, an error is emitted:
   `"Sights cannot overlap on the same day"`.
 - Additionally, standard conflict detection runs against transits and stays.
@@ -802,12 +817,14 @@ sheets. When the trip's currency is updated, the service reflects the change aut
 
 ### REQ-CD-001 — Conflict Triggers
 
-- Conflicts are detected when:
+- Conflicts are detected **only** when time-related data changes:
     - TripMetadata date range changes.
     - TripMetadata contributors change.
     - Stay check-in/out times change.
     - Transit departure/arrival times change (single or journey).
-    - Sight visit times change.
+    - Sight visit times change (set, cleared, or modified via time picker).
+- Conflicts are **not** triggered when non-time properties change (e.g., sight title, location,
+  description, expense, transit carrier name, confirmation IDs, etc.).
 
 ### REQ-CD-002 — Conflict Types
 
@@ -821,23 +838,41 @@ sheets. When the trip's currency is updated, the service reflects the change aut
 ### REQ-CD-003 — Conflict Position Classification
 
 - `EntityTimelinePosition` enum:
-    - `exactBoundaryMatch`: A boundary of one entity exactly matches a boundary of the other.
-    - `beforeEvent`: Entity is entirely before the reference range.
-    - `afterEvent`: Entity is entirely after the reference range.
+    - `exactBoundaryMatch`: The start times of both ranges match, or the end times match (genuine
+      temporal overlap). Adjacent events where one ends exactly when another starts are **not**
+      boundary matches — they are classified as `beforeEvent` / `afterEvent`.
+    - `beforeEvent`: Entity is entirely before the reference range (including adjacent: entity ends
+      when reference starts).
+    - `afterEvent`: Entity is entirely after the reference range (including adjacent: entity starts
+      when reference ends).
     - `containedIn`: Entity is fully within the reference range.
     - `contains`: Reference range is fully within the entity.
     - `startsBeforeEndsDuring`: Entity starts before and ends during the reference range.
     - `startsDuringEndsAfter`: Entity starts during and ends after the reference range.
     - `isOverlapping`: Generic overlap (used for same-type intra-day).
 
+### REQ-CD-003a — Adjacent Events Are Not Conflicts
+
+- When one event ends at exactly the same time another starts (e.g., a transit arriving at 2:00 PM
+  and a stay checking in at 2:00 PM), these are **adjacent** events, not overlapping.
+- Adjacent events are classified as `beforeEvent` / `afterEvent` and are never conflicts.
+
 ### REQ-CD-004 — Conflict Rules by Source Entity Type
 
 - **TripMetadata (date change):** Conflicts with `beforeEvent`, `afterEvent`,
   `startsBeforeEndsDuring`, `startsDuringEndsAfter`, `contains`.
-- **Stay (editing):** Transits/Sights fully *contained in* the stay are NOT conflicts. Other
-  overlaps are conflicts.
-- **Transit / Sight (standard):** All boundary matches, containments, and partial overlaps are
-  conflicts.
+- **Stay (editing) vs Transit/Sight:** A transit or sight that is fully *contained within* the
+  stay's
+  check-in to check-out period is **not** a conflict. Travelers can visit sights and take transits
+  during their stay. Only boundary matches (at exact check-in/out time), partial overlaps that cross
+  the check-in/out boundary, and other stays overlapping are conflicts.
+- **Stay (editing) vs Stay:** Standard overlap rules apply (all overlaps are conflicts).
+- **Transit / Sight (editing) vs Stay:** A transit or sight happening during a stay (the stay
+  *contains* it) is **not** a conflict. Only boundary matches and partial overlaps crossing the
+  stay's
+  check-in/out boundary are conflicts.
+- **Transit / Sight (editing) vs Transit / Sight:** All boundary matches, containments, and partial
+  overlaps are conflicts (standard rules).
 
 ### REQ-CD-005 — Clamping (Auto-Resolution)
 
@@ -849,11 +884,16 @@ sheets. When the trip's currency is updated, the service reflects the change aut
       valid range remains.
     - **Sight:** Only clampable for `exactBoundaryMatch` by shifting ±1 minute. Non-boundary
       overlaps cannot be clamped.
-- For `exactBoundaryMatch`:
-    - **Transit:** Shifts departure/arrival by +1 minute from the matching boundary.
-    - **Stay:** Shifts check-in/out to next/previous half-hour.
-    - **Sight:** Shifts visit time by ±1 minute.
+- For `exactBoundaryMatch` (start==start or end==end):
+    - **Transit:** When starts match, pushes departure after conflict end. When ends match, pulls
+      arrival before conflict start.
+    - **Stay:** When check-in times match, pushes check-in to next half-hour after conflict end.
+      When
+      check-out times match, pulls check-out to previous half-hour before conflict start.
+    - **Sight:** When visit time matches conflict start, shifts after conflict end. When visit-end
+      matches conflict end, shifts before conflict start.
 - For `containedIn` or `contains`, clamping is not possible → entity is marked for deletion.
+- Adjacent events (one ends when another starts) are never conflicts, so no clamping is needed.
 
 ### REQ-CD-006 — Conflict Resolution UI
 

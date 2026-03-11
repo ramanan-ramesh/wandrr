@@ -700,6 +700,12 @@ abstract class AppLocalizations {
   /// **'No upcoming trips? Have fun creating a new one!'**
   String get noTripsCreated;
 
+  /// No description provided for @note.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get note;
+
   /// No description provided for @noteCannotBeEmpty.
   ///
   /// In en, this message translates to:

@@ -113,11 +113,9 @@ class TripCopyService {
       final data = doc.data();
       final expenseImpl =
           ExpenseModelImplementation.fromJson(data['expense'] ?? data);
-      final resetExpense =
-          _resetExpense(expenseImpl.facade, contributors, budget.currency);
       final newExpense = StandaloneExpense(
         tripId: newTripId,
-        expense: resetExpense,
+        expense: expenseImpl,
         title: data['title'] as String? ?? '',
         category: ExpenseCategory.other,
       );
@@ -151,7 +149,7 @@ class TripCopyService {
           tripId: newTripId,
           name: sight.name,
           day: shiftedDay,
-          expense: _resetExpense(sight.expense, contributors, budget.currency),
+          expense: sight.expense.clone(),
           id: sight.id,
           location: sight.location?.clone(),
           visitTime: sight.visitTime != null
@@ -215,9 +213,8 @@ class TripCopyService {
           : null,
       departureLocation: transit.departureLocation?.clone(),
       arrivalLocation: transit.arrivalLocation?.clone(),
-      expense: _resetExpense(transit.expense, contributors, currency),
-      journeyId: null,
-      // Don't copy journey grouping
+      expense: transit.expense.clone(),
+      journeyId: transit.journeyId,
       confirmationId: transit.confirmationId,
       operator: transit.operator,
       notes: transit.notes,
@@ -235,22 +232,9 @@ class TripCopyService {
           ? _shiftDateTime(lodging.checkoutDateTime!, offset)
           : null,
       tripId: newTripId,
-      expense: _resetExpense(lodging.expense, contributors, currency),
+      expense: lodging.expense.clone(),
       confirmationId: lodging.confirmationId,
       notes: lodging.notes,
-    );
-  }
-
-  /// Resets expense for the new trip: zeroes out paidBy, sets splitBy to new
-  /// contributors, and updates currency.
-  ExpenseFacade _resetExpense(
-      ExpenseFacade original, List<String> contributors, String currency) {
-    return ExpenseFacade(
-      currency: currency,
-      paidBy: Map.from(original.paidBy),
-      splitBy: List.from(contributors),
-      description: original.description,
-      dateTime: original.dateTime,
     );
   }
 

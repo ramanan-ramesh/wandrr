@@ -158,13 +158,12 @@ class FirestoreModelCollection<Model>
       var typedDocRef = _typedCollectionReference
           .doc(leafRepositoryItem.documentReference.id);
 
-      didUpdate = await typedDocRef
-          .set(leafRepositoryItem, SetOptions(merge: false))
-          .then((value) {
-        return true;
-      }).catchError((error, stackTrace) {
-        return false;
-      });
+      try {
+        await typedDocRef.set(leafRepositoryItem, SetOptions(merge: false));
+        didUpdate = true;
+      } catch (e) {
+        didUpdate = false;
+      }
 
       if (didUpdate) {
         _collectionItems[matchingElementIndex] = leafRepositoryItem;

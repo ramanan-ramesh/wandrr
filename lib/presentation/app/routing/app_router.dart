@@ -191,8 +191,7 @@ class _TripShellState extends State<_TripShell> {
     // Create bloc only once, using didChangeDependencies to safely access inherited widgets
     if (_bloc == null) {
       final currentUserName = context.activeUser!.userName;
-      final localizations = context.localizations;
-      _bloc = TripManagementBloc(currentUserName, localizations);
+      _bloc = TripManagementBloc(currentUserName);
     }
   }
 

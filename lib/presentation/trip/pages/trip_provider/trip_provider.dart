@@ -28,8 +28,7 @@ class TripProvider extends StatelessWidget {
   Widget build(BuildContext pageContext) {
     var currentUserName = pageContext.activeUser!.userName;
     return BlocProvider<TripManagementBloc>(
-      create: (BuildContext context) =>
-          TripManagementBloc(currentUserName, pageContext.localizations),
+      create: (BuildContext context) => TripManagementBloc(currentUserName),
       child: _TripProviderContentPage(initialTripId: initialTripId),
     );
   }

@@ -9,6 +9,15 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 // TIME CLAMPING STRATEGIES - Strategy Pattern for entity-specific clamping
 // =============================================================================
 
+/// Compares two DateTimes at minute-level precision (ignoring seconds/millis).
+bool _isSameTime(DateTime a, DateTime b) {
+  return a.year == b.year &&
+      a.month == b.month &&
+      a.day == b.day &&
+      a.hour == b.hour &&
+      a.minute == b.minute;
+}
+
 /// Base interface for entity time clamping strategies.
 /// Each entity type has different clamping semantics.
 abstract class EntityClampingStrategy<T extends TripEntity> {
@@ -35,10 +44,21 @@ class TransitClampingStrategy implements EntityClampingStrategy<TransitFacade> {
 
     switch (position) {
       case EntityTimelinePosition.exactBoundaryMatch:
-        if (depTime.isAtSameMomentAs(conflictRange.end)) {
+        // exactBoundaryMatch now means start==start or end==end (true overlap)
+        if (_isSameTime(depTime, conflictRange.start)) {
+          // Transit starts at same time as conflict → push departure after conflict end
           clampedDep = conflictRange.end.add(const Duration(minutes: 1));
           if (!arrTime.isAfter(clampedDep)) return null;
-        } else if (arrTime.isAtSameMomentAs(conflictRange.start)) {
+        } else if (_isSameTime(arrTime, conflictRange.end)) {
+          // Transit ends at same time as conflict → pull arrival before conflict start
+          clampedArr = conflictRange.start.subtract(const Duration(minutes: 1));
+          if (!depTime.isBefore(clampedArr)) return null;
+        } else if (_isSameTime(depTime, conflictRange.end)) {
+          // Fallback: transit starts when conflict ends
+          clampedDep = conflictRange.end.add(const Duration(minutes: 1));
+          if (!arrTime.isAfter(clampedDep)) return null;
+        } else if (_isSameTime(arrTime, conflictRange.start)) {
+          // Fallback: transit ends when conflict starts
           clampedArr = conflictRange.start.subtract(const Duration(minutes: 1));
           if (!depTime.isBefore(clampedArr)) return null;
         }
@@ -83,10 +103,21 @@ class StayClampingStrategy implements EntityClampingStrategy<LodgingFacade> {
 
     switch (position) {
       case EntityTimelinePosition.exactBoundaryMatch:
-        if (checkin.isAtSameMomentAs(conflictRange.end)) {
+        // exactBoundaryMatch now means start==start or end==end (true overlap)
+        if (_isSameTime(checkin, conflictRange.start)) {
+          // Stay checks in at same time as conflict → push checkin after conflict end
           clampedCheckin = _roundToNextHalfHour(conflictRange.end);
           if (!checkout.isAfter(clampedCheckin)) return null;
-        } else if (checkout.isAtSameMomentAs(conflictRange.start)) {
+        } else if (_isSameTime(checkout, conflictRange.end)) {
+          // Stay checks out at same time as conflict → pull checkout before conflict start
+          clampedCheckout = _roundToPreviousHalfHour(conflictRange.start);
+          if (!checkin.isBefore(clampedCheckout)) return null;
+        } else if (_isSameTime(checkin, conflictRange.end)) {
+          // Fallback: stay checkin when conflict ends
+          clampedCheckin = _roundToNextHalfHour(conflictRange.end);
+          if (!checkout.isAfter(clampedCheckin)) return null;
+        } else if (_isSameTime(checkout, conflictRange.start)) {
+          // Fallback: stay checkout when conflict starts
           clampedCheckout = _roundToPreviousHalfHour(conflictRange.start);
           if (!checkin.isBefore(clampedCheckout)) return null;
         }
@@ -155,10 +186,13 @@ class SightClampingStrategy implements EntityClampingStrategy<SightFacade> {
 
     switch (position) {
       case EntityTimelinePosition.exactBoundaryMatch:
+        // exactBoundaryMatch now means start==start or end==end
         final visitEnd = visitTime.add(const Duration(minutes: 1));
-        if (visitTime.isAtSameMomentAs(conflictRange.end)) {
+        if (_isSameTime(visitTime, conflictRange.start)) {
+          // Sight visit at same time as conflict start → push after conflict
           clampedTime = conflictRange.end.add(const Duration(minutes: 1));
-        } else if (visitEnd.isAtSameMomentAs(conflictRange.start)) {
+        } else if (_isSameTime(visitEnd, conflictRange.end)) {
+          // Sight visit-end matches conflict end → pull before conflict
           clampedTime =
               conflictRange.start.subtract(const Duration(minutes: 1));
         }

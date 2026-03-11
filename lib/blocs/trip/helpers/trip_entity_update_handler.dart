@@ -117,7 +117,7 @@ class TripEntityUpdateHandler {
     if (tripEntityId == null || tripEntityId.isEmpty) return;
 
     final collectionItem = modelCollection.collectionItems
-        .whereType<TripEntity>()
+        .whereType<E>()
         .where((element) => element.id == tripEntityId)
         .firstOrNull;
 
@@ -126,7 +126,7 @@ class TripEntityUpdateHandler {
     final didUpdate = await modelCollection.tryUpdateItem(tripEntity);
     emit(UpdatedTripEntity.updated(
       tripEntityModificationData: CollectionItemChangeMetadata(
-        CollectionItemChangeSet<E>(collectionItem as E, tripEntity),
+        CollectionItemChangeSet<E>(collectionItem, tripEntity),
         isFromExplicitAction: true,
       ),
       isOperationSuccess: didUpdate,

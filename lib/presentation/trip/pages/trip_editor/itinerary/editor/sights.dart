@@ -16,6 +16,10 @@ import 'package:wandrr/presentation/trip/widgets/time_zone_indicator.dart';
 class ItinerarySightsEditor extends StatefulWidget {
   final List<SightFacade> sights;
   final VoidCallback onSightsChanged;
+
+  /// Called only when sight times change (add/remove/reorder sights, or
+  /// visit time changes). This should trigger conflict detection.
+  final VoidCallback onSightTimesChanged;
   final DateTime day;
   final int? initialExpandedIndex;
 
@@ -23,6 +27,7 @@ class ItinerarySightsEditor extends StatefulWidget {
     super.key,
     required this.sights,
     required this.onSightsChanged,
+    required this.onSightTimesChanged,
     required this.day,
     this.initialExpandedIndex,
   });
@@ -35,6 +40,37 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
   // Reused layout constants
   static const double _kSpacingMedium = 12.0;
   static const double _kBorderRadiusLarge = 14.0;
+
+  /// Tracks the last known "time signature" of the sights list.
+  /// Used to detect when structural changes (add/delete/reorder) affect
+  /// visit times, without triggering conflict detection on every edit.
+  String _lastTimeSignature = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _lastTimeSignature = _computeTimeSignature();
+  }
+
+  /// Computes a signature string representing the current visit times.
+  String _computeTimeSignature() {
+    return widget.sights
+        .where((s) => s.visitTime != null)
+        .map((s) =>
+            '${s.id ?? s.hashCode}:${s.visitTime!.millisecondsSinceEpoch}')
+        .join(',');
+  }
+
+  /// Called when items change. Checks if times were affected
+  /// and triggers conflict detection only if needed.
+  void _onItemsChanged() {
+    widget.onSightsChanged();
+    final newSignature = _computeTimeSignature();
+    if (newSignature != _lastTimeSignature) {
+      _lastTimeSignature = newSignature;
+      widget.onSightTimesChanged();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +88,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
           contributors: tripMetadata.contributors,
         );
       },
-      onItemsChanged: widget.onSightsChanged,
+      onItemsChanged: _onItemsChanged,
       titleBuilder: (s, context) => s.name.isNotEmpty
           ? s.name
           : (s.location?.context.name ?? context.localizations.untitledSight),

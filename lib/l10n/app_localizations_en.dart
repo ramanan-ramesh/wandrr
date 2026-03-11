@@ -320,6 +320,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'No upcoming trips? Have fun creating a new one!';
 
   @override
+  String get note => 'Note';
+
+  @override
   String get noteCannotBeEmpty => 'Note cannot be empty';
 
   @override

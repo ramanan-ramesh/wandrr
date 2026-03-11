@@ -6,17 +6,19 @@ import 'package:wandrr/presentation/trip/widgets/common_collapsible_tab.dart';
 import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
 
 class ItineraryNotesEditor extends StatefulWidget {
-  // The API now takes a List<Note> for stable identity
   final List<Note> notes;
   final Function(List<Note>) onNotesChanged;
   final int? initialExpandedIndex;
 
-  ItineraryNotesEditor({
+  /// Accepts a stable [List<Note>] that lives in the parent's state.
+  /// The parent is responsible for keeping this list alive across rebuilds so
+  /// that in-progress text edits are never discarded.
+  const ItineraryNotesEditor({
     super.key,
-    required List<String> notes,
+    required List<Note> stableNotes,
     required this.onNotesChanged,
     this.initialExpandedIndex,
-  }) : notes = notes.map(Note.new).toList(); // Wrap strings in Note objects
+  }) : notes = stableNotes;
 
   @override
   State<ItineraryNotesEditor> createState() => _ItineraryNotesEditorState();

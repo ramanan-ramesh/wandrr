@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip/helpers/itinerary_subscription_handler.dart';
 import 'package:wandrr/blocs/trip/helpers/subscription_manager.dart';
@@ -17,37 +16,34 @@ import 'package:wandrr/data/trip/implementations/trip_repository.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
+import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
-import 'package:wandrr/l10n/app_localizations.dart';
 
 import 'events.dart';
+import 'itinerary_plan_data_editor_config.dart';
 import 'states.dart';
 
 class TripManagementBloc
     extends Bloc<TripManagementEvent, TripManagementState> {
   TripRepositoryEventHandler? _tripRepository;
   final SubscriptionManager _subscriptionManager = SubscriptionManager();
-  final AppLocalizations appLocalizations;
   final String _currentUserName;
   ApiServicesRepositoryModifier? _apiServicesRepository;
 
   // Helper classes
-  late final TripEntityUpdateHandler _updateHandler;
+  final TripEntityUpdateHandler _updateHandler = TripEntityUpdateHandler();
   TripEntityFactory? _entityFactory;
   TripMetadataSubscriptionHandler? _metadataSubscriptionHandler;
   ItinerarySubscriptionHandler? _itinerarySubscriptionHandler;
 
   TripDataModelEventHandler? get _activeTrip => _tripRepository?.activeTrip;
 
-  TripManagementBloc(this._currentUserName, this.appLocalizations)
-      : super(LoadingTripManagement()) {
-    _updateHandler = TripEntityUpdateHandler();
-
+  TripManagementBloc(this._currentUserName) : super(LoadingTripManagement()) {
     on<_OnStartup>(_onStartup);
     on<LoadTrip>(_onLoadTrip);
     on<SelectExpenseBearingTripEntity>(_onSelectExpenseBearingTripEntity);
@@ -230,8 +226,21 @@ class TripManagementBloc
     }
   }
 
-  FutureOr<void> _onSelectExpenseBearingTripEntity(
-      SelectExpenseBearingTripEntity event, Emitter<TripManagementState> emit) {
+  Future<void> _onSelectExpenseBearingTripEntity(
+      SelectExpenseBearingTripEntity event,
+      Emitter<TripManagementState> emit) async {
+    if (event.tripEntity is SightFacade) {
+      var selectedSight = event.tripEntity as SightFacade;
+      var itineraryPlanData = _activeTrip!.itineraryCollection
+          .getItineraryForDay(selectedSight.day)
+          .planData;
+      emit(SelectedItineraryPlanData(
+          planData: itineraryPlanData,
+          planDataEditorConfig: UpdateItineraryPlanDataComponentConfig(
+              planDataType: PlanDataType.sight,
+              index: itineraryPlanData.sights.indexOf(selectedSight))));
+      return;
+    }
     emit(SelectedExpenseBearingTripEntity(tripEntity: event.tripEntity));
   }
 

@@ -8,7 +8,11 @@ import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
 class ItineraryNavigator extends StatefulWidget {
-  const ItineraryNavigator({super.key});
+  /// Optional notifier that will be updated with the currently displayed date.
+  /// Used by the trip editor page to know which day to create new itinerary items for.
+  final void Function(DateTime) onNavigatedToDate;
+
+  const ItineraryNavigator({super.key, required this.onNavigatedToDate});
 
   @override
   State<ItineraryNavigator> createState() => _ItineraryNavigatorState();
@@ -55,6 +59,7 @@ class _ItineraryNavigatorState extends State<ItineraryNavigator>
     ));
 
     _currentDate = _startDate;
+    widget.onNavigatedToDate(_currentDate);
     _animationController.forward();
   }
 
@@ -110,6 +115,7 @@ class _ItineraryNavigatorState extends State<ItineraryNavigator>
         ..reset()
         ..forward();
     });
+    widget.onNavigatedToDate(_currentDate);
     return true;
   }
 

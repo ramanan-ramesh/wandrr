@@ -7,9 +7,28 @@ class TimeRange {
 
   const TimeRange({required this.start, required this.end});
 
+  /// Analyzes the temporal position of this range relative to [other].
+  ///
+  /// Note: Adjacent events (this.end == other.start or this.start == other.end)
+  /// are classified as [beforeEvent] or [afterEvent], NOT as overlapping.
+  /// Only truly overlapping boundaries (start==start or end==end) are
+  /// classified as [exactBoundaryMatch].
   EntityTimelinePosition analyzePosition(TimeRange other) {
-    if (_hasBoundaryMatch(other)) {
+    // Check for exact overlapping boundaries (NOT adjacent events).
+    // start==other.start or end==other.end means true overlap.
+    // start==other.end or end==other.start means adjacent (no overlap).
+    if (_hasOverlappingBoundary(other)) {
       return EntityTimelinePosition.exactBoundaryMatch;
+    }
+
+    // Adjacent events: this ends when other starts → this is before other
+    if (_isSameTime(end, other.start)) {
+      return EntityTimelinePosition.beforeEvent;
+    }
+
+    // Adjacent events: other ends when this starts → this is after other
+    if (_isSameTime(start, other.end)) {
+      return EntityTimelinePosition.afterEvent;
     }
 
     if (_areTimesSorted([start, other.start, other.end, end])) {
@@ -43,12 +62,11 @@ class TimeRange {
         a.minute == b.minute;
   }
 
-  /// Whether any boundary exactly matches another range's boundary
-  bool _hasBoundaryMatch(TimeRange other) {
-    return _isSameTime(start, other.start) ||
-        _isSameTime(start, other.end) ||
-        _isSameTime(end, other.start) ||
-        _isSameTime(end, other.end);
+  /// Whether boundaries overlap in a way that indicates true temporal overlap.
+  /// Only start==start or end==end counts. Adjacent (end==start or start==end)
+  /// does NOT count as overlapping.
+  bool _hasOverlappingBoundary(TimeRange other) {
+    return _isSameTime(start, other.start) || _isSameTime(end, other.end);
   }
 
   bool _areTimesSorted(List<DateTime> dateTimes) {

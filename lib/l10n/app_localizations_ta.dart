@@ -324,6 +324,9 @@ class AppLocalizationsTa extends AppLocalizations {
       'வரவிருக்கும் பயணங்கள் இல்லை? புதிய பயணம் உருவாக்க மகிழுங்கள்!';
 
   @override
+  String get note => 'குறிப்பு';
+
+  @override
   String get noteCannotBeEmpty => 'குறிப்பு காலியாக இருக்க முடியாது';
 
   @override

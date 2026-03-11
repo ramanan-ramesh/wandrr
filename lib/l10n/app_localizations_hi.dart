@@ -320,6 +320,9 @@ class AppLocalizationsHi extends AppLocalizations {
       'कोई आगामी यात्रा नहीं? एक नई यात्रा बनाने का आनंद लें!';
 
   @override
+  String get note => 'टिप्पणी';
+
+  @override
   String get noteCannotBeEmpty => 'टिप्पणी खाली नहीं हो सकती';
 
   @override

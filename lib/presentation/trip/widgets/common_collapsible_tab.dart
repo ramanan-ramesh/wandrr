@@ -80,9 +80,10 @@ class _CommonCollapsibleTabState<T> extends State<CommonCollapsibleTab<T>> {
       return _buildEmptyState(context);
     }
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         _buildHeader(context),
-        Expanded(child: _buildReorderableList()),
+        _buildReorderableList(),
       ],
     );
   }
@@ -157,54 +158,50 @@ class _CommonCollapsibleTabState<T> extends State<CommonCollapsibleTab<T>> {
   }
 
   Widget _buildReorderableList() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-        return ReorderableListView.builder(
-          padding: EdgeInsets.fromLTRB(16, 12, 16, 32 + keyboardHeight),
-          itemCount: widget.items.length,
-          buildDefaultDragHandles: false,
-          shrinkWrap: true,
-          onReorder: (oldIndex, newIndex) {
-            setState(() {
-              if (newIndex > oldIndex) newIndex -= 1;
-              final item = widget.items.removeAt(oldIndex);
-              widget.items.insert(newIndex, item);
+    return ReorderableListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+      itemCount: widget.items.length,
+      buildDefaultDragHandles: false,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      onReorder: (oldIndex, newIndex) {
+        setState(() {
+          if (newIndex > oldIndex) newIndex -= 1;
+          final item = widget.items.removeAt(oldIndex);
+          widget.items.insert(newIndex, item);
+          widget.onItemsChanged();
+        });
+      },
+      itemBuilder: (context, index) {
+        final item = widget.items[index];
+        final expanded = _expandedIndex == index;
+        final accent =
+            widget.accentColorBuilder?.call(item) ?? AppColors.brandPrimary;
+        final valid = widget.isValidBuilder?.call(item);
+        final handleColor = valid == null
+            ? accent
+            : (valid ? AppColors.success : AppColors.error);
+        return _CollapsibleEntry<T>(
+          key: ObjectKey(item),
+          index: index,
+          item: item,
+          expanded: expanded,
+          accentColor: handleColor,
+          titleBuilder: widget.titleBuilder,
+          previewBuilder: widget.previewBuilder,
+          onToggle: () {
+            setState(() => _expandedIndex = expanded ? null : index);
+            // Persist changes when collapsing an item
+            if (expanded) {
               widget.onItemsChanged();
-            });
+            }
           },
-          itemBuilder: (context, index) {
-            final item = widget.items[index];
-            final expanded = _expandedIndex == index;
-            final accent =
-                widget.accentColorBuilder?.call(item) ?? AppColors.brandPrimary;
-            final valid = widget.isValidBuilder?.call(item);
-            final handleColor = valid == null
-                ? accent
-                : (valid ? AppColors.success : AppColors.error);
-            return _CollapsibleEntry<T>(
-              key: ObjectKey(item),
-              index: index,
-              item: item,
-              expanded: expanded,
-              accentColor: handleColor,
-              titleBuilder: widget.titleBuilder,
-              previewBuilder: widget.previewBuilder,
-              onToggle: () {
-                setState(() => _expandedIndex = expanded ? null : index);
-                // Persist changes when collapsing an item
-                if (expanded) {
-                  widget.onItemsChanged();
-                }
-              },
-              onDelete: () => _deleteItem(index),
-              expandedBuilder: (ctx, notify) =>
-                  widget.expandedBuilder(ctx, index, item, notify),
-              notifyChanged: () => _notifyItemChanged(index),
-              itemHeaderBuilder: widget.itemHeaderBuilder,
-              itemNotifier: _getNotifierForIndex(index),
-            );
-          },
+          onDelete: () => _deleteItem(index),
+          expandedBuilder: (ctx, notify) =>
+              widget.expandedBuilder(ctx, index, item, notify),
+          notifyChanged: () => _notifyItemChanged(index),
+          itemHeaderBuilder: widget.itemHeaderBuilder,
+          itemNotifier: _getNotifierForIndex(index),
         );
       },
     );
@@ -395,9 +392,12 @@ class _CollapsibleEntry<T> extends StatelessWidget {
   }
 
   Widget _buildExpanded(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: expandedBuilder(context, notifyChanged),
+    return ValueListenableBuilder<int>(
+      valueListenable: itemNotifier,
+      builder: (context, _, __) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: expandedBuilder(context, notifyChanged),
+      ),
     );
   }
 }

@@ -84,11 +84,18 @@ class ScanExclusions {
 
 /// Determines which timeline positions constitute conflicts.
 /// Different entity combinations have different conflict semantics.
+///
+/// Core domain rules:
+/// - Transits/sights CAN happen during a stay (between checkin and checkout)
+///   without conflict. Only overlapping at exact checkin/checkout times or
+///   crossing those boundaries is a conflict.
+/// - Two stays, two transits, or a transit and a sight that overlap are conflicts.
+/// - Adjacent events (one ends when another starts) are never conflicts.
 class ConflictRules {
   const ConflictRules._();
 
   /// Check if position is a conflict for standard entity editing
-  /// (Transit or Sight being edited)
+  /// (Transit or Sight being edited against another Transit or Sight)
   static bool isStandardConflict(EntityTimelinePosition position) {
     return position == EntityTimelinePosition.exactBoundaryMatch ||
         position == EntityTimelinePosition.containedIn ||
@@ -97,19 +104,47 @@ class ConflictRules {
         position == EntityTimelinePosition.startsBeforeEndsDuring;
   }
 
+  /// Check if position is a conflict when source is a Transit/Sight
+  /// and target is a Stay.
+  ///
+  /// A transit/sight happening fully inside a stay is NOT a conflict.
+  /// The stay "contains" the transit/sight's time range.
+  static bool isTransitOrSightVsStayConflict(EntityTimelinePosition position) {
+    // "contains" means the target (stay) fully contains the source (transit/sight)
+    // → NOT a conflict, the transit/sight happens during the stay
+    return position == EntityTimelinePosition.exactBoundaryMatch ||
+        position == EntityTimelinePosition.startsDuringEndsAfter ||
+        position == EntityTimelinePosition.startsBeforeEndsDuring;
+    // containedIn would mean the stay is inside the transit/sight, which IS a conflict
+    // but that case is: stay contained in transit → covered by isStaySourceConflict
+  }
+
+  /// Check if position is a conflict when source is Stay
+  /// and target is a Transit/Sight.
+  ///
+  /// A transit/sight that is fully within the stay period is NOT a conflict.
+  /// Only events at exact checkin/checkout times or crossing those boundaries
+  /// are real conflicts.
+  static bool isStayVsTransitOrSightConflict(EntityTimelinePosition position) {
+    // "containedIn" means the target (transit/sight) is fully within the
+    // source (stay) → NOT a conflict (you can travel/visit during your stay)
+    return position == EntityTimelinePosition.exactBoundaryMatch ||
+        position == EntityTimelinePosition.startsDuringEndsAfter ||
+        position == EntityTimelinePosition.startsBeforeEndsDuring;
+    // "contains" means the target (transit/sight) fully contains the stay
+    // → IS a conflict, but extremely unlikely for sights (1 min duration)
+  }
+
   /// Check if position is a conflict when source is Stay
   /// Target can be contained in a stay without conflict for transits/sights
   static bool isStaySourceConflict(
     EntityTimelinePosition position,
     TripEntity targetEntity,
   ) {
-    // Stays allow transits to be fully contained
     if (targetEntity is TransitFacade || targetEntity is SightFacade) {
-      return position == EntityTimelinePosition.exactBoundaryMatch ||
-          position == EntityTimelinePosition.containedIn ||
-          position == EntityTimelinePosition.startsDuringEndsAfter ||
-          position == EntityTimelinePosition.startsBeforeEndsDuring;
+      return isStayVsTransitOrSightConflict(position);
     }
+    // Stay vs Stay → standard overlap rules
     return isStandardConflict(position);
   }
 
@@ -133,6 +168,10 @@ class ConflictRules {
       return isMetadataConflict(position);
     } else if (sourceEntity is LodgingFacade) {
       return isStaySourceConflict(position, targetEntity);
+    } else if ((sourceEntity is TransitFacade || sourceEntity is SightFacade) &&
+        targetEntity is LodgingFacade) {
+      // Transit/Sight vs Stay: special rules
+      return isTransitOrSightVsStayConflict(position);
     } else {
       return isStandardConflict(position);
     }

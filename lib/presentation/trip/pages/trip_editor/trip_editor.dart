@@ -24,28 +24,48 @@ import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'itinerary/itinerary_navigator.dart';
 
 /// Main entry point for the trip editor page.
-class TripEditorPage extends StatelessWidget {
+class TripEditorPage extends StatefulWidget {
   const TripEditorPage({super.key});
+
+  @override
+  State<TripEditorPage> createState() => _TripEditorPageState();
+}
+
+class _TripEditorPageState extends State<TripEditorPage> {
+  final ValueNotifier<DateTime> _currentDateNotifier =
+      ValueNotifier<DateTime>(DateTime.now());
+
+  @override
+  void dispose() {
+    _currentDateNotifier.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isBigLayout = context.isBigLayout;
     if (isBigLayout) {
       return _TripEditorPageInternal(
+        currentDateNotifier: _currentDateNotifier,
         body: Row(
-          children: const [
-            Expanded(child: ItineraryNavigator()),
-            Expanded(child: BudgetingPage()),
+          children: [
+            Expanded(
+                child: ItineraryNavigator(
+                    onNavigatedToDate: (date) =>
+                        _currentDateNotifier.value = date)),
+            const Expanded(child: BudgetingPage()),
           ],
         ),
       );
     }
-    return const _TripEditorSmallLayout();
+    return _TripEditorSmallLayout(currentDateNotifier: _currentDateNotifier);
   }
 }
 
 class _TripEditorSmallLayout extends StatefulWidget {
-  const _TripEditorSmallLayout();
+  final ValueNotifier<DateTime> currentDateNotifier;
+
+  const _TripEditorSmallLayout({required this.currentDateNotifier});
 
   @override
   State<_TripEditorSmallLayout> createState() =>
@@ -54,14 +74,23 @@ class _TripEditorSmallLayout extends StatefulWidget {
 
 class _TripEditorSmallLayoutPageState extends State<_TripEditorSmallLayout> {
   int _currentPageIndex = 0;
-  late final List<Widget> _pages = [
-    const ItineraryNavigator(),
-    const BudgetingPage(),
-  ];
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      ItineraryNavigator(onNavigatedToDate: (date) {
+        widget.currentDateNotifier.value = date;
+      }),
+      const BudgetingPage(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     return _TripEditorPageInternal(
+      currentDateNotifier: widget.currentDateNotifier,
       body: _pages[_currentPageIndex],
       bottomNavigationBar: BottomNavBar(
         selectedIndex: _currentPageIndex,
@@ -79,9 +108,11 @@ class _TripEditorSmallLayoutPageState extends State<_TripEditorSmallLayout> {
 class _TripEditorPageInternal extends StatelessWidget {
   final Widget body;
   final Widget? bottomNavigationBar;
+  final ValueNotifier<DateTime> currentDateNotifier;
 
   const _TripEditorPageInternal({
     required this.body,
+    required this.currentDateNotifier,
     this.bottomNavigationBar,
   });
 
@@ -210,11 +241,14 @@ class _TripEditorPageInternal extends StatelessWidget {
 
   void _onAddButtonPressed(BuildContext pageContext) {
     _showModalBottomSheet(
-      TripEntityCreatorBottomSheet(supportedActions: [
-        TripEditorAction.expense,
-        TripEditorAction.travel,
-        TripEditorAction.stay,
-      ]),
+      TripEntityCreatorBottomSheet(
+        supportedActions: [
+          TripEditorAction.expense,
+          TripEditorAction.travel,
+          TripEditorAction.stay,
+        ],
+        currentlyDisplayedItineraryDate: currentDateNotifier.value,
+      ),
       pageContext,
     );
   }
