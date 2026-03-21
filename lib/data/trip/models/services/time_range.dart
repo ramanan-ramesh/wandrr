@@ -82,6 +82,7 @@ class TimeRange {
     return true;
   }
 
+  //TODO: Use analyzePosition API
   bool overlapsWith(TimeRange other) {
     return start.isBefore(other.end) && other.start.isBefore(end);
   }

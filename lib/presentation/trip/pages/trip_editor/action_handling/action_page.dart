@@ -14,6 +14,7 @@ class TripEditorActionPage<T extends TripEntity> extends StatefulWidget {
   final String title;
   final ScrollController? scrollController;
   final T tripEntity;
+  final VoidCallback onClosePressed;
 
   const TripEditorActionPage({
     super.key,
@@ -23,6 +24,7 @@ class TripEditorActionPage<T extends TripEntity> extends StatefulWidget {
     required this.onActionInvoked,
     required this.pageContentCreator,
     required this.actionIcon,
+    required this.onClosePressed,
   });
 
   @override
@@ -67,7 +69,9 @@ class _TripEditorActionPageState<T extends TripEntity>
                               WidgetStatePropertyAll(AppColors.brandSecondary),
                         )
                       : null,
-                  onPressed: () => Navigator.of(context).pop),
+                  onPressed: () {
+                    widget.onClosePressed();
+                  }),
               title: Text(widget.title),
               centerTitle: true,
               elevation: 0,
@@ -106,7 +110,7 @@ class _TripEditorActionPageState<T extends TripEntity>
           valueNotifier: validityNotifier,
           callback: () {
             widget.onActionInvoked(context);
-            Navigator.of(context).pop();
+            widget.onClosePressed();
           },
         ),
         duration: Duration(milliseconds: 3000),

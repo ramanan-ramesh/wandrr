@@ -1,7 +1,7 @@
 # Wandrr — Product Requirements Specification
 
 > **Version:** 1.0  
-> **Last Updated:** 2026-03-08  
+> **Last Updated:** 2026-03-20  
 > **Status:** Active
 
 ---
@@ -908,7 +908,6 @@ sheets. When the trip's currency is updated, the service reflects the change aut
       count).
     - Each conflicted entity shows:
         - Original vs. modified (clamped) times.
-        - Source of conflict (what entity caused it).
         - A **delete/restore toggle** button.
         - For clamped entities: editable time fields to manually adjust.
     - A **Confirm** button to acknowledge the plan.

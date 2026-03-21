@@ -13,9 +13,6 @@ import 'unified_conflict_scanner.dart';
 
 /// Base class for entity-specific conflict detectors.
 ///
-/// Follows the Open/Closed Principle: Each detector extends this base class
-/// to provide entity-specific conflict detection without modifying the base.
-///
 /// Each detector knows how to:
 /// - Build exclusions for its entity type (to avoid self-conflicts)
 /// - Build time ranges from entity data
@@ -94,8 +91,7 @@ class StayConflictDetector extends EntityConflictDetector<LodgingFacade> {
       end: stay.checkoutDateTime!,
     );
 
-    // Exclude the stay being edited (unless it's new)
-    final exclusions = ScanExclusions.forStay(isNewEntity ? null : stay.id);
+    final exclusions = ScanExclusions.forEntity(stay);
 
     final conflicts = scanner.scanForConflicts(
       referenceRange: referenceRange,

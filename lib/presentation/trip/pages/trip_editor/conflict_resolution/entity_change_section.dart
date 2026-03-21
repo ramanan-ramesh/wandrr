@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/entity_change_message_provider.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
@@ -186,9 +185,6 @@ class EntityChangeItemCard extends StatelessWidget {
   /// Child widget to display when not deleted (e.g., datetime editors)
   final Widget? child;
 
-  /// Optional conflict source information
-  final ConflictSource? conflictSource;
-
   const EntityChangeItemCard({
     super.key,
     required this.isDeleted,
@@ -199,7 +195,6 @@ class EntityChangeItemCard extends StatelessWidget {
     this.subtitle,
     required this.onToggleDelete,
     this.child,
-    this.conflictSource,
   });
 
   @override
@@ -305,11 +300,6 @@ class EntityChangeItemCard extends StatelessWidget {
                 ),
               ],
             ),
-            // Conflict source - compact single line
-            if (conflictSource != null && !isDeleted) ...[
-              const SizedBox(height: 6),
-              _ConflictSourceChip(source: conflictSource!),
-            ],
             // Content when not deleted
             if (!isDeleted && child != null) ...[
               const SizedBox(height: 8),
@@ -344,48 +334,6 @@ class _StatusChip extends StatelessWidget {
           fontWeight: FontWeight.bold,
           color: color,
         ),
-      ),
-    );
-  }
-}
-
-/// Compact chip showing the source of a conflict with times
-class _ConflictSourceChip extends StatelessWidget {
-  final ConflictSource source;
-
-  const _ConflictSourceChip({required this.source});
-
-  @override
-  Widget build(BuildContext context) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
-    final color = isLightTheme ? Colors.grey.shade700 : Colors.grey.shade400;
-
-    return Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(
-            text: 'Conflicts with ',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: color,
-                  fontSize: 11,
-                ),
-          ),
-          TextSpan(
-            text: source.shortMessage,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isLightTheme ? AppColors.error : AppColors.errorLight,
-                  fontSize: 11,
-                ),
-          ),
-          TextSpan(
-            text: ' (${source.compactTimeRange})',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: color,
-                  fontSize: 10,
-                ),
-          ),
-        ],
       ),
     );
   }

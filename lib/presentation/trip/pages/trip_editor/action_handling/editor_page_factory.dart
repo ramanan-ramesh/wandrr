@@ -159,6 +159,7 @@ class EditorPageFactory {
     return TripEditorActionPage<StandaloneExpense>(
       tripEntity: editableEntity,
       title: title,
+      onClosePressed: onClosePressed,
       onActionInvoked: (ctx) =>
           _emitUpdateEvent<StandaloneExpense>(ctx, editableEntity),
       scrollController: scrollController,

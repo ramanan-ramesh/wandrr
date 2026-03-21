@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/trip_contributors_section.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/trip_contributors_section.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/money_edit_field.dart';
 import 'package:wandrr/presentation/trip/widgets/unified_trip_dialog.dart';
@@ -61,6 +62,18 @@ class _CopyTripDialogState extends State<CopyTripDialog> {
     });
   }
 
+  String _formatDateRange(DateTime start, DateTime end) {
+    if (start.year == end.year) {
+      if (start.month == end.month) {
+        return '${start.day}-${end.day} ${DateFormat.MMMM().format(start)} ${start.year}';
+      } else {
+        return '${DateFormat.MMMM().format(start)} ${start.day} - ${DateFormat.MMMM().format(end)} ${end.day} ${start.year}';
+      }
+    } else {
+      return '${DateFormat.yMd().format(start)} - ${DateFormat.yMd().format(end)}';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return UnifiedTripDialog(
@@ -89,7 +102,7 @@ class _CopyTripDialogState extends State<CopyTripDialog> {
             const SizedBox(height: 8),
             OutlinedButton.icon(
               icon: const Icon(Icons.calendar_today),
-              label: Text(_newStartDate.toString().split(' ')[0]),
+              label: Text(DateFormat.yMd().format(_newStartDate)),
               onPressed: () async {
                 // Allow choosing any future date
                 final minDate = DateTime.now();
@@ -110,8 +123,11 @@ class _CopyTripDialogState extends State<CopyTripDialog> {
               padding: const EdgeInsets.only(top: 8.0),
               child: Text(
                 context.localizations.tripDatesShifted(
-                  '${widget.sourceTrip.startDate!.toString().split(' ')[0]} to ${widget.sourceTrip.endDate!.toString().split(' ')[0]}',
-                  '${_newStartDate.toString().split(' ')[0]} to ${_newEndDate.toString().split(' ')[0]}',
+                  _formatDateRange(
+                    widget.sourceTrip.startDate!,
+                    widget.sourceTrip.endDate!,
+                  ),
+                  _formatDateRange(_newStartDate, _newEndDate),
                 ),
                 style: Theme.of(context)
                     .textTheme

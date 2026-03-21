@@ -73,7 +73,8 @@ class AppRouter {
             ),
           ),
         ),
-        // ShellRoute for trip-related pages - keeps TripManagementBloc alive
+        // ShellRoute for trip-related pages - keeps TripManagementBloc alive.
+        // TODO: Display single animation for landing on trip editor page directly .
         ShellRoute(
           builder: (context, state, child) {
             return _TripShell(child: child);

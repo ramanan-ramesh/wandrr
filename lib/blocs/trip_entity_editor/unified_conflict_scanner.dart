@@ -57,11 +57,6 @@ class ScanExclusions {
     return ScanExclusions(sightIds: ids.toSet());
   }
 
-  /// Creates exclusions for a stay (new or existing)
-  factory ScanExclusions.forStay(String? id) {
-    return ScanExclusions(stayIds: id != null ? {id} : {});
-  }
-
   /// Merges two exclusion sets
   ScanExclusions merge(ScanExclusions other) {
     return ScanExclusions(
@@ -70,12 +65,6 @@ class ScanExclusions {
       sightIds: {...sightIds, ...other.sightIds},
     );
   }
-
-  bool excludesTransit(String? id) => id != null && transitIds.contains(id);
-
-  bool excludesStay(String? id) => id != null && stayIds.contains(id);
-
-  bool excludesSight(String? id) => id != null && sightIds.contains(id);
 }
 
 // =============================================================================
@@ -104,12 +93,41 @@ class ConflictRules {
         position == EntityTimelinePosition.startsBeforeEndsDuring;
   }
 
+  /// Unified conflict check based on source entity type
+  static bool isConflicting(
+    EntityTimelinePosition position,
+    TripEntity sourceEntity,
+    TripEntity targetEntity,
+  ) {
+    if (sourceEntity is TripMetadataFacade) {
+      return _isMetadataConflict(position);
+    } else if (sourceEntity is LodgingFacade) {
+      return _isStaySourceConflict(position, targetEntity);
+    } else if ((sourceEntity is TransitFacade || sourceEntity is SightFacade) &&
+        targetEntity is LodgingFacade) {
+      // Transit/Sight vs Stay: special rules
+      return _isTransitOrSightVsStayConflict(position);
+    } else {
+      return isStandardConflict(position);
+    }
+  }
+
+  /// Check if position is a conflict for metadata updates
+  /// Entities must be fully within the new date range
+  static bool _isMetadataConflict(EntityTimelinePosition position) {
+    return position == EntityTimelinePosition.beforeEvent ||
+        position == EntityTimelinePosition.afterEvent ||
+        position == EntityTimelinePosition.startsBeforeEndsDuring ||
+        position == EntityTimelinePosition.startsDuringEndsAfter ||
+        position == EntityTimelinePosition.contains;
+  }
+
   /// Check if position is a conflict when source is a Transit/Sight
   /// and target is a Stay.
   ///
   /// A transit/sight happening fully inside a stay is NOT a conflict.
   /// The stay "contains" the transit/sight's time range.
-  static bool isTransitOrSightVsStayConflict(EntityTimelinePosition position) {
+  static bool _isTransitOrSightVsStayConflict(EntityTimelinePosition position) {
     // "contains" means the target (stay) fully contains the source (transit/sight)
     // → NOT a conflict, the transit/sight happens during the stay
     return position == EntityTimelinePosition.exactBoundaryMatch ||
@@ -125,7 +143,7 @@ class ConflictRules {
   /// A transit/sight that is fully within the stay period is NOT a conflict.
   /// Only events at exact checkin/checkout times or crossing those boundaries
   /// are real conflicts.
-  static bool isStayVsTransitOrSightConflict(EntityTimelinePosition position) {
+  static bool _isStayVsTransitOrSightConflict(EntityTimelinePosition position) {
     // "containedIn" means the target (transit/sight) is fully within the
     // source (stay) → NOT a conflict (you can travel/visit during your stay)
     return position == EntityTimelinePosition.exactBoundaryMatch ||
@@ -137,44 +155,15 @@ class ConflictRules {
 
   /// Check if position is a conflict when source is Stay
   /// Target can be contained in a stay without conflict for transits/sights
-  static bool isStaySourceConflict(
+  static bool _isStaySourceConflict(
     EntityTimelinePosition position,
     TripEntity targetEntity,
   ) {
     if (targetEntity is TransitFacade || targetEntity is SightFacade) {
-      return isStayVsTransitOrSightConflict(position);
+      return _isStayVsTransitOrSightConflict(position);
     }
     // Stay vs Stay → standard overlap rules
     return isStandardConflict(position);
-  }
-
-  /// Check if position is a conflict for metadata updates
-  /// Entities must be fully within the new date range
-  static bool isMetadataConflict(EntityTimelinePosition position) {
-    return position == EntityTimelinePosition.beforeEvent ||
-        position == EntityTimelinePosition.afterEvent ||
-        position == EntityTimelinePosition.startsBeforeEndsDuring ||
-        position == EntityTimelinePosition.startsDuringEndsAfter ||
-        position == EntityTimelinePosition.contains;
-  }
-
-  /// Unified conflict check based on source entity type
-  static bool isConflicting(
-    EntityTimelinePosition position,
-    TripEntity sourceEntity,
-    TripEntity targetEntity,
-  ) {
-    if (sourceEntity is TripMetadataFacade) {
-      return isMetadataConflict(position);
-    } else if (sourceEntity is LodgingFacade) {
-      return isStaySourceConflict(position, targetEntity);
-    } else if ((sourceEntity is TransitFacade || sourceEntity is SightFacade) &&
-        targetEntity is LodgingFacade) {
-      // Transit/Sight vs Stay: special rules
-      return isTransitOrSightVsStayConflict(position);
-    } else {
-      return isStandardConflict(position);
-    }
   }
 }
 
@@ -361,7 +350,7 @@ class UnifiedConflictScanner {
     if (editableEntityRange != null) {
       final position = modifiedRange.analyzePosition(editableEntityRange);
       final isConflicting = editableEntity is TripMetadataFacade
-          ? ConflictRules.isMetadataConflict(position)
+          ? ConflictRules._isMetadataConflict(position)
           : ConflictRules.isStandardConflict(position);
 
       if (isConflicting) {
@@ -505,17 +494,17 @@ class UnifiedConflictScanner {
 
     // Convert new conflicts to changes and try to clamp them
     for (final conflict in repoConflicts.transitConflicts) {
-      final change = _toTransitChange(conflict);
+      final change = _toEntityChange<TransitFacade>(conflict);
       newConflicts.add(change);
     }
 
     for (final conflict in repoConflicts.stayConflicts) {
-      final change = _toStayChange(conflict);
+      final change = _toEntityChange<LodgingFacade>(conflict);
       newConflicts.add(change);
     }
 
     for (final conflict in repoConflicts.sightConflicts) {
-      final change = _toSightChange(conflict);
+      final change = _toEntityChange<SightFacade>(conflict);
       newConflicts.add(change);
     }
   }
@@ -675,40 +664,15 @@ class UnifiedConflictScanner {
   // CHANGE CONVERSION HELPERS
   // ===========================================================================
 
-  TransitChange _toTransitChange(TransitConflict conflict) {
+  DateTimeChange<T> _toEntityChange<T extends TripEntity>(
+      ConflictResult<T> conflict) {
     return conflict.canBeClampedToResolve
-        ? TransitChange.forClamping(
+        ? DateTimeChange<T>.forClamping(
             original: conflict.entity,
             modified: conflict.clampedEntity!,
             timelinePosition: conflict.position,
           )
-        : TransitChange.forDeletion(
-            original: conflict.entity,
-            timelinePosition: conflict.position,
-          );
-  }
-
-  StayChange _toStayChange(StayConflict conflict) {
-    return conflict.canBeClampedToResolve
-        ? StayChange.forClamping(
-            original: conflict.entity,
-            modified: conflict.clampedEntity!,
-            timelinePosition: conflict.position,
-          )
-        : StayChange.forDeletion(
-            original: conflict.entity,
-            timelinePosition: conflict.position,
-          );
-  }
-
-  SightChange _toSightChange(SightConflict conflict) {
-    return conflict.canBeClampedToResolve
-        ? SightChange.forClamping(
-            original: conflict.entity,
-            modified: conflict.clampedEntity!,
-            timelinePosition: conflict.position,
-          )
-        : SightChange.forDeletion(
+        : DateTimeChange<T>.forDeletion(
             original: conflict.entity,
             timelinePosition: conflict.position,
           );
@@ -726,7 +690,7 @@ class UnifiedConflictScanner {
     final conflicts = <TransitConflict>[];
 
     for (final transit in _tripData.transitCollection.collectionItems) {
-      if (exclusions.excludesTransit(transit.id)) continue;
+      if (exclusions.transitIds.contains(transit.id)) continue;
 
       final entityRange = TimeRange(
         start: transit.departureDateTime!,
@@ -759,7 +723,7 @@ class UnifiedConflictScanner {
     final conflicts = <StayConflict>[];
 
     for (final stay in _tripData.lodgingCollection.collectionItems) {
-      if (exclusions.excludesStay(stay.id)) continue;
+      if (exclusions.stayIds.contains(stay.id)) continue;
       if (stay.checkinDateTime == null || stay.checkoutDateTime == null)
         continue;
 
@@ -793,7 +757,7 @@ class UnifiedConflictScanner {
 
     for (final itinerary in _tripData.itineraryCollection) {
       for (final sight in itinerary.planData.sights) {
-        if (exclusions.excludesSight(sight.id)) continue;
+        if (exclusions.sightIds.contains(sight.id)) continue;
         if (sight.visitTime == null) continue;
 
         final entityRange = TimeRange(
@@ -834,7 +798,7 @@ class UnifiedConflictScanner {
       );
 
       final position = stayRange.analyzePosition(newTripRange);
-      if (!ConflictRules.isMetadataConflict(position)) continue;
+      if (!ConflictRules._isMetadataConflict(position)) continue;
 
       final clamped = EntityClamper.clampStayToDateRange(stay, newTripRange);
 
@@ -858,7 +822,7 @@ class UnifiedConflictScanner {
       final transitRange = TimeRange(start: dep, end: arr);
 
       final position = transitRange.analyzePosition(newTripRange);
-      if (!ConflictRules.isMetadataConflict(position)) continue;
+      if (!ConflictRules._isMetadataConflict(position)) continue;
 
       // Transits outside date range cannot be clamped - clear times
       final modified = transit.clone();
@@ -889,7 +853,7 @@ class UnifiedConflictScanner {
         );
 
         final position = sightRange.analyzePosition(newTripRange);
-        if (!ConflictRules.isMetadataConflict(position)) continue;
+        if (!ConflictRules._isMetadataConflict(position)) continue;
 
         // Sights outside date range - clear visit time
         final modified = sight.clone();

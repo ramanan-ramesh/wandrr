@@ -12,8 +12,8 @@ import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
+import 'conflict_detectors.dart';
 import 'conflict_result.dart';
-import 'streamlined_conflict_detectors.dart';
 import 'trip_entity_editor_events.dart';
 import 'trip_entity_editor_state.dart';
 import 'unified_conflict_scanner.dart';
@@ -23,13 +23,6 @@ import 'unified_conflict_scanner.dart';
 // =============================================================================
 
 /// BLoC for editing trip entities with conflict detection and resolution.
-///
-/// This bloc follows SOLID principles:
-/// - Single Responsibility: Orchestrates entity editing and conflict management
-/// - Open/Closed: Extensible through conflict detectors without modification
-/// - Liskov Substitution: All detectors implement the same interface
-/// - Interface Segregation: Small, focused interfaces for each concern
-/// - Dependency Inversion: Depends on abstractions (scanner, detectors)
 ///
 /// Key features:
 /// - Unified conflict detection across all entity types
@@ -50,35 +43,17 @@ class TripEntityEditorBloc<T extends TripEntity>
 
   TripEntityUpdatePlan<T>? get currentPlan => _currentPlan;
 
-  // ===========================================================================
-  // CONSTRUCTORS
-  // ===========================================================================
-
-  TripEntityEditorBloc.forCreation({
+  TripEntityEditorBloc._({
     required TripDataFacade tripData,
-    required T entity,
+    required T? original,
+    required T editable,
+    required bool isNew,
   })  : _tripData = tripData,
         _scanner = UnifiedConflictScanner(tripData: tripData),
-        originalEntity = null,
-        isNewEntity = true,
-        editableEntity = entity,
-        super(TripEntityInitialized<T>(entity)) {
-    _registerHandlers();
-  }
-
-  TripEntityEditorBloc.forEditing({
-    required TripDataFacade tripData,
-    required T entity,
-  })  : _tripData = tripData,
-        _scanner = UnifiedConflictScanner(tripData: tripData),
-        originalEntity = entity,
-        isNewEntity = false,
-        editableEntity = entity.clone() as T,
-        super(TripEntityInitialized<T>(entity.clone() as T)) {
-    _registerHandlers();
-  }
-
-  void _registerHandlers() {
+        originalEntity = original,
+        isNewEntity = isNew,
+        editableEntity = editable,
+        super(TripEntityInitialized<T>(editable)) {
     on<UpdateEntityTimeRange<T>>(_onUpdateEntityTimeRange);
     on<UpdateJourneyTimeRange>(_onUpdateJourneyTimeRange);
     on<UpdateSightsTimeRange>(_onUpdateSightsTimeRange);
@@ -87,6 +62,26 @@ class TripEntityEditorBloc<T extends TripEntity>
     on<ConfirmConflictPlan>(_onConfirmConflictPlan);
     on<SubmitEntity>(_onSubmitEntity);
   }
+
+  TripEntityEditorBloc.forCreation({
+    required TripDataFacade tripData,
+    required T entity,
+  }) : this._(
+          tripData: tripData,
+          original: null,
+          editable: entity,
+          isNew: true,
+        );
+
+  TripEntityEditorBloc.forEditing({
+    required TripDataFacade tripData,
+    required T entity,
+  }) : this._(
+          tripData: tripData,
+          original: entity,
+          editable: entity.clone() as T,
+          isNew: false,
+        );
 
   // ===========================================================================
   // EVENT HANDLERS

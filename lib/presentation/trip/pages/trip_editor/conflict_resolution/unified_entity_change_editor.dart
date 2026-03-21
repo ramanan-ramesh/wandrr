@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
-import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
@@ -99,7 +98,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Stays section
-        EntityChangeSection<EntityChange<LodgingFacade>>(
+        EntityChangeSection<StayChange>(
           icon: Icons.hotel_rounded,
           title: _messageProvider.staysSectionTitle(
             widget.updatePlan.stayChanges.length,
@@ -113,7 +112,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
         ),
 
         // Transits section
-        EntityChangeSection<EntityChange<TransitFacade>>(
+        EntityChangeSection<TransitChange>(
           icon: Icons.directions_transit_rounded,
           title: _messageProvider.transitsSectionTitle(
             widget.updatePlan.transitChanges.length,
@@ -127,7 +126,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
         ),
 
         // Sights section
-        EntityChangeSection<EntityChange<SightFacade>>(
+        EntityChangeSection<SightChange>(
           icon: Icons.attractions_rounded,
           title: _messageProvider.sightsSectionTitle(
             widget.updatePlan.sightChanges.length,
@@ -177,8 +176,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
   // Stay Item Builder
   // =========================================================================
 
-  Widget _buildStayItem(
-      BuildContext context, EntityChange<LodgingFacade> change) {
+  Widget _buildStayItem(BuildContext context, StayChange change) {
     final lodging = change.modified;
     final originalLodging = change.original;
 
@@ -190,7 +188,6 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
       title: lodging.location?.context.name ?? 'Unknown Location',
       subtitle: lodging.location?.context.city,
       onToggleDelete: () => widget.onDeletionToggled(change),
-      conflictSource: change.conflictSource,
       child: StayDateTimeRangeEditor(
         checkinDateTime: lodging.checkinDateTime,
         checkoutDateTime: lodging.checkoutDateTime,
@@ -215,8 +212,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
   // Transit Item Builder
   // =========================================================================
 
-  Widget _buildTransitItem(
-      BuildContext context, EntityChange<TransitFacade> change) {
+  Widget _buildTransitItem(BuildContext context, TransitChange change) {
     final transit = change.modified;
 
     return EntityChangeItemCard(
@@ -227,7 +223,6 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
       title:
           '${transit.departureLocation?.context.name ?? '?'} → ${transit.arrivalLocation?.context.name ?? '?'}',
       onToggleDelete: () => widget.onDeletionToggled(change),
-      conflictSource: change.conflictSource,
       child: _TransitDateTimeEditor(
         transit: transit,
         change: change,
@@ -268,8 +263,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
   // Sight Item Builder
   // =========================================================================
 
-  Widget _buildSightItem(
-      BuildContext context, EntityChange<SightFacade> change) {
+  Widget _buildSightItem(BuildContext context, SightChange change) {
     final sight = change.modified;
 
     return EntityChangeItemCard(
@@ -280,7 +274,6 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
       title: sight.name.isNotEmpty ? sight.name : 'Unnamed Sight',
       subtitle: sight.location?.context.name,
       onToggleDelete: () => widget.onDeletionToggled(change),
-      conflictSource: change.conflictSource,
       child: _SightTimeEditor(
         change: change,
         tripStartDate: widget.updatePlan.tripStartDate,
@@ -298,7 +291,7 @@ class _UnifiedEntityChangeEditorState extends State<UnifiedEntityChangeEditor> {
 
 class _TransitDateTimeEditor extends StatefulWidget {
   final TransitFacade transit;
-  final EntityChange<TransitFacade>? change;
+  final TransitChange? change;
   final DateTime tripStartDate;
   final DateTime tripEndDate;
   final bool Function(TimeRange range) onValidateRange;
@@ -393,7 +386,7 @@ class _TransitDateTimeEditorState extends State<_TransitDateTimeEditor> {
 // =============================================================================
 
 class _SightTimeEditor extends StatefulWidget {
-  final EntityChange<SightFacade> change;
+  final SightChange change;
   final DateTime tripStartDate;
   final DateTime tripEndDate;
   final bool Function(TimeRange range) onValidateRange;
@@ -1158,19 +1151,15 @@ class _OptimizedChangeItem<T extends TripEntity> extends StatelessWidget {
       BuildContext context, EntityChangeBase activeChange) {
     switch (sectionType) {
       case ConflictSectionType.stays:
-        return _buildStayItem(
-            context, activeChange as EntityChange<LodgingFacade>);
+        return _buildStayItem(context, activeChange as StayChange);
       case ConflictSectionType.transits:
-        return _buildTransitItem(
-            context, activeChange as EntityChange<TransitFacade>);
+        return _buildTransitItem(context, activeChange as TransitChange);
       case ConflictSectionType.sights:
-        return _buildSightItem(
-            context, activeChange as EntityChange<SightFacade>);
+        return _buildSightItem(context, activeChange as SightChange);
     }
   }
 
-  Widget _buildStayItem(
-      BuildContext context, EntityChange<LodgingFacade> activeChange) {
+  Widget _buildStayItem(BuildContext context, StayChange activeChange) {
     final lodging = activeChange.modified;
     final originalLodging = activeChange.original;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
@@ -1185,7 +1174,6 @@ class _OptimizedChangeItem<T extends TripEntity> extends StatelessWidget {
       title: lodging.location?.context.name ?? 'Unknown Location',
       subtitle: lodging.location?.context.city,
       onToggleDelete: () => onDeletionToggled(activeChange),
-      conflictSource: activeChange.conflictSource,
       child: StayDateTimeRangeEditor(
         checkinDateTime: lodging.checkinDateTime,
         checkoutDateTime: lodging.checkoutDateTime,
@@ -1204,8 +1192,7 @@ class _OptimizedChangeItem<T extends TripEntity> extends StatelessWidget {
     );
   }
 
-  Widget _buildTransitItem(
-      BuildContext context, EntityChange<TransitFacade> activeChange) {
+  Widget _buildTransitItem(BuildContext context, TransitChange activeChange) {
     final transit = activeChange.modified;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final iconColor = isLightTheme ? AppColors.info : AppColors.infoLight;
@@ -1218,7 +1205,6 @@ class _OptimizedChangeItem<T extends TripEntity> extends StatelessWidget {
       title:
           '${transit.departureLocation?.context.name ?? '?'} → ${transit.arrivalLocation?.context.name ?? '?'}',
       onToggleDelete: () => onDeletionToggled(activeChange),
-      conflictSource: activeChange.conflictSource,
       child: _TransitDateTimeEditor(
         transit: transit,
         change: activeChange,
@@ -1230,8 +1216,7 @@ class _OptimizedChangeItem<T extends TripEntity> extends StatelessWidget {
     );
   }
 
-  Widget _buildSightItem(
-      BuildContext context, EntityChange<SightFacade> activeChange) {
+  Widget _buildSightItem(BuildContext context, SightChange activeChange) {
     final sight = activeChange.modified;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final iconColor = isLightTheme ? AppColors.success : AppColors.successLight;
@@ -1244,7 +1229,6 @@ class _OptimizedChangeItem<T extends TripEntity> extends StatelessWidget {
       title: sight.name.isNotEmpty ? sight.name : 'Unnamed Sight',
       subtitle: sight.location?.context.name,
       onToggleDelete: () => onDeletionToggled(activeChange),
-      conflictSource: activeChange.conflictSource,
       child: _SightTimeEditor(
         change: activeChange,
         tripStartDate: plan.tripStartDate,

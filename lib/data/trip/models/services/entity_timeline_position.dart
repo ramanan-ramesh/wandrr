@@ -1,6 +1,4 @@
 /// Represents the temporal relationship between an entity and a reference time range.
-/// Used for both TripMetadata updates (entity vs new trip dates) and
-/// timeline conflict resolution (entity vs edited entity times).
 enum EntityTimelinePosition {
   exactBoundaryMatch,
 
