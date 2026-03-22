@@ -11,6 +11,7 @@ import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/data/trip/implementations/collection_names.dart';
 
 import 'itinerary_plan_data_implementation.dart';
 
@@ -21,17 +22,17 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
   DateTime _endDate;
   List<ItineraryModelEventHandler> _itineraries;
 
-  static Future<ItineraryCollection> createInstance({
+  static ItineraryCollection createInstance({
     required ModelCollectionFacade<TransitFacade> transitCollection,
     required ModelCollectionFacade<LodgingFacade> lodgingCollection,
     required TripMetadataFacade tripMetadata,
-  }) async {
-    final itineraries = await _createItineraryList(
+  }) {
+    final itineraries = _createItineraryList(
       tripMetadata: tripMetadata,
       transitCollection: transitCollection,
       lodgingCollection: lodgingCollection,
     );
-    return ItineraryCollection._(
+    var collection = ItineraryCollection._(
       transitCollection: transitCollection,
       lodgingCollection: lodgingCollection,
       tripId: tripMetadata.id!,
@@ -39,6 +40,19 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
       endDate: tripMetadata.endDate!,
       itineraries: itineraries,
     );
+
+    // Reconcile items that may have arrived during `_createItineraryList` awaits
+    // avoiding the silent missing items bug.
+    for (var transit in transitCollection.collectionItems) {
+      collection._addOrRemoveTransitToItinerary(transit, false);
+    }
+    for (var lodging in lodgingCollection.collectionItems) {
+      collection._addOrRemoveLodgingToItinerary(lodging, false);
+    }
+    
+    collection._listenToItineraryDataCollection();
+
+    return collection;
   }
 
   @override
@@ -126,7 +140,7 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
       }
 
       //Create an itinerary with just ItineraryPlanData for now. Transits and Stays should be filled when batch commits succeed and ModelCollection events fire.
-      var itinerary = await ItineraryModelImplementation.createInstance(
+      var itinerary = ItineraryModelImplementation.createInstance(
         tripId: tripId,
         day: date,
         transits: [],
@@ -318,11 +332,11 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
     };
   }
 
-  static Future<List<ItineraryModelEventHandler>> _createItineraryList({
+  static List<ItineraryModelEventHandler> _createItineraryList({
     required TripMetadataFacade tripMetadata,
     required ModelCollectionFacade<TransitFacade> transitCollection,
     required ModelCollectionFacade<LodgingFacade> lodgingCollection,
-  }) async {
+  }) {
     final startDate = tripMetadata.startDate!;
     final endDate = tripMetadata.endDate!;
     final numberOfDays =
@@ -359,10 +373,10 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
                   .isBefore(lodging.checkoutDateTime!))
           .firstOrNull;
 
-      var itinerary = await ItineraryModelImplementation.createInstance(
+      var itinerary = ItineraryModelImplementation.createInstance(
         tripId: tripMetadata.id!,
         day: day,
-        transits: transits,
+        transits: transits.toList(),
         checkinLodging: checkinLodging,
         checkoutLodging: checkoutLodging,
         fullDayLodging: fullDayLodging,
@@ -517,6 +531,35 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
         _endDate = endDate,
         _itineraries = itineraries {
     _initializeListeners(transitCollection, lodgingCollection);
+  }
+
+  void _listenToItineraryDataCollection() {
+    final collectionRef = FirebaseFirestore.instance
+        .collection(FirestoreCollections.tripCollectionName)
+        .doc(tripId)
+        .collection(FirestoreCollections.itineraryDataCollectionName);
+
+    _subscriptions.add(collectionRef.snapshots().listen((snapshot) {
+      for (final docChange in snapshot.docChanges) {
+        final doc = docChange.doc;
+        if (!doc.exists) continue;
+        
+        final dayKey = doc.id;
+        final matchingItinerary = _itineraries.firstWhereOrNull(
+          (it) => it.planData.id == dayKey,
+        );
+
+        if (matchingItinerary != null) {
+          final planDataModel = ItineraryPlanDataModelImplementation.fromDocumentSnapshot(
+            tripId: tripId,
+            documentData: doc.data() as Map<String, dynamic>,
+            day: matchingItinerary.day,
+          );
+          (matchingItinerary as ItineraryModelImplementation)
+              .updatePlanDataFromRemote(planDataModel);
+        }
+      }
+    }));
   }
 }
 

@@ -21,7 +21,7 @@ abstract class TripRepositoryEventHandler extends TripRepositoryFacade
   TripDataModelEventHandler? get activeTrip;
 
   Future loadTrip(TripMetadataFacade tripMetadata,
-      ApiServicesRepositoryFacade apiServicesRepository);
+      ApiServicesRepositoryFacade apiServicesRepository, bool activateTrip);
 
   Future deleteTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository);

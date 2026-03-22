@@ -22,9 +22,13 @@ class ItineraryChecklistsEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CommonCollapsibleTab(
-      items: checklists,
-      addButtonLabel: context.localizations.addChecklist,
+    return ValueListenableBuilder<bool>(
+      valueListenable: context.tripRepository.activeTrip!.isFullyLoadedNotifier,
+      builder: (context, isLoaded, _) {
+        return CommonCollapsibleTab(
+          isLoading: !isLoaded,
+          items: checklists,
+          addButtonLabel: context.localizations.addChecklist,
       addButtonIcon: Icons.checklist_rounded,
       createItem: () => CheckListFacade.newUiEntry(
         tripId: context.activeTripId,
@@ -45,6 +49,8 @@ class ItineraryChecklistsEditor extends StatelessWidget {
         onChanged: onChecklistsChanged,
       ),
       initialExpandedIndex: initialExpandedIndex,
+    );
+      },
     );
   }
 

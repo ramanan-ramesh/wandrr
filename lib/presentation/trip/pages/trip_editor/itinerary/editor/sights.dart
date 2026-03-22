@@ -74,9 +74,13 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
 
   @override
   Widget build(BuildContext context) {
-    return CommonCollapsibleTab<SightFacade>(
-      items: widget.sights,
-      addButtonLabel: context.localizations.addSight,
+    return ValueListenableBuilder<bool>(
+      valueListenable: context.tripRepository.activeTrip!.isFullyLoadedNotifier,
+      builder: (context, isLoaded, _) {
+        return CommonCollapsibleTab<SightFacade>(
+          isLoading: !isLoaded,
+          items: widget.sights,
+          addButtonLabel: context.localizations.addSight,
       addButtonIcon: Icons.add_location_alt_rounded,
       createItem: () {
         var activeTrip = context.activeTrip;
@@ -109,6 +113,8 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
       expandedBuilder: (ctx, index, sight, notifyParent) =>
           _buildSightEditor(ctx, sight, notifyParent),
       initialExpandedIndex: widget.initialExpandedIndex,
+    );
+      },
     );
   }
 

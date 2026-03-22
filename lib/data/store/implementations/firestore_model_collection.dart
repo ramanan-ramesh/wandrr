@@ -13,7 +13,10 @@ class FirestoreModelCollection<Model>
   final CollectionReference<LeafRepositoryItem<Model>>
       _typedCollectionReference;
   bool _shouldListenToUpdates = false;
-  late final StreamSubscription _collectionStreamSubscription;
+  StreamSubscription? _collectionStreamSubscription;
+  bool _isLoaded = false;
+  final StreamController<bool> _isLoadedStreamController =
+      StreamController<bool>.broadcast();
 
   /// Creates a new FirestoreModelCollection instance.
   ///
@@ -21,12 +24,12 @@ class FirestoreModelCollection<Model>
   /// [fromDocumentSnapshot] - Function to convert a DocumentSnapshot to a LeafRepositoryItem
   /// [leafRepositoryItemCreator] - Function to create a LeafRepositoryItem from a Model
   /// [query] - Optional query to filter the collection
-  static Future<ModelCollectionModifier<Model>> createInstance<Model>(
+  static ModelCollectionModifier<Model> createInstance<Model>(
       CollectionReference collectionReference,
       RepositoryDocument<Model> Function(DocumentSnapshot documentSnapshot)
           fromDocumentSnapshot,
       RepositoryDocument<Model> Function(Model) leafRepositoryItemCreator,
-      {Query? query}) async {
+      {Query? query}) {
     // Create typed converter for Firestore
     final typedCollectionReference =
         collectionReference.withConverter<RepositoryDocument<Model>>(
@@ -43,19 +46,14 @@ class FirestoreModelCollection<Model>
       );
     }
 
-    // Load initial collection items
-    var collectionItems = <RepositoryDocument<Model>>[];
-    var queryResult = await (typedQuery ?? typedCollectionReference).get();
-    for (final documentSnapshot in queryResult.docs) {
-      collectionItems.add(documentSnapshot.data());
-    }
-
-    return FirestoreModelCollection<Model>._(
+    var collection = FirestoreModelCollection<Model>._(
       typedCollectionReference: typedCollectionReference,
       typedQuery: typedQuery,
       repositoryItemCreator: leafRepositoryItemCreator,
-      collectionItems: collectionItems,
+      collectionItems: [],
     );
+    collection.startListening();
+    return collection;
   }
 
   @override
@@ -64,8 +62,15 @@ class FirestoreModelCollection<Model>
   final List<RepositoryDocument<Model>> _collectionItems;
 
   @override
+  bool get isLoaded => _isLoaded;
+
+  @override
+  Stream<bool> get onLoaded => _isLoadedStreamController.stream;
+
+  @override
   Future dispose() async {
-    await _collectionStreamSubscription.cancel();
+    await _collectionStreamSubscription?.cancel();
+    await _isLoadedStreamController.close();
     await _updationStreamController.close();
     await _deletionStreamController.close();
     await _additionStreamController.close();
@@ -101,10 +106,10 @@ class FirestoreModelCollection<Model>
   @override
   Future<void> runUpdateTransaction(
       Future<void> Function() updateTransaction) async {
-    _collectionStreamSubscription.pause();
+    _collectionStreamSubscription?.pause();
     _shouldListenToUpdates = false;
     await updateTransaction();
-    _collectionStreamSubscription.resume();
+    _collectionStreamSubscription?.resume();
     _shouldListenToUpdates = true;
   }
 
@@ -178,9 +183,12 @@ class FirestoreModelCollection<Model>
 
   void _onCollectionDataUpdate(
       List<DocumentChange<RepositoryDocument<Model>>> documentChanges) {
-    if (!_shouldListenToUpdates || documentChanges.isEmpty) {
-      return;
+    if (!_shouldListenToUpdates) return;
+    if (!_isLoaded) {
+      _isLoaded = true;
+      _isLoadedStreamController.add(true);
     }
+    if (documentChanges.isEmpty) return;
     for (final documentChange in documentChanges) {
       var documentSnapshot = documentChange.doc;
       var leafRepositoryItem = documentSnapshot.data();
@@ -250,12 +258,20 @@ class FirestoreModelCollection<Model>
     required this.repositoryItemCreator,
     required CollectionReference<RepositoryDocument<Model>>
         typedCollectionReference,
-    required Query<RepositoryDocument<Model>>? typedQuery,
+    required this.typedQuery,
     required List<RepositoryDocument<Model>> collectionItems,
   })  : _typedCollectionReference = typedCollectionReference,
-        _collectionItems = collectionItems {
+        _collectionItems = collectionItems;
+
+  final Query<RepositoryDocument<Model>>? typedQuery;
+
+  void startListening() {
+    if (_collectionStreamSubscription != null) return;
     _shouldListenToUpdates = false;
-    _collectionStreamSubscription = (typedQuery ?? typedCollectionReference)
+    final Query<RepositoryDocument<Model>> queryToUse = typedQuery != null
+        ? typedQuery!
+        : (_typedCollectionReference as Query<RepositoryDocument<Model>>);
+    _collectionStreamSubscription = queryToUse
         .snapshots()
         .listen((event) => _onCollectionDataUpdate(event.docChanges));
     _shouldListenToUpdates = true;

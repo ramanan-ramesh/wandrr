@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/implementations/firestore_model_collection.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
@@ -25,11 +27,11 @@ import 'transit.dart';
 import 'trip_metadata.dart';
 
 class TripDataModelImplementation extends TripDataModelEventHandler {
-  static Future<TripDataModelImplementation> createInstance(
+  static TripDataModelImplementation createInstance(
       TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository,
       String currentUserName,
-      Iterable<CurrencyData> supportedCurrencies) async {
+      Iterable<CurrencyData> supportedCurrencies) {
     var tripMetadataModelImplementation =
         TripMetadataModelImplementation.fromModelFacade(
             tripMetadataModelFacade: tripMetadata);
@@ -38,21 +40,21 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         .collection(FirestoreCollections.tripCollectionName)
         .doc(tripMetadata.id);
 
-    var transitModelCollection = await FirestoreModelCollection.createInstance(
+    var transitModelCollection = FirestoreModelCollection.createInstance(
         tripDocumentReference
             .collection(FirestoreCollections.transitCollectionName),
         (documentSnapshot) => TransitImplementation.fromDocumentSnapshot(
             tripMetadata.id!, documentSnapshot),
         (transitModelFacade) => TransitImplementation.fromModelFacade(
             transitModelFacade: transitModelFacade));
-    var lodgingModelCollection = await FirestoreModelCollection.createInstance(
+    var lodgingModelCollection = FirestoreModelCollection.createInstance(
         tripDocumentReference
             .collection(FirestoreCollections.lodgingCollectionName),
         (documentSnapshot) => LodgingModelImplementation.fromDocumentSnapshot(
             tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
         (lodgingModelFacade) => LodgingModelImplementation.fromModelFacade(
             lodgingModelFacade: lodgingModelFacade));
-    var expenseModelCollection = await FirestoreModelCollection.createInstance(
+    var expenseModelCollection = FirestoreModelCollection.createInstance(
         tripDocumentReference
             .collection(FirestoreCollections.expenseCollectionName),
         (documentSnapshot) =>
@@ -62,12 +64,12 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
             StandaloneExpenseModelImplementation.fromModelFacade(
                 expenseModelFacade: expenseModelFacade));
 
-    var itineraries = await ItineraryCollection.createInstance(
+    var itineraries = ItineraryCollection.createInstance(
         transitCollection: transitModelCollection,
         lodgingCollection: lodgingModelCollection,
         tripMetadata: tripMetadata);
 
-    var budgetingModule = await BudgetingModule.createInstance(
+    var budgetingModule = BudgetingModule.createInstance(
         transitModelCollection,
         lodgingModelCollection,
         expenseModelCollection,
@@ -109,6 +111,9 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
 
   @override
   final BudgetingModuleEventHandler budgetingModule;
+
+  @override
+  final ValueNotifier<bool> isFullyLoadedNotifier = ValueNotifier<bool>(false);
 
   late final TripEntityDataUpdatePlanExecutor _updatePlanExecutor;
 
@@ -162,5 +167,16 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       itineraryCollection: itineraryCollection,
       budgetingModule: budgetingModule,
     );
+
+    void checkLoadedStatus(_) {
+      isFullyLoadedNotifier.value = transitCollection.isLoaded &&
+          lodgingCollection.isLoaded &&
+          expenseCollection.isLoaded;
+    }
+
+    transitCollection.onLoaded.listen(checkLoadedStatus);
+    lodgingCollection.onLoaded.listen(checkLoadedStatus);
+    expenseCollection.onLoaded.listen(checkLoadedStatus);
+    checkLoadedStatus(null);
   }
 }

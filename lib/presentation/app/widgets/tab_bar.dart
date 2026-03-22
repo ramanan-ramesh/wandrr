@@ -19,8 +19,8 @@ class PlatformTabBar extends StatefulWidget {
 }
 
 class _PlatformTabBarState extends State<PlatformTabBar>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
+    with TickerProviderStateMixin {
+  late TabController _tabController;
 
   @override
   void initState() {
@@ -33,11 +33,24 @@ class _PlatformTabBarState extends State<PlatformTabBar>
   void didUpdateWidget(covariant PlatformTabBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!mapEquals(oldWidget.tabBarItems, widget.tabBarItems)) {
+      // Dispose old controller before creating a new one to avoid ticker leak.
+      if (widget.tabController == null) {
+        _tabController.dispose();
+      }
       setState(() {
         _tabController = widget.tabController ??
             TabController(length: widget.tabBarItems.length, vsync: this);
       });
     }
+  }
+
+  @override
+  void dispose() {
+    // Only dispose if we own the controller (not externally provided).
+    if (widget.tabController == null) {
+      _tabController.dispose();
+    }
+    super.dispose();
   }
 
   @override

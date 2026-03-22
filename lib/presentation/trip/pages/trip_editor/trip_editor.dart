@@ -125,7 +125,18 @@ class _TripEditorPageInternal extends StatelessWidget {
         extendBody: bottomNavigationBar == null,
         floatingActionButton: _createAddButton(context),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        body: body,
+        body: Column(
+          children: [
+            ValueListenableBuilder<bool>(
+              valueListenable: context.tripRepository.activeTrip!.isFullyLoadedNotifier,
+              builder: (context, isLoaded, _) {
+                if (isLoaded) return const SizedBox.shrink();
+                return const LinearProgressIndicator();
+              },
+            ),
+            Expanded(child: body),
+          ],
+        ),
         bottomNavigationBar: bottomNavigationBar,
       ),
     );
@@ -240,6 +251,15 @@ class _TripEditorPageInternal extends StatelessWidget {
   }
 
   void _onAddButtonPressed(BuildContext pageContext) {
+    final isLoaded =
+        pageContext.tripRepository.activeTrip?.isFullyLoadedNotifier.value ??
+            false;
+    if (!isLoaded) {
+      ScaffoldMessenger.of(pageContext).showSnackBar(
+        const SnackBar(content: Text('Trip data is still loading...')),
+      );
+      return;
+    }
     _showModalBottomSheet(
       TripEntityCreatorBottomSheet(
         supportedActions: [
@@ -259,6 +279,15 @@ class _TripEditorPageInternal extends StatelessWidget {
     required BuildContext pageContext,
     ItineraryPlanDataEditorConfig? planDataEditorConfig,
   }) {
+    final isLoaded =
+        pageContext.tripRepository.activeTrip?.isFullyLoadedNotifier.value ??
+            false;
+    if (!isLoaded) {
+      ScaffoldMessenger.of(pageContext).showSnackBar(
+        const SnackBar(content: Text('Trip data is still loading...')),
+      );
+      return;
+    }
     _showModalBottomSheet(
       TripEntityEditorBottomSheet<T>(
         tripEditorAction: tripEditorAction,

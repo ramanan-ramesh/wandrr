@@ -51,11 +51,16 @@ class _PlatformExpenseAmountEditFieldState
   @override
   void didUpdateWidget(covariant PlatformExpenseAmountEditField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.amount != _amount) {
+    // Only update the controller text when the amount prop is provided externally
+    // AND there is no externally-managed controller. When an external controller
+    // is passed, the caller owns the controller state — we must not override it.
+    if (widget.controller == null &&
+        widget.amount != null &&
+        widget.amount != _amount) {
       _amount = widget.amount;
-      _controller.text = (widget.amount != null
-          ? (double.parse(widget.amount!) == 0 ? '0' : widget.amount)
-          : widget.amount ?? '')!;
+      final newText =
+          double.tryParse(widget.amount!) == 0 ? '0' : (widget.amount ?? '');
+      _controller.text = newText;
     }
   }
 

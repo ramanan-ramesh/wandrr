@@ -36,6 +36,7 @@
 26. [Real-Time Sync & Data Subscriptions](#26-real-time-sync--data-subscriptions)
 27. [App Update Mechanism](#27-app-update-mechanism)
 28. [Test Traceability](#28-test-traceability)
+29. [Performance & User Experience](#29-performance--user-experience)
 
 ---
 
@@ -235,8 +236,9 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 ### REQ-TL-005 — Opening a Trip
 
 - Tapping a trip card dispatches `LoadTrip` and navigates to `/trips/:tripId`.
-- While loading, a `LoadingTrip` state is emitted with the trip metadata (can be used for a loading
-  indicator).
+- The UI must render immediately using cached data or shimmer placeholders for lists.
+- A progress indicator must show the background loading status.
+- Recently opened trips are kept in memory for instant switching.
 
 ### REQ-TL-006 — Empty State
 
@@ -1105,3 +1107,38 @@ to enable traceability.
 | BU (Budgeting)            | `sortExpenses`, `retrieveDebtDataList`, `retrieveTotalExpensePerCategory`          | Sort toggles, debt rows, breakdown charts, budget tile                    |
 | SYNC                      | Subscription events, `_UpdateTripEntityInternalEvent`                              | Real-time UI updates on remote changes                                    |
 
+---
+
+## 29. Performance & User Experience
+
+### REQ-PERF-001 — Background Preloading
+
+- On app launch, the system must automatically initialize core API services and preload the most
+  frequently visited trip in the background.
+- This ensures that most user actions are hit-less and data is ready before the user even interacts.
+
+### REQ-PERF-002 — Instant-On Trip Loading
+
+- Opening a trip must never show a blocking "Loading" screen for the entire page.
+- The Trip Editor structure must mount first, with individual components (Timeline, Budgeting) loading
+  their data reactively.
+- Firestore collections must be initialized synchronously to avoid initialization stutters.
+
+### REQ-PERF-003 — Isolate-Based Computations
+
+- Heavy computational tasks, specifically **Timeline Conflict Detection**, must run in a background
+  isolate.
+- The main UI thread must remain free to handle animations and user input at 60FPS during scanning.
+
+### REQ-PERF-004 — UI Feedback for Loading
+
+- **Shimmers:** All list-based views (Transits, Lodgings, Sights) must display shimmer animations while
+  waiting for the first data packet.
+- **Progress Bar:** A linear progress bar must be visible at the top of the Trip Editor until all
+  major data collections are "Loaded".
+
+### REQ-PERF-005 — Page Accessibility
+
+- Navigation to critical edit pages (like the Trip Entity Editor) must be blocked until the trip data
+  is fully synchronized to ensure data integrity.
+- A user-friendly message or loading state must be shown if the user attempts to edit prematurely.

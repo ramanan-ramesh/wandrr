@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'package:wandrr/data/app/models/dispose.dart';
 
 import 'api_service.dart';
 import 'budgeting/money.dart';
@@ -16,7 +16,5 @@ abstract class ApiServicesRepositoryFacade {
   ApiService<String, Iterable<LocationFacade>> get geoLocator;
 }
 
-abstract class ApiServicesRepositoryModifier
-    extends ApiServicesRepositoryFacade {
-  FutureOr<void> dispose();
-}
+abstract class ApiServicesRepositoryModifier extends ApiServicesRepositoryFacade
+    implements Dispose {}
