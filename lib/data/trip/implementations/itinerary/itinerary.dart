@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/store/models/collection_item_change_set.dart';
-import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
@@ -56,16 +55,13 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
               CollectionItemChangeSet<ItineraryPlanData>>>
       _planDataStreamController = StreamController.broadcast();
 
-  late final StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>
-      _planDataSubscription;
-
   @override
   ItineraryPlanData get planData => _planData;
   ItineraryPlanDataModelImplementation _planData;
 
   var _shouldListenToPlanDataChanges = true;
 
-  static Future<ItineraryModelImplementation> createInstance({
+  static ItineraryModelImplementation createInstance({
     required String tripId,
     required DateTime day,
     required Iterable<TransitFacade> transits,
@@ -73,36 +69,16 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
     required LodgingFacade? checkoutLodging,
     required LodgingFacade? fullDayLodging,
     ItineraryPlanDataModelImplementation? planData,
-  }) async {
+  }) {
     final planDataId = day.itineraryDateFormat;
-    ItineraryPlanDataModelImplementation planDataModelImplementation;
-    if (planData != null) {
-      planDataModelImplementation = planData;
-    } else {
-      final planDataDocRef = FirebaseFirestore.instance
-          .collection(FirestoreCollections.tripCollectionName)
-          .doc(tripId)
-          .collection(FirestoreCollections.itineraryDataCollectionName)
-          .doc(planDataId);
-      var planDataSnapshot = await planDataDocRef.get();
-      if (planDataSnapshot.exists) {
-        planDataModelImplementation =
-            ItineraryPlanDataModelImplementation.fromDocumentSnapshot(
-          tripId: tripId,
-          documentData: planDataSnapshot.data() as Map<String, dynamic>,
-          day: day,
-        );
-      } else {
-        planDataModelImplementation = ItineraryPlanDataModelImplementation(
-          tripId: tripId,
-          day: day,
-          id: planDataId,
-          sights: [],
-          notes: [],
-          checkLists: [],
-        );
-      }
-    }
+    var planDataModelImplementation = planData ?? ItineraryPlanDataModelImplementation(
+      tripId: tripId,
+      day: day,
+      id: planDataId,
+      sights: [],
+      notes: [],
+      checkLists: [],
+    );
 
     return ItineraryModelImplementation._(
       tripId: tripId,
@@ -117,7 +93,6 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
 
   @override
   Future dispose() async {
-    await _planDataSubscription.cancel();
     await _planDataStreamController.close();
   }
 
@@ -127,7 +102,6 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
   Future<bool> updatePlanData(ItineraryPlanData planData) async {
     var didUpdate = false;
     _shouldListenToPlanDataChanges = false;
-    _planDataSubscription.pause();
     var leafRepositoryItem =
         ItineraryPlanDataModelImplementation.fromModelFacade(planData);
     var planDataBeforeUpdate = _planData.facade;
@@ -138,7 +112,6 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
     }).catchError((error, stackTrace) {
       return false;
     });
-    _planDataSubscription.resume();
     _shouldListenToPlanDataChanges = true;
     if (didUpdate) {
       _planData = leafRepositoryItem;
@@ -187,47 +160,15 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
             (checkInLodging != null || checkOutLodging != null));
   }
 
-  void _listenToPlanDataChanges() {
-    final planDataId = day.itineraryDateFormat;
-    final planDataDocRef = FirebaseFirestore.instance
-        .collection(FirestoreCollections.tripCollectionName)
-        .doc(tripId)
-        .collection(FirestoreCollections.itineraryDataCollectionName)
-        .doc(planDataId);
-
-    var hasHitFirstTime = false;
-    _planDataSubscription = planDataDocRef.snapshots().listen((snapshot) {
-      if (!_shouldListenToPlanDataChanges) {
-        return;
-      }
-      if (!hasHitFirstTime) {
-        hasHitFirstTime = true;
-        return;
-      }
-      ItineraryPlanDataModelImplementation planDataModelImplementation;
-      if (snapshot.exists) {
-        planDataModelImplementation =
-            ItineraryPlanDataModelImplementation.fromDocumentSnapshot(
-          tripId: tripId,
-          documentData: snapshot.data() as Map<String, dynamic>,
-          day: day,
-        );
-      } else {
-        planDataModelImplementation = ItineraryPlanDataModelImplementation(
-          tripId: tripId,
-          day: day,
-          id: planDataId,
-          sights: [],
-          notes: [],
-          checkLists: [],
-        );
-      }
-      var planDataBeforeUpdate = _planData.facade;
-      _planData = planDataModelImplementation;
-      _planDataStreamController.add(CollectionItemChangeMetadata(
-          CollectionItemChangeSet(planDataBeforeUpdate, _planData.facade),
-          isFromExplicitAction: false));
-    });
+  void updatePlanDataFromRemote(ItineraryPlanDataModelImplementation planDataModelImplementation) {
+    if (!_shouldListenToPlanDataChanges) {
+      return;
+    }
+    var planDataBeforeUpdate = _planData.facade;
+    _planData = planDataModelImplementation;
+    _planDataStreamController.add(CollectionItemChangeMetadata(
+        CollectionItemChangeSet(planDataBeforeUpdate, _planData.facade),
+        isFromExplicitAction: false));
   }
 
   ItineraryModelImplementation._({
@@ -242,7 +183,5 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
         _transits = transits,
         _checkInLodging = checkInLodging,
         _checkOutLodging = checkOutLodging,
-        _fullDayLodging = fullDayLodging {
-    _listenToPlanDataChanges();
-  }
+        _fullDayLodging = fullDayLodging;
 }

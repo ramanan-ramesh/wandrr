@@ -16,6 +16,7 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/home/copy_trip_dialog.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/delete_trip_dialog.dart';
+import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
 import 'thumbnail_selector.dart';
@@ -41,30 +42,52 @@ class _TripListViewState extends State<TripListView> {
         buildWhen: _shouldBuildListView,
         listener: (context, state) {},
         builder: (context, state) {
-          var tripMetadatas = context
-              .tripRepository.tripMetadataCollection.collectionItems
-              .toList(growable: false)
-            ..sort((tripMetadata1, tripMetadata2) =>
-                tripMetadata1.startDate!.compareTo(tripMetadata2.startDate!));
+          return StreamBuilder<bool>(
+            stream: context.tripRepository.tripMetadataCollection.onLoaded,
+            initialData: context.tripRepository.tripMetadataCollection.isLoaded,
+            builder: (context, snapshot) {
+              final isLoaded = snapshot.data ?? false;
+              var tripMetadatas = context
+                  .tripRepository.tripMetadataCollection.collectionItems
+                  .toList(growable: false)
+                ..sort((tripMetadata1, tripMetadata2) =>
+                    tripMetadata1.startDate!.compareTo(tripMetadata2.startDate!));
 
-          if (tripMetadatas.isNotEmpty) {
-            return _buildTripsSections(context, tripMetadatas);
-          } else {
-            return Align(
-              alignment: Alignment.center,
-              child: PlatformTextElements.createSubHeader(
-                context: context,
-                text: context.localizations.noTripsCreated,
-              ),
-            );
-          }
+              if (!isLoaded && tripMetadatas.isEmpty) {
+                return GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 300,
+                    mainAxisSpacing: 7,
+                    crossAxisSpacing: 7,
+                    childAspectRatio: 0.75,
+                  ),
+                  itemCount: 3,
+                  itemBuilder: (context, index) {
+                    return ShimmerPlaceholder(borderRadius: BorderRadius.circular(10));
+                  },
+                );
+              }
+
+              if (tripMetadatas.isNotEmpty) {
+                return _buildTripsSections(context, tripMetadatas, isLoaded);
+              } else {
+                return Align(
+                  alignment: Alignment.center,
+                  child: PlatformTextElements.createSubHeader(
+                    context: context,
+                    text: context.localizations.noTripsCreated,
+                  ),
+                );
+              }
+            },
+          );
         },
       ),
     );
   }
 
   Widget _buildTripsSections(
-      BuildContext context, List<TripMetadataFacade> trips) {
+      BuildContext context, List<TripMetadataFacade> trips, bool isLoaded) {
     var now = DateTime.now();
     var today = DateTime(now.year, now.month, now.day);
 
@@ -115,7 +138,7 @@ class _TripListViewState extends State<TripListView> {
       var filteredUpcoming = upcomingTripsRaw
           .where((t) => t.startDate!.year == _selectedUpcomingYear)
           .toList();
-      slivers.add(_buildTripGrid(filteredUpcoming));
+      slivers.add(_buildTripGrid(filteredUpcoming, isLoaded));
     }
 
     // Past Section
@@ -140,7 +163,7 @@ class _TripListViewState extends State<TripListView> {
           .where((t) => t.startDate!.year == _selectedPastYear)
           .toList()
         ..sort((a, b) => b.startDate!.compareTo(a.startDate!));
-      slivers.add(_buildTripGrid(filteredPast));
+      slivers.add(_buildTripGrid(filteredPast, isLoaded));
     }
 
     return CustomScrollView(
@@ -170,7 +193,10 @@ class _TripListViewState extends State<TripListView> {
     );
   }
 
-  Widget _buildTripGrid(List<TripMetadataFacade> trips) {
+  Widget _buildTripGrid(List<TripMetadataFacade> trips, bool isLoaded) {
+    // If not fully loaded, add padding up to 3 minimum items, or just 1 extra trailing shimmer
+    final itemCount =
+        isLoaded ? trips.length : (trips.length < 3 ? 3 : trips.length + 1);
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 300,
@@ -180,9 +206,13 @@ class _TripListViewState extends State<TripListView> {
       ),
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return _TripMetadataGridItem(tripId: trips[index].id!);
+          if (index < trips.length) {
+            return _TripMetadataGridItem(tripId: trips[index].id!);
+          } else {
+            return ShimmerPlaceholder(borderRadius: BorderRadius.circular(10));
+          }
         },
-        childCount: trips.length,
+        childCount: itemCount,
       ),
     );
   }

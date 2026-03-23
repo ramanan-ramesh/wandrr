@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/common_collapsible_tab.dart';
 import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
 
@@ -27,9 +28,13 @@ class ItineraryNotesEditor extends StatefulWidget {
 class _ItineraryNotesEditorState extends State<ItineraryNotesEditor> {
   @override
   Widget build(BuildContext context) {
-    return CommonCollapsibleTab<Note>(
-      items: widget.notes,
-      addButtonLabel: context.localizations.addNote,
+    return ValueListenableBuilder<bool>(
+      valueListenable: context.tripRepository.activeTrip!.isFullyLoadedNotifier,
+      builder: (context, isLoaded, _) {
+        return CommonCollapsibleTab<Note>(
+          isLoading: !isLoaded,
+          items: widget.notes,
+          addButtonLabel: context.localizations.addNote,
       addButtonIcon: Icons.note_add_rounded,
       createItem: () => Note(''),
       // Create a new Note object
@@ -71,6 +76,8 @@ class _ItineraryNotesEditorState extends State<ItineraryNotesEditor> {
         onChanged: notifyParent,
       ),
       initialExpandedIndex: widget.initialExpandedIndex,
+    );
+      },
     );
   }
 }

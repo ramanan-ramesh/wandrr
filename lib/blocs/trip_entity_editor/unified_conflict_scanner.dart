@@ -6,6 +6,8 @@ import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/services/entity_timeline_position.dart';
 import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
+import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
@@ -235,12 +237,12 @@ class ConflictResolutionResult {
 /// - Support inter-conflict detection (conflicts between conflicted items)
 /// - Detect new conflicts from trip repository when editing conflicted items
 class UnifiedConflictScanner {
-  final TripDataFacade _tripData;
+  final TripConflictDataSnapshot _tripData;
 
   /// Assumed duration for sight visits when checking conflicts
   static const _sightDuration = Duration(minutes: 1);
 
-  UnifiedConflictScanner({required TripDataFacade tripData})
+  UnifiedConflictScanner({required TripConflictDataSnapshot tripData})
       : _tripData = tripData;
 
   // ===========================================================================
@@ -689,7 +691,7 @@ class UnifiedConflictScanner {
   ) {
     final conflicts = <TransitConflict>[];
 
-    for (final transit in _tripData.transitCollection.collectionItems) {
+    for (final transit in _tripData.transits) {
       if (exclusions.transitIds.contains(transit.id)) continue;
 
       final entityRange = TimeRange(
@@ -722,7 +724,7 @@ class UnifiedConflictScanner {
   ) {
     final conflicts = <StayConflict>[];
 
-    for (final stay in _tripData.lodgingCollection.collectionItems) {
+    for (final stay in _tripData.stays) {
       if (exclusions.stayIds.contains(stay.id)) continue;
       if (stay.checkinDateTime == null || stay.checkoutDateTime == null)
         continue;
@@ -755,8 +757,8 @@ class UnifiedConflictScanner {
   ) {
     final conflicts = <SightConflict>[];
 
-    for (final itinerary in _tripData.itineraryCollection) {
-      for (final sight in itinerary.planData.sights) {
+    for (final itineraryPlanData in _tripData.itineraries) {
+      for (final sight in itineraryPlanData.sights) {
         if (exclusions.sightIds.contains(sight.id)) continue;
         if (sight.visitTime == null) continue;
 
@@ -791,7 +793,7 @@ class UnifiedConflictScanner {
   List<StayConflict> _findStaysOutsideDateRange(TimeRange newTripRange) {
     final conflicts = <StayConflict>[];
 
-    for (final stay in _tripData.lodgingCollection.collectionItems) {
+    for (final stay in _tripData.stays) {
       final stayRange = TimeRange(
         start: stay.checkinDateTime!,
         end: stay.checkoutDateTime!,
@@ -816,7 +818,7 @@ class UnifiedConflictScanner {
   List<TransitConflict> _findTransitsOutsideDateRange(TimeRange newTripRange) {
     final conflicts = <TransitConflict>[];
 
-    for (final transit in _tripData.transitCollection.collectionItems) {
+    for (final transit in _tripData.transits) {
       final dep = transit.departureDateTime!;
       final arr = transit.arrivalDateTime!;
       final transitRange = TimeRange(start: dep, end: arr);
@@ -843,8 +845,8 @@ class UnifiedConflictScanner {
   List<SightConflict> _findSightsOutsideDateRange(TimeRange newTripRange) {
     final conflicts = <SightConflict>[];
 
-    for (final itinerary in _tripData.itineraryCollection) {
-      for (final sight in itinerary.planData.sights) {
+    for (final itineraryPlanData in _tripData.itineraries) {
+      for (final sight in itineraryPlanData.sights) {
         if (sight.visitTime == null) continue;
 
         final sightRange = TimeRange(
@@ -883,11 +885,11 @@ class UnifiedConflictScanner {
 
   List<ExpenseBearingTripEntity> _collectExpenseBearingEntities() {
     final entities = <ExpenseBearingTripEntity>[];
-    entities.addAll(_tripData.expenseCollection.collectionItems);
-    entities.addAll(_tripData.transitCollection.collectionItems);
-    entities.addAll(_tripData.lodgingCollection.collectionItems);
-    for (final itinerary in _tripData.itineraryCollection) {
-      entities.addAll(itinerary.planData.sights);
+    entities.addAll(_tripData.expenses);
+    entities.addAll(_tripData.transits);
+    entities.addAll(_tripData.stays);
+    for (final itineraryPlanData in _tripData.itineraries) {
+      entities.addAll(itineraryPlanData.sights);
     }
     return entities;
   }
@@ -925,5 +927,36 @@ class UnifiedConflictScanner {
 
   bool _isSameChange(EntityChangeBase a, EntityChangeBase b) {
     return a.original.id == b.original.id;
+  }
+}
+
+/// A lightweight snapshot of trip models safe for isolate traversal.
+class TripConflictDataSnapshot {
+  final List<TransitFacade> transits;
+  final List<LodgingFacade> stays;
+  final List<ItineraryPlanData> itineraries; 
+  final List<ExpenseBearingTripEntity> expenses;
+
+  const TripConflictDataSnapshot({
+    required this.transits,
+    required this.stays,
+    required this.itineraries,
+    required this.expenses,
+  });
+
+  factory TripConflictDataSnapshot.fromTripData(TripDataFacade tripData) {
+    return TripConflictDataSnapshot(
+      transits: tripData.transitCollection.collectionItems
+          .map((e) => e.clone())
+          .toList(),
+      stays: tripData.lodgingCollection.collectionItems
+          .map((e) => e.clone())
+          .toList(),
+      itineraries:
+          tripData.itineraryCollection.map((e) => e.planData.clone() as ItineraryPlanData).toList(),
+      expenses: tripData.expenseCollection.collectionItems
+          .map((e) => e.clone())
+          .toList(),
+    );
   }
 }

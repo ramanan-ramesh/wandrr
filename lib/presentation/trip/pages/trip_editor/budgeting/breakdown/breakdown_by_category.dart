@@ -16,11 +16,59 @@ class BreakdownByCategoryChart extends StatefulWidget {
 }
 
 class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
-  int touchedIndex = -1;
+  // Cached once in initState — never recreated on scroll/tab switches within
+  // the same refresh cycle. Recreated intentionally when ValueKey changes.
+  late final Future<Map<ExpenseCategory, double>> _dataFuture;
+
+  // ValueNotifier so only the PieChart rebuilds on touch, not the FutureBuilder.
+  final ValueNotifier<int> _touchedIndex = ValueNotifier<int>(-1);
+
+  @override
+  void initState() {
+    super.initState();
+    _dataFuture =
+        context.activeTrip.budgetingModule.retrieveTotalExpensePerCategory();
+  }
+
+  @override
+  void dispose() {
+    _touchedIndex.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<ExpenseCategory, double>>(
+      future: _dataFuture,
+      builder: (context, snapshot) {
+        final isLoading = snapshot.connectionState == ConnectionState.waiting ||
+            snapshot.connectionState == ConnectionState.active;
+        final data = snapshot.data;
+        final hasValidData = data != null && data.isNotEmpty;
+
+        return Container(
+          constraints: const BoxConstraints(minHeight: 300, maxHeight: 600),
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : hasValidData
+                  ? _InteractivePieChart(
+                      data: data,
+                      touchedIndex: _touchedIndex,
+                    )
+                  : const Center(child: Text('No expenses created yet.')),
+        );
+      },
+    );
+  }
+}
+
+/// Isolated widget that owns touch interaction. Rebuilds only itself via
+/// ValueNotifier — the FutureBuilder above is never triggered again.
+class _InteractivePieChart extends StatelessWidget {
+  final Map<ExpenseCategory, double> data;
+  final ValueNotifier<int> touchedIndex;
 
   // UI constants
-  static const double _kMinHeight = 300;
-  static const double _kMaxHeight = 600;
   static const double _kCenterSpaceRadius = 30.0;
   static const double _kTouchedRadius = 110.0;
   static const double _kUntouchedRadius = 100.0;
@@ -28,77 +76,60 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
   static const double _kUntouchedFontSize = 16.0;
   static const double _kBadgeTouchedSize = 55.0;
   static const double _kBadgeUntouchedSize = 40.0;
+  static const _expenseChartSectionColors = AppColors.travelAccents;
+
+  const _InteractivePieChart({
+    required this.data,
+    required this.touchedIndex,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final budgetingModule = context.activeTrip.budgetingModule;
-    return FutureBuilder<Map<ExpenseCategory, double>>(
-      future: budgetingModule.retrieveTotalExpensePerCategory(),
-      builder: (context, snapshot) {
-        final isLoading = snapshot.connectionState == ConnectionState.waiting ||
-            snapshot.connectionState == ConnectionState.active;
-        final data = snapshot.data;
-        final hasValidData = data != null && data.isNotEmpty;
-        return Container(
-          constraints: const BoxConstraints(
-              minHeight: _kMinHeight, maxHeight: _kMaxHeight),
-          child: isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : hasValidData
-                  ? PieChart(
-                      PieChartData(
-                        pieTouchData: PieTouchData(
-                          touchCallback: (event, pieTouchResponse) {
-                            setState(() {
-                              if (!event.isInterestedForInteractions ||
-                                  pieTouchResponse?.touchedSection == null) {
-                                touchedIndex = -1;
-                              } else {
-                                touchedIndex = pieTouchResponse!
-                                    .touchedSection!.touchedSectionIndex;
-                              }
-                            });
-                          },
-                        ),
-                        borderData: FlBorderData(show: false),
-                        sectionsSpace: 0,
-                        centerSpaceRadius: _kCenterSpaceRadius,
-                        sections: _createExpenseCategorySections(data),
-                      ),
-                    )
-                  : const Center(child: Text('No expenses created yet.')),
+    return ValueListenableBuilder<int>(
+      valueListenable: touchedIndex,
+      builder: (context, touched, _) {
+        return PieChart(
+          PieChartData(
+            pieTouchData: PieTouchData(
+              touchCallback: (event, pieTouchResponse) {
+                if (!event.isInterestedForInteractions ||
+                    pieTouchResponse?.touchedSection == null) {
+                  touchedIndex.value = -1;
+                } else {
+                  touchedIndex.value =
+                      pieTouchResponse!.touchedSection!.touchedSectionIndex;
+                }
+              },
+            ),
+            borderData: FlBorderData(show: false),
+            sectionsSpace: 0,
+            centerSpaceRadius: _kCenterSpaceRadius,
+            sections: _buildSections(context, touched),
+          ),
         );
       },
     );
   }
 
-  static const _expenseChartSectionColors = AppColors.travelAccents;
-
-  List<PieChartSectionData> _createExpenseCategorySections(
-    Map<ExpenseCategory, double> totalExpensesPerExpenseCategory,
-  ) {
-    return List.generate(totalExpensesPerExpenseCategory.length, (i) {
-      final isTouched = i == touchedIndex;
-      final fontSize = isTouched ? _kTouchedFontSize : _kUntouchedFontSize;
-      final radius = isTouched ? _kTouchedRadius : _kUntouchedRadius;
-      final widgetSize = isTouched ? _kBadgeTouchedSize : _kBadgeUntouchedSize;
-      const shadows = [Shadow(color: Colors.black, blurRadius: 2)];
-      final entry = totalExpensesPerExpenseCategory.entries.elementAt(i);
+  List<PieChartSectionData> _buildSections(BuildContext context, int touched) {
+    return List.generate(data.length, (i) {
+      final isTouched = i == touched;
+      final entry = data.entries.elementAt(i);
       return PieChartSectionData(
         color:
             _expenseChartSectionColors[i % _expenseChartSectionColors.length],
         value: entry.value,
         title: entry.value.toStringAsFixed(2),
-        radius: radius,
+        radius: isTouched ? _kTouchedRadius : _kUntouchedRadius,
         titleStyle: TextStyle(
-          fontSize: fontSize,
+          fontSize: isTouched ? _kTouchedFontSize : _kUntouchedFontSize,
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.onPrimary,
-          shadows: shadows,
+          shadows: const [Shadow(color: Colors.black, blurRadius: 2)],
         ),
         badgeWidget: _Badge(
           iconsForCategories[entry.key]!,
-          size: widgetSize,
+          size: isTouched ? _kBadgeTouchedSize : _kBadgeUntouchedSize,
         ),
         badgePositionPercentageOffset: .98,
       );

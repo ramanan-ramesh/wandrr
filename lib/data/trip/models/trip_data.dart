@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
@@ -21,6 +22,8 @@ abstract class TripDataFacade {
   ItineraryFacadeCollection get itineraryCollection;
 
   BudgetingModuleFacade get budgetingModule;
+
+  ValueNotifier<bool> get isFullyLoadedNotifier;
 }
 
 abstract class TripDataModelEventHandler extends TripDataFacade

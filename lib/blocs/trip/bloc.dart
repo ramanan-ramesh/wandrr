@@ -13,6 +13,7 @@ import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/api_services/repository.dart';
 import 'package:wandrr/data/trip/implementations/services/trip_copy_service.dart';
 import 'package:wandrr/data/trip/implementations/trip_repository.dart';
+import 'package:wandrr/data/trip/implementations/trip_visit_tracker.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
@@ -64,6 +65,8 @@ class TripManagementBloc
   @override
   Future<void> close() async {
     await _subscriptionManager.dispose();
+    await _tripRepository?.dispose();
+    await _apiServicesRepository?.dispose();
     await super.close();
   }
 
@@ -74,6 +77,13 @@ class TripManagementBloc
           userName: _currentUserName);
       _initializeMetadataSubscriptionHandler();
       _metadataSubscriptionHandler!.createSubscriptions();
+      if (_tripRepository!.tripMetadataCollection.isLoaded) {
+        _preloadMostVisited();
+      } else {
+        _tripRepository!.tripMetadataCollection.onLoaded
+            .firstWhere((loaded) => loaded)
+            .then((_) => _preloadMostVisited());
+      }
     }
     emit(LoadedRepository(tripRepository: _tripRepository!));
   }
@@ -81,8 +91,7 @@ class TripManagementBloc
   FutureOr<void> _onGoToHome(
       GoToHome event, Emitter<TripManagementState> emit) async {
     await _tripRepository!.unloadActiveTrip();
-    await _apiServicesRepository?.dispose();
-    _apiServicesRepository = null;
+    // Intentionally keeping _apiServicesRepository alive since trips are cached.
     await _subscriptionManager.clearTripSubscriptions();
     _entityFactory = null;
     _itinerarySubscriptionHandler = null;
@@ -96,13 +105,17 @@ class TripManagementBloc
         .where((element) => element.id == event.tripMetadata.id)
         .firstOrNull;
     if (tripMetadata != null) {
+      if (tripMetadata.id != null) {
+        await TripVisitTracker.recordVisit(tripMetadata.id!);
+      }
       emit(LoadingTrip(tripMetadata));
       if (_activeTrip != null) {
         await _subscriptionManager.clearTripSubscriptions();
       }
-      _apiServicesRepository = await ApiServicesRepositoryImpl.createInstance();
+      _apiServicesRepository ??=
+          await ApiServicesRepositoryImpl.createInstance();
       await _tripRepository!
-          .loadTrip(event.tripMetadata, _apiServicesRepository!);
+          .loadTrip(event.tripMetadata, _apiServicesRepository!, true);
 
       _entityFactory = TripEntityFactory(_activeTrip!);
       _subscribeToTripEntityCollections();
@@ -180,11 +193,8 @@ class TripManagementBloc
       UpdateTripEntity<TripMetadataFacade> event,
       Emitter<TripManagementState> emit) async {
     if (event.dataState == DataState.delete) {
-      _apiServicesRepository = await ApiServicesRepositoryImpl.createInstance();
       await _tripRepository!
           .deleteTrip(event.tripEntity, _apiServicesRepository!);
-      await _apiServicesRepository!.dispose();
-      _apiServicesRepository = null;
       return;
     }
     await _updateHandler.updateTripEntityAndEmitState<TripMetadataFacade>(
@@ -253,6 +263,18 @@ class TripManagementBloc
       planData: planData,
       planDataEditorConfig: event.planDataEditorConfig,
     ));
+  }
+
+  // Preload most visited trip in the background once metadata is available
+  void _preloadMostVisited() async {
+    final mostVisited = await TripVisitTracker.getMostVisitedTrip(
+        _tripRepository!.tripMetadataCollection.collectionItems);
+    if (mostVisited != null) {
+      _apiServicesRepository ??=
+          await ApiServicesRepositoryImpl.createInstance();
+      // Load in background (Fire-and-forget, TripRepository caches it)
+      _tripRepository!.loadTrip(mostVisited, _apiServicesRepository!, false);
+    }
   }
 
   /// Initializes metadata subscription handler

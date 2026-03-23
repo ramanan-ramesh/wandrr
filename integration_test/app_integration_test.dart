@@ -10,12 +10,15 @@ import 'helpers/test_helpers.dart';
 import 'screenshot_capturer/capturer.dart';
 import 'tests/authentication_comprehensive_test.dart';
 import 'tests/budgeting_page_test.dart';
+import 'tests/conflict_detection_test.dart';
 import 'tests/crud_operations_test.dart';
+import 'tests/entity_editing_test.dart';
 import 'tests/home_page_test.dart';
 import 'tests/itinerary_viewer_test.dart';
 import 'tests/multi_collaborator_test.dart';
 import 'tests/startup_page_test.dart';
 import 'tests/trip_editor_page_test.dart';
+import 'tests/validation_test.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -542,6 +545,329 @@ void main() {
       testWidgets('multiple contributors scenario',
           (WidgetTester tester) async {
         await runMultipleContributorsScenarioTest(tester, sharedPreferences);
+      });
+    });
+
+    // =========================================================================
+    // VALIDATION TESTS (Section 23 — Model-level validation rules)
+    // =========================================================================
+    group('Validation Rules Tests', () {
+      testWidgets('REQ-CT-002: TripMetadata validation',
+          (WidgetTester tester) async {
+        await runTripMetadataValidationTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-ST-002: Lodging validation',
+          (WidgetTester tester) async {
+        await runLodgingValidationTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-TR-002/005: Transit validation',
+          (WidgetTester tester) async {
+        await runTransitValidationTest(tester, sharedPreferences);
+      });
+
+      testWidgets('Sight validation', (WidgetTester tester) async {
+        await runSightValidationTest(tester, sharedPreferences);
+      });
+
+      testWidgets('CheckList validation', (WidgetTester tester) async {
+        await runCheckListValidationTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-IPD-007: ItineraryPlanData validation',
+          (WidgetTester tester) async {
+        await runItineraryPlanDataValidationTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-EX-005: ExpenseFacade validation',
+          (WidgetTester tester) async {
+        await runExpenseFacadeValidationTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-SE-003: StandaloneExpense validation',
+          (WidgetTester tester) async {
+        await runStandaloneExpenseValidationTest(tester, sharedPreferences);
+      });
+    });
+
+    // =========================================================================
+    // CONFLICT DETECTION TESTS (REQ-CD-001 through REQ-CD-011)
+    // =========================================================================
+    group('Conflict Detection Tests', () {
+      setUpAll(() async {
+        await FirebaseEmulatorHelper.createFirebaseAuthUser(
+          email: TestConfig.testEmail,
+          password: TestConfig.testEmail,
+          shouldAddToFirestore: true,
+          shouldSignIn: true,
+        );
+        await MockLocationApiService.initialize();
+        await TestHelpers.createTestTrip();
+      });
+
+      tearDownAll(() async {
+        await FirebaseEmulatorHelper.cleanupAfterTest();
+        await sharedPreferences.clear();
+      });
+
+      // --- TimeRange position analysis (REQ-CD-003, REQ-CD-003a) ---
+      testWidgets('REQ-CD-003a: adjacent events are not conflicts',
+          (WidgetTester tester) async {
+        await runAdjacentEventsAreNotConflictsTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-CD-003: exact boundary match positions',
+          (WidgetTester tester) async {
+        await runExactBoundaryMatchPositionTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-CD-003: containment positions',
+          (WidgetTester tester) async {
+        await runContainmentPositionTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-CD-003: partial overlap positions',
+          (WidgetTester tester) async {
+        await runPartialOverlapPositionTest(tester, sharedPreferences);
+      });
+
+      // --- Stay conflict tests (REQ-CD-004, REQ-ST-003) ---
+      testWidgets('REQ-CD-004: transit contained in stay is NOT a conflict',
+          (WidgetTester tester) async {
+        await runStayNoConflictWhenTransitContainedTest(
+            tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-CD-004: stay vs stay overlapping IS a conflict',
+          (WidgetTester tester) async {
+        await runStayConflictWithOverlappingStayTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-CD-003: stay exact boundary match is a conflict',
+          (WidgetTester tester) async {
+        await runStayConflictAtExactBoundaryTest(tester, sharedPreferences);
+      });
+
+      testWidgets(
+          'REQ-CD-003a: adjacent stays (checkout==checkin) NOT a conflict',
+          (WidgetTester tester) async {
+        await runStayNoConflictWhenAdjacentTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-CD-005: stay partial overlap + clamping',
+          (WidgetTester tester) async {
+        await runStayPartialOverlapClampingTest(tester, sharedPreferences);
+      });
+
+      // --- Transit conflict tests ---
+      testWidgets('REQ-CD-004: transit during stay NOT a conflict',
+          (WidgetTester tester) async {
+        await runTransitNoConflictDuringStayTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-CD-003: transit at stay boundary IS a conflict',
+          (WidgetTester tester) async {
+        await runTransitConflictAtStayBoundaryTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-CD-003a: transit adjacent to stay NOT a conflict',
+          (WidgetTester tester) async {
+        await runTransitNoConflictAdjacentToStayTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-CD-004: two overlapping transits IS a conflict',
+          (WidgetTester tester) async {
+        await runTransitConflictWithOtherTransitTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-JE-006: journey conflict deduplication',
+          (WidgetTester tester) async {
+        await runJourneyConflictDeduplicationTest(tester, sharedPreferences);
+      });
+
+      // --- Sight conflict tests ---
+      testWidgets('REQ-IPD-004: two sights same time → overlap error',
+          (WidgetTester tester) async {
+        await runSightOverlapSameDayTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-CD-004: sight during stay NOT a conflict',
+          (WidgetTester tester) async {
+        await runSightNoConflictDuringStayTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-CD-003: sight at stay boundary IS a conflict',
+          (WidgetTester tester) async {
+        await runSightConflictAtStayBoundaryTest(tester, sharedPreferences);
+      });
+
+      testWidgets(
+          'REQ-CD-001: non-time changes do NOT trigger conflict detection',
+          (WidgetTester tester) async {
+        await runSightNoConflictOnNonTimeChangeTest(tester, sharedPreferences);
+      });
+
+      // --- Metadata conflict tests ---
+      testWidgets('REQ-TD-003: shrink date range → out-of-bounds conflicts',
+          (WidgetTester tester) async {
+        await runMetadataShrinkDateRangeConflictTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-TD-004: add contributor → expense split changes',
+          (WidgetTester tester) async {
+        await runMetadataContributorAddExpenseSplitTest(
+            tester, sharedPreferences);
+      });
+
+      // --- Clamping tests ---
+      testWidgets('REQ-CD-005: unclampable → marked for deletion',
+          (WidgetTester tester) async {
+        await runClampingImpossibleMarkedForDeletionTest(
+            tester, sharedPreferences);
+      });
+
+      // --- Plan management tests ---
+      testWidgets('REQ-CD-007: conflict plan confirmation',
+          (WidgetTester tester) async {
+        await runConflictPlanConfirmationTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-CD-009: toggle deletion syncs expense change',
+          (WidgetTester tester) async {
+        await runToggleDeletionSyncsExpenseTest(tester, sharedPreferences);
+      });
+
+      // --- Scan exclusion tests ---
+      testWidgets('REQ-CD-011: editing existing entity excludes self',
+          (WidgetTester tester) async {
+        await runSelfExclusionEditingExistingTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-CD-011: new entity has no exclusions',
+          (WidgetTester tester) async {
+        await runNoExclusionForNewEntityTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-CD-011: journey excludes all leg IDs',
+          (WidgetTester tester) async {
+        await runJourneyExcludesAllLegsTest(tester, sharedPreferences);
+      });
+    });
+
+    // =========================================================================
+    // ENTITY EDITING TESTS (REQ-TE, REQ-TR, REQ-ST, REQ-IPD, REQ-SE, REQ-IT)
+    // =========================================================================
+    group('Entity Editing Tests', () {
+      setUpAll(() async {
+        await FirebaseEmulatorHelper.createFirebaseAuthUser(
+          email: TestConfig.testEmail,
+          password: TestConfig.testEmail,
+          shouldAddToFirestore: true,
+          shouldSignIn: true,
+        );
+        await MockLocationApiService.initialize();
+        await TestHelpers.createTestTrip();
+      });
+
+      tearDownAll(() async {
+        await FirebaseEmulatorHelper.cleanupAfterTest();
+        await sharedPreferences.clear();
+      });
+
+      testWidgets('REQ-TE-003: creator bottom sheet options',
+          (WidgetTester tester) async {
+        await runCreatorBottomSheetOptionsTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-TR-001: transit editor opens',
+          (WidgetTester tester) async {
+        await runTransitEditorOpensTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-TR-003: transit type change visibility',
+          (WidgetTester tester) async {
+        await runTransitTypeChangeVisibilityTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-ST-001: stay editor opens', (WidgetTester tester) async {
+        await runStayEditorOpensTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-IPD-001: itinerary item creation from bottom sheet',
+          (WidgetTester tester) async {
+        await runItineraryItemCreationFromBottomSheetTest(
+            tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-IPD-002: itinerary editor tabs',
+          (WidgetTester tester) async {
+        await runItineraryEditorTabsTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-SE-001: expense editor opens',
+          (WidgetTester tester) async {
+        await runExpenseEditorOpensTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-IT-001: day navigation arrows',
+          (WidgetTester tester) async {
+        await runItineraryDayNavigationTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-IT-004: timeline event card content',
+          (WidgetTester tester) async {
+        await runTimelineEventCardContentTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-TE-001: trip editor layout adaptation',
+          (WidgetTester tester) async {
+        await runTripEditorLayoutAdaptationTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-TD-001: trip details editor fields',
+          (WidgetTester tester) async {
+        await runTripDetailsEditorFieldsTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-BU-001: budgeting page sections',
+          (WidgetTester tester) async {
+        await runBudgetingPageSectionsTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-IT-003: timeline events aggregation per day',
+          (WidgetTester tester) async {
+        await runTimelineAggregationTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-TE-004: entity editor presented as modal bottom sheet',
+          (WidgetTester tester) async {
+        await runEntityEditorPresentationTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-TE-005: entity editor modes (create vs edit)',
+          (WidgetTester tester) async {
+        await runEntityEditorModesTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-TE-006: editor view switching (editor + conflicts)',
+          (WidgetTester tester) async {
+        await runEditorViewSwitchingTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-IT-002: day view has 4 tabs',
+          (WidgetTester tester) async {
+        await runDayViewTabsTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-IT-005: connected journey display',
+          (WidgetTester tester) async {
+        await runConnectedJourneyDisplayTest(tester, sharedPreferences);
+      });
+
+      testWidgets('REQ-IT-006: timeline rebuild rules',
+          (WidgetTester tester) async {
+        await runTimelineRebuildRulesTest(tester, sharedPreferences);
       });
     });
   });

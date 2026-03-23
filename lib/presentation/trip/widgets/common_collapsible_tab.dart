@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 
 /// Generic reusable collapsible tab list for itinerary editing pages.
 /// Provides: add button + count header, reorderable list, per-item collapse/expand,
@@ -30,6 +31,7 @@ class CommonCollapsibleTab<T> extends StatefulWidget {
     VoidCallback notifyParent,
   )? itemHeaderBuilder;
   final int? initialExpandedIndex;
+  final bool isLoading;
 
   const CommonCollapsibleTab({
     super.key,
@@ -45,6 +47,7 @@ class CommonCollapsibleTab<T> extends StatefulWidget {
     this.isValidBuilder,
     this.itemHeaderBuilder,
     this.initialExpandedIndex,
+    this.isLoading = false,
   });
 
   @override
@@ -76,7 +79,7 @@ class _CommonCollapsibleTabState<T> extends State<CommonCollapsibleTab<T>> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.items.isEmpty) {
+    if (widget.items.isEmpty && !widget.isLoading) {
       return _buildEmptyState(context);
     }
     return Column(
@@ -158,9 +161,12 @@ class _CommonCollapsibleTabState<T> extends State<CommonCollapsibleTab<T>> {
   }
 
   Widget _buildReorderableList() {
+    final itemCount = widget.isLoading
+        ? (widget.items.length < 3 ? 3 : widget.items.length + 1)
+        : widget.items.length;
     return ReorderableListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-      itemCount: widget.items.length,
+      itemCount: itemCount,
       buildDefaultDragHandles: false,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -173,6 +179,16 @@ class _CommonCollapsibleTabState<T> extends State<CommonCollapsibleTab<T>> {
         });
       },
       itemBuilder: (context, index) {
+        if (widget.isLoading && index >= widget.items.length) {
+          return Padding(
+            key: ValueKey('shimmer_$index'),
+            padding: const EdgeInsets.only(bottom: 12),
+            child: const ShimmerPlaceholder(
+              height: 70, // approximate header height
+              borderRadius: BorderRadius.all(Radius.circular(18)),
+            ),
+          );
+        }
         final item = widget.items[index];
         final expanded = _expandedIndex == index;
         final accent =
