@@ -1,13 +1,12 @@
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/services/entity_timeline_position.dart';
 import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
-import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
@@ -932,10 +931,10 @@ class UnifiedConflictScanner {
 
 /// A lightweight snapshot of trip models safe for isolate traversal.
 class TripConflictDataSnapshot {
-  final List<TransitFacade> transits;
-  final List<LodgingFacade> stays;
-  final List<ItineraryPlanData> itineraries; 
-  final List<ExpenseBearingTripEntity> expenses;
+  final Iterable<TransitFacade> transits;
+  final Iterable<LodgingFacade> stays;
+  final Iterable<ItineraryPlanData> itineraries;
+  final Iterable<ExpenseBearingTripEntity> expenses;
 
   const TripConflictDataSnapshot({
     required this.transits,
@@ -946,17 +945,10 @@ class TripConflictDataSnapshot {
 
   factory TripConflictDataSnapshot.fromTripData(TripDataFacade tripData) {
     return TripConflictDataSnapshot(
-      transits: tripData.transitCollection.collectionItems
-          .map((e) => e.clone())
-          .toList(),
-      stays: tripData.lodgingCollection.collectionItems
-          .map((e) => e.clone())
-          .toList(),
-      itineraries:
-          tripData.itineraryCollection.map((e) => e.planData.clone() as ItineraryPlanData).toList(),
-      expenses: tripData.expenseCollection.collectionItems
-          .map((e) => e.clone())
-          .toList(),
+      transits: tripData.transitCollection.collectionItems,
+      stays: tripData.lodgingCollection.collectionItems,
+      itineraries: tripData.itineraryCollection.map((e) => e.planData),
+      expenses: tripData.expenseCollection.collectionItems,
     );
   }
 }

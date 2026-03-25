@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
@@ -23,7 +22,11 @@ abstract class TripDataFacade {
 
   BudgetingModuleFacade get budgetingModule;
 
-  ValueNotifier<bool> get isFullyLoadedNotifier;
+  /// Stream that emits true when all trip data collections are fully loaded
+  Stream<bool> get isFullyLoaded;
+
+  /// Current loading status - true if fully loaded, false otherwise
+  bool get isFullyLoadedValue;
 }
 
 abstract class TripDataModelEventHandler extends TripDataFacade

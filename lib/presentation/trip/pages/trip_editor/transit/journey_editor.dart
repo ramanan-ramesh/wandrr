@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
-import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_events.dart';
+import 'package:wandrr/blocs/trip_entity_editor/events.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/services/transit_journey_service.dart';
 import 'package:wandrr/data/trip/models/transit.dart';

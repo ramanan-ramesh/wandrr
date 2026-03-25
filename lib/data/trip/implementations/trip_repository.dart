@@ -15,9 +15,11 @@ import 'package:wandrr/data/trip/implementations/trip_metadata.dart';
 import 'package:wandrr/data/trip/implementations/trip_visit_tracker.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
+import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 
+import 'services/trip_copy_service.dart';
 import 'trip_data.dart';
 
 class TripRepositoryImplementation implements TripRepositoryEventHandler {
@@ -58,7 +60,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   @override
   TripDataModelImplementation? activeTrip;
 
-  final Map<String, TripDataModelImplementation> _cachedTrips = {};
+  final Map<String, TripDataModelImplementation> _tripDataCache = {};
 
   final String currentUserName;
 
@@ -68,25 +70,49 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   }
 
   @override
-  Future loadTrip(
-      TripMetadataFacade tripMetadata,
-      ApiServicesRepositoryFacade apiServicesRepository,
-      bool activateTrip) async {
-    if (tripMetadata.id == null) {
-      return;
-    }
-
-    if (!_cachedTrips.containsKey(tripMetadata.id)) {
+  TripDataModelEventHandler loadTrip(TripMetadataFacade tripMetadata,
+      ApiServicesRepositoryFacade apiServicesRepository, bool activateTrip) {
+    if (!_tripDataCache.containsKey(tripMetadata.id)) {
       final tripToCache = TripDataModelImplementation.createInstance(
           tripMetadata,
           apiServicesRepository,
           currentUserName,
           supportedCurrencies);
-      _cachedTrips[tripMetadata.id!] = tripToCache;
+      _tripDataCache[tripMetadata.id!] = tripToCache;
     }
     if (activateTrip) {
-      activeTrip = _cachedTrips[tripMetadata.id];
+      activeTrip = _tripDataCache[tripMetadata.id];
     }
+    return _tripDataCache[tripMetadata.id]!;
+  }
+
+  @override
+  Future<TripMetadataFacade> copyTrip(
+      TripMetadataFacade tripMetadata,
+      TripMetadataFacade targetTrip,
+      ApiServicesRepositoryFacade apiServicesRepository) async {
+    loadTrip(tripMetadata, apiServicesRepository, false);
+    final tripToCopy = _tripDataCache[tripMetadata.id]!;
+
+    Future<TripMetadataFacade> createCopy() async {
+      final copiedTripMetadata = await TripCopyService.copyTrip(
+          sourceTripData: tripToCopy,
+          targetTripMetadata: targetTrip,
+          apiServicesRepository: apiServicesRepository);
+      loadTrip(copiedTripMetadata, apiServicesRepository, false);
+      return copiedTripMetadata;
+    }
+
+    if (!tripToCopy.isFullyLoadedValue) {
+      // Wait for trip data to be fully loaded before copying
+      await tripToCopy.isFullyLoaded.listen((isLoaded) async {
+        if (isLoaded) {
+          await createCopy();
+        }
+      }).asFuture();
+    }
+
+    return await createCopy();
   }
 
   @override
@@ -97,10 +123,10 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     await _tripMetadataUpdatedEventSubscription.cancel();
     await _tripMetadataDeletedEventSubscription.cancel();
     await tripMetadataCollection.dispose();
-    for (var trip in _cachedTrips.values) {
+    for (var trip in _tripDataCache.values) {
       await trip.dispose();
     }
-    _cachedTrips.clear();
+    _tripDataCache.clear();
     activeTrip = null;
   }
 
@@ -134,15 +160,19 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   @override
   Future deleteTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository) async {
-    await tripMetadataCollection.tryDeleteItem(tripMetadata);
     TripDataModelImplementation tripToDelete;
-    if (!_cachedTrips.containsKey(tripMetadata.id)) {
+    if (!_tripDataCache.containsKey(tripMetadata.id)) {
       tripToDelete = TripDataModelImplementation.createInstance(tripMetadata,
           apiServicesRepository, currentUserName, supportedCurrencies);
     } else {
-      tripToDelete = _cachedTrips[tripMetadata.id]!;
+      tripToDelete = _tripDataCache[tripMetadata.id]!;
     }
     final batch = FirebaseFirestore.instance.batch();
+    var tripMetadataToDelete = tripMetadataCollection.collectionItems
+        .firstWhere((item) => item.id == tripMetadata.id);
+    batch.delete(tripMetadataCollection
+        .repositoryItemCreator(tripMetadataToDelete)
+        .documentReference);
     for (var itinerary in tripToDelete.itineraryCollection) {
       final itineraryPlanDataModelImplementation =
           ItineraryPlanDataModelImplementation(
@@ -175,8 +205,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
         .doc(tripMetadata.id));
     await tripToDelete.dispose();
     await batch.commit();
-    if (_cachedTrips.containsKey(tripMetadata.id)) {
-      _cachedTrips.remove(tripMetadata.id);
+    if (_tripDataCache.containsKey(tripMetadata.id)) {
+      _tripDataCache.remove(tripMetadata.id);
     }
     await TripVisitTracker.deleteVisitCount(tripMetadata.id!);
   }

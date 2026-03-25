@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_bloc.dart';
-import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_state.dart';
+import 'package:wandrr/blocs/trip_entity_editor/bloc.dart';
+import 'package:wandrr/blocs/trip_entity_editor/states.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';

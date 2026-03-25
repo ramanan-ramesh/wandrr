@@ -15,8 +15,8 @@ import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
 import 'conflict_detectors.dart';
 import 'conflict_result.dart';
-import 'trip_entity_editor_events.dart';
-import 'trip_entity_editor_state.dart';
+import 'events.dart';
+import 'states.dart';
 import 'unified_conflict_scanner.dart';
 
 // =============================================================================
@@ -37,20 +37,18 @@ class TripEntityEditorBloc<T extends TripEntity>
   final TripDataFacade _tripData;
   final T? originalEntity;
   final T editableEntity;
-  final bool isNewEntity;
 
-  TripEntityUpdatePlan<T>? _currentPlan;
+  bool get _isNewEntity => originalEntity == null;
 
   TripEntityUpdatePlan<T>? get currentPlan => _currentPlan;
+  TripEntityUpdatePlan<T>? _currentPlan;
 
   TripEntityEditorBloc._({
     required TripDataFacade tripData,
     required T? original,
     required T editable,
-    required bool isNew,
   })  : _tripData = tripData,
         originalEntity = original,
-        isNewEntity = isNew,
         editableEntity = editable,
         super(TripEntityInitialized<T>(editable)) {
     on<UpdateEntityTimeRange<T>>(_onUpdateEntityTimeRange);
@@ -69,7 +67,6 @@ class TripEntityEditorBloc<T extends TripEntity>
           tripData: tripData,
           original: null,
           editable: entity,
-          isNew: true,
         );
 
   TripEntityEditorBloc.forEditing({
@@ -79,7 +76,6 @@ class TripEntityEditorBloc<T extends TripEntity>
           tripData: tripData,
           original: entity,
           editable: entity.clone() as T,
-          isNew: false,
         );
 
   // ===========================================================================
@@ -101,7 +97,8 @@ class TripEntityEditorBloc<T extends TripEntity>
       final meta = editableEntity as TripMetadataFacade;
       meta.startDate = event.range.start;
       meta.endDate = event.range.end;
-      newPlan = await _detectMetadataConflicts(meta) as TripEntityUpdatePlan<T>?;
+      newPlan =
+          await _detectMetadataConflicts(meta) as TripEntityUpdatePlan<T>?;
     }
 
     _handlePlanUpdate(newPlan, emit);
@@ -131,8 +128,8 @@ class TripEntityEditorBloc<T extends TripEntity>
       return;
     }
 
-    final newPlan =
-        await _detectItineraryConflicts(event.sights) as TripEntityUpdatePlan<T>?;
+    final newPlan = await _detectItineraryConflicts(event.sights)
+        as TripEntityUpdatePlan<T>?;
     _handlePlanUpdate(newPlan, emit);
   }
 
@@ -269,7 +266,7 @@ class TripEntityEditorBloc<T extends TripEntity>
     final params = _IsolateStayConflictParams(
       stay,
       snapshot,
-      isNewEntity,
+      _isNewEntity,
     );
     final conflicts = await compute(_isolateDetectStayConflicts, params);
     if (conflicts == null) return null;
@@ -292,7 +289,7 @@ class TripEntityEditorBloc<T extends TripEntity>
     final params = _IsolateJourneyConflictParams(
       legs,
       snapshot,
-      isNewEntity,
+      _isNewEntity,
     );
     final conflicts = await compute(_isolateDetectJourneyConflicts, params);
     if (conflicts == null) return null;
@@ -319,7 +316,7 @@ class TripEntityEditorBloc<T extends TripEntity>
     final params = _IsolateItineraryConflictParams(
       sights,
       snapshot,
-      isNewEntity,
+      _isNewEntity,
     );
     final conflicts = await compute(_isolateDetectItineraryConflicts, params);
     if (conflicts == null) return null;
@@ -481,10 +478,12 @@ class _IsolateStayConflictParams {
   final LodgingFacade stay;
   final TripConflictDataSnapshot snapshot;
   final bool isNewEntity;
+
   const _IsolateStayConflictParams(this.stay, this.snapshot, this.isNewEntity);
 }
 
-AggregatedConflicts? _isolateDetectStayConflicts(_IsolateStayConflictParams params) {
+AggregatedConflicts? _isolateDetectStayConflicts(
+    _IsolateStayConflictParams params) {
   final scanner = UnifiedConflictScanner(tripData: params.snapshot);
   final detector = StayConflictDetector(
     stay: params.stay,
@@ -498,10 +497,13 @@ class _IsolateJourneyConflictParams {
   final List<TransitFacade> legs;
   final TripConflictDataSnapshot snapshot;
   final bool isNewEntity;
-  const _IsolateJourneyConflictParams(this.legs, this.snapshot, this.isNewEntity);
+
+  const _IsolateJourneyConflictParams(
+      this.legs, this.snapshot, this.isNewEntity);
 }
 
-AggregatedConflicts? _isolateDetectJourneyConflicts(_IsolateJourneyConflictParams params) {
+AggregatedConflicts? _isolateDetectJourneyConflicts(
+    _IsolateJourneyConflictParams params) {
   final scanner = UnifiedConflictScanner(tripData: params.snapshot);
   final detector = JourneyConflictDetector(
     legs: params.legs,
@@ -515,10 +517,13 @@ class _IsolateItineraryConflictParams {
   final List<SightFacade> sights;
   final TripConflictDataSnapshot snapshot;
   final bool isNewEntity;
-  const _IsolateItineraryConflictParams(this.sights, this.snapshot, this.isNewEntity);
+
+  const _IsolateItineraryConflictParams(
+      this.sights, this.snapshot, this.isNewEntity);
 }
 
-AggregatedConflicts? _isolateDetectItineraryConflicts(_IsolateItineraryConflictParams params) {
+AggregatedConflicts? _isolateDetectItineraryConflicts(
+    _IsolateItineraryConflictParams params) {
   final scanner = UnifiedConflictScanner(tripData: params.snapshot);
   final detector = ItineraryConflictDetector(
     sights: params.sights,
@@ -532,10 +537,13 @@ class _IsolateMetadataConflictParams {
   final TripMetadataFacade oldMetadata;
   final TripMetadataFacade newMetadata;
   final TripConflictDataSnapshot snapshot;
-  const _IsolateMetadataConflictParams(this.oldMetadata, this.newMetadata, this.snapshot);
+
+  const _IsolateMetadataConflictParams(
+      this.oldMetadata, this.newMetadata, this.snapshot);
 }
 
-MetadataUpdateConflicts? _isolateDetectMetadataConflicts(_IsolateMetadataConflictParams params) {
+MetadataUpdateConflicts? _isolateDetectMetadataConflicts(
+    _IsolateMetadataConflictParams params) {
   final scanner = UnifiedConflictScanner(tripData: params.snapshot);
   return scanner.scanForMetadataUpdate(
     oldMetadata: params.oldMetadata,
@@ -551,7 +559,7 @@ class _IsolateResolveConflictParams {
   final List<TransitChange> existingTransitChanges;
   final List<SightChange> existingSightChanges;
   final TripConflictDataSnapshot snapshot;
-  
+
   const _IsolateResolveConflictParams({
     required this.modifiedChange,
     required this.editableEntityRange,
@@ -563,7 +571,8 @@ class _IsolateResolveConflictParams {
   });
 }
 
-ConflictResolutionResult _isolateResolveConflictedTimeChange(_IsolateResolveConflictParams params) {
+ConflictResolutionResult _isolateResolveConflictedTimeChange(
+    _IsolateResolveConflictParams params) {
   final scanner = UnifiedConflictScanner(tripData: params.snapshot);
   return scanner.resolveConflictedEntityTimeChange(
     modifiedChange: params.modifiedChange,
