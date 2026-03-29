@@ -6,124 +6,113 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 // TRIP ENTITY EDITOR STATES
 // =============================================================================
 //
-// State Hierarchy for Conflict Resolution:
+// All conflict states extend TripEntityEditorState<T> directly (T = editable
+// entity type).  There is NO second type parameter for the conflict entity
+// type: emitting ConflictsAdded<TransitFacade> from a
+// Bloc<…, TripEntityEditorState<LodgingFacade>> is a genuine type error in
+// Dart's invariant generics system.
 //
-// 1. [ConflictsAdded] - Emitted when first conflicts are detected
-//    → UI Response: Show conflict resolution page, rebuild all sections
+// Instead the plan-change states carry a [ConflictSectionChange] bitmask so
+// each section widget and item widget can decide cheaply whether to rebuild,
+// while still reading actual data from `bloc.currentPlan` /
+// `context.tripEntityUpdatePlan<T>()`.
 //
-// 2. [ConflictsUpdated] - Emitted when conflict counts change (add/remove)
-//    → UI Response: Sections rebuild only if their count changed
-//
-// 3. [ConflictItemUpdated] - Emitted for individual item updates (clamp/delete)
-//    → UI Response: Only the specific item matching type+ID rebuilds
-//
-// 4. [ConflictsRemoved] - Emitted when all conflicts are resolved
-//    → UI Response: Hide conflict resolution page
-//
-// This hierarchy enables localized rebuilds:
-// - Sections use [ConflictSectionBuilder] → react to count changes only
-// - Items use [ConflictItemBuilder] → react to their own updates only
+// State taxonomy:
+//   [TripEntityInitialized]      – initial
+//   [PlanUpdated]                – plan structure changed (sections added/removed)
+//   [PlanItemsUpdated]           – items changed in-place (times / delete flag)
+//   [PlanCleared]                – plan gone, all conflicts resolved
+//   [ConflictPlanConfirmed]      – user confirmed plan
+//   [ConflictedEntityTimeRangeError] – invalid time on a conflicted item
+//   [EntitySubmitted]            – final submission
 // =============================================================================
 
-abstract class TripEntityEditorState<T extends TripEntity> {
-  final TripEntityUpdatePlan<T>? currentPlan;
+/// Which sections of the plan have structurally changed (items added/removed).
+/// Used as a bitmask in [PlanUpdated] and [PlanItemsUpdated].
+enum ConflictSection { stays, transits, sights, expenses }
 
-  const TripEntityEditorState(this.currentPlan);
+/// Base state for [TripEntityEditorBloc<T>].
+abstract class TripEntityEditorState<T extends TripEntity> {
+  const TripEntityEditorState();
 }
+
+// ---------------------------------------------------------------------------
+// Non-conflict states
+// ---------------------------------------------------------------------------
 
 /// Initial state right after construction.
 class TripEntityInitialized<T extends TripEntity>
     extends TripEntityEditorState<T> {
   final T editableEntity;
-
-  const TripEntityInitialized(this.editableEntity,
-      [TripEntityUpdatePlan<T>? currentPlan])
-      : super(currentPlan);
-}
-
-/// Emitted after a successful compilation of conflict plan containing conflicts.
-///
-/// UI Response:
-/// - Show conflict resolution page
-/// - All conflict sections should rebuild to display their conflicts
-class ConflictsAdded<T extends TripEntity> extends TripEntityEditorState<T> {
-  const ConflictsAdded(TripEntityUpdatePlan<T> currentPlan)
-      : super(currentPlan);
-}
-
-/// Emitted when time ranges are updated without yielding conflicts.
-///
-/// UI Response:
-/// - Hide conflict resolution page
-/// - All sections should collapse/hide
-class ConflictsRemoved<T extends TripEntity> extends TripEntityEditorState<T> {
-  const ConflictsRemoved() : super(null);
-}
-
-/// Emitted when the conflict plan is updated with count changes.
-///
-/// Used when:
-/// - Editing a conflicted item creates new conflicts (inter-conflict)
-/// - The editable entity's time range changes, re-scanning all conflicts
-///
-/// UI Response:
-/// - Sections use [BlocSelector] on count to rebuild only when their count changes
-/// - Individual items do NOT rebuild from this state
-class ConflictsUpdated<T extends TripEntity> extends TripEntityEditorState<T> {
-  const ConflictsUpdated(TripEntityUpdatePlan<T> currentPlan)
-      : super(currentPlan);
-}
-
-/// Emitted when a specific conflict item is updated (e.g., time changed, deletion toggled).
-/// Contains the specific change that was updated for localized rebuilds.
-///
-/// Used when:
-/// - User edits time of a conflicted entity
-/// - User toggles deletion status
-/// - Clamping is applied to resolve inter-conflicts
-///
-/// UI Response:
-/// - Only the [ConflictItemBuilder] matching [updatedChange] type+ID rebuilds
-/// - Sections do NOT rebuild from this state (count unchanged)
-class ConflictItemUpdated<T extends TripEntity>
-    extends TripEntityEditorState<T> {
-  final EntityChangeBase updatedChange;
-
-  const ConflictItemUpdated(
-      TripEntityUpdatePlan<T> currentPlan, this.updatedChange)
-      : super(currentPlan);
-}
-
-/// Emitted when editing a conflicted entity results in an unresolvable conflict.
-///
-/// This happens when the new time range conflicts with the editable entity itself.
-///
-/// UI Response:
-/// - Show error snackbar
-/// - Revert the conflicted entity to its previous time values
-class ConflictedEntityTimeRangeError<T extends TripEntity>
-    extends TripEntityEditorState<T> {
-  final EntityChangeBase change;
-  final String errorMessage;
-  final dynamic oldTimeValues;
-
-  const ConflictedEntityTimeRangeError(this.change, this.errorMessage,
-      this.oldTimeValues, TripEntityUpdatePlan<T>? currentPlan)
-      : super(currentPlan);
+  const TripEntityInitialized(this.editableEntity);
 }
 
 /// Emitted when the user confirms the conflict plan.
 class ConflictPlanConfirmed<T extends TripEntity>
     extends TripEntityEditorState<T> {
-  const ConflictPlanConfirmed(TripEntityUpdatePlan<T> currentPlan)
-      : super(currentPlan);
+  const ConflictPlanConfirmed();
 }
 
-/// Emitted when final submission happens, dispatching to TripManagementBloc.
+/// Emitted when final submission happens.
 class EntitySubmitted<T extends TripEntity> extends TripEntityEditorState<T> {
   final T editableEntity;
 
-  const EntitySubmitted(
-      this.editableEntity, TripEntityUpdatePlan<T>? currentPlan)
-      : super(currentPlan);
+  /// Plan at time of submission – carried here since submission consumes it once.
+  final TripEntityUpdatePlan<T>? currentPlan;
+
+  const EntitySubmitted(this.editableEntity, this.currentPlan);
+}
+
+/// Emitted when editing a conflicted entity results in an unresolvable conflict.
+/// UI Response: show error snackbar; revert the conflicted entity's time values.
+class ConflictedEntityTimeRangeError<T extends TripEntity>
+    extends TripEntityEditorState<T> {
+  final EntityChangeBase change;
+  final String errorMessage;
+  final dynamic oldTimeValues;
+  const ConflictedEntityTimeRangeError(
+      this.change, this.errorMessage, this.oldTimeValues);
+}
+
+// ---------------------------------------------------------------------------
+// Plan-change states
+// ---------------------------------------------------------------------------
+
+/// Emitted when one or more conflict sections gain or lose items (structural
+/// change: the set of conflicting entity IDs changed).
+///
+/// [affectedSections] tells each section widget whether it needs to rebuild.
+/// The widget reads the actual list from `context.tripEntityUpdatePlan<T>()`.
+///
+/// UI Response:
+/// - Section widgets whose [ConflictSection] is in [affectedSections] rebuild.
+/// - The conflict banner / page-visibility logic also reacts to this state.
+class PlanUpdated<T extends TripEntity> extends TripEntityEditorState<T> {
+  /// Sections whose item-set changed (additions or removals).
+  final Set<ConflictSection> affectedSections;
+
+  const PlanUpdated(this.affectedSections);
+}
+
+/// Emitted when existing conflict items are modified in-place (time changed,
+/// deletion toggled, clamping applied) without any structural change.
+///
+/// [affectedSections] tells each item widget which section was touched.
+/// Each item widget reads the updated change from the plan by its own ID.
+///
+/// UI Response:
+/// - Item widgets whose section is in [affectedSections] check their own ID
+///   and rebuild only if their item was among the changed ones.
+class PlanItemsUpdated<T extends TripEntity> extends TripEntityEditorState<T> {
+  /// Sections that contain at least one modified item.
+  final Set<ConflictSection> affectedSections;
+
+  const PlanItemsUpdated(this.affectedSections);
+}
+
+/// Emitted when the plan is completely cleared (no conflicts remain).
+///
+/// UI Response: hide conflict resolution page, collapse all sections.
+class PlanCleared<T extends TripEntity> extends TripEntityEditorState<T> {
+  const PlanCleared();
 }

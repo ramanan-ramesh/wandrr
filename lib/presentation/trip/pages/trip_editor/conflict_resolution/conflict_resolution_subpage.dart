@@ -4,6 +4,7 @@ import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip_entity_editor/bloc.dart';
 import 'package:wandrr/blocs/trip_entity_editor/events.dart';
 import 'package:wandrr/blocs/trip_entity_editor/states.dart';
+import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
@@ -207,10 +208,9 @@ class _ConflictConfirmButton<T extends TripEntity> extends StatelessWidget {
 // DYNAMIC CONFLICT SECTIONS - Localized BLoC listening
 // =============================================================================
 
-/// Container for all conflict sections with optimized state listening.
-///
-/// Uses [BlocSelector] to only rebuild when conflict counts change.
-/// Each section type is generated dynamically based on its conflict count.
+/// Container for all conflict sections.
+/// Each [ConflictSectionBuilder] rebuilds only when [PlanUpdated] includes its
+/// own [ConflictSection]; [PlanCleared] collapses all of them.
 class _DynamicConflictSections<T extends TripEntity> extends StatelessWidget {
   final VoidCallback? onConflictsChanged;
 
@@ -226,104 +226,78 @@ class _DynamicConflictSections<T extends TripEntity> extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Stays section - rebuilds only when stay conflict count changes
-        _DynamicConflictSection<T>(
+        ConflictSectionBuilder<T>(
           sectionType: ConflictSectionType.stays,
-          messageContext: messageContext,
-          onConflictsChanged: onConflictsChanged,
+          builder: (ctx, changes) => _buildSection(
+              ctx, changes, ConflictSectionType.stays, messageContext),
         ),
-
-        // Transits section - rebuilds only when transit conflict count changes
-        _DynamicConflictSection<T>(
+        ConflictSectionBuilder<T>(
           sectionType: ConflictSectionType.transits,
-          messageContext: messageContext,
-          onConflictsChanged: onConflictsChanged,
+          builder: (ctx, changes) => _buildSection(
+              ctx, changes, ConflictSectionType.transits, messageContext),
         ),
-
-        // Sights section - rebuilds only when sight conflict count changes
-        _DynamicConflictSection<T>(
+        ConflictSectionBuilder<T>(
           sectionType: ConflictSectionType.sights,
-          messageContext: messageContext,
-          onConflictsChanged: onConflictsChanged,
+          builder: (ctx, changes) => _buildSection(
+              ctx, changes, ConflictSectionType.sights, messageContext),
         ),
-
-        // Expenses section (only for TripMetadataUpdatePlan)
         if (isMetadataUpdate) _ExpensesSectionSelector<T>(),
       ],
     );
   }
-}
 
-/// A single conflict section that rebuilds only when conflicts of its type change.
-///
-/// Uses [ConflictSectionBuilder] which internally uses [BlocBuilder] with targeted
-/// buildWhen logic for section-level changes. Items within use [ConflictItemBuilder]
-/// for individual item updates.
-class _DynamicConflictSection<T extends TripEntity> extends StatelessWidget {
-  final ConflictSectionType sectionType;
-  final MessageContext messageContext;
-  final VoidCallback? onConflictsChanged;
+  Widget _buildSection(
+    BuildContext context,
+    List<EntityChangeBase> changes,
+    ConflictSectionType sectionType,
+    MessageContext messageContext,
+  ) {
+    if (changes.isEmpty) return const SizedBox.shrink();
+    final plan = context.tripEntityUpdatePlan<T>();
+    if (plan == null) return const SizedBox.shrink();
 
-  const _DynamicConflictSection({
-    required this.sectionType,
-    required this.messageContext,
-    this.onConflictsChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ConflictSectionBuilder<T>(
+    return OptimizedEntityChangeSection<T>(
       sectionType: sectionType,
-      builder: (context, changes) {
-        if (changes.isEmpty) return const SizedBox.shrink();
-
-        // Get the current plan - safe since we're inside ConflictSectionBuilder
-        // which only builds when plan exists
-        final plan = context.read<TripEntityEditorBloc<T>>().state.currentPlan;
-        if (plan == null) return const SizedBox.shrink();
-
-        return OptimizedEntityChangeSection<T>(
-          sectionType: sectionType,
-          plan: plan,
-          messageContext: messageContext,
-          onTimeRangeUpdated: (change) {
-            context.addTripEntityEditorEvent<T>(
-                UpdateConflictedEntityTimeRange(change));
-            onConflictsChanged?.call();
-          },
-          onDeletionToggled: (change) {
-            context.addTripEntityEditorEvent<T>(
-                ToggleConflictedEntityDeletion(change));
-            onConflictsChanged?.call();
-          },
-        );
+      plan: plan,
+      messageContext: messageContext,
+      onTimeRangeUpdated: (change) {
+        context.addTripEntityEditorEvent<T>(
+            UpdateConflictedEntityTimeRange(change));
+        onConflictsChanged?.call();
+      },
+      onDeletionToggled: (change) {
+        context.addTripEntityEditorEvent<T>(
+            ToggleConflictedEntityDeletion(change));
+        onConflictsChanged?.call();
       },
     );
   }
 }
 
-/// Expenses section selector - only rebuilds when expense changes exist
+/// Expenses section – rebuilds only when [PlanUpdated] or [PlanCleared]
+/// includes [ConflictSection.expenses].
 class _ExpensesSectionSelector<T extends TripEntity> extends StatelessWidget {
   const _ExpensesSectionSelector();
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<TripEntityEditorBloc<T>, TripEntityEditorState<T>,
-        TripMetadataUpdatePlan?>(
-      selector: (state) {
-        final plan = state.currentPlan;
-        if (plan == null) return null;
-        if (plan is TripMetadataUpdatePlan && plan.expenseChanges.isNotEmpty) {
-          // Explicit cast to satisfy the selector return type
-          return plan as TripMetadataUpdatePlan;
+    return BlocBuilder<TripEntityEditorBloc<T>, TripEntityEditorState<T>>(
+      buildWhen: (_, current) {
+        if (current is PlanCleared<T>) return true;
+        if (current is PlanUpdated<T>) {
+          return current.affectedSections.contains(ConflictSection.expenses);
         }
-        return null;
+        return false;
       },
-      builder: (context, metadataPlan) {
-        if (metadataPlan == null) return const SizedBox.shrink();
-
+      builder: (context, _) {
+        final plan = context.tripEntityUpdatePlan<T>();
+        if (plan == null ||
+            plan.expenseChanges.isEmpty ||
+            plan.newEntity is! TripMetadataFacade) {
+          return const SizedBox.shrink();
+        }
         return UnifiedEntityChangeEditor.forMetadataUpdate(
-          updatePlan: metadataPlan,
+          updatePlan: plan as TripEntityUpdatePlan<TripMetadataFacade>,
           onTimeRangeUpdated: (_) {},
           onDeletionToggled: (_) {},
         );

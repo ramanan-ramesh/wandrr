@@ -28,6 +28,7 @@ extension TripEntityEditorBlocExt on BuildContext {
   TripEntityEditorBloc<T> _getBloc<T extends TripEntity>() =>
       BlocProvider.of<TripEntityEditorBloc<T>>(this);
 
+  /// Current conflict plan – always read from the bloc, not from states.
   TripEntityUpdatePlan<T>? tripEntityUpdatePlan<T extends TripEntity>() =>
       _getBloc<T>().currentPlan;
 

@@ -109,18 +109,21 @@ class _ConflictAwareActionPageState<T extends TripEntity>
                 children: [
                   BlocSelector<TripEntityEditorBloc<T>,
                       TripEntityEditorState<T>, int>(
-                    selector: (state) => state.currentPlan?.conflictCount ?? 0,
+                    selector: (_) =>
+                        context.tripEntityUpdatePlan<T>()?.conflictCount ?? 0,
                     builder: _buildAppBar,
                   ),
-                  BlocSelector<TripEntityEditorBloc<T>,
-                      TripEntityEditorState<T>, bool>(
-                    selector: (state) {
-                      final plan = state.currentPlan;
-                      return plan != null &&
+                  BlocBuilder<TripEntityEditorBloc<T>,
+                      TripEntityEditorState<T>>(
+                    buildWhen: (_, current) =>
+                        current is PlanUpdated ||
+                        current is PlanCleared ||
+                        current is ConflictPlanConfirmed,
+                    builder: (context, _) {
+                      final plan = context.tripEntityUpdatePlan<T>();
+                      final hasUnconfirmedConflicts = plan != null &&
                           plan.hasConflicts &&
                           !plan.isConfirmed;
-                    },
-                    builder: (context, hasUnconfirmedConflicts) {
                       if (hasUnconfirmedConflicts &&
                           !_isViewingConflictResolution) {
                         return _StickyConflictBanner<T>(
@@ -145,10 +148,14 @@ class _ConflictAwareActionPageState<T extends TripEntity>
                         ),
                         SingleChildScrollView(
                           padding: EdgeInsets.fromLTRB(0, 0, 0, bottomPadding),
-                          child: BlocSelector<TripEntityEditorBloc<T>,
-                              TripEntityEditorState<T>, bool>(
-                            selector: (state) => state.currentPlan != null,
-                            builder: (context, hasPlan) {
+                          child: BlocBuilder<TripEntityEditorBloc<T>,
+                              TripEntityEditorState<T>>(
+                            buildWhen: (_, current) =>
+                                current is PlanUpdated ||
+                                current is PlanCleared,
+                            builder: (context, _) {
+                              final hasPlan =
+                                  context.tripEntityUpdatePlan<T>() != null;
                               return hasPlan
                                   ? ConflictResolutionSubpage<T>(
                                       onBackPressed: _navigateToEditor,
@@ -175,13 +182,11 @@ class _ConflictAwareActionPageState<T extends TripEntity>
                     child: BlocBuilder<TripEntityEditorBloc<T>,
                         TripEntityEditorState<T>>(
                       buildWhen: (previous, current) =>
-                          current is ConflictsAdded ||
-                          current is ConflictsRemoved ||
-                          current is ConflictsUpdated ||
-                          current is ConflictItemUpdated ||
+                          current is PlanUpdated ||
+                          current is PlanCleared ||
                           current is ConflictPlanConfirmed,
-                      builder: (context, state) {
-                        final conflictPlan = state.currentPlan;
+                      builder: (context, _) {
+                        final conflictPlan = context.tripEntityUpdatePlan<T>();
                         final hasUnresolvedConflicts = conflictPlan != null &&
                             conflictPlan.hasConflicts &&
                             !conflictPlan.isConfirmed;

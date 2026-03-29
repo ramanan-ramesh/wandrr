@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
@@ -19,19 +18,18 @@ import 'events.dart';
 import 'states.dart';
 import 'unified_conflict_scanner.dart';
 
-// =============================================================================
-// TRIP ENTITY EDITOR BLOC - Streamlined version with SOLID principles
-// =============================================================================
-
 /// BLoC for editing trip entities with conflict detection and resolution.
 ///
-/// Key features:
-/// - Unified conflict detection across all entity types
-/// - Inter-conflict detection (when editing a conflicted item causes another conflict)
-/// - New conflict detection from trip repository when editing conflicted items
-/// - Automatic clamping with fallback to deletion marking
-/// - Consistent `isNewEntity` handling across all detectors
-/// - Emits [ConflictItemUpdated] for each affected change for localized UI updates
+/// Conflict detection runs synchronously on the main isolate — it operates on
+/// already-loaded in-memory collections (microseconds of work).
+///
+/// Plan-change states:
+///   [PlanUpdated]     – structural change: sections gained/lost items
+///   [PlanItemsUpdated]– in-place change: item times / delete flags changed
+///   [PlanCleared]     – plan removed, all conflicts gone
+///
+/// The plan itself is never stored in state; always read via
+/// `bloc.currentPlan` or `context.tripEntityUpdatePlan<T>()`.
 class TripEntityEditorBloc<T extends TripEntity>
     extends Bloc<TripEntityEditorEvent, TripEntityEditorState<T>> {
   final TripDataFacade _tripData;
@@ -63,118 +61,100 @@ class TripEntityEditorBloc<T extends TripEntity>
   TripEntityEditorBloc.forCreation({
     required TripDataFacade tripData,
     required T entity,
-  }) : this._(
-          tripData: tripData,
-          original: null,
-          editable: entity,
-        );
+  }) : this._(tripData: tripData, original: null, editable: entity);
 
   TripEntityEditorBloc.forEditing({
     required TripDataFacade tripData,
     required T entity,
   }) : this._(
-          tripData: tripData,
-          original: entity,
-          editable: entity.clone() as T,
-        );
+            tripData: tripData,
+            original: entity,
+            editable: entity.clone() as T);
 
   // ===========================================================================
   // EVENT HANDLERS
   // ===========================================================================
 
-  Future<void> _onUpdateEntityTimeRange(
+  void _onUpdateEntityTimeRange(
     UpdateEntityTimeRange<T> event,
     Emitter<TripEntityEditorState<T>> emit,
-  ) async {
+  ) {
     TripEntityUpdatePlan<T>? newPlan;
 
     if (editableEntity is LodgingFacade) {
       final stay = editableEntity as LodgingFacade;
       stay.checkinDateTime = event.range.start;
       stay.checkoutDateTime = event.range.end;
-      newPlan = await _detectStayConflicts(stay) as TripEntityUpdatePlan<T>?;
+      newPlan = _detectStayConflicts(stay) as TripEntityUpdatePlan<T>?;
     } else if (editableEntity is TripMetadataFacade) {
       final meta = editableEntity as TripMetadataFacade;
       meta.startDate = event.range.start;
       meta.endDate = event.range.end;
-      newPlan =
-          await _detectMetadataConflicts(meta) as TripEntityUpdatePlan<T>?;
+      newPlan = _detectMetadataConflicts(meta) as TripEntityUpdatePlan<T>?;
     }
 
     _handlePlanUpdate(newPlan, emit);
   }
 
-  Future<void> _onUpdateJourneyTimeRange(
+  void _onUpdateJourneyTimeRange(
     UpdateJourneyTimeRange event,
     Emitter<TripEntityEditorState<T>> emit,
-  ) async {
+  ) {
     if (editableEntity is! TransitFacade) return;
-
     final newPlan =
-        await _detectJourneyConflicts(event.legs) as TripEntityUpdatePlan<T>?;
+        _detectJourneyConflicts(event.legs) as TripEntityUpdatePlan<T>?;
     _handlePlanUpdate(newPlan, emit);
   }
 
-  Future<void> _onUpdateSightsTimeRange(
+  void _onUpdateSightsTimeRange(
     UpdateSightsTimeRange event,
     Emitter<TripEntityEditorState<T>> emit,
-  ) async {
+  ) {
     if (editableEntity is! ItineraryPlanData) return;
 
-    // Check for intra-day sight overlaps first
     final overlapError = _checkSightOverlaps(event.sights);
     if (overlapError != null) {
       emit(overlapError);
       return;
     }
 
-    final newPlan = await _detectItineraryConflicts(event.sights)
-        as TripEntityUpdatePlan<T>?;
+    final newPlan =
+        _detectItineraryConflicts(event.sights) as TripEntityUpdatePlan<T>?;
     _handlePlanUpdate(newPlan, emit);
   }
 
-  Future<void> _onUpdateConflictedEntityTimeRange(
+  void _onUpdateConflictedEntityTimeRange(
     UpdateConflictedEntityTimeRange event,
     Emitter<TripEntityEditorState<T>> emit,
-  ) async {
+  ) {
     if (_currentPlan == null) return;
 
-    final snapshot = TripConflictDataSnapshot.fromTripData(_tripData);
-    final params = _IsolateResolveConflictParams(
+    final result = _buildScanner().resolveConflictedEntityTimeChange(
       modifiedChange: event.change,
       editableEntityRange: _getEditableEntityTimeRange(),
       editableEntity: editableEntity,
       existingStayChanges: _currentPlan!.stayChanges,
       existingTransitChanges: _currentPlan!.transitChanges,
       existingSightChanges: _currentPlan!.sightChanges,
-      snapshot: snapshot,
     );
 
-    final result = await compute(_isolateResolveConflictedTimeChange, params);
-
     if (!result.isValid) {
-      // Conflict with editable entity - emit error
       emit(ConflictedEntityTimeRangeError<T>(
-        event.change,
-        result.errorMessage!,
-        event.change.original,
-        _currentPlan,
-      ));
+          event.change, result.errorMessage!, event.change.original));
       return;
     }
 
-    // Add new conflicts to the plan if any
-    final hasNewConflicts = result.newConflicts.isNotEmpty;
-    _addNewConflictsToPlan(result.newConflicts);
-
-    // If new conflicts were added, emit ConflictsUpdated first so sections can rebuild
-    if (hasNewConflicts) {
-      emit(ConflictsUpdated<T>(_currentPlan!));
+    // Merge any newly discovered inter-conflicts and emit PlanUpdated for
+    // sections that gained items.
+    final addedSections = _mergeNewConflicts(result.newConflicts);
+    if (addedSections.isNotEmpty) {
+      emit(PlanUpdated<T>(addedSections));
     }
 
-    // Emit updates for each affected change (enables localized UI rebuilds)
-    for (final change in result.allUpdatedChanges) {
-      emit(ConflictItemUpdated<T>(_currentPlan!, change));
+    // Emit PlanItemsUpdated for sections whose items were modified in-place.
+    final touchedSections = _sectionsOf(result.allUpdatedChanges);
+    if (touchedSections.isNotEmpty) {
+      emit(PlanItemsUpdated<T>(touchedSections));
     }
   }
 
@@ -190,19 +170,17 @@ class TripEntityEditorBloc<T extends TripEntity>
     } else {
       event.change.restore();
     }
-
     _currentPlan!.syncExpenseDeletionState(event.change.original, newIsDeleted);
-    emit(ConflictItemUpdated<T>(_currentPlan!, event.change));
+
+    emit(PlanItemsUpdated<T>(_sectionsOf([event.change])));
   }
 
   void _onConfirmConflictPlan(
     ConfirmConflictPlan event,
     Emitter<TripEntityEditorState<T>> emit,
   ) {
-    if (_currentPlan != null) {
-      _currentPlan!.confirm();
-    }
-    emit(ConflictPlanConfirmed<T>(_currentPlan!));
+    _currentPlan?.confirm();
+    emit(const ConflictPlanConfirmed());
   }
 
   void _onSubmitEntity(
@@ -213,64 +191,178 @@ class TripEntityEditorBloc<T extends TripEntity>
   }
 
   // ===========================================================================
+  // SCANNER FACTORY
+  // ===========================================================================
+
+  UnifiedConflictScanner _buildScanner() => UnifiedConflictScanner(
+        tripData: TripConflictDataSnapshot.fromTripData(_tripData),
+      );
+
+  // ===========================================================================
   // PLAN MANAGEMENT
   // ===========================================================================
 
+  /// Compares the incoming [newPlan] against the current plan and emits the
+  /// minimal set of states needed to update the UI.
+  ///
+  /// • Structural changes (ID sets differ) → [PlanUpdated] for affected sections
+  /// • Content-only changes (same IDs, different state) → [PlanItemsUpdated]
+  /// • All sections gone → [PlanCleared]
   void _handlePlanUpdate(
     TripEntityUpdatePlan<T>? newPlan,
     Emitter<TripEntityEditorState<T>> emit,
   ) {
-    if (newPlan != null && newPlan.hasConflicts) {
-      if (_currentPlan == null) {
-        _currentPlan = newPlan;
-        emit(ConflictsAdded<T>(_currentPlan!));
-      } else {
-        _currentPlan!.updateConflicts(
-          stays: newPlan.stayChanges,
-          transits: newPlan.transitChanges,
-          sights: newPlan.sightChanges,
-          expenses: newPlan.expenseChanges,
-        );
-        emit(ConflictsUpdated<T>(_currentPlan!));
-      }
-    } else {
-      if (_currentPlan != null) {
-        _currentPlan = null;
-        emit(const ConflictsRemoved());
-      }
+    final hadPlan = _currentPlan != null;
+
+    // Shallow-copy the old lists BEFORE replacing the plan reference.
+    final oldStays = hadPlan
+        ? List<StayChange>.of(_currentPlan!.stayChanges)
+        : const <StayChange>[];
+    final oldTransits = hadPlan
+        ? List<TransitChange>.of(_currentPlan!.transitChanges)
+        : const <TransitChange>[];
+    final oldSights = hadPlan
+        ? List<SightChange>.of(_currentPlan!.sightChanges)
+        : const <SightChange>[];
+    final oldExpenses = hadPlan
+        ? List<ExpenseSplitChange>.of(_currentPlan!.expenseChanges)
+        : const <ExpenseSplitChange>[];
+
+    _currentPlan = (newPlan != null && newPlan.hasConflicts) ? newPlan : null;
+
+    final newStays = _currentPlan?.stayChanges ?? const [];
+    final newTransits = _currentPlan?.transitChanges ?? const [];
+    final newSights = _currentPlan?.sightChanges ?? const [];
+    final newExpenses = _currentPlan?.expenseChanges ?? const [];
+
+    final structurallyChanged = <ConflictSection>{};
+    final contentChanged = <ConflictSection>{};
+
+    _diffSection(oldStays, newStays, ConflictSection.stays, structurallyChanged,
+        contentChanged);
+    _diffSection(oldTransits, newTransits, ConflictSection.transits,
+        structurallyChanged, contentChanged);
+    _diffSection(oldSights, newSights, ConflictSection.sights,
+        structurallyChanged, contentChanged);
+    _diffSection(oldExpenses, newExpenses, ConflictSection.expenses,
+        structurallyChanged, contentChanged);
+
+    // If every section is now empty and there was a plan before → cleared.
+    if (_currentPlan == null && hadPlan) {
+      emit(const PlanCleared());
+      return;
     }
+
+    if (structurallyChanged.isNotEmpty)
+      emit(PlanUpdated<T>(structurallyChanged));
+    if (contentChanged.isNotEmpty) emit(PlanItemsUpdated<T>(contentChanged));
   }
 
-  /// Adds newly discovered conflicts to the current plan.
-  void _addNewConflictsToPlan(List<EntityChangeBase> newConflicts) {
-    if (newConflicts.isEmpty || _currentPlan == null) return;
+  /// Compares [oldItems] to [newItems]:
+  /// - ID set differs  → adds [section] to [structural]
+  /// - IDs same, content differs → adds [section] to [content]
+  void _diffSection<C extends EntityChangeBase>(
+    List<C> oldItems,
+    List<C> newItems,
+    ConflictSection section,
+    Set<ConflictSection> structural,
+    Set<ConflictSection> content,
+  ) {
+    final wasEmpty = oldItems.isEmpty;
+    final nowEmpty = newItems.isEmpty;
 
+    if (wasEmpty && nowEmpty) return;
+    if (wasEmpty != nowEmpty) {
+      structural.add(section);
+      return;
+    }
+
+    // Both non-empty – compare ID sets.
+    final oldIds = {for (final c in oldItems) c.original.id};
+    final newIds = {for (final c in newItems) c.original.id};
+    if (oldIds.length != newIds.length ||
+        !oldIds.containsAll(newIds) ||
+        !newIds.containsAll(oldIds)) {
+      structural.add(section);
+      return;
+    }
+
+    // Same IDs – check content.
+    final oldById = {for (final c in oldItems) c.original.id: c};
+    final anyContentDiff = newItems.any((n) {
+      final o = oldById[n.original.id];
+      return o == null || _changeContentDiffers(o, n);
+    });
+    if (anyContentDiff) content.add(section);
+  }
+
+  /// Returns true when [newC] differs from [oldC] in any UI-observable way.
+  bool _changeContentDiffers(EntityChangeBase oldC, EntityChangeBase newC) {
+    if (oldC.isDelete != newC.isDelete) return true;
+    if (oldC.isClamped != newC.isClamped) return true;
+    if (oldC is StayChange && newC is StayChange) {
+      return oldC.modified.checkinDateTime != newC.modified.checkinDateTime ||
+          oldC.modified.checkoutDateTime != newC.modified.checkoutDateTime;
+    }
+    if (oldC is TransitChange && newC is TransitChange) {
+      return oldC.modified.departureDateTime !=
+              newC.modified.departureDateTime ||
+          oldC.modified.arrivalDateTime != newC.modified.arrivalDateTime;
+    }
+    if (oldC is SightChange && newC is SightChange) {
+      return oldC.modified.visitTime != newC.modified.visitTime;
+    }
+    if (oldC is ExpenseSplitChange && newC is ExpenseSplitChange) {
+      return oldC.includeInSplitBy != newC.includeInSplitBy;
+    }
+    return false;
+  }
+
+  /// Merges [newConflicts] into the current plan.
+  /// Returns the set of sections that received new items.
+  Set<ConflictSection> _mergeNewConflicts(
+      Iterable<EntityChangeBase> newConflicts) {
+    if (newConflicts.isEmpty || _currentPlan == null) return const {};
+
+    final added = <ConflictSection>{};
     for (final change in newConflicts) {
       if (change is StayChange) {
         _currentPlan!.stayChanges.add(change);
+        added.add(ConflictSection.stays);
       } else if (change is TransitChange) {
         _currentPlan!.transitChanges.add(change);
+        added.add(ConflictSection.transits);
       } else if (change is SightChange) {
         _currentPlan!.sightChanges.add(change);
+        added.add(ConflictSection.sights);
       }
     }
+    return added;
+  }
+
+  /// Returns the set of [ConflictSection]s touched by [changes].
+  Set<ConflictSection> _sectionsOf(Iterable<EntityChangeBase> changes) {
+    final sections = <ConflictSection>{};
+    for (final c in changes) {
+      if (c is StayChange)
+        sections.add(ConflictSection.stays);
+      else if (c is TransitChange)
+        sections.add(ConflictSection.transits);
+      else if (c is SightChange) sections.add(ConflictSection.sights);
+    }
+    return sections;
   }
 
   // ===========================================================================
-  // CONFLICT DETECTION - Delegates to specialized detectors
+  // CONFLICT DETECTION
   // ===========================================================================
 
-  Future<TripEntityUpdatePlan<LodgingFacade>?> _detectStayConflicts(
-      LodgingFacade stay) async {
-    final snapshot = TripConflictDataSnapshot.fromTripData(_tripData);
-    final params = _IsolateStayConflictParams(
-      stay,
-      snapshot,
-      _isNewEntity,
-    );
-    final conflicts = await compute(_isolateDetectStayConflicts, params);
+  TripEntityUpdatePlan<LodgingFacade>? _detectStayConflicts(
+      LodgingFacade stay) {
+    final conflicts = StayConflictDetector(
+            stay: stay, scanner: _buildScanner(), isNewEntity: _isNewEntity)
+        .detectConflicts();
     if (conflicts == null) return null;
-
     return TripEntityUpdatePlan<LodgingFacade>(
       tripStartDate: _tripData.tripMetadata.startDate!,
       tripEndDate: _tripData.tripMetadata.endDate!,
@@ -282,45 +374,31 @@ class TripEntityEditorBloc<T extends TripEntity>
     );
   }
 
-  Future<TripEntityUpdatePlan<TransitFacade>?> _detectJourneyConflicts(
-    List<TransitFacade> legs,
-  ) async {
-    final snapshot = TripConflictDataSnapshot.fromTripData(_tripData);
-    final params = _IsolateJourneyConflictParams(
-      legs,
-      snapshot,
-      _isNewEntity,
-    );
-    final conflicts = await compute(_isolateDetectJourneyConflicts, params);
+  TripEntityUpdatePlan<TransitFacade>? _detectJourneyConflicts(
+      List<TransitFacade> legs) {
+    final conflicts = JourneyConflictDetector(
+            legs: legs, scanner: _buildScanner(), isNewEntity: _isNewEntity)
+        .detectConflicts();
     if (conflicts == null) return null;
-
-    final newTransit = legs.isNotEmpty
-        ? legs.first
-        : (originalEntity ?? editableEntity) as TransitFacade;
-
     return TripEntityUpdatePlan<TransitFacade>(
       tripStartDate: _tripData.tripMetadata.startDate!,
       tripEndDate: _tripData.tripMetadata.endDate!,
       oldEntity: (originalEntity ?? editableEntity) as TransitFacade,
-      newEntity: newTransit,
+      newEntity: legs.isNotEmpty
+          ? legs.first
+          : (originalEntity ?? editableEntity) as TransitFacade,
       transitChanges: conflicts.transitConflicts.map(_toTransitChange).toList(),
       stayChanges: conflicts.stayConflicts.map(_toStayChange).toList(),
       sightChanges: conflicts.sightConflicts.map(_toSightChange).toList(),
     );
   }
 
-  Future<TripEntityUpdatePlan<ItineraryPlanData>?> _detectItineraryConflicts(
-    List<SightFacade> sights,
-  ) async {
-    final snapshot = TripConflictDataSnapshot.fromTripData(_tripData);
-    final params = _IsolateItineraryConflictParams(
-      sights,
-      snapshot,
-      _isNewEntity,
-    );
-    final conflicts = await compute(_isolateDetectItineraryConflicts, params);
+  TripEntityUpdatePlan<ItineraryPlanData>? _detectItineraryConflicts(
+      List<SightFacade> sights) {
+    final conflicts = ItineraryConflictDetector(
+            sights: sights, scanner: _buildScanner(), isNewEntity: _isNewEntity)
+        .detectConflicts();
     if (conflicts == null) return null;
-
     return TripEntityUpdatePlan<ItineraryPlanData>(
       tripStartDate: _tripData.tripMetadata.startDate!,
       tripEndDate: _tripData.tripMetadata.endDate!,
@@ -332,18 +410,11 @@ class TripEntityEditorBloc<T extends TripEntity>
     );
   }
 
-  Future<TripEntityUpdatePlan<TripMetadataFacade>?> _detectMetadataConflicts(
-    TripMetadataFacade metadata,
-  ) async {
-    final snapshot = TripConflictDataSnapshot.fromTripData(_tripData);
-    final params = _IsolateMetadataConflictParams(
-      _tripData.tripMetadata,
-      metadata,
-      snapshot,
-    );
-    final conflicts = await compute(_isolateDetectMetadataConflicts, params);
+  TripEntityUpdatePlan<TripMetadataFacade>? _detectMetadataConflicts(
+      TripMetadataFacade metadata) {
+    final conflicts = _buildScanner().scanForMetadataUpdate(
+        oldMetadata: _tripData.tripMetadata, newMetadata: metadata);
     if (conflicts == null) return null;
-
     return TripEntityUpdatePlan<TripMetadataFacade>(
       oldEntity: conflicts.oldMetadata,
       newEntity: conflicts.newMetadata,
@@ -357,40 +428,31 @@ class TripEntityEditorBloc<T extends TripEntity>
   }
 
   // ===========================================================================
-  // VALIDATION HELPERS
+  // VALIDATION
   // ===========================================================================
 
-  /// Checks for overlapping sight times within the same itinerary.
   ConflictedEntityTimeRangeError<T>? _checkSightOverlaps(
       List<SightFacade> sights) {
     for (int i = 0; i < sights.length; i++) {
       final s1 = sights[i];
       if (s1.visitTime == null) continue;
-
       final r1 = TimeRange(
-        start: s1.visitTime!,
-        end: s1.visitTime!.add(const Duration(minutes: 1)),
-      );
-
+          start: s1.visitTime!,
+          end: s1.visitTime!.add(const Duration(minutes: 1)));
       for (int j = i + 1; j < sights.length; j++) {
         final s2 = sights[j];
         if (s2.visitTime == null) continue;
-
         final r2 = TimeRange(
-          start: s2.visitTime!,
-          end: s2.visitTime!.add(const Duration(minutes: 1)),
-        );
-
+            start: s2.visitTime!,
+            end: s2.visitTime!.add(const Duration(minutes: 1)));
         if (r1.overlapsWith(r2)) {
           return ConflictedEntityTimeRangeError<T>(
             SightChange.forClamping(
-              original: s2,
-              modified: s2,
-              timelinePosition: EntityTimelinePosition.isOverlapping,
-            ),
-            "Sights cannot overlap on the same day",
+                original: s2,
+                modified: s2,
+                timelinePosition: EntityTimelinePosition.isOverlapping),
+            'Sights cannot overlap on the same day',
             s2.clone(),
-            _currentPlan,
           );
         }
       }
@@ -398,188 +460,54 @@ class TripEntityEditorBloc<T extends TripEntity>
     return null;
   }
 
-  /// Gets the time range of the editable entity.
   TimeRange? _getEditableEntityTimeRange() {
     if (editableEntity is LodgingFacade) {
-      final stay = editableEntity as LodgingFacade;
-      if (stay.checkinDateTime != null && stay.checkoutDateTime != null) {
-        return TimeRange(
-            start: stay.checkinDateTime!, end: stay.checkoutDateTime!);
+      final s = editableEntity as LodgingFacade;
+      if (s.checkinDateTime != null && s.checkoutDateTime != null) {
+        return TimeRange(start: s.checkinDateTime!, end: s.checkoutDateTime!);
       }
     } else if (editableEntity is TransitFacade) {
-      final transit = editableEntity as TransitFacade;
-      if (transit.departureDateTime != null &&
-          transit.arrivalDateTime != null) {
-        return TimeRange(
-            start: transit.departureDateTime!, end: transit.arrivalDateTime!);
+      final t = editableEntity as TransitFacade;
+      if (t.departureDateTime != null && t.arrivalDateTime != null) {
+        return TimeRange(start: t.departureDateTime!, end: t.arrivalDateTime!);
       }
     } else if (editableEntity is TripMetadataFacade) {
-      final meta = editableEntity as TripMetadataFacade;
-      if (meta.startDate != null && meta.endDate != null) {
-        return TimeRange(start: meta.startDate!, end: meta.endDate!);
+      final m = editableEntity as TripMetadataFacade;
+      if (m.startDate != null && m.endDate != null) {
+        return TimeRange(start: m.startDate!, end: m.endDate!);
       }
     }
     return null;
   }
 
   // ===========================================================================
-  // MAPPING HELPERS - Convert ConflictResult to EntityChange
+  // MAPPING HELPERS
   // ===========================================================================
 
-  TransitChange _toTransitChange(TransitConflict conflict) {
-    return conflict.canBeClampedToResolve
-        ? TransitChange.forClamping(
-            original: conflict.entity,
-            modified: conflict.clampedEntity!,
-            timelinePosition: conflict.position,
-          )
-        : TransitChange.forDeletion(
-            original: conflict.entity,
-            timelinePosition: conflict.position,
-          );
-  }
+  TransitChange _toTransitChange(TransitConflict c) => c.canBeClampedToResolve
+      ? TransitChange.forClamping(
+          original: c.entity,
+          modified: c.clampedEntity!,
+          timelinePosition: c.position)
+      : TransitChange.forDeletion(
+          original: c.entity, timelinePosition: c.position);
 
-  StayChange _toStayChange(StayConflict conflict) {
-    return conflict.canBeClampedToResolve
-        ? StayChange.forClamping(
-            original: conflict.entity,
-            modified: conflict.clampedEntity!,
-            timelinePosition: conflict.position,
-          )
-        : StayChange.forDeletion(
-            original: conflict.entity,
-            timelinePosition: conflict.position,
-          );
-  }
+  StayChange _toStayChange(StayConflict c) => c.canBeClampedToResolve
+      ? StayChange.forClamping(
+          original: c.entity,
+          modified: c.clampedEntity!,
+          timelinePosition: c.position)
+      : StayChange.forDeletion(
+          original: c.entity, timelinePosition: c.position);
 
-  SightChange _toSightChange(SightConflict conflict) {
-    return conflict.canBeClampedToResolve
-        ? SightChange.forClamping(
-            original: conflict.entity,
-            modified: conflict.clampedEntity!,
-            timelinePosition: conflict.position,
-          )
-        : SightChange.forDeletion(
-            original: conflict.entity,
-            timelinePosition: conflict.position,
-          );
-  }
+  SightChange _toSightChange(SightConflict c) => c.canBeClampedToResolve
+      ? SightChange.forClamping(
+          original: c.entity,
+          modified: c.clampedEntity!,
+          timelinePosition: c.position)
+      : SightChange.forDeletion(
+          original: c.entity, timelinePosition: c.position);
 
-  ExpenseSplitChange _toExpenseChange(ExpenseBearingTripEntity entity) {
-    return ExpenseSplitChange(original: entity, modified: entity.clone());
-  }
-}
-
-// ===========================================================================
-// ISOLATE CONFLICT DETECTION
-// ===========================================================================
-
-class _IsolateStayConflictParams {
-  final LodgingFacade stay;
-  final TripConflictDataSnapshot snapshot;
-  final bool isNewEntity;
-
-  const _IsolateStayConflictParams(this.stay, this.snapshot, this.isNewEntity);
-}
-
-AggregatedConflicts? _isolateDetectStayConflicts(
-    _IsolateStayConflictParams params) {
-  final scanner = UnifiedConflictScanner(tripData: params.snapshot);
-  final detector = StayConflictDetector(
-    stay: params.stay,
-    scanner: scanner,
-    isNewEntity: params.isNewEntity,
-  );
-  return detector.detectConflicts();
-}
-
-class _IsolateJourneyConflictParams {
-  final List<TransitFacade> legs;
-  final TripConflictDataSnapshot snapshot;
-  final bool isNewEntity;
-
-  const _IsolateJourneyConflictParams(
-      this.legs, this.snapshot, this.isNewEntity);
-}
-
-AggregatedConflicts? _isolateDetectJourneyConflicts(
-    _IsolateJourneyConflictParams params) {
-  final scanner = UnifiedConflictScanner(tripData: params.snapshot);
-  final detector = JourneyConflictDetector(
-    legs: params.legs,
-    scanner: scanner,
-    isNewEntity: params.isNewEntity,
-  );
-  return detector.detectConflicts();
-}
-
-class _IsolateItineraryConflictParams {
-  final List<SightFacade> sights;
-  final TripConflictDataSnapshot snapshot;
-  final bool isNewEntity;
-
-  const _IsolateItineraryConflictParams(
-      this.sights, this.snapshot, this.isNewEntity);
-}
-
-AggregatedConflicts? _isolateDetectItineraryConflicts(
-    _IsolateItineraryConflictParams params) {
-  final scanner = UnifiedConflictScanner(tripData: params.snapshot);
-  final detector = ItineraryConflictDetector(
-    sights: params.sights,
-    scanner: scanner,
-    isNewEntity: params.isNewEntity,
-  );
-  return detector.detectConflicts();
-}
-
-class _IsolateMetadataConflictParams {
-  final TripMetadataFacade oldMetadata;
-  final TripMetadataFacade newMetadata;
-  final TripConflictDataSnapshot snapshot;
-
-  const _IsolateMetadataConflictParams(
-      this.oldMetadata, this.newMetadata, this.snapshot);
-}
-
-MetadataUpdateConflicts? _isolateDetectMetadataConflicts(
-    _IsolateMetadataConflictParams params) {
-  final scanner = UnifiedConflictScanner(tripData: params.snapshot);
-  return scanner.scanForMetadataUpdate(
-    oldMetadata: params.oldMetadata,
-    newMetadata: params.newMetadata,
-  );
-}
-
-class _IsolateResolveConflictParams {
-  final EntityChangeBase modifiedChange;
-  final TimeRange? editableEntityRange;
-  final TripEntity editableEntity;
-  final List<StayChange> existingStayChanges;
-  final List<TransitChange> existingTransitChanges;
-  final List<SightChange> existingSightChanges;
-  final TripConflictDataSnapshot snapshot;
-
-  const _IsolateResolveConflictParams({
-    required this.modifiedChange,
-    required this.editableEntityRange,
-    required this.editableEntity,
-    required this.existingStayChanges,
-    required this.existingTransitChanges,
-    required this.existingSightChanges,
-    required this.snapshot,
-  });
-}
-
-ConflictResolutionResult _isolateResolveConflictedTimeChange(
-    _IsolateResolveConflictParams params) {
-  final scanner = UnifiedConflictScanner(tripData: params.snapshot);
-  return scanner.resolveConflictedEntityTimeChange(
-    modifiedChange: params.modifiedChange,
-    editableEntityRange: params.editableEntityRange,
-    editableEntity: params.editableEntity,
-    existingStayChanges: params.existingStayChanges,
-    existingTransitChanges: params.existingTransitChanges,
-    existingSightChanges: params.existingSightChanges,
-  );
+  ExpenseSplitChange _toExpenseChange(ExpenseBearingTripEntity entity) =>
+      ExpenseSplitChange(original: entity, modified: entity.clone());
 }

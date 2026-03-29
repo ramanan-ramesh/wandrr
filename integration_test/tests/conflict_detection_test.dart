@@ -870,17 +870,16 @@ Future<void> runConflictPlanConfirmationTest(
   ));
   await tester.pump(const Duration(seconds: 2));
 
-  final stateAfterConflict = bloc.state;
-  if (stateAfterConflict.currentPlan != null &&
-      stateAfterConflict.currentPlan!.hasConflicts) {
-    expect(stateAfterConflict.currentPlan!.isConfirmed, false,
+  final planAfterConflict = bloc.currentPlan;
+  if (planAfterConflict != null && planAfterConflict.hasConflicts) {
+    expect(planAfterConflict.isConfirmed, false,
         reason: 'Plan should not be confirmed initially');
 
     bloc.add(const ConfirmConflictPlan());
     await tester.pump(const Duration(milliseconds: 500));
 
     expect(bloc.state, isA<ConflictPlanConfirmed<LodgingFacade>>());
-    expect(bloc.state.currentPlan!.isConfirmed, true,
+    expect(bloc.currentPlan!.isConfirmed, true,
         reason: 'Plan should be confirmed after ConfirmConflictPlan');
 
     print('✓ REQ-CD-007: Conflict plan confirmation works');
@@ -911,7 +910,7 @@ Future<void> runToggleDeletionSyncsExpenseTest(
   ));
   await tester.pump(const Duration(seconds: 2));
 
-  final plan = metaBloc.state.currentPlan;
+  final plan = metaBloc.currentPlan;
   if (plan != null && plan.hasConflicts) {
     if (plan.transitChanges.isNotEmpty) {
       final transitChange = plan.transitChanges.first;
