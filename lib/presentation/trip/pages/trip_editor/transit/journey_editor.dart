@@ -39,6 +39,14 @@ class JourneyEditorState extends State<JourneyEditor> {
   String? _journeyId;
   bool _isInitialized = false;
 
+  /// Legs removed by the user that have a persisted ID and must be deleted
+  /// from the repository when the FAB (save) is tapped.
+  final List<TransitFacade> _removedLegs = [];
+
+  /// When reducing to a single leg we must also strip the journeyId from it
+  /// in the repository.  Track it here so [saveAllLegs] can issue the update.
+  TransitFacade? _remainingLegJourneyIdUpdate;
+
   /// Get all legs in this journey (for saving)
   List<TransitFacade> get legs => List.unmodifiable(_legs);
 
@@ -64,8 +72,29 @@ class JourneyEditorState extends State<JourneyEditor> {
     }
   }
 
-  /// Save all legs of the journey to the database
+  /// Save all legs of the journey to the database.
+  ///
+  /// Also flushes legs that were removed via [_removeLeg] since they are
+  /// deferred until the user confirms with the FAB, not deleted immediately.
   void saveAllLegs(BuildContext context) {
+    // 1. Delete legs that were removed during this editing session.
+    for (final leg in _removedLegs) {
+      context.addTripManagementEvent(
+        UpdateTripEntity<TransitFacade>.delete(tripEntity: leg),
+      );
+    }
+    _removedLegs.clear();
+
+    // 2. If the journey was reduced to one leg, persist the journeyId removal.
+    if (_remainingLegJourneyIdUpdate != null) {
+      context.addTripManagementEvent(
+        UpdateTripEntity<TransitFacade>.update(
+            tripEntity: _remainingLegJourneyIdUpdate!),
+      );
+      _remainingLegJourneyIdUpdate = null;
+    }
+
+    // 3. Create / update the remaining active legs.
     for (final leg in _legs) {
       final isNew = leg.id == null || leg.id!.isEmpty;
       if (isNew) {
@@ -82,6 +111,10 @@ class JourneyEditorState extends State<JourneyEditor> {
 
   void _initializeLegs() {
     _journeyId = widget.initialLeg.journeyId;
+
+    // Reset any deferred removal state from a previous editing session.
+    _removedLegs.clear();
+    _remainingLegJourneyIdUpdate = null;
 
     if (_journeyId != null) {
       // Load all legs for this journey
@@ -151,40 +184,37 @@ class JourneyEditorState extends State<JourneyEditor> {
   }
 
   void _removeLeg(int index) {
-    if (_legs.length <= 1) return; // Can't remove last leg
+    if (_legs.length <= 1) return; // Can't remove the last leg
 
     final legToRemove = _legs[index];
-    TransitFacade? remainingLegToUpdate;
 
     setState(() {
       _legs.removeAt(index);
       _expandedStates.removeAt(index);
 
-      // If only one leg remains, remove journeyId (becomes standalone)
+      // If only one leg remains, it becomes a standalone transit (no journeyId).
       if (_legs.length == 1) {
         _legs.first.journeyId = null;
         _journeyId = null;
-        // Mark the remaining leg for update if it exists in DB
+
+        // If the remaining leg is already persisted we must strip its journeyId
+        // in the repository too – defer until the FAB is tapped.
         if (_legs.first.id != null && _legs.first.id!.isNotEmpty) {
-          remainingLegToUpdate = _legs.first;
+          _remainingLegJourneyIdUpdate = _legs.first;
         }
       }
     });
 
-    // Delete the removed leg from database if it has an ID
+    // Stage the removed leg for deletion when the user confirms with the FAB.
+    // Only legs that already exist in the repository need a delete event.
     if (legToRemove.id != null && legToRemove.id!.isNotEmpty) {
-      context.addTripManagementEvent(
-        UpdateTripEntity<TransitFacade>.delete(tripEntity: legToRemove),
-      );
+      _removedLegs.add(legToRemove);
     }
 
-    // Update the remaining leg to remove journeyId from database
-    if (remainingLegToUpdate != null) {
-      context.addTripManagementEvent(
-        UpdateTripEntity<TransitFacade>.update(
-            tripEntity: remainingLegToUpdate!),
-      );
-    }
+    // Notify the TripEntityEditorBloc about the new journey shape so that
+    // conflict detection re-runs with the updated leg list.
+    context
+        .addTripEntityEditorEvent<TransitFacade>(UpdateJourneyTimeRange(_legs));
 
     widget.onJourneyUpdated();
     _updateValidity();
@@ -812,16 +842,34 @@ class _LegSectionHeader extends StatelessWidget {
               ),
             ),
 
-            // Remove button (if allowed)
+            // Remove button (if allowed) – override global IconButton theme so
+            // the green brandPrimary background from the theme does not hide
+            // the error-coloured icon.
             if (canRemove)
               IconButton(
                 icon: Icon(
-                  Icons.close,
-                  size: 18,
+                  Icons.cancel_rounded,
+                  size: 20,
                   color: isLightTheme ? AppColors.error : AppColors.errorLight,
                 ),
                 onPressed: onRemove,
                 tooltip: 'Remove leg',
+                style: ButtonStyle(
+                  backgroundColor: const WidgetStatePropertyAll(
+                    Colors.transparent,
+                  ),
+                  foregroundColor: WidgetStatePropertyAll(
+                    isLightTheme ? AppColors.error : AppColors.errorLight,
+                  ),
+                  iconColor: WidgetStatePropertyAll(
+                    isLightTheme ? AppColors.error : AppColors.errorLight,
+                  ),
+                  overlayColor: WidgetStatePropertyAll(
+                    (isLightTheme ? AppColors.error : AppColors.errorLight)
+                        .withValues(alpha: 0.12),
+                  ),
+                  shape: const WidgetStatePropertyAll(CircleBorder()),
+                ),
               ),
 
             // Expand/collapse indicator

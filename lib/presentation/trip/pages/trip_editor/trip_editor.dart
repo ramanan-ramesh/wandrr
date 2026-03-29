@@ -74,24 +74,30 @@ class _TripEditorSmallLayout extends StatefulWidget {
 
 class _TripEditorSmallLayoutPageState extends State<_TripEditorSmallLayout> {
   int _currentPageIndex = 0;
-  late final List<Widget> _pages;
+
+  // Keep both pages alive in the widget tree via IndexedStack so that
+  // ItineraryNavigator retains its current-day selection when the user
+  // switches to the Budgeting tab and back.
+  late final Widget _itineraryPage;
+  late final Widget _budgetingPage;
 
   @override
   void initState() {
     super.initState();
-    _pages = [
-      ItineraryNavigator(onNavigatedToDate: (date) {
-        widget.currentDateNotifier.value = date;
-      }),
-      const BudgetingPage(),
-    ];
+    _itineraryPage = ItineraryNavigator(onNavigatedToDate: (date) {
+      widget.currentDateNotifier.value = date;
+    });
+    _budgetingPage = const BudgetingPage();
   }
 
   @override
   Widget build(BuildContext context) {
     return _TripEditorPageInternal(
       currentDateNotifier: widget.currentDateNotifier,
-      body: _pages[_currentPageIndex],
+      body: IndexedStack(
+        index: _currentPageIndex,
+        children: [_itineraryPage, _budgetingPage],
+      ),
       bottomNavigationBar: BottomNavBar(
         selectedIndex: _currentPageIndex,
         onNavBarItemTapped: (selectedPageIndex) {
