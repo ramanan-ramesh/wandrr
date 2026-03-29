@@ -118,7 +118,7 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
   }
 
   @override
-  ItineraryPlanData get facade => this;
+  ItineraryPlanData get facade => clone();
 
   static List<SightModelImplementation> _generateSightModelImplementations(
       List<SightFacade> sights, String tripId, DateTime day) {

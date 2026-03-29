@@ -15,14 +15,14 @@ import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
 /// Unified executor for TripEntityUpdatePlan using Firestore batch writes.
 /// Handles both TripMetadata updates and conflict resolution.
-class TripEntityDataUpdatePlanExecutor {
+class TripEntityDataUpdatePlanService {
   final ModelCollectionModifier<TransitFacade> transitCollection;
   final ModelCollectionModifier<LodgingFacade> lodgingCollection;
   final ModelCollectionModifier<StandaloneExpense> expenseCollection;
   final ItineraryFacadeCollectionEventHandler itineraryCollection;
   final BudgetingModuleEventHandler budgetingModule;
 
-  TripEntityDataUpdatePlanExecutor({
+  TripEntityDataUpdatePlanService({
     required this.transitCollection,
     required this.lodgingCollection,
     required this.expenseCollection,
@@ -33,7 +33,8 @@ class TripEntityDataUpdatePlanExecutor {
   /// Executes the update plan using batch writes
   Future<void> execute<T extends TripEntity>(
       TripEntityUpdatePlan<T> plan) async {
-    final isTripMetadataUpdate = plan.oldEntity is TripMetadataFacade;
+    final isTripMetadataUpdate =
+        plan is TripEntityUpdatePlan<TripMetadataFacade>;
     final haveTripDatesChanged = _haveTripDatesChanged(plan);
     final hasDefaultCurrencyChanged = _hasDefaultCurrencyChanged(plan);
 

@@ -181,7 +181,6 @@ class _CopyTripDialogState extends State<CopyTripDialog> {
                   sourceTripMetadata: widget.sourceTrip,
                   newName: _nameController.text.trim(),
                   newStartDate: _newStartDate,
-                  newEndDate: _newEndDate,
                   contributors: _contributors,
                   budget: _budget,
                   thumbnailTag: _thumbnailTag,

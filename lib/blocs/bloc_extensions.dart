@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
-import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_bloc.dart';
-import 'package:wandrr/blocs/trip_entity_editor/trip_entity_editor_events.dart';
+import 'package:wandrr/blocs/trip_entity_editor/bloc.dart';
+import 'package:wandrr/blocs/trip_entity_editor/events.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
@@ -28,6 +28,7 @@ extension TripEntityEditorBlocExt on BuildContext {
   TripEntityEditorBloc<T> _getBloc<T extends TripEntity>() =>
       BlocProvider.of<TripEntityEditorBloc<T>>(this);
 
+  /// Current conflict plan – always read from the bloc, not from states.
   TripEntityUpdatePlan<T>? tripEntityUpdatePlan<T extends TripEntity>() =>
       _getBloc<T>().currentPlan;
 

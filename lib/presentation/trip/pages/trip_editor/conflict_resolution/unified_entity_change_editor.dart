@@ -1120,10 +1120,8 @@ class _OptimizedEntityChangeSectionState<T extends TripEntity>
   }
 }
 
-/// An individual change item that uses [ConflictItemBuilder] for localized rebuilds.
-///
-/// This widget only rebuilds when [ConflictItemUpdated] state is emitted for
-/// this specific entity (matched by type AND ID).
+/// An individual change item that uses [ConflictItemBuilder<T>] for localized
+/// rebuilds driven by [PlanItemsUpdated].
 class _OptimizedChangeItem<T extends TripEntity> extends StatelessWidget {
   final EntityChangeBase change;
   final ConflictSectionType sectionType;
@@ -1141,22 +1139,19 @@ class _OptimizedChangeItem<T extends TripEntity> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final id = change.original.id ?? '';
     return ConflictItemBuilder<T>(
-      change: change,
-      builder: _buildItemContent,
+      entityId: id,
+      sectionType: sectionType,
+      builder: (context, activeChange) => switch (sectionType) {
+        ConflictSectionType.stays =>
+          _buildStayItem(context, activeChange as StayChange),
+        ConflictSectionType.transits =>
+          _buildTransitItem(context, activeChange as TransitChange),
+        ConflictSectionType.sights =>
+          _buildSightItem(context, activeChange as SightChange),
+      },
     );
-  }
-
-  Widget _buildItemContent(
-      BuildContext context, EntityChangeBase activeChange) {
-    switch (sectionType) {
-      case ConflictSectionType.stays:
-        return _buildStayItem(context, activeChange as StayChange);
-      case ConflictSectionType.transits:
-        return _buildTransitItem(context, activeChange as TransitChange);
-      case ConflictSectionType.sights:
-        return _buildSightItem(context, activeChange as SightChange);
-    }
   }
 
   Widget _buildStayItem(BuildContext context, StayChange activeChange) {

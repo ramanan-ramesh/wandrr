@@ -11,7 +11,6 @@ import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/api_services/repository.dart';
-import 'package:wandrr/data/trip/implementations/services/trip_copy_service.dart';
 import 'package:wandrr/data/trip/implementations/trip_repository.dart';
 import 'package:wandrr/data/trip/implementations/trip_visit_tracker.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
@@ -38,7 +37,6 @@ class TripManagementBloc
 
   // Helper classes
   final TripEntityUpdateHandler _updateHandler = TripEntityUpdateHandler();
-  TripEntityFactory? _entityFactory;
   TripMetadataSubscriptionHandler? _metadataSubscriptionHandler;
   ItinerarySubscriptionHandler? _itinerarySubscriptionHandler;
 
@@ -76,7 +74,6 @@ class TripManagementBloc
       _tripRepository = await TripRepositoryImplementation.createInstance(
           userName: _currentUserName);
       _initializeMetadataSubscriptionHandler();
-      _metadataSubscriptionHandler!.createSubscriptions();
       if (_tripRepository!.tripMetadataCollection.isLoaded) {
         _preloadMostVisited();
       } else {
@@ -91,9 +88,8 @@ class TripManagementBloc
   FutureOr<void> _onGoToHome(
       GoToHome event, Emitter<TripManagementState> emit) async {
     await _tripRepository!.unloadActiveTrip();
-    // Intentionally keeping _apiServicesRepository alive since trips are cached.
-    await _subscriptionManager.clearTripSubscriptions();
-    _entityFactory = null;
+    await _subscriptionManager.clearTripDataSubscriptions();
+    _metadataSubscriptionHandler = null;
     _itinerarySubscriptionHandler = null;
 
     emit(NavigateToHome());
@@ -105,21 +101,19 @@ class TripManagementBloc
         .where((element) => element.id == event.tripMetadata.id)
         .firstOrNull;
     if (tripMetadata != null) {
-      if (tripMetadata.id != null) {
-        await TripVisitTracker.recordVisit(tripMetadata.id!);
-      }
+      await TripVisitTracker.recordVisit(tripMetadata.id!);
       emit(LoadingTrip(tripMetadata));
       if (_activeTrip != null) {
-        await _subscriptionManager.clearTripSubscriptions();
+        await _subscriptionManager.clearTripDataSubscriptions();
+        await _subscriptionManager.clearItineraryPlanDataSubscriptions();
       }
       _apiServicesRepository ??=
           await ApiServicesRepositoryImpl.createInstance();
-      await _tripRepository!
+      final tripInstance = _tripRepository!
           .loadTrip(event.tripMetadata, _apiServicesRepository!, true);
 
-      _entityFactory = TripEntityFactory(_activeTrip!);
-      _subscribeToTripEntityCollections();
-      await _createItineraryPlanDataSubscriptions();
+      _subscribeToTripEntityCollections(tripInstance);
+      await _createItineraryPlanDataSubscriptions(tripInstance);
 
       emit(ActivatedTrip(apiServicesRepository: _apiServicesRepository!));
     }
@@ -128,7 +122,10 @@ class TripManagementBloc
   FutureOr<void> _onUpdateTransit(UpdateTripEntity<TransitFacade> event,
       Emitter<TripManagementState> emit) async {
     if (event.dataState == DataState.newUiEntry) {
-      var transit = _entityFactory!.createTransit(existing: event.tripEntity);
+      var transit = TripEntityFactory.createTransit(
+        tripMetadata: _activeTrip!.tripMetadata,
+        existing: event.tripEntity,
+      );
       emit(UpdatedTripEntity<TransitFacade>.createdNewUiEntry(
           tripEntity: transit, isOperationSuccess: true));
       return;
@@ -144,7 +141,10 @@ class TripManagementBloc
   FutureOr<void> _onUpdateLodging(UpdateTripEntity<LodgingFacade> event,
       Emitter<TripManagementState> emit) async {
     if (event.dataState == DataState.newUiEntry) {
-      var lodging = _entityFactory!.createLodging(existing: event.tripEntity);
+      var lodging = TripEntityFactory.createLodging(
+        tripMetadata: _activeTrip!.tripMetadata,
+        existing: event.tripEntity,
+      );
       emit(UpdatedTripEntity<LodgingFacade>.createdNewUiEntry(
           tripEntity: lodging, isOperationSuccess: true));
       return;
@@ -160,7 +160,10 @@ class TripManagementBloc
   FutureOr<void> _onUpdateExpense(UpdateTripEntity<StandaloneExpense> event,
       Emitter<TripManagementState> emit) async {
     if (event.dataState == DataState.newUiEntry) {
-      var expense = _entityFactory!.createExpense(existing: event.tripEntity);
+      var expense = TripEntityFactory.createExpense(
+        tripMetadata: _activeTrip!.tripMetadata,
+        existing: event.tripEntity,
+      );
       emit(UpdatedTripEntity<StandaloneExpense>.createdNewUiEntry(
           tripEntity: expense, isOperationSuccess: true));
       return;
@@ -280,14 +283,14 @@ class TripManagementBloc
   /// Initializes metadata subscription handler
   void _initializeMetadataSubscriptionHandler() {
     _metadataSubscriptionHandler = TripMetadataSubscriptionHandler(
-      tripRepository: _tripRepository!,
+      tripMetadataCollection: _tripRepository!.tripMetadataCollection,
       subscriptionManager: _subscriptionManager,
       activeTrip: _activeTrip,
       isBlocClosed: () => isClosed,
       addEvent: add,
-      clearItinerarySubscriptions: () async =>
-          await _subscriptionManager.clearItineraryPlanDataSubscriptions(),
-      createItinerarySubscriptions: _createItineraryPlanDataSubscriptions,
+      onDateChanged: () async => await _subscriptionManager
+          .clearItineraryPlanDataSubscriptions()
+          .then((_) => _createItineraryPlanDataSubscriptions(_activeTrip!)),
       createUpdateEvent: (metadata) => _UpdateTripEntityInternalEvent.updated(
         metadata,
         isOperationSuccess: true,
@@ -301,18 +304,19 @@ class TripManagementBloc
         isOperationSuccess: true,
       ),
     );
+    _metadataSubscriptionHandler!.createSubscriptions();
   }
 
   /// Subscribes to all trip entity collections
-  void _subscribeToTripEntityCollections() {
+  void _subscribeToTripEntityCollections(TripDataModelEventHandler tripData) {
     _subscribeToTripEntityCollection<TransitFacade>(
-      _activeTrip!.transitCollection,
+      tripData.transitCollection,
     );
     _subscribeToTripEntityCollection<LodgingFacade>(
-      _activeTrip!.lodgingCollection,
+      tripData.lodgingCollection,
     );
     _subscribeToTripEntityCollection<StandaloneExpense>(
-      _activeTrip!.expenseCollection,
+      tripData.expenseCollection,
     );
   }
 
@@ -350,9 +354,10 @@ class TripManagementBloc
   }
 
   /// Creates subscriptions for itinerary plan data
-  Future<void> _createItineraryPlanDataSubscriptions() async {
+  Future<void> _createItineraryPlanDataSubscriptions(
+      TripDataModelEventHandler tripData) async {
     _itinerarySubscriptionHandler = ItinerarySubscriptionHandler(
-      activeTrip: _activeTrip!,
+      itineraryCollection: tripData.itineraryCollection,
       subscriptionManager: _subscriptionManager,
       isBlocClosed: () => isClosed,
       onUpdated: (metadata) {
@@ -374,36 +379,29 @@ class TripManagementBloc
 
   FutureOr<void> _onCopyTrip(
       CopyTrip event, Emitter<TripManagementState> emit) async {
-    final copyService = TripCopyService();
-    try {
-      final newTripMetadata = await copyService.copyTrip(
-        sourceTripMetadata: event.sourceTripMetadata,
-        newName: event.newName,
-        newStartDate: event.newStartDate,
-        newEndDate: event.newEndDate,
+    final originalStartDate = event.sourceTripMetadata.startDate!;
+    final dateOffset = event.newStartDate.difference(originalStartDate);
+    final shifted = DateTime(originalStartDate.year, originalStartDate.month,
+            originalStartDate.day)
+        .add(dateOffset);
+    final newEndDate = DateTime(shifted.year, shifted.month, shifted.day);
+    final newTripMetadata = TripMetadataFacade(
+        id: null,
+        startDate: event.newStartDate,
+        endDate: newEndDate,
+        name: event.newName,
         contributors: event.contributors,
-        budget: event.budget,
         thumbnailTag: event.thumbnailTag,
-      );
+        budget: event.budget);
+    final copiedTripMetadata = await _tripRepository!.copyTrip(
+        event.sourceTripMetadata, newTripMetadata, _apiServicesRepository!);
 
-      // Emit success state (UI can listen and show a snackbar)
-      emit(UpdatedTripEntity<TripMetadataFacade>.created(
-        tripEntityModificationData: CollectionItemChangeMetadata(
-            newTripMetadata,
-            isFromExplicitAction: true),
-        isOperationSuccess: true,
-      ));
-    } catch (e) {
-      // In case of error
-      final fallbackMetadata = event.sourceTripMetadata.clone()
-        ..id = 'ERROR_COPYING';
-      emit(UpdatedTripEntity<TripMetadataFacade>.created(
-        tripEntityModificationData: CollectionItemChangeMetadata(
-            fallbackMetadata,
-            isFromExplicitAction: true),
-        isOperationSuccess: false,
-      ));
-    }
+    emit(UpdatedTripEntity<TripMetadataFacade>.created(
+      tripEntityModificationData: CollectionItemChangeMetadata(
+          copiedTripMetadata,
+          isFromExplicitAction: true),
+      isOperationSuccess: true,
+    ));
   }
 }
 

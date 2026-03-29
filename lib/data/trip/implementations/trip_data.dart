@@ -1,14 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/implementations/firestore_model_collection.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/budgeting/budgeting_module.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/itinerary/itinerary_collection.dart';
-import 'package:wandrr/data/trip/implementations/services/trip_data_update_plan_executor.dart';
+import 'package:wandrr/data/trip/implementations/services/trip_data_update_plan_service.dart';
 import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
@@ -112,15 +110,23 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   @override
   final BudgetingModuleEventHandler budgetingModule;
 
-  @override
-  final ValueNotifier<bool> isFullyLoadedNotifier = ValueNotifier<bool>(false);
+  final StreamController<bool> _isFullyLoadedController =
+      StreamController<bool>.broadcast(sync: true);
 
-  late final TripEntityDataUpdatePlanExecutor _updatePlanExecutor;
+  @override
+  Stream<bool> get isFullyLoaded => _isFullyLoadedController.stream;
+
+  bool _isFullyLoadedValue = false;
+
+  @override
+  bool get isFullyLoadedValue => _isFullyLoadedValue;
+
+  late final TripEntityDataUpdatePlanService _updatePlanService;
 
   @override
   Future<void> applyUpdatePlan(TripEntityUpdatePlan plan) async {
     // Execute the update plan
-    await _updatePlanExecutor.execute(plan);
+    await _updatePlanService.execute(plan);
 
     // Update local metadata copy
     if (plan is TripEntityUpdatePlan<TripMetadataFacade>) {
@@ -137,6 +143,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
 
     if (didCurrencyChange) {
       budgetingModule.updateCurrency(tripMetadata.budget.currency);
+      await budgetingModule.recalculateTotalExpenditure();
     }
 
     _tripMetadataModelImplementation.copyWith(tripMetadata);
@@ -149,6 +156,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     await expenseCollection.dispose();
     await itineraryCollection.dispose();
     await budgetingModule.dispose();
+    await _isFullyLoadedController.close();
   }
 
   TripDataModelImplementation._(
@@ -160,23 +168,23 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       this.currencyConverter,
       this.budgetingModule)
       : _tripMetadataModelImplementation = tripMetadata {
-    _updatePlanExecutor = TripEntityDataUpdatePlanExecutor(
+    _updatePlanService = TripEntityDataUpdatePlanService(
       transitCollection: transitCollection,
       lodgingCollection: lodgingCollection,
       expenseCollection: expenseCollection,
       itineraryCollection: itineraryCollection,
       budgetingModule: budgetingModule,
     );
-
-    void checkLoadedStatus(_) {
-      isFullyLoadedNotifier.value = transitCollection.isLoaded &&
-          lodgingCollection.isLoaded &&
-          expenseCollection.isLoaded;
-    }
-
     transitCollection.onLoaded.listen(checkLoadedStatus);
     lodgingCollection.onLoaded.listen(checkLoadedStatus);
     expenseCollection.onLoaded.listen(checkLoadedStatus);
     checkLoadedStatus(null);
+  }
+
+  void checkLoadedStatus(_) {
+    _isFullyLoadedValue = transitCollection.isLoaded &&
+        lodgingCollection.isLoaded &&
+        expenseCollection.isLoaded;
+    _isFullyLoadedController.add(_isFullyLoadedValue);
   }
 }

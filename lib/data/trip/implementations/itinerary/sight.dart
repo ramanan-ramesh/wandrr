@@ -70,7 +70,7 @@ class SightModelImplementation extends SightFacade
   }
 
   @override
-  SightFacade get facade => this;
+  SightFacade get facade => clone();
 
   SightModelImplementation._({
     required super.tripId,

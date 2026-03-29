@@ -82,7 +82,7 @@ Future<void> _showPlatformDatePicker(
   );
 }
 
-class PlatformDatePicker extends StatelessWidget {
+class PlatformDatePicker extends StatefulWidget {
   final DateTime? selectedDate;
   final Function(DateTime) onDateSelected;
   final CalendarDatePicker2WithActionButtonsConfig? calendarConfig;
@@ -98,19 +98,48 @@ class PlatformDatePicker extends StatelessWidget {
   });
 
   @override
+  State<PlatformDatePicker> createState() => _PlatformDatePickerState();
+}
+
+class _PlatformDatePickerState extends State<PlatformDatePicker> {
+  late DateTime? _selectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = widget.selectedDate;
+  }
+
+  @override
+  void didUpdateWidget(PlatformDatePicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedDate != widget.selectedDate ||
+        oldWidget.calendarConfig != widget.calendarConfig) {
+      setState(() {
+        _selectedDate = widget.selectedDate;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    var buttonText = selectedDate != null
-        ? selectedDate!.dayDateMonthFormat // Shows: Wed, Sep 24
+    var buttonText = _selectedDate != null
+        ? _selectedDate!.dayDateMonthFormat // Shows: Wed, Sep 24
         : 'Date:       ';
     return TextButton.icon(
       onPressed: () {
         _showPlatformDatePicker(
           context,
-          onDateSelected: onDateSelected,
-          initialDate: selectedDate,
-          customConfig: calendarConfig,
-          widgetAnchor: widgetAnchor,
-          dialogAnchor: dialogAnchor,
+          onDateSelected: (selectedDate) {
+            setState(() {
+              _selectedDate = selectedDate;
+              widget.onDateSelected(selectedDate);
+            });
+          },
+          initialDate: _selectedDate,
+          customConfig: widget.calendarConfig,
+          widgetAnchor: widget.widgetAnchor,
+          dialogAnchor: widget.dialogAnchor,
         );
       },
       label: Text(buttonText),

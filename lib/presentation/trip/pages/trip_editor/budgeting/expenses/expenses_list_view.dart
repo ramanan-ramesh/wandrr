@@ -65,9 +65,11 @@ class _ExpenseListViewState extends State<ExpenseListView> {
           child: sortDropdown,
         ),
         Expanded(
-          child: ValueListenableBuilder<bool>(
-            valueListenable: context.tripRepository.activeTrip!.isFullyLoadedNotifier,
-            builder: (context, isLoaded, _) {
+          child: StreamBuilder<bool>(
+            stream: context.tripRepository.activeTrip!.isFullyLoaded,
+            initialData: context.tripRepository.activeTrip!.isFullyLoadedValue,
+            builder: (context, snapshot) {
+              final isLoaded = snapshot.data ?? false;
               return BlocConsumer<TripManagementBloc, TripManagementState>(
                 buildWhen: _shouldRebuildList,
                 builder: (context, state) {
@@ -80,7 +82,8 @@ class _ExpenseListViewState extends State<ExpenseListView> {
                       final hasData = snapshot.hasData && snapshot.data != null;
                       final child = (!isDone || !hasData)
                           ? _buildLoading()
-                          : _buildExpenseList(snapshot.data!.toList(), isLoaded);
+                          : _buildExpenseList(
+                              snapshot.data!.toList(), isLoaded);
                       final childKey = (!isDone || !hasData)
                           ? 'loading-$_animationToken'
                           : 'list-${_selectedSortOption.name}-$_animationToken';
@@ -199,7 +202,8 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     );
   }
 
-  Widget _buildExpenseList(List<ExpenseBearingTripEntity> sortedExpenses, bool isLoaded) {
+  Widget _buildExpenseList(
+      List<ExpenseBearingTripEntity> sortedExpenses, bool isLoaded) {
     _expenses = sortedExpenses;
     if (_expenses.isEmpty && !isLoaded) {
       return ListView.builder(
@@ -232,7 +236,9 @@ class _ExpenseListViewState extends State<ExpenseListView> {
         ),
       );
     }
-    final itemCount = isLoaded ? _expenses.length : (_expenses.length < 3 ? 3 : _expenses.length + 1);
+    final itemCount = isLoaded
+        ? _expenses.length
+        : (_expenses.length < 3 ? 3 : _expenses.length + 1);
     return ListView.builder(
       itemCount: itemCount,
       itemBuilder: (context, index) {

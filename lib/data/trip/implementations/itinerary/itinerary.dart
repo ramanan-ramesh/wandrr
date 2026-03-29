@@ -56,7 +56,7 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
       _planDataStreamController = StreamController.broadcast();
 
   @override
-  ItineraryPlanData get planData => _planData;
+  ItineraryPlanData get planData => _planData.clone();
   ItineraryPlanDataModelImplementation _planData;
 
   var _shouldListenToPlanDataChanges = true;
@@ -71,14 +71,15 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
     ItineraryPlanDataModelImplementation? planData,
   }) {
     final planDataId = day.itineraryDateFormat;
-    var planDataModelImplementation = planData ?? ItineraryPlanDataModelImplementation(
-      tripId: tripId,
-      day: day,
-      id: planDataId,
-      sights: [],
-      notes: [],
-      checkLists: [],
-    );
+    var planDataModelImplementation = planData ??
+        ItineraryPlanDataModelImplementation(
+          tripId: tripId,
+          day: day,
+          id: planDataId,
+          sights: [],
+          notes: [],
+          checkLists: [],
+        );
 
     return ItineraryModelImplementation._(
       tripId: tripId,
@@ -160,7 +161,8 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
             (checkInLodging != null || checkOutLodging != null));
   }
 
-  void updatePlanDataFromRemote(ItineraryPlanDataModelImplementation planDataModelImplementation) {
+  void updatePlanDataFromRemote(
+      ItineraryPlanDataModelImplementation planDataModelImplementation) {
     if (!_shouldListenToPlanDataChanges) {
       return;
     }

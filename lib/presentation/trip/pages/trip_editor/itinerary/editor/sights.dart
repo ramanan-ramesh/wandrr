@@ -74,46 +74,49 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: context.tripRepository.activeTrip!.isFullyLoadedNotifier,
-      builder: (context, isLoaded, _) {
+    return StreamBuilder<bool>(
+      stream: context.tripRepository.activeTrip!.isFullyLoaded,
+      initialData: context.tripRepository.activeTrip!.isFullyLoadedValue,
+      builder: (context, snapshot) {
+        final isLoaded = snapshot.data ?? false;
         return CommonCollapsibleTab<SightFacade>(
           isLoading: !isLoaded,
           items: widget.sights,
           addButtonLabel: context.localizations.addSight,
-      addButtonIcon: Icons.add_location_alt_rounded,
-      createItem: () {
-        var activeTrip = context.activeTrip;
-        var tripMetadata = activeTrip.tripMetadata;
-        return SightFacade.newEntry(
-          tripId: tripMetadata.id!,
-          day: widget.day,
-          defaultCurrency: tripMetadata.budget.currency,
-          contributors: tripMetadata.contributors,
+          addButtonIcon: Icons.add_location_alt_rounded,
+          createItem: () {
+            var activeTrip = context.activeTrip;
+            var tripMetadata = activeTrip.tripMetadata;
+            return SightFacade.newEntry(
+              tripId: tripMetadata.id!,
+              day: widget.day,
+              defaultCurrency: tripMetadata.budget.currency,
+              contributors: tripMetadata.contributors,
+            );
+          },
+          onItemsChanged: _onItemsChanged,
+          titleBuilder: (s, context) => s.name.isNotEmpty
+              ? s.name
+              : (s.location?.context.name ??
+                  context.localizations.untitledSight),
+          previewBuilder: (ctx, s) => s.visitTime != null
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.access_time, size: 16),
+                    const SizedBox(width: 4),
+                    Text(_formatTime(s.visitTime!),
+                        style: Theme.of(ctx).textTheme.labelSmall),
+                  ],
+                )
+              : const SizedBox.shrink(),
+          accentColorBuilder: (s) =>
+              s.name.isNotEmpty ? AppColors.success : AppColors.error,
+          isValidBuilder: (s) => s.validate(),
+          expandedBuilder: (ctx, index, sight, notifyParent) =>
+              _buildSightEditor(ctx, sight, notifyParent),
+          initialExpandedIndex: widget.initialExpandedIndex,
         );
-      },
-      onItemsChanged: _onItemsChanged,
-      titleBuilder: (s, context) => s.name.isNotEmpty
-          ? s.name
-          : (s.location?.context.name ?? context.localizations.untitledSight),
-      previewBuilder: (ctx, s) => s.visitTime != null
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.access_time, size: 16),
-                const SizedBox(width: 4),
-                Text(_formatTime(s.visitTime!),
-                    style: Theme.of(ctx).textTheme.labelSmall),
-              ],
-            )
-          : const SizedBox.shrink(),
-      accentColorBuilder: (s) =>
-          s.name.isNotEmpty ? AppColors.success : AppColors.error,
-      isValidBuilder: (s) => s.validate(),
-      expandedBuilder: (ctx, index, sight, notifyParent) =>
-          _buildSightEditor(ctx, sight, notifyParent),
-      initialExpandedIndex: widget.initialExpandedIndex,
-    );
       },
     );
   }

@@ -64,6 +64,7 @@ extension TripEditorActionMetadata on TripEditorAction {
   }
 
   /// Creates a new empty entity for this action type
+  // TODO: Move this logic to backend or bloc
   TripEntity createEntity(BuildContext context) {
     final trip = context.activeTrip;
     final contributors = trip.tripMetadata.contributors;

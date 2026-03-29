@@ -66,7 +66,6 @@ class CopyTrip extends TripManagementEvent {
   final TripMetadataFacade sourceTripMetadata;
   final String newName;
   final DateTime newStartDate;
-  final DateTime newEndDate;
   final List<String> contributors;
   final Money budget;
   final String thumbnailTag;
@@ -75,7 +74,6 @@ class CopyTrip extends TripManagementEvent {
     required this.sourceTripMetadata,
     required this.newName,
     required this.newStartDate,
-    required this.newEndDate,
     required this.contributors,
     required this.budget,
     required this.thumbnailTag,

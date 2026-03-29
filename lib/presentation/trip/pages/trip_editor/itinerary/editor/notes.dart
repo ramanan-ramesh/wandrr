@@ -28,55 +28,57 @@ class ItineraryNotesEditor extends StatefulWidget {
 class _ItineraryNotesEditorState extends State<ItineraryNotesEditor> {
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: context.tripRepository.activeTrip!.isFullyLoadedNotifier,
-      builder: (context, isLoaded, _) {
+    return StreamBuilder<bool>(
+      stream: context.tripRepository.activeTrip!.isFullyLoaded,
+      initialData: context.tripRepository.activeTrip!.isFullyLoadedValue,
+      builder: (context, snapshot) {
+        final isLoaded = snapshot.data ?? false;
         return CommonCollapsibleTab<Note>(
           isLoading: !isLoaded,
           items: widget.notes,
           addButtonLabel: context.localizations.addNote,
-      addButtonIcon: Icons.note_add_rounded,
-      createItem: () => Note(''),
-      // Create a new Note object
-      onItemsChanged: () {
-        widget.onNotesChanged(widget.notes);
-      },
-      titleBuilder: (n, context) {
-        // `n` is now a Note object
-        final raw = n.text.trim();
-        final untitledText = context.localizations.untitled;
-        if (raw.isEmpty) return untitledText;
-        final firstLine = raw.split('\n').first.trim();
-        return firstLine.isEmpty ? untitledText : firstLine;
-      },
-      previewBuilder: (ctx, n) {
-        // `n` is now a Note object
-        final raw = n.text.replaceAll('\n', ' ').trim();
-        final preview =
-            raw.length <= 80 ? raw : raw.substring(0, 80).trim() + '…';
-        return Text(
-          preview,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                color: ctx.isLightTheme
-                    ? AppColors.neutral600
-                    : AppColors.neutral400,
-              ),
+          addButtonIcon: Icons.note_add_rounded,
+          createItem: () => Note(''),
+          // Create a new Note object
+          onItemsChanged: () {
+            widget.onNotesChanged(widget.notes);
+          },
+          titleBuilder: (n, context) {
+            // `n` is now a Note object
+            final raw = n.text.trim();
+            final untitledText = context.localizations.untitled;
+            if (raw.isEmpty) return untitledText;
+            final firstLine = raw.split('\n').first.trim();
+            return firstLine.isEmpty ? untitledText : firstLine;
+          },
+          previewBuilder: (ctx, n) {
+            // `n` is now a Note object
+            final raw = n.text.replaceAll('\n', ' ').trim();
+            final preview =
+                raw.length <= 80 ? raw : raw.substring(0, 80).trim() + '…';
+            return Text(
+              preview,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                    color: ctx.isLightTheme
+                        ? AppColors.neutral600
+                        : AppColors.neutral400,
+                  ),
+            );
+          },
+          accentColorBuilder: (n) => // `n` is now a Note object
+              n.text.trim().isNotEmpty
+                  ? AppColors.brandPrimary
+                  : AppColors.neutral400,
+          expandedBuilder: (ctx, index, note, notifyParent) => NoteEditor(
+            // Use the stable Note object instance as the key
+            key: ValueKey(note),
+            note: note, // Pass the Note object directly
+            onChanged: notifyParent,
+          ),
+          initialExpandedIndex: widget.initialExpandedIndex,
         );
-      },
-      accentColorBuilder: (n) => // `n` is now a Note object
-          n.text.trim().isNotEmpty
-              ? AppColors.brandPrimary
-              : AppColors.neutral400,
-      expandedBuilder: (ctx, index, note, notifyParent) => NoteEditor(
-        // Use the stable Note object instance as the key
-        key: ValueKey(note),
-        note: note, // Pass the Note object directly
-        onChanged: notifyParent,
-      ),
-      initialExpandedIndex: widget.initialExpandedIndex,
-    );
       },
     );
   }
