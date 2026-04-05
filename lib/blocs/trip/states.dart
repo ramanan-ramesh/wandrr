@@ -5,6 +5,7 @@ import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
+import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 
@@ -107,4 +108,11 @@ class SelectedItineraryPlanData extends TripManagementState {
     required this.planData,
     required this.planDataEditorConfig,
   });
+}
+
+/// Emitted when a trip is loaded for preview (e.g., print) without activating.
+class LoadedTripPreview extends TripManagementState {
+  final TripDataFacade tripData;
+
+  const LoadedTripPreview({required this.tripData});
 }

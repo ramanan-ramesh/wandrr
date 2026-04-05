@@ -8,6 +8,7 @@ import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/app/routing/app_router.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/print_trip_dialog.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
 import 'collaborator_list.dart';
@@ -26,12 +27,15 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: _createTripDetails(context),
       actions: !context.isBigLayout
           ? [
+              _createPrintButton(context),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 3.0),
                 child: CollaboratorList(),
               ),
             ]
-          : [],
+          : [
+              _createPrintButton(context),
+            ],
     );
   }
 
@@ -98,6 +102,28 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
               backgroundColor: WidgetStatePropertyAll(AppColors.brandSecondary),
             )
           : null,
+    );
+  }
+
+  Widget _createPrintButton(BuildContext context) {
+    return IconButton(
+      onPressed: () => _showPrintDialog(context),
+      icon: const Icon(Icons.print_rounded),
+      tooltip: 'Print trip',
+      style: context.isLightTheme
+          ? ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll(AppColors.brandSecondary),
+            )
+          : null,
+    );
+  }
+
+  void _showPrintDialog(BuildContext pageContext) {
+    showDialog(
+      context: pageContext,
+      builder: (_) => PrintTripDialog(
+        tripData: pageContext.activeTrip,
+      ),
     );
   }
 

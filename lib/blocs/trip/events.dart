@@ -79,3 +79,9 @@ class CopyTrip extends TripManagementEvent {
     required this.thumbnailTag,
   });
 }
+
+class LoadTripForPreview extends TripManagementEvent {
+  final TripMetadataFacade tripMetadata;
+
+  const LoadTripForPreview({required this.tripMetadata});
+}

@@ -520,4 +520,65 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get pastTrips => 'Past Trips';
+
+  @override
+  String get printTrip => 'Print Trip';
+
+  @override
+  String get documentTitle => 'Document Title';
+
+  @override
+  String get sectionsToInclude => 'Include in PDF';
+
+  @override
+  String get sightsPlaces => 'Sights / Places';
+
+  @override
+  String get transitOptions => 'Transit';
+
+  @override
+  String get includeInterCityTransit => 'Inter-city travels';
+
+  @override
+  String get includeIntraCityTransit => 'Intra-city travels';
+
+  @override
+  String get selectTransits => 'Select transits';
+
+  @override
+  String get allTransitsSelected => 'All transits selected';
+
+  @override
+  String nTransitsSelected(int count) {
+    return '$count transits selected';
+  }
+
+  @override
+  String get generatePdf => 'Generate PDF';
+
+  @override
+  String get generatingPdf => 'Generating…';
+
+  @override
+  String get pdfGenerationFailed => 'Failed to generate PDF';
+
+  @override
+  String get mergeLegs => 'Merge legs';
+
+  @override
+  String get showLegs => 'Show legs';
+
+  @override
+  String nLegs(int count) {
+    return '$count legs';
+  }
+
+  @override
+  String get tripDataLoading => 'Loading trip data…';
+
+  @override
+  String get noTransitsAvailable => 'No transits available';
+
+  @override
+  String get openTripFirstToPrint => 'Open the trip first to print it';
 }

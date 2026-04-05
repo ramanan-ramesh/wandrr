@@ -56,6 +56,7 @@ class TripManagementBloc
     on<_UpdateTripEntityInternalEvent>(_onTripEntityUpdateInternal);
     on<EditItineraryPlanData>(_onEditItineraryPlanData);
     on<CopyTrip>(_onCopyTrip);
+    on<LoadTripForPreview>(_onLoadTripForPreview);
 
     add(_OnStartup());
   }
@@ -402,6 +403,14 @@ class TripManagementBloc
           isFromExplicitAction: true),
       isOperationSuccess: true,
     ));
+  }
+
+  FutureOr<void> _onLoadTripForPreview(
+      LoadTripForPreview event, Emitter<TripManagementState> emit) async {
+    _apiServicesRepository ??= await ApiServicesRepositoryImpl.createInstance();
+    final tripData = _tripRepository!
+        .loadTrip(event.tripMetadata, _apiServicesRepository!, false);
+    emit(LoadedTripPreview(tripData: tripData));
   }
 }
 

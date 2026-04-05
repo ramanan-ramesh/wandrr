@@ -170,5 +170,38 @@
     }
   },
   "upcomingTrips": "Upcoming Trips",
-  "pastTrips": "Past Trips"
+  "pastTrips": "Past Trips",
+  "printTrip": "Print Trip",
+  "documentTitle": "Document Title",
+  "sectionsToInclude": "Include in PDF",
+  "sightsPlaces": "Sights / Places",
+  "transitOptions": "Transit",
+  "includeInterCityTransit": "Inter-city travels",
+  "includeIntraCityTransit": "Intra-city travels",
+  "selectTransits": "Select transits",
+  "allTransitsSelected": "All transits selected",
+  "nTransitsSelected": "{count} transits selected",
+  "@nTransitsSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "generatePdf": "Generate PDF",
+  "generatingPdf": "Generating…",
+  "pdfGenerationFailed": "Failed to generate PDF",
+  "mergeLegs": "Merge legs",
+  "showLegs": "Show legs",
+  "nLegs": "{count} legs",
+  "@nLegs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tripDataLoading": "Loading trip data…",
+  "noTransitsAvailable": "No transits available",
+  "openTripFirstToPrint": "Open the trip first to print it"
 }

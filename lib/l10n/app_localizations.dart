@@ -1071,6 +1071,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Past Trips'**
   String get pastTrips;
+
+  /// No description provided for @printTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Print Trip'**
+  String get printTrip;
+
+  /// No description provided for @documentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Title'**
+  String get documentTitle;
+
+  /// No description provided for @sectionsToInclude.
+  ///
+  /// In en, this message translates to:
+  /// **'Include in PDF'**
+  String get sectionsToInclude;
+
+  /// No description provided for @sightsPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Sights / Places'**
+  String get sightsPlaces;
+
+  /// No description provided for @transitOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Transit'**
+  String get transitOptions;
+
+  /// No description provided for @includeInterCityTransit.
+  ///
+  /// In en, this message translates to:
+  /// **'Inter-city travels'**
+  String get includeInterCityTransit;
+
+  /// No description provided for @includeIntraCityTransit.
+  ///
+  /// In en, this message translates to:
+  /// **'Intra-city travels'**
+  String get includeIntraCityTransit;
+
+  /// No description provided for @selectTransits.
+  ///
+  /// In en, this message translates to:
+  /// **'Select transits'**
+  String get selectTransits;
+
+  /// No description provided for @allTransitsSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'All transits selected'**
+  String get allTransitsSelected;
+
+  /// No description provided for @nTransitsSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} transits selected'**
+  String nTransitsSelected(int count);
+
+  /// No description provided for @generatePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate PDF'**
+  String get generatePdf;
+
+  /// No description provided for @generatingPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating…'**
+  String get generatingPdf;
+
+  /// No description provided for @pdfGenerationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to generate PDF'**
+  String get pdfGenerationFailed;
+
+  /// No description provided for @mergeLegs.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge legs'**
+  String get mergeLegs;
+
+  /// No description provided for @showLegs.
+  ///
+  /// In en, this message translates to:
+  /// **'Show legs'**
+  String get showLegs;
+
+  /// No description provided for @nLegs.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} legs'**
+  String nLegs(int count);
+
+  /// No description provided for @tripDataLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading trip data…'**
+  String get tripDataLoading;
+
+  /// No description provided for @noTransitsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No transits available'**
+  String get noTransitsAvailable;
+
+  /// No description provided for @openTripFirstToPrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the trip first to print it'**
+  String get openTripFirstToPrint;
 }
 
 class _AppLocalizationsDelegate

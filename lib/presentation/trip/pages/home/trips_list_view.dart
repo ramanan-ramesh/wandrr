@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
@@ -12,10 +17,10 @@ import 'package:wandrr/presentation/app/routing/app_router.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
-import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/home/copy_trip_dialog.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/delete_trip_dialog.dart';
+import 'package:wandrr/presentation/trip/widgets/print_trip_dialog.dart';
 import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
@@ -50,8 +55,9 @@ class _TripListViewState extends State<TripListView> {
               var tripMetadatas = context
                   .tripRepository.tripMetadataCollection.collectionItems
                   .toList(growable: false)
-                ..sort((tripMetadata1, tripMetadata2) =>
-                    tripMetadata1.startDate!.compareTo(tripMetadata2.startDate!));
+                ..sort((tripMetadata1, tripMetadata2) => tripMetadata1
+                    .startDate!
+                    .compareTo(tripMetadata2.startDate!));
 
               if (!isLoaded && tripMetadatas.isEmpty) {
                 return GridView.builder(
@@ -63,7 +69,8 @@ class _TripListViewState extends State<TripListView> {
                   ),
                   itemCount: 3,
                   itemBuilder: (context, index) {
-                    return ShimmerPlaceholder(borderRadius: BorderRadius.circular(10));
+                    return ShimmerPlaceholder(
+                        borderRadius: BorderRadius.circular(10));
                   },
                 );
               }
@@ -350,6 +357,13 @@ class _TripMetadataGridItem extends StatelessWidget {
                             },
                             menuChildren: [
                               MenuItemButton(
+                                leadingIcon: const Icon(Icons.print_rounded),
+                                onPressed: () {
+                                  _showPrintDialog(context, tripMetaDataFacade);
+                                },
+                                child: const Text('Print trip'),
+                              ),
+                              MenuItemButton(
                                 leadingIcon: const Icon(Icons.copy_rounded),
                                 onPressed: () {
                                   _showCopyTripDialog(
@@ -395,6 +409,38 @@ class _TripMetadataGridItem extends StatelessWidget {
       return DeleteTripDialog(
           widgetContext: pageContext, tripMetadataFacade: tripMetaDataFacade);
     });
+  }
+
+  void _showPrintDialog(
+      BuildContext pageContext, TripMetadataFacade tripMetaDataFacade) {
+    final activeTrip = pageContext.tripRepository.activeTrip;
+    if (activeTrip != null &&
+        activeTrip.tripMetadata.id == tripMetaDataFacade.id) {
+      // Trip is already active – show dialog directly
+      showDialog(
+        context: pageContext,
+        builder: (_) => PrintTripDialog(tripData: activeTrip),
+      );
+    } else {
+      // Load trip via BLoC without activating, then show dialog on state
+      late final StreamSubscription<TripManagementState> sub;
+      sub = BlocProvider.of<TripManagementBloc>(pageContext)
+          .stream
+          .listen((state) {
+        if (state is LoadedTripPreview) {
+          sub.cancel();
+          if (pageContext.mounted) {
+            showDialog(
+              context: pageContext,
+              builder: (_) => PrintTripDialog(tripData: state.tripData),
+            );
+          }
+        }
+      });
+      pageContext.addTripManagementEvent(
+        LoadTripForPreview(tripMetadata: tripMetaDataFacade),
+      );
+    }
   }
 
   void _showCopyTripDialog(
