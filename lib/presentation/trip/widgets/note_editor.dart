@@ -155,6 +155,7 @@ class _NoteEditorState extends State<NoteEditor>
           focusNode: _keyboardFocusNode,
           onKeyEvent: _handleKeyEvent,
           child: TextField(
+            key: ValueKey('NoteEditor_TextField'),
             focusNode: _textFieldFocusNode,
             controller: _controller,
             keyboardType: TextInputType.multiline,

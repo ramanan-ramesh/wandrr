@@ -67,7 +67,7 @@ class SightFacade extends Equatable
         visitTime: visitTime?.copyWith(),
         expense: expense.clone(),
         description: description,
-        day: day,
+        day: DateTime(day.year, day.month, day.day),
       );
 
   @override

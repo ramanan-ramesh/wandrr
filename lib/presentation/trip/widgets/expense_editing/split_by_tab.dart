@@ -49,6 +49,7 @@ class _SplitByTabState extends State<SplitByTab> {
         : contributor.split('@').first;
 
     return ListTile(
+      key: ValueKey('SplitByTab_ContributorTile'),
       title: Row(
         children: [
           if (isNoLongerTripmate) ...[

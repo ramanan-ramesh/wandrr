@@ -66,6 +66,7 @@ class PaidByTab extends StatelessWidget {
         : contributor.split('@').first;
 
     return ListTile(
+      key: Key('PaidByTab_ContributorTile'),
       isThreeLine: true,
       title: _ExpenseEditField(
         onChanged: (amountValue) {

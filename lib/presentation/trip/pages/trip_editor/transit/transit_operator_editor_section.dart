@@ -106,6 +106,7 @@ class _TransitOperatorTextFieldState extends State<_TransitOperatorTextField> {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      key: ValueKey('TransitEditor_TransitOperator_TextField'),
       minLines: 1,
       maxLines: 1,
       controller: _controller,

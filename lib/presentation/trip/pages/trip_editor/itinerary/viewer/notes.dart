@@ -123,7 +123,7 @@ class _ItineraryNotesViewerState extends State<ItineraryNotesViewer> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              if (preview.isNotEmpty) ...[
+                              if (preview.isNotEmpty && preview != title) ...[
                                 const SizedBox(height: 6),
                                 Text(
                                   preview,

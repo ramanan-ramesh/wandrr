@@ -8,7 +8,6 @@ import 'package:wandrr/asset_manager/extension.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
-import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/trip/pages/home/app_bar/app_bar.dart';
@@ -17,8 +16,11 @@ import 'package:wandrr/presentation/trip/pages/home/trip_creator_dialog.dart';
 import 'package:wandrr/presentation/trip/pages/home/trips_list_view.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
+import '../helpers/firebase_emulator_helper.dart';
+import '../helpers/http_overrides/mock_location_api_service.dart';
 import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
+import 'crud_operations/helpers.dart';
 
 /// Test: HomePage sets isBigLayout to true when screen width >= 1000, and AppBar resizes accordingly
 Future<void> runHomePageLayoutTest(
@@ -171,7 +173,9 @@ Future<void> runHomePageCreateTripFlowTest(
 
   // Enter budget
   var budget = Money(currency: 'EUR', amount: 50000);
-  await TestHelpers.enterMoneyAmount(tester, budget);
+  await CommonFormElements(TripCreatorDialog)
+      .expenseEditor
+      .enterMoneyAmount(tester, budget);
 
   // Tap submit button
   await TestHelpers.tapWidget(tester, find.byType(PlatformSubmitterFAB),
@@ -180,11 +184,8 @@ Future<void> runHomePageCreateTripFlowTest(
   // Wait for navigation to TripEditorPage
   await TestHelpers.waitForWidget(tester, find.byType(TripEditorPage),
       timeout: const Duration(seconds: 5));
-  var context = tester.element(find.byType(TripEditorPage));
   final currentTripMetadata =
-      RepositoryProvider.of<TripRepositoryFacade>(context)
-          .activeTrip!
-          .tripMetadata;
+      TestHelpers.getTripRepository(tester).activeTrip!.tripMetadata;
   expect(currentTripMetadata.name, tripName);
   expect(currentTripMetadata.thumbnailTag, lastThumbnailImage.fileName);
   expect(currentTripMetadata.budget, equals(budget));
@@ -284,4 +285,52 @@ Future<void> _switchAndVerifyThemeMode(
 Future<void> _openToolbar(WidgetTester tester) async {
   final toolbarButton = find.byIcon(Icons.settings);
   await TestHelpers.tapWidget(tester, toolbarButton);
+}
+
+void runTests() {
+  setUpAll(() async {
+    await FirebaseEmulatorHelper.createFirebaseAuthUser(
+      email: TestConfig.testEmail,
+      password: TestConfig.testPassword,
+      shouldAddToFirestore: true,
+      shouldSignIn: true,
+    );
+    // Initialize mock location API service to intercept HTTP requests
+    // Note: This creates a MockClient that can be injected into GeoLocator
+    await MockApiServices.initialize();
+  });
+
+  tearDown(() async {
+    expect(find.byType(ErrorWidget), findsNothing);
+  });
+
+  tearDownAll(() async {
+    await FirebaseEmulatorHelper.cleanupAfterTest();
+  });
+
+  testWidgets(
+      'sets isBigLayout to true when screen width >= 1000, and AppBar resizes accordingly',
+      (WidgetTester tester) async {
+    await runHomePageLayoutTest(tester);
+  });
+
+  testWidgets('updates locale when language is selected from toolbar',
+      (WidgetTester tester) async {
+    await runHomePageLanguageSwitchTest(tester);
+  });
+
+  testWidgets('updates theme mode when theme switcher is toggled',
+      (WidgetTester tester) async {
+    await runHomePageThemeSwitchTest(tester);
+  });
+
+  testWidgets('displays no trips initially in TripsListView',
+      (WidgetTester tester) async {
+    await runHomePageEmptyTripsTest(tester);
+  });
+
+  testWidgets('navigates to TripEditorPage after creating trip',
+      (WidgetTester tester) async {
+    await runHomePageCreateTripFlowTest(tester);
+  });
 }

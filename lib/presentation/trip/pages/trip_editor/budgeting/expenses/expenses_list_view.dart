@@ -54,6 +54,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     _initializeCategoryNames();
     final sortDropdown = _buildSortToggleRow();
     return Column(
+      key: const ValueKey('ExpenseListView_Root_Column'),
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
@@ -102,13 +103,17 @@ class _ExpenseListViewState extends State<ExpenseListView> {
 
   Widget _buildSortToggleRow() {
     return Row(
+      key: const ValueKey('SortControls_Row'),
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child: BudgetTile(),
+          child: BudgetTile(
+            key: const ValueKey('ExpenseListView_BudgetTile'),
+          ),
         ),
         const SizedBox(width: 8),
         ToggleButtons(
+          key: const ValueKey('ExpenseListView_Sorting_ToggleButtons'),
           isSelected: [
             _selectedSortOption == ExpenseSortOption.lowToHighCost ||
                 _selectedSortOption == ExpenseSortOption.highToLowCost,
@@ -125,6 +130,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
             Padding(
               padding: const EdgeInsets.all(3.0),
               child: Row(
+                key: ValueKey('ExpenseListView_SortByCost_Row'),
                 children: [
                   const Icon(Icons.attach_money_rounded),
                   const SizedBox(width: _kIconSpacing),
@@ -143,6 +149,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
             Padding(
               padding: const EdgeInsets.all(3.0),
               child: Row(
+                key: ValueKey('ExpenseListView_SortByDate_Row'),
                 children: [
                   const Icon(Icons.calendar_today_rounded),
                   const SizedBox(width: _kIconSpacing),
@@ -240,6 +247,8 @@ class _ExpenseListViewState extends State<ExpenseListView> {
         ? _expenses.length
         : (_expenses.length < 3 ? 3 : _expenses.length + 1);
     return ListView.builder(
+      itemCount: itemCount,
+      key: const ValueKey('ExpensesListView_ListView'),
       itemCount: itemCount,
       itemBuilder: (context, index) {
         if (!isLoaded && index >= _expenses.length) {

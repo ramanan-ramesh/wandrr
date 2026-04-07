@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
@@ -15,15 +14,14 @@ import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/data/trip/models/trip_repository.dart';
-import 'package:wandrr/presentation/trip/pages/home/trips_list_view.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_navigator.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
-import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
 
-import '../helpers/facade_matchers.dart';
+import '../helpers/firebase_emulator_helper.dart';
+import '../helpers/http_overrides/mock_location_api_service.dart';
+import '../helpers/matchers.dart';
 import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
 
@@ -36,21 +34,7 @@ Future<void> runTripEditorLayoutTest(
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Wait for TripsListView to be displayed
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripListView),
-    timeout: const Duration(seconds: 5),
-  );
-
-  await _navigateToTripEditorPage(tester);
-
-  // Wait for navigation animation and TripEditorPage to appear
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10), // Allow extra time for Rive animation
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Verify TripEditorPage is displayed
   expect(find.byType(TripEditorPage), findsOneWidget);
@@ -58,7 +42,7 @@ Future<void> runTripEditorLayoutTest(
   // Get screen size and verify isBigLayout setting
   final screenSize = TestHelpers.getScreenSize(tester);
   final expectedIsBigLayout =
-      screenSize.width >= 1000.0; // TripProviderPageConstants.cutOffPageWidth
+      screenSize.width >= 1000.0; // TestConfig.bigLayoutBreakpoint
 
   // Get the BuildContext from the element
   final tripEditorFinder = find.byType(TripEditorPage);
@@ -197,13 +181,11 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Launch the app (already authenticated with test trip)
   await TestHelpers.pumpAndSettleApp(tester);
 
-  await _navigateToTripEditorPage(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Get repository and active trip
-  final context = tester.element(find.byType(TripEditorPage));
-  final tripRepo = RepositoryProvider.of<TripRepositoryFacade>(context);
+  final tripRepo = TestHelpers.getTripRepository(tester);
   final trip = tripRepo.activeTrip!;
-  const tripId = 'test_trip_123';
   const defaultCurrency = 'EUR';
   final contributors = [TestConfig.testEmail, TestConfig.tripMateUserName];
 
@@ -215,7 +197,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Pure expenses
   final expectedDinnerExpense = StandaloneExpense(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     title: 'Dinner at Le Comptoir',
     expense: ExpenseFacade(
       currency: defaultCurrency,
@@ -228,20 +210,20 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
 
   final expectedSouvenirsExpense = StandaloneExpense(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     title: 'Souvenirs from Louvre',
     expense: ExpenseFacade(
       currency: defaultCurrency,
       paidBy: {TestConfig.testEmail: 25.0},
       splitBy: contributors,
       dateTime: DateTime(2025, 9, 25, 12, 0),
-      description: 'Gift cards',
+      description: 'Postcards and magnets',
     ),
     category: ExpenseCategory.other,
   );
 
   final expectedGroceriesExpense = StandaloneExpense(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     title: 'Groceries',
     expense: ExpenseFacade(
       currency: defaultCurrency,
@@ -386,6 +368,18 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     context: expectedAmsterdamContext,
   );
 
+  final amsterdamAirportLocationData = {
+    "name": "Amsterdam Airport Schiphol",
+    "city": "Amsterdam",
+    "iata": "AMS"
+  };
+  final amsterdamAirportLocationContext =
+      AirportLocationContext.fromDocument(amsterdamAirportLocationData);
+  final expectedAmsterdamAirport = LocationFacade(
+      latitude: 52.3779,
+      longitude: 4.76389,
+      context: amsterdamAirportLocationContext);
+
   // Eiffel Tower
   final eiffelTowerDocument = {
     'type': 'attraction',
@@ -490,21 +484,45 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     context: expectedRijksmuseumContext,
   );
 
+  //Keukenhof
+  final keukenhofLocation = {
+    'type': 'attraction',
+    'locationType': 'attraction',
+    'class': 'tourism',
+    'name': 'Keukenhof',
+    'address': 'Keukenhof flower show, Amsterdam, North Holland, Netherlands',
+    'boundingbox': {
+      'maxLat': 52.3610,
+      'minLat': 52.3590,
+      'maxLon': 4.8860,
+      'minLon': 4.88
+    },
+    'place_id': 'keukenhof_flower_show_amsterdam',
+    'city': 'Amsterdam',
+    'state': 'North Holland',
+    'country': 'Netherlands',
+  };
+  final expectedKeukenhof = LocationFacade(
+    latitude: 52.3600,
+    longitude: 4.8852,
+    context: GeoLocationApiContext.fromDocument(keukenhofLocation),
+  );
+
   // === CREATE EXPECTED TRANSIT FACADES ===
   // Flight: London to Paris
-  final expectedFlightExpense = ExpenseFacade(
+  final expectedOnwardFlightExpense = ExpenseFacade(
     currency: defaultCurrency,
     paidBy: {TestConfig.testEmail: 250.0},
     splitBy: contributors,
   );
-  final expectedFlightTransit = TransitFacade(
-    tripId: tripId,
+  final expectedOnwardFlightTransit = TransitFacade(
+    tripId: TestConfig.testTripId,
     transitOption: TransitOption.flight,
     departureLocation: expectedLondonAirport,
     arrivalLocation: expectedParisAirport,
     departureDateTime: DateTime(2025, 9, 24, 8, 0),
     arrivalDateTime: DateTime(2025, 9, 24, 11, 0),
-    expense: expectedFlightExpense,
+    expense: expectedOnwardFlightExpense,
     operator: 'Air France AF 542',
     confirmationId: 'AF123456',
     notes: 'Direct flight',
@@ -517,7 +535,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedTrainToVersailles = TransitFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     transitOption: TransitOption.train,
     departureLocation: expectedParisCity,
     arrivalLocation: expectedVersailles,
@@ -535,7 +553,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedTrainFromVersailles = TransitFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     transitOption: TransitOption.train,
     departureLocation: expectedVersailles,
     arrivalLocation: expectedParisCity,
@@ -553,7 +571,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedBusTransit = TransitFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     transitOption: TransitOption.bus,
     departureLocation: expectedParisCity,
     arrivalLocation: expectedBrussels,
@@ -572,7 +590,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedRentedVehicleTransit = TransitFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     transitOption: TransitOption.rentedVehicle,
     departureLocation: expectedBrussels,
     arrivalLocation: expectedAtomium,
@@ -591,7 +609,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedTaxiTransit = TransitFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     transitOption: TransitOption.taxi,
     departureLocation: expectedAtomium,
     arrivalLocation: expectedBrussels,
@@ -609,7 +627,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedFerryTransit = TransitFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     transitOption: TransitOption.ferry,
     departureLocation: expectedBrussels,
     arrivalLocation: expectedAmsterdam,
@@ -628,7 +646,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedWalkTransit = TransitFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     transitOption: TransitOption.walk,
     departureLocation: expectedAmsterdam,
     arrivalLocation: expectedRijksmuseum,
@@ -645,7 +663,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedPublicTransportTransit = TransitFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     transitOption: TransitOption.publicTransport,
     departureLocation: expectedRijksmuseum,
     arrivalLocation: expectedAmsterdam,
@@ -656,6 +674,25 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     notes: 'Metro line 52',
   );
 
+  //Flight: Amsterdam to London
+  final expectedReturnFlightExpense = ExpenseFacade(
+    currency: defaultCurrency,
+    paidBy: {TestConfig.testEmail: 200.0},
+    splitBy: contributors,
+  );
+  final expectedReturnFlight = TransitFacade(
+    tripId: TestConfig.testTripId,
+    transitOption: TransitOption.flight,
+    departureLocation: expectedAmsterdamAirport,
+    arrivalLocation: expectedLondonAirport,
+    departureDateTime: DateTime(2025, 9, 29, 13, 0),
+    arrivalDateTime: DateTime(2025, 9, 29, 15, 30),
+    expense: expectedReturnFlightExpense,
+    operator: 'British Airways BA 621',
+    confirmationId: 'BA345612',
+    notes: 'Direct flight',
+  );
+
   // === CREATE EXPECTED LODGING FACADES ===
   // Paris hotel
   final expectedParisLodgingExpense = ExpenseFacade(
@@ -664,7 +701,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedParisLodging = LodgingFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     location: expectedParisCity,
     checkinDateTime: DateTime(2025, 9, 24, 14, 0),
     checkoutDateTime: DateTime(2025, 9, 26, 11, 0),
@@ -680,7 +717,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedBrusselsLodging = LodgingFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     location: expectedBrussels,
     checkinDateTime: DateTime(2025, 9, 27, 3, 0),
     checkoutDateTime: DateTime(2025, 9, 28, 10, 0),
@@ -696,7 +733,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedAmsterdamLodging = LodgingFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     location: expectedAmsterdam,
     checkinDateTime: DateTime(2025, 9, 28, 14, 0),
     checkoutDateTime: DateTime(2025, 9, 29, 11, 0),
@@ -713,7 +750,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedEiffelTowerSight = SightFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     name: 'Eiffel Tower',
     day: DateTime(2025, 9, 24),
     expense: expectedEiffelTowerExpense,
@@ -729,7 +766,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedVersaillesSight = SightFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     name: 'Palace of Versailles',
     day: DateTime(2025, 9, 25),
     expense: expectedVersaillesExpense,
@@ -745,7 +782,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedLouvreSight = SightFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     name: 'Louvre Museum',
     day: DateTime(2025, 9, 25),
     expense: expectedLouvreExpense,
@@ -761,7 +798,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedAtomiumSight = SightFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     name: 'Atomium',
     day: DateTime(2025, 9, 27),
     expense: expectedAtomiumExpense,
@@ -777,13 +814,27 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     splitBy: contributors,
   );
   final expectedRijksmuseumSight = SightFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     name: 'Rijksmuseum',
     day: DateTime(2025, 9, 28),
     expense: expectedRijksmuseumExpense,
     location: expectedRijksmuseum,
     visitTime: DateTime(2025, 9, 28, 10, 0),
     description: 'Dutch art',
+  );
+  final expectedKeukenhofExpense = ExpenseFacade(
+    currency: defaultCurrency,
+    paidBy: {TestConfig.testEmail: 40.0},
+    splitBy: contributors,
+  );
+  final expectedKeukenhofSight = SightFacade(
+    tripId: TestConfig.testTripId,
+    name: 'Keukenhof flower show',
+    day: DateTime(2025, 9, 29),
+    expense: expectedKeukenhofExpense,
+    location: expectedKeukenhof,
+    visitTime: DateTime(2025, 9, 29, 12, 0),
+    description: 'Flower show',
   );
 
   // === CREATE EXPECTED CHECKLIST FACADES ===
@@ -793,7 +844,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     CheckListItem(item: 'Buy metro pass', isChecked: false),
   ];
   final expectedDay1Checklist = CheckListFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     title: 'Day 1',
     items: expectedDay1ChecklistItems,
   );
@@ -804,7 +855,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     CheckListItem(item: 'Pack snacks', isChecked: false),
   ];
   final expectedDay2Checklist = CheckListFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     title: 'Day 2',
     items: expectedDay2ChecklistItems,
   );
@@ -815,7 +866,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     CheckListItem(item: 'Hotel checkout', isChecked: false),
   ];
   final expectedDay3Checklist = CheckListFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     title: 'Travel day',
     items: expectedDay3ChecklistItems,
   );
@@ -826,7 +877,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     CheckListItem(item: 'Buy chocolates', isChecked: false),
   ];
   final expectedDay4Checklist = CheckListFacade(
-    tripId: tripId,
+    tripId: TestConfig.testTripId,
     title: 'Brussels',
     items: expectedDay4ChecklistItems,
   );
@@ -834,61 +885,73 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Day 5 checklist
   final expectedDay5ChecklistItems = [
     CheckListItem(item: 'Buy souvenirs', isChecked: false),
-    CheckListItem(item: 'Pack bags', isChecked: false),
+    CheckListItem(item: 'Eat waffles', isChecked: true),
   ];
   final expectedDay5Checklist = CheckListFacade(
-    tripId: tripId,
-    title: 'Last day',
+    tripId: TestConfig.testTripId,
+    title: 'Amsterdam exploration day',
     items: expectedDay5ChecklistItems,
+  );
+
+  //Day 6 checklist
+  final expectedDay6ChecklistItems = [
+    CheckListItem(item: 'Pack bags', isChecked: false),
+    CheckListItem(item: 'Prepare journal', isChecked: false),
+  ];
+  final expectedDay6Checklist = CheckListFacade(
+    tripId: TestConfig.testTripId,
+    title: 'Last day',
+    items: expectedDay6ChecklistItems,
   );
 
   // === CREATE EXPECTED NOTES ===
   // Day 1 notes
   final expectedDay1Notes = [
-    Note('Arrive from London'),
-    Note('Check in'),
-    Note('Visit Eiffel Tower'),
+    'Arrive from London',
+    'Check in',
+    'Visit Eiffel Tower',
   ];
 
   // Day 2 notes
   final expectedDay2Notes = [
-    Note('Versailles trip'),
-    Note('Louvre visit'),
-    Note('Dinner'),
+    'Versailles trip',
+    'Louvre visit',
+    'Dinner',
   ];
 
   // Day 3 notes
   final expectedDay3Notes = [
-    Note('Morning in Paris'),
-    Note('Check out'),
-    Note('Night bus to Brussels'),
+    'Morning in Paris',
+    'Check out',
+    'Night bus to Brussels',
   ];
 
   // Day 4 notes
   final expectedDay4Notes = [
-    Note('Early arrival'),
-    Note('Rest'),
-    Note('Visit Atomium'),
-    Note('Ferry to Amsterdam'),
+    'Early arrival',
+    'Rest',
+    'Visit Atomium',
+    'Ferry to Amsterdam',
   ];
 
   // Day 5 notes
   final expectedDay5Notes = [
-    Note('Final day'),
-    Note('Museum visit'),
-    Note('Canal walk'),
-    Note('Departure prep'),
+    'Museum visit',
+    'Canal walk',
+    'Departure prep',
   ];
+
+  final expectedDay6Notes = ['Breakfast', 'Visit Keukenhof', 'Return home'];
 
   print('✓ Expected facade instances created');
 
   // === VERIFY TRIP METADATA ===
   var expectedTripMetadata = TripMetadataFacade(
-    id: tripId,
+    id: TestConfig.testTripId,
     name: 'European Adventure',
     startDate: DateTime(2025, 9, 24),
     endDate: DateTime(2025, 9, 29),
-    budget: Money(currency: 'EUR', amount: 800),
+    budget: Money(currency: 'EUR', amount: 1500),
     contributors: contributors,
     thumbnailTag: 'urban',
   );
@@ -904,7 +967,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   expect(day1Itinerary.transits.length, 1,
       reason: 'Day 1 should have 1 transit (flight)');
   final flight = day1Itinerary.transits.single;
-  expect(flight, matchesTransit(expectedFlightTransit),
+  expect(flight, matchesTransit(expectedOnwardFlightTransit),
       reason: 'Day 1 flight entry from London to Paris is incorrect');
 
   // Day 2: September 25 - Train from Paris to Versailles (2 transits)
@@ -915,7 +978,6 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   final trainToVersailles = day2Itinerary.transits.first;
   expect(trainToVersailles, matchesTransit(expectedTrainToVersailles),
       reason: 'Day 2 train to Versailles entry is incorrect');
-
   final trainFromVersailles = day2Itinerary.transits.last;
   expect(trainFromVersailles, matchesTransit(expectedTrainFromVersailles),
       reason: 'Day 2 train from Versailles entry is incorrect');
@@ -966,12 +1028,19 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   expect(publicTransport, matchesTransit(expectedPublicTransportTransit),
       reason: 'Day 5 public transport entry is incorrect');
 
+  // Day 6: September 29 - Return flight from Amsterdam to London
+  final day6Itinerary =
+      trip.itineraryCollection.getItineraryForDay(DateTime(2025, 9, 29));
+  expect(day6Itinerary.transits.single, matchesTransit(expectedReturnFlight),
+      reason:
+          'Day 6 itinerary should have Return flight from Amsterdam to London');
+
   print('✓ All transits verified for itineraries');
 
   // === VERIFY TRANSIT COLLECTION ===
   final transitCollection = trip.transitCollection;
-  expect(transitCollection.collectionItems.length, 9,
-      reason: 'Transit collection should contain 9 transits');
+  expect(transitCollection.collectionItems.length, 10,
+      reason: 'Transit collection should contain 10 transits');
 
   // Verify transits in collection match expected facade instances
   final expectedTransits = [
@@ -981,9 +1050,10 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     expectedTaxiTransit,
     expectedRentedVehicleTransit,
     expectedBusTransit,
-    expectedFlightTransit,
+    expectedOnwardFlightTransit,
     expectedTrainFromVersailles,
     expectedTrainToVersailles,
+    expectedReturnFlight,
   ];
 
   // Check each expected transit has a match in the collection
@@ -1074,9 +1144,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   expect(day5CheckIn, matchesLodging(expectedAmsterdamLodging),
       reason: 'Day 5 check-in to Amsterdam should match expected');
 
-  // Day 6 (Sept 29): Amsterdam hotel check-in
-  final day6Itinerary =
-      trip.itineraryCollection.getItineraryForDay(DateTime(2025, 9, 29));
+  // Day 6 (Sept 29): Amsterdam hotel check-out
   final day6CheckOut = day6Itinerary.checkOutLodging;
   expect(day6CheckOut, matchesLodging(expectedAmsterdamLodging),
       reason: 'Day 6 check-out from Amsterdam should match expected');
@@ -1092,10 +1160,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   expect(eiffelTower, matchesSight(expectedEiffelTowerSight),
       reason: 'Day 1 sight is incorrect');
 
-  expect(
-      listEquals(day1PlanData.notes,
-          expectedDay1Notes.map((note) => note.text).toList()),
-      true,
+  expect(listEquals(day1PlanData.notes, expectedDay1Notes), true,
       reason: 'Day 1 notes should match');
   expect(listEquals(day1PlanData.checkLists, [expectedDay1Checklist]), true,
       reason: 'Day 1 checklist is incorrect');
@@ -1109,10 +1174,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   expect(day2PlanData.sights[1], matchesSight(expectedLouvreSight),
       reason: 'Day 2 second sight should be Louvre Museum');
 
-  expect(
-      listEquals(day2PlanData.notes,
-          expectedDay2Notes.map((note) => note.text).toList()),
-      true,
+  expect(listEquals(day2PlanData.notes, expectedDay2Notes), true,
       reason: 'Day 2 notes should match');
   expect(listEquals(day2PlanData.checkLists, [expectedDay2Checklist]), true,
       reason: 'Day 2 checklist is incorrect');
@@ -1121,10 +1183,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   final day3PlanData = day3Itinerary.planData;
   expect(day3PlanData.sights.length, 0, reason: 'Day 3 should have no sights');
 
-  expect(
-      listEquals(day3PlanData.notes,
-          expectedDay3Notes.map((note) => note.text).toList()),
-      true,
+  expect(listEquals(day3PlanData.notes, expectedDay3Notes), true,
       reason: 'Day 3 notes should match');
   expect(listEquals(day3PlanData.checkLists, [expectedDay3Checklist]), true,
       reason: 'Day 3 checklist is incorrect');
@@ -1133,10 +1192,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   final day4PlanData = day4Itinerary.planData;
   expect(day4PlanData.sights.single, matchesSight(expectedAtomiumSight),
       reason: 'Day 4 sight should be Atomium');
-  expect(
-      listEquals(day4PlanData.notes,
-          expectedDay4Notes.map((note) => note.text).toList()),
-      true,
+  expect(listEquals(day4PlanData.notes, expectedDay4Notes), true,
       reason: 'Day 4 notes should match');
   expect(listEquals(day4PlanData.checkLists, [expectedDay4Checklist]), true,
       reason: 'Day 4 checklist is incorrect');
@@ -1147,29 +1203,54 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
       reason: 'Day 5 should have 1 sight (Rijksmuseum)');
   expect(day5PlanData.sights.single, matchesSight(expectedRijksmuseumSight),
       reason: 'Day 5 sight should be Rijksmuseum');
-  expect(
-      listEquals(day5PlanData.notes,
-          expectedDay5Notes.map((note) => note.text).toList()),
-      true,
+  expect(listEquals(day5PlanData.notes, expectedDay5Notes), true,
       reason: 'Day 5 notes should match');
   expect(listEquals(day5PlanData.checkLists, [expectedDay5Checklist]), true,
       reason: 'Day 5 checklist is incorrect');
 
+  // Day 6: September 29 (Amsterdam)
+  final day6PlanData = day6Itinerary.planData;
+  expect(day6PlanData.sights.single, matchesSight(expectedKeukenhofSight),
+      reason: 'Day 6 should have 1 sight (Keukenhof)');
+  expect(listEquals(day6PlanData.notes, expectedDay6Notes), true,
+      reason: 'Day 6 notes should match');
+  expect(listEquals(day6PlanData.checkLists, [expectedDay6Checklist]), true,
+      reason: 'Day 6 checklist is incorrect');
+
   print('✓ All itinerary data (sights, notes, checklists) verified');
 }
 
-Future<void> _navigateToTripEditorPage(WidgetTester tester) async {
-  // Find the test trip grid item by its name "European Adventure"
-  final testTripItem = find.ancestor(
-    of: find.text('European Adventure'),
-    matching: find.byType(InkWell),
-  );
+void runTests() {
+  setUpAll(() async {
+    await FirebaseEmulatorHelper.createFirebaseAuthUser(
+      email: TestConfig.testEmail,
+      password: TestConfig.testEmail,
+      shouldAddToFirestore: true,
+      shouldSignIn: true,
+    );
+    // Initialize mock location API service to intercept HTTP requests
+    // Note: This creates a MockClient that can be injected into GeoLocator
+    await MockApiServices.initialize();
+    await TestHelpers.createTestTrip();
+  });
 
-  // Verify the test trip item is found
-  expect(testTripItem, findsOneWidget,
-      reason:
-          'Test trip "European Adventure" should be displayed in TripsListView');
+  tearDown(() async {
+    expect(find.byType(ErrorWidget), findsNothing);
+  });
 
-  // Click on the test trip item to navigate to TripEditorPage
-  await TestHelpers.tapWidget(tester, testTripItem);
+  tearDownAll(() async {
+    await FirebaseEmulatorHelper.cleanupAfterTest();
+  });
+
+  testWidgets(
+      'adapts layout based on screen size - side-by-side for large screens, bottom navigation for small screens',
+      (WidgetTester tester) async {
+    await runTripEditorLayoutTest(tester);
+  });
+
+  testWidgets(
+      'trip repository contains correct values from createTestTrip setup',
+      (WidgetTester tester) async {
+    await runTripRepositoryValuesTest(tester);
+  });
 }

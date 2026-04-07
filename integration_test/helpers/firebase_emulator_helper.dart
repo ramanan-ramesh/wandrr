@@ -9,6 +9,8 @@ import 'package:wandrr/data/auth/models/auth_type.dart';
 import 'package:wandrr/data/trip/implementations/api_services/constants.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 
+import 'test_config.dart';
+
 /// Helper class to configure Firebase to use local emulators for integration tests
 
 class FirebaseEmulatorHelper {
@@ -119,11 +121,11 @@ class FirebaseEmulatorHelper {
       }
 
       // Sign out any authenticated user
-      await _signOutCurrentUser();
-      await _clearAllAuthUsers();
+      await signOutCurrentUser();
+      await clearAllAuthenticatedUsers();
 
       // Clear all Firestore data
-      await _clearAllFirestoreData();
+      await clearAllFirestoreData();
 
       if (kDebugMode) {
         print('✓ Test cleanup complete\n');
@@ -256,9 +258,10 @@ class FirebaseEmulatorHelper {
   }
 
   /// Sign out current user if signed in
-  static Future<void> _signOutCurrentUser() async {
+  static Future<void> signOutCurrentUser() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
+      print('Signing out current user...');
       await FirebaseAuth.instance.signOut();
       if (kDebugMode) {
         print('✓ Signed out user: ${currentUser.email}');
@@ -268,7 +271,7 @@ class FirebaseEmulatorHelper {
 
   /// Clear ALL users from Firebase Auth emulator via REST API
   /// This flushes the entire emulated Auth database for test isolation
-  static Future _clearAllAuthUsers() async {
+  static Future clearAllAuthenticatedUsers() async {
     try {
       if (kDebugMode) {
         print('\n--- Clearing ALL Auth users ---');
@@ -311,7 +314,7 @@ class FirebaseEmulatorHelper {
   /// Clear all Firestore data from specific collections
   /// Note: Firebase Auth emulator doesn't allow deleting users via SDK,
   /// but they are cleared when emulator restarts
-  static Future<void> _clearAllFirestoreData() async {
+  static Future<void> clearAllFirestoreData() async {
     try {
       if (kDebugMode) {
         print('\n--- Clearing Firestore data ---');
@@ -320,65 +323,57 @@ class FirebaseEmulatorHelper {
       final firestore = FirebaseFirestore.instance;
 
       // List of collections to clear
-      final collectionsToDelete = [
+      final rootLevelCollectionsToDelete = [
         'users',
         FirestoreCollections.appConfig,
         Constants.apiServicesCollectionName,
         FirestoreCollections.tripMetadataCollectionName,
-        FirestoreCollections.tripCollectionName,
-        FirestoreCollections.expenseCollectionName,
-        FirestoreCollections.itineraryDataCollectionName,
-        FirestoreCollections.lodgingCollectionName,
-        FirestoreCollections.transitCollectionName,
       ];
 
-      int totalDeleted = 0;
+      final batch = firestore.batch();
 
-      for (final collectionName in collectionsToDelete) {
-        try {
-          final snapshot = await firestore.collection(collectionName).get();
-
-          if (snapshot.docs.isNotEmpty) {
-            // Delete all documents in batches
-            final batch = firestore.batch();
-            int batchCount = 0;
-
-            for (final doc in snapshot.docs) {
-              batch.delete(doc.reference);
-              batchCount++;
-              totalDeleted++;
-
-              // Firestore batch limit is 500
-              if (batchCount >= 500) {
-                await batch.commit();
-                batchCount = 0;
-              }
-            }
-
-            // Commit remaining deletes
-            if (batchCount > 0) {
-              await batch.commit();
-            }
-
-            if (kDebugMode) {
-              print(
-                  '  ✓ Deleted ${snapshot.docs.length} documents from $collectionName');
-            }
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            print('  ⚠ Error deleting $collectionName: $e');
-          }
-        }
+      for (final collectionName in rootLevelCollectionsToDelete) {
+        await _deleteCollectionData(
+            firestore.collection(collectionName), batch);
       }
 
+      final testTripDocument = firestore
+          .collection(FirestoreCollections.tripCollectionName)
+          .doc(TestConfig.testTripId);
+      await _deleteCollectionData(
+          testTripDocument
+              .collection(FirestoreCollections.transitCollectionName),
+          batch);
+      await _deleteCollectionData(
+          testTripDocument
+              .collection(FirestoreCollections.lodgingCollectionName),
+          batch);
+      await _deleteCollectionData(
+          testTripDocument
+              .collection(FirestoreCollections.expenseCollectionName),
+          batch);
+      await _deleteCollectionData(
+          testTripDocument
+              .collection(FirestoreCollections.itineraryDataCollectionName),
+          batch);
+      batch.delete(testTripDocument);
+
+      await batch.commit();
       if (kDebugMode) {
-        print('✓ Firestore cleanup complete: $totalDeleted documents deleted');
+        print('✓ Firestore cleanup complete');
       }
     } catch (e) {
       if (kDebugMode) {
         print('✗ Error clearing Firestore data: $e');
       }
+    }
+  }
+
+  static Future<void> _deleteCollectionData(
+      CollectionReference collectionReference, WriteBatch batch) async {
+    final collectionDataSnapshot = await collectionReference.get();
+    for (final doc in collectionDataSnapshot.docs) {
+      batch.delete(doc.reference);
     }
   }
 }

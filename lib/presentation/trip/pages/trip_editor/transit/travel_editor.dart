@@ -180,6 +180,7 @@ class _TravelEditorState extends State<TravelEditor> {
 
   Widget _buildConfirmationField(BuildContext context) {
     return TextFormField(
+      key: ValueKey('TransitEditor_ConfirmationId_TextField'),
       decoration: InputDecoration(
         labelText: '${context.localizations.confirmation} #',
         prefixIcon: const Icon(Icons.confirmation_number_rounded),

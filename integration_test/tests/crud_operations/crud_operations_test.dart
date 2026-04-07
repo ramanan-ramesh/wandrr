@@ -1,63 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_viewer.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
-import '../helpers/test_helpers.dart';
-
-/// Test: Add new transit via FloatingActionButton
-Future<void> runAddTransitTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
-  // Launch the app
-  await TestHelpers.pumpAndSettleApp(tester);
-
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
-
-  // Verify FloatingActionButton exists
-  final fab = find.byType(FloatingActionButton);
-  expect(fab, findsOneWidget);
-
-  // Tap the FAB to open add menu
-  await TestHelpers.tapWidget(tester, fab);
-  await tester.pumpAndSettle();
-
-  // Look for "Travel Entry" or travel option
-  final travelOption = find.text('Travel Entry');
-
-  if (travelOption.evaluate().isNotEmpty) {
-    print('✓ Add menu opened');
-    await TestHelpers.tapWidget(tester, travelOption);
-    await tester.pumpAndSettle();
-
-    print('✓ Travel editor opened');
-    print('✓ Can add new transit entry');
-  } else {
-    print('⚠ Travel option not found in add menu');
-  }
-}
+import '../../helpers/firebase_emulator_helper.dart';
+import '../../helpers/http_overrides/mock_location_api_service.dart';
+import '../../helpers/test_config.dart';
+import '../../helpers/test_helpers.dart';
+import 'transit/add_transit_tests.dart';
 
 /// Test: Add new stay/lodging via FloatingActionButton
-Future<void> runAddStayTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runAddStayTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Tap the FAB
   final fab = find.byType(FloatingActionButton);
@@ -80,19 +37,11 @@ Future<void> runAddStayTest(
 }
 
 /// Test: Add new expense via FloatingActionButton
-Future<void> runAddExpenseTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runAddExpenseTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Tap the FAB
   final fab = find.byType(FloatingActionButton);
@@ -115,19 +64,11 @@ Future<void> runAddExpenseTest(
 }
 
 /// Test: Add new sight from itinerary viewer
-Future<void> runAddSightTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runAddSightTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Verify ItineraryViewer is visible
   expect(find.byType(ItineraryViewer), findsOneWidget);
@@ -160,10 +101,7 @@ Future<void> runAddSightTest(
 }
 
 /// Test: Add new note from itinerary viewer
-Future<void> runAddNoteTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runAddNoteTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
@@ -201,19 +139,11 @@ Future<void> runAddNoteTest(
 }
 
 /// Test: Add new checklist from itinerary viewer
-Future<void> runAddChecklistTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runAddChecklistTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to Checklists tab
   final checklistsTab = find.byIcon(Icons.checklist_outlined);
@@ -242,19 +172,11 @@ Future<void> runAddChecklistTest(
 }
 
 /// Test: Edit existing transit from timeline
-Future<void> runEditTransitTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditTransitTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Make sure we're on timeline tab (default)
   final timelineTab = find.byIcon(Icons.timeline);
@@ -280,19 +202,11 @@ Future<void> runEditTransitTest(
 }
 
 /// Test: Edit existing stay/lodging from timeline
-Future<void> runEditStayTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditStayTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Timeline tab should be default
   final timelineItems = find.byType(Card);
@@ -310,19 +224,11 @@ Future<void> runEditStayTest(
 }
 
 /// Test: Edit existing expense from budgeting page
-Future<void> runEditExpenseTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditExpenseTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to budgeting page if small screen
   if (!TestHelpers.isLargeScreen(tester)) {
@@ -352,19 +258,11 @@ Future<void> runEditExpenseTest(
 }
 
 /// Test: Edit sight opens specific sight in editor
-Future<void> runEditSightTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditSightTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to Sights tab
   final sightsTab = find.byIcon(Icons.place_outlined);
@@ -392,19 +290,11 @@ Future<void> runEditSightTest(
 }
 
 /// Test: Edit note opens specific note in editor
-Future<void> runEditNoteTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditNoteTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to Notes tab
   final notesTab = find.byIcon(Icons.note_outlined);
@@ -432,19 +322,11 @@ Future<void> runEditNoteTest(
 }
 
 /// Test: Edit checklist opens specific checklist in editor
-Future<void> runEditChecklistTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runEditChecklistTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to Checklists tab
   final checklistsTab = find.byIcon(Icons.checklist_outlined);
@@ -472,19 +354,11 @@ Future<void> runEditChecklistTest(
 }
 
 /// Test: Adding transit updates expense list view
-Future<void> runTransitUpdatesExpenseListTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runTransitUpdatesExpenseListTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Get initial expense count from budgeting page
   if (!TestHelpers.isLargeScreen(tester)) {
@@ -512,19 +386,11 @@ Future<void> runTransitUpdatesExpenseListTest(
 }
 
 /// Test: Adding stay updates expense list view and timeline
-Future<void> runStayUpdatesMultipleViewsTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runStayUpdatesMultipleViewsTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   print('✓ Adding stay should update:');
   print('  - Timeline in itinerary viewer');
@@ -534,19 +400,11 @@ Future<void> runStayUpdatesMultipleViewsTest(
 }
 
 /// Test: Adding sight updates sights tab
-Future<void> runSightUpdatesItineraryTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runSightUpdatesItineraryTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to Sights tab
   final sightsTab = find.byIcon(Icons.place_outlined);
@@ -562,19 +420,11 @@ Future<void> runSightUpdatesItineraryTest(
 }
 
 /// Test: Editing expense updates budget display
-Future<void> runExpenseEditUpdatesBudgetTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runExpenseEditUpdatesBudgetTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to budgeting page
   if (!TestHelpers.isLargeScreen(tester)) {
@@ -594,19 +444,11 @@ Future<void> runExpenseEditUpdatesBudgetTest(
 }
 
 /// Test: Repository update propagates to all views
-Future<void> runRepositoryPropagationTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runRepositoryPropagationTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   print('✓ Repository update flow:');
   print('  1. User adds/edits entity via editor');
@@ -624,19 +466,11 @@ Future<void> runRepositoryPropagationTest(
 }
 
 /// Test: Navigating to specific itinerary component
-Future<void> runNavigateToSpecificComponentTest(
-  WidgetTester tester,
-  SharedPreferences sharedPreferences,
-) async {
+Future<void> runNavigateToSpecificComponentTest(WidgetTester tester) async {
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
 
-  // Navigate to TripEditorPage
-  await TestHelpers.waitForWidget(
-    tester,
-    find.byType(TripEditorPage),
-    timeout: const Duration(seconds: 10),
-  );
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   print('✓ Navigation to specific component:');
   print('  - Tap sight → Opens editor with sight tab selected');
@@ -644,4 +478,122 @@ Future<void> runNavigateToSpecificComponentTest(
   print('  - Tap checklist → Opens editor with checklist at specific index');
   print('  - Editor config specifies PlanDataType and index');
   print('  - Editor scrolls to and highlights selected item');
+}
+
+void runTests() {
+  setUpAll(() async {
+    await FirebaseEmulatorHelper.createFirebaseAuthUser(
+      email: TestConfig.testEmail,
+      password: TestConfig.testPassword,
+      shouldAddToFirestore: true,
+      shouldSignIn: true,
+    );
+    await MockApiServices.initialize();
+  });
+
+  tearDownAll(() async {
+    await FirebaseEmulatorHelper.cleanupAfterTest();
+  });
+
+  setUp(() async {
+    await TestHelpers.createTestTrip();
+  });
+
+  tearDown(() async {
+    await FirebaseEmulatorHelper.clearAllFirestoreData();
+    expect(find.byType(ErrorWidget), findsNothing);
+  });
+
+  testWidgets('verify default state of TravelEditor on creation',
+      (WidgetTester tester) async {
+    await runVerifyDefaultStateTest(tester);
+  });
+
+  testWidgets('add new walk transit via FloatingActionButton',
+      (WidgetTester tester) async {
+    await runAddWalkTransitTest(tester);
+  });
+
+  testWidgets('add new stay via FloatingActionButton',
+      (WidgetTester tester) async {
+    await runAddStayTest(tester);
+  });
+
+  testWidgets('add new expense via FloatingActionButton',
+      (WidgetTester tester) async {
+    await runAddExpenseTest(tester);
+  });
+
+  testWidgets('add new sight from itinerary viewer',
+      (WidgetTester tester) async {
+    await runAddSightTest(tester);
+  });
+
+  testWidgets('add new note from itinerary viewer',
+      (WidgetTester tester) async {
+    await runAddNoteTest(tester);
+  });
+
+  testWidgets('add new checklist from itinerary viewer',
+      (WidgetTester tester) async {
+    await runAddChecklistTest(tester);
+  });
+
+  testWidgets('edit existing transit from timeline',
+      (WidgetTester tester) async {
+    await runEditTransitTest(tester);
+  });
+
+  testWidgets('edit existing stay from timeline', (WidgetTester tester) async {
+    await runEditStayTest(tester);
+  });
+
+  testWidgets('edit existing expense from budgeting page',
+      (WidgetTester tester) async {
+    await runEditExpenseTest(tester);
+  });
+
+  testWidgets('edit sight opens specific sight in editor',
+      (WidgetTester tester) async {
+    await runEditSightTest(tester);
+  });
+
+  testWidgets('edit note opens specific note in editor',
+      (WidgetTester tester) async {
+    await runEditNoteTest(tester);
+  });
+
+  testWidgets('edit checklist opens specific checklist in editor',
+      (WidgetTester tester) async {
+    await runEditChecklistTest(tester);
+  });
+
+  testWidgets('adding transit updates expense list view',
+      (WidgetTester tester) async {
+    await runTransitUpdatesExpenseListTest(tester);
+  });
+
+  testWidgets('adding stay updates multiple views',
+      (WidgetTester tester) async {
+    await runStayUpdatesMultipleViewsTest(tester);
+  });
+
+  testWidgets('adding sight updates itinerary', (WidgetTester tester) async {
+    await runSightUpdatesItineraryTest(tester);
+  });
+
+  testWidgets('editing expense updates budget display',
+      (WidgetTester tester) async {
+    await runExpenseEditUpdatesBudgetTest(tester);
+  });
+
+  testWidgets('repository updates propagate to all views',
+      (WidgetTester tester) async {
+    await runRepositoryPropagationTest(tester);
+  });
+
+  testWidgets('navigate to specific itinerary component',
+      (WidgetTester tester) async {
+    await runNavigateToSpecificComponentTest(tester);
+  });
 }

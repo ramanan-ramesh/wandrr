@@ -1,14 +1,19 @@
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
-import 'package:wandrr/data/trip/models/budgeting/money.dart';
+import 'package:wandrr/data/trip/models/api_services_repository.dart';
+import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/app/pages/master_page/master_page.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
+import 'package:wandrr/presentation/trip/pages/home/trips_list_view.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
+import 'matchers.dart';
 import 'test_config.dart';
 
 class TestHelpers {
@@ -30,9 +35,52 @@ class TestHelpers {
     print(_getDeviceSizeDescription(tester));
   }
 
+  static Future<void> navigateToTripEditorPage(WidgetTester tester) async {
+    // Wait for TripsListView to appear
+    await TestHelpers.waitForWidget(
+      tester,
+      find.byType(TripListView),
+      timeout: const Duration(seconds: 5),
+    );
+
+    // Find the test trip grid item by its name "European Adventure"
+    final testTripItem = find.ancestor(
+      of: find.text('European Adventure'),
+      matching: find.byType(InkWell),
+    );
+
+    // Verify the test trip item is found
+    expect(testTripItem, findsOneWidget,
+        reason:
+            'Test trip "European Adventure" should be displayed in TripsListView');
+
+    // Click on the test trip item to navigate to TripEditorPage
+    await TestHelpers.tapWidget(tester, testTripItem);
+
+    // Wait for TripEditorPage to appear
+    await TestHelpers.waitForWidget(
+      tester,
+      find.byType(TripEditorPage),
+      timeout: const Duration(seconds: 10),
+    );
+  }
+
   static AppLocalizations getAppLocalizations(WidgetTester tester, Type type) {
     final context = tester.element(find.byType(type));
     return AppLocalizations.of(context)!;
+  }
+
+  static TripRepositoryFacade getTripRepository(WidgetTester tester,
+      {Type type = TripEditorPage}) {
+    final context = tester.element(find.byType(type));
+    return RepositoryProvider.of<TripRepositoryFacade>(context);
+  }
+
+  static ApiServicesRepositoryFacade getApiServicesRepository(
+      WidgetTester tester,
+      {Type type = TripEditorPage}) {
+    final context = tester.element(find.byType(type));
+    return RepositoryProvider.of<ApiServicesRepositoryFacade>(context);
   }
 
   /// Create a test trip for trip editor tests
@@ -41,7 +89,6 @@ class TestHelpers {
     final firestore = FirebaseFirestore.instance;
 
     // Test trip data
-    const tripId = 'test_trip_123';
     final startDate = DateTime(2025, 9, 24);
     final endDate = DateTime(2025, 9, 29);
     const tripName = 'European Adventure';
@@ -51,14 +98,14 @@ class TestHelpers {
     // Create trip metadata
     await firestore
         .collection(FirestoreCollections.tripMetadataCollectionName)
-        .doc(tripId)
+        .doc(TestConfig.testTripId)
         .set({
       'name': tripName,
       'startDate': Timestamp.fromDate(startDate),
       'endDate': Timestamp.fromDate(endDate),
       'thumbnailTag': 'urban',
       'contributors': contributors,
-      'budget': '800.00 EUR',
+      'budget': '1500.00 EUR',
     });
 
     // === LOCATIONS ===
@@ -70,13 +117,6 @@ class TestHelpers {
         'city': 'London',
         "iata": 'YXU',
         'locationType': 'airport',
-        // bounding box added to satisfy BoundingBox.fromDocument requirements
-        'boundingbox': {
-          'maxLat': 51.5174,
-          'minLat': 51.4974,
-          'maxLon': -0.1178,
-          'minLon': -0.1378
-        }
       }
     };
 
@@ -88,13 +128,16 @@ class TestHelpers {
         'city': 'Paris (Roissy-en-France, Val-d\'Oise)',
         'iata': 'CDG',
         'locationType': 'airport',
-        // bounding box added to satisfy BoundingBox.fromDocument requirements
-        'boundingbox': {
-          'maxLat': 48.8666,
-          'minLat': 48.8466,
-          'maxLon': 2.3622,
-          'minLon': 2.3422
-        }
+      }
+    };
+    final amsterdamAirport = {
+      'latLon': GeoPoint(52.3779, 4.76389),
+      'context': {
+        'type': 'airport',
+        'name': 'Amsterdam Airport Schiphol',
+        'city': 'Amsterdam',
+        'iata': 'AMS',
+        'locationType': 'airport',
       }
     };
 
@@ -268,9 +311,31 @@ class TestHelpers {
       }
     };
 
+    final keukenhofLocation = {
+      'latLon': GeoPoint(52.3600, 4.8852),
+      'context': {
+        'type': 'attraction',
+        'locationType': 'attraction',
+        'class': 'tourism',
+        'name': 'Keukenhof',
+        'address':
+            'Keukenhof flower show, Amsterdam, North Holland, Netherlands',
+        'boundingbox': {
+          'maxLat': 52.3610,
+          'minLat': 52.3590,
+          'maxLon': 4.8860,
+          'minLon': 4.88
+        },
+        'place_id': 'keukenhof_flower_show_amsterdam',
+        'city': 'Amsterdam',
+        'state': 'North Holland',
+        'country': 'Netherlands',
+      }
+    };
+
     var tripDataCollection = firestore
         .collection(FirestoreCollections.tripCollectionName)
-        .doc(tripId);
+        .doc(TestConfig.testTripId);
 
     var itineraryDataCollection = tripDataCollection
         .collection(FirestoreCollections.itineraryDataCollectionName);
@@ -438,6 +503,24 @@ class TestHelpers {
       'notes': 'Metro line 52',
     });
 
+    // Flight: Amsterdam to London
+    await transitCollection.add({
+      'transitOption': 'flight',
+      'departureLocation': amsterdamAirport,
+      'departureDateTime': Timestamp.fromDate(DateTime(2025, 9, 29, 13, 0)),
+      'arrivalLocation': londonAirport,
+      'arrivalDateTime': Timestamp.fromDate(DateTime(2025, 9, 29, 15, 30)),
+      'operator': 'British Airways BA 621',
+      'confirmationId': 'BA345612',
+      'totalExpense': {
+        'currency': defaultCurrency,
+        'category': 'flights',
+        'paidBy': {TestConfig.testEmail: 200.0},
+        'splitBy': contributors,
+      },
+      'notes': 'Direct flight',
+    });
+
     // === LODGINGS ===
     // Multi-day lodging: Paris (2 nights)
     await lodgingCollection.add({
@@ -454,7 +537,7 @@ class TestHelpers {
       'notes': 'City center, 2 nights',
     });
 
-    // Multi-day lodging: Brussels to Amsterdam (spans Sept 27-28)
+    // Multi-day lodging: Brussels  (spans Sept 27-28)
     await lodgingCollection.add({
       'location': brusselsLocation,
       'checkinDateTime': Timestamp.fromDate(DateTime(2025, 9, 27, 3, 0)),
@@ -612,13 +695,41 @@ class TestHelpers {
           'description': 'Dutch art',
         }
       ],
-      'notes': ['Final day', 'Museum visit', 'Canal walk', 'Departure prep'],
+      'notes': ['Museum visit', 'Canal walk', 'Departure prep'],
+      'checkLists': [
+        {
+          'title': 'Amsterdam exploration day',
+          'items': [
+            {'item': 'Buy souvenirs', 'status': false},
+            {'item': 'Eat waffles', 'status': true},
+          ]
+        }
+      ],
+    });
+
+    // Day 6: September 29
+    await itineraryDataCollection.doc('29092025').set({
+      'sights': [
+        {
+          'name': 'Keukenhof flower show',
+          'location': keukenhofLocation,
+          'visitTime': Timestamp.fromDate(DateTime(2025, 9, 29, 12, 0)),
+          'expense': {
+            'currency': defaultCurrency,
+            'category': 'sightseeing',
+            'paidBy': {TestConfig.testEmail: 40},
+            'splitBy': contributors,
+          },
+          'description': 'Flower show',
+        }
+      ],
+      'notes': ['Breakfast', 'Visit Keukenhof', 'Return home'],
       'checkLists': [
         {
           'title': 'Last day',
           'items': [
-            {'item': 'Buy souvenirs', 'status': false},
             {'item': 'Pack bags', 'status': false},
+            {'item': 'Prepare journal', 'status': false},
           ]
         }
       ],
@@ -643,7 +754,7 @@ class TestHelpers {
       'category': 'other',
       'paidBy': {TestConfig.testEmail: 25.0},
       'splitBy': contributors,
-      'dateTime': Timestamp.fromDate(DateTime(2025, 9, 25)),
+      'dateTime': Timestamp.fromDate(DateTime(2025, 9, 25, 12, 0)),
       'description': 'Postcards and magnets',
     });
 
@@ -658,7 +769,7 @@ class TestHelpers {
       'description': 'Snacks for the bus',
     });
 
-    print('✅ 5-day test trip created: $tripId');
+    print('✅ 5-day test trip created: ${TestConfig.testTripId}');
     print('   Route: London → Paris → Brussels → Amsterdam');
     print(
         '   Transits: flight, train, bus, rentedVehicle, taxi, ferry, walk, publicTransport');
@@ -739,18 +850,36 @@ class TestHelpers {
     await TestHelpers.tapWidget(tester, doneButton, warnIfMissed: false);
   }
 
-  static Future<void> enterMoneyAmount(WidgetTester tester, Money money) async {
-    var textField = find.byKey(Key('ExpenseAmountEditField_TextField'));
-    await tester.enterText(textField, money.amount.toString());
-    await TestHelpers.tapWidget(
-        tester, find.byKey(Key('PlatformMoneyEditField_CurrencyPickerButton')));
-    var searchField = find.byKey(Key('PlatformMoneyEditField_TextField'));
-    await tester.enterText(searchField, money.currency);
-    await tester.pumpAndSettle(); // Wait for filtered list to render
+  static Future<void> pickDate(
+      WidgetTester tester, Finder datePicker, String day,
+      {DateTime? expectedStartDate, DateTime? expectedEndDate}) async {
+    await TestHelpers.tapWidget(tester, datePicker);
 
-    final currencyListTile = find.byKey(
-        Key('PlatformMoneyEditField_CurrencyListTile_${money.currency}'));
-    await TestHelpers.tapWidget(tester, currencyListTile, warnIfMissed: false);
+    // Verify possible selectable dates
+    if (expectedStartDate != null || expectedEndDate != null) {
+      final calendarPicker =
+          tester.widget<CalendarDatePicker2WithActionButtons>(
+              find.byType(CalendarDatePicker2WithActionButtons));
+      final calendarPickerConfig = calendarPicker.config;
+      if (expectedStartDate != null) {
+        expect(calendarPickerConfig.firstDate, matchesDay(expectedStartDate),
+            reason: 'First possible selectable date should be trip start date');
+      }
+      if (expectedEndDate != null) {
+        expect(calendarPickerConfig.lastDate, matchesDay(expectedEndDate),
+            reason: 'Last possible selectable date should be trip end date');
+      }
+    }
+
+    // Select day
+    final lastDateButton = find.descendant(
+        of: find.byType(CalendarDatePicker2WithActionButtons),
+        matching: find.text(day));
+    await TestHelpers.tapWidget(tester, lastDateButton);
+    final confirmButton = find.descendant(
+        of: find.byType(CalendarDatePicker2WithActionButtons),
+        matching: find.text('OK'));
+    await TestHelpers.tapWidget(tester, confirmButton, warnIfMissed: false);
   }
 
   /// Wait for native splash screen to complete (Private helper)
@@ -785,5 +914,248 @@ class TestHelpers {
     final size = getScreenSize(tester);
     final category = isLargeScreen(tester) ? 'Large' : 'Small';
     return '$category screen (${size.width.toInt()}x${size.height.toInt()})';
+  }
+
+  /// Scroll guard that ensures a widget is visible before verifying it.
+  ///
+  /// This method scrolls through a SingleChildScrollView to find the target widget
+  /// and executes the verification callback once the widget is found.
+  ///
+  /// [scrollableFinder] - Finder for the SingleChildScrollView or similar scrollable
+  /// [widgetFinder] - Finder for the target widget to locate and verify
+  /// [verification] - Callback to execute once the widget is found/visible
+  /// [scrollToTop] - Whether to scroll to top before starting (default: true)
+  /// [maxScrollAttempts] - Maximum number of scroll attempts (default: 10)
+  /// [scrollDelta] - Amount to scroll each attempt (default: -300 pixels down)
+  static Future<void> scrollGuardVerify(
+    WidgetTester tester, {
+    required Finder scrollableFinder,
+    ScrollController Function(Finder scrollableFinder)? getController,
+    required Finder widgetFinder,
+    required Future<void> Function() verification,
+    bool scrollToTop = true,
+    int maxScrollAttempts = 10,
+    Offset scrollDelta = const Offset(0, -300),
+  }) async {
+    await tester.pumpAndSettle();
+
+    // Scroll to top first if requested
+    if (scrollToTop) {
+      final controller = getController != null
+          ? getController(scrollableFinder)
+          : tester.widget<SingleChildScrollView>(scrollableFinder).controller;
+      controller?.jumpTo(0.0);
+      await tester.pumpAndSettle();
+    }
+
+    // Check if widget is already visible
+    if (widgetFinder.evaluate().isNotEmpty) {
+      await verification();
+      return;
+    }
+
+    // Scroll down to find the widget
+    for (int attempt = 0; attempt < maxScrollAttempts; attempt++) {
+      await tester.drag(scrollableFinder, scrollDelta);
+      await tester.pumpAndSettle();
+
+      if (widgetFinder.evaluate().isNotEmpty) {
+        await verification();
+        return;
+      }
+    }
+
+    // Widget not found after all scroll attempts - still run verification
+    // to get the proper failure message from the expect calls
+    await verification();
+  }
+
+  /// Scroll guard that verifies a widget is NOT present (after scrolling through entire view).
+  ///
+  /// This method scrolls through the entire scrollable to verify a widget is not present.
+  static Future<void> scrollGuardVerifyNotPresent(
+    WidgetTester tester, {
+    required Finder scrollableFinder,
+    required Finder widgetFinder,
+    required String reason,
+    int maxScrollAttempts = 10,
+    Offset scrollDelta = const Offset(0, -300),
+  }) async {
+    await tester.pumpAndSettle();
+
+    // Scroll to top first
+    for (int i = 0; i < 5; i++) {
+      await tester.drag(scrollableFinder, const Offset(0, 500));
+      await tester.pumpAndSettle();
+    }
+
+    // Check at top position
+    expect(widgetFinder, findsNothing, reason: reason);
+
+    // Scroll down and check at each position
+    for (int attempt = 0; attempt < maxScrollAttempts; attempt++) {
+      await tester.drag(scrollableFinder, scrollDelta);
+      await tester.pumpAndSettle();
+      expect(widgetFinder, findsNothing, reason: reason);
+    }
+  }
+
+  /// Scroll guard that does scroll until widget is present (after scrolling through entire view).
+  ///
+  /// This method scrolls through the entire scrollable to verify a widget is not present.
+  static Future<bool> scrollUntilPresent(
+    WidgetTester tester, {
+    required Finder scrollableFinder,
+    required Finder widgetFinder,
+    ScrollController Function(Finder scrollableFinder)? getController,
+    required String reason,
+    int maxScrollAttempts = 10,
+    Offset scrollDelta = const Offset(0, -300),
+  }) async {
+    await tester.pumpAndSettle();
+
+    // Scroll to top first
+    final controller = getController != null
+        ? getController(scrollableFinder)
+        : tester.widget<SingleChildScrollView>(scrollableFinder).controller;
+    controller?.jumpTo(0.0);
+    await tester.pumpAndSettle();
+
+    if (widgetFinder.evaluate().isNotEmpty) {
+      return true;
+    }
+
+    // Scroll down and check at each position
+    for (int attempt = 0; attempt < maxScrollAttempts; attempt++) {
+      await tester.drag(scrollableFinder, scrollDelta);
+      await tester.pumpAndSettle();
+      if (widgetFinder.evaluate().isNotEmpty) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Collect widgets of a specific type by scrolling through a scrollable widget.
+  ///
+  /// Returns a list of widgets found by scrolling through the [scrollableFinder].
+  /// If [expectedCount] is provided, the function will fail if not all items are found
+  /// within the [timeout].
+  ///
+  /// The [getUniqueId] function is used to deduplicate widgets during scrolling.
+  /// Widgets are returned in the order they appear visually (top to bottom).
+  static Future<List<T>> collectWidgetsByScrolling<T extends Widget>({
+    required WidgetTester tester,
+    required Finder scrollableFinder,
+    required Finder widgetFinder,
+    required String Function(T widget) getUniqueId,
+    int? expectedCount,
+    Duration timeout = const Duration(seconds: 30),
+    Offset scrollDelta = const Offset(0, -300),
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    final seenIds = <String>{};
+    final orderedWidgets = <T>[];
+
+    await tester.pumpAndSettle();
+
+    // Scroll to top first
+    for (int i = 0; i < 5; i++) {
+      await tester.drag(scrollableFinder, const Offset(0, 500));
+      await tester.pumpAndSettle();
+    }
+
+    // Keep scrolling and collecting until we have enough or timeout
+    while (stopwatch.elapsed < timeout) {
+      // Collect all currently visible widgets
+      for (final element in widgetFinder.evaluate()) {
+        final widget = element.widget as T;
+        final id = getUniqueId(widget);
+        if (!seenIds.contains(id)) {
+          seenIds.add(id);
+          orderedWidgets.add(widget);
+        }
+      }
+
+      // Check if we have enough
+      if (expectedCount != null && orderedWidgets.length >= expectedCount) {
+        break;
+      }
+
+      // Scroll down
+      await tester.drag(scrollableFinder, scrollDelta);
+      await tester.pumpAndSettle();
+    }
+
+    // Validate
+    if (expectedCount != null && orderedWidgets.length != expectedCount) {
+      throw TestFailure(
+        'Expected $expectedCount widgets of type $T, '
+        'but found ${orderedWidgets.length}. '
+        'Found IDs: ${seenIds.join(", ")}',
+      );
+    }
+
+    return orderedWidgets;
+  }
+
+  static Future<void>
+      evaluateWidgetsByScrollingWithPredicate<T extends Widget>({
+    required WidgetTester tester,
+    required Finder scrollableFinder,
+    required Finder widgetFinder,
+    required String Function(T widget) getUniqueId,
+    required Future<String?> Function(T widget) predicate,
+    int? expectedCount,
+    Duration timeout = const Duration(minutes: 5),
+    Offset scrollDelta = const Offset(0, -300),
+  }) async {
+    final stopwatch = Stopwatch()..start();
+    final seenIds = <String>{};
+    final orderedWidgets = <T>[];
+
+    await tester.pumpAndSettle();
+
+    // Scroll to top first
+    for (int i = 0; i < 5; i++) {
+      await tester.drag(scrollableFinder, const Offset(0, 500));
+      await tester.pumpAndSettle();
+    }
+
+    // Keep scrolling and collecting until we have enough or timeout
+    while (stopwatch.elapsed < timeout) {
+      // Collect all currently visible widgets
+      for (final element in widgetFinder.evaluate()) {
+        final widget = element.widget as T;
+        final id = getUniqueId(widget);
+        if (!seenIds.contains(id)) {
+          final evaluationResult = await predicate(widget);
+          if (evaluationResult == null) {
+            seenIds.add(id);
+            orderedWidgets.add(widget);
+          } else {
+            fail(evaluationResult);
+          }
+        }
+      }
+
+      // Check if we have enough
+      if (expectedCount != null && orderedWidgets.length >= expectedCount) {
+        break;
+      }
+
+      // Scroll down
+      await tester.drag(scrollableFinder, scrollDelta);
+      await tester.pumpAndSettle();
+    }
+
+    // Validate
+    if (expectedCount != null && orderedWidgets.length != expectedCount) {
+      throw TestFailure(
+        'Expected $expectedCount widgets of type $T, '
+        'but found ${orderedWidgets.length}. '
+        'Found IDs: ${seenIds.join(", ")}',
+      );
+    }
   }
 }

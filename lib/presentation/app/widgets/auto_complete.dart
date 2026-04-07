@@ -42,6 +42,9 @@ class _PlatformAutoCompleteState<T extends Object>
   // --- Debouncer State ---
   Timer? _debounce;
   Completer<Iterable<T>>? _completer;
+
+  // Stores the last query text that a timer was set for.
+  // This is the key to fixing the RawAutocomplete bug.
   String? _lastQueryForTimer;
 
   // --- Disposal guard ---
@@ -231,6 +234,7 @@ class _PlatformAutoCompleteState<T extends Object>
                     ),
                   Expanded(
                     child: TextFormField(
+                      key: ValueKey('PlatformAutoComplete_TextField'),
                       controller: _textEditingController,
                       focusNode: _focusNode,
                       style: Theme.of(context).textTheme.labelLarge ??
@@ -265,6 +269,7 @@ class _PlatformAutoCompleteState<T extends Object>
                       itemBuilder: (BuildContext context, int index) {
                         final option = options.elementAt(index);
                         return InkWell(
+                          key: ValueKey('PlatformAutoComplete_ListTile'),
                           onTap: () => onSelected(option),
                           child: Builder(
                             builder: (BuildContext context) =>
