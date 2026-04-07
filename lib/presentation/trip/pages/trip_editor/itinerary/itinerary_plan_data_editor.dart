@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
+import 'package:wandrr/blocs/trip_entity_editor/events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
@@ -10,12 +12,18 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/editor/checklists.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/chrome_tab.dart';
+import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
 
 import 'editor/notes.dart';
 import 'editor/sights.dart';
 
 class ItineraryPlanDataEditor extends StatefulWidget {
+  /// The detached clone of the plan data. This widget works on this object
+  /// exclusively and never touches the repository's live instance.
   final ItineraryPlanData planData;
+
+  /// Called whenever in-editor data changes so the validity notifier
+  /// in ConflictAwareActionPage can be updated. Does NOT persist data.
   final VoidCallback onPlanDataUpdated;
   final ItineraryPlanDataEditorConfig config;
 
@@ -28,17 +36,28 @@ class ItineraryPlanDataEditor extends StatefulWidget {
 
   @override
   State<ItineraryPlanDataEditor> createState() =>
-      _ItineraryPlanDataEditorState();
+      ItineraryPlanDataEditorState();
 }
 
-class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
+class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
     with SingleTickerProviderStateMixin {
-  // Reused layout constants
   static const double _kSpacingSmall = 8.0;
   static const double _kSpacingMedium = 12.0;
   static const double _kHeaderIconSize = 26.0;
 
   late final TabController _tabController;
+
+  // ---------------------------------------------------------------------------
+  // Stable working lists. These are the sole source of truth during editing.
+  // They are never written back to _planData until syncToEntity() is called
+  // (which happens only when the user presses the FAB).
+  // ---------------------------------------------------------------------------
+  late final List<SightFacade> _stableSights;
+  late final List<Note> _stableNotes;
+  late final List<CheckListFacade> _stableChecklists;
+
+  late final List<Widget> _tabWidgets;
+  bool _tabWidgetsInitialized = false;
 
   ItineraryPlanData get _planData => widget.planData;
 
@@ -47,14 +66,89 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.index = _initialTabIndex(widget.config.planDataType);
+    _tabController.addListener(_onTabChanged);
 
-    // Schedule creation/highlight after first frame
+    // Snapshot the plan data into stable mutable lists once.
+    // _planData is already a clone so reading its getters here is safe.
+    _stableSights = List<SightFacade>.from(_planData.sights);
+    _stableNotes = _planData.notes.map(Note.new).toList();
+    _stableChecklists = List<CheckListFacade>.from(_planData.checkLists);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.config is CreateNewItineraryPlanDataComponentConfig) {
         _createNewItineraryPlanDataComponent(widget.config.planDataType);
       }
-      setState(() {});
+      setState(() {
+        _tabWidgets = _buildTabWidgets();
+        _tabWidgetsInitialized = true;
+      });
+      // Notify validity after any new item was appended.
+      widget.onPlanDataUpdated();
     });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Called by EditorPageFactory's onActionInvoked BEFORE emitting the update
+  // event. Writes the stable lists into _planData so the serialisation path
+  // sees the correct data.
+  // ---------------------------------------------------------------------------
+  void syncToEntity() {
+    _planData.sights = List<SightFacade>.from(_stableSights);
+    _planData.notes = _stableNotes.map((n) => n.text).toList();
+    _planData.checkLists = List<CheckListFacade>.from(_stableChecklists);
+  }
+
+  /// Validates current editor state against the stable working lists.
+  /// Used by the parent to keep the FAB enabled/disabled correctly.
+  bool validateCurrentState() {
+    final tempPlanData = ItineraryPlanData(
+      tripId: _planData.tripId,
+      day: _planData.day,
+      id: _planData.id,
+      sights: _stableSights,
+      notes: _stableNotes.map((n) => n.text).toList(),
+      checkLists: _stableChecklists,
+    );
+    return tempPlanData.validate();
+  }
+
+  List<Widget> _buildTabWidgets() => [
+        ItinerarySightsEditor(
+          sights: _stableSights,
+          onSightsChanged: widget.onPlanDataUpdated,
+          onSightTimesChanged: () {
+            widget.onPlanDataUpdated();
+            context.addTripEntityEditorEvent<ItineraryPlanData>(
+              UpdateSightsTimeRange(List<SightFacade>.from(_stableSights)),
+            );
+          },
+          day: _planData.day,
+          initialExpandedIndex: _getInitialExpandedIndex(PlanDataType.sight),
+        ),
+        ItineraryNotesEditor(
+          stableNotes: _stableNotes,
+          onNotesChanged: (_) => widget.onPlanDataUpdated(),
+          initialExpandedIndex: _getInitialExpandedIndex(PlanDataType.note),
+        ),
+        ItineraryChecklistsEditor(
+          checklists: _stableChecklists,
+          onChecklistsChanged: widget.onPlanDataUpdated,
+          initialExpandedIndex:
+              _getInitialExpandedIndex(PlanDataType.checklist),
+        ),
+      ];
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
+    super.dispose();
   }
 
   int _initialTabIndex(PlanDataType type) {
@@ -78,9 +172,6 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
 
   @override
   Widget build(BuildContext context) {
-    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-    final availableHeight = MediaQuery.of(context).size.height * 0.6;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -89,18 +180,14 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
         const SizedBox(height: _kSpacingMedium),
         _buildTabBar(),
         const SizedBox(height: _kSpacingSmall),
-        SizedBox(
-          height:
-              (availableHeight - keyboardHeight).clamp(300.0, availableHeight),
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildSightsTab(),
-              _buildNotesTab(),
-              _buildCheckListsTab(),
-            ],
-          ),
-        ),
+        if (_tabWidgetsInitialized)
+          IndexedStack(
+            index: _tabController.index,
+            children: _tabWidgets,
+          )
+        else
+          const SizedBox(
+              height: 120, child: Center(child: CircularProgressIndicator())),
       ],
     );
   }
@@ -118,7 +205,8 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
           const SizedBox(width: _kSpacingMedium),
           Expanded(
             child: Text(
-              '${context.localizations.itinerary} - ${_planData.day.day}/${_planData.day.month}/${_planData.day.year}',
+              '${context.localizations.itinerary} - '
+              '${_planData.day.day}/${_planData.day.month}/${_planData.day.year}',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -140,32 +228,24 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
     );
   }
 
-  Widget _buildSightsTab() => ItinerarySightsEditor(
-        sights: _planData.sights,
-        onSightsChanged: widget.onPlanDataUpdated,
-        day: _planData.day,
-        initialExpandedIndex: _getInitialExpandedIndex(PlanDataType.sight),
-      );
-
-  Widget _buildNotesTab() => ItineraryNotesEditor(
-        notes: _planData.notes,
-        onNotesChanged: (newNotes) {
-          _planData.notes = newNotes.map((e) => e.text).toList();
-          widget.onPlanDataUpdated();
-        },
-        initialExpandedIndex: _getInitialExpandedIndex(PlanDataType.note),
-      );
-
-  Widget _buildCheckListsTab() => ItineraryChecklistsEditor(
-        checklists: _planData.checkLists,
-        onChecklistsChanged: widget.onPlanDataUpdated,
-        initialExpandedIndex: _getInitialExpandedIndex(PlanDataType.checklist),
-      );
-
   int? _getInitialExpandedIndex(PlanDataType type) {
-    if (widget.config is UpdateItineraryPlanDataComponentConfig &&
-        widget.config.planDataType == type) {
-      return (widget.config as UpdateItineraryPlanDataComponentConfig).index;
+    final config = widget.config;
+    if (config is CreateNewItineraryPlanDataComponentConfig &&
+        config.planDataType == type) {
+      switch (type) {
+        case PlanDataType.sight:
+          return _stableSights.isNotEmpty ? _stableSights.length - 1 : null;
+        case PlanDataType.note:
+          return _stableNotes.isNotEmpty ? _stableNotes.length - 1 : null;
+        case PlanDataType.checklist:
+          return _stableChecklists.isNotEmpty
+              ? _stableChecklists.length - 1
+              : null;
+      }
+    }
+    if (config is UpdateItineraryPlanDataComponentConfig &&
+        config.planDataType == type) {
+      return config.index;
     }
     return null;
   }
@@ -174,33 +254,19 @@ class _ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
     final tripMetadata = context.activeTrip.tripMetadata;
     switch (kind) {
       case PlanDataType.sight:
-        {
-          _planData.sights.add(
-            SightFacade.newEntry(
-              tripId: tripMetadata.id!,
-              day: _planData.day,
-              defaultCurrency: tripMetadata.budget.currency,
-              contributors: tripMetadata.contributors,
-            ),
-          );
-          break;
-        }
+        _stableSights.add(SightFacade.newEntry(
+          tripId: tripMetadata.id!,
+          day: _planData.day,
+          defaultCurrency: tripMetadata.budget.currency,
+          contributors: tripMetadata.contributors,
+        ));
       case PlanDataType.note:
-        {
-          _planData.notes.add('');
-          break;
-        }
+        _stableNotes.add(Note(''));
       case PlanDataType.checklist:
-        {
-          _planData.checkLists.add(
-            CheckListFacade.newUiEntry(
-              tripId: tripMetadata.id!,
-              items: [],
-            ),
-          );
-          break;
-        }
+        _stableChecklists.add(CheckListFacade.newUiEntry(
+          tripId: tripMetadata.id!,
+          items: [],
+        ));
     }
-    widget.onPlanDataUpdated();
   }
 }

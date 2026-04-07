@@ -9,10 +9,12 @@ import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_event_factory.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_rebuild_helper.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_theme_helper.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/transit_journey_timeline_event.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/checklists.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/notes.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/sights.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/timeline_item_widget.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/timeline_item.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/transit_journey_timeline_item.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/chrome_tab.dart';
 
@@ -125,8 +127,18 @@ class _ItineraryViewerState extends State<ItineraryViewer>
           const SizedBox(height: 16),
           ...timelineEvents.asMap().entries.map((entry) {
             final isLast = entry.key == timelineEvents.length - 1;
-            return TimelineItemWidget(
-              event: entry.value,
+            final event = entry.value;
+
+            // Use TransitJourneyTimelineItem for connected transit legs
+            if (event is TransitJourneyTimelineEvent) {
+              return TransitJourneyTimelineItem(
+                event: event,
+                isLastInTimeline: isLast,
+              );
+            }
+
+            return TimelineItem(
+              event: event,
               isLast: isLast,
             );
           }),

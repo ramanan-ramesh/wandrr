@@ -1,13 +1,12 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:wandrr/data/store/implementations/firestore_model_collection.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/budgeting/budgeting_module.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/itinerary/itinerary_collection.dart';
-import 'package:wandrr/data/trip/implementations/trip_metadata_update_executor.dart';
+import 'package:wandrr/data/trip/implementations/services/trip_data_update_plan_service.dart';
 import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
@@ -15,12 +14,10 @@ import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
-import 'package:wandrr/l10n/app_localizations.dart';
 
 import 'budgeting/expense.dart';
 import 'lodging.dart';
@@ -28,12 +25,11 @@ import 'transit.dart';
 import 'trip_metadata.dart';
 
 class TripDataModelImplementation extends TripDataModelEventHandler {
-  static Future<TripDataModelImplementation> createInstance(
+  static TripDataModelImplementation createInstance(
       TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository,
-      AppLocalizations appLocalizations,
       String currentUserName,
-      Iterable<CurrencyData> supportedCurrencies) async {
+      Iterable<CurrencyData> supportedCurrencies) {
     var tripMetadataModelImplementation =
         TripMetadataModelImplementation.fromModelFacade(
             tripMetadataModelFacade: tripMetadata);
@@ -42,21 +38,21 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         .collection(FirestoreCollections.tripCollectionName)
         .doc(tripMetadata.id);
 
-    var transitModelCollection = await FirestoreModelCollection.createInstance(
+    var transitModelCollection = FirestoreModelCollection.createInstance(
         tripDocumentReference
             .collection(FirestoreCollections.transitCollectionName),
         (documentSnapshot) => TransitImplementation.fromDocumentSnapshot(
             tripMetadata.id!, documentSnapshot),
         (transitModelFacade) => TransitImplementation.fromModelFacade(
             transitModelFacade: transitModelFacade));
-    var lodgingModelCollection = await FirestoreModelCollection.createInstance(
+    var lodgingModelCollection = FirestoreModelCollection.createInstance(
         tripDocumentReference
             .collection(FirestoreCollections.lodgingCollectionName),
         (documentSnapshot) => LodgingModelImplementation.fromDocumentSnapshot(
             tripId: tripMetadata.id!, documentSnapshot: documentSnapshot),
         (lodgingModelFacade) => LodgingModelImplementation.fromModelFacade(
             lodgingModelFacade: lodgingModelFacade));
-    var expenseModelCollection = await FirestoreModelCollection.createInstance(
+    var expenseModelCollection = FirestoreModelCollection.createInstance(
         tripDocumentReference
             .collection(FirestoreCollections.expenseCollectionName),
         (documentSnapshot) =>
@@ -66,12 +62,12 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
             StandaloneExpenseModelImplementation.fromModelFacade(
                 expenseModelFacade: expenseModelFacade));
 
-    var itineraries = await ItineraryCollection.createInstance(
+    var itineraries = ItineraryCollection.createInstance(
         transitCollection: transitModelCollection,
         lodgingCollection: lodgingModelCollection,
         tripMetadata: tripMetadata);
 
-    var budgetingModule = await BudgetingModule.createInstance(
+    var budgetingModule = BudgetingModule.createInstance(
         transitModelCollection,
         lodgingModelCollection,
         expenseModelCollection,
@@ -89,8 +85,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         expenseModelCollection,
         itineraries,
         apiServicesRepository.currencyConverter,
-        budgetingModule,
-        appLocalizations);
+        budgetingModule);
   }
 
   @override
@@ -115,15 +110,28 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   @override
   final BudgetingModuleEventHandler budgetingModule;
 
-  late final TripMetadataUpdateExecutor _tripMetadataUpdateExecutor;
+  final StreamController<bool> _isFullyLoadedController =
+      StreamController<bool>.broadcast(sync: true);
 
   @override
-  Future<void> applyUpdatePlan(TripMetadataUpdatePlan plan) async {
+  Stream<bool> get isFullyLoaded => _isFullyLoadedController.stream;
+
+  bool _isFullyLoadedValue = false;
+
+  @override
+  bool get isFullyLoadedValue => _isFullyLoadedValue;
+
+  late final TripEntityDataUpdatePlanService _updatePlanService;
+
+  @override
+  Future<void> applyUpdatePlan(TripEntityUpdatePlan plan) async {
     // Execute the update plan
-    await _tripMetadataUpdateExecutor.execute(plan);
+    await _updatePlanService.execute(plan);
 
     // Update local metadata copy
-    _tripMetadataModelImplementation.copyWith(plan.newMetadata);
+    if (plan is TripEntityUpdatePlan<TripMetadataFacade>) {
+      _tripMetadataModelImplementation.copyWith(plan.newEntity);
+    }
   }
 
   @override
@@ -135,15 +143,11 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
 
     if (didCurrencyChange) {
       budgetingModule.updateCurrency(tripMetadata.budget.currency);
+      await budgetingModule.recalculateTotalExpenditure();
     }
 
     _tripMetadataModelImplementation.copyWith(tripMetadata);
   }
-
-  @override
-  Iterable<TransitOptionMetadata> get transitOptionMetadatas =>
-      _transitOptionMetadatas;
-  final Iterable<TransitOptionMetadata> _transitOptionMetadatas;
 
   @override
   Future dispose() async {
@@ -152,52 +156,7 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     await expenseCollection.dispose();
     await itineraryCollection.dispose();
     await budgetingModule.dispose();
-  }
-
-  static Iterable<TransitOptionMetadata> _initializeIconsAndTransitOptions(
-      AppLocalizations appLocalizations) {
-    var transitOptionMetadataList = <TransitOptionMetadata>[];
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.publicTransport,
-        icon: Icons.emoji_transportation_rounded,
-        name: appLocalizations.publicTransit));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.flight,
-        icon: Icons.flight_rounded,
-        name: appLocalizations.flight));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.bus,
-        icon: Icons.directions_bus_rounded,
-        name: appLocalizations.bus));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.cruise,
-        icon: Icons.kayaking_rounded,
-        name: appLocalizations.cruise));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.ferry,
-        icon: Icons.directions_ferry_outlined,
-        name: appLocalizations.ferry));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.rentedVehicle,
-        icon: Icons.car_rental_rounded,
-        name: appLocalizations.carRental));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.train,
-        icon: Icons.train_rounded,
-        name: appLocalizations.train));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.vehicle,
-        icon: Icons.bike_scooter_rounded,
-        name: appLocalizations.personalVehicle));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.walk,
-        icon: Icons.directions_walk_rounded,
-        name: appLocalizations.walk));
-    transitOptionMetadataList.add(TransitOptionMetadata(
-        transitOption: TransitOption.taxi,
-        icon: Icons.local_taxi_rounded,
-        name: appLocalizations.taxi));
-    return transitOptionMetadataList;
+    await _isFullyLoadedController.close();
   }
 
   TripDataModelImplementation._(
@@ -207,17 +166,25 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       this.expenseCollection,
       this.itineraryCollection,
       this.currencyConverter,
-      this.budgetingModule,
-      AppLocalizations appLocalisations)
-      : _tripMetadataModelImplementation = tripMetadata,
-        _transitOptionMetadatas =
-            _initializeIconsAndTransitOptions(appLocalisations) {
-    _tripMetadataUpdateExecutor = TripMetadataUpdateExecutor(
+      this.budgetingModule)
+      : _tripMetadataModelImplementation = tripMetadata {
+    _updatePlanService = TripEntityDataUpdatePlanService(
       transitCollection: transitCollection,
       lodgingCollection: lodgingCollection,
       expenseCollection: expenseCollection,
       itineraryCollection: itineraryCollection,
       budgetingModule: budgetingModule,
     );
+    transitCollection.onLoaded.listen(checkLoadedStatus);
+    lodgingCollection.onLoaded.listen(checkLoadedStatus);
+    expenseCollection.onLoaded.listen(checkLoadedStatus);
+    checkLoadedStatus(null);
+  }
+
+  void checkLoadedStatus(_) {
+    _isFullyLoadedValue = transitCollection.isLoaded &&
+        lodgingCollection.isLoaded &&
+        expenseCollection.isLoaded;
+    _isFullyLoadedController.add(_isFullyLoadedValue);
   }
 }

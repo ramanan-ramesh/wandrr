@@ -1965,7 +1965,7 @@
   },
   {
     "name": "Enter Air",
-    "iata": "OF"
+    "iata": "E4"
   },
   {
     "name": "Eos Airlines",
@@ -2584,6 +2584,10 @@
     "iata": "MR"
   },
   {
+    "name": "Air Haifa",
+    "iata": "E2"
+  },
+  {
     "name": "Island Air Express",
     "iata": "I4"
   },
@@ -2910,6 +2914,10 @@
   {
     "name": "Juneyao Airlines",
     "iata": "HO"
+  },
+  {
+    "name": "PSA Airlines",
+    "iata": "OH"
   },
   {
     "name": "Kharkiv Airlines",
@@ -4224,6 +4232,10 @@
     "iata": "RT"
   },
   {
+    "name": "Jetsmart Argentina",
+    "iata": "WJ"
+  },
+  {
     "name": "Scoot",
     "iata": "TR"
   },
@@ -4872,7 +4884,7 @@
     "iata": "TI"
   },
   {
-    "name": "TAM  Mercosur",
+    "name": "TAM Mercosur",
     "iata": "PZ"
   },
   {
@@ -4884,11 +4896,11 @@
     "iata": "QT"
   },
   {
-    "name": "Tandem  Aero",
+    "name": "Tandem Aero",
     "iata": "TQ"
   },
   {
-    "name": "TAP  Portugal",
+    "name": "TAP Portugal",
     "iata": "TP"
   },
   {
@@ -4904,11 +4916,11 @@
     "iata": "HJ"
   },
   {
-    "name": "Tassili  Airlines",
+    "name": "Tassili Airlines",
     "iata": "SF"
   },
   {
-    "name": "Tavrey  Airlines",
+    "name": "Tavrey Airlines",
     "iata": "T6"
   },
   {
@@ -4916,7 +4928,7 @@
     "iata": "L6"
   },
   {
-    "name": "Teamline  Air",
+    "name": "Teamline Air",
     "iata": "L9"
   },
   {
@@ -4928,15 +4940,15 @@
     "iata": "K9"
   },
   {
-    "name": "Thai  Air Cargo",
+    "name": "Thai Air Cargo",
     "iata": "T2"
   },
   {
-    "name": "Thai  AirAsia",
+    "name": "Thai AirAsia",
     "iata": "FD"
   },
   {
-    "name": "Thai  AirAsia X",
+    "name": "Thai AirAsia X",
     "iata": "XJ"
   },
   {
@@ -4944,7 +4956,7 @@
     "iata": "TG"
   },
   {
-    "name": "Thai  Lion Mentari",
+    "name": "Thai Lion Mentari",
     "iata": "SL"
   },
   {
@@ -4952,7 +4964,7 @@
     "iata": "9I"
   },
   {
-    "name": "Thai Smile  Airways",
+    "name": "Thai Smile Airways",
     "iata": "WE"
   },
   {
@@ -4960,7 +4972,7 @@
     "iata": "T9"
   },
   {
-    "name": "Thai  Vietjet Air",
+    "name": "Thai Vietjet Air",
     "iata": "VZ"
   },
   {
@@ -4976,7 +4988,7 @@
     "iata": "MT"
   },
   {
-    "name": "Tianjin  Airlines",
+    "name": "Tianjin Airlines",
     "iata": "GS"
   },
   {
@@ -4988,19 +5000,19 @@
     "iata": "TT"
   },
   {
-    "name": "Tigerair  Singapore",
+    "name": "Tigerair Singapore",
     "iata": "TR"
   },
   {
-    "name": "Tigerair  Taiwan",
+    "name": "Tigerair Taiwan",
     "iata": "IT"
   },
   {
-    "name": "Titan  Airways",
+    "name": "Titan Airways",
     "iata": "ZT"
   },
   {
-    "name": "TNT  Airways",
+    "name": "TNT Airways",
     "iata": "3V"
   },
   {
@@ -5008,7 +5020,7 @@
     "iata": "7T"
   },
   {
-    "name": "Tol-Air  Services",
+    "name": "Tol-Air Services",
     "iata": "TI"
   },
   {
@@ -5016,7 +5028,7 @@
     "iata": "TJ"
   },
   {
-    "name": "Trans  Mediterranean Airlines",
+    "name": "Trans Mediterranean Airlines",
     "iata": "TL"
   },
   {
@@ -5036,7 +5048,7 @@
     "iata": "GE"
   },
   {
-    "name": "Transavia  France",
+    "name": "Transavia France",
     "iata": "TO"
   },
   {
@@ -5068,11 +5080,11 @@
     "iata": "TX"
   },
   {
-    "name": "Transports et Travaux  Aériens de Madagascar",
+    "name": "Transports et Travaux Aériens de Madagascar",
     "iata": "OF"
   },
   {
-    "name": "Transwest  Air",
+    "name": "Transwest Air",
     "iata": "9T"
   },
   {
@@ -5096,7 +5108,7 @@
     "iata": "PM"
   },
   {
-    "name": "Tropical  Airways",
+    "name": "Tropical Airways",
     "iata": "M7"
   },
   {
@@ -5104,11 +5116,11 @@
     "iata": "TZ"
   },
   {
-    "name": "TUI  Airways",
+    "name": "TUI Airways",
     "iata": "BY"
   },
   {
-    "name": "TUI  fly Belgium",
+    "name": "TUI fly Belgium",
     "iata": "TB"
   },
   {
@@ -5120,7 +5132,7 @@
     "iata": "OR"
   },
   {
-    "name": "TUI  fly Nordic",
+    "name": "TUI fly Nordic",
     "iata": "6B"
   },
   {
@@ -5140,7 +5152,7 @@
     "iata": "3T"
   },
   {
-    "name": "Turkish  Airlines",
+    "name": "Turkish Airlines",
     "iata": "TK"
   },
   {
@@ -5156,7 +5168,7 @@
     "iata": "T7"
   },
   {
-    "name": "Tyrolean  Airways",
+    "name": "Tyrolean Airways",
     "iata": "VO"
   },
   {
@@ -5486,6 +5498,10 @@
   {
     "name": "WestJet Encore",
     "iata": "WR"
+  },
+  {
+    "name": "JetSmart Argentina",
+    "iata": "WJ"
   },
   {
     "name": "Express Air Cargo",

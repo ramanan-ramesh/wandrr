@@ -4,14 +4,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/itinerary/itinerary.dart';
-import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
+import 'package:wandrr/data/trip/implementations/collection_names.dart';
 
 import 'itinerary_plan_data_implementation.dart';
 
@@ -22,17 +22,17 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
   DateTime _endDate;
   List<ItineraryModelEventHandler> _itineraries;
 
-  static Future<ItineraryCollection> createInstance({
+  static ItineraryCollection createInstance({
     required ModelCollectionFacade<TransitFacade> transitCollection,
     required ModelCollectionFacade<LodgingFacade> lodgingCollection,
     required TripMetadataFacade tripMetadata,
-  }) async {
-    final itineraries = await _createItineraryList(
+  }) {
+    final itineraries = _createItineraryList(
       tripMetadata: tripMetadata,
       transitCollection: transitCollection,
       lodgingCollection: lodgingCollection,
     );
-    return ItineraryCollection._(
+    var collection = ItineraryCollection._(
       transitCollection: transitCollection,
       lodgingCollection: lodgingCollection,
       tripId: tripMetadata.id!,
@@ -40,6 +40,19 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
       endDate: tripMetadata.endDate!,
       itineraries: itineraries,
     );
+
+    // Reconcile items that may have arrived during `_createItineraryList` awaits
+    // avoiding the silent missing items bug.
+    for (var transit in transitCollection.collectionItems) {
+      collection._addOrRemoveTransitToItinerary(transit, false);
+    }
+    for (var lodging in lodgingCollection.collectionItems) {
+      collection._addOrRemoveLodgingToItinerary(lodging, false);
+    }
+    
+    collection._listenToItineraryDataCollection();
+
+    return collection;
   }
 
   @override
@@ -77,8 +90,8 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
     WriteBatch batch,
     DateTime startDate,
     DateTime endDate,
-    Iterable<EntityChange<SightFacade>> sightChanges,
-    Iterable<EntityChange<ExpenseBearingTripEntity>> expenseChanges,
+    Iterable<SightChange> sightChanges,
+    Iterable<ExpenseSplitChange> expenseChanges,
   ) async {
     final oldDates = _getDateRange(_startDate, _endDate);
     final newDates = _getDateRange(startDate, endDate);
@@ -127,7 +140,7 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
       }
 
       //Create an itinerary with just ItineraryPlanData for now. Transits and Stays should be filled when batch commits succeed and ModelCollection events fire.
-      var itinerary = await ItineraryModelImplementation.createInstance(
+      var itinerary = ItineraryModelImplementation.createInstance(
         tripId: tripId,
         day: date,
         transits: [],
@@ -190,8 +203,8 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
 
   /// Builds organized sight operations from change lists
   _SightOperations _buildSightOperations(
-    Iterable<EntityChange<SightFacade>> sightChanges,
-    Iterable<EntityChange<ExpenseBearingTripEntity>> expenseChanges,
+    Iterable<SightChange> sightChanges,
+    Iterable<ExpenseSplitChange> expenseChanges,
     DateTime startDate,
     DateTime endDate,
   ) {
@@ -201,15 +214,15 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
     final affectedDays = <String>{};
 
     for (final change in sightChanges) {
-      final originalDay = change.originalEntity.day;
+      final originalDay = change.original.day;
       final originalDayKey = originalDay.itineraryDateFormat;
 
       if (change.isDelete) {
         sightsToRemove.putIfAbsent(originalDayKey, () => {});
-        sightsToRemove[originalDayKey]!.add(change.originalEntity.id!);
+        sightsToRemove[originalDayKey]!.add(change.original.id!);
         affectedDays.add(originalDayKey);
       } else if (change.isUpdate) {
-        final modifiedSight = change.modifiedEntity;
+        final modifiedSight = change.modified;
         final newDay = modifiedSight.day;
         final newDayKey = newDay.itineraryDateFormat;
 
@@ -220,16 +233,15 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
 
         // Apply expense update if exists
         final expenseChange = expenseChanges.singleWhereOrNull((e) =>
-            e.originalEntity is SightFacade &&
-            e.originalEntity.id == modifiedSight.id);
+            e.original is SightFacade && e.original.id == modifiedSight.id);
         if (expenseChange != null) {
-          modifiedSight.expense = expenseChange.modifiedEntity.expense;
+          modifiedSight.expense = expenseChange.modified.expense;
         }
 
         if (!originalDay.isOnSameDayAs(newDay)) {
           // Moving to different day
           sightsToRemove.putIfAbsent(originalDayKey, () => {});
-          sightsToRemove[originalDayKey]!.add(change.originalEntity.id!);
+          sightsToRemove[originalDayKey]!.add(change.original.id!);
           affectedDays.add(originalDayKey);
 
           if (modifiedSight.validate()) {
@@ -260,11 +272,71 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
         .singleWhere((itinerary) => itinerary.day.isOnSameDayAs(dateTime));
   }
 
-  static Future<List<ItineraryModelEventHandler>> _createItineraryList({
+  @override
+  Future<Future<void> Function()> prepareSightUpdates(
+    WriteBatch batch,
+    Iterable<SightChange> sightChanges,
+  ) async {
+    if (sightChanges.isEmpty) {
+      return () async {};
+    }
+
+    // Build sight operations using current trip date range
+    final sightOps = _buildSightOperations(
+      sightChanges,
+      [], // No expense changes for pure sight updates
+      _startDate,
+      _endDate,
+    );
+
+    // Process each affected day
+    for (final dayKey in sightOps.affectedDays) {
+      final itinerary = _itineraries
+          .firstWhereOrNull((it) => it.day.itineraryDateFormat == dayKey);
+      if (itinerary == null) continue;
+
+      // Build updated sights list
+      final currentSights = List<SightFacade>.from(itinerary.planData.sights);
+
+      // Apply updates
+      for (final sight in sightOps.sightsToUpdate[dayKey] ?? <SightFacade>[]) {
+        final idx = currentSights.indexWhere((s) => s.id == sight.id);
+        if (idx >= 0) {
+          currentSights[idx] = sight;
+        }
+      }
+
+      // Apply removals
+      final toRemove = sightOps.sightsToRemove[dayKey] ?? {};
+      currentSights.removeWhere((s) => toRemove.contains(s.id));
+
+      // Apply additions
+      currentSights.addAll(sightOps.sightsToAdd[dayKey] ?? []);
+
+      // Create updated plan data
+      final updatedPlanData = ItineraryPlanDataModelImplementation(
+        tripId: tripId,
+        id: dayKey,
+        day: itinerary.day,
+        sights: currentSights,
+        notes: itinerary.planData.notes.toList(),
+        checkLists: itinerary.planData.checkLists.toList(),
+      );
+
+      batch.set(updatedPlanData.documentReference, updatedPlanData.toJson());
+    }
+
+    // Return function to update local state after batch commits
+    return () async {
+      // Local state updates will happen via stream listeners
+    };
+  }
+
+  static List<ItineraryModelEventHandler> _createItineraryList({
     required TripMetadataFacade tripMetadata,
     required ModelCollectionFacade<TransitFacade> transitCollection,
     required ModelCollectionFacade<LodgingFacade> lodgingCollection,
-  }) async {
+  }) {
     final startDate = tripMetadata.startDate!;
     final endDate = tripMetadata.endDate!;
     final numberOfDays =
@@ -301,10 +373,10 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
                   .isBefore(lodging.checkoutDateTime!))
           .firstOrNull;
 
-      var itinerary = await ItineraryModelImplementation.createInstance(
+      var itinerary = ItineraryModelImplementation.createInstance(
         tripId: tripMetadata.id!,
         day: day,
-        transits: transits,
+        transits: transits.toList(),
         checkinLodging: checkinLodging,
         checkoutLodging: checkoutLodging,
         fullDayLodging: fullDayLodging,
@@ -459,6 +531,35 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
         _endDate = endDate,
         _itineraries = itineraries {
     _initializeListeners(transitCollection, lodgingCollection);
+  }
+
+  void _listenToItineraryDataCollection() {
+    final collectionRef = FirebaseFirestore.instance
+        .collection(FirestoreCollections.tripCollectionName)
+        .doc(tripId)
+        .collection(FirestoreCollections.itineraryDataCollectionName);
+
+    _subscriptions.add(collectionRef.snapshots().listen((snapshot) {
+      for (final docChange in snapshot.docChanges) {
+        final doc = docChange.doc;
+        if (!doc.exists) continue;
+        
+        final dayKey = doc.id;
+        final matchingItinerary = _itineraries.firstWhereOrNull(
+          (it) => it.planData.id == dayKey,
+        );
+
+        if (matchingItinerary != null) {
+          final planDataModel = ItineraryPlanDataModelImplementation.fromDocumentSnapshot(
+            tripId: tripId,
+            documentData: doc.data() as Map<String, dynamic>,
+            day: matchingItinerary.day,
+          );
+          (matchingItinerary as ItineraryModelImplementation)
+              .updatePlanDataFromRemote(planDataModel);
+        }
+      }
+    }));
   }
 }
 

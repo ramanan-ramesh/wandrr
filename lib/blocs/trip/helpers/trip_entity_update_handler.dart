@@ -8,7 +8,9 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 /// Handles CRUD operations for trip entities
 class TripEntityUpdateHandler {
-  /// Processes and emits state for a trip entity update
+  const TripEntityUpdateHandler();
+
+  /// Processes and updates a trip entity through CRUD operations
   Future<void> updateTripEntityAndEmitState<E extends TripEntity>({
     required E tripEntity,
     required DataState requestedDataState,
@@ -79,21 +81,9 @@ class TripEntityUpdateHandler {
     ModelCollectionModifier<E> modelCollection,
     Emitter<TripManagementState> emit,
   ) async {
-    var tripEntityId = tripEntity.id;
-    if (tripEntityId == null || tripEntityId.isEmpty) {
-      emit(UpdatedTripEntity<E>.deleted(
-        tripEntityModificationData: CollectionItemChangeMetadata(
-          tripEntity,
-          isFromExplicitAction: true,
-        ),
-        isOperationSuccess: true,
-      ));
-      return;
-    }
-
     final entityExists = modelCollection.collectionItems
         .whereType<TripEntity>()
-        .any((element) => element.id == tripEntityId);
+        .any((element) => element.id == tripEntity.id);
 
     if (!entityExists) return;
 
@@ -117,7 +107,7 @@ class TripEntityUpdateHandler {
     if (tripEntityId == null || tripEntityId.isEmpty) return;
 
     final collectionItem = modelCollection.collectionItems
-        .whereType<TripEntity>()
+        .whereType<E>()
         .where((element) => element.id == tripEntityId)
         .firstOrNull;
 
@@ -126,7 +116,7 @@ class TripEntityUpdateHandler {
     final didUpdate = await modelCollection.tryUpdateItem(tripEntity);
     emit(UpdatedTripEntity.updated(
       tripEntityModificationData: CollectionItemChangeMetadata(
-        CollectionItemChangeSet<E>(collectionItem as E, tripEntity),
+        CollectionItemChangeSet<E>(collectionItem, tripEntity),
         isFromExplicitAction: true,
       ),
       isOperationSuccess: didUpdate,

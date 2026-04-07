@@ -12,6 +12,10 @@ extension DateTimeExt on DateTime {
   bool isOnSameDayAs(DateTime dateTime) =>
       year == dateTime.year && month == dateTime.month && day == dateTime.day;
 
+  int differenceInDays(DateTime dateTime) => DateTime(year, month, day)
+      .difference(DateTime(dateTime.year, dateTime.month, dateTime.day))
+      .inDays;
+
   String get itineraryDateFormat =>
       DateFormat('ddMMyyyy').format(this); // 24092025
   String get dayDateMonthFormat =>

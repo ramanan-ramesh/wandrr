@@ -12,7 +12,10 @@ class BreakdownByDayChart extends StatefulWidget {
   State<BreakdownByDayChart> createState() => _BreakdownByDayChartState();
 }
 
-class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
+class _BreakdownByDayChartState extends State<BreakdownByDayChart>
+    with AutomaticKeepAliveClientMixin {
+  late final Future<Map<DateTime, double>> _dataFuture;
+
   // UI constants
   static const double _kMinHeight = 300;
   static const double _kMaxHeight = 500;
@@ -21,17 +24,28 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart> {
   static const double _kTitleFontSize = 16.0;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    final activeTrip = context.activeTrip;
+    _dataFuture = activeTrip.budgetingModule.retrieveTotalExpensePerDay(
+      activeTrip.tripMetadata.startDate!,
+      activeTrip.tripMetadata.endDate!,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context); // required by AutomaticKeepAliveClientMixin
     final activeTrip = context.activeTrip;
     final budgetingModule = activeTrip.budgetingModule;
     final tripMetadata = activeTrip.tripMetadata;
     final budgetCurrency = tripMetadata.budget.currency;
 
     return FutureBuilder<Map<DateTime, double>>(
-      future: budgetingModule.retrieveTotalExpensePerDay(
-        tripMetadata.startDate!,
-        tripMetadata.endDate!,
-      ),
+      future: _dataFuture,
       builder: (context, snapshot) {
         final isDone = snapshot.connectionState == ConnectionState.done;
         final data = snapshot.data;

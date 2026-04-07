@@ -13,6 +13,11 @@ class TransitFacade extends Equatable
   @override
   String? id;
 
+  /// If set, this leg is part of a multi-leg journey.
+  /// All legs with the same journeyId are connected.
+  /// If null, this is a standalone transit leg.
+  String? journeyId;
+
   TransitOption transitOption;
 
   LocationFacade? departureLocation;
@@ -52,6 +57,7 @@ class TransitFacade extends Equatable
       required this.departureLocation,
       required this.arrivalLocation,
       required this.expense,
+      this.journeyId,
       this.confirmationId,
       this.id,
       this.operator,
@@ -63,6 +69,7 @@ class TransitFacade extends Equatable
       required this.transitOption,
       required Iterable<String> allTripContributors,
       required String defaultCurrency,
+      this.journeyId,
       String? notes})
       : notes = notes ?? '',
         expense = ExpenseFacade(
@@ -80,6 +87,7 @@ class TransitFacade extends Equatable
       departureLocation: departureLocation?.clone(),
       arrivalLocation: arrivalLocation?.clone(),
       expense: expense.clone(),
+      journeyId: journeyId,
       confirmationId: confirmationId,
       id: id,
       operator: operator,
@@ -92,6 +100,7 @@ class TransitFacade extends Equatable
     departureLocation = transitModelFacade.departureLocation;
     arrivalLocation = transitModelFacade.arrivalLocation;
     expense = transitModelFacade.expense;
+    journeyId = transitModelFacade.journeyId;
     confirmationId = transitModelFacade.confirmationId;
     operator = transitModelFacade.operator;
     notes = transitModelFacade.notes;
@@ -179,6 +188,7 @@ class TransitFacade extends Equatable
         departureLocation,
         arrivalLocation,
         expense,
+        journeyId,
         confirmationId,
         id,
         operator,

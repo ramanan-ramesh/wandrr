@@ -51,11 +51,16 @@ class _PlatformExpenseAmountEditFieldState
   @override
   void didUpdateWidget(covariant PlatformExpenseAmountEditField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.amount != _amount) {
+    // Only update the controller text when the amount prop is provided externally
+    // AND there is no externally-managed controller. When an external controller
+    // is passed, the caller owns the controller state — we must not override it.
+    if (widget.controller == null &&
+        widget.amount != null &&
+        widget.amount != _amount) {
       _amount = widget.amount;
-      _controller.text = (widget.amount != null
-          ? (double.parse(widget.amount!) == 0 ? '0' : widget.amount)
-          : widget.amount ?? '')!;
+      final newText =
+          double.tryParse(widget.amount!) == 0 ? '0' : (widget.amount ?? '');
+      _controller.text = newText;
     }
   }
 
@@ -100,6 +105,7 @@ class _PlatformExpenseAmountEditFieldState
 
 class _DecimalTextInputFormatter extends TextInputFormatter {
   final int decimalRange;
+  static final RegExp _allowedPattern = RegExp(r'^[0-9]*\.?[0-9]*$');
 
   _DecimalTextInputFormatter({this.decimalRange = 2})
       : assert(decimalRange > 0);
@@ -111,8 +117,17 @@ class _DecimalTextInputFormatter extends TextInputFormatter {
   ) {
     var newSelection = newValue.selection;
     var truncated = newValue.text;
-
     var value = newValue.text;
+
+    // Allow empty string
+    if (value.isEmpty) {
+      return newValue;
+    }
+
+    // Reject if the new value doesn't match allowed pattern (digits and decimal)
+    if (!_allowedPattern.hasMatch(value)) {
+      return oldValue;
+    }
 
     // Check if more than one decimal point exists
     if (value.indexOf('.') != value.lastIndexOf('.')) {

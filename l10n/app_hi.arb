@@ -101,6 +101,7 @@
   "noSuchUserExists": "ऐसा कोई उपयोगकर्ता नाम मौजूद नहीं है| आप इसके बजाय पंजीकरण कर सकते हैं",
   "noTransitsCreated": "आपने अभी तक कोई ट्रांजिट नहीं जोड़ा है.",
   "noTripsCreated": "कोई आगामी यात्रा नहीं? एक नई यात्रा बनाने का आनंद लें!",
+  "note": "टिप्पणी",
   "noteCannotBeEmpty": "टिप्पणी खाली नहीं हो सकती",
   "notes": "टिप्पणियाँ",
   "oldToNew": "दिनांक: पुराने से नवीनतम",
@@ -154,5 +155,11 @@
   "writeYourNoteHere": "अपनी टिप्पणी यहाँ लिखें",
   "wrong_password_entered": "गलत पासवर्ड दर्ज किया गया",
   "yes": "हाँ",
-  "you": "आप"
+  "you": "आप",
+  "copyTrip": "Copy Trip",
+  "copyTripTitle": "Copy Trip",
+  "chooseStartDate": "Choose a start date",
+  "tripDatesShifted": "Trip dates shifted from {oldDates} to {newDates}",
+  "upcomingTrips": "Upcoming Trips",
+  "pastTrips": "Past Trips"
 }

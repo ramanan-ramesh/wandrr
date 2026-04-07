@@ -6,13 +6,13 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 
 /// Manages all stream subscriptions for the TripManagementBloc
 class SubscriptionManager {
-  final _tripStreamSubscriptions = <StreamSubscription>[];
+  final _tripDataStreamSubscriptions = <StreamSubscription>[];
   final _tripRepositorySubscriptions = <StreamSubscription>[];
   final _itineraryPlanDataSubscriptions = <StreamSubscription>[];
 
   /// Adds a trip stream subscription to the manager
   void addTripStreamSubscription(StreamSubscription subscription) {
-    _tripStreamSubscriptions.add(subscription);
+    _tripDataStreamSubscriptions.add(subscription);
   }
 
   /// Adds a trip repository subscription to the manager
@@ -71,9 +71,9 @@ class SubscriptionManager {
   }
 
   /// Clears all trip stream subscriptions
-  Future<void> clearTripSubscriptions() async {
-    await _cancelSubscriptions(_tripStreamSubscriptions);
-    _tripStreamSubscriptions.clear();
+  Future<void> clearTripDataSubscriptions() async {
+    await _cancelSubscriptions(_tripDataStreamSubscriptions);
+    _tripDataStreamSubscriptions.clear();
     await clearItineraryPlanDataSubscriptions();
   }
 
@@ -99,7 +99,7 @@ class SubscriptionManager {
 
   /// Disposes all subscriptions
   Future<void> dispose() async {
-    await clearTripSubscriptions();
+    await clearTripDataSubscriptions();
     await clearRepositorySubscriptions();
   }
 }

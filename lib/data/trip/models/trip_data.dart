@@ -1,13 +1,12 @@
 import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
-import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
+import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 
 import 'budgeting/budgeting_module.dart';
 import 'budgeting/expense.dart';
 import 'lodging.dart';
 import 'transit.dart';
-import 'transit_option_metadata.dart';
 import 'trip_metadata.dart';
 
 abstract class TripDataFacade {
@@ -23,8 +22,11 @@ abstract class TripDataFacade {
 
   BudgetingModuleFacade get budgetingModule;
 
-  //TODO: Is repository the right place for localizations related constants? If so, then create a repository at TripEditor page level only
-  Iterable<TransitOptionMetadata> get transitOptionMetadatas;
+  /// Stream that emits true when all trip data collections are fully loaded
+  Stream<bool> get isFullyLoaded;
+
+  /// Current loading status - true if fully loaded, false otherwise
+  bool get isFullyLoadedValue;
 }
 
 abstract class TripDataModelEventHandler extends TripDataFacade
@@ -41,7 +43,7 @@ abstract class TripDataModelEventHandler extends TripDataFacade
   /// 2. Update/delete transits, stays, sights, expenses (entity changes)
   /// 3. Update itinerary days (add/remove days)
   /// 4. Recalculate total expenditure
-  Future<void> applyUpdatePlan(TripMetadataUpdatePlan plan);
+  Future<void> applyUpdatePlan(TripEntityUpdatePlan plan);
 
   ItineraryFacadeCollectionEventHandler get itineraryCollection;
 

@@ -1,12 +1,28 @@
+import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/events.dart';
+import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/widgets/date_picker.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/editor_page_factory.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class TripEntityCreatorBottomSheet extends StatefulWidget {
   final Iterable<TripEditorAction> supportedActions;
 
-  TripEntityCreatorBottomSheet({super.key, required this.supportedActions});
+  /// Notifier for the currently displayed itinerary day.
+  /// Used to know which day to create new itinerary items for.
+  final DateTime currentlyDisplayedItineraryDate;
+
+  const TripEntityCreatorBottomSheet({
+    super.key,
+    required this.supportedActions,
+    required this.currentlyDisplayedItineraryDate,
+  });
 
   @override
   State<TripEntityCreatorBottomSheet> createState() =>
@@ -16,6 +32,17 @@ class TripEntityCreatorBottomSheet extends StatefulWidget {
 class _TripEntityCreatorBottomSheetState
     extends State<TripEntityCreatorBottomSheet> {
   TripEditorAction? selectedAction;
+  Widget? _cachedEditorPage;
+
+  /// The day that will be used when creating a new itinerary item.
+  /// Defaults to the currently displayed itinerary day; the user may change it.
+  late DateTime _selectedDay;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDay = widget.currentlyDisplayedItineraryDate;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,39 +61,55 @@ class _TripEntityCreatorBottomSheetState
           return _createSupportedActionsListView(
               scrollController, _bottomPadding);
         }
-        var tripEntityToAdd = selectedAction!.createTripEntity(context);
-        return selectedAction!.createActionPage(
-            tripEntity: tripEntityToAdd,
-            isEditing: false,
-            onClosePressed: (context) => setState(() {
-                  selectedAction = null;
-                }),
-            scrollController: scrollController,
-            title:
-                selectedAction!.createSubtitle(context.localizations, false))!;
+        // Build the editor page once and cache it. Subsequent builder calls
+        // (from scrolling) reuse the cached widget so editableClone/keys
+        // remain stable.
+        _cachedEditorPage ??= _buildEditorPage(context, scrollController);
+        return _cachedEditorPage!;
       },
     );
   }
 
+  Widget _buildEditorPage(
+      BuildContext context, ScrollController scrollController) {
+    final entity = selectedAction!.createEntity(context);
+    final factory = EditorPageFactory(
+      tripData: context.activeTrip,
+      title: selectedAction!.getSubtitle(context.localizations, false),
+      isEditing: false,
+      onClosePressed: () => setState(() {
+        selectedAction = null;
+        _cachedEditorPage = null;
+      }),
+      scrollController: scrollController,
+    );
+    return factory.createPage(entity) ?? const SizedBox.shrink();
+  }
+
   Widget _createSupportedActionsListView(
       ScrollController scrollController, double bottomPadding) {
+    // Build the list: supported actions + itinerary item tile
+    final tiles = <Widget>[
+      ...widget.supportedActions.map(
+        (action) => _buildSupportedActionTile(action, context),
+      ),
+      _buildItineraryItemTile(context),
+    ];
+
     return ListView.separated(
       controller: scrollController,
       padding: EdgeInsets.only(bottom: bottomPadding),
       separatorBuilder: (context, index) => const SizedBox(height: 12.0),
-      itemBuilder: (BuildContext context, int index) {
-        var supportedAction = widget.supportedActions.elementAt(index);
-        return _buildSupportedActionTile(supportedAction, context);
-      },
-      itemCount: widget.supportedActions.length,
+      itemBuilder: (BuildContext context, int index) => tiles[index],
+      itemCount: tiles.length,
     );
   }
 
   Widget _buildSupportedActionTile(
       TripEditorAction action, BuildContext context) {
     final icon = action.icon;
-    final title = action.getTripEntityCreatorTitle(context.localizations);
-    final subtitle = action.createSubtitle(context.localizations, false);
+    final title = action.getCreatorTitle(context.localizations);
+    final subtitle = action.getSubtitle(context.localizations, false);
     return ListTile(
       key: ValueKey('TripEntityCreator_Action_ListTile'),
       contentPadding: const EdgeInsets.all(20.0),
@@ -100,6 +143,150 @@ class _TripEntityCreatorBottomSheetState
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
       subtitle: Text(subtitle),
+    );
+  }
+
+  /// Builds the "Itinerary Item" tile with a day selector and three sub-action buttons.
+  Widget _buildItineraryItemTile(BuildContext context) {
+    final tripMetadata = context.activeTrip.tripMetadata;
+    final startDate = tripMetadata.startDate!;
+    final endDate = tripMetadata.endDate!;
+
+    return ListTile(
+      contentPadding: const EdgeInsets.all(20.0),
+      leading: Container(
+        padding: const EdgeInsets.all(12.0),
+        decoration: BoxDecoration(
+          color: Theme.of(context).iconTheme.color!.withAlpha(51),
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(Icons.travel_explore_rounded, size: 28.0),
+      ),
+      title: Row(
+        children: [
+          Text(
+            context.localizations.itinerary,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(width: 8),
+          _ItineraryDaySelector(
+            selectedDay: _selectedDay,
+            startDate: startDate,
+            endDate: endDate,
+            onDaySelected: (day) => setState(() => _selectedDay = day),
+          ),
+        ],
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Sub-action buttons ────────────────────────────────────────────
+          Row(
+            children: [
+              _ItinerarySubAction(
+                icon: Icons.place_rounded,
+                label: context.localizations.sight,
+                onTap: () => _onItinerarySubActionTapped(PlanDataType.sight),
+              ),
+              const SizedBox(width: 12),
+              _ItinerarySubAction(
+                icon: Icons.note_add_rounded,
+                label: context.localizations.note,
+                onTap: () => _onItinerarySubActionTapped(PlanDataType.note),
+              ),
+              const SizedBox(width: 12),
+              _ItinerarySubAction(
+                icon: Icons.checklist_rounded,
+                label: context.localizations.checklist,
+                onTap: () =>
+                    _onItinerarySubActionTapped(PlanDataType.checklist),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onItinerarySubActionTapped(PlanDataType type) {
+    final day = _selectedDay;
+    // Capture the bloc reference before pop() deactivates the context.
+    final bloc = context.read<TripManagementBloc>();
+    Navigator.of(context).pop();
+    bloc.add(
+      EditItineraryPlanData(
+        day: day,
+        planDataEditorConfig: CreateNewItineraryPlanDataComponentConfig(
+          planDataType: type,
+          date: day,
+        ),
+      ),
+    );
+  }
+}
+
+/// A compact chip-style date selector for picking the itinerary day.
+class _ItineraryDaySelector extends StatelessWidget {
+  final DateTime selectedDay;
+  final DateTime startDate;
+  final DateTime endDate;
+  final ValueChanged<DateTime> onDaySelected;
+
+  const _ItineraryDaySelector({
+    required this.selectedDay,
+    required this.startDate,
+    required this.endDate,
+    required this.onDaySelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PlatformDatePicker(
+      selectedDate: selectedDay,
+      calendarConfig: CalendarDatePicker2WithActionButtonsConfig(
+        firstDate: startDate,
+        lastDate: endDate,
+        currentDate: selectedDay,
+      ),
+      onDateSelected: onDaySelected,
+    );
+  }
+}
+
+/// A small rounded button for itinerary sub-actions (sight/note/checklist).
+class _ItinerarySubAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _ItinerarySubAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: OutlinedButton.icon(
+        onPressed: onTap,
+        icon: Icon(icon, size: 18),
+        label: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.labelMedium,
+        ),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -21,6 +21,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get addChecklist => 'चेकलिस्ट जोड़ें';
 
   @override
+  String get addConnectingLeg => 'Add Connecting Leg';
+
+  @override
   String get addPlacesForThisDay => 'इस दिन के लिए स्थान जोड़ें';
 
   @override
@@ -317,6 +320,9 @@ class AppLocalizationsHi extends AppLocalizations {
       'कोई आगामी यात्रा नहीं? एक नई यात्रा बनाने का आनंद लें!';
 
   @override
+  String get note => 'टिप्पणी';
+
+  @override
   String get noteCannotBeEmpty => 'टिप्पणी खाली नहीं हो सकती';
 
   @override
@@ -489,4 +495,24 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get you => 'आप';
+
+  @override
+  String get copyTrip => 'Copy Trip';
+
+  @override
+  String get copyTripTitle => 'Copy Trip';
+
+  @override
+  String get chooseStartDate => 'Choose a start date';
+
+  @override
+  String tripDatesShifted(String oldDates, String newDates) {
+    return 'Trip dates shifted from $oldDates to $newDates';
+  }
+
+  @override
+  String get upcomingTrips => 'Upcoming Trips';
+
+  @override
+  String get pastTrips => 'Past Trips';
 }

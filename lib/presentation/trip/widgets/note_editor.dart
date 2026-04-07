@@ -188,7 +188,7 @@ class _NoteEditorState extends State<NoteEditor>
             color: _currentLineHasBulletState ? Colors.blue : null,
           ),
           onPressed: () {
-            _toggleBulletForCurrentLine(forceAdd: !_currentLineHasBulletState);
+            _toggleBulletForSelection(forceAdd: !_currentLineHasBulletState);
             _textFieldFocusNode.requestFocus();
           },
         ),
@@ -215,12 +215,41 @@ class _NoteEditorState extends State<NoteEditor>
   }
 
   bool _currentLineHasBullet() {
-    final (lineStart, lineEnd, lineRaw) = _currentLineData();
-    if (lineStart >= lineEnd) return false;
-    final line = lineRaw.trimLeft();
-    return line.startsWith(_kBulletPrefix) ||
-        line.startsWith('- ') ||
-        line.startsWith('* ');
+    final text = _controller.text;
+    final selection = _controller.selection;
+    if (selection.start < 0) return false;
+
+    final start = selection.start;
+    final end = selection.end;
+
+    final prevNewline = start > 0 ? text.lastIndexOf('\n', start - 1) : -1;
+    final selectionStartLineStart = prevNewline + 1;
+
+    final nextNewline = text.indexOf(
+        '\n', end > start && text[end - 1] == '\n' ? end - 1 : end);
+    final selectionEndLineEnd = nextNewline == -1 ? text.length : nextNewline;
+
+    if (selectionStartLineStart >= selectionEndLineEnd) return false;
+
+    final selectedLinesRaw =
+        text.substring(selectionStartLineStart, selectionEndLineEnd);
+    final lines = selectedLinesRaw.split('\n');
+
+    bool anyNonEmpty = false;
+    for (var lineRaw in lines) {
+      final line = lineRaw.trimLeft();
+      if (line.isEmpty) continue;
+      anyNonEmpty = true;
+      final hasBullet = line.startsWith(_kBulletPrefix) ||
+          line.startsWith('- ') ||
+          line.startsWith('* ');
+      if (!hasBullet) {
+        return false;
+      }
+    }
+
+    if (!anyNonEmpty && lines.length == 1) return false;
+    return anyNonEmpty;
   }
 
   void _updateBulletState() {
@@ -232,55 +261,37 @@ class _NoteEditorState extends State<NoteEditor>
     }
   }
 
-  void _toggleBulletForCurrentLine({bool forceAdd = false}) {
+  void _toggleBulletForSelection({bool forceAdd = false}) {
     final text = _controller.text;
     final selection = _controller.selection;
-    var caret = selection.start;
-    if (caret < 0) return;
+    final start = selection.start;
+    final end = selection.end;
+    if (start < 0 || end < 0) return;
 
-    final prevNewline = caret > 0 ? text.lastIndexOf('\n', caret - 1) : -1;
-    final lineStart = prevNewline + 1;
-    final nextNewline = text.indexOf('\n', caret);
-    final lineEnd = nextNewline == -1 ? text.length : nextNewline;
-    final lineRaw = text.substring(lineStart, lineEnd);
+    final prevNewline = start > 0 ? text.lastIndexOf('\n', start - 1) : -1;
+    final selectionStartLineStart = prevNewline + 1;
 
-    // Extract leading spaces and the actual content
-    final leadingSpacesLen = lineRaw.length - lineRaw.trimLeft().length;
-    final indent = lineRaw.substring(0, leadingSpacesLen);
-    final lineContent = lineRaw.substring(leadingSpacesLen);
+    final nextNewline = text.indexOf(
+        '\n', end > start && text[end - 1] == '\n' ? end - 1 : end);
+    final selectionEndLineEnd = nextNewline == -1 ? text.length : nextNewline;
 
-    // Check if line has a bullet (after indentation)
-    final hasBullet = lineContent.startsWith(_kBulletPrefix) ||
-        lineContent.startsWith('- ') ||
-        lineContent.startsWith('* ');
+    final selectedLinesRaw =
+        text.substring(selectionStartLineStart, selectionEndLineEnd);
+    final lines = selectedLinesRaw.split('\n');
+    final updatedLines = <String>[];
 
-    String updated;
-    int caretAdjust = 0;
+    for (var lineRaw in lines) {
+      final leadingSpacesLen = lineRaw.length - lineRaw.trimLeft().length;
+      final indent = lineRaw.substring(0, leadingSpacesLen);
+      final lineContent = lineRaw.substring(leadingSpacesLen);
 
-    if (hasBullet && !forceAdd) {
-      // Remove bullet - find which prefix is used and remove it
-      String contentAfterBullet;
-      if (lineContent.startsWith(_kBulletPrefix)) {
-        contentAfterBullet = lineContent.substring(_kBulletPrefix.length);
-      } else if (lineContent.startsWith('- ')) {
-        contentAfterBullet = lineContent.substring(2);
-      } else if (lineContent.startsWith('* ')) {
-        contentAfterBullet = lineContent.substring(2);
-      } else {
-        contentAfterBullet = lineContent;
-      }
-      updated = indent + contentAfterBullet;
-      // Move cursor to start of line (after indent)
-      caretAdjust = lineStart + leadingSpacesLen - caret;
-    } else if (!hasBullet && forceAdd) {
-      // Add bullet after indentation
-      updated = indent + _kBulletPrefix + lineContent;
-      if (caret >= lineStart + leadingSpacesLen) {
-        caretAdjust = _kBulletPrefix.length;
-      }
-    } else {
-      // Toggle: same logic as above
-      if (hasBullet) {
+      final hasBullet = lineContent.startsWith(_kBulletPrefix) ||
+          lineContent.startsWith('- ') ||
+          lineContent.startsWith('* ');
+
+      String updatedLine = lineRaw;
+
+      if (hasBullet && !forceAdd) {
         String contentAfterBullet;
         if (lineContent.startsWith(_kBulletPrefix)) {
           contentAfterBullet = lineContent.substring(_kBulletPrefix.length);
@@ -291,25 +302,66 @@ class _NoteEditorState extends State<NoteEditor>
         } else {
           contentAfterBullet = lineContent;
         }
-        updated = indent + contentAfterBullet;
-        caretAdjust = lineStart + leadingSpacesLen - caret;
-      } else {
-        updated = indent + _kBulletPrefix + lineContent;
-        if (caret >= lineStart + leadingSpacesLen) {
-          caretAdjust = _kBulletPrefix.length;
-        }
+        updatedLine = indent + contentAfterBullet;
+      } else if (!hasBullet && forceAdd) {
+        updatedLine = indent + _kBulletPrefix + lineContent;
       }
+
+      updatedLines.add(updatedLine);
     }
 
-    final newText =
-        text.substring(0, lineStart) + updated + text.substring(lineEnd);
-    final newCaret = caret + caretAdjust;
+    int mapOffset(int offset) {
+      if (offset <= selectionStartLineStart) return offset;
+      int mapped = selectionStartLineStart;
+      int currentOriginalOffset = selectionStartLineStart;
+
+      for (int i = 0; i < lines.length; i++) {
+        final originalLine = lines[i];
+        final updatedLine = updatedLines[i];
+
+        int lineOriginalEnd = currentOriginalOffset + originalLine.length;
+        bool isLast = i == lines.length - 1;
+        int nextOriginalOffset = lineOriginalEnd + (isLast ? 0 : 1);
+
+        if (offset <= nextOriginalOffset) {
+          int offsetInLine = offset - currentOriginalOffset;
+          if (offsetInLine > originalLine.length) {
+            return mapped + updatedLine.length + (offset - lineOriginalEnd);
+          }
+          final leadingSpacesLen =
+              originalLine.length - originalLine.trimLeft().length;
+          int lengthDiff = updatedLine.length - originalLine.length;
+
+          if (offsetInLine >= leadingSpacesLen) {
+            int newOffsetInLine = offsetInLine + lengthDiff;
+            if (newOffsetInLine < leadingSpacesLen && lengthDiff < 0) {
+              newOffsetInLine = leadingSpacesLen;
+            }
+            return mapped + newOffsetInLine;
+          } else {
+            return mapped + offsetInLine;
+          }
+        }
+
+        mapped += updatedLine.length + (isLast ? 0 : 1);
+        currentOriginalOffset = nextOriginalOffset;
+      }
+      return mapped;
+    }
+
+    final updatedSelectionText = updatedLines.join('\n');
+    final newText = text.substring(0, selectionStartLineStart) +
+        updatedSelectionText +
+        text.substring(selectionEndLineEnd);
+
+    int newBase = mapOffset(selection.baseOffset);
+    int newExtent = mapOffset(selection.extentOffset);
 
     _previousText = newText;
     widget.note.text = newText; // Update the object
     _controller.value = TextEditingValue(
       text: newText,
-      selection: TextSelection.collapsed(offset: newCaret),
+      selection: TextSelection(baseOffset: newBase, extentOffset: newExtent),
     );
 
     // For toolbar actions, notify immediately for UI feedback

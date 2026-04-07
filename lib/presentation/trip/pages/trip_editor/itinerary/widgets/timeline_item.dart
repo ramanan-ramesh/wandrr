@@ -4,24 +4,14 @@ import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_theme_helper.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/timeline_event.dart';
 
-/// Constants for timeline styling
-class TimelineConstants {
-  static const double iconSize = 20;
-  static const double iconContainerSize = 40;
-  static const double connectorWidth = 3;
-  static const double cardBorderWidth = 1;
-  static const double cardRadius = 12;
-  static const double cardPadding = 12;
-  static const double spacing = 12;
-  static const int notesMaxLength = 120;
-}
+import 'constants.dart';
 
 /// Widget for displaying a single timeline item
-class TimelineItemWidget extends StatelessWidget {
+class TimelineItem extends StatelessWidget {
   final TimelineEvent event;
   final bool isLast;
 
-  const TimelineItemWidget({
+  const TimelineItem({
     required this.event,
     required this.isLast,
     super.key,

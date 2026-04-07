@@ -101,6 +101,7 @@
   "noSuchUserExists": "அந்த பயனர் பெயர் இல்லை. பதிலாக பதிவு செய்யலாம்",
   "noTransitsCreated": "நீங்கள் இன்னும் போக்குவரத்து சேர்க்கவில்லை",
   "noTripsCreated": "வரவிருக்கும் பயணங்கள் இல்லை? புதிய பயணம் உருவாக்க மகிழுங்கள்!",
+  "note": "குறிப்பு",
   "noteCannotBeEmpty": "குறிப்பு காலியாக இருக்க முடியாது",
   "notes": "குறிப்புகள்",
   "oldToNew": "தேதி: பழையது முதல் புதியது",
@@ -154,5 +155,11 @@
   "writeYourNoteHere": "உங்கள் குறிப்பை இங்கே எழுதுங்கள்",
   "wrong_password_entered": "தவறான கடவுச்சொல் உள்ளிடப்பட்டது",
   "yes": "ஆம்",
-  "you": "நீங்கள்"
+  "you": "நீங்கள்",
+  "copyTrip": "Copy Trip",
+  "copyTripTitle": "Copy Trip",
+  "chooseStartDate": "Choose a start date",
+  "tripDatesShifted": "Trip dates shifted from {oldDates} to {newDates}",
+  "upcomingTrips": "Upcoming Trips",
+  "pastTrips": "Past Trips"
 }

@@ -22,6 +22,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get addChecklist => 'சரிபார்ப்புப் பட்டியலைச் சேர்க்கவும்';
 
   @override
+  String get addConnectingLeg => 'Add Connecting Leg';
+
+  @override
   String get addPlacesForThisDay => 'இந்த நாளுக்கான இடங்களைச் சேர்க்கவும்';
 
   @override
@@ -321,6 +324,9 @@ class AppLocalizationsTa extends AppLocalizations {
       'வரவிருக்கும் பயணங்கள் இல்லை? புதிய பயணம் உருவாக்க மகிழுங்கள்!';
 
   @override
+  String get note => 'குறிப்பு';
+
+  @override
   String get noteCannotBeEmpty => 'குறிப்பு காலியாக இருக்க முடியாது';
 
   @override
@@ -494,4 +500,24 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get you => 'நீங்கள்';
+
+  @override
+  String get copyTrip => 'Copy Trip';
+
+  @override
+  String get copyTripTitle => 'Copy Trip';
+
+  @override
+  String get chooseStartDate => 'Choose a start date';
+
+  @override
+  String tripDatesShifted(String oldDates, String newDates) {
+    return 'Trip dates shifted from $oldDates to $newDates';
+  }
+
+  @override
+  String get upcomingTrips => 'Upcoming Trips';
+
+  @override
+  String get pastTrips => 'Past Trips';
 }

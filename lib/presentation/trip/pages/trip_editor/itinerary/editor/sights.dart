@@ -16,6 +16,10 @@ import 'package:wandrr/presentation/trip/widgets/time_zone_indicator.dart';
 class ItinerarySightsEditor extends StatefulWidget {
   final List<SightFacade> sights;
   final VoidCallback onSightsChanged;
+
+  /// Called only when sight times change (add/remove/reorder sights, or
+  /// visit time changes). This should trigger conflict detection.
+  final VoidCallback onSightTimesChanged;
   final DateTime day;
   final int? initialExpandedIndex;
 
@@ -23,6 +27,7 @@ class ItinerarySightsEditor extends StatefulWidget {
     super.key,
     required this.sights,
     required this.onSightsChanged,
+    required this.onSightTimesChanged,
     required this.day,
     this.initialExpandedIndex,
   });
@@ -36,43 +41,83 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
   static const double _kSpacingMedium = 12.0;
   static const double _kBorderRadiusLarge = 14.0;
 
+  /// Tracks the last known "time signature" of the sights list.
+  /// Used to detect when structural changes (add/delete/reorder) affect
+  /// visit times, without triggering conflict detection on every edit.
+  String _lastTimeSignature = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _lastTimeSignature = _computeTimeSignature();
+  }
+
+  /// Computes a signature string representing the current visit times.
+  String _computeTimeSignature() {
+    return widget.sights
+        .where((s) => s.visitTime != null)
+        .map((s) =>
+            '${s.id ?? s.hashCode}:${s.visitTime!.millisecondsSinceEpoch}')
+        .join(',');
+  }
+
+  /// Called when items change. Checks if times were affected
+  /// and triggers conflict detection only if needed.
+  void _onItemsChanged() {
+    widget.onSightsChanged();
+    final newSignature = _computeTimeSignature();
+    if (newSignature != _lastTimeSignature) {
+      _lastTimeSignature = newSignature;
+      widget.onSightTimesChanged();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return CommonCollapsibleTab<SightFacade>(
-      items: widget.sights,
-      addButtonLabel: context.localizations.addSight,
-      addButtonIcon: Icons.add_location_alt_rounded,
-      createItem: () {
-        var activeTrip = context.activeTrip;
-        var tripMetadata = activeTrip.tripMetadata;
-        return SightFacade.newEntry(
-          tripId: tripMetadata.id!,
-          day: widget.day,
-          defaultCurrency: tripMetadata.budget.currency,
-          contributors: tripMetadata.contributors,
+    return StreamBuilder<bool>(
+      stream: context.tripRepository.activeTrip!.isFullyLoaded,
+      initialData: context.tripRepository.activeTrip!.isFullyLoadedValue,
+      builder: (context, snapshot) {
+        final isLoaded = snapshot.data ?? false;
+        return CommonCollapsibleTab<SightFacade>(
+          isLoading: !isLoaded,
+          items: widget.sights,
+          addButtonLabel: context.localizations.addSight,
+          addButtonIcon: Icons.add_location_alt_rounded,
+          createItem: () {
+            var activeTrip = context.activeTrip;
+            var tripMetadata = activeTrip.tripMetadata;
+            return SightFacade.newEntry(
+              tripId: tripMetadata.id!,
+              day: widget.day,
+              defaultCurrency: tripMetadata.budget.currency,
+              contributors: tripMetadata.contributors,
+            );
+          },
+          onItemsChanged: _onItemsChanged,
+          titleBuilder: (s, context) => s.name.isNotEmpty
+              ? s.name
+              : (s.location?.context.name ??
+                  context.localizations.untitledSight),
+          previewBuilder: (ctx, s) => s.visitTime != null
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.access_time, size: 16),
+                    const SizedBox(width: 4),
+                    Text(_formatTime(s.visitTime!),
+                        style: Theme.of(ctx).textTheme.labelSmall),
+                  ],
+                )
+              : const SizedBox.shrink(),
+          accentColorBuilder: (s) =>
+              s.name.isNotEmpty ? AppColors.success : AppColors.error,
+          isValidBuilder: (s) => s.validate(),
+          expandedBuilder: (ctx, index, sight, notifyParent) =>
+              _buildSightEditor(ctx, sight, notifyParent),
+          initialExpandedIndex: widget.initialExpandedIndex,
         );
       },
-      onItemsChanged: widget.onSightsChanged,
-      titleBuilder: (s, context) => s.name.isNotEmpty
-          ? s.name
-          : (s.location?.context.name ?? context.localizations.untitledSight),
-      previewBuilder: (ctx, s) => s.visitTime != null
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.access_time, size: 16),
-                const SizedBox(width: 4),
-                Text(_formatTime(s.visitTime!),
-                    style: Theme.of(ctx).textTheme.labelSmall),
-              ],
-            )
-          : const SizedBox.shrink(),
-      accentColorBuilder: (s) =>
-          s.name.isNotEmpty ? AppColors.success : AppColors.error,
-      isValidBuilder: (s) => s.validate(),
-      expandedBuilder: (ctx, index, sight, notifyParent) =>
-          _buildSightEditor(ctx, sight, notifyParent),
-      initialExpandedIndex: widget.initialExpandedIndex,
     );
   }
 
@@ -205,6 +250,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
                 : AppColors.brandPrimaryLight),
         const SizedBox(height: _kSpacingMedium),
         ExpenditureEditTile(
+          key: ValueKey('expense_${sight.id ?? 'new'}'),
           expenseFacade: sight.expense,
           isEditable: true,
           callback: (paidBy, splitBy, totalExpense) {

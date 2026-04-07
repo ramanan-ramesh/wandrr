@@ -18,36 +18,54 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_p
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/app_bar/app_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_bottom_sheet.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/trip_metadata_update_plan_factory.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 import 'itinerary/itinerary_navigator.dart';
 
 /// Main entry point for the trip editor page.
-class TripEditorPage extends StatelessWidget {
+class TripEditorPage extends StatefulWidget {
   const TripEditorPage({super.key});
+
+  @override
+  State<TripEditorPage> createState() => _TripEditorPageState();
+}
+
+class _TripEditorPageState extends State<TripEditorPage> {
+  final ValueNotifier<DateTime> _currentDateNotifier =
+      ValueNotifier<DateTime>(DateTime.now());
+
+  @override
+  void dispose() {
+    _currentDateNotifier.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isBigLayout = context.isBigLayout;
     if (isBigLayout) {
       return _TripEditorPageInternal(
+        currentDateNotifier: _currentDateNotifier,
         body: Row(
-          children: const [
-            Expanded(child: ItineraryNavigator()),
-            Expanded(child: BudgetingPage()),
+          children: [
+            Expanded(
+                child: ItineraryNavigator(
+                    onNavigatedToDate: (date) =>
+                        _currentDateNotifier.value = date)),
+            const Expanded(child: BudgetingPage()),
           ],
         ),
       );
     }
-    return const _TripEditorSmallLayout();
+    return _TripEditorSmallLayout(currentDateNotifier: _currentDateNotifier);
   }
 }
 
 class _TripEditorSmallLayout extends StatefulWidget {
-  const _TripEditorSmallLayout();
+  final ValueNotifier<DateTime> currentDateNotifier;
+
+  const _TripEditorSmallLayout({required this.currentDateNotifier});
 
   @override
   State<_TripEditorSmallLayout> createState() =>
@@ -56,15 +74,30 @@ class _TripEditorSmallLayout extends StatefulWidget {
 
 class _TripEditorSmallLayoutPageState extends State<_TripEditorSmallLayout> {
   int _currentPageIndex = 0;
-  late final List<Widget> _pages = [
-    const ItineraryNavigator(),
-    const BudgetingPage(),
-  ];
+
+  // Keep both pages alive in the widget tree via IndexedStack so that
+  // ItineraryNavigator retains its current-day selection when the user
+  // switches to the Budgeting tab and back.
+  late final Widget _itineraryPage;
+  late final Widget _budgetingPage;
+
+  @override
+  void initState() {
+    super.initState();
+    _itineraryPage = ItineraryNavigator(onNavigatedToDate: (date) {
+      widget.currentDateNotifier.value = date;
+    });
+    _budgetingPage = const BudgetingPage();
+  }
 
   @override
   Widget build(BuildContext context) {
     return _TripEditorPageInternal(
-      body: _pages[_currentPageIndex],
+      currentDateNotifier: widget.currentDateNotifier,
+      body: IndexedStack(
+        index: _currentPageIndex,
+        children: [_itineraryPage, _budgetingPage],
+      ),
       bottomNavigationBar: BottomNavBar(
         selectedIndex: _currentPageIndex,
         onNavBarItemTapped: (selectedPageIndex) {
@@ -81,9 +114,11 @@ class _TripEditorSmallLayoutPageState extends State<_TripEditorSmallLayout> {
 class _TripEditorPageInternal extends StatelessWidget {
   final Widget body;
   final Widget? bottomNavigationBar;
+  final ValueNotifier<DateTime> currentDateNotifier;
 
   const _TripEditorPageInternal({
     required this.body,
+    required this.currentDateNotifier,
     this.bottomNavigationBar,
   });
 
@@ -96,7 +131,21 @@ class _TripEditorPageInternal extends StatelessWidget {
         extendBody: bottomNavigationBar == null,
         floatingActionButton: _createAddButton(context),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        body: body,
+        body: Column(
+          children: [
+            StreamBuilder<bool>(
+              stream: context.tripRepository.activeTrip!.isFullyLoaded,
+              initialData:
+                  context.tripRepository.activeTrip!.isFullyLoadedValue,
+              builder: (context, snapshot) {
+                final isLoaded = snapshot.data ?? false;
+                if (isLoaded) return const SizedBox.shrink();
+                return const LinearProgressIndicator();
+              },
+            ),
+            Expanded(child: body),
+          ],
+        ),
         bottomNavigationBar: bottomNavigationBar,
       ),
     );
@@ -160,23 +209,15 @@ class _TripEditorPageInternal extends StatelessWidget {
     required TripMetadataFacade oldMetadata,
     required TripMetadataFacade newMetadata,
   }) {
-    // Check if we have affected entities that need user attention
-    final updatePlan = TripMetadataUpdatePlanFactory.create(
-      oldMetadata: oldMetadata,
-      newMetadata: newMetadata,
-      tripData: context.activeTrip,
-    );
+    // Conflict resolution now happens within ConflictAwareActionPage during editing.
+    // This method only handles the special case of showing a snackbar when
+    // contributors were removed (since their expenses are preserved for historical accuracy).
 
-    if (updatePlan == null) return;
+    final oldContributors = oldMetadata.contributors.toSet();
+    final newContributors = newMetadata.contributors.toSet();
+    final removedContributors = oldContributors.difference(newContributors);
 
-    // If only contributors were removed (no added contributors and no date changes),
-    // just show a snackbar - no need for the bottom sheet
-    final hasOnlyRemovedContributors =
-        updatePlan.removedContributors.isNotEmpty &&
-            updatePlan.addedContributors.isEmpty &&
-            !updatePlan.hasDateChanges;
-
-    if (hasOnlyRemovedContributors) {
+    if (removedContributors.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -184,17 +225,6 @@ class _TripEditorPageInternal extends StatelessWidget {
           ),
           duration: Duration(seconds: 4),
         ),
-      );
-      return;
-    }
-
-    // Show bottom sheet if there are affected entities that need user attention
-    if (updatePlan.hasAffectedEntities) {
-      _showModalBottomSheet(
-        AffectedEntitiesBottomSheet(
-          updatePlan: updatePlan,
-        ),
-        context,
       );
     }
   }
@@ -230,12 +260,23 @@ class _TripEditorPageInternal extends StatelessWidget {
   }
 
   void _onAddButtonPressed(BuildContext pageContext) {
+    final isLoaded =
+        pageContext.tripRepository.activeTrip?.isFullyLoadedValue ?? false;
+    if (!isLoaded) {
+      ScaffoldMessenger.of(pageContext).showSnackBar(
+        const SnackBar(content: Text('Trip data is still loading...')),
+      );
+      return;
+    }
     _showModalBottomSheet(
-      TripEntityCreatorBottomSheet(supportedActions: [
-        TripEditorAction.expense,
-        TripEditorAction.travel,
-        TripEditorAction.stay,
-      ]),
+      TripEntityCreatorBottomSheet(
+        supportedActions: [
+          TripEditorAction.expense,
+          TripEditorAction.travel,
+          TripEditorAction.stay,
+        ],
+        currentlyDisplayedItineraryDate: currentDateNotifier.value,
+      ),
       pageContext,
     );
   }
@@ -246,6 +287,14 @@ class _TripEditorPageInternal extends StatelessWidget {
     required BuildContext pageContext,
     ItineraryPlanDataEditorConfig? planDataEditorConfig,
   }) {
+    final isLoaded =
+        pageContext.tripRepository.activeTrip?.isFullyLoadedValue ?? false;
+    if (!isLoaded) {
+      ScaffoldMessenger.of(pageContext).showSnackBar(
+        const SnackBar(content: Text('Trip data is still loading...')),
+      );
+      return;
+    }
     _showModalBottomSheet(
       TripEntityEditorBottomSheet<T>(
         tripEditorAction: tripEditorAction,
@@ -267,7 +316,7 @@ class _TripEditorPageInternal extends StatelessWidget {
           RepositoryProvider.value(value: pageContext.apiServicesRepository),
         ],
         child: BlocProvider.value(
-          value: pageContext.read<TripManagementBloc>(),
+          value: BlocProvider.of<TripManagementBloc>(pageContext),
           child: child,
         ),
       ),

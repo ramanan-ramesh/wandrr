@@ -22,29 +22,38 @@ class ItineraryChecklistsEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CommonCollapsibleTab(
-      items: checklists,
-      addButtonLabel: context.localizations.addChecklist,
-      addButtonIcon: Icons.checklist_rounded,
-      createItem: () => CheckListFacade.newUiEntry(
-        tripId: context.activeTripId,
-        items: [],
-      ),
-      onItemsChanged: onChecklistsChanged,
-      titleBuilder: _effectiveTitle,
-      previewBuilder: (ctx, cl) => Text(
-        '${cl.items.length} ${ctx.localizations.items}',
-        style: Theme.of(ctx).textTheme.labelSmall,
-      ),
-      accentColorBuilder: (cl) =>
-          (cl.title?.isNotEmpty ?? false) ? AppColors.success : AppColors.error,
-      isValidBuilder: _isValid,
-      expandedBuilder: (ctx, index, checklist, notifyParent) =>
-          _ChecklistEditorContent(
-        checklist: checklist,
-        onChanged: onChecklistsChanged,
-      ),
-      initialExpandedIndex: initialExpandedIndex,
+    return StreamBuilder<bool>(
+      stream: context.tripRepository.activeTrip!.isFullyLoaded,
+      initialData: context.tripRepository.activeTrip!.isFullyLoadedValue,
+      builder: (context, snapshot) {
+        final isLoaded = snapshot.data ?? false;
+        return CommonCollapsibleTab(
+          isLoading: !isLoaded,
+          items: checklists,
+          addButtonLabel: context.localizations.addChecklist,
+          addButtonIcon: Icons.checklist_rounded,
+          createItem: () => CheckListFacade.newUiEntry(
+            tripId: context.activeTripId,
+            items: [],
+          ),
+          onItemsChanged: onChecklistsChanged,
+          titleBuilder: _effectiveTitle,
+          previewBuilder: (ctx, cl) => Text(
+            '${cl.items.length} ${ctx.localizations.items}',
+            style: Theme.of(ctx).textTheme.labelSmall,
+          ),
+          accentColorBuilder: (cl) => (cl.title?.isNotEmpty ?? false)
+              ? AppColors.success
+              : AppColors.error,
+          isValidBuilder: _isValid,
+          expandedBuilder: (ctx, index, checklist, notifyParent) =>
+              _ChecklistEditorContent(
+            checklist: checklist,
+            onChanged: onChecklistsChanged,
+          ),
+          initialExpandedIndex: initialExpandedIndex,
+        );
+      },
     );
   }
 

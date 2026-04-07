@@ -15,6 +15,10 @@ abstract class ModelCollectionFacade<Model> {
   Stream<CollectionItemChangeMetadata<Model>> get onDocumentDeleted;
 
   Iterable<Model> get collectionItems;
+
+  bool get isLoaded;
+  
+  Stream<bool> get onLoaded;
 }
 
 abstract class ModelCollectionModifier<Model>

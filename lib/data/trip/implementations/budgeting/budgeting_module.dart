@@ -43,7 +43,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   // Subscription management
   final List<StreamSubscription> _subscriptions = [];
 
-  static Future<BudgetingModuleEventHandler> createInstance(
+  static BudgetingModuleEventHandler createInstance(
       ModelCollectionModifier<TransitFacade> transitModelCollection,
       ModelCollectionModifier<LodgingFacade> lodgingModelCollection,
       ModelCollectionModifier<StandaloneExpense> expenseModelCollection,
@@ -52,17 +52,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       Iterable<CurrencyData> supportedCurrencies,
       Iterable<String> contributors,
       String currentUserName,
-      ItineraryFacadeCollectionEventHandler itineraryCollection) async {
-    final calculator = TotalExpenditureCalculator(currencyConverter);
-    final totalExpenditure = await calculator.calculate(
-      transits: transitModelCollection,
-      lodgings: lodgingModelCollection,
-      expenses: expenseModelCollection,
-      itineraries: itineraryCollection,
-      defaultCurrency: defaultCurrency,
-      currentUserName: currentUserName,
-    );
-
+      ItineraryFacadeCollectionEventHandler itineraryCollection) {
     return BudgetingModule._(
       transitModelCollection,
       lodgingModelCollection,
@@ -72,7 +62,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
       defaultCurrency,
       supportedCurrencies,
       contributors,
-      totalExpenditure,
+      0.0,
       currentUserName,
     );
   }
@@ -281,5 +271,6 @@ class BudgetingModule implements BudgetingModuleEventHandler {
         _expenseSorter = ExpenseSorter(),
         _currencyFormatter = CurrencyFormatter(supportedCurrencies) {
     _subscribeToTotalExpenseReCalculationEvents();
+    recalculateTotalExpenditure();
   }
 }

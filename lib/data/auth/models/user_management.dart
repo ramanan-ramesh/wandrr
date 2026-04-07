@@ -4,12 +4,12 @@ import 'package:wandrr/data/auth/models/status.dart';
 
 abstract interface class UserManagementFacade {
   PlatformUser? get activeUser;
+
+  Future<bool> doesUserNameExist(String userName);
 }
 
 abstract interface class UserManagementModifier extends UserManagementFacade {
   Future<void> initialize();
-
-  Future<bool> doesUserNameExist(String userName);
 
   Future<AuthStatus> trySignInWithThirdParty(
       AuthenticationType authenticationType);

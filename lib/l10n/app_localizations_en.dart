@@ -21,6 +21,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addChecklist => 'Add Checklist';
 
   @override
+  String get addConnectingLeg => 'Add Connecting Leg';
+
+  @override
   String get addPlacesForThisDay => 'Add places you plan to visit on this day';
 
   @override
@@ -317,6 +320,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'No upcoming trips? Have fun creating a new one!';
 
   @override
+  String get note => 'Note';
+
+  @override
   String get noteCannotBeEmpty => 'Note cannot be empty';
 
   @override
@@ -488,4 +494,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get you => 'You';
+
+  @override
+  String get copyTrip => 'Copy Trip';
+
+  @override
+  String get copyTripTitle => 'Copy Trip';
+
+  @override
+  String get chooseStartDate => 'Choose a start date';
+
+  @override
+  String tripDatesShifted(String oldDates, String newDates) {
+    return 'Trip dates shifted from $oldDates to $newDates';
+  }
+
+  @override
+  String get upcomingTrips => 'Upcoming Trips';
+
+  @override
+  String get pastTrips => 'Past Trips';
 }

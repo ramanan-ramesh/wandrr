@@ -3,6 +3,7 @@
   "addATitle": "Add a title",
   "addChecklistsForThisDay": "Add checklists for this day",
   "addChecklist": "Add Checklist",
+  "addConnectingLeg": "Add Connecting Leg",
   "addPlacesForThisDay": "Add places you plan to visit on this day",
   "add_expense": "Add Expense",
   "addItem": "Add item",
@@ -98,6 +99,7 @@
   "noSuchUserExists": "No such username exists. You can register with it instead",
   "noTransitsCreated": "You haven't added any transit yet.",
   "noTripsCreated": "No upcoming trips? Have fun creating a new one!",
+  "note": "Note",
   "noteCannotBeEmpty": "Note cannot be empty",
   "notes": "Notes",
   "oldToNew": "Date: Oldest to Newest",
@@ -152,5 +154,21 @@
   "writeYourNoteHere": "Write your note here",
   "wrong_password_entered": "Wrong password entered",
   "yes": "Yes",
-  "you": "You"
+  "you": "You",
+  "copyTrip": "Copy Trip",
+  "copyTripTitle": "Copy Trip",
+  "chooseStartDate": "Choose a start date",
+  "tripDatesShifted": "Trip dates shifted from {oldDates} to {newDates}",
+  "@tripDatesShifted": {
+    "placeholders": {
+      "oldDates": {
+        "type": "String"
+      },
+      "newDates": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingTrips": "Upcoming Trips",
+  "pastTrips": "Past Trips"
 }

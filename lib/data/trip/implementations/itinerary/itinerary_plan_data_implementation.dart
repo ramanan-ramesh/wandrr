@@ -18,15 +18,18 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
   @override
   List<SightFacade> get sights =>
       List.from(_sights.map((sight) => sight.clone()));
+
   final List<SightModelImplementation> _sights;
 
   @override
   List<String> get notes => List.from(_notes);
+
   final List<String> _notes;
 
   @override
   List<CheckListFacade> get checkLists =>
       List.from(_checkLists.map((checkList) => checkList.clone()));
+
   final List<CheckListModelImplementation> _checkLists;
 
   ItineraryPlanDataModelImplementation({
@@ -115,7 +118,7 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
   }
 
   @override
-  ItineraryPlanData get facade => this;
+  ItineraryPlanData get facade => clone();
 
   static List<SightModelImplementation> _generateSightModelImplementations(
       List<SightFacade> sights, String tripId, DateTime day) {

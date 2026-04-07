@@ -182,7 +182,7 @@ class _ItineraryNotesViewerState extends State<ItineraryNotesViewer> {
                 context.addTripManagementEvent(EditItineraryPlanData(
               day: widget.day,
               planDataEditorConfig: CreateNewItineraryPlanDataComponentConfig(
-                  planDataType: PlanDataType.note),
+                  planDataType: PlanDataType.note, date: widget.day),
             )),
           ),
         ],

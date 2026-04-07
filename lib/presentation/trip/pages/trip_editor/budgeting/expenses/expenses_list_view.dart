@@ -14,6 +14,7 @@ import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/readonly_expense.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
 import 'budget_tile.dart';
@@ -65,27 +66,35 @@ class _ExpenseListViewState extends State<ExpenseListView> {
           child: sortDropdown,
         ),
         Expanded(
-          child: BlocConsumer<TripManagementBloc, TripManagementState>(
-            buildWhen: _shouldRebuildList,
-            builder: (context, state) {
-              _refreshExpenses();
-              return FutureBuilder<Iterable<ExpenseBearingTripEntity>>(
-                future: _sortingFuture,
-                builder: (context, snapshot) {
-                  final isDone =
-                      snapshot.connectionState == ConnectionState.done;
-                  final hasData = snapshot.hasData && snapshot.data != null;
-                  final child = (!isDone || !hasData)
-                      ? _buildLoading()
-                      : _buildExpenseList(snapshot.data!.toList());
-                  final childKey = (!isDone || !hasData)
-                      ? 'loading-$_animationToken'
-                      : 'list-${_selectedSortOption.name}-$_animationToken';
-                  return _animatedSwitcher(childKey, child);
+          child: StreamBuilder<bool>(
+            stream: context.tripRepository.activeTrip!.isFullyLoaded,
+            initialData: context.tripRepository.activeTrip!.isFullyLoadedValue,
+            builder: (context, snapshot) {
+              final isLoaded = snapshot.data ?? false;
+              return BlocConsumer<TripManagementBloc, TripManagementState>(
+                buildWhen: _shouldRebuildList,
+                builder: (context, state) {
+                  _refreshExpenses();
+                  return FutureBuilder<Iterable<ExpenseBearingTripEntity>>(
+                    future: _sortingFuture,
+                    builder: (context, snapshot) {
+                      final isDone =
+                          snapshot.connectionState == ConnectionState.done;
+                      final hasData = snapshot.hasData && snapshot.data != null;
+                      final child = (!isDone || !hasData)
+                          ? _buildLoading()
+                          : _buildExpenseList(
+                              snapshot.data!.toList(), isLoaded);
+                      final childKey = (!isDone || !hasData)
+                          ? 'loading-$_animationToken'
+                          : 'list-${_selectedSortOption.name}-$_animationToken';
+                      return _animatedSwitcher(childKey, child);
+                    },
+                  );
                 },
+                listener: (context, state) {},
               );
             },
-            listener: (context, state) {},
           ),
         ),
       ],
@@ -200,8 +209,26 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     );
   }
 
-  Widget _buildExpenseList(List<ExpenseBearingTripEntity> sortedExpenses) {
+  Widget _buildExpenseList(
+      List<ExpenseBearingTripEntity> sortedExpenses, bool isLoaded) {
     _expenses = sortedExpenses;
+    if (_expenses.isEmpty && !isLoaded) {
+      return ListView.builder(
+        itemCount: 3,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: _kListItemVerticalPadding,
+              horizontal: _kListItemHorizontalPadding,
+            ),
+            child: ShimmerPlaceholder(
+              height: 70,
+              borderRadius: BorderRadius.circular(_kListItemBorderRadius),
+            ),
+          );
+        },
+      );
+    }
     if (_expenses.isEmpty) {
       return Center(
         child: SizedBox(
@@ -216,10 +243,26 @@ class _ExpenseListViewState extends State<ExpenseListView> {
         ),
       );
     }
+    final itemCount = isLoaded
+        ? _expenses.length
+        : (_expenses.length < 3 ? 3 : _expenses.length + 1);
     return ListView.builder(
+      itemCount: itemCount,
       key: const ValueKey('ExpensesListView_ListView'),
-      itemCount: _expenses.length,
+      itemCount: itemCount,
       itemBuilder: (context, index) {
+        if (!isLoaded && index >= _expenses.length) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: _kListItemVerticalPadding,
+              horizontal: _kListItemHorizontalPadding,
+            ),
+            child: ShimmerPlaceholder(
+              height: 70,
+              borderRadius: BorderRadius.circular(_kListItemBorderRadius),
+            ),
+          );
+        }
         final item = _expenses[index];
         return Padding(
           padding: const EdgeInsets.symmetric(

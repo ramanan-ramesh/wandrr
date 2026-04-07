@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/transit_option_metadata.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/transit/transit_option_metadata.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 class TransitOptionPicker extends StatefulWidget {

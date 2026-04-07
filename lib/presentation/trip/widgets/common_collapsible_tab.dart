@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 
 /// Generic reusable collapsible tab list for itinerary editing pages.
 /// Provides: add button + count header, reorderable list, per-item collapse/expand,
@@ -30,6 +31,7 @@ class CommonCollapsibleTab<T> extends StatefulWidget {
     VoidCallback notifyParent,
   )? itemHeaderBuilder;
   final int? initialExpandedIndex;
+  final bool isLoading;
 
   const CommonCollapsibleTab({
     super.key,
@@ -45,6 +47,7 @@ class CommonCollapsibleTab<T> extends StatefulWidget {
     this.isValidBuilder,
     this.itemHeaderBuilder,
     this.initialExpandedIndex,
+    this.isLoading = false,
   });
 
   @override
@@ -76,13 +79,14 @@ class _CommonCollapsibleTabState<T> extends State<CommonCollapsibleTab<T>> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.items.isEmpty) {
+    if (widget.items.isEmpty && !widget.isLoading) {
       return _buildEmptyState(context);
     }
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         _buildHeader(context),
-        Expanded(child: _buildReorderableList()),
+        _buildReorderableList(),
       ],
     );
   }
@@ -157,54 +161,63 @@ class _CommonCollapsibleTabState<T> extends State<CommonCollapsibleTab<T>> {
   }
 
   Widget _buildReorderableList() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-        return ReorderableListView.builder(
-          padding: EdgeInsets.fromLTRB(16, 12, 16, 32 + keyboardHeight),
-          itemCount: widget.items.length,
-          buildDefaultDragHandles: false,
-          shrinkWrap: true,
-          onReorder: (oldIndex, newIndex) {
-            setState(() {
-              if (newIndex > oldIndex) newIndex -= 1;
-              final item = widget.items.removeAt(oldIndex);
-              widget.items.insert(newIndex, item);
+    final itemCount = widget.isLoading
+        ? (widget.items.length < 3 ? 3 : widget.items.length + 1)
+        : widget.items.length;
+    return ReorderableListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+      itemCount: itemCount,
+      buildDefaultDragHandles: false,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      onReorder: (oldIndex, newIndex) {
+        setState(() {
+          if (newIndex > oldIndex) newIndex -= 1;
+          final item = widget.items.removeAt(oldIndex);
+          widget.items.insert(newIndex, item);
+          widget.onItemsChanged();
+        });
+      },
+      itemBuilder: (context, index) {
+        if (widget.isLoading && index >= widget.items.length) {
+          return Padding(
+            key: ValueKey('shimmer_$index'),
+            padding: const EdgeInsets.only(bottom: 12),
+            child: const ShimmerPlaceholder(
+              height: 70, // approximate header height
+              borderRadius: BorderRadius.all(Radius.circular(18)),
+            ),
+          );
+        }
+        final item = widget.items[index];
+        final expanded = _expandedIndex == index;
+        final accent =
+            widget.accentColorBuilder?.call(item) ?? AppColors.brandPrimary;
+        final valid = widget.isValidBuilder?.call(item);
+        final handleColor = valid == null
+            ? accent
+            : (valid ? AppColors.success : AppColors.error);
+        return _CollapsibleEntry<T>(
+          key: ObjectKey(item),
+          index: index,
+          item: item,
+          expanded: expanded,
+          accentColor: handleColor,
+          titleBuilder: widget.titleBuilder,
+          previewBuilder: widget.previewBuilder,
+          onToggle: () {
+            setState(() => _expandedIndex = expanded ? null : index);
+            // Persist changes when collapsing an item
+            if (expanded) {
               widget.onItemsChanged();
-            });
+            }
           },
-          itemBuilder: (context, index) {
-            final item = widget.items[index];
-            final expanded = _expandedIndex == index;
-            final accent =
-                widget.accentColorBuilder?.call(item) ?? AppColors.brandPrimary;
-            final valid = widget.isValidBuilder?.call(item);
-            final handleColor = valid == null
-                ? accent
-                : (valid ? AppColors.success : AppColors.error);
-            return _CollapsibleEntry<T>(
-              key: ObjectKey(item),
-              index: index,
-              item: item,
-              expanded: expanded,
-              accentColor: handleColor,
-              titleBuilder: widget.titleBuilder,
-              previewBuilder: widget.previewBuilder,
-              onToggle: () {
-                setState(() => _expandedIndex = expanded ? null : index);
-                // Persist changes when collapsing an item
-                if (expanded) {
-                  widget.onItemsChanged();
-                }
-              },
-              onDelete: () => _deleteItem(index),
-              expandedBuilder: (ctx, notify) =>
-                  widget.expandedBuilder(ctx, index, item, notify),
-              notifyChanged: () => _notifyItemChanged(index),
-              itemHeaderBuilder: widget.itemHeaderBuilder,
-              itemNotifier: _getNotifierForIndex(index),
-            );
-          },
+          onDelete: () => _deleteItem(index),
+          expandedBuilder: (ctx, notify) =>
+              widget.expandedBuilder(ctx, index, item, notify),
+          notifyChanged: () => _notifyItemChanged(index),
+          itemHeaderBuilder: widget.itemHeaderBuilder,
+          itemNotifier: _getNotifierForIndex(index),
         );
       },
     );
@@ -395,11 +408,11 @@ class _CollapsibleEntry<T> extends StatelessWidget {
   }
 
   Widget _buildExpanded(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: ValueListenableBuilder<int>(
-        valueListenable: itemNotifier,
-        builder: (context, _, __) => expandedBuilder(context, notifyChanged),
+    return ValueListenableBuilder<int>(
+      valueListenable: itemNotifier,
+      builder: (context, _, __) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: expandedBuilder(context, notifyChanged),
       ),
     );
   }

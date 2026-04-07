@@ -6,12 +6,10 @@ import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/app/models/dispose.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/store/models/collection_item_change_set.dart';
-import 'package:wandrr/data/trip/models/budgeting/expense.dart';
-import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-import 'package:wandrr/data/trip/models/trip_metadata_update.dart';
 
 import 'itinerary_plan_data.dart';
 
@@ -63,19 +61,19 @@ abstract class ItineraryFacadeCollectionEventHandler
   /// Prepares itinerary day changes and sight updates to be executed in an external WriteBatch.
   /// This allows all changes (itinerary days + sight updates) to be committed atomically in a single batch.
   ///
-  /// Parameters:
-  /// - batch: The WriteBatch to add operations to
-  /// - startDate: New trip start date
-  /// - endDate: New trip end date
-  /// - sightChanges: List of sight changes to apply to itineraries
-  /// - expenseChanges: List of expense changes to apply expense updates to sights
-  ///
   /// Returns a Future that resolves to a function which updates local state after batch commits.
   Future<Future<void> Function()> prepareTripDaysUpdate(
     WriteBatch batch,
     DateTime startDate,
     DateTime endDate,
-    Iterable<EntityChange<SightFacade>> sightChanges,
-    Iterable<EntityChange<ExpenseBearingTripEntity>> expenseChanges,
+    Iterable<SightChange> sightChanges,
+    Iterable<ExpenseSplitChange> expenseChanges,
+  );
+
+  /// Prepares sight updates only (for conflict resolution, without changing trip days).
+  /// Returns a Future that resolves to a function which updates local state after batch commits.
+  Future<Future<void> Function()> prepareSightUpdates(
+    WriteBatch batch,
+    Iterable<SightChange> sightChanges,
   );
 }

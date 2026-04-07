@@ -9,6 +9,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
+import 'package:wandrr/presentation/trip/widgets/time_zone_indicator.dart';
 
 import 'journey_point_editor.dart';
 import 'transit_operator_editor_section.dart';
@@ -16,17 +17,28 @@ import 'transit_option_picker.dart';
 
 class TravelEditor extends StatefulWidget {
   final TransitFacade transitFacade;
-  final VoidCallback onTransitUpdated;
+  final void Function({bool needsRebuild}) onTransitUpdated;
 
-  const TravelEditor(
-      {required this.transitFacade, required this.onTransitUpdated, super.key});
+  /// Notifier to track if FAB should be enabled
+  final ValueNotifier<bool>? validityNotifier;
+
+  /// Minimum allowed departure date time (e.g., previous leg's arrival time)
+  /// Used for connecting legs in a journey
+  final DateTime? minDepartureDateTime;
+
+  const TravelEditor({
+    required this.transitFacade,
+    required this.onTransitUpdated,
+    this.validityNotifier,
+    this.minDepartureDateTime,
+    super.key,
+  });
 
   @override
   State<TravelEditor> createState() => _TravelEditorState();
 }
 
-class _TravelEditorState extends State<TravelEditor>
-    with SingleTickerProviderStateMixin {
+class _TravelEditorState extends State<TravelEditor> {
   TransitFacade get _transitFacade => widget.transitFacade;
 
   @override
@@ -48,6 +60,7 @@ class _TravelEditorState extends State<TravelEditor>
           transitFacade: _transitFacade,
           onLocationChanged: _updateLocation,
           onDateTimeChanged: _updateDateTime,
+          minDepartureDateTime: widget.minDepartureDateTime,
         ),
         if (_needsPriorBooking) _buildConfirmationIdSection(),
         _buildNotesSection(),
@@ -72,6 +85,7 @@ class _TravelEditorState extends State<TravelEditor>
           ),
           const SizedBox(height: 12),
           ExpenditureEditTile(
+            key: ValueKey('expense_${_transitFacade.id ?? 'new'}'),
             expenseFacade: _transitFacade.expense,
             isEditable: true,
             callback: _handleExpenseUpdated,
@@ -93,7 +107,7 @@ class _TravelEditorState extends State<TravelEditor>
       decoration: _buildBadgeDecoration(),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: TransitOptionPicker(
-        options: context.activeTrip.transitOptionMetadatas,
+        options: context.transitOptionMetadatas,
         initialTransitOption: _transitFacade.transitOption,
         onChanged: _handleTransitOptionChanged,
       ),
@@ -120,7 +134,7 @@ class _TravelEditorState extends State<TravelEditor>
       _clearFlightDataIfSwitchingFromFlight(newOption);
       _transitFacade.transitOption = newOption;
     });
-    widget.onTransitUpdated();
+    widget.onTransitUpdated(needsRebuild: true);
   }
 
   void _clearOperatorIfNotNeeded(TransitOption option) {
@@ -181,7 +195,7 @@ class _TravelEditorState extends State<TravelEditor>
       textInputAction: TextInputAction.next,
       onChanged: (value) {
         _transitFacade.confirmationId = value;
-        widget.onTransitUpdated();
+        widget.onTransitUpdated(needsRebuild: false);
       },
     );
   }
@@ -194,7 +208,7 @@ class _TravelEditorState extends State<TravelEditor>
           note: note,
           onChanged: () {
             _transitFacade.notes = note.text;
-            widget.onTransitUpdated();
+            widget.onTransitUpdated(needsRebuild: false);
           }),
     );
   }
@@ -207,12 +221,12 @@ class _TravelEditorState extends State<TravelEditor>
     _transitFacade.expense.paidBy = Map.from(paidBy);
     _transitFacade.expense.splitBy = List.from(splitBy);
     _transitFacade.expense.currency = totalExpense.currency;
-    widget.onTransitUpdated();
+    widget.onTransitUpdated(needsRebuild: false);
   }
 
   void _handleOperatorChanged(String? newOperator) {
     _transitFacade.operator = newOperator;
-    widget.onTransitUpdated();
+    widget.onTransitUpdated(needsRebuild: false);
   }
 
   void _updateLocation(bool isArrival, LocationFacade? newLocation) {
@@ -223,7 +237,7 @@ class _TravelEditorState extends State<TravelEditor>
         _transitFacade.departureLocation = newLocation;
       }
     });
-    widget.onTransitUpdated();
+    widget.onTransitUpdated(needsRebuild: true);
   }
 
   void _updateDateTime(bool isArrival, DateTime updatedDateTime) {
@@ -234,7 +248,7 @@ class _TravelEditorState extends State<TravelEditor>
         _transitFacade.departureDateTime = updatedDateTime;
       }
     });
-    widget.onTransitUpdated();
+    widget.onTransitUpdated(needsRebuild: true);
   }
 }
 
@@ -245,21 +259,40 @@ class _JourneySection extends StatelessWidget {
   final void Function(bool isArrival, DateTime updatedDateTime)
       onDateTimeChanged;
 
+  /// Minimum allowed departure date time (e.g., previous leg's arrival time)
+  final DateTime? minDepartureDateTime;
+
   const _JourneySection({
     Key? key,
     required this.transitFacade,
     required this.onLocationChanged,
     required this.onDateTimeChanged,
+    this.minDepartureDateTime,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final hasBothLocations = transitFacade.departureLocation != null &&
+        transitFacade.arrivalLocation != null;
     if (context.isBigLayout) {
-      return Row(
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: _buildDeparturePoint(context)),
-          _buildJourneyConnector(context),
-          Expanded(child: _buildArrivalPoint(context)),
+          Row(
+            children: [
+              Expanded(child: _buildDeparturePoint(context)),
+              _buildJourneyConnector(context),
+              Expanded(child: _buildArrivalPoint(context)),
+            ],
+          ),
+          if (hasBothLocations)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, left: 16.0),
+              child: DualTimezoneIndicator(
+                departureLocation: transitFacade.departureLocation!,
+                arrivalLocation: transitFacade.arrivalLocation!,
+              ),
+            ),
         ],
       );
     }
@@ -275,6 +308,14 @@ class _JourneySection extends StatelessWidget {
           ),
         ),
         _buildArrivalPoint(context),
+        if (hasBothLocations)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: DualTimezoneIndicator(
+              departureLocation: transitFacade.departureLocation!,
+              arrivalLocation: transitFacade.arrivalLocation!,
+            ),
+          ),
       ],
     );
   }
@@ -305,6 +346,8 @@ class _JourneySection extends StatelessWidget {
       },
       onDateTimeChanged: (updatedDateTime) =>
           onDateTimeChanged(!isDeparture, updatedDateTime),
+      // Pass min departure time constraint for connecting legs
+      minDateTime: isDeparture ? minDepartureDateTime : null,
     );
   }
 
