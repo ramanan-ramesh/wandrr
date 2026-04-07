@@ -1,7 +1,6 @@
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/l10n/extension.dart';
@@ -212,18 +211,15 @@ class _TripEntityCreatorBottomSheetState
 
   void _onItinerarySubActionTapped(PlanDataType type) {
     final day = _selectedDay;
-    // Capture the bloc reference before pop() deactivates the context.
-    final bloc = context.read<TripManagementBloc>();
-    Navigator.of(context).pop();
-    bloc.add(
-      EditItineraryPlanData(
-        day: day,
-        planDataEditorConfig: CreateNewItineraryPlanDataComponentConfig(
-          planDataType: type,
-          date: day,
-        ),
+    final event = EditItineraryPlanData(
+      day: day,
+      planDataEditorConfig: CreateNewItineraryPlanDataComponentConfig(
+        planDataType: type,
+        date: day,
       ),
     );
+    Navigator.of(context).pop();
+    context.addTripManagementEvent(event);
   }
 }
 

@@ -56,7 +56,6 @@ class TripManagementBloc
     on<_UpdateTripEntityInternalEvent>(_onTripEntityUpdateInternal);
     on<EditItineraryPlanData>(_onEditItineraryPlanData);
     on<CopyTrip>(_onCopyTrip);
-    on<LoadTripForPreview>(_onLoadTripForPreview);
 
     add(_OnStartup());
   }
@@ -104,19 +103,27 @@ class TripManagementBloc
     if (tripMetadata != null) {
       await TripVisitTracker.recordVisit(tripMetadata.id!);
       emit(LoadingTrip(tripMetadata));
-      if (_activeTrip != null) {
-        await _subscriptionManager.clearTripDataSubscriptions();
-        await _subscriptionManager.clearItineraryPlanDataSubscriptions();
+      if (event.shouldActivateTrip) {
+        if (_activeTrip != null) {
+          await _subscriptionManager.clearTripDataSubscriptions();
+          await _subscriptionManager.clearItineraryPlanDataSubscriptions();
+        }
+        _apiServicesRepository ??=
+            await ApiServicesRepositoryImpl.createInstance();
+        final tripInstance = _tripRepository!
+            .loadTrip(event.tripMetadata, _apiServicesRepository!, true);
+
+        _subscribeToTripEntityCollections(tripInstance);
+        await _createItineraryPlanDataSubscriptions(tripInstance);
+
+        emit(ActivatedTrip(apiServicesRepository: _apiServicesRepository!));
+      } else {
+        _apiServicesRepository ??=
+            await ApiServicesRepositoryImpl.createInstance();
+        final tripInstance = _tripRepository!
+            .loadTrip(event.tripMetadata, _apiServicesRepository!, true);
+        LoadedTripPreview(tripData: tripInstance);
       }
-      _apiServicesRepository ??=
-          await ApiServicesRepositoryImpl.createInstance();
-      final tripInstance = _tripRepository!
-          .loadTrip(event.tripMetadata, _apiServicesRepository!, true);
-
-      _subscribeToTripEntityCollections(tripInstance);
-      await _createItineraryPlanDataSubscriptions(tripInstance);
-
-      emit(ActivatedTrip(apiServicesRepository: _apiServicesRepository!));
     }
   }
 
@@ -403,14 +410,6 @@ class TripManagementBloc
           isFromExplicitAction: true),
       isOperationSuccess: true,
     ));
-  }
-
-  FutureOr<void> _onLoadTripForPreview(
-      LoadTripForPreview event, Emitter<TripManagementState> emit) async {
-    _apiServicesRepository ??= await ApiServicesRepositoryImpl.createInstance();
-    final tripData = _tripRepository!
-        .loadTrip(event.tripMetadata, _apiServicesRepository!, false);
-    emit(LoadedTripPreview(tripData: tripData));
   }
 }
 

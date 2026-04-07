@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/blocs/app/bloc.dart';
 import 'package:wandrr/blocs/app/events.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/data/app/models/language_metadata.dart';
@@ -220,7 +218,6 @@ class _LanguageSubMenuEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var masterPageBloc = context.read<MasterPageBloc>();
     final delay = Duration(milliseconds: 100 * index);
     final isCurrentLocale =
         Localizations.localeOf(context).languageCode == languageMetadata.locale;
@@ -261,8 +258,9 @@ class _LanguageSubMenuEntry extends StatelessWidget {
                     )
                   : null,
               onPressed: () {
-                masterPageBloc.add(ChangeLanguage(
-                    languageToChangeTo: languageMetadata.locale));
+                context.addMasterPageEvent(
+                  ChangeLanguage(languageToChangeTo: languageMetadata.locale),
+                );
               },
               child: Text(languageMetadata.name),
             ),

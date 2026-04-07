@@ -48,8 +48,10 @@ class ApplyTripDataUpdatePlan extends TripManagementEvent {
 
 class LoadTrip extends TripManagementEvent {
   final TripMetadataFacade tripMetadata;
+  final bool shouldActivateTrip;
 
-  const LoadTrip({required this.tripMetadata});
+  const LoadTrip(
+      {required this.tripMetadata, required this.shouldActivateTrip});
 }
 
 class EditItineraryPlanData extends TripManagementEvent {
@@ -78,10 +80,4 @@ class CopyTrip extends TripManagementEvent {
     required this.budget,
     required this.thumbnailTag,
   });
-}
-
-class LoadTripForPreview extends TripManagementEvent {
-  final TripMetadataFacade tripMetadata;
-
-  const LoadTripForPreview({required this.tripMetadata});
 }

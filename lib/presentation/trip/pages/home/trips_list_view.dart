@@ -438,7 +438,7 @@ class _TripMetadataGridItem extends StatelessWidget {
         }
       });
       pageContext.addTripManagementEvent(
-        LoadTripForPreview(tripMetadata: tripMetaDataFacade),
+        LoadTrip(tripMetadata: tripMetaDataFacade, shouldActivateTrip: false),
       );
     }
   }

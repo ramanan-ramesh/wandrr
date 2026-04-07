@@ -342,7 +342,7 @@ class _ConflictAwareActionPageState<T extends TripEntity>
   }
 
   void _handleEntitySubmitted(BuildContext context, T editableEntity) {
-    final conflictPlan = context.read<TripEntityEditorBloc<T>>().currentPlan;
+    final conflictPlan = context.tripEntityUpdatePlan<T>();
     if (conflictPlan != null && conflictPlan.isConfirmed) {
       context.addTripManagementEvent(
           ApplyTripDataUpdatePlan(updatePlan: conflictPlan));

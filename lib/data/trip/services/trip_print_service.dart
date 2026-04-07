@@ -3,6 +3,7 @@
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
@@ -36,7 +37,7 @@ class TripPrintService {
   Future<Uint8List> generatePdf(
       TripDataFacade tripData, PrintOptions options) async {
     final logoBytes =
-        (await rootBundle.load('assets/images/logo.jpg')).buffer.asUint8List();
+        (await rootBundle.load(Assets.images.logo.path)).buffer.asUint8List();
     final logoImage = pw.MemoryImage(logoBytes);
 
     final pdf = pw.Document(title: options.title, author: 'Wandrr');
@@ -711,6 +712,7 @@ class TripPrintService {
 class _TimelineEvent {
   final DateTime time;
   final pw.Widget widget;
+
   const _TimelineEvent({required this.time, required this.widget});
 }
 
@@ -718,5 +720,6 @@ class _TimelineEvent {
 class _DayData {
   final DateTime day;
   final ItineraryFacade itinerary;
+
   const _DayData(this.day, this.itinerary);
 }

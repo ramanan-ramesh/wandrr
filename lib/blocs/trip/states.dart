@@ -59,6 +59,13 @@ class ActivatedTrip extends TripManagementState {
   const ActivatedTrip({required this.apiServicesRepository});
 }
 
+/// Emitted when a trip is loaded for preview (e.g., print) without activating.
+class LoadedTripPreview extends TripManagementState {
+  final TripDataFacade tripData;
+
+  const LoadedTripPreview({required this.tripData});
+}
+
 class UpdatedTripEntity<T> extends TripManagementState {
   final CollectionItemChangeMetadata<T> tripEntityModificationData;
   final DataState dataState;
@@ -108,11 +115,4 @@ class SelectedItineraryPlanData extends TripManagementState {
     required this.planData,
     required this.planDataEditorConfig,
   });
-}
-
-/// Emitted when a trip is loaded for preview (e.g., print) without activating.
-class LoadedTripPreview extends TripManagementState {
-  final TripDataFacade tripData;
-
-  const LoadedTripPreview({required this.tripData});
 }

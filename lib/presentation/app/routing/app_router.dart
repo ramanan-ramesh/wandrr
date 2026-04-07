@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rive/rive.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
+import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
@@ -16,7 +17,7 @@ import 'package:wandrr/presentation/app/pages/onboarding/onboarding_page.dart';
 import 'package:wandrr/presentation/app/pages/startup_page.dart';
 import 'package:wandrr/presentation/trip/pages/home/home_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
-import 'package:wandrr/presentation/trip/pages/trip_provider/constants.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 /// Route path constants
 class AppRoutes {
@@ -230,6 +231,7 @@ class _TripShellContentState extends State<_TripShellContent> {
   final _minimumWalkTimeCompletionNotifier = ValueNotifier(false);
   TripRepositoryFacade? _tripRepository;
   bool _isInitialLoadComplete = false;
+  static const _cutOffPageWidth = 1000.0;
 
   final _walkAnimation = SimpleAnimation('Walk');
   final _waveAnimation = SimpleAnimation('Wave');
@@ -271,8 +273,7 @@ class _TripShellContentState extends State<_TripShellContent> {
             value: _tripRepository!,
             child: LayoutBuilder(
               builder: (context, constraints) {
-                context.isBigLayout = constraints.maxWidth >=
-                    TripProviderPageConstants.cutOffPageWidth;
+                context.isBigLayout = constraints.maxWidth >= _cutOffPageWidth;
                 return widget.child;
               },
             ),
@@ -283,7 +284,7 @@ class _TripShellContentState extends State<_TripShellContent> {
   }
 
   Widget _buildAnimatedLoadingScreen(BuildContext context) {
-    final state = context.read<TripManagementBloc>().state;
+    final state = context.tripManagementState;
     String textToDisplay = context.localizations.loading;
 
     if (state is LoadingTripManagement) {
@@ -376,8 +377,8 @@ class _TripsListPageState extends State<_TripsListPage> {
     super.initState();
     // Unload any active trip when navigating to the trips list
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final bloc = context.read<TripManagementBloc>();
-      final state = bloc.state;
+      final bloc = context.tripManagementBloc;
+      final state = context.tripManagementState;
       // If there's an active trip, go back to home state
       if (state is ActivatedTrip || state is LoadingTrip) {
         bloc.add(const GoToHome());
@@ -448,7 +449,7 @@ class _TripEditorPageState extends State<_TripEditorPage> {
       if (mounted) {
         _minimumWalkTimeCompletionNotifier.value = true;
         // Check if trip is already loaded
-        final state = context.read<TripManagementBloc>().state;
+        final state = context.tripManagementState;
         if (state is ActivatedTrip) {
           _onWalkAnimationComplete();
         }
@@ -485,8 +486,7 @@ class _TripEditorPageState extends State<_TripEditorPage> {
   void _tryLoadTrip() {
     if (_hasTriedLoadingTrip) return;
 
-    final bloc = context.read<TripManagementBloc>();
-    final state = bloc.state;
+    final state = context.tripManagementState;
 
     // If we have a loaded repository or are in a state where we can load a trip
     if (state is LoadedRepository ||
@@ -495,7 +495,7 @@ class _TripEditorPageState extends State<_TripEditorPage> {
       _loadTripById();
     } else if (state is ActivatedTrip) {
       // Already viewing a trip - check if it's the right one
-      final tripRepo = context.read<TripRepositoryFacade>();
+      final tripRepo = context.tripRepository;
       if (tripRepo.activeTrip?.tripMetadata.id != widget.tripId) {
         _loadTripById();
       } else {
@@ -512,15 +512,15 @@ class _TripEditorPageState extends State<_TripEditorPage> {
 
   void _loadTripById() {
     _hasTriedLoadingTrip = true;
-    final tripRepo = context.read<TripRepositoryFacade>();
+    final tripRepo = context.tripRepository;
     final tripMetadata = tripRepo.tripMetadataCollection.collectionItems
         .where((trip) => trip.id == widget.tripId)
         .firstOrNull;
 
     if (tripMetadata != null) {
-      context
-          .read<TripManagementBloc>()
-          .add(LoadTrip(tripMetadata: tripMetadata));
+      context.addTripManagementEvent(
+        LoadTrip(tripMetadata: tripMetadata, shouldActivateTrip: true),
+      );
     } else {
       // Trip not found, redirect to trips list
       context.go(AppRoutes.trips);
@@ -528,7 +528,7 @@ class _TripEditorPageState extends State<_TripEditorPage> {
   }
 
   Widget _buildAnimatedLoadingScreen(BuildContext context) {
-    final state = context.read<TripManagementBloc>().state;
+    final state = context.tripManagementState;
     String textToDisplay = context.localizations.loadingTripData;
 
     if (state is ActivatedTrip) {

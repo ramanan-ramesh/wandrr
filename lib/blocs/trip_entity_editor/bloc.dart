@@ -30,26 +30,26 @@ import 'unified_conflict_scanner.dart';
 ///
 /// The plan itself is never stored in state; always read via
 /// `bloc.currentPlan` or `context.tripEntityUpdatePlan<T>()`.
-class TripEntityEditorBloc<T extends TripEntity>
-    extends Bloc<TripEntityEditorEvent, TripEntityEditorState<T>> {
+class TripEntityEditorBloc<TEntity extends TripEntity>
+    extends Bloc<TripEntityEditorEvent, TripEntityEditorState<TEntity>> {
   final TripDataFacade _tripData;
-  final T? originalEntity;
-  final T editableEntity;
+  final TEntity? originalEntity;
+  final TEntity editableEntity;
 
   bool get _isNewEntity => originalEntity == null;
 
-  TripEntityUpdatePlan<T>? get currentPlan => _currentPlan;
-  TripEntityUpdatePlan<T>? _currentPlan;
+  TripEntityUpdatePlan<TEntity>? get currentPlan => _currentPlan;
+  TripEntityUpdatePlan<TEntity>? _currentPlan;
 
   TripEntityEditorBloc._({
     required TripDataFacade tripData,
-    required T? original,
-    required T editable,
+    required TEntity? original,
+    required TEntity editable,
   })  : _tripData = tripData,
         originalEntity = original,
         editableEntity = editable,
-        super(TripEntityInitialized<T>(editable)) {
-    on<UpdateEntityTimeRange<T>>(_onUpdateEntityTimeRange);
+        super(TripEntityInitialized<TEntity>(editable)) {
+    on<UpdateEntityTimeRange<TEntity>>(_onUpdateEntityTimeRange);
     on<UpdateJourneyTimeRange>(_onUpdateJourneyTimeRange);
     on<UpdateSightsTimeRange>(_onUpdateSightsTimeRange);
     on<UpdateConflictedEntityTimeRange>(_onUpdateConflictedEntityTimeRange);
@@ -60,37 +60,38 @@ class TripEntityEditorBloc<T extends TripEntity>
 
   TripEntityEditorBloc.forCreation({
     required TripDataFacade tripData,
-    required T entity,
+    required TEntity entity,
   }) : this._(tripData: tripData, original: null, editable: entity);
 
   TripEntityEditorBloc.forEditing({
     required TripDataFacade tripData,
-    required T entity,
+    required TEntity entity,
   }) : this._(
             tripData: tripData,
             original: entity,
-            editable: entity.clone() as T);
+            editable: entity.clone() as TEntity);
 
   // ===========================================================================
   // EVENT HANDLERS
   // ===========================================================================
 
   void _onUpdateEntityTimeRange(
-    UpdateEntityTimeRange<T> event,
-    Emitter<TripEntityEditorState<T>> emit,
+    UpdateEntityTimeRange<TEntity> event,
+    Emitter<TripEntityEditorState<TEntity>> emit,
   ) {
-    TripEntityUpdatePlan<T>? newPlan;
+    TripEntityUpdatePlan<TEntity>? newPlan;
 
     if (editableEntity is LodgingFacade) {
       final stay = editableEntity as LodgingFacade;
       stay.checkinDateTime = event.range.start;
       stay.checkoutDateTime = event.range.end;
-      newPlan = _detectStayConflicts(stay) as TripEntityUpdatePlan<T>?;
+      newPlan = _detectStayConflicts(stay) as TripEntityUpdatePlan<TEntity>?;
     } else if (editableEntity is TripMetadataFacade) {
       final meta = editableEntity as TripMetadataFacade;
       meta.startDate = event.range.start;
       meta.endDate = event.range.end;
-      newPlan = _detectMetadataConflicts(meta) as TripEntityUpdatePlan<T>?;
+      newPlan =
+          _detectMetadataConflicts(meta) as TripEntityUpdatePlan<TEntity>?;
     }
 
     _handlePlanUpdate(newPlan, emit);
@@ -98,17 +99,17 @@ class TripEntityEditorBloc<T extends TripEntity>
 
   void _onUpdateJourneyTimeRange(
     UpdateJourneyTimeRange event,
-    Emitter<TripEntityEditorState<T>> emit,
+    Emitter<TripEntityEditorState<TEntity>> emit,
   ) {
     if (editableEntity is! TransitFacade) return;
     final newPlan =
-        _detectJourneyConflicts(event.legs) as TripEntityUpdatePlan<T>?;
+        _detectJourneyConflicts(event.legs) as TripEntityUpdatePlan<TEntity>?;
     _handlePlanUpdate(newPlan, emit);
   }
 
   void _onUpdateSightsTimeRange(
     UpdateSightsTimeRange event,
-    Emitter<TripEntityEditorState<T>> emit,
+    Emitter<TripEntityEditorState<TEntity>> emit,
   ) {
     if (editableEntity is! ItineraryPlanData) return;
 
@@ -118,14 +119,14 @@ class TripEntityEditorBloc<T extends TripEntity>
       return;
     }
 
-    final newPlan =
-        _detectItineraryConflicts(event.sights) as TripEntityUpdatePlan<T>?;
+    final newPlan = _detectItineraryConflicts(event.sights)
+        as TripEntityUpdatePlan<TEntity>?;
     _handlePlanUpdate(newPlan, emit);
   }
 
   void _onUpdateConflictedEntityTimeRange(
     UpdateConflictedEntityTimeRange event,
-    Emitter<TripEntityEditorState<T>> emit,
+    Emitter<TripEntityEditorState<TEntity>> emit,
   ) {
     if (_currentPlan == null) return;
 
@@ -139,7 +140,7 @@ class TripEntityEditorBloc<T extends TripEntity>
     );
 
     if (!result.isValid) {
-      emit(ConflictedEntityTimeRangeError<T>(
+      emit(ConflictedEntityTimeRangeError<TEntity>(
           event.change, result.errorMessage!, event.change.original));
       return;
     }
@@ -148,19 +149,19 @@ class TripEntityEditorBloc<T extends TripEntity>
     // sections that gained items.
     final addedSections = _mergeNewConflicts(result.newConflicts);
     if (addedSections.isNotEmpty) {
-      emit(PlanUpdated<T>(addedSections));
+      emit(PlanUpdated<TEntity>(addedSections));
     }
 
     // Emit PlanItemsUpdated for sections whose items were modified in-place.
     final touchedSections = _sectionsOf(result.allUpdatedChanges);
     if (touchedSections.isNotEmpty) {
-      emit(PlanItemsUpdated<T>(touchedSections));
+      emit(PlanItemsUpdated<TEntity>(touchedSections));
     }
   }
 
   void _onToggleConflictedEntityDeletion(
     ToggleConflictedEntityDeletion event,
-    Emitter<TripEntityEditorState<T>> emit,
+    Emitter<TripEntityEditorState<TEntity>> emit,
   ) {
     if (_currentPlan == null) return;
 
@@ -172,12 +173,12 @@ class TripEntityEditorBloc<T extends TripEntity>
     }
     _currentPlan!.syncExpenseDeletionState(event.change.original, newIsDeleted);
 
-    emit(PlanItemsUpdated<T>(_sectionsOf([event.change])));
+    emit(PlanItemsUpdated<TEntity>(_sectionsOf([event.change])));
   }
 
   void _onConfirmConflictPlan(
     ConfirmConflictPlan event,
-    Emitter<TripEntityEditorState<T>> emit,
+    Emitter<TripEntityEditorState<TEntity>> emit,
   ) {
     _currentPlan?.confirm();
     emit(const ConflictPlanConfirmed());
@@ -185,9 +186,9 @@ class TripEntityEditorBloc<T extends TripEntity>
 
   void _onSubmitEntity(
     SubmitEntity event,
-    Emitter<TripEntityEditorState<T>> emit,
+    Emitter<TripEntityEditorState<TEntity>> emit,
   ) {
-    emit(EntitySubmitted<T>(editableEntity, _currentPlan));
+    emit(EntitySubmitted<TEntity>(editableEntity, _currentPlan));
   }
 
   // ===========================================================================
@@ -209,8 +210,8 @@ class TripEntityEditorBloc<T extends TripEntity>
   /// • Content-only changes (same IDs, different state) → [PlanItemsUpdated]
   /// • All sections gone → [PlanCleared]
   void _handlePlanUpdate(
-    TripEntityUpdatePlan<T>? newPlan,
-    Emitter<TripEntityEditorState<T>> emit,
+    TripEntityUpdatePlan<TEntity>? newPlan,
+    Emitter<TripEntityEditorState<TEntity>> emit,
   ) {
     final hadPlan = _currentPlan != null;
 
@@ -254,8 +255,9 @@ class TripEntityEditorBloc<T extends TripEntity>
     }
 
     if (structurallyChanged.isNotEmpty)
-      emit(PlanUpdated<T>(structurallyChanged));
-    if (contentChanged.isNotEmpty) emit(PlanItemsUpdated<T>(contentChanged));
+      emit(PlanUpdated<TEntity>(structurallyChanged));
+    if (contentChanged.isNotEmpty)
+      emit(PlanItemsUpdated<TEntity>(contentChanged));
   }
 
   /// Compares [oldItems] to [newItems]:
@@ -363,15 +365,8 @@ class TripEntityEditorBloc<T extends TripEntity>
             stay: stay, scanner: _buildScanner(), isNewEntity: _isNewEntity)
         .detectConflicts();
     if (conflicts == null) return null;
-    return TripEntityUpdatePlan<LodgingFacade>(
-      tripStartDate: _tripData.tripMetadata.startDate!,
-      tripEndDate: _tripData.tripMetadata.endDate!,
-      oldEntity: (originalEntity ?? editableEntity) as LodgingFacade,
-      newEntity: stay,
-      transitChanges: conflicts.transitConflicts.map(_toTransitChange).toList(),
-      stayChanges: conflicts.stayConflicts.map(_toStayChange).toList(),
-      sightChanges: conflicts.sightConflicts.map(_toSightChange).toList(),
-    );
+    return _createTripEntityUpdatePlan(
+        conflicts, (originalEntity ?? editableEntity) as LodgingFacade, stay);
   }
 
   TripEntityUpdatePlan<TransitFacade>? _detectJourneyConflicts(
@@ -380,17 +375,12 @@ class TripEntityEditorBloc<T extends TripEntity>
             legs: legs, scanner: _buildScanner(), isNewEntity: _isNewEntity)
         .detectConflicts();
     if (conflicts == null) return null;
-    return TripEntityUpdatePlan<TransitFacade>(
-      tripStartDate: _tripData.tripMetadata.startDate!,
-      tripEndDate: _tripData.tripMetadata.endDate!,
-      oldEntity: (originalEntity ?? editableEntity) as TransitFacade,
-      newEntity: legs.isNotEmpty
-          ? legs.first
-          : (originalEntity ?? editableEntity) as TransitFacade,
-      transitChanges: conflicts.transitConflicts.map(_toTransitChange).toList(),
-      stayChanges: conflicts.stayConflicts.map(_toStayChange).toList(),
-      sightChanges: conflicts.sightConflicts.map(_toSightChange).toList(),
-    );
+    return _createTripEntityUpdatePlan(
+        conflicts,
+        (originalEntity ?? editableEntity) as TransitFacade,
+        legs.isNotEmpty
+            ? legs.first
+            : (originalEntity ?? editableEntity) as TransitFacade);
   }
 
   TripEntityUpdatePlan<ItineraryPlanData>? _detectItineraryConflicts(
@@ -399,15 +389,10 @@ class TripEntityEditorBloc<T extends TripEntity>
             sights: sights, scanner: _buildScanner(), isNewEntity: _isNewEntity)
         .detectConflicts();
     if (conflicts == null) return null;
-    return TripEntityUpdatePlan<ItineraryPlanData>(
-      tripStartDate: _tripData.tripMetadata.startDate!,
-      tripEndDate: _tripData.tripMetadata.endDate!,
-      oldEntity: (originalEntity ?? editableEntity) as ItineraryPlanData,
-      newEntity: editableEntity as ItineraryPlanData,
-      transitChanges: conflicts.transitConflicts.map(_toTransitChange).toList(),
-      stayChanges: conflicts.stayConflicts.map(_toStayChange).toList(),
-      sightChanges: conflicts.sightConflicts.map(_toSightChange).toList(),
-    );
+    return _createTripEntityUpdatePlan(
+        conflicts,
+        (originalEntity ?? editableEntity) as ItineraryPlanData,
+        editableEntity as ItineraryPlanData);
   }
 
   TripEntityUpdatePlan<TripMetadataFacade>? _detectMetadataConflicts(
@@ -415,23 +400,18 @@ class TripEntityEditorBloc<T extends TripEntity>
     final conflicts = _buildScanner().scanForMetadataUpdate(
         oldMetadata: _tripData.tripMetadata, newMetadata: metadata);
     if (conflicts == null) return null;
-    return TripEntityUpdatePlan<TripMetadataFacade>(
-      oldEntity: conflicts.oldMetadata,
-      newEntity: conflicts.newMetadata,
-      tripStartDate: conflicts.newMetadata.startDate!,
-      tripEndDate: conflicts.newMetadata.endDate!,
-      transitChanges: conflicts.transitConflicts.map(_toTransitChange).toList(),
-      stayChanges: conflicts.stayConflicts.map(_toStayChange).toList(),
-      sightChanges: conflicts.sightConflicts.map(_toSightChange).toList(),
-      expenseChanges: conflicts.expenseEntities.map(_toExpenseChange).toList(),
-    );
+    final tripEntityUpdatePlan = _createTripEntityUpdatePlan(
+        conflicts, conflicts.oldMetadata, conflicts.newMetadata);
+    tripEntityUpdatePlan.expenseChanges
+      ..addAll(conflicts.expenseEntities.map(_toExpenseChange));
+    return tripEntityUpdatePlan;
   }
 
   // ===========================================================================
   // VALIDATION
   // ===========================================================================
 
-  ConflictedEntityTimeRangeError<T>? _checkSightOverlaps(
+  ConflictedEntityTimeRangeError<TEntity>? _checkSightOverlaps(
       List<SightFacade> sights) {
     for (int i = 0; i < sights.length; i++) {
       final s1 = sights[i];
@@ -446,7 +426,7 @@ class TripEntityEditorBloc<T extends TripEntity>
             start: s2.visitTime!,
             end: s2.visitTime!.add(const Duration(minutes: 1)));
         if (r1.overlapsWith(r2)) {
-          return ConflictedEntityTimeRangeError<T>(
+          return ConflictedEntityTimeRangeError<TEntity>(
             SightChange.forClamping(
                 original: s2,
                 modified: s2,
@@ -484,29 +464,34 @@ class TripEntityEditorBloc<T extends TripEntity>
   // MAPPING HELPERS
   // ===========================================================================
 
-  TransitChange _toTransitChange(TransitConflict c) => c.canBeClampedToResolve
-      ? TransitChange.forClamping(
-          original: c.entity,
-          modified: c.clampedEntity!,
-          timelinePosition: c.position)
-      : TransitChange.forDeletion(
-          original: c.entity, timelinePosition: c.position);
+  static DateTimeChange<T> _createTripEntityChange<T extends TripEntity>(
+      ConflictResult<T> conflict) {
+    if (conflict.canBeClampedToResolve) {
+      return DateTimeChange<T>.forClamping(
+          original: conflict.entity,
+          modified: conflict.clampedEntity!,
+          timelinePosition: conflict.position);
+    } else {
+      return DateTimeChange<T>.forDeletion(
+          original: conflict.entity, timelinePosition: conflict.position);
+    }
+  }
 
-  StayChange _toStayChange(StayConflict c) => c.canBeClampedToResolve
-      ? StayChange.forClamping(
-          original: c.entity,
-          modified: c.clampedEntity!,
-          timelinePosition: c.position)
-      : StayChange.forDeletion(
-          original: c.entity, timelinePosition: c.position);
-
-  SightChange _toSightChange(SightConflict c) => c.canBeClampedToResolve
-      ? SightChange.forClamping(
-          original: c.entity,
-          modified: c.clampedEntity!,
-          timelinePosition: c.position)
-      : SightChange.forDeletion(
-          original: c.entity, timelinePosition: c.position);
+  TripEntityUpdatePlan<T> _createTripEntityUpdatePlan<T extends TripEntity>(
+      AggregatedConflicts conflicts, T oldEntity, T newEntity) {
+    return TripEntityUpdatePlan<T>(
+      tripStartDate: _tripData.tripMetadata.startDate!,
+      tripEndDate: _tripData.tripMetadata.endDate!,
+      oldEntity: oldEntity,
+      newEntity: newEntity,
+      transitChanges:
+          conflicts.transitConflicts.map(_createTripEntityChange).toList(),
+      stayChanges:
+          conflicts.stayConflicts.map(_createTripEntityChange).toList(),
+      sightChanges:
+          conflicts.sightConflicts.map(_createTripEntityChange).toList(),
+    );
+  }
 
   ExpenseSplitChange _toExpenseChange(ExpenseBearingTripEntity entity) =>
       ExpenseSplitChange(original: entity, modified: entity.clone());
