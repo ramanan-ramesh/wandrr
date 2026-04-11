@@ -4,8 +4,12 @@ import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip_entity_editor/bloc.dart';
 import 'package:wandrr/blocs/trip_entity_editor/events.dart';
 import 'package:wandrr/blocs/trip_entity_editor/states.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/itinerary/sight.dart';
+import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
+import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
@@ -227,19 +231,19 @@ class _DynamicConflictSections<T extends TripEntity> extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ConflictSectionBuilder<T>(
-          sectionType: ConflictSectionType.stays,
-          builder: (ctx, changes) => _buildSection(
-              ctx, changes, ConflictSectionType.stays, messageContext),
+          entityType: LodgingFacade,
+          builder: (ctx, changes) =>
+              _buildSection(ctx, changes, LodgingFacade, messageContext),
         ),
         ConflictSectionBuilder<T>(
-          sectionType: ConflictSectionType.transits,
-          builder: (ctx, changes) => _buildSection(
-              ctx, changes, ConflictSectionType.transits, messageContext),
+          entityType: TransitFacade,
+          builder: (ctx, changes) =>
+              _buildSection(ctx, changes, TransitFacade, messageContext),
         ),
         ConflictSectionBuilder<T>(
-          sectionType: ConflictSectionType.sights,
-          builder: (ctx, changes) => _buildSection(
-              ctx, changes, ConflictSectionType.sights, messageContext),
+          entityType: SightFacade,
+          builder: (ctx, changes) =>
+              _buildSection(ctx, changes, SightFacade, messageContext),
         ),
         if (isMetadataUpdate) _ExpensesSectionSelector<T>(),
       ],
@@ -249,7 +253,7 @@ class _DynamicConflictSections<T extends TripEntity> extends StatelessWidget {
   Widget _buildSection(
     BuildContext context,
     List<EntityChangeBase> changes,
-    ConflictSectionType sectionType,
+    Type entityType,
     MessageContext messageContext,
   ) {
     if (changes.isEmpty) return const SizedBox.shrink();
@@ -257,7 +261,7 @@ class _DynamicConflictSections<T extends TripEntity> extends StatelessWidget {
     if (plan == null) return const SizedBox.shrink();
 
     return OptimizedEntityChangeSection<T>(
-      sectionType: sectionType,
+      entityType: entityType,
       plan: plan,
       messageContext: messageContext,
       onTimeRangeUpdated: (change) {
@@ -275,7 +279,7 @@ class _DynamicConflictSections<T extends TripEntity> extends StatelessWidget {
 }
 
 /// Expenses section – rebuilds only when [PlanUpdated] or [PlanCleared]
-/// includes [ConflictSection.expenses].
+/// includes the [ExpenseBearingTripEntity] type.
 class _ExpensesSectionSelector<T extends TripEntity> extends StatelessWidget {
   const _ExpensesSectionSelector();
 
@@ -285,7 +289,7 @@ class _ExpensesSectionSelector<T extends TripEntity> extends StatelessWidget {
       buildWhen: (_, current) {
         if (current is PlanCleared<T>) return true;
         if (current is PlanUpdated<T>) {
-          return current.affectedSections.contains(ConflictSection.expenses);
+          return current.affectedSections.contains(ExpenseBearingTripEntity);
         }
         return false;
       },

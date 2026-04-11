@@ -6,13 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/data/auth/models/auth_type.dart';
-import 'package:wandrr/data/trip/implementations/api_services/constants.dart';
-import 'package:wandrr/data/trip/implementations/collection_names.dart';
-
-import 'test_config.dart';
 
 /// Helper class to configure Firebase to use local emulators for integration tests
-
 class FirebaseEmulatorHelper {
   // Emulator configuration
   // For Android emulator: use 10.0.2.2 (maps to host machine's localhost)
@@ -311,69 +306,46 @@ class FirebaseEmulatorHelper {
     }
   }
 
-  /// Clear all Firestore data from specific collections
-  /// Note: Firebase Auth emulator doesn't allow deleting users via SDK,
-  /// but they are cleared when emulator restarts
+  /// Clear all Firestore data by calling the emulator's REST flush endpoint.
+  ///
+  /// Using `collectionReference.get()` from the SDK hangs during teardown
+  /// because the app is still holding active stream listeners on those
+  /// collections.  The emulator exposes a dedicated HTTP DELETE endpoint that
+  /// wipes all documents atomically without going through the SDK.
   static Future<void> clearAllFirestoreData() async {
     try {
       if (kDebugMode) {
         print('\n--- Clearing Firestore data ---');
       }
 
-      final firestore = FirebaseFirestore.instance;
+      const host = _emulatorHost;
+      const port = _firestoreEmulatorPort;
+      const projectId = 'wandrr-15f70';
 
-      // List of collections to clear
-      final rootLevelCollectionsToDelete = [
-        'users',
-        FirestoreCollections.appConfig,
-        Constants.apiServicesCollectionName,
-        FirestoreCollections.tripMetadataCollectionName,
-      ];
+      // DELETE /emulator/v1/projects/{project}/databases/(default)/documents
+      // clears every document in the emulated Firestore database.
+      final clearUrl =
+          'http://$host:$port/emulator/v1/projects/$projectId/databases/(default)/documents';
 
-      final batch = firestore.batch();
+      final response = await http.delete(Uri.parse(clearUrl));
 
-      for (final collectionName in rootLevelCollectionsToDelete) {
-        await _deleteCollectionData(
-            firestore.collection(collectionName), batch);
-      }
-
-      final testTripDocument = firestore
-          .collection(FirestoreCollections.tripCollectionName)
-          .doc(TestConfig.testTripId);
-      await _deleteCollectionData(
-          testTripDocument
-              .collection(FirestoreCollections.transitCollectionName),
-          batch);
-      await _deleteCollectionData(
-          testTripDocument
-              .collection(FirestoreCollections.lodgingCollectionName),
-          batch);
-      await _deleteCollectionData(
-          testTripDocument
-              .collection(FirestoreCollections.expenseCollectionName),
-          batch);
-      await _deleteCollectionData(
-          testTripDocument
-              .collection(FirestoreCollections.itineraryDataCollectionName),
-          batch);
-      batch.delete(testTripDocument);
-
-      await batch.commit();
-      if (kDebugMode) {
-        print('✓ Firestore cleanup complete');
+      if (response.statusCode == 200) {
+        if (kDebugMode) {
+          print('✓ Firestore cleanup complete (all documents wiped)');
+        }
+      } else {
+        if (kDebugMode) {
+          print(
+              '✗ Failed to clear Firestore data: ${response.statusCode} ${response.body}');
+        }
+        throw Exception(
+            'Firestore emulator flush failed: ${response.statusCode}');
       }
     } catch (e) {
       if (kDebugMode) {
         print('✗ Error clearing Firestore data: $e');
       }
-    }
-  }
-
-  static Future<void> _deleteCollectionData(
-      CollectionReference collectionReference, WriteBatch batch) async {
-    final collectionDataSnapshot = await collectionReference.get();
-    for (final doc in collectionDataSnapshot.docs) {
-      batch.delete(doc.reference);
+      // Do not rethrow – a cleanup failure must not mask the real test result.
     }
   }
 }

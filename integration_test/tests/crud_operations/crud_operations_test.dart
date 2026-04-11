@@ -504,14 +504,66 @@ void runTests() {
     expect(find.byType(ErrorWidget), findsNothing);
   });
 
+  // ── Transit default-state test ──────────────────────────────────────────────
   testWidgets('verify default state of TravelEditor on creation',
       (WidgetTester tester) async {
+    print('REQ-TR-003');
     await runVerifyDefaultStateTest(tester);
   });
 
-  testWidgets('add new walk transit via FloatingActionButton',
+  // ── Transit creation tests (one per transit type) ────────────────────────────
+  testWidgets('add Walk transit via Creator bottom-sheet',
       (WidgetTester tester) async {
+    print('REQ-TR-001');
     await runAddWalkTransitTest(tester);
+  });
+
+  testWidgets('add PersonalVehicle transit via Creator bottom-sheet',
+      (WidgetTester tester) async {
+    print('REQ-TR-001');
+    await runAddPersonalVehicleTransitTest(tester);
+  });
+
+  testWidgets('add PublicTransport transit and verify timeline + expense entry',
+      (WidgetTester tester) async {
+    print('REQ-TR-001 REQ-BU-001');
+    await runAddPublicTransportTransitTest(tester);
+  });
+
+  testWidgets('add Bus transit and verify timeline + expense entry',
+      (WidgetTester tester) async {
+    print('REQ-TR-001 REQ-BU-001');
+    await runAddBusTransitTest(tester);
+  });
+
+  testWidgets('add Train transit and verify timeline + expense entry',
+      (WidgetTester tester) async {
+    print('REQ-TR-001 REQ-BU-001');
+    await runAddTrainTransitTest(tester);
+  });
+
+  testWidgets('add Taxi transit and verify timeline + expense entry',
+      (WidgetTester tester) async {
+    print('REQ-TR-001 REQ-BU-001');
+    await runAddTaxiTransitTest(tester);
+  });
+
+  testWidgets('add Ferry transit and verify timeline + expense entry',
+      (WidgetTester tester) async {
+    print('REQ-TR-001 REQ-BU-001');
+    await runAddFerryTransitTest(tester);
+  });
+
+  testWidgets('add RentedVehicle transit and verify timeline + expense entry',
+      (WidgetTester tester) async {
+    print('REQ-TR-001 REQ-BU-001');
+    await runAddRentedVehicleTransitTest(tester);
+  });
+
+  testWidgets('add Cruise transit and verify timeline + expense entry',
+      (WidgetTester tester) async {
+    print('REQ-TR-001 REQ-BU-001');
+    await runAddCruiseTransitTest(tester);
   });
 
   testWidgets('add new stay via FloatingActionButton',

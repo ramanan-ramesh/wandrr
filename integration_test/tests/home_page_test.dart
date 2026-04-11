@@ -74,12 +74,15 @@ Future<void> runHomePageLanguageSwitchTest(
 
   // Verify language code is updated to hindi
   await _changeLanguageAndVerifyLocale('hi', tester);
+  print('✓ Language switched to Hindi');
 
   // Verify language code is updated to tamil
   await _changeLanguageAndVerifyLocale('ta', tester);
+  print('✓ Language switched to Tamil');
 
   // Verify language code is updated to english
   await _changeLanguageAndVerifyLocale('en', tester);
+  print('✓ Language switched back to English');
 }
 
 /// Test: Theme mode switcher updates theme mode and repository
@@ -105,9 +108,11 @@ Future<void> runHomePageThemeSwitchTest(
 
   // Verify theme mode is updated to light
   await _switchAndVerifyThemeMode(tester, ThemeMode.light);
+  print('✓ Theme switched to Light');
 
   // Verify theme mode is updated to dark
   await _switchAndVerifyThemeMode(tester, ThemeMode.dark);
+  print('✓ Theme switched back to Dark');
 }
 
 /// Test: HomePage displays no trips initially in TripsListView
@@ -145,16 +150,19 @@ Future<void> runHomePageCreateTripFlowTest(
 
   // Verify dialog is displayed
   expect(find.byType(TripCreatorDialog), findsOneWidget);
+  print('✓ Trip creator dialog opened');
 
   // Select a thumbnail (navigate to last thumbnail in PageView)
   var lastThumbnailImage = Assets.images.tripThumbnails.values.last;
   await _clickOnImageInThumbnailSelector(
       tester, Assets.images.tripThumbnails.values.length - 1);
+  print('✓ Thumbnail "${lastThumbnailImage.fileName}" selected');
 
   // Enter trip name
   final tripNameField = find.byKey(Key('TripCreatorDialog_TripNameField'));
   const tripName = 'Test Trip';
   await TestHelpers.enterText(tester, tripNameField, tripName);
+  print('✓ Trip name "$tripName" entered');
 
   // Open date range picker
   final dateRangePicker = find.byType(PlatformDateRangePicker);
@@ -170,12 +178,15 @@ Future<void> runHomePageCreateTripFlowTest(
 
   // Select range: Current day plus 15 days.
   await TestHelpers.selectDateRange(tester, false, currentDateTime, 15);
+  print(
+      '✓ Date range selected: ${currentDateTime.toIso8601String().substring(0, 10)} + 15 days');
 
   // Enter budget
   var budget = Money(currency: 'EUR', amount: 50000);
   await CommonFormElements(TripCreatorDialog)
       .expenseEditor
       .enterMoneyAmount(tester, budget);
+  print('✓ Budget set to ${budget.amount} ${budget.currency}');
 
   // Tap submit button
   await TestHelpers.tapWidget(tester, find.byType(PlatformSubmitterFAB),
@@ -184,6 +195,7 @@ Future<void> runHomePageCreateTripFlowTest(
   // Wait for navigation to TripEditorPage
   await TestHelpers.waitForWidget(tester, find.byType(TripEditorPage),
       timeout: const Duration(seconds: 5));
+  print('✓ Navigated to TripEditorPage after trip creation');
   final currentTripMetadata =
       TestHelpers.getTripRepository(tester).activeTrip!.tripMetadata;
   expect(currentTripMetadata.name, tripName);

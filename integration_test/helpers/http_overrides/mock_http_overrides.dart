@@ -102,6 +102,17 @@ class _MockHttpClient implements HttpClient {
     return _realClient.getUrl(url);
   }
 
+  @override
+  Future<HttpClientRequest> openUrl(String method, Uri url) async {
+    // package:http's IOClient uses openUrl, so intercept here as well
+    for (final handler in _handlers) {
+      if (handler.canHandle(url)) {
+        return _MockHttpClientRequest(url, handler, method: method);
+      }
+    }
+    return _realClient.openUrl(method, url);
+  }
+
   // Delegate all other methods to the real client
   @override
   bool autoUncompress = true;
@@ -186,10 +197,6 @@ class _MockHttpClient implements HttpClient {
       _realClient.open(method, host, port, path);
 
   @override
-  Future<HttpClientRequest> openUrl(String method, Uri url) =>
-      _realClient.openUrl(method, url);
-
-  @override
   Future<HttpClientRequest> patch(String host, int port, String path) =>
       _realClient.patch(host, port, path);
 
@@ -216,7 +223,8 @@ class _MockHttpClientRequest implements HttpClientRequest {
   final Uri _url;
   final MockApiHandler _handler;
 
-  _MockHttpClientRequest(this._url, this._handler);
+  _MockHttpClientRequest(this._url, this._handler, {String? method})
+      : method = method ?? 'GET';
 
   @override
   Future<HttpClientResponse> close() async {
@@ -240,7 +248,7 @@ class _MockHttpClientRequest implements HttpClientRequest {
   HttpHeaders headers = _MockHttpHeaders();
 
   @override
-  String method = 'GET';
+  String method;
 
   @override
   Uri get uri => _url;

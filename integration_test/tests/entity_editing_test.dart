@@ -12,24 +12,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
-import 'package:wandrr/presentation/trip/pages/home/trips_list_view.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_viewer.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
 import '../helpers/test_helpers.dart';
-
-Future<void> _navigateToTripEditor(WidgetTester tester) async {
-  await TestHelpers.pumpAndSettleApp(tester);
-  await TestHelpers.waitForWidget(tester, find.byType(TripListView),
-      timeout: const Duration(seconds: 5));
-  final tripCard = find.ancestor(
-    of: find.text('European Adventure'),
-    matching: find.byType(InkWell),
-  );
-  await TestHelpers.tapWidget(tester, tripCard);
-  await TestHelpers.waitForWidget(tester, find.byType(TripEditorPage),
-      timeout: const Duration(seconds: 10));
-}
 
 Future<void> _openCreatorBottomSheet(WidgetTester tester) async {
   final fab = find.byType(FloatingActionButton);
@@ -41,7 +27,7 @@ Future<void> _openCreatorBottomSheet(WidgetTester tester) async {
 /// REQ-TE-003
 Future<void> runCreatorBottomSheetOptionsTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   await _openCreatorBottomSheet(tester);
   final hasOptions = find.text('Travel Entry').evaluate().isNotEmpty ||
       find.text('Stay Entry').evaluate().isNotEmpty ||
@@ -53,7 +39,7 @@ Future<void> runCreatorBottomSheetOptionsTest(
 /// REQ-TR-001
 Future<void> runTransitEditorOpensTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   await _openCreatorBottomSheet(tester);
   final opt = find.text('Travel Entry');
   if (opt.evaluate().isNotEmpty) {
@@ -66,14 +52,14 @@ Future<void> runTransitEditorOpensTest(
 /// REQ-TR-003
 Future<void> runTransitTypeChangeVisibilityTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   print('OK REQ-TR-003: Transit type controls visibility (verified by design)');
 }
 
 /// REQ-ST-001
 Future<void> runStayEditorOpensTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   await _openCreatorBottomSheet(tester);
   final opt = find.text('Stay Entry');
   if (opt.evaluate().isNotEmpty) {
@@ -86,7 +72,7 @@ Future<void> runStayEditorOpensTest(
 /// REQ-IPD-001
 Future<void> runItineraryItemCreationFromBottomSheetTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   await _openCreatorBottomSheet(tester);
   final opt = find.textContaining('Itinerary');
   if (opt.evaluate().isNotEmpty) {
@@ -99,7 +85,7 @@ Future<void> runItineraryItemCreationFromBottomSheetTest(
 /// REQ-IPD-002
 Future<void> runItineraryEditorTabsTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   for (final icon in [
     Icons.place_outlined,
     Icons.note_outlined,
@@ -117,7 +103,7 @@ Future<void> runItineraryEditorTabsTest(
 /// REQ-SE-001
 Future<void> runExpenseEditorOpensTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   await _openCreatorBottomSheet(tester);
   final opt = find.text('Expense Entry');
   if (opt.evaluate().isNotEmpty) {
@@ -130,7 +116,7 @@ Future<void> runExpenseEditorOpensTest(
 /// REQ-IT-001
 Future<void> runItineraryDayNavigationTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   final next = find.byIcon(Icons.navigate_next);
   if (next.evaluate().isNotEmpty) {
     await TestHelpers.tapWidget(tester, next.first);
@@ -147,7 +133,7 @@ Future<void> runItineraryDayNavigationTest(
 /// REQ-IT-004
 Future<void> runTimelineEventCardContentTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   final cards = find.byType(Card);
   if (cards.evaluate().isNotEmpty) {
     print('  Found ${cards.evaluate().length} cards on timeline');
@@ -158,7 +144,7 @@ Future<void> runTimelineEventCardContentTest(
 /// REQ-TE-001
 Future<void> runTripEditorLayoutAdaptationTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   final isLarge = TestHelpers.isLargeScreen(tester);
   print('OK REQ-TE-001: Layout adapts (large=$isLarge)');
 }
@@ -166,7 +152,7 @@ Future<void> runTripEditorLayoutAdaptationTest(
 /// REQ-TD-001
 Future<void> runTripDetailsEditorFieldsTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   final tripName = find.text('European Adventure');
   if (tripName.evaluate().isNotEmpty) {
     await TestHelpers.tapWidget(tester, tripName);
@@ -179,7 +165,7 @@ Future<void> runTripDetailsEditorFieldsTest(
 /// REQ-BU-001
 Future<void> runBudgetingPageSectionsTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   if (!TestHelpers.isLargeScreen(tester)) {
     final tab = find.byIcon(Icons.wallet_travel_rounded);
     if (tab.evaluate().isNotEmpty) {
@@ -193,7 +179,7 @@ Future<void> runBudgetingPageSectionsTest(
 /// REQ-IT-003
 Future<void> runTimelineAggregationTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   final context = tester.element(find.byType(TripEditorPage));
   final trip = RepositoryProvider.of<TripRepositoryFacade>(context).activeTrip!;
   final d1 = trip.itineraryCollection.getItineraryForDay(DateTime(2025, 9, 24));
@@ -214,7 +200,7 @@ Future<void> runTimelineAggregationTest(
 /// (DraggableScrollableSheet).
 Future<void> runEntityEditorPresentationTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   await _openCreatorBottomSheet(tester);
 
   // Select 'Travel Entry' to open the transit editor
@@ -237,7 +223,7 @@ Future<void> runEntityEditorPresentationTest(
 /// whereas opening an existing entity pre-fills the form.
 Future<void> runEntityEditorModesTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // --- Create mode ---
   await _openCreatorBottomSheet(tester);
@@ -261,7 +247,7 @@ Future<void> runEntityEditorModesTest(
 /// show a two-page PageView (editor form + conflict resolution subpage).
 Future<void> runEditorViewSwitchingTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
   await _openCreatorBottomSheet(tester);
 
   final travelOpt = find.text('Travel Entry');
@@ -289,7 +275,7 @@ Future<void> runEditorViewSwitchingTest(
 /// (Timeline, Notes, Checklists, Sights).
 Future<void> runDayViewTabsTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // The ItineraryViewer has a TabController with length 4 and tab icons:
   //   Icons.timeline, Icons.note_outlined, Icons.checklist_outlined, Icons.place_outlined
@@ -323,7 +309,7 @@ Future<void> runDayViewTabsTest(
 /// are rendered as connected segments with position info and layover duration.
 Future<void> runConnectedJourneyDisplayTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Access the trip data to verify journey connectivity in the model layer
   final context = tester.element(find.byType(TripEditorPage));
@@ -364,7 +350,7 @@ Future<void> runConnectedJourneyDisplayTest(
 /// entity relevant to the displayed day is created, updated, or deleted.
 Future<void> runTimelineRebuildRulesTest(
     WidgetTester tester, SharedPreferences sp) async {
-  await _navigateToTripEditor(tester);
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   // Verify the ItineraryViewer widget is present and responsive
   final itineraryViewer = find.byType(ItineraryViewer);

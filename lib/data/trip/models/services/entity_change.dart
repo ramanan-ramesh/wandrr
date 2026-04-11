@@ -63,6 +63,40 @@ class DateTimeChange<T extends TripEntity> extends EntityChangeBase<T> {
           action: ChangeAction.update,
           isClamped: true,
         );
+
+  /// Equality based on entity ID, action flags, and type-specific modified times.
+  ///
+  /// **Warning:** [modified] is mutable — do not use instances as Map keys or
+  /// Set members after mutating the modified entity.
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! DateTimeChange<T>) return false;
+    if (original.id != other.original.id) return false;
+    if (isDelete != other.isDelete) return false;
+    if (isClamped != other.isClamped) return false;
+    return _modifiedTimeEquals(other);
+  }
+
+  @override
+  int get hashCode => Object.hash(original.id, isDelete, isClamped);
+
+  bool _modifiedTimeEquals(DateTimeChange<T> other) {
+    final m = modified;
+    final om = other.modified;
+    if (m is LodgingFacade && om is LodgingFacade) {
+      return m.checkinDateTime == om.checkinDateTime &&
+          m.checkoutDateTime == om.checkoutDateTime;
+    }
+    if (m is TransitFacade && om is TransitFacade) {
+      return m.departureDateTime == om.departureDateTime &&
+          m.arrivalDateTime == om.arrivalDateTime;
+    }
+    if (m is SightFacade && om is SightFacade) {
+      return m.visitTime == om.visitTime;
+    }
+    return true;
+  }
 }
 
 /// Change for expense split updates (when contributors change)
@@ -75,6 +109,20 @@ class ExpenseSplitChange extends EntityChangeBase<ExpenseBearingTripEntity> {
     required super.modified,
     this.includeInSplitBy = false,
   });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ExpenseSplitChange) return false;
+    return original.id == other.original.id &&
+        isDelete == other.isDelete &&
+        isClamped == other.isClamped &&
+        includeInSplitBy == other.includeInSplitBy;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(original.id, isDelete, isClamped, includeInSplitBy);
 }
 
 /// Type aliases for cleaner API

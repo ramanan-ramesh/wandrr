@@ -25,11 +25,11 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 //   [ConflictPlanConfirmed]      – user confirmed plan
 //   [ConflictedEntityTimeRangeError] – invalid time on a conflicted item
 //   [EntitySubmitted]            – final submission
+//
+// Affected sections are tracked as a `Set<Type>` containing the entity facade
+// types: `LodgingFacade`, `TransitFacade`, `SightFacade`,
+// `ExpenseBearingTripEntity`.
 // =============================================================================
-
-/// Which sections of the plan have structurally changed (items added/removed).
-/// Used as a bitmask in [PlanUpdated] and [PlanItemsUpdated].
-enum ConflictSection { stays, transits, sights, expenses }
 
 /// Base state for [TripEntityEditorBloc<T>].
 abstract class TripEntityEditorState<T extends TripEntity> {
@@ -84,12 +84,15 @@ class ConflictedEntityTimeRangeError<T extends TripEntity>
 /// [affectedSections] tells each section widget whether it needs to rebuild.
 /// The widget reads the actual list from `context.tripEntityUpdatePlan<T>()`.
 ///
+/// Sections are identified by entity facade `Type`:
+/// `LodgingFacade`, `TransitFacade`, `SightFacade`, `ExpenseBearingTripEntity`.
+///
 /// UI Response:
-/// - Section widgets whose [ConflictSection] is in [affectedSections] rebuild.
+/// - Section widgets whose entity type is in [affectedSections] rebuild.
 /// - The conflict banner / page-visibility logic also reacts to this state.
 class PlanUpdated<T extends TripEntity> extends TripEntityEditorState<T> {
   /// Sections whose item-set changed (additions or removals).
-  final Set<ConflictSection> affectedSections;
+  final Set<Type> affectedSections;
 
   const PlanUpdated(this.affectedSections);
 }
@@ -101,11 +104,11 @@ class PlanUpdated<T extends TripEntity> extends TripEntityEditorState<T> {
 /// Each item widget reads the updated change from the plan by its own ID.
 ///
 /// UI Response:
-/// - Item widgets whose section is in [affectedSections] check their own ID
+/// - Item widgets whose section type is in [affectedSections] check their own ID
 ///   and rebuild only if their item was among the changed ones.
 class PlanItemsUpdated<T extends TripEntity> extends TripEntityEditorState<T> {
   /// Sections that contain at least one modified item.
-  final Set<ConflictSection> affectedSections;
+  final Set<Type> affectedSections;
 
   const PlanItemsUpdated(this.affectedSections);
 }

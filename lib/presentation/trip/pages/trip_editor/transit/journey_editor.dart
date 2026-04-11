@@ -76,12 +76,18 @@ class JourneyEditorState extends State<JourneyEditor> {
   ///
   /// Also flushes legs that were removed via [_removeLeg] since they are
   /// deferred until the user confirms with the FAB, not deleted immediately.
-  void saveAllLegs(BuildContext context) {
+  ///
+  /// Returns the number of dispatched update events so the caller can track
+  /// completion.
+  int saveAllLegs(BuildContext context) {
+    int operationCount = 0;
+
     // 1. Delete legs that were removed during this editing session.
     for (final leg in _removedLegs) {
       context.addTripManagementEvent(
         UpdateTripEntity<TransitFacade>.delete(tripEntity: leg),
       );
+      operationCount++;
     }
     _removedLegs.clear();
 
@@ -92,6 +98,7 @@ class JourneyEditorState extends State<JourneyEditor> {
             tripEntity: _remainingLegJourneyIdUpdate!),
       );
       _remainingLegJourneyIdUpdate = null;
+      operationCount++;
     }
 
     // 3. Create / update the remaining active legs.
@@ -106,7 +113,10 @@ class JourneyEditorState extends State<JourneyEditor> {
           UpdateTripEntity<TransitFacade>.update(tripEntity: leg),
         );
       }
+      operationCount++;
     }
+
+    return operationCount;
   }
 
   void _initializeLegs() {

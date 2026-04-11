@@ -58,23 +58,23 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ## 2. Glossary
 
-| Term                  | Definition                                                                                       |
-|-----------------------|--------------------------------------------------------------------------------------------------|
-| **Trip**              | The top-level entity: has a name, date range, contributors, budget, and thumbnail.               |
-| **Stay (Lodging)**    | A lodging entry with check-in/out dates, location, confirmation ID, expense, and notes.          |
-| **Transit**           | A single movement leg: travel mode, departure/arrival location + date-time, operator, expense.   |
-| **Journey**           | A group of connected transit legs displayed as connected segments (e.g., multi-stop flights).    |
-| **Itinerary**         | The per-day view of a trip, containing linked stays, transits, and plan data.                    |
-| **Plan Data**         | User-editable content for a day: sights, notes, and checklists.                                  |
-| **Sight**             | A named attraction/visit with optional location, visit time, description, and expense.           |
-| **Checklist**         | A titled list of checkable items for a day.                                                      |
-| **Standalone Expense**| An expense not linked to a stay/transit/sight; has title, category, date, and split data.        |
-| **Expense**           | Shared expense data: currency, who paid what, who splits the cost, and computed total.           |
-| **Contributor**       | A user (identified by username/email) who participates in a trip.                                |
-| **Conflict**          | A temporal overlap or out-of-bounds condition detected when a user edits dates/times.            |
-| **Clamping**          | Auto-adjusting an entity's times to fit within a new boundary (e.g., trip dates shrink).         |
-| **Mobile Layout**     | Narrow single-column layout (screen width ≤ 1000 pixels).                                       |
-| **Tablet/Web Layout** | Wide layout (screen width > 1000 pixels) with split panes.                                      |
+| Term                   | Definition                                                                                     |
+|------------------------|------------------------------------------------------------------------------------------------|
+| **Trip**               | The top-level entity: has a name, date range, contributors, budget, and thumbnail.             |
+| **Stay (Lodging)**     | A lodging entry with check-in/out dates, location, confirmation ID, expense, and notes.        |
+| **Transit**            | A single movement leg: travel mode, departure/arrival location + date-time, operator, expense. |
+| **Journey**            | A group of connected transit legs displayed as connected segments (e.g., multi-stop flights).  |
+| **Itinerary**          | The per-day view of a trip, containing linked stays, transits, and plan data.                  |
+| **Plan Data**          | User-editable content for a day: sights, notes, and checklists.                                |
+| **Sight**              | A named attraction/visit with optional location, visit time, description, and expense.         |
+| **Checklist**          | A titled list of checkable items for a day.                                                    |
+| **Standalone Expense** | An expense not linked to a stay/transit/sight; has title, category, date, and split data.      |
+| **Expense**            | Shared expense data: currency, who paid what, who splits the cost, and computed total.         |
+| **Contributor**        | A user (identified by username/email) who participates in a trip.                              |
+| **Conflict**           | A temporal overlap or out-of-bounds condition detected when a user edits dates/times.          |
+| **Clamping**           | Auto-adjusting an entity's times to fit within a new boundary (e.g., trip dates shrink).       |
+| **Mobile Layout**      | Narrow single-column layout (screen width ≤ 1000 pixels).                                      |
+| **Tablet/Web Layout**  | Wide layout (screen width > 1000 pixels) with split panes.                                     |
 
 ---
 
@@ -82,11 +82,13 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-LAYOUT-001 — Layout Breakpoint
 
-- The app uses a wide (tablet/web) layout when the screen width exceeds 1000 pixels, and a narrow (mobile) layout otherwise.
+- The app uses a wide (tablet/web) layout when the screen width exceeds 1000 pixels, and a narrow (
+  mobile) layout otherwise.
 
 ### REQ-LAYOUT-002 — Adaptive Rendering
 
-- Every screen must render correctly in both layout modes. Layout mode is recalculated whenever the screen is resized.
+- Every screen must render correctly in both layout modes. Layout mode is recalculated whenever the
+  screen is resized.
 
 ### REQ-LAYOUT-003 — Startup Page Layout
 
@@ -142,16 +144,16 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-AUTH-005 — Authentication Outcomes
 
-| Outcome                        | What the User Sees                                                       |
-|--------------------------------|--------------------------------------------------------------------------|
-| Successful login               | Navigated to the trips list page.                                        |
-| Email verification pending     | Inline message: email verification required. "Resend" option shown.      |
-| Verification email re-sent     | Inline confirmation that a verification email was re-sent.               |
-| Wrong password                 | Error shown inline or as a notification.                                 |
-| Account not found              | Error shown inline.                                                      |
-| Username already taken         | Error shown inline (Register tab).                                       |
-| Weak password                  | Error shown inline (Register tab).                                       |
-| Invalid email format           | Error shown inline.                                                      |
+| Outcome                    | What the User Sees                                                  |
+|----------------------------|---------------------------------------------------------------------|
+| Successful login           | Navigated to the trips list page.                                   |
+| Email verification pending | Inline message: email verification required. "Resend" option shown. |
+| Verification email re-sent | Inline confirmation that a verification email was re-sent.          |
+| Wrong password             | Error shown inline or as a notification.                            |
+| Account not found          | Error shown inline.                                                 |
+| Username already taken     | Error shown inline (Register tab).                                  |
+| Weak password              | Error shown inline (Register tab).                                  |
+| Invalid email format       | Error shown inline.                                                 |
 
 ### REQ-AUTH-006 — Resend Verification Email
 
@@ -160,12 +162,14 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-AUTH-007 — Session Persistence
 
-- If a user is already signed in when the app starts, they are taken directly to the trips list without seeing the login screen.
+- If a user is already signed in when the app starts, they are taken directly to the trips list
+  without seeing the login screen.
 
 ### REQ-AUTH-008 — Route Protection
 
 - Users who are not signed in cannot access any trip pages; they are redirected to the login screen.
-- Users who are already signed in cannot access the login or onboarding screens; they are redirected to the trips list.
+- Users who are already signed in cannot access the login or onboarding screens; they are redirected
+  to the trips list.
 
 ---
 
@@ -198,7 +202,8 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 ### REQ-TL-001 — Trip List Display
 
 - Shows all trips belonging to or shared with the current user.
-- Trips are grouped into two sections: **Upcoming Trips** (end date ≥ today) and **Past Trips** (end date < today).
+- Trips are grouped into two sections: **Upcoming Trips** (end date ≥ today) and **Past Trips** (end
+  date < today).
 - Each section has year filter chips derived from trip start dates.
 - Only trips matching the selected year chip are shown in each section.
 
@@ -224,7 +229,8 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 ### REQ-TL-005 — Opening a Trip
 
 - Tapping a trip card opens the trip editor.
-- The page appears immediately using any cached data; a progress indicator shows background loading status.
+- The page appears immediately using any cached data; a progress indicator shows background loading
+  status.
 - Recently opened trips are kept in memory for instant switching.
 
 ### REQ-TL-006 — Empty State
@@ -280,9 +286,11 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 - Shows:
     1. **Trip name field:** Pre-filled with "Copy of \<original name\>". Must be non-empty.
-    2. **Start date picker:** Defaults to today. Selecting a new start date automatically calculates the end date to preserve the original trip's duration.
+    2. **Start date picker:** Defaults to today. Selecting a new start date automatically calculates
+       the end date to preserve the original trip's duration.
     3. **Date shift info:** Read-only text showing original date range → new date range.
-    4. **Contributors editor:** Pre-filled from the source trip. Users can add or remove contributors.
+    4. **Contributors editor:** Pre-filled from the source trip. Users can add or remove
+       contributors.
     5. **Budget editor:** Pre-filled from the source trip. Both amount and currency are editable.
 
 ### REQ-CP-002 — Validation (Copy)
@@ -292,7 +300,8 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-CP-003 — Submit Behaviour
 
-- A new trip is created, copying all entities from the original trip with dates shifted to match the new start date.
+- A new trip is created, copying all entities from the original trip with dates shifted to match the
+  new start date.
 - On success, the new trip appears in the trip list.
 - On failure, an error message is shown.
 
@@ -303,7 +312,8 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 ### REQ-DT-001 — Delete Trip Dialog Content
 
 - Shows a warning icon and localized confirmation text.
-- Two buttons: **No** (dismisses dialog) and **Yes** (proceeds with deletion, styled as destructive).
+- Two buttons: **No** (dismisses dialog) and **Yes** (proceeds with deletion, styled as
+  destructive).
 
 ### REQ-DT-002 — Delete Behaviour
 
@@ -337,11 +347,13 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
         - **Sight** — Creates a new sight for the day currently displayed in the itinerary viewer.
         - **Note** — Creates a new note for the current itinerary day.
         - **Checklist** — Creates a new checklist for the current itinerary day.
-    - Tapping any itinerary sub-action closes the bottom sheet and opens the plan data editor with the corresponding tab and the new item ready to edit.
+    - Tapping any itinerary sub-action closes the bottom sheet and opens the plan data editor with
+      the corresponding tab and the new item ready to edit.
 
 ### REQ-TE-003a — Itinerary Date Selection in Creator
 
-- The creator bottom sheet allows the user to choose which itinerary date the new sight/note/checklist belongs to.
+- The creator bottom sheet allows the user to choose which itinerary date the new
+  sight/note/checklist belongs to.
 - Defaults to the date currently displayed in the itinerary viewer.
 
 ### REQ-TE-004 — Entity Editor Presentation
@@ -353,6 +365,15 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 - **Create:** A blank form is shown for creating a new entity.
 - **Edit:** The form is pre-populated with existing values for editing.
+
+### REQ-TE-007 — Confirm Action (Save / Submit)
+
+- A confirm (✓) floating action button is shown in the entity editor.
+- The button is **disabled** (greyed) when the form is invalid or has unresolved conflicts.
+- Tapping the confirm button when enabled saves the entity and **fully dismisses** the Creator
+  bottom-sheet (the entire sheet closes, not just the editor within it).
+- On save, the itinerary timeline and expense list are updated to reflect the new or modified
+  entity.
 
 ### REQ-TE-006 — Editor View Switching
 
@@ -378,8 +399,10 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-TD-003 — Date Range Change → Conflict Detection
 
-- Changing the trip's date range triggers a scan of all existing stays, transits, and sights for items that would fall outside the new date range.
-- If conflicts are found, a conflict banner appears and the save button is disabled until conflicts are resolved or acknowledged.
+- Changing the trip's date range triggers a scan of all existing stays, transits, and sights for
+  items that would fall outside the new date range.
+- If conflicts are found, a conflict banner appears and the save button is disabled until conflicts
+  are resolved or acknowledged.
 
 ### REQ-TD-004 — Contributor Changes → Expense Split Detection
 
@@ -399,7 +422,8 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 ### REQ-TD-006 — Submit
 
 - Saves the updated trip details.
-- If a conflict plan exists and has been confirmed, all related changes (date adjustments, deletions, expense splits) are saved together.
+- If a conflict plan exists and has been confirmed, all related changes (date adjustments,
+  deletions, expense splits) are saved together.
 
 ### REQ-TD-007 — Removed Contributor Notification
 
@@ -415,7 +439,8 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 - The itinerary shows the current day with left/right arrow buttons to move between trip days.
 - A calendar icon opens a date picker allowing direct jump to any trip day.
 - Day transitions animate with fade + slide.
-- The currently viewed day is preserved when switching between app tabs and returning to the itinerary.
+- The currently viewed day is preserved when switching between app tabs and returning to the
+  itinerary.
 
 ### REQ-IT-002 — Day View Tabs
 
@@ -456,7 +481,8 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-IT-006 — Timeline Rebuild
 
-- The timeline refreshes when any entity (transit, stay, expense, plan data) relevant to the displayed day is created, updated, or deleted.
+- The timeline refreshes when any entity (transit, stay, expense, plan data) relevant to the
+  displayed day is created, updated, or deleted.
 
 ---
 
@@ -465,10 +491,12 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 ### REQ-ST-001 — Displayed Fields
 
 1. **Location:** Location search with autocomplete. Required.
-2. **Check-in / Check-out date-times:** Date-time pickers constrained within trip date range. Required. Check-out must be after check-in.
+2. **Check-in / Check-out date-times:** Date-time pickers constrained within trip date range.
+   Required. Check-out must be after check-in.
 3. **Confirmation ID:** Optional text field.
 4. **Notes:** Optional expandable text area.
-5. **Payment Details (Expense):** Shared expense editing component (see [Module 19](#19-module-expense-split--payment-details-shared-component)).
+5. **Payment Details (Expense):** Shared expense editing component (
+   see [Module 19](#19-module-expense-split--payment-details-shared-component)).
 
 ### REQ-ST-002 — Validation
 
@@ -480,8 +508,12 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-ST-003 — Conflict Detection on Date Change
 
-- Changing check-in or check-out triggers conflict scanning against other stays, transits, and sights.
-- **Stay-specific rule:** Transits and sights that are *fully contained* within a stay's check-in to check-out period do NOT conflict — travellers can visit sights and take transits during their stay. Only overlaps at check-in/check-out boundaries or cases where the stay is contained within a transit are conflicts.
+- Changing check-in or check-out triggers conflict scanning against other stays, transits, and
+  sights.
+- **Stay-specific rule:** Transits and sights that are *fully contained* within a stay's check-in to
+  check-out period do NOT conflict — travellers can visit sights and take transits during their
+  stay. Only overlaps at check-in/check-out boundaries or cases where the stay is contained within a
+  transit are conflicts.
 
 ### REQ-ST-004 — Entity Display Name
 
@@ -494,12 +526,16 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-TR-001 — Displayed Fields
 
-1. **Travel type:** Dropdown showing all travel modes (bus, flight, rented vehicle, train, walk, ferry, cruise, vehicle, public transport, taxi), each with an icon.
-2. **Operator section (conditional):** Shown only for modes that need prior booking (all except walk and vehicle).
+1. **Travel type:** Dropdown showing all travel modes (bus, flight, rented vehicle, train, walk,
+   ferry, cruise, vehicle, public transport, taxi), each with an icon.
+2. **Operator section (conditional):** Shown only for modes that need prior booking (all except walk
+   and vehicle).
     - For **flight:** A specialized airline + flight number editor.
     - For **other bookable types:** A simple text field for operator name.
-3. **Departure:** Location search with autocomplete + date-time picker. For flights, airport-specific search.
-4. **Arrival:** Location search with autocomplete + date-time picker. For flights, airport-specific search.
+3. **Departure:** Location search with autocomplete + date-time picker. For flights,
+   airport-specific search.
+4. **Arrival:** Location search with autocomplete + date-time picker. For flights, airport-specific
+   search.
 5. **Confirmation ID (conditional):** Shown only for bookable types. Optional.
 6. **Notes:** Optional expandable text area.
 7. **Payment Details (Expense):** Shared expense editing component.
@@ -534,8 +570,10 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 - When both departure and arrival locations are set, timezone information is displayed.
 - If both locations share the same timezone, only one timezone string is shown.
-- If both locations are in different timezones but the same region (e.g., Europe/Berlin and Europe/Amsterdam), the region is shown once with both cities: "Europe: Berlin → Amsterdam".
-- If the locations are in different regions, both full timezone strings are shown: "America/New York → Europe/London".
+- If both locations are in different timezones but the same region (e.g., Europe/Berlin and
+  Europe/Amsterdam), the region is shown once with both cities: "Europe: Berlin → Amsterdam".
+- If the locations are in different regions, both full timezone strings are shown: "America/New
+  York → Europe/London".
 
 ---
 
@@ -558,7 +596,8 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 - An "Add Connecting Leg" button appends a new empty leg.
 - New legs inherit the travel type and use the previous leg's arrival location as their departure.
 - Each leg except the first can be removed.
-- Removing a leg only takes effect when the user saves (clicks the confirm button); it is not immediately committed.
+- Removing a leg only takes effect when the user saves (clicks the confirm button); it is not
+  immediately committed.
 
 ### REQ-JE-004 — Leg Connectivity Constraint
 
@@ -572,7 +611,8 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-JE-006 — Journey-Level Conflict Detection
 
-- When any leg's time changes, conflicts are scanned across all legs against existing trip entities, with duplicates removed.
+- When any leg's time changes, conflicts are scanned across all legs against existing trip entities,
+  with duplicates removed.
 
 ### REQ-JE-007 — Save Behaviour
 
@@ -588,14 +628,17 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-IPD-001 — Entry Modes
 
-- **Create New Item:** Opens the editor with a new item already appended (sight, note, or checklist). The new item is created for the date currently displayed in the itinerary viewer (or the date chosen in the creator bottom sheet).
+- **Create New Item:** Opens the editor with a new item already appended (sight, note, or
+  checklist). The new item is created for the date currently displayed in the itinerary viewer (or
+  the date chosen in the creator bottom sheet).
 - **Edit Existing Item:** Opens the editor scrolled/focused to the item at the specified position.
 
 ### REQ-IPD-002 — Tabs
 
 - Three tabs: **Sights**, **Notes**, **Checklists**.
 - The initial tab is determined by which item type was selected.
-- Switching tabs shows the selected tab's content directly; all content scrolls with the page's single scroll area (no nested scrolling within individual items).
+- Switching tabs shows the selected tab's content directly; all content scrolls with the page's
+  single scroll area (no nested scrolling within individual items).
 
 ### REQ-IPD-003 — Sights Tab
 
@@ -610,9 +653,12 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-IPD-004 — Sight Overlap Detection
 
-- Conflict detection for sights is triggered **only** when visit times actually change — when a time is set, cleared, or modified via the time picker, or when a sight with a time is added or deleted.
-- Editing non-time fields (title, location, description, expense) does **not** trigger conflict detection.
-- If two sights on the same day have the same visit time, an error is shown: "Sights cannot overlap on the same day".
+- Conflict detection for sights is triggered **only** when visit times actually change — when a time
+  is set, cleared, or modified via the time picker, or when a sight with a time is added or deleted.
+- Editing non-time fields (title, location, description, expense) does **not** trigger conflict
+  detection.
+- If two sights on the same day have the same visit time, an error is shown: "Sights cannot overlap
+  on the same day".
 - Standard conflict detection also runs against transits and stays.
 
 ### REQ-IPD-005 — Notes Tab
@@ -651,7 +697,8 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 1. **Category badge:** Shows the expense category with icon and colour.
 2. **Title:** Editable text field.
-3. **Paid-On date:** Date picker. The date picker button updates to display the newly selected date immediately.
+3. **Paid-On date:** Date picker. The date picker button updates to display the newly selected date
+   immediately.
 4. **Description:** Optional text field.
 5. **Payment Details (Expense):** Shared expense editing component.
 
@@ -666,7 +713,8 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-SE-004 — Category List
 
-- Other, Flights, Lodging, Car Rental, Public Transit, Food, Drinks, Sightseeing, Activities, Shopping, Fuel, Groceries, Taxi.
+- Other, Flights, Lodging, Car Rental, Public Transit, Food, Drinks, Sightseeing, Activities,
+  Shopping, Fuel, Groceries, Taxi.
 
 ---
 
@@ -708,7 +756,8 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ## 20. Module: Budgeting — Expenses List, Debt Summary, Breakdown
 
-The budgeting module is available throughout the trip editor, including in dialogs and bottom sheets. When the trip's currency is updated, budgeting data reflects the change automatically.
+The budgeting module is available throughout the trip editor, including in dialogs and bottom
+sheets. When the trip's currency is updated, budgeting data reflects the change automatically.
 
 ### REQ-BU-001 — Budgeting Page Structure
 
@@ -745,12 +794,14 @@ The budgeting module is available throughout the trip editor, including in dialo
 
 ### REQ-BU-005 — Budget Breakdown
 
-- **By Category:** Interactive pie chart of total spending per expense category. Tapping a section highlights it without unnecessary re-renders.
+- **By Category:** Interactive pie chart of total spending per expense category. Tapping a section
+  highlights it without unnecessary re-renders.
 - **By Day:** Breakdown of total spending per trip day.
 
 ### REQ-BU-006 — Expense List Rebuild
 
-- The expense list, debt summary, and breakdown charts update when expenses are added, changed, or removed. Tab contents must refresh after any expense update.
+- The expense list, debt summary, and breakdown charts update when expenses are added, changed, or
+  removed. Tab contents must refresh after any expense update.
 
 ---
 
@@ -764,12 +815,13 @@ The budgeting module is available throughout the trip editor, including in dialo
     - Stay check-in/out times change.
     - Transit departure/arrival times change (single or journey).
     - Sight visit times change (set, cleared, or modified via the time picker).
-- Conflicts are **not** triggered when non-time properties change (e.g., sight title, location, description, expense, transit operator name, confirmation IDs, etc.).
+- Conflicts are **not** triggered when non-time properties change (e.g., sight title, location,
+  description, expense, transit operator name, confirmation IDs, etc.).
 
 ### REQ-CD-002 — Conflict Types
 
-| Conflict Type                 | What It Means                                                                        |
-|-------------------------------|--------------------------------------------------------------------------------------|
+| Conflict Type                 | What It Means                                                                         |
+|-------------------------------|---------------------------------------------------------------------------------------|
 | **Date out-of-bounds**        | An entity's time range falls partially or fully outside the new trip date range.      |
 | **Temporal overlap**          | Two entities' time ranges overlap in a way that is not allowed by the conflict rules. |
 | **Same-day sight overlap**    | Two sights on the same day have identical visit times.                                |
@@ -777,20 +829,32 @@ The budgeting module is available throughout the trip editor, including in dialo
 
 ### REQ-CD-003 — How Overlaps Are Classified
 
-- **Adjacent events are not conflicts:** When one event ends at exactly the same time another starts (e.g., a transit arriving at 2:00 PM and a stay checking in at 2:00 PM), these are adjacent, not overlapping.
-- **Boundary match:** The start times of both events are identical, or the end times are identical — this is a genuine temporal overlap.
-- **Before/After:** An entity is entirely before or after the reference range (including adjacent events).
+- **Adjacent events are not conflicts:** When one event ends at exactly the same time another
+  starts (e.g., a transit arriving at 2:00 PM and a stay checking in at 2:00 PM), these are
+  adjacent, not overlapping.
+- **Boundary match:** The start times of both events are identical, or the end times are identical —
+  this is a genuine temporal overlap.
+- **Before/After:** An entity is entirely before or after the reference range (including adjacent
+  events).
 - **Contained within:** An entity is fully within the reference range.
 - **Contains:** The reference range is fully within the entity.
-- **Partial overlap:** An entity starts before and ends during, or starts during and ends after, the reference range.
+- **Partial overlap:** An entity starts before and ends during, or starts during and ends after, the
+  reference range.
 
 ### REQ-CD-004 — Conflict Rules by Entity Type
 
-- **Trip date range change:** Conflicts with entities that are before, after, partially overlapping, or containing the new date range.
-- **Stay vs Transit/Sight:** A transit or sight that is fully *contained within* a stay's check-in to check-out period is **not** a conflict. Travellers can visit sights and take transits during their stay. Only boundary matches (at exact check-in/out time), partial overlaps crossing the boundary, and other stays overlapping are conflicts.
+- **Trip date range change:** Conflicts with entities that are before, after, partially overlapping,
+  or containing the new date range.
+- **Stay vs Transit/Sight:** A transit or sight that is fully *contained within* a stay's check-in
+  to check-out period is **not** a conflict. Travellers can visit sights and take transits during
+  their stay. Only boundary matches (at exact check-in/out time), partial overlaps crossing the
+  boundary, and other stays overlapping are conflicts.
 - **Stay vs Stay:** All overlaps are conflicts.
-- **Transit/Sight vs Stay:** A transit or sight happening during a stay (the stay *contains* it) is **not** a conflict. Only boundary matches and partial overlaps crossing the stay's boundary are conflicts.
-- **Transit/Sight vs Transit/Sight:** All boundary matches, containments, and partial overlaps are conflicts.
+- **Transit/Sight vs Stay:** A transit or sight happening during a stay (the stay *contains* it) is
+  **not** a conflict. Only boundary matches and partial overlaps crossing the stay's boundary are
+  conflicts.
+- **Transit/Sight vs Transit/Sight:** All boundary matches, containments, and partial overlaps are
+  conflicts.
 
 ### REQ-CD-005 — Clamping (Auto-Resolution)
 
@@ -799,16 +863,20 @@ The budgeting module is available throughout the trip editor, including in dialo
     - **Stay:** Adjusts check-in or check-out to the nearest half-hour boundary.
     - **Sight:** Shifts visit time by ±1 minute for boundary matches only.
 - For boundary matches:
-    - **Transit:** When starts match, pushes departure after the other event ends. When ends match, pulls arrival before the other event starts.
-    - **Stay:** When check-in times match, pushes check-in to next half-hour after the other event. When check-out times match, pulls check-out to previous half-hour before the other event.
+    - **Transit:** When starts match, pushes departure after the other event ends. When ends match,
+      pulls arrival before the other event starts.
+    - **Stay:** When check-in times match, pushes check-in to next half-hour after the other event.
+      When check-out times match, pulls check-out to previous half-hour before the other event.
     - **Sight:** Shifts visit time after or before the other event.
-- When an entity is fully contained within another or vice versa and clamping is not possible, it is marked for deletion.
+- When an entity is fully contained within another or vice versa and clamping is not possible, it is
+  marked for deletion.
 - Adjacent events never need clamping.
 
 ### REQ-CD-006 — Conflict Resolution UI
 
 - When conflicts are detected:
-    - A **sticky conflict banner** appears above the editor form showing the conflict count and a "View Conflicts" button.
+    - A **sticky conflict banner** appears above the editor form showing the conflict count and a "
+      View Conflicts" button.
     - The **save button is disabled** until conflicts are acknowledged.
 - The conflict resolution view shows:
     - A header with a back button.
@@ -833,16 +901,19 @@ The budgeting module is available throughout the trip editor, including in dialo
 
 ### REQ-CD-009 — Expense Deletion Sync
 
-- When a timeline entity is marked for deletion in the conflict plan, its associated expense change (if any) is also marked for deletion.
+- When a timeline entity is marked for deletion in the conflict plan, its associated expense
+  change (if any) is also marked for deletion.
 - When restored, the expense change is also restored.
 
 ### REQ-CD-010 — Efficient UI Updates
 
-- Conflict UI updates are targeted: adding/removing entire conflict sections triggers a section-level refresh; updating a single conflict item triggers only that item's refresh.
+- Conflict UI updates are targeted: adding/removing entire conflict sections triggers a
+  section-level refresh; updating a single conflict item triggers only that item's refresh.
 
 ### REQ-CD-011 — Self-Exclusion
 
-- When scanning for conflicts, the entity currently being edited (or all legs of a journey, or all sights of an itinerary) is excluded to avoid detecting conflicts with itself.
+- When scanning for conflicts, the entity currently being edited (or all legs of a journey, or all
+  sights of an itinerary) is excluded to avoid detecting conflicts with itself.
 
 ---
 
@@ -864,7 +935,8 @@ The budgeting module is available throughout the trip editor, including in dialo
 
 ### REQ-UP-003 — Expense Selection in Conflict Plan
 
-- For contributor changes, the user can select which expenses include the new contributor in their split:
+- For contributor changes, the user can select which expenses include the new contributor in their
+  split:
     - Select all expenses.
     - Deselect all expenses.
     - Toggle individual expenses.
@@ -874,17 +946,17 @@ The budgeting module is available throughout the trip editor, including in dialo
 
 ## 23. Validation Rules Reference
 
-| Entity              | Rules                                                                                           | Error Condition                                              |
-|---------------------|-------------------------------------------------------------------------------------------------|--------------------------------------------------------------|
-| **Trip**            | Name is non-empty; end date ≥ start date; both dates set.                                       | Missing name or invalid date range.                          |
-| **Stay**            | Location set; check-in set; check-out set; expense valid.                                       | Missing location, dates, or invalid expense.                 |
-| **Transit**         | Departure and arrival locations set; departure and arrival times set; arrival after departure; for flights: operator has ≥ 3 parts; expense valid. | Missing locations/times, arrival ≤ departure, bad flight operator. |
-| **Journey**         | All legs valid; each leg's arrival ≥ departure + 1 min; each connecting departure ≥ previous arrival. | Invalid leg or time sequence error.                          |
-| **Sight**           | Name is non-empty and at least 3 characters.                                                    | Name too short or empty.                                     |
-| **Checklist**       | Title is non-empty and at least 3 characters; at least one item; all items non-empty.           | Missing title or empty items.                                |
-| **Plan Data**       | Empty plan data is valid; otherwise all sights, notes, and checklists must individually be valid.| Any sub-item failing its validation.                         |
-| **Expense**         | At least one payer; at least one person in the split.                                           | No payers or no split members.                               |
-| **Standalone Expense** | Expense details valid.                                                                       | Invalid expense data.                                        |
+| Entity                 | Rules                                                                                                                                              | Error Condition                                                    |
+|------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
+| **Trip**               | Name is non-empty; end date ≥ start date; both dates set.                                                                                          | Missing name or invalid date range.                                |
+| **Stay**               | Location set; check-in set; check-out set; expense valid.                                                                                          | Missing location, dates, or invalid expense.                       |
+| **Transit**            | Departure and arrival locations set; departure and arrival times set; arrival after departure; for flights: operator has ≥ 3 parts; expense valid. | Missing locations/times, arrival ≤ departure, bad flight operator. |
+| **Journey**            | All legs valid; each leg's arrival ≥ departure + 1 min; each connecting departure ≥ previous arrival.                                              | Invalid leg or time sequence error.                                |
+| **Sight**              | Name is non-empty and at least 3 characters.                                                                                                       | Name too short or empty.                                           |
+| **Checklist**          | Title is non-empty and at least 3 characters; at least one item; all items non-empty.                                                              | Missing title or empty items.                                      |
+| **Plan Data**          | Empty plan data is valid; otherwise all sights, notes, and checklists must individually be valid.                                                  | Any sub-item failing its validation.                               |
+| **Expense**            | At least one payer; at least one person in the split.                                                                                              | No payers or no split members.                                     |
+| **Standalone Expense** | Expense details valid.                                                                                                                             | Invalid expense data.                                              |
 
 ---
 
@@ -897,7 +969,7 @@ The budgeting module is available throughout the trip editor, including in dialo
 | **Trip List Grid**                 | Fewer columns (1–2 cards per row)              | More columns (3+ cards per row)                                  |
 | **Trip Editor**                    | Bottom nav bar to switch Itinerary / Budgeting | Side-by-side split (Itinerary left, Budgeting right), no nav bar |
 | **Trip Editor FAB**                | Docked to bottom nav bar                       | Floating at bottom centre with padding                           |
-| **Entity Editors**                 | Draggable bottom sheet (full-screen capable)   | Same bottom sheet; editor internals may use row layouts           |
+| **Entity Editors**                 | Draggable bottom sheet (full-screen capable)   | Same bottom sheet; editor internals may use row layouts          |
 | **Expense Editor**                 | Single column layout                           | Two-column layout (details left, payment right)                  |
 | **Language Switcher (Onboarding)** | Shows "Next" button alongside language buttons | "Next" button hidden; login visible alongside                    |
 
@@ -926,11 +998,13 @@ The budgeting module is available throughout the trip editor, including in dialo
 ### REQ-SYNC-001 — Live Updates
 
 - When a trip is opened, the app listens for changes made by other contributors in real time.
-- Changes to transits, stays, expenses, itinerary plan data, and trip details are received and reflected in the UI automatically.
+- Changes to transits, stays, expenses, itinerary plan data, and trip details are received and
+  reflected in the UI automatically.
 
 ### REQ-SYNC-002 — Change Classification
 
-- Each incoming change is classified as a creation, update, or deletion, and the UI updates accordingly.
+- Each incoming change is classified as a creation, update, or deletion, and the UI updates
+  accordingly.
 
 ### REQ-SYNC-003 — Subscription Lifecycle
 
@@ -949,36 +1023,38 @@ The budgeting module is available throughout the trip editor, including in dialo
 ### REQ-UPD-002 — Update Notification
 
 - If an update is available, a dialog shows the version and release notes.
-- If the update is mandatory (the current version is below the minimum supported version), the dialog cannot be dismissed.
+- If the update is mandatory (the current version is below the minimum supported version), the
+  dialog cannot be dismissed.
 
 ---
 
 ## 28. Test Traceability
 
-Each requirement ID (e.g., REQ-AUTH-002) should be referenced in test names or descriptions to enable traceability.
+Each requirement ID (e.g., REQ-AUTH-002) should be referenced in test names or descriptions to
+enable traceability.
 
 ### Recommended Test Mapping
 
-| Requirement Group      | Key Scenarios to Test                                                                          | UI Elements to Verify                                                     |
-|------------------------|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| AUTH                   | Login, register, third-party sign-in, logout                                                   | Login/register tabs, form validation, error messages, navigation          |
-| SET                    | Theme toggle, language switch, logout                                                          | Theme toggle, language submenu, logout behaviour                          |
-| TL (Trip List)         | Trip list loading, create/delete trip                                                          | Grid cards, year chips, empty state, popup actions                        |
-| CT (Create Trip)       | Trip creation with valid/invalid fields                                                        | Dialog fields, validation toggle, submit                                  |
-| CP (Copy Trip)         | Copy with date shift, contributor changes                                                      | Pre-filled fields, date shift display, submit                             |
-| DT (Delete Trip)       | Trip deletion confirmation                                                                     | Confirmation dialog, trip removal                                         |
-| TD (Trip Details)      | Date range change with conflicts, contributor add/remove                                       | Fields, conflict banner, contributor chips                                |
-| IT (Itinerary)         | Day navigation, tab switching, day preservation                                                | Timeline events, notes/checklists/sights viewers                          |
-| ST (Stay)              | Stay creation/editing, date change with conflicts                                              | Form fields, date pickers, conflict banner                                |
-| TR (Transit)           | Transit creation/editing, travel type change, flight validation                                | Travel type picker, operator field, flight validation                     |
-| JE (Journey)           | Multi-leg creation, add/remove legs, layover, connectivity                                     | Leg panels, add/remove, layover, connectivity constraint                  |
-| IPD (Plan Data)        | Sight/note/checklist CRUD, time-based conflict detection, tab switching                        | Sight/note/checklist forms, tab switching, validation errors              |
-| SE (Standalone Expense)| Expense creation/editing with category, date, split                                            | Category badge, title, date, expense split                                |
-| EX (Expense Component) | Payer/split changes, currency selection                                                        | Paid By/Split By tabs, currency selector, total display                   |
-| CD (Conflicts)         | All conflict types, clamping, resolution, confirmation                                         | Conflict banner, resolution page sections, clamped values, confirm button |
-| BU (Budgeting)         | Sort toggles, debt calculation, breakdown charts, refresh on expense change                    | Sort toggles, debt rows, breakdown charts, budget tile                    |
-| SYNC                   | Real-time updates from other contributors                                                      | Live UI updates on remote changes                                         |
-| PRINT                  | Print dialog options, transit selection, PDF generation                                        | Dialog fields, transit toggles, generated PDF content                     |
+| Requirement Group       | Key Scenarios to Test                                                       | UI Elements to Verify                                                     |
+|-------------------------|-----------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| AUTH                    | Login, register, third-party sign-in, logout                                | Login/register tabs, form validation, error messages, navigation          |
+| SET                     | Theme toggle, language switch, logout                                       | Theme toggle, language submenu, logout behaviour                          |
+| TL (Trip List)          | Trip list loading, create/delete trip                                       | Grid cards, year chips, empty state, popup actions                        |
+| CT (Create Trip)        | Trip creation with valid/invalid fields                                     | Dialog fields, validation toggle, submit                                  |
+| CP (Copy Trip)          | Copy with date shift, contributor changes                                   | Pre-filled fields, date shift display, submit                             |
+| DT (Delete Trip)        | Trip deletion confirmation                                                  | Confirmation dialog, trip removal                                         |
+| TD (Trip Details)       | Date range change with conflicts, contributor add/remove                    | Fields, conflict banner, contributor chips                                |
+| IT (Itinerary)          | Day navigation, tab switching, day preservation                             | Timeline events, notes/checklists/sights viewers                          |
+| ST (Stay)               | Stay creation/editing, date change with conflicts                           | Form fields, date pickers, conflict banner                                |
+| TR (Transit)            | Transit creation/editing, travel type change, flight validation             | Travel type picker, operator field, flight validation                     |
+| JE (Journey)            | Multi-leg creation, add/remove legs, layover, connectivity                  | Leg panels, add/remove, layover, connectivity constraint                  |
+| IPD (Plan Data)         | Sight/note/checklist CRUD, time-based conflict detection, tab switching     | Sight/note/checklist forms, tab switching, validation errors              |
+| SE (Standalone Expense) | Expense creation/editing with category, date, split                         | Category badge, title, date, expense split                                |
+| EX (Expense Component)  | Payer/split changes, currency selection                                     | Paid By/Split By tabs, currency selector, total display                   |
+| CD (Conflicts)          | All conflict types, clamping, resolution, confirmation                      | Conflict banner, resolution page sections, clamped values, confirm button |
+| BU (Budgeting)          | Sort toggles, debt calculation, breakdown charts, refresh on expense change | Sort toggles, debt rows, breakdown charts, budget tile                    |
+| SYNC                    | Real-time updates from other contributors                                   | Live UI updates on remote changes                                         |
+| PRINT                   | Print dialog options, transit selection, PDF generation                     | Dialog fields, transit toggles, generated PDF content                     |
 
 ---
 
@@ -986,25 +1062,31 @@ Each requirement ID (e.g., REQ-AUTH-002) should be referenced in test names or d
 
 ### REQ-PERF-001 — Background Preloading
 
-- On app launch, the most frequently visited trip is preloaded in the background so that data is ready before the user interacts.
+- On app launch, the most frequently visited trip is preloaded in the background so that data is
+  ready before the user interacts.
 
 ### REQ-PERF-002 — Instant-On Trip Loading
 
 - Opening a trip must never show a blocking "Loading" screen for the entire page.
-- The trip editor structure appears first, with individual sections (timeline, budgeting) loading their data as it becomes available.
+- The trip editor structure appears first, with individual sections (timeline, budgeting) loading
+  their data as it becomes available.
 
 ### REQ-PERF-003 — Smooth Interactions
 
-- Heavy computations (such as conflict detection scanning) run in the background so the interface remains smooth and responsive.
+- Heavy computations (such as conflict detection scanning) run in the background so the interface
+  remains smooth and responsive.
 
 ### REQ-PERF-004 — Loading Indicators
 
-- **Shimmers:** List views (transits, stays, sights) display shimmer animations while waiting for data.
-- **Progress Bar:** A linear progress bar is visible at the top of the trip editor until all data sections have loaded.
+- **Shimmers:** List views (transits, stays, sights) display shimmer animations while waiting for
+  data.
+- **Progress Bar:** A linear progress bar is visible at the top of the trip editor until all data
+  sections have loaded.
 
 ### REQ-PERF-005 — Edit Accessibility
 
-- Navigation to edit pages is blocked until the trip data is fully loaded, with a user-friendly message or loading indicator shown if the user tries to edit prematurely.
+- Navigation to edit pages is blocked until the trip data is fully loaded, with a user-friendly
+  message or loading indicator shown if the user tries to edit prematurely.
 
 ---
 
@@ -1012,43 +1094,58 @@ Each requirement ID (e.g., REQ-AUTH-002) should be referenced in test names or d
 
 ### Overview
 
-Users can generate a PDF document summarising their trip and print, share, or save it locally. The PDF includes an overview header, a per-day timeline (with transits, stays, and sights), and an expense table — all controlled by user-selectable options.
+Users can generate a PDF document summarising their trip and print, share, or save it locally. The
+PDF includes an overview header, a per-day timeline (with transits, stays, and sights), and an
+expense table — all controlled by user-selectable options.
 
 ### Entry Points
 
-| Location                  | Trigger                                                                                                                                                  |
-|---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Trip Editor toolbar       | Print icon button (all layouts).                                                                                                                         |
-| Trips List overflow menu  | "Print trip" menu item — works for any trip. If the trip is already open, the dialog opens directly. Otherwise, the trip is loaded in the background first, and the dialog opens once loading completes. |
+| Location                 | Trigger                                                                                                                                                                                                  |
+|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Trip Editor toolbar      | Print icon button (all layouts).                                                                                                                                                                         |
+| Trips List overflow menu | "Print trip" menu item — works for any trip. If the trip is already open, the dialog opens directly. Otherwise, the trip is loaded in the background first, and the dialog opens once loading completes. |
 
 ### Loading State
 
-- All form content (title field, section chips, transit filter toggles) is shown **immediately** when the dialog opens.
+- All form content (title field, section chips, transit filter toggles) is shown **immediately**
+  when the dialog opens.
 - If the trip data is not yet fully loaded, the transit selection area shows a progress bar.
-- A **minimum visual delay of 1 second** is enforced: even if loading completes quickly, the progress indicator stays visible for the full duration to avoid a jarring flash.
+- A **minimum visual delay of 1 second** is enforced: even if loading completes quickly, the
+  progress indicator stays visible for the full duration to avoid a jarring flash.
 - Once the trip data is ready and the minimum delay has passed, transit items appear.
 - The Generate PDF button is disabled until transits are ready.
 
 ### Print Options Dialog
 
-The dialog has a branded gradient header (matching other trip dialogs), a scrollable body, and a fixed footer with action buttons.
+The dialog has a branded gradient header (matching other trip dialogs), a scrollable body, and a
+fixed footer with action buttons.
 
 - **Document Title** — Editable text field, defaults to trip name.
-- **Section toggles** — Displayed as filter chips. Each chip has an icon and label. Sections: Checklists, Expenses, Sights/Places, Notes. All enabled by default; toggling a chip off excludes that section from the PDF. Selected and unselected states are clearly distinguishable in both light and dark modes.
+- **Section toggles** — Displayed as filter chips. Each chip has an icon and label. Sections:
+  Checklists, Expenses, Sights/Places, Notes. All enabled by default; toggling a chip off excludes
+  that section from the PDF. Selected and unselected states are clearly distinguishable in both
+  light and dark modes.
 
 #### Transit Section
 
 - **Section title** — "Transit Options".
-- **Inter-city travels** and **Intra-city travels** — Two compact switches displayed side-by-side. Both enabled by default. Toggling filters the visible transit list below.
+- **Inter-city travels** and **Intra-city travels** — Two compact switches displayed side-by-side.
+  Both enabled by default. Toggling filters the visible transit list below.
 
 #### Transit Selection List
 
 Below the transit options, each transit is shown as a selectable item:
 
-- **Standalone transits** — Single-leg transits shown with a checkbox, route summary (type, cities), and departure date.
-- **Multi-leg journeys** — Grouped in a bordered card showing the overall route (first departure city → last arrival city), leg count, and date. Each journey card has:
-    - A **merge/expand toggle** — an animated button that switches between "Merge legs" and "Show legs" states. When merged, the PDF prints a single timeline entry for the entire journey (first departure → last arrival). When expanded, individual legs are listed with checkboxes so the user can include/exclude specific legs.
-    - The toggle animates the icon, label text, and styling on state change. The legs section uses an animated expand/collapse transition.
+- **Standalone transits** — Single-leg transits shown with a checkbox, route summary (type, cities),
+  and departure date.
+- **Multi-leg journeys** — Grouped in a bordered card showing the overall route (first departure
+  city → last arrival city), leg count, and date. Each journey card has:
+    - A **merge/expand toggle** — an animated button that switches between "Merge legs" and "Show
+      legs" states. When merged, the PDF prints a single timeline entry for the entire journey (
+      first departure → last arrival). When expanded, individual legs are listed with checkboxes so
+      the user can include/exclude specific legs.
+    - The toggle animates the icon, label text, and styling on state change. The legs section uses
+      an animated expand/collapse transition.
     - A journey-level checkbox toggles all legs at once.
 - All transits are selected by default.
 - Only selected transits appear in the generated PDF.
@@ -1066,17 +1163,20 @@ Below the transit options, each transit is shown as a selectable item:
 
 ### PDF Layout
 
-The generated PDF is entirely **black and white** — no colour is used. The design relies on typography weight, letter-spacing, borders, and spatial hierarchy to remain visually clear when printed.
+The generated PDF is entirely **black and white** — no colour is used. The design relies on
+typography weight, letter-spacing, borders, and spatial hierarchy to remain visually clear when
+printed.
 
 - **Page header** — App logo and app name "Wandrr". The trip name is **not** shown in the header.
 - **Page footer** — Page number ("Page X of Y").
-- **Cover block** — Trip title (large bold), date range, and info pills (day count, travellers, budget) inside a bordered container.
+- **Cover block** — Trip title (large bold), date range, and info pills (day count, travellers,
+  budget) inside a bordered container.
 
-| Section            | Content                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Per-day itinerary  | **Unified chronological timeline**: each day has a date badge, followed by timeline markers. All timed events — check-in, check-out, transits, and timed sight visits — are merged and sorted by time. Notes and checklists appear after timed events. Accommodations are represented through check-in/check-out events in the timeline (no separate section). Confirmation IDs and other unnecessary details are omitted. **Transits** show departure → arrival locations and both times on one line. If a transit's arrival falls on a different day, it appears as a separate "ARRIVE" event on that day. Merged journeys show a single entry with first departure and last arrival. Only selected transits are shown. |
-| Sights / Places    | Sights that have **no visit time** are collected into a standalone section after the per-day timeline. Each shows name (bold), day date (muted), and description (if any).                                                                                                                                                                                                                                                                                                                |
-| Expenses           | Table with header row, alternating data rows, and a bold total row.                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Section           | Content                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+|-------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Per-day itinerary | **Unified chronological timeline**: each day has a date badge, followed by timeline markers. All timed events — check-in, check-out, transits, and timed sight visits — are merged and sorted by time. Notes and checklists appear after timed events. Accommodations are represented through check-in/check-out events in the timeline (no separate section). Confirmation IDs and other unnecessary details are omitted. **Transits** show departure → arrival locations and both times on one line. If a transit's arrival falls on a different day, it appears as a separate "ARRIVE" event on that day. Merged journeys show a single entry with first departure and last arrival. Only selected transits are shown. |
+| Sights / Places   | Sights that have **no visit time** are collected into a standalone section after the per-day timeline. Each shows name (bold), day date (muted), and description (if any).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Expenses          | Table with header row, alternating data rows, and a bold total row.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 - A4 format, 40pt margins.
 - Empty sections are skipped automatically.
@@ -1084,8 +1184,10 @@ The generated PDF is entirely **black and white** — no colour is used. The des
 
 ### Validation & Edge Cases
 
-- The dialog can be opened even if the trip data is still loading; all form content is shown immediately and the transit list shows a progress indicator until ready.
-- If the trip is not the currently active trip (opened from the Trips List), it is loaded in the background without disrupting the current active trip.
+- The dialog can be opened even if the trip data is still loading; all form content is shown
+  immediately and the transit list shows a progress indicator until ready.
+- If the trip is not the currently active trip (opened from the Trips List), it is loaded in the
+  background without disrupting the current active trip.
 - Empty sections (no stays, no transits, etc.) are omitted from the PDF.
 - Large trips paginate automatically.
 - If PDF generation fails, an error message is shown.

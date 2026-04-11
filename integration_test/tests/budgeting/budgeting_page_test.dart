@@ -31,6 +31,7 @@ Future<void> runBudgetTileUnderBudgetTest(WidgetTester tester) async {
   await TestHelpers.navigateToTripEditorPage(tester);
 
   await tryNavigateToBudgetingPage(tester);
+  print('✓ Navigated to Budgeting page');
 
   // Check for LinearProgressIndicator (shown when under budget)
   final progressIndicator = find.descendant(
@@ -52,6 +53,8 @@ Future<void> runBudgetTileUnderBudgetTest(WidgetTester tester) async {
   // Verify the progress value is not null (has a value)
   expect(indicator.value == expenseToBudgetRatio, isTrue,
       reason: 'Progress indicator should have correct percentage value');
+  print(
+      '✓ Budget progress indicator correct (${(expenseToBudgetRatio * 100).toStringAsFixed(1)}% used)');
 
   // Verify budget of 1500 EUR from test data is shown
   expect(
@@ -75,6 +78,7 @@ Future<void> runBudgetTileOverBudgetTest(WidgetTester tester) async {
   await TestHelpers.navigateToTripEditorPage(tester);
 
   await tryNavigateToBudgetingPage(tester);
+  print('✓ Navigated to Budgeting page');
 
   final context = tester.element(find.byType(TripEditorPage));
   final tripRepo = TestHelpers.getTripRepository(tester);
@@ -91,6 +95,7 @@ Future<void> runBudgetTileOverBudgetTest(WidgetTester tester) async {
       .add(UpdateTripEntity.create(tripEntity: newExpense));
   await Future.delayed(const Duration(milliseconds: 1000));
   await tester.pumpAndSettle();
+  print('✓ Over-budget dummy expense added (200 EUR by tripmate)');
 
   // The test trip has budget of 1500 EUR and expenses totaling around 1500+ EUR
   // So it should be over budget

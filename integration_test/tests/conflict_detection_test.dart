@@ -28,9 +28,10 @@ import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
-import 'package:wandrr/presentation/trip/pages/home/trips_list_view.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
+import '../helpers/firebase_emulator_helper.dart';
+import '../helpers/http_overrides/mock_location_api_service.dart';
 import '../helpers/test_config.dart';
 import '../helpers/test_helpers.dart';
 
@@ -50,17 +51,7 @@ ExpenseFacade _emptyExpense() => ExpenseFacade(
 
 /// Navigate to the trip editor and return the trip data.
 Future<TripDataFacade> _navigateAndGetTrip(WidgetTester tester) async {
-  await TestHelpers.pumpAndSettleApp(tester);
-  await TestHelpers.waitForWidget(tester, find.byType(TripListView),
-      timeout: const Duration(seconds: 5));
-  // Navigate into the trip
-  final tripCard = find.ancestor(
-    of: find.text('European Adventure'),
-    matching: find.byType(InkWell),
-  );
-  await TestHelpers.tapWidget(tester, tripCard);
-  await TestHelpers.waitForWidget(tester, find.byType(TripEditorPage),
-      timeout: const Duration(seconds: 10));
+  await TestHelpers.navigateToTripEditorPage(tester);
 
   final context = tester.element(find.byType(TripEditorPage));
   return RepositoryProvider.of<TripRepositoryFacade>(context).activeTrip!;
@@ -81,6 +72,7 @@ Future<void> _openStayEditor(WidgetTester tester) async {
   if (opt.evaluate().isNotEmpty) {
     await TestHelpers.tapWidget(tester, opt);
     await tester.pumpAndSettle();
+    print('  → Stay editor opened');
   }
 }
 
@@ -91,6 +83,7 @@ Future<void> _openTransitEditor(WidgetTester tester) async {
   if (opt.evaluate().isNotEmpty) {
     await TestHelpers.tapWidget(tester, opt);
     await tester.pumpAndSettle();
+    print('  → Transit editor opened');
   }
 }
 
@@ -998,4 +991,385 @@ Future<void> runJourneyExcludesAllLegsTest(
   expect(exclusions.sightIds.isEmpty, true);
 
   print('✓ REQ-CD-011: Journey excludes all leg IDs from scan');
+}
+
+// =============================================================================
+// CROSS-ENTITY CONFLICT TESTS (REQ-CD-004, REQ-CD-005, REQ-CD-006)
+// =============================================================================
+
+/// REQ-CD-004 — A stay overlapping both a transit AND a sight simultaneously.
+/// Both conflict types should appear in the same plan.
+Future<void> runStayConflictsWithTransitAndSightTest(
+  WidgetTester tester,
+  SharedPreferences sharedPreferences,
+) async {
+  final trip = await _navigateAndGetTrip(tester);
+  final snapshot = TripConflictDataSnapshot.fromTripData(trip);
+  final scanner = UnifiedConflictScanner(tripData: snapshot);
+
+  // Create a stay that overlaps with existing transit (train to Versailles:
+  // 9:00–10:00 on Sept 25) and existing sight (Louvre: 13:00 on Sept 25).
+  // The stay checks in at 9:00 on Sept 25 — exactBoundaryMatch with the train.
+  final overlappingStay = LodgingFacade(
+    tripId: _tripId,
+    location: null,
+    checkinDateTime: DateTime(2025, 9, 25, 9, 0),
+    checkoutDateTime: DateTime(2025, 9, 25, 14, 0),
+    expense: _emptyExpense(),
+  );
+
+  final detector = StayConflictDetector(
+    stay: overlappingStay,
+    scanner: scanner,
+    isNewEntity: true,
+  );
+
+  final conflicts = detector.detectConflicts();
+  expect(conflicts, isNotNull,
+      reason: 'Stay overlapping transit and sight should detect conflicts');
+
+  // Should have both transit AND sight conflicts (or stay conflicts from existing stays)
+  final totalNonStayConflicts =
+      conflicts!.transitConflicts.length + conflicts.sightConflicts.length;
+  expect(totalNonStayConflicts, greaterThan(0),
+      reason:
+          'Should detect transit and/or sight conflicts when stay overlaps both');
+
+  print(
+      '✓ REQ-CD-004: Stay conflicting with transit AND sight simultaneously detected');
+  print(
+      '  Transit conflicts: ${conflicts.transitConflicts.length}, Sight: ${conflicts.sightConflicts.length}, Stay: ${conflicts.stayConflicts.length}');
+}
+
+/// REQ-CD-005 — Metadata shrink causing stays, transits, AND sights all out-of-bounds.
+Future<void> runMetadataShrinkCausesMultiTypeConflictsTest(
+  WidgetTester tester,
+  SharedPreferences sharedPreferences,
+) async {
+  final trip = await _navigateAndGetTrip(tester);
+  final snapshot = TripConflictDataSnapshot.fromTripData(trip);
+  final scanner = UnifiedConflictScanner(tripData: snapshot);
+
+  // Shrink to just Sept 24 — everything after day 1 should be out-of-bounds.
+  final oldMetadata = trip.tripMetadata;
+  final newMetadata = oldMetadata.clone();
+  newMetadata.endDate = DateTime(2025, 9, 24);
+
+  final result = scanner.scanForMetadataUpdate(
+    oldMetadata: oldMetadata,
+    newMetadata: newMetadata,
+  );
+
+  expect(result, isNotNull,
+      reason: 'Drastic shrink should find many out-of-bounds entities');
+
+  // Should have all three types of conflicts
+  expect(result!.stayConflicts.isNotEmpty, true,
+      reason: 'Should have stay conflicts for stays after Sept 24');
+  expect(result.transitConflicts.isNotEmpty, true,
+      reason: 'Should have transit conflicts for transits after Sept 24');
+  expect(result.sightConflicts.isNotEmpty, true,
+      reason: 'Should have sight conflicts for sights after Sept 24');
+
+  print(
+      '✓ REQ-CD-005: Metadata shrink causes multi-type conflicts (stay, transit, sight)');
+  print(
+      '  Stay: ${result.stayConflicts.length}, Transit: ${result.transitConflicts.length}, Sight: ${result.sightConflicts.length}');
+}
+
+/// REQ-CD-006 — Stay fully containing a transit AND a sight is NOT a conflict.
+Future<void> runStayContainingTransitAndSightNoConflictTest(
+  WidgetTester tester,
+  SharedPreferences sharedPreferences,
+) async {
+  // The Paris stay is Sept 24 14:00 – Sept 26 11:00.
+  // Eiffel Tower sight is Sept 24 at 15:30 — contained within stay.
+  // Train to Versailles is Sept 25 9:00–10:00 — contained within stay.
+  // Both should NOT be conflicts.
+
+  final sightRange = TimeRange(
+    start: DateTime(2025, 9, 24, 15, 30),
+    end: DateTime(2025, 9, 24, 15, 31),
+  );
+  final transitRange = TimeRange(
+    start: DateTime(2025, 9, 25, 9, 0),
+    end: DateTime(2025, 9, 25, 10, 0),
+  );
+  final stayRange = TimeRange(
+    start: DateTime(2025, 9, 24, 14, 0),
+    end: DateTime(2025, 9, 26, 11, 0),
+  );
+
+  final sightPosition = sightRange.analyzePosition(stayRange);
+  expect(sightPosition, EntityTimelinePosition.containedIn,
+      reason: 'Sight should be contained within stay');
+
+  final transitPosition = transitRange.analyzePosition(stayRange);
+  expect(transitPosition, EntityTimelinePosition.containedIn,
+      reason: 'Transit should be contained within stay');
+
+  // Neither should be a conflict
+  final sightFacade = SightFacade(
+    tripId: _tripId,
+    name: 'Eiffel Tower',
+    day: DateTime(2025, 9, 24),
+    expense: _emptyExpense(),
+    visitTime: DateTime(2025, 9, 24, 15, 30),
+  );
+  final transitFacade = TransitFacade(
+    tripId: _tripId,
+    transitOption: TransitOption.train,
+    departureDateTime: DateTime(2025, 9, 25, 9, 0),
+    arrivalDateTime: DateTime(2025, 9, 25, 10, 0),
+    departureLocation: null,
+    arrivalLocation: null,
+    expense: _emptyExpense(),
+  );
+  final stayFacade = LodgingFacade(
+    tripId: _tripId,
+    location: null,
+    checkinDateTime: DateTime(2025, 9, 24, 14, 0),
+    checkoutDateTime: DateTime(2025, 9, 26, 11, 0),
+    expense: _emptyExpense(),
+  );
+
+  expect(ConflictRules.isConflicting(sightPosition, sightFacade, stayFacade),
+      false,
+      reason: 'Sight contained in stay should NOT be a conflict');
+  expect(
+      ConflictRules.isConflicting(transitPosition, transitFacade, stayFacade),
+      false,
+      reason: 'Transit contained in stay should NOT be a conflict');
+
+  print(
+      '✓ REQ-CD-006: Stay fully containing transit AND sight produces no conflicts');
+}
+
+/// REQ-CD-007 — Adjacent entities across types are NOT conflicts.
+/// Transit ending exactly at stay checkin + sight at a non-overlapping time.
+Future<void> runAdjacentCrossTypeNoConflictTest(
+  WidgetTester tester,
+  SharedPreferences sharedPreferences,
+) async {
+  // Transit ends at 14:00, stay checks in at 14:00 → adjacent, not conflict
+  final transitRange = TimeRange(
+    start: DateTime(2025, 9, 24, 12, 0),
+    end: DateTime(2025, 9, 24, 14, 0),
+  );
+  final stayRange = TimeRange(
+    start: DateTime(2025, 9, 24, 14, 0),
+    end: DateTime(2025, 9, 26, 11, 0),
+  );
+  // Sight at 15:30 — well within the stay, but after transit ends
+  final sightRange = TimeRange(
+    start: DateTime(2025, 9, 24, 15, 30),
+    end: DateTime(2025, 9, 24, 15, 31),
+  );
+
+  final transitPos = transitRange.analyzePosition(stayRange);
+  expect(transitPos, EntityTimelinePosition.beforeEvent,
+      reason: 'Transit arriving at checkin is adjacent (beforeEvent)');
+  expect(ConflictRules.isStandardConflict(transitPos), false,
+      reason: 'Adjacent transit-stay should not be a conflict');
+
+  final sightPos = sightRange.analyzePosition(stayRange);
+  expect(sightPos, EntityTimelinePosition.containedIn,
+      reason: 'Sight is contained within stay');
+
+  // Also check transit vs sight — they don't overlap
+  final transitVsSight = transitRange.analyzePosition(sightRange);
+  expect(ConflictRules.isStandardConflict(transitVsSight), false,
+      reason: 'Transit before sight should not be a conflict');
+
+  print('✓ REQ-CD-007: Adjacent cross-type entities produce no conflicts');
+}
+
+// =============================================================================
+// TEST RUNNER
+// =============================================================================
+
+void runTests() {
+  setUpAll(() async {
+    await FirebaseEmulatorHelper.createFirebaseAuthUser(
+      email: TestConfig.testEmail,
+      password: TestConfig.testPassword,
+      shouldAddToFirestore: true,
+      shouldSignIn: true,
+    );
+    await MockApiServices.initialize();
+    await TestHelpers.createTestTrip();
+  });
+
+  tearDown(() async {
+    expect(find.byType(ErrorWidget), findsNothing);
+  });
+
+  tearDownAll(() async {
+    await FirebaseEmulatorHelper.cleanupAfterTest();
+  });
+
+  late SharedPreferences sharedPreferences;
+  setUp(() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+  });
+
+  // --- Time Range Position Analysis ---
+  testWidgets('REQ-CD-003a: adjacent events are not conflicts',
+      (WidgetTester tester) async {
+    await runAdjacentEventsAreNotConflictsTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-003: exact boundary match positions',
+      (WidgetTester tester) async {
+    await runExactBoundaryMatchPositionTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-003: containment positions', (WidgetTester tester) async {
+    await runContainmentPositionTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-003: partial overlap positions',
+      (WidgetTester tester) async {
+    await runPartialOverlapPositionTest(tester, sharedPreferences);
+  });
+
+  // --- Stay Conflicts ---
+  testWidgets('REQ-CD-004: transit contained in stay is not a conflict',
+      (WidgetTester tester) async {
+    await runStayNoConflictWhenTransitContainedTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-004: overlapping stays detected as conflict',
+      (WidgetTester tester) async {
+    await runStayConflictWithOverlappingStayTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-003: stay at exact boundary is a conflict',
+      (WidgetTester tester) async {
+    await runStayConflictAtExactBoundaryTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-003a: adjacent stays are not a conflict',
+      (WidgetTester tester) async {
+    await runStayNoConflictWhenAdjacentTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-005: partial stay overlap triggers clamping',
+      (WidgetTester tester) async {
+    await runStayPartialOverlapClampingTest(tester, sharedPreferences);
+  });
+
+  // --- Transit Conflicts ---
+  testWidgets('REQ-CD-004: transit during stay produces no conflict',
+      (WidgetTester tester) async {
+    await runTransitNoConflictDuringStayTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-003: transit at stay boundary is a conflict',
+      (WidgetTester tester) async {
+    await runTransitConflictAtStayBoundaryTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-003a: transit adjacent to stay is not a conflict',
+      (WidgetTester tester) async {
+    await runTransitNoConflictAdjacentToStayTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-004: overlapping transits detected as conflict',
+      (WidgetTester tester) async {
+    await runTransitConflictWithOtherTransitTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-JE-006: journey conflict deduplication',
+      (WidgetTester tester) async {
+    await runJourneyConflictDeduplicationTest(tester, sharedPreferences);
+  });
+
+  // --- Sight Conflicts ---
+  testWidgets('REQ-IPD-004: same-time sights produce overlap error',
+      (WidgetTester tester) async {
+    await runSightOverlapSameDayTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-004: sight during stay is not a conflict',
+      (WidgetTester tester) async {
+    await runSightNoConflictDuringStayTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-003: sight at stay boundary is a conflict',
+      (WidgetTester tester) async {
+    await runSightConflictAtStayBoundaryTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-001: non-time changes do not trigger conflict detection',
+      (WidgetTester tester) async {
+    await runSightNoConflictOnNonTimeChangeTest(tester, sharedPreferences);
+  });
+
+  // --- Metadata Conflicts ---
+  testWidgets('REQ-TD-003: shrinking trip dates produces conflicts',
+      (WidgetTester tester) async {
+    await runMetadataShrinkDateRangeConflictTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-TD-004: adding contributor triggers expense split changes',
+      (WidgetTester tester) async {
+    await runMetadataContributorAddExpenseSplitTest(tester, sharedPreferences);
+  });
+
+  // --- Clamping ---
+  testWidgets('REQ-CD-005: entity outside range marked for deletion',
+      (WidgetTester tester) async {
+    await runClampingImpossibleMarkedForDeletionTest(tester, sharedPreferences);
+  });
+
+  // --- Plan Management ---
+  testWidgets('REQ-CD-007: conflict plan confirmation',
+      (WidgetTester tester) async {
+    await runConflictPlanConfirmationTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-009: toggle deletion syncs expense',
+      (WidgetTester tester) async {
+    await runToggleDeletionSyncsExpenseTest(tester, sharedPreferences);
+  });
+
+  // --- Scan Exclusions ---
+  testWidgets('REQ-CD-011: editing existing entity excludes self',
+      (WidgetTester tester) async {
+    await runSelfExclusionEditingExistingTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-011: new entity has no exclusions',
+      (WidgetTester tester) async {
+    await runNoExclusionForNewEntityTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-011: journey excludes all leg IDs',
+      (WidgetTester tester) async {
+    await runJourneyExcludesAllLegsTest(tester, sharedPreferences);
+  });
+
+  // --- Cross-Entity Conflicts ---
+  testWidgets('REQ-CD-004: stay conflicts with both transit AND sight',
+      (WidgetTester tester) async {
+    await runStayConflictsWithTransitAndSightTest(tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-005: metadata shrink causes multi-type conflicts',
+      (WidgetTester tester) async {
+    await runMetadataShrinkCausesMultiTypeConflictsTest(
+        tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-006: stay containing transit AND sight is not a conflict',
+      (WidgetTester tester) async {
+    await runStayContainingTransitAndSightNoConflictTest(
+        tester, sharedPreferences);
+  });
+
+  testWidgets('REQ-CD-007: adjacent cross-type entities are not conflicts',
+      (WidgetTester tester) async {
+    await runAdjacentCrossTypeNoConflictTest(tester, sharedPreferences);
+  });
 }

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/presentation/app/widgets/date_picker.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_navigator.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_viewer.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/timeline_item_widget.dart';
 
 import '../../helpers/firebase_emulator_helper.dart';
 import '../../helpers/http_overrides/mock_location_api_service.dart';
@@ -125,6 +122,7 @@ Future<void> runItineraryViewerNavigateToDateTest(WidgetTester tester) async {
   await TestHelpers.pickDate(tester, datePicker, '29',
       expectedStartDate: DateTime(2025, 9, 24),
       expectedEndDate: DateTime(2025, 9, 29));
+  print('✓ Navigated to Sep 29 via date picker');
 
   await verifyTimelineEvents(
       tester, expectedLastDayEvents, DateTime(2025, 9, 29));
@@ -171,10 +169,12 @@ Future<void> runItineraryViewerNavigatePreviousTest(WidgetTester tester) async {
   // First navigate to next day so we can go back
   final nextButton = find.byIcon(Icons.chevron_right_rounded);
   await TestHelpers.tapWidget(tester, nextButton.first);
+  print('✓ Advanced to Day 2');
 
   // Find the previous button (left chevron)
   final previousButton = find.byIcon(Icons.chevron_left_rounded);
   await TestHelpers.tapWidget(tester, previousButton.first);
+  print('✓ Navigated back to Day 1');
 
   await verifyTimelineEvents(
       tester, expectedDayOneEvents, DateTime(2025, 9, 24));
@@ -231,83 +231,6 @@ Future<void> runItineraryViewerNavigationBoundaryEndTest(
 
   print(
       '✓ Pressing Next button while on last trip date doesn\'t update ItineraryViewer');
-}
-
-Future<void> verifyTimelineEvents(
-    WidgetTester tester,
-    Iterable<ExpectedTimelineEvent> expectedEvents,
-    DateTime itineraryDate) async {
-  expect(find.byType(ItineraryViewer), findsOneWidget);
-  final itineraryViewerDate =
-      (find.byType(ItineraryViewer).evaluate().single.widget as ItineraryViewer)
-          .itineraryDay;
-  expect(itineraryViewerDate.isOnSameDayAs(itineraryDate), true,
-      reason: 'ItineraryViewer should display first trip date');
-  print(
-      '✓ Itinerary viewer displayed for trip date - ${itineraryDate.dateMonthFormat}');
-
-  // === FIND AND VERIFY ALL TIMELINE ITEM WIDGETS ===
-  // Scroll through the timeline to find all TimelineItemWidget instances
-  final scrollableFinder = find.descendant(
-    of: find.byType(ItineraryViewer),
-    matching: find.byType(SingleChildScrollView),
-  );
-  expect(scrollableFinder, findsOneWidget);
-
-  // Use the helper with timeout to collect timeline items
-  final timelineItemWidgets =
-      await TestHelpers.collectWidgetsByScrolling<TimelineItemWidget>(
-    tester: tester,
-    scrollableFinder: scrollableFinder,
-    widgetFinder: find.byType(TimelineItemWidget),
-    getUniqueId: (widget) => '${widget.event.time}_${widget.event.title}',
-    expectedCount: expectedEvents.length,
-    timeout: const Duration(seconds: 30),
-  );
-
-  print(
-      '✓ Found ${timelineItemWidgets.length} actual TimelineItemWidget instances (with scrolling)');
-
-  // === VERIFY COUNT MATCHES ===
-  expect(timelineItemWidgets.length, expectedEvents.length,
-      reason: 'Number of actual timeline events should match expected events');
-
-  // === VERIFY EACH EVENT MATCHES ===
-  for (int i = 0; i < expectedEvents.length; i++) {
-    final expectedEvent = expectedEvents.elementAt(i);
-    final timelineItemWidget = timelineItemWidgets[i];
-
-    var timelineItemWidgetFinder = find.byWidget(timelineItemWidget);
-    final titleWidget = find.descendant(
-        of: timelineItemWidgetFinder, matching: find.text(expectedEvent.title));
-    expect(titleWidget, findsOneWidget,
-        reason: 'Event #${i + 1} title should be ${expectedEvent.title}');
-
-    final subtitleWidget = find.descendant(
-        of: timelineItemWidgetFinder,
-        matching: find.text(expectedEvent.subtitle));
-    expect(subtitleWidget, findsOneWidget,
-        reason: 'Event #${i + 1} subtitle should be ${expectedEvent.subtitle}');
-
-    if (expectedEvent.notes != null) {
-      final notesWidget = find.descendant(
-          of: timelineItemWidgetFinder,
-          matching: find.text(expectedEvent.notes!));
-      expect(notesWidget, findsOneWidget,
-          reason: 'Event #${i + 1} notes should be ${expectedEvent.notes}');
-    }
-
-    if (expectedEvent.confirmationId != null) {
-      final confirmationWidget = find.descendant(
-          of: timelineItemWidgetFinder,
-          matching: find.text(expectedEvent.confirmationId!));
-      expect(confirmationWidget, findsOneWidget,
-          reason:
-              'Event #${i + 1} confirmation ID should be ${expectedEvent.confirmationId}');
-    }
-  }
-
-  print('\n✓ All timeline events verified and in correct chronological order');
 }
 
 void runTests() {

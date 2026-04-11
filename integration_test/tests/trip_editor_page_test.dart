@@ -118,17 +118,7 @@ Future<void> runTripEditorLayoutTest(
         reason: 'BottomNavBar should be displayed in small layout');
 
     // === NAVIGATION TESTS ===
-    // Find BottomNavigationBar
-    final bottomNavBar = find.byType(BottomNavBar);
-    expect(bottomNavBar, findsOneWidget);
-
-    // Find icon for budgeting (adjust icon based on your implementation)
-    final budgetIcon = find.descendant(
-      of: bottomNavBar,
-      matching: find.byIcon(Icons.wallet_travel_rounded),
-    );
-
-    await TestHelpers.tapWidget(tester, budgetIcon);
+    await TestHelpers.navigateToBudgetingTab(tester);
 
     // Verify BudgetingPage is now displayed after navigation
     expect(find.byType(BudgetingPage), findsOneWidget,
@@ -141,13 +131,7 @@ Future<void> runTripEditorLayoutTest(
             'ItineraryNavigator should not be displayed when BudgetingPage is active in small layout');
 
     // === NAVIGATION BACK TESTS ===
-    // Find icon for itinerary (adjust icon based on your implementation)
-    final itineraryIcon = find.descendant(
-      of: bottomNavBar,
-      matching: find.byIcon(Icons.travel_explore_rounded),
-    );
-
-    await TestHelpers.tapWidget(tester, itineraryIcon);
+    await TestHelpers.navigateToItineraryTab(tester);
 
     // Verify ItineraryNavigator is displayed again after navigation back
     expect(find.byType(ItineraryNavigator), findsOneWidget,

@@ -236,16 +236,16 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
     final newSights = _currentPlan?.sightChanges ?? const [];
     final newExpenses = _currentPlan?.expenseChanges ?? const [];
 
-    final structurallyChanged = <ConflictSection>{};
-    final contentChanged = <ConflictSection>{};
+    final structurallyChanged = <Type>{};
+    final contentChanged = <Type>{};
 
-    _diffSection(oldStays, newStays, ConflictSection.stays, structurallyChanged,
+    _diffSection(
+        oldStays, newStays, LodgingFacade, structurallyChanged, contentChanged);
+    _diffSection(oldTransits, newTransits, TransitFacade, structurallyChanged,
         contentChanged);
-    _diffSection(oldTransits, newTransits, ConflictSection.transits,
-        structurallyChanged, contentChanged);
-    _diffSection(oldSights, newSights, ConflictSection.sights,
-        structurallyChanged, contentChanged);
-    _diffSection(oldExpenses, newExpenses, ConflictSection.expenses,
+    _diffSection(
+        oldSights, newSights, SightFacade, structurallyChanged, contentChanged);
+    _diffSection(oldExpenses, newExpenses, ExpenseBearingTripEntity,
         structurallyChanged, contentChanged);
 
     // If every section is now empty and there was a plan before → cleared.
@@ -266,9 +266,9 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
   void _diffSection<C extends EntityChangeBase>(
     List<C> oldItems,
     List<C> newItems,
-    ConflictSection section,
-    Set<ConflictSection> structural,
-    Set<ConflictSection> content,
+    Type section,
+    Set<Type> structural,
+    Set<Type> content,
   ) {
     final wasEmpty = oldItems.isEmpty;
     final nowEmpty = newItems.isEmpty;
@@ -289,68 +289,45 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
       return;
     }
 
-    // Same IDs – check content.
+    // Same IDs – check content via equality operator.
     final oldById = {for (final c in oldItems) c.original.id: c};
     final anyContentDiff = newItems.any((n) {
       final o = oldById[n.original.id];
-      return o == null || _changeContentDiffers(o, n);
+      return o == null || o != n;
     });
     if (anyContentDiff) content.add(section);
   }
 
-  /// Returns true when [newC] differs from [oldC] in any UI-observable way.
-  bool _changeContentDiffers(EntityChangeBase oldC, EntityChangeBase newC) {
-    if (oldC.isDelete != newC.isDelete) return true;
-    if (oldC.isClamped != newC.isClamped) return true;
-    if (oldC is StayChange && newC is StayChange) {
-      return oldC.modified.checkinDateTime != newC.modified.checkinDateTime ||
-          oldC.modified.checkoutDateTime != newC.modified.checkoutDateTime;
-    }
-    if (oldC is TransitChange && newC is TransitChange) {
-      return oldC.modified.departureDateTime !=
-              newC.modified.departureDateTime ||
-          oldC.modified.arrivalDateTime != newC.modified.arrivalDateTime;
-    }
-    if (oldC is SightChange && newC is SightChange) {
-      return oldC.modified.visitTime != newC.modified.visitTime;
-    }
-    if (oldC is ExpenseSplitChange && newC is ExpenseSplitChange) {
-      return oldC.includeInSplitBy != newC.includeInSplitBy;
-    }
-    return false;
-  }
-
   /// Merges [newConflicts] into the current plan.
   /// Returns the set of sections that received new items.
-  Set<ConflictSection> _mergeNewConflicts(
-      Iterable<EntityChangeBase> newConflicts) {
+  Set<Type> _mergeNewConflicts(Iterable<EntityChangeBase> newConflicts) {
     if (newConflicts.isEmpty || _currentPlan == null) return const {};
 
-    final added = <ConflictSection>{};
+    final added = <Type>{};
     for (final change in newConflicts) {
       if (change is StayChange) {
         _currentPlan!.stayChanges.add(change);
-        added.add(ConflictSection.stays);
+        added.add(LodgingFacade);
       } else if (change is TransitChange) {
         _currentPlan!.transitChanges.add(change);
-        added.add(ConflictSection.transits);
+        added.add(TransitFacade);
       } else if (change is SightChange) {
         _currentPlan!.sightChanges.add(change);
-        added.add(ConflictSection.sights);
+        added.add(SightFacade);
       }
     }
     return added;
   }
 
-  /// Returns the set of [ConflictSection]s touched by [changes].
-  Set<ConflictSection> _sectionsOf(Iterable<EntityChangeBase> changes) {
-    final sections = <ConflictSection>{};
+  /// Returns the set of entity types touched by [changes].
+  Set<Type> _sectionsOf(Iterable<EntityChangeBase> changes) {
+    final sections = <Type>{};
     for (final c in changes) {
       if (c is StayChange)
-        sections.add(ConflictSection.stays);
+        sections.add(LodgingFacade);
       else if (c is TransitChange)
-        sections.add(ConflictSection.transits);
-      else if (c is SightChange) sections.add(ConflictSection.sights);
+        sections.add(TransitFacade);
+      else if (c is SightChange) sections.add(SightFacade);
     }
     return sections;
   }

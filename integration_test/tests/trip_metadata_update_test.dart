@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_entities_bottom_sheet.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_expenses_section.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/affected_entities/affected_transits_section.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/conflict_resolution_subpage.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/unified_entity_change_editor.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_details/trip_details_editor.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
@@ -36,6 +35,7 @@ Future<void> runAddContributorsOnlyTest(WidgetTester tester) async {
 
   // Open trip details editor
   await _openTripDetailsEditor(tester);
+  print('✓ Trip details editor opened');
 
   // Store original metadata for verification
   final tripData = _getActiveTrip(tester);
@@ -46,24 +46,26 @@ Future<void> runAddContributorsOnlyTest(WidgetTester tester) async {
   // Add a new contributor
   const newContributor = 'newuser@example.com';
   await _addContributor(tester, newContributor);
+  print('✓ Contributor "$newContributor" added');
 
   // Save trip details
   await _saveTripDetails(tester);
+  print('✓ Trip details saved');
 
   // Verify bottom sheet appears with expenses section
   await TestHelpers.waitForWidget(
     tester,
-    find.byType(AffectedEntitiesBottomSheet),
+    find.byType(ConflictResolutionSubpage),
     timeout: TestConfig.defaultTimeout,
   );
 
-  expect(find.byType(AffectedEntitiesBottomSheet), findsOneWidget,
+  expect(find.byType(ConflictResolutionSubpage), findsOneWidget,
       reason:
-          'AffectedEntitiesBottomSheet should appear when adding contributors');
+          'ConflictResolutionSubpage should appear when adding contributors');
 
   // Verify expenses section is shown
-  expect(find.byType(AffectedExpensesSection), findsOneWidget,
-      reason: 'AffectedExpensesSection should be displayed');
+  expect(find.byType(UnifiedEntityChangeEditor), findsOneWidget,
+      reason: 'UnifiedEntityChangeEditor should be displayed');
 
   // Verify no stays/transits/sights sections (dates didn't change)
   // Note: These sections might still exist but be empty/hidden
@@ -86,7 +88,7 @@ Future<void> runAddContributorsOnlyTest(WidgetTester tester) async {
 
   // Verify bottom sheet is closed
   await tester.pumpAndSettle();
-  expect(find.byType(AffectedEntitiesBottomSheet), findsNothing,
+  expect(find.byType(ConflictResolutionSubpage), findsNothing,
       reason: 'Bottom sheet should be closed after applying changes');
 
   // Verify contributor was added
@@ -118,9 +120,11 @@ Future<void> runRemoveContributorsOnlyTest(WidgetTester tester) async {
   // Remove the tripmate (second contributor)
   final contributorToRemove = originalContributors[1];
   await _removeContributor(tester, contributorToRemove);
+  print('✓ Contributor "${contributorToRemove.split('@').first}" removed');
 
   // Save trip details
   await _saveTripDetails(tester);
+  print('✓ Trip details saved');
 
   // Wait for UI to settle
   await tester.pumpAndSettle();
@@ -134,9 +138,9 @@ Future<void> runRemoveContributorsOnlyTest(WidgetTester tester) async {
       reason: 'Snackbar should mention historical accuracy');
 
   // Verify NO bottom sheet appears
-  expect(find.byType(AffectedEntitiesBottomSheet), findsNothing,
+  expect(find.byType(ConflictResolutionSubpage), findsNothing,
       reason:
-          'AffectedEntitiesBottomSheet should NOT appear when only removing contributors');
+          'ConflictResolutionSubpage should NOT appear when only removing contributors');
 
   // Verify contributor was removed from metadata
   final updatedTripData = _getActiveTrip(tester);
@@ -177,11 +181,11 @@ Future<void> runAddAndRemoveContributorsTest(WidgetTester tester) async {
   // Verify bottom sheet appears (because we added a contributor)
   await TestHelpers.waitForWidget(
     tester,
-    find.byType(AffectedEntitiesBottomSheet),
+    find.byType(ConflictResolutionSubpage),
     timeout: TestConfig.defaultTimeout,
   );
 
-  expect(find.byType(AffectedEntitiesBottomSheet), findsOneWidget,
+  expect(find.byType(ConflictResolutionSubpage), findsOneWidget,
       reason: 'Bottom sheet should appear when adding contributors');
 
   // Verify expenses section shows both added and removed contributors info
@@ -223,18 +227,22 @@ Future<void> runShortenTripDatesTest(WidgetTester tester) async {
 
   // Update dates (shorten trip)
   await _updateTripDates(tester, originalStartDate, newEndDate);
+  print(
+      '✓ Trip end date shortened by 2 days → ${newEndDate.toIso8601String().substring(0, 10)}');
 
   await _saveTripDetails(tester);
+  print('✓ Trip details saved');
 
   // Verify bottom sheet appears with affected entities
   await TestHelpers.waitForWidget(
     tester,
-    find.byType(AffectedEntitiesBottomSheet),
+    find.byType(ConflictResolutionSubpage),
     timeout: TestConfig.defaultTimeout,
   );
 
-  expect(find.byType(AffectedEntitiesBottomSheet), findsOneWidget,
+  expect(find.byType(ConflictResolutionSubpage), findsOneWidget,
       reason: 'Bottom sheet should appear when trip dates change');
+  print('✓ ConflictResolutionSubpage shown after shortening trip');
 
   // Verify date changes info is displayed
   expect(find.textContaining('Trip dates changed'), findsOneWidget,
@@ -289,14 +297,17 @@ Future<void> runExtendTripDatesTest(WidgetTester tester) async {
   final newEndDate = originalEndDate.add(const Duration(days: 2));
 
   await _updateTripDates(tester, originalStartDate, newEndDate);
+  print(
+      '✓ Trip end date extended by 2 days → ${newEndDate.toIso8601String().substring(0, 10)}');
 
   await _saveTripDetails(tester);
+  print('✓ Trip details saved');
 
   // Wait for any bottom sheet or snackbar
   await tester.pumpAndSettle(const Duration(seconds: 2));
 
   // Should NOT show bottom sheet (extending dates doesn't affect existing entities)
-  expect(find.byType(AffectedEntitiesBottomSheet), findsNothing,
+  expect(find.byType(ConflictResolutionSubpage), findsNothing,
       reason:
           'Bottom sheet should NOT appear when extending trip dates (no affected entities)');
 
@@ -324,8 +335,11 @@ Future<void> runChangeStartDateTest(WidgetTester tester) async {
   final newStartDate = originalStartDate.add(const Duration(days: 2));
 
   await _updateTripDates(tester, newStartDate, originalEndDate);
+  print(
+      '✓ Trip start date moved forward by 2 days → ${newStartDate.toIso8601String().substring(0, 10)}');
 
   await _saveTripDetails(tester);
+  print('✓ Trip details saved');
 
   // Verify bottom sheet appears if there are affected entities
   await tester.pumpAndSettle(const Duration(seconds: 2));
@@ -333,7 +347,7 @@ Future<void> runChangeStartDateTest(WidgetTester tester) async {
   // The bottom sheet may or may not appear depending on whether entities
   // exist on the removed days - verify based on actual content
 
-  if (find.byType(AffectedEntitiesBottomSheet).evaluate().isNotEmpty) {
+  if (find.byType(ConflictResolutionSubpage).evaluate().isNotEmpty) {
     expect(find.textContaining('Trip dates changed'), findsOneWidget,
         reason: 'Date change info should be displayed');
 
@@ -374,11 +388,11 @@ Future<void> runCombinedDatesAndContributorsTest(WidgetTester tester) async {
   // Verify bottom sheet appears
   await TestHelpers.waitForWidget(
     tester,
-    find.byType(AffectedEntitiesBottomSheet),
+    find.byType(ConflictResolutionSubpage),
     timeout: TestConfig.defaultTimeout,
   );
 
-  expect(find.byType(AffectedEntitiesBottomSheet), findsOneWidget,
+  expect(find.byType(ConflictResolutionSubpage), findsOneWidget,
       reason: 'Bottom sheet should appear for combined changes');
 
   // Verify both date changes and contributor changes info are shown
@@ -422,7 +436,7 @@ Future<void> runDeleteRestoreEntitiesTest(WidgetTester tester) async {
 
   await TestHelpers.waitForWidget(
     tester,
-    find.byType(AffectedEntitiesBottomSheet),
+    find.byType(ConflictResolutionSubpage),
     timeout: TestConfig.defaultTimeout,
   );
 
@@ -473,7 +487,7 @@ Future<void> runExpenseLinkedDeletionSyncTest(WidgetTester tester) async {
 
   await TestHelpers.waitForWidget(
     tester,
-    find.byType(AffectedEntitiesBottomSheet),
+    find.byType(ConflictResolutionSubpage),
     timeout: TestConfig.defaultTimeout,
   );
 
@@ -485,7 +499,7 @@ Future<void> runExpenseLinkedDeletionSyncTest(WidgetTester tester) async {
   // Find a transit/stay/sight and delete it
   await _expandSection(tester, 'Transits');
   final transitDeleteButtons = find.descendant(
-    of: find.byType(AffectedTransitsSection),
+    of: find.byType(OptimizedEntityChangeSection),
     matching: find.byIcon(Icons.delete_outline),
   );
 
@@ -643,7 +657,7 @@ Future<void> _toggleSelectAllExpenses(WidgetTester tester) async {
 Future<void> _applyAffectedEntitiesChanges(WidgetTester tester) async {
   // Find and tap the apply/confirm button (FAB with check icon)
   final applyButton = find.descendant(
-    of: find.byType(AffectedEntitiesBottomSheet),
+    of: find.byType(ConflictResolutionSubpage),
     matching: find.byIcon(Icons.check_rounded),
   );
   if (applyButton.evaluate().isNotEmpty) {

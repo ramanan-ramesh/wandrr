@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 
 class TripEditorActionPage<T extends TripEntity> extends StatefulWidget {
-  final void Function(BuildContext context) onActionInvoked;
+  /// Dispatches update events and returns the number of pending operations.
+  final int Function(BuildContext context) onActionInvoked;
   final IconData actionIcon;
   final Widget Function(ValueNotifier<bool> validityNotifier)
       pageContentCreator;
@@ -36,6 +39,8 @@ class _TripEditorActionPageState<T extends TripEntity>
     extends State<TripEditorActionPage<T>> {
   late final ValueNotifier<bool> validityNotifier;
   late final Widget pageContent;
+  bool _isSubmitting = false;
+  int _pendingOperations = 0;
 
   @override
   void initState() {
@@ -56,46 +61,60 @@ class _TripEditorActionPageState<T extends TripEntity>
     final double _bottomPadding =
         TripEditorPageConstants.fabSize + _fabBottomMargin + 16.0;
 
-    return Stack(
-      children: [
-        Column(
-          children: [
-            AppBar(
-              leading: IconButton(
-                  icon: const Icon(Icons.close),
-                  style: context.isLightTheme
-                      ? ButtonStyle(
-                          backgroundColor:
-                              WidgetStatePropertyAll(AppColors.brandSecondary),
-                        )
-                      : null,
-                  onPressed: () {
-                    widget.onClosePressed();
-                  }),
-              title: Text(widget.title),
-              centerTitle: true,
-              elevation: 0,
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                controller: widget.scrollController,
-                padding: EdgeInsets.fromLTRB(0, 0, 0, _bottomPadding),
-                child: _AnimatedActionPage(
-                  child: pageContent,
+    return BlocListener<TripManagementBloc, TripManagementState>(
+      listenWhen: (_, current) => _isSubmitting && current is UpdatedTripEntity,
+      listener: (context, state) {
+        if (!_isSubmitting) return;
+        if (state is UpdatedTripEntity) {
+          _pendingOperations--;
+          if (_pendingOperations <= 0) {
+            _isSubmitting = false;
+            _pendingOperations = 0;
+            Navigator.of(context).pop();
+          }
+        }
+      },
+      child: Stack(
+        children: [
+          Column(
+            children: [
+              AppBar(
+                leading: IconButton(
+                    icon: const Icon(Icons.close),
+                    style: context.isLightTheme
+                        ? ButtonStyle(
+                            backgroundColor: WidgetStatePropertyAll(
+                                AppColors.brandSecondary),
+                          )
+                        : null,
+                    onPressed: () {
+                      widget.onClosePressed();
+                    }),
+                title: Text(widget.title),
+                centerTitle: true,
+                elevation: 0,
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: widget.scrollController,
+                  padding: EdgeInsets.fromLTRB(0, 0, 0, _bottomPadding),
+                  child: _AnimatedActionPage(
+                    child: pageContent,
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        Positioned(
-          bottom: _fabBottomMargin,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: _createActionButton(context),
+            ],
           ),
-        ),
-      ],
+          Positioned(
+            bottom: _fabBottomMargin,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: _createActionButton(context),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -105,17 +124,39 @@ class _TripEditorActionPageState<T extends TripEntity>
       width: TripEditorPageConstants.fabSize,
       child: AnimatedOpacity(
         opacity: 1.0,
-        child: PlatformSubmitterFAB.conditionallyEnabled(
-          child: Icon(widget.actionIcon),
-          valueNotifier: validityNotifier,
-          callback: () {
-            widget.onActionInvoked(context);
-            widget.onClosePressed();
+        child: ValueListenableBuilder<bool>(
+          valueListenable: validityNotifier,
+          builder: (context, isValid, _) {
+            final canSubmit = isValid && !_isSubmitting;
+            return FloatingActionButton(
+              heroTag: null,
+              onPressed: canSubmit ? _onSubmit : null,
+              backgroundColor:
+                  canSubmit ? AppColors.brandPrimary : Colors.grey.shade400,
+              child: _isSubmitting
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Icon(widget.actionIcon),
+            );
           },
         ),
         duration: Duration(milliseconds: 3000),
       ),
     );
+  }
+
+  void _onSubmit() {
+    final operationCount = widget.onActionInvoked(context);
+    setState(() {
+      _isSubmitting = true;
+      _pendingOperations = operationCount;
+    });
   }
 }
 

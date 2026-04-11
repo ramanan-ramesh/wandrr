@@ -176,7 +176,6 @@ class TimelineEventFactory {
     final transitEventData = _formatter.getTransitEventData(
       transit: transit,
       itineraryDay: itineraryDay,
-      isBigLayout: context.isBigLayout,
     );
 
     return TimelineEvent<TransitFacade>(

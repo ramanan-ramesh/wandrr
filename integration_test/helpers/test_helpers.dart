@@ -6,11 +6,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/app/pages/master_page/master_page.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/trip/pages/home/trips_list_view.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_navigator.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_viewer.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 
 import 'matchers.dart';
@@ -63,6 +67,7 @@ class TestHelpers {
       find.byType(TripEditorPage),
       timeout: const Duration(seconds: 10),
     );
+    print('[OK] Navigated to TripEditorPage for trip - "European Adventure"');
   }
 
   static AppLocalizations getAppLocalizations(WidgetTester tester, Type type) {
@@ -739,34 +744,40 @@ class TestHelpers {
     // Restaurant meal on Day 1
     await expenseCollection.add({
       'title': 'Dinner at Le Comptoir',
-      'currency': defaultCurrency,
       'category': 'food',
-      'paidBy': {TestConfig.testEmail: 45.0},
-      'splitBy': contributors,
-      'dateTime': Timestamp.fromDate(DateTime(2025, 9, 24, 20, 0)),
-      'description': 'French cuisine',
+      'expense': {
+        'currency': defaultCurrency,
+        'paidBy': {TestConfig.testEmail: 45.0},
+        'splitBy': contributors,
+        'dateTime': Timestamp.fromDate(DateTime(2025, 9, 24, 20, 0)),
+        'description': 'French cuisine',
+      },
     });
 
     // Souvenirs on Day 2
     await expenseCollection.add({
       'title': 'Souvenirs from Louvre',
-      'currency': defaultCurrency,
       'category': 'other',
-      'paidBy': {TestConfig.testEmail: 25.0},
-      'splitBy': contributors,
-      'dateTime': Timestamp.fromDate(DateTime(2025, 9, 25, 12, 0)),
-      'description': 'Postcards and magnets',
+      'expense': {
+        'currency': defaultCurrency,
+        'paidBy': {TestConfig.testEmail: 25.0},
+        'splitBy': contributors,
+        'dateTime': Timestamp.fromDate(DateTime(2025, 9, 25, 12, 0)),
+        'description': 'Postcards and magnets',
+      },
     });
 
     // Groceries on Day 3
     await expenseCollection.add({
       'title': 'Groceries',
-      'currency': defaultCurrency,
       'category': 'food',
-      'paidBy': {TestConfig.testEmail: 15.5},
-      'splitBy': contributors,
-      'dateTime': Timestamp.fromDate(DateTime(2025, 9, 26)),
-      'description': 'Snacks for the bus',
+      'expense': {
+        'currency': defaultCurrency,
+        'paidBy': {TestConfig.testEmail: 15.5},
+        'splitBy': contributors,
+        'dateTime': Timestamp.fromDate(DateTime(2025, 9, 26)),
+        'description': 'Snacks for the bus',
+      },
     });
 
     print('✅ 5-day test trip created: ${TestConfig.testTripId}');
@@ -799,6 +810,57 @@ class TestHelpers {
       {bool warnIfMissed = true}) async {
     await tester.tap(finder, warnIfMissed: warnIfMissed);
     await tester.pumpAndSettle();
+  }
+
+  /// Navigates the itinerary viewer to [date].
+  /// Convenience alias for [navigateToItineraryTab] used in transit CRUD tests.
+  static Future<void> navigateToDateInItineraryViewer(
+          WidgetTester tester, DateTime date) =>
+      navigateToItineraryTab(tester, date: date);
+
+  static Future<void> navigateToBudgetingTab(WidgetTester tester) async {
+    final bottomNavBar = find.descendant(
+        of: find.byType(TripEditorPage), matching: find.byType(BottomNavBar));
+    expect(bottomNavBar, findsOneWidget);
+
+    final tabIconFinder = find.descendant(
+      of: bottomNavBar,
+      matching: find.byIcon(Icons.wallet_travel_rounded),
+    );
+    await TestHelpers.tapWidget(tester, tabIconFinder);
+    print('  [OK] Switched to Budgeting tab');
+  }
+
+  static Future<void> navigateToItineraryTab(WidgetTester tester,
+      {DateTime? date}) async {
+    final bottomNavBar = find.descendant(
+        of: find.byType(TripEditorPage), matching: find.byType(BottomNavBar));
+    expect(bottomNavBar, findsOneWidget);
+
+    final tabIconFinder = find.descendant(
+      of: bottomNavBar,
+      matching: find.byIcon(Icons.travel_explore_rounded),
+    );
+    print('  [OK] Switched to Itinerary tab');
+    await TestHelpers.tapWidget(tester, tabIconFinder);
+    if (date != null) {
+      final repo = TestHelpers.getTripRepository(tester);
+      final startDate = repo.activeTrip!.tripMetadata.startDate!;
+      final stepsForward = date.difference(startDate).inDays;
+      final nextDayButton = find.descendant(
+          of: find.byType(ItineraryNavigator),
+          matching: find.byIcon(Icons.chevron_right_rounded));
+      for (var i = 0; i < stepsForward; i++) {
+        await TestHelpers.tapWidget(tester, nextDayButton);
+      }
+      final itineraryViewer = find
+          .byType(ItineraryViewer)
+          .evaluate()
+          .single
+          .widget as ItineraryViewer;
+      assert(itineraryViewer.itineraryDay.isOnSameDayAs(date));
+      print('  [OK] Navigated to ${date.itineraryDateFormat} day in itinerary');
+    }
   }
 
   /// Get the position of a widget

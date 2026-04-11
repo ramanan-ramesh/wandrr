@@ -9,34 +9,24 @@ import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
-/// Which section a [ConflictSectionType] maps to in [ConflictSection].
-enum ConflictSectionType { stays, transits, sights }
-
-extension _SectionTypeExt on ConflictSectionType {
-  ConflictSection get asSection => switch (this) {
-        ConflictSectionType.stays => ConflictSection.stays,
-        ConflictSectionType.transits => ConflictSection.transits,
-        ConflictSectionType.sights => ConflictSection.sights,
-      };
-}
-
 // =============================================================================
 // CONFLICT SECTION BUILDER
 // =============================================================================
 
 /// Rebuilds only when the plan's structural change ([PlanUpdated] or [PlanCleared])
-/// includes this section's [ConflictSection].
+/// includes this section's entity type.
 ///
 /// On rebuild, reads the current list directly from
 /// `context.tripEntityUpdatePlan<T>()` — no data is carried in the state.
 class ConflictSectionBuilder<T extends TripEntity> extends StatelessWidget {
-  final ConflictSectionType sectionType;
+  /// The entity type this section represents (e.g. LodgingFacade, TransitFacade, SightFacade).
+  final Type entityType;
   final Widget Function(BuildContext context, List<EntityChangeBase> changes)
       builder;
 
   const ConflictSectionBuilder({
     super.key,
-    required this.sectionType,
+    required this.entityType,
     required this.builder,
   });
 
@@ -46,7 +36,7 @@ class ConflictSectionBuilder<T extends TripEntity> extends StatelessWidget {
       buildWhen: (_, current) {
         if (current is PlanCleared<T>) return true;
         if (current is PlanUpdated<T>) {
-          return current.affectedSections.contains(sectionType.asSection);
+          return current.affectedSections.contains(entityType);
         }
         return false;
       },
@@ -61,12 +51,14 @@ class ConflictSectionBuilder<T extends TripEntity> extends StatelessWidget {
   List<EntityChangeBase> _changesFor(BuildContext context) {
     final plan = context.tripEntityUpdatePlan<T>();
     if (plan == null) return const [];
-    return switch (sectionType) {
-      ConflictSectionType.stays => plan.stayChanges.cast<EntityChangeBase>(),
-      ConflictSectionType.transits =>
-        plan.transitChanges.cast<EntityChangeBase>(),
-      ConflictSectionType.sights => plan.sightChanges.cast<EntityChangeBase>(),
-    };
+    if (entityType == LodgingFacade) {
+      return plan.stayChanges.cast<EntityChangeBase>();
+    } else if (entityType == TransitFacade) {
+      return plan.transitChanges.cast<EntityChangeBase>();
+    } else if (entityType == SightFacade) {
+      return plan.sightChanges.cast<EntityChangeBase>();
+    }
+    return const [];
   }
 }
 
@@ -75,18 +67,20 @@ class ConflictSectionBuilder<T extends TripEntity> extends StatelessWidget {
 // =============================================================================
 
 /// Rebuilds a single conflict item only when [PlanItemsUpdated] includes this
-/// item's section AND the plan still contains an entry with this [entityId].
+/// item's entity type AND the plan still contains an entry with this [entityId].
 ///
 /// Reads the latest change from `context.tripEntityUpdatePlan<T>()` directly.
 class ConflictItemBuilder<T extends TripEntity> extends StatelessWidget {
   final String entityId;
-  final ConflictSectionType sectionType;
+
+  /// The entity type this item represents (e.g. LodgingFacade, TransitFacade, SightFacade).
+  final Type entityType;
   final Widget Function(BuildContext context, EntityChangeBase change) builder;
 
   const ConflictItemBuilder({
     super.key,
     required this.entityId,
-    required this.sectionType,
+    required this.entityType,
     required this.builder,
   });
 
@@ -95,7 +89,7 @@ class ConflictItemBuilder<T extends TripEntity> extends StatelessWidget {
     return BlocBuilder<TripEntityEditorBloc<T>, TripEntityEditorState<T>>(
       buildWhen: (_, current) {
         if (current is PlanItemsUpdated<T>) {
-          return current.affectedSections.contains(sectionType.asSection);
+          return current.affectedSections.contains(entityType);
         }
         return false;
       },
@@ -110,12 +104,16 @@ class ConflictItemBuilder<T extends TripEntity> extends StatelessWidget {
   EntityChangeBase? _findChange(BuildContext context) {
     final plan = context.tripEntityUpdatePlan<T>();
     if (plan == null) return null;
-    final list = switch (sectionType) {
-      ConflictSectionType.stays => plan.stayChanges as List<EntityChangeBase>,
-      ConflictSectionType.transits =>
-        plan.transitChanges as List<EntityChangeBase>,
-      ConflictSectionType.sights => plan.sightChanges as List<EntityChangeBase>,
-    };
+    final List<EntityChangeBase> list;
+    if (entityType == LodgingFacade) {
+      list = plan.stayChanges.cast<EntityChangeBase>();
+    } else if (entityType == TransitFacade) {
+      list = plan.transitChanges.cast<EntityChangeBase>();
+    } else if (entityType == SightFacade) {
+      list = plan.sightChanges.cast<EntityChangeBase>();
+    } else {
+      return null;
+    }
     return list.where((c) => c.original.id == entityId).firstOrNull;
   }
 }
@@ -125,17 +123,19 @@ class ConflictItemBuilder<T extends TripEntity> extends StatelessWidget {
 // =============================================================================
 
 /// Side-effect listener that fires when [PlanItemsUpdated] touches this item's
-/// section (for snackbars, animations, etc.).
+/// entity type (for snackbars, animations, etc.).
 class ConflictItemListener<T extends TripEntity> extends StatelessWidget {
   final String entityId;
-  final ConflictSectionType sectionType;
+
+  /// The entity type this listener tracks (e.g. LodgingFacade, TransitFacade, SightFacade).
+  final Type entityType;
   final void Function(BuildContext context, EntityChangeBase change) onUpdated;
   final Widget child;
 
   const ConflictItemListener({
     super.key,
     required this.entityId,
-    required this.sectionType,
+    required this.entityType,
     required this.onUpdated,
     required this.child,
   });
@@ -145,18 +145,20 @@ class ConflictItemListener<T extends TripEntity> extends StatelessWidget {
     return BlocListener<TripEntityEditorBloc<T>, TripEntityEditorState<T>>(
       listenWhen: (_, current) =>
           current is PlanItemsUpdated<T> &&
-          current.affectedSections.contains(sectionType.asSection),
+          current.affectedSections.contains(entityType),
       listener: (context, _) {
         final plan = context.tripEntityUpdatePlan<T>();
         if (plan == null) return;
-        final list = switch (sectionType) {
-          ConflictSectionType.stays =>
-            plan.stayChanges as List<EntityChangeBase>,
-          ConflictSectionType.transits =>
-            plan.transitChanges as List<EntityChangeBase>,
-          ConflictSectionType.sights =>
-            plan.sightChanges as List<EntityChangeBase>,
-        };
+        final List<EntityChangeBase> list;
+        if (entityType == LodgingFacade) {
+          list = plan.stayChanges.cast<EntityChangeBase>();
+        } else if (entityType == TransitFacade) {
+          list = plan.transitChanges.cast<EntityChangeBase>();
+        } else if (entityType == SightFacade) {
+          list = plan.sightChanges.cast<EntityChangeBase>();
+        } else {
+          return;
+        }
         final change = list.where((c) => c.original.id == entityId).firstOrNull;
         if (change != null) onUpdated(context, change);
       },

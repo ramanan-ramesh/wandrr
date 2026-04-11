@@ -64,7 +64,7 @@ class _TravelEditorState extends State<TravelEditor> {
         ),
         if (_needsPriorBooking) _buildConfirmationIdSection(),
         _buildNotesSection(),
-        _createPaymentDetailsSection(context),
+        if (_needsPriorBooking) _createPaymentDetailsSection(context),
       ],
     );
   }
@@ -97,9 +97,7 @@ class _TravelEditorState extends State<TravelEditor> {
 
   bool get _needsPriorBooking {
     final option = _transitFacade.transitOption;
-    return option != TransitOption.walk &&
-        option != TransitOption.vehicle &&
-        option != TransitOption.rentedVehicle;
+    return option != TransitOption.walk && option != TransitOption.vehicle;
   }
 
   Widget _buildTransitTypeBadge() {

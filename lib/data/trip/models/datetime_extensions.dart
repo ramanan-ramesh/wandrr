@@ -28,5 +28,5 @@ extension DateTimeExt on DateTime {
   String get hourMinuteAmPmFormat =>
       DateFormat('hh:mm a').format(this); // 08:30 AM
   String get hourMinuteDateFormat =>
-      DateFormat('dd MMM hh:mm').format(this); // 24 Jan 14:00
+      DateFormat('dd MMM hh:mm a').format(this); // 24 Jan 14:00
 }

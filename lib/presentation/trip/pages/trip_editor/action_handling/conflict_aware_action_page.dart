@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
+import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
+import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/blocs/trip_entity_editor/bloc.dart';
 import 'package:wandrr/blocs/trip_entity_editor/events.dart';
 import 'package:wandrr/blocs/trip_entity_editor/states.dart';
@@ -22,9 +24,16 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants
 /// - The page will show a conflict warning banner when conflicts are detected.
 /// - Users can navigate to the conflict resolution subpage to resolve conflicts.
 /// - FAB is disabled until conflicts are acknowledged.
+///
+/// [onActionInvoked] must dispatch update/create/delete events to
+/// [TripManagementBloc] and return the number of dispatched operations.
+/// The page shows a loading spinner on the FAB and waits for all operations
+/// to complete (via [UpdatedTripEntity] states) before popping.
 class ConflictAwareActionPage<T extends TripEntity> extends StatefulWidget {
   final VoidCallback onClosePressed;
-  final void Function(BuildContext context) onActionInvoked;
+
+  /// Dispatches update events and returns the number of pending operations.
+  final int Function(BuildContext context) onActionInvoked;
   final IconData actionIcon;
   final Widget Function(T editableEntity, ValueNotifier<bool> validityNotifier,
       VoidCallback onEntityUpdated) pageContentCreator;
@@ -58,6 +67,8 @@ class _ConflictAwareActionPageState<T extends TripEntity>
   late final Widget _pageContent;
   late final PageController _pageController;
   bool _isViewingConflictResolution = false;
+  bool _isSubmitting = false;
+  int _pendingOperations = 0;
 
   @override
   void initState() {
@@ -92,17 +103,36 @@ class _ConflictAwareActionPageState<T extends TripEntity>
               entity: widget.tripEntity,
             ),
       child: Builder(builder: (context) {
-        return BlocListener<TripEntityEditorBloc<T>, TripEntityEditorState<T>>(
-          listener: (context, state) {
-            if (state is EntitySubmitted<T>) {
-              _handleEntitySubmitted(context, state.editableEntity);
-            } else if (state is ConflictedEntityTimeRangeError) {
-              final errorState = state as ConflictedEntityTimeRangeError;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(errorState.errorMessage)),
-              );
-            }
-          },
+        return MultiBlocListener(
+          listeners: [
+            BlocListener<TripEntityEditorBloc<T>, TripEntityEditorState<T>>(
+              listener: (context, state) {
+                if (state is EntitySubmitted<T>) {
+                  _handleEntitySubmitted(context, state.editableEntity);
+                } else if (state is ConflictedEntityTimeRangeError) {
+                  final errorState = state as ConflictedEntityTimeRangeError;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(errorState.errorMessage)),
+                  );
+                }
+              },
+            ),
+            BlocListener<TripManagementBloc, TripManagementState>(
+              listenWhen: (_, current) =>
+                  _isSubmitting && current is UpdatedTripEntity,
+              listener: (context, state) {
+                if (!_isSubmitting) return;
+                if (state is UpdatedTripEntity) {
+                  _pendingOperations--;
+                  if (_pendingOperations <= 0) {
+                    _isSubmitting = false;
+                    _pendingOperations = 0;
+                    Navigator.of(context).pop();
+                  }
+                }
+              },
+            ),
+          ],
           child: Stack(
             children: [
               Column(
@@ -320,7 +350,8 @@ class _ConflictAwareActionPageState<T extends TripEntity>
       child: ValueListenableBuilder<bool>(
         valueListenable: _validityNotifier,
         builder: (context, isValid, child) {
-          final canSubmit = isValid && !hasUnresolvedConflicts;
+          final canSubmit =
+              isValid && !hasUnresolvedConflicts && !_isSubmitting;
           return AnimatedOpacity(
             opacity: 1.0,
             duration: const Duration(milliseconds: 300),
@@ -333,7 +364,16 @@ class _ConflictAwareActionPageState<T extends TripEntity>
                   : null,
               backgroundColor:
                   canSubmit ? AppColors.brandPrimary : Colors.grey.shade400,
-              child: Icon(widget.actionIcon),
+              child: _isSubmitting
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Icon(widget.actionIcon),
             ),
           );
         },
@@ -347,8 +387,11 @@ class _ConflictAwareActionPageState<T extends TripEntity>
       context.addTripManagementEvent(
           ApplyTripDataUpdatePlan(updatePlan: conflictPlan));
     }
-    widget.onActionInvoked(context);
-    Navigator.of(context).pop();
+    final operationCount = widget.onActionInvoked(context);
+    setState(() {
+      _isSubmitting = true;
+      _pendingOperations = operationCount;
+    });
   }
 }
 

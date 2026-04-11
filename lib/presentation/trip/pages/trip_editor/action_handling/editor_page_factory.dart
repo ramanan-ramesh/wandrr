@@ -58,8 +58,10 @@ class EditorPageFactory {
       isEditing: isEditing,
       title: title,
       onClosePressed: onClosePressed,
-      onActionInvoked: (ctx) =>
-          _emitUpdateEvent<TripMetadataFacade>(ctx, entity),
+      onActionInvoked: (ctx) {
+        _emitUpdateEvent<TripMetadataFacade>(ctx, entity);
+        return 1;
+      },
       scrollController: scrollController,
       actionIcon: _actionIcon,
       pageContentCreator: (editableEntity, validityNotifier, onUpdated) =>
@@ -88,6 +90,7 @@ class EditorPageFactory {
         // Write stable lists → clone right before the update event is emitted.
         editorKey.currentState?.syncToEntity();
         _emitUpdateEvent<ItineraryPlanData>(ctx, editableClone);
+        return 1;
       },
       scrollController: scrollController,
       actionIcon: _actionIcon,
@@ -115,7 +118,8 @@ class EditorPageFactory {
       isEditing: isEditing,
       title: title,
       onClosePressed: onClosePressed,
-      onActionInvoked: (ctx) => journeyEditorKey.currentState?.saveAllLegs(ctx),
+      onActionInvoked: (ctx) =>
+          journeyEditorKey.currentState?.saveAllLegs(ctx) ?? 0,
       scrollController: scrollController,
       actionIcon: _actionIcon,
       pageContentCreator: (editableEntity, validityNotifier, onUpdated) =>
@@ -123,7 +127,6 @@ class EditorPageFactory {
         key: journeyEditorKey,
         initialLeg: editableEntity,
         onJourneyUpdated: () {
-          validityNotifier.value = editableEntity.validate();
           onUpdated();
         },
         validityNotifier: validityNotifier,
@@ -138,7 +141,10 @@ class EditorPageFactory {
       isEditing: isEditing,
       title: title,
       onClosePressed: onClosePressed,
-      onActionInvoked: (ctx) => _emitUpdateEvent<LodgingFacade>(ctx, entity),
+      onActionInvoked: (ctx) {
+        _emitUpdateEvent<LodgingFacade>(ctx, entity);
+        return 1;
+      },
       scrollController: scrollController,
       actionIcon: _actionIcon,
       pageContentCreator: (editableEntity, validityNotifier, onUpdated) =>
@@ -160,8 +166,10 @@ class EditorPageFactory {
       tripEntity: editableEntity,
       title: title,
       onClosePressed: onClosePressed,
-      onActionInvoked: (ctx) =>
-          _emitUpdateEvent<StandaloneExpense>(ctx, editableEntity),
+      onActionInvoked: (ctx) {
+        _emitUpdateEvent<StandaloneExpense>(ctx, editableEntity);
+        return 1;
+      },
       scrollController: scrollController,
       actionIcon: _actionIcon,
       pageContentCreator: (validityNotifier) => ExpenseEditor(

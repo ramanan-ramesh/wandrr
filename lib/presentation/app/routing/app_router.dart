@@ -75,10 +75,15 @@ class AppRouter {
           ),
         ),
         // ShellRoute for trip-related pages - keeps TripManagementBloc alive.
-        // TODO: Display single animation for landing on trip editor page directly .
+        // Detects if initial route is a specific trip to skip shell animation.
         ShellRoute(
           builder: (context, state, child) {
-            return _TripShell(child: child);
+            final isTripEditorRoute = state.uri.path != AppRoutes.trips &&
+                state.uri.path.startsWith('/trips/');
+            return _TripShell(
+              skipShellAnimation: isTripEditorRoute,
+              child: child,
+            );
           },
           routes: [
             // Trips list route
@@ -177,8 +182,9 @@ class _InitialRedirectState extends State<_InitialRedirect> {
 /// This ensures the bloc is created only once and persists across navigation
 class _TripShell extends StatefulWidget {
   final Widget child;
+  final bool skipShellAnimation;
 
-  const _TripShell({required this.child});
+  const _TripShell({required this.child, this.skipShellAnimation = false});
 
   @override
   State<_TripShell> createState() => _TripShellState();
@@ -211,16 +217,27 @@ class _TripShellState extends State<_TripShell> {
 
     return BlocProvider<TripManagementBloc>.value(
       value: _bloc!,
-      child: _TripShellContent(child: widget.child),
+      child: _TripShellContent(
+        skipShellAnimation: widget.skipShellAnimation,
+        child: widget.child,
+      ),
     );
   }
 }
 
-/// Content of the trip shell that listens to bloc state for loading animation
+/// Content of the trip shell that listens to bloc state for loading animation.
+///
+/// When [skipShellAnimation] is true (direct navigation to a trip editor URL),
+/// the shell animation is skipped entirely — the child route (e.g. _TripEditorPage)
+/// handles its own loading animation so there's only one set of animations.
 class _TripShellContent extends StatefulWidget {
   final Widget child;
+  final bool skipShellAnimation;
 
-  const _TripShellContent({required this.child});
+  const _TripShellContent({
+    required this.child,
+    this.skipShellAnimation = false,
+  });
 
   @override
   State<_TripShellContent> createState() => _TripShellContentState();
@@ -239,7 +256,14 @@ class _TripShellContentState extends State<_TripShellContent> {
   @override
   void initState() {
     super.initState();
-    _tryStartWalkAnimation();
+    if (widget.skipShellAnimation) {
+      // Skip animation — mark animations as inactive; _isInitialLoadComplete
+      // will be set to true when LoadedRepository arrives.
+      _walkAnimation.isActive = false;
+      _waveAnimation.isActive = false;
+    } else {
+      _tryStartWalkAnimation();
+    }
   }
 
   @override
@@ -254,7 +278,14 @@ class _TripShellContentState extends State<_TripShellContent> {
       listener: (context, state) {
         if (state is LoadedRepository) {
           _tripRepository = state.tripRepository;
-          _tryStopWalkStartWaveAnimation();
+          if (widget.skipShellAnimation) {
+            // Skip animation entirely — go straight to loaded state
+            setState(() {
+              _isInitialLoadComplete = true;
+            });
+          } else {
+            _tryStopWalkStartWaveAnimation();
+          }
         }
       },
       builder: (context, state) {

@@ -247,7 +247,6 @@ class _ExpenseListViewState extends State<ExpenseListView> {
         ? _expenses.length
         : (_expenses.length < 3 ? 3 : _expenses.length + 1);
     return ListView.builder(
-      itemCount: itemCount,
       key: const ValueKey('ExpensesListView_ListView'),
       itemCount: itemCount,
       itemBuilder: (context, index) {

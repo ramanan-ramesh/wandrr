@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
+import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
@@ -922,7 +923,8 @@ class _TriStateCheckbox extends StatelessWidget {
 /// section-level rebuilds when conflicts are added/removed.
 class OptimizedEntityChangeSection<T extends TripEntity>
     extends StatefulWidget {
-  final ConflictSectionType sectionType;
+  /// The entity type this section represents (e.g. LodgingFacade, TransitFacade, SightFacade).
+  final Type entityType;
   final TripDataUpdatePlan plan;
   final MessageContext messageContext;
   final void Function(EntityChangeBase change) onTimeRangeUpdated;
@@ -930,7 +932,7 @@ class OptimizedEntityChangeSection<T extends TripEntity>
 
   const OptimizedEntityChangeSection({
     super.key,
-    required this.sectionType,
+    required this.entityType,
     required this.plan,
     required this.messageContext,
     required this.onTimeRangeUpdated,
@@ -962,14 +964,14 @@ class _OptimizedEntityChangeSectionState<T extends TripEntity>
   }
 
   List<EntityChangeBase> get _changes {
-    switch (widget.sectionType) {
-      case ConflictSectionType.stays:
-        return widget.plan.stayChanges.cast<EntityChangeBase>();
-      case ConflictSectionType.transits:
-        return widget.plan.transitChanges.cast<EntityChangeBase>();
-      case ConflictSectionType.sights:
-        return widget.plan.sightChanges.cast<EntityChangeBase>();
+    if (widget.entityType == LodgingFacade) {
+      return widget.plan.stayChanges.cast<EntityChangeBase>();
+    } else if (widget.entityType == TransitFacade) {
+      return widget.plan.transitChanges.cast<EntityChangeBase>();
+    } else if (widget.entityType == SightFacade) {
+      return widget.plan.sightChanges.cast<EntityChangeBase>();
     }
+    return const [];
   }
 
   @override
@@ -1003,7 +1005,7 @@ class _OptimizedEntityChangeSectionState<T extends TripEntity>
             // Each item uses ConflictItemBuilder for localized updates
             ...changes.map((change) => _OptimizedChangeItem<T>(
                   change: change,
-                  sectionType: widget.sectionType,
+                  entityType: widget.entityType,
                   plan: widget.plan,
                   onTimeRangeUpdated: widget.onTimeRangeUpdated,
                   onDeletionToggled: widget.onDeletionToggled,
@@ -1019,38 +1021,36 @@ class _OptimizedEntityChangeSectionState<T extends TripEntity>
   }
 
   IconData _getSectionIcon() {
-    switch (widget.sectionType) {
-      case ConflictSectionType.stays:
-        return Icons.hotel_rounded;
-      case ConflictSectionType.transits:
-        return Icons.directions_transit_rounded;
-      case ConflictSectionType.sights:
-        return Icons.attractions_rounded;
-    }
+    if (widget.entityType == LodgingFacade) return Icons.hotel_rounded;
+    if (widget.entityType == TransitFacade)
+      return Icons.directions_transit_rounded;
+    if (widget.entityType == SightFacade) return Icons.attractions_rounded;
+    return Icons.help_outline;
   }
 
   String _getSectionTitle(int count) {
-    switch (widget.sectionType) {
-      case ConflictSectionType.stays:
-        return _messageProvider.staysSectionTitle(count);
-      case ConflictSectionType.transits:
-        return _messageProvider.transitsSectionTitle(count);
-      case ConflictSectionType.sights:
-        return _messageProvider.sightsSectionTitle(count);
-    }
+    if (widget.entityType == LodgingFacade)
+      return _messageProvider.staysSectionTitle(count);
+    if (widget.entityType == TransitFacade)
+      return _messageProvider.transitsSectionTitle(count);
+    if (widget.entityType == SightFacade)
+      return _messageProvider.sightsSectionTitle(count);
+    return '';
   }
 
   Color _getIconColor(bool isLightTheme) {
-    switch (widget.sectionType) {
-      case ConflictSectionType.stays:
-        return isLightTheme
-            ? AppColors.brandPrimary
-            : AppColors.brandPrimaryLight;
-      case ConflictSectionType.transits:
-        return isLightTheme ? AppColors.info : AppColors.infoLight;
-      case ConflictSectionType.sights:
-        return isLightTheme ? AppColors.success : AppColors.successLight;
+    if (widget.entityType == LodgingFacade) {
+      return isLightTheme
+          ? AppColors.brandPrimary
+          : AppColors.brandPrimaryLight;
     }
+    if (widget.entityType == TransitFacade) {
+      return isLightTheme ? AppColors.info : AppColors.infoLight;
+    }
+    if (widget.entityType == SightFacade) {
+      return isLightTheme ? AppColors.success : AppColors.successLight;
+    }
+    return isLightTheme ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
   }
 
   Widget _buildInfoBanner() {
@@ -1109,14 +1109,13 @@ class _OptimizedEntityChangeSectionState<T extends TripEntity>
   }
 
   EntityChangeInfoMessage? _getInfoMessage() {
-    switch (widget.sectionType) {
-      case ConflictSectionType.stays:
-        return _messageProvider.staysSectionInfo();
-      case ConflictSectionType.transits:
-        return _messageProvider.transitsSectionInfo();
-      case ConflictSectionType.sights:
-        return _messageProvider.sightsSectionInfo();
-    }
+    if (widget.entityType == LodgingFacade)
+      return _messageProvider.staysSectionInfo();
+    if (widget.entityType == TransitFacade)
+      return _messageProvider.transitsSectionInfo();
+    if (widget.entityType == SightFacade)
+      return _messageProvider.sightsSectionInfo();
+    return null;
   }
 }
 
@@ -1124,14 +1123,16 @@ class _OptimizedEntityChangeSectionState<T extends TripEntity>
 /// rebuilds driven by [PlanItemsUpdated].
 class _OptimizedChangeItem<T extends TripEntity> extends StatelessWidget {
   final EntityChangeBase change;
-  final ConflictSectionType sectionType;
+
+  /// The entity type this item represents (e.g. LodgingFacade, TransitFacade, SightFacade).
+  final Type entityType;
   final TripDataUpdatePlan plan;
   final void Function(EntityChangeBase change) onTimeRangeUpdated;
   final void Function(EntityChangeBase change) onDeletionToggled;
 
   const _OptimizedChangeItem({
     required this.change,
-    required this.sectionType,
+    required this.entityType,
     required this.plan,
     required this.onTimeRangeUpdated,
     required this.onDeletionToggled,
@@ -1142,14 +1143,16 @@ class _OptimizedChangeItem<T extends TripEntity> extends StatelessWidget {
     final id = change.original.id ?? '';
     return ConflictItemBuilder<T>(
       entityId: id,
-      sectionType: sectionType,
-      builder: (context, activeChange) => switch (sectionType) {
-        ConflictSectionType.stays =>
-          _buildStayItem(context, activeChange as StayChange),
-        ConflictSectionType.transits =>
-          _buildTransitItem(context, activeChange as TransitChange),
-        ConflictSectionType.sights =>
-          _buildSightItem(context, activeChange as SightChange),
+      entityType: entityType,
+      builder: (context, activeChange) {
+        if (entityType == LodgingFacade) {
+          return _buildStayItem(context, activeChange as StayChange);
+        } else if (entityType == TransitFacade) {
+          return _buildTransitItem(context, activeChange as TransitChange);
+        } else if (entityType == SightFacade) {
+          return _buildSightItem(context, activeChange as SightChange);
+        }
+        return const SizedBox.shrink();
       },
     );
   }
