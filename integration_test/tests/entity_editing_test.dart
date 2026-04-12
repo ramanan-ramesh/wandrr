@@ -1,4 +1,4 @@
-﻿/// Entity Editing Integration Tests
+/// Entity Editing Integration Tests
 ///
 /// Tests entity editors via UI interactions.
 /// Covers: REQ-TE-001, REQ-TE-003, REQ-TE-004, REQ-TE-005, REQ-TE-006,
@@ -260,7 +260,7 @@ Future<void> runEditorViewSwitchingTest(
     //   Page 1: conflict resolution subpage
     final pageView = find.byType(PageView);
     if (pageView.evaluate().isNotEmpty) {
-      final PageView pv = tester.widget(pageView.first);
+      final pv = tester.widget<PageView>(pageView.first);
       // PageView should have exactly 2 children (editor + conflicts)
       expect(pv.controller, isNotNull,
           reason:
@@ -288,8 +288,7 @@ Future<void> runDayViewTabsTest(
 
   for (final icon in tabs) {
     final tab = find.byIcon(icon);
-    expect(tab, findsWidgets,
-        reason: 'Tab icon ${icon.toString()} should be present');
+    expect(tab, findsWidgets, reason: 'Tab icon $icon should be present');
   }
 
   // Verify we can switch to each tab

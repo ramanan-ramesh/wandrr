@@ -117,7 +117,7 @@ class _StayDetailsState extends State<StayDetails> {
       onLocationSelected: (newLocation) {
         widget.lodging.location = newLocation;
         _updateCityName();
-        if (widget.onLocationUpdated != null) widget.onLocationUpdated!();
+        widget.onLocationUpdated?.call();
       },
     );
   }

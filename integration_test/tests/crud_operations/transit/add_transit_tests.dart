@@ -107,7 +107,7 @@ Future<void> runAddWalkTransitTest(WidgetTester tester) async {
       tester, _form.commonFormElements.noteEditingField, 'Morning stroll');
 
   await _submitAndVerify(tester, onTransitAdded: (transit) async {
-    print('[OK] Transit added: ${transit.toString()} (id: ${transit.id})');
+    print('[OK] Transit added: $transit (id: ${transit.id})');
     await TestHelpers.navigateToDateInItineraryViewer(
         tester, transit.departureDateTime!);
     await verifyTransitTimelineEntry(
@@ -152,7 +152,7 @@ Future<void> runAddPersonalVehicleTransitTest(WidgetTester tester) async {
   print('[OK] Fields filled for PersonalVehicle');
 
   await _submitAndVerify(tester, onTransitAdded: (transit) async {
-    print('[OK] Transit added: ${transit.toString()} (id: ${transit.id})');
+    print('[OK] Transit added: $transit (id: ${transit.id})');
     await TestHelpers.navigateToDateInItineraryViewer(
         tester, transit.departureDateTime!);
     await verifyTransitTimelineEntry(
@@ -203,7 +203,7 @@ Future<void> runAddPublicTransportTransitTest(WidgetTester tester) async {
   );
 
   await _submitAndVerify(tester, onTransitAdded: (transit) async {
-    print('[OK] Transit added: ${transit.toString()} (id: ${transit.id})');
+    print('[OK] Transit added: $transit (id: ${transit.id})');
     await TestHelpers.navigateToDateInItineraryViewer(
         tester, transit.departureDateTime!);
     await verifyTransitTimelineEntry(
@@ -259,7 +259,7 @@ Future<void> runAddBusTransitTest(WidgetTester tester) async {
   );
 
   await _submitAndVerify(tester, onTransitAdded: (transit) async {
-    print('[OK] Transit added: ${transit.toString()} (id: ${transit.id})');
+    print('[OK] Transit added: $transit (id: ${transit.id})');
     await TestHelpers.navigateToDateInItineraryViewer(
         tester, transit.departureDateTime!);
     await verifyTransitTimelineEntry(
@@ -315,7 +315,7 @@ Future<void> runAddTrainTransitTest(WidgetTester tester) async {
   );
 
   await _submitAndVerify(tester, onTransitAdded: (transit) async {
-    print('[OK] Transit added: ${transit.toString()} (id: ${transit.id})');
+    print('[OK] Transit added: $transit (id: ${transit.id})');
     await TestHelpers.navigateToDateInItineraryViewer(
         tester, transit.departureDateTime!);
     await verifyTransitTimelineEntry(
@@ -371,7 +371,7 @@ Future<void> runAddTaxiTransitTest(WidgetTester tester) async {
   );
 
   await _submitAndVerify(tester, onTransitAdded: (transit) async {
-    print('[OK] Transit added: ${transit.toString()} (id: ${transit.id})');
+    print('[OK] Transit added: $transit (id: ${transit.id})');
     await TestHelpers.navigateToDateInItineraryViewer(
         tester, transit.departureDateTime!);
     await verifyTransitTimelineEntry(
@@ -427,7 +427,7 @@ Future<void> runAddFerryTransitTest(WidgetTester tester) async {
   );
 
   await _submitAndVerify(tester, onTransitAdded: (transit) async {
-    print('[OK] Transit added: ${transit.toString()} (id: ${transit.id})');
+    print('[OK] Transit added: $transit (id: ${transit.id})');
     await TestHelpers.navigateToDateInItineraryViewer(
         tester, transit.departureDateTime!);
     await verifyTransitTimelineEntry(
@@ -486,7 +486,7 @@ Future<void> runAddRentedVehicleTransitTest(WidgetTester tester) async {
   );
 
   await _submitAndVerify(tester, onTransitAdded: (transit) async {
-    print('[OK] Transit added: ${transit.toString()} (id: ${transit.id})');
+    print('[OK] Transit added: $transit (id: ${transit.id})');
     await TestHelpers.navigateToDateInItineraryViewer(
         tester, transit.departureDateTime!);
     await verifyTransitTimelineEntry(
@@ -541,7 +541,7 @@ Future<void> runAddCruiseTransitTest(WidgetTester tester) async {
   );
 
   await _submitAndVerify(tester, onTransitAdded: (transit) async {
-    print('[OK] Transit added: ${transit.toString()} (id: ${transit.id})');
+    print('[OK] Transit added: $transit (id: ${transit.id})');
     await TestHelpers.navigateToDateInItineraryViewer(
         tester, transit.departureDateTime!);
     await verifyTransitTimelineEntry(
@@ -593,13 +593,7 @@ Future<void> _openTransitCreatorPage(WidgetTester tester) async {
 
 /// Taps the ConflictAwareActionPage FAB to submit the transit form.
 ///
-/// Before tapping, subscribes to [transitCollection.onDocumentAdded].
-/// The ConflictAwareActionPage shows a loading spinner on the FAB and waits
-/// for the Firestore operation to complete before auto-popping. We keep
-/// pumping so platform-channel responses are delivered, and once the editor
-/// is dismissed we know the add has completed and the stream has fired.
-///
-/// Throws [TestFailure] if the editor is not dismissed within 15 s.
+/// Before tapping, subscribes to the transit collection's onDocumentAdded stream.
 Future<void> _submitAndVerify(
   WidgetTester tester, {
   required Future<void> Function(TransitFacade transit) onTransitAdded,
@@ -609,10 +603,10 @@ Future<void> _submitAndVerify(
       TestHelpers.getTripRepository(tester).activeTrip!.transitCollection;
   final completer = Completer<TransitFacade>();
   late StreamSubscription<CollectionItemChangeMetadata<TransitFacade>> sub;
-  sub = collection.onDocumentAdded.listen((event) {
+  sub = collection.onDocumentAdded.listen((event) async {
     if (event.isFromExplicitAction && !completer.isCompleted) {
       completer.complete(event.modifiedCollectionItem);
-      sub.cancel();
+      await sub.cancel();
     }
   });
 
@@ -628,14 +622,14 @@ Future<void> _submitAndVerify(
   //  1. Platform-channel responses from the Firestore emulator are delivered
   //     back to Dart, allowing _typedCollectionReference.add() to complete.
   //  2. The BLoC emits UpdatedTripEntity → ConflictAwareActionPage pops.
-  // final deadline = DateTime.now().add(const Duration(seconds: 15));
-  // while (DateTime.now().isBefore(deadline)) {
-  //   await tester.pump(const Duration(milliseconds: 200));
-  //   if (find.byType(TravelEditor).evaluate().isEmpty) {
-  //     break;
-  //   }
-  // }
-  await Future.delayed(Duration(seconds: 5), () {
+  final deadline = DateTime.now().add(const Duration(seconds: 15));
+  while (DateTime.now().isBefore(deadline)) {
+    await tester.pump(const Duration(milliseconds: 200));
+    if (find.byType(TravelEditor).evaluate().isEmpty) {
+      break;
+    }
+  }
+  await Future.delayed(const Duration(seconds: 5), () {
     if (find.byType(TravelEditor).evaluate().isEmpty) {
       return;
     }
@@ -655,17 +649,17 @@ Future<void> _submitAndVerify(
     // Give a little more time for the stream event to fire.
     transit = await completer.future.timeout(
       const Duration(seconds: 5),
-      onTimeout: () {
-        sub.cancel();
+      onTimeout: () async {
+        await sub.cancel();
         throw TestFailure(
             'transitCollection.onDocumentAdded did not fire after editor dismissal');
       },
     );
   }
-  sub.cancel();
+  await sub.cancel();
 
   print(
-      '[OK] transitCollection.onDocumentAdded received: ${transit.toString()} (id: ${transit.id})');
+      '[OK] transitCollection.onDocumentAdded received: $transit (id: ${transit.id})');
 
   // Settle the UI after the repository update, then run verifications.
   await tester.pumpAndSettle();

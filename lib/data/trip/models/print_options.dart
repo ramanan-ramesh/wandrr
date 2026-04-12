@@ -8,7 +8,7 @@ class PrintOptions {
   final bool includeInterCityTransit;
   final bool includeIntraCityTransit;
 
-  /// When non-null, only transits whose [id] is in this set are included.
+  /// When non-null, only transits whose id is in this set are included.
   /// When null, all transits passing the inter/intra-city filter are included.
   final Set<String>? selectedTransitIds;
 

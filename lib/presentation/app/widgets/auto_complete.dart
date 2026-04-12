@@ -17,7 +17,7 @@ class PlatformAutoComplete<T extends Object> extends StatefulWidget {
 
   static const _defaultAutoCompleteHintText = 'e.g. Paris, Hawaii...';
 
-  PlatformAutoComplete({
+  const PlatformAutoComplete({
     required this.optionsBuilder,
     required this.listItem,
     super.key,
@@ -96,7 +96,9 @@ class _PlatformAutoCompleteState<T extends Object>
       final newItem = widget.selectedItem;
       _internalSelectedItem = newItem;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_disposed) return;
+        if (_disposed) {
+          return;
+        }
         if (newItem != null) {
           final text = _getDisplayString(newItem);
           if (_textEditingController.text != text) {
@@ -109,9 +111,11 @@ class _PlatformAutoCompleteState<T extends Object>
 
   Future<Iterable<T>> _debouncedOptionsBuilder(
       TextEditingValue textEditingValue) async {
-    if (_disposed) return <T>[];
+    if (_disposed) {
+      return <T>[];
+    }
 
-    final String query = textEditingValue.text;
+    final query = textEditingValue.text;
 
     if (query.isEmpty) {
       return <T>[];
@@ -141,20 +145,26 @@ class _PlatformAutoCompleteState<T extends Object>
       _completer!.complete(<T>[]);
     }
 
-    final Completer<Iterable<T>> completer = Completer<Iterable<T>>();
+    final completer = Completer<Iterable<T>>();
     _completer = completer;
     _lastQueryForTimer = query;
 
     _debounce = Timer(const Duration(milliseconds: 500), () async {
-      if (_disposed) return;
+      if (_disposed) {
+        return;
+      }
       try {
         final results = await widget.optionsBuilder(query);
-        if (_disposed) return;
+        if (_disposed) {
+          return;
+        }
         if (completer == _completer && !completer.isCompleted) {
           completer.complete(results);
         }
       } catch (e) {
-        if (_disposed) return;
+        if (_disposed) {
+          return;
+        }
         if (completer == _completer && !completer.isCompleted) {
           completer.completeError(e);
         }
@@ -203,7 +213,9 @@ class _PlatformAutoCompleteState<T extends Object>
               if (!_focusListenerAttached) {
                 _focusListenerAttached = true;
                 focusNode.addListener(() {
-                  if (_disposed) return;
+                  if (_disposed) {
+                    return;
+                  }
                   if (!focusNode.hasFocus && _internalSelectedItem != null) {
                     _textEditingController.text =
                         _getDisplayString(_internalSelectedItem!);
@@ -216,7 +228,9 @@ class _PlatformAutoCompleteState<T extends Object>
                 final expected = _getDisplayString(_internalSelectedItem!);
                 if (_textEditingController.text != expected) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (_disposed) return;
+                    if (_disposed) {
+                      return;
+                    }
                     if (_textEditingController.text != expected) {
                       _textEditingController.text = expected;
                     }
@@ -234,7 +248,7 @@ class _PlatformAutoCompleteState<T extends Object>
                     ),
                   Expanded(
                     child: TextFormField(
-                      key: ValueKey('PlatformAutoComplete_TextField'),
+                      key: const ValueKey('PlatformAutoComplete_TextField'),
                       controller: _textEditingController,
                       focusNode: _focusNode,
                       style: Theme.of(context).textTheme.labelLarge ??
@@ -269,7 +283,7 @@ class _PlatformAutoCompleteState<T extends Object>
                       itemBuilder: (BuildContext context, int index) {
                         final option = options.elementAt(index);
                         return InkWell(
-                          key: ValueKey('PlatformAutoComplete_ListTile'),
+                          key: const ValueKey('PlatformAutoComplete_ListTile'),
                           onTap: () => onSelected(option),
                           child: Builder(
                             builder: (BuildContext context) =>

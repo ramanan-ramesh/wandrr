@@ -29,12 +29,12 @@ class EditorTheme {
   static const double _standardShadowBlur = 8.0;
 
   // Shadow offsets
-  static Offset _cardShadowOffsetBig = const Offset(0, 10);
-  static Offset _cardShadowOffsetSmall = const Offset(0, 8);
-  static Offset _badgeShadowOffset = const Offset(2, 2);
+  static const Offset _cardShadowOffsetBig = Offset(0, 10);
+  static const Offset _cardShadowOffsetSmall = Offset(0, 8);
+  static const Offset _badgeShadowOffset = Offset(2, 2);
 
   /// Get card border radius based on layout size
-  static double getCardBorderRadius(bool isBigLayout) {
+  static double getCardBorderRadius({required bool isBigLayout}) {
     return isBigLayout ? _cardBorderRadiusBig : _cardBorderRadiusSmall;
   }
 
@@ -44,7 +44,8 @@ class EditorTheme {
     required bool isBigLayout,
     double? borderRadius,
   }) {
-    final radius = borderRadius ?? getCardBorderRadius(isBigLayout);
+    final radius =
+        borderRadius ?? getCardBorderRadius(isBigLayout: isBigLayout);
     return BoxDecoration(
       gradient: _createCardGradient(isLightTheme),
       borderRadius: BorderRadius.circular(radius),
@@ -53,7 +54,7 @@ class EditorTheme {
     );
   }
 
-  static LinearGradient createPrimaryGradient(bool isLightTheme) {
+  static LinearGradient createPrimaryGradient({required bool isLightTheme}) {
     return LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
@@ -63,7 +64,7 @@ class EditorTheme {
     );
   }
 
-  static BoxShadow createBadgeShadow(bool isLightTheme) {
+  static BoxShadow createBadgeShadow({required bool isLightTheme}) {
     return BoxShadow(
       color: isLightTheme
           ? AppColors.brandPrimary.withValues(alpha: 0.3)

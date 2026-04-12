@@ -509,7 +509,7 @@ Future<void> runExpenseLinkedDeletionSyncTest(WidgetTester tester) async {
 
     // Verify expense count decreased (sync happened)
     // ignore: unused_local_variable - tracking for future comparison
-    final __ = _getExpenseHeaderCount(tester);
+    final ignoredExpenseCount = _getExpenseHeaderCount(tester);
     // Note: Actual verification depends on UI implementation
   }
 
@@ -620,7 +620,8 @@ Future<void> _removeContributor(WidgetTester tester, String contributor) async {
 Future<void> _updateTripDates(
     WidgetTester tester, DateTime startDate, DateTime endDate) async {
   final numberOfDays = endDate.difference(startDate).inDays;
-  await TestHelpers.selectDateRange(tester, true, startDate, numberOfDays);
+  await TestHelpers.selectDateRange(
+      tester, shouldOpenDateRangePickerDialog: true, startDate, numberOfDays);
 }
 
 Future<void> _saveTripDetails(WidgetTester tester) async {

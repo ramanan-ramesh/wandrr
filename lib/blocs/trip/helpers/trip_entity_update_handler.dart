@@ -53,7 +53,9 @@ class TripEntityUpdateHandler {
     ModelCollectionModifier<E> modelCollection,
     Emitter<TripManagementState> emit,
   ) async {
-    if (tripEntity.id != null) return;
+    if (tripEntity.id != null) {
+      return;
+    }
 
     final addedEntity = await modelCollection.tryAdd(tripEntity);
     if (addedEntity != null) {
@@ -85,7 +87,9 @@ class TripEntityUpdateHandler {
         .whereType<TripEntity>()
         .any((element) => element.id == tripEntity.id);
 
-    if (!entityExists) return;
+    if (!entityExists) {
+      return;
+    }
 
     final didDelete = await modelCollection.tryDeleteItem(tripEntity);
     emit(UpdatedTripEntity<E>.deleted(
@@ -104,14 +108,18 @@ class TripEntityUpdateHandler {
     Emitter<TripManagementState> emit,
   ) async {
     var tripEntityId = tripEntity.id;
-    if (tripEntityId == null || tripEntityId.isEmpty) return;
+    if (tripEntityId == null || tripEntityId.isEmpty) {
+      return;
+    }
 
     final collectionItem = modelCollection.collectionItems
         .whereType<E>()
         .where((element) => element.id == tripEntityId)
         .firstOrNull;
 
-    if (collectionItem == null) return;
+    if (collectionItem == null) {
+      return;
+    }
 
     final didUpdate = await modelCollection.tryUpdateItem(tripEntity);
     emit(UpdatedTripEntity.updated(

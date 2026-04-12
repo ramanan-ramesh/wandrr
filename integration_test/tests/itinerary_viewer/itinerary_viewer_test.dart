@@ -139,7 +139,7 @@ Future<void> runItineraryViewerNavigateNextTest(WidgetTester tester) async {
   await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to Day 6 (September 29)
-  for (int i = 1; i <= 5; i++) {
+  for (var i = 1; i <= 5; i++) {
     final nextButton = find.descendant(
         of: find.byType(ItineraryNavigator),
         matching: find.byIcon(Icons.chevron_right_rounded));
@@ -201,7 +201,7 @@ Future<void> runItineraryViewerNavigationBoundaryStartTest(
   await verifyItineraryPlanData(tester, expectedDayOneItineraryData);
 
   print(
-      '✓ Pressing Previous button on initial layout doesn\'t update ItineraryViewer');
+      "✓ Pressing Previous button on initial layout doesn't update ItineraryViewer");
 }
 
 /// Test: Cannot navigate beyond trip end date
@@ -214,7 +214,7 @@ Future<void> runItineraryViewerNavigationBoundaryEndTest(
   await TestHelpers.navigateToTripEditorPage(tester);
 
   // Navigate to Day 6 (September 29), and press an additional time
-  for (int i = 1; i <= 6; i++) {
+  for (var i = 1; i <= 6; i++) {
     final nextButton = find.descendant(
         of: find.byType(ItineraryNavigator),
         matching: find.byIcon(Icons.chevron_right_rounded));
@@ -230,7 +230,7 @@ Future<void> runItineraryViewerNavigationBoundaryEndTest(
   await verifyItineraryPlanData(tester, expectedLastDayItineraryData);
 
   print(
-      '✓ Pressing Next button while on last trip date doesn\'t update ItineraryViewer');
+      "✓ Pressing Next button while on last trip date doesn't update ItineraryViewer");
 }
 
 void runTests() {

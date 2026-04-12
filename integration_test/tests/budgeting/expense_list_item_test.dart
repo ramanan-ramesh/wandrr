@@ -53,9 +53,9 @@ Future<String?> _evaluateExpenseListItem(
     WidgetTester tester,
     BudgetingModuleFacade budgetingModule) async {
   final expense = expenseListItem.expenseBearingTripEntity;
-  ExpenseCategory expectedCategory = expense.category;
+  var expectedCategory = expense.category;
   var expenseListItemFinder = find.byWidget(expenseListItem);
-  String expectedTitle = expense.title;
+  var expectedTitle = expense.title;
   if (expense is StandaloneExpense) {
     final isDeleteButtonFound = find
             .descendant(
@@ -98,7 +98,7 @@ Future<String?> _evaluateExpenseListItem(
   }
   final totalExpenseAmount =
       expense.expense.paidBy.values.fold(0.0, (p, e) => p + e);
-  final formattedAmount = await budgetingModule.formatCurrency(
+  final formattedAmount = budgetingModule.formatCurrency(
       Money(amount: totalExpenseAmount, currency: expense.expense.currency));
   final isTotalAmountFound = find
           .descendant(

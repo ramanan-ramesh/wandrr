@@ -17,7 +17,7 @@ import 'update_dialog.dart';
 class MasterPage extends StatelessWidget {
   final SharedPreferences sharedPreferences;
 
-  const MasterPage(this.sharedPreferences);
+  const MasterPage(this.sharedPreferences, {super.key});
 
   @override
   Widget build(BuildContext context) => BlocProvider<MasterPageBloc>(
@@ -27,7 +27,7 @@ class MasterPage extends StatelessWidget {
               (BlocProvider.of<MasterPageBloc>(context).state
                       as LoadedRepository)
                   .appData,
-          child: _ContentPageRouter(),
+          child: const _ContentPageRouter(),
         ),
       );
 }

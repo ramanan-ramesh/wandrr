@@ -255,7 +255,7 @@ void _verifyNonHorizontalSectionContent(
             matching: find.byType(expectedSectionData.sectionBody)),
         findsNothing,
         reason:
-            '${expectedSectionData.sectionBody.toString()} Section body should not be present');
+            '${expectedSectionData.sectionBody} Section body should not be present');
   }
 }
 

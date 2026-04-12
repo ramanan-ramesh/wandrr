@@ -16,12 +16,15 @@ abstract class TripRepositoryFacade {
 
 abstract class TripRepositoryEventHandler extends TripRepositoryFacade
     implements Dispose {
+  @override
   ModelCollectionModifier<TripMetadataFacade> get tripMetadataCollection;
 
+  @override
   TripDataModelEventHandler? get activeTrip;
 
   TripDataModelEventHandler loadTrip(TripMetadataFacade tripMetadata,
-      ApiServicesRepositoryFacade apiServicesRepository, bool activateTrip);
+      ApiServicesRepositoryFacade apiServicesRepository,
+      {required bool activateTrip});
 
   Future deleteTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository);

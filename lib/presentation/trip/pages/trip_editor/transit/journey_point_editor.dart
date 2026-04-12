@@ -24,11 +24,7 @@ class JourneyPointEditor extends StatelessWidget {
   final DateTime? minDateTime;
 
   const JourneyPointEditor({
-    Key? key,
-    required this.transitFacade,
-    required this.isDeparture,
-    required this.onLocationChanged,
-    required this.onDateTimeChanged,
+    required this.transitFacade, required this.isDeparture, required this.onLocationChanged, required this.onDateTimeChanged, Key? key,
     this.minDateTime,
   }) : super(key: key);
 
@@ -154,9 +150,7 @@ class JourneyCityName extends StatelessWidget {
   final Color color;
 
   const JourneyCityName({
-    Key? key,
-    required this.cityName,
-    required this.color,
+    required this.cityName, required this.color, Key? key,
   }) : super(key: key);
 
   @override

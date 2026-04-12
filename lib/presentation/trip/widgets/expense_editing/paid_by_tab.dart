@@ -66,7 +66,7 @@ class PaidByTab extends StatelessWidget {
         : contributor.split('@').first;
 
     return ListTile(
-      key: Key('PaidByTab_ContributorTile'),
+      key: const Key('PaidByTab_ContributorTile'),
       isThreeLine: true,
       title: _ExpenseEditField(
         onChanged: (amountValue) {
@@ -179,7 +179,7 @@ class _ExpenseEditFieldState extends State<_ExpenseEditField> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         suffix: Text(
           widget.currencySymbol,
-          style: TextStyle(
+          style: const TextStyle(
             fontWeight: FontWeight.w600,
           ),
         ),

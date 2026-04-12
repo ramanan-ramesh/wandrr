@@ -24,7 +24,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _createAppLogo(context),
-                Toolbar(),
+                const Toolbar(),
               ],
             ),
           ),

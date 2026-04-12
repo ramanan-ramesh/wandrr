@@ -134,7 +134,7 @@ Future<void> verifyTimelineEvents(
   expect(timelineItems.length, expectedEvents.length,
       reason: 'Number of actual timeline events should match expected events');
 
-  for (int i = 0; i < expectedEvents.length; i++) {
+  for (var i = 0; i < expectedEvents.length; i++) {
     final expectedEvent = expectedEvents.elementAt(i);
     final timelineItem = timelineItems[i];
     final itemFinder = find.byWidget(timelineItem);
@@ -233,9 +233,8 @@ class ExpectedTimelineEvent {
   ExpectedTimelineEvent({
     required this.title,
     required this.subtitle,
-    this.notes,
+    required this.icon, this.notes,
     this.confirmationId,
-    required this.icon,
   });
 }
 
@@ -271,8 +270,6 @@ class ExpectedSightData {
 
   ExpectedSightData({
     required this.name,
-    this.location,
-    required this.expense,
-    required this.time,
+    required this.expense, required this.time, this.location,
   });
 }

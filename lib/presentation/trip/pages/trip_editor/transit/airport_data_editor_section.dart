@@ -75,7 +75,7 @@ class _AirportsDataEditorSectionState extends State<AirportsDataEditorSection> {
     final textTheme = theme.textTheme;
 
     // Background color only for selected to keep list layout unchanged.
-    final Color? backgroundColor = isSelected
+    final backgroundColor = isSelected
         ? (isLightTheme ? AppColors.neutral200 : AppColors.darkSurfaceHeader)
         : null;
 

@@ -316,7 +316,7 @@ class _TripShellContentState extends State<_TripShellContent> {
 
   Widget _buildAnimatedLoadingScreen(BuildContext context) {
     final state = context.tripManagementState;
-    String textToDisplay = context.localizations.loading;
+    var textToDisplay = context.localizations.loading;
 
     if (state is LoadingTripManagement) {
       textToDisplay = context.localizations.loadingYourTrips;
@@ -515,7 +515,9 @@ class _TripEditorPageState extends State<_TripEditorPage> {
   }
 
   void _tryLoadTrip() {
-    if (_hasTriedLoadingTrip) return;
+    if (_hasTriedLoadingTrip) {
+      return;
+    }
 
     final state = context.tripManagementState;
 
@@ -560,7 +562,7 @@ class _TripEditorPageState extends State<_TripEditorPage> {
 
   Widget _buildAnimatedLoadingScreen(BuildContext context) {
     final state = context.tripManagementState;
-    String textToDisplay = context.localizations.loadingTripData;
+    var textToDisplay = context.localizations.loadingTripData;
 
     if (state is ActivatedTrip) {
       textToDisplay = context.localizations.launchingTrip;

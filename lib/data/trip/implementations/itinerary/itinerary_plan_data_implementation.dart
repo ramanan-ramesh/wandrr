@@ -98,6 +98,7 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
     );
   }
 
+  @override
   DocumentReference<Map<String, dynamic>> get documentReference {
     return FirebaseFirestore.instance
         .collection(FirestoreCollections.tripCollectionName)
@@ -106,6 +107,7 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
         .doc(id ?? day.itineraryDateFormat);
   }
 
+  @override
   Map<String, dynamic> toJson() {
     return {
       if (_sights.isNotEmpty)

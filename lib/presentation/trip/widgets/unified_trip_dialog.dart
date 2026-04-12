@@ -11,11 +11,8 @@ class UnifiedTripDialog extends StatelessWidget {
   final double? maxWidth;
 
   const UnifiedTripDialog({
-    super.key,
-    required this.title,
+    required this.title, required this.content, required this.actions, super.key,
     this.icon,
-    required this.content,
-    required this.actions,
     this.headerBackground,
     this.maxWidth,
   });
@@ -66,7 +63,7 @@ class UnifiedTripDialog extends StatelessWidget {
         else
           Positioned.fill(
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: AppColors.brandGradient,
               ),
             ),

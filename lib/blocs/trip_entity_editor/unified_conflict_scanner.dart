@@ -218,7 +218,9 @@ class ConflictResolutionResult {
 
   /// All changes that need UI updates (modified + affected + new)
   Iterable<EntityChangeBase> get allUpdatedChanges sync* {
-    if (modifiedChange != null) yield modifiedChange!;
+    if (modifiedChange != null) {
+      yield modifiedChange!;
+    }
     yield* affectedChanges;
     yield* newConflicts;
   }
@@ -276,7 +278,9 @@ class UnifiedConflictScanner {
     final contributorsChanged =
         _haveContributorsChanged(oldMetadata, newMetadata);
 
-    if (!datesChanged && !contributorsChanged) return null;
+    if (!datesChanged && !contributorsChanged) {
+      return null;
+    }
 
     final newTripRange = TimeRange(
       start: newMetadata.startDate!,
@@ -440,11 +444,17 @@ class UnifiedConflictScanner {
     required List<EntityChangeBase> affectedChanges,
   }) {
     for (final change in changes) {
-      if (_isSameChange(change, modifiedChange)) continue;
-      if (change.isMarkedForDeletion) continue;
+      if (_isSameChange(change, modifiedChange)) {
+        continue;
+      }
+      if (change.isMarkedForDeletion) {
+        continue;
+      }
 
       final otherRange = _getTimeRangeFromChange(change);
-      if (otherRange == null) continue;
+      if (otherRange == null) {
+        continue;
+      }
 
       final position = otherRange.analyzePosition(modifiedRange);
       if (!ConflictRules.isConflicting(
@@ -534,13 +544,19 @@ class UnifiedConflictScanner {
 
     // Add all existing change IDs
     for (final c in transitChanges) {
-      if (c.original.id != null) transitIds.add(c.original.id!);
+      if (c.original.id != null) {
+        transitIds.add(c.original.id!);
+      }
     }
     for (final c in stayChanges) {
-      if (c.original.id != null) stayIds.add(c.original.id!);
+      if (c.original.id != null) {
+        stayIds.add(c.original.id!);
+      }
     }
     for (final c in sightChanges) {
-      if (c.original.id != null) sightIds.add(c.original.id!);
+      if (c.original.id != null) {
+        sightIds.add(c.original.id!);
+      }
     }
 
     return ScanExclusions(
@@ -595,15 +611,23 @@ class UnifiedConflictScanner {
     required TripEntity sourceEntity,
   }) {
     final modifiedRange = _getTimeRangeFromChange(modifiedChange);
-    if (modifiedRange == null) return null;
+    if (modifiedRange == null) {
+      return null;
+    }
 
     // Check against other stay changes
     for (final change in stayChanges) {
-      if (_isSameChange(change, modifiedChange)) continue;
-      if (change.isMarkedForDeletion) continue;
+      if (_isSameChange(change, modifiedChange)) {
+        continue;
+      }
+      if (change.isMarkedForDeletion) {
+        continue;
+      }
 
       final otherRange = _getTimeRangeFromChange(change);
-      if (otherRange == null) continue;
+      if (otherRange == null) {
+        continue;
+      }
 
       final position = modifiedRange.analyzePosition(otherRange);
       if (ConflictRules.isConflicting(
@@ -614,11 +638,17 @@ class UnifiedConflictScanner {
 
     // Check against other transit changes
     for (final change in transitChanges) {
-      if (_isSameChange(change, modifiedChange)) continue;
-      if (change.isMarkedForDeletion) continue;
+      if (_isSameChange(change, modifiedChange)) {
+        continue;
+      }
+      if (change.isMarkedForDeletion) {
+        continue;
+      }
 
       final otherRange = _getTimeRangeFromChange(change);
-      if (otherRange == null) continue;
+      if (otherRange == null) {
+        continue;
+      }
 
       final position = modifiedRange.analyzePosition(otherRange);
       if (ConflictRules.isConflicting(
@@ -629,11 +659,17 @@ class UnifiedConflictScanner {
 
     // Check against other sight changes
     for (final change in sightChanges) {
-      if (_isSameChange(change, modifiedChange)) continue;
-      if (change.isMarkedForDeletion) continue;
+      if (_isSameChange(change, modifiedChange)) {
+        continue;
+      }
+      if (change.isMarkedForDeletion) {
+        continue;
+      }
 
       final otherRange = _getTimeRangeFromChange(change);
-      if (otherRange == null) continue;
+      if (otherRange == null) {
+        continue;
+      }
 
       final position = modifiedRange.analyzePosition(otherRange);
       if (ConflictRules.isConflicting(
@@ -652,10 +688,14 @@ class UnifiedConflictScanner {
     required EntityChangeBase conflictingChange,
   }) {
     final modifiedRange = _getTimeRangeFromChange(modifiedChange);
-    if (modifiedRange == null) return false;
+    if (modifiedRange == null) {
+      return false;
+    }
 
     final conflictingRange = _getTimeRangeFromChange(conflictingChange);
-    if (conflictingRange == null) return false;
+    if (conflictingRange == null) {
+      return false;
+    }
 
     final position = conflictingRange.analyzePosition(modifiedRange);
     return _tryClampChange(conflictingChange, modifiedRange, position);
@@ -691,7 +731,9 @@ class UnifiedConflictScanner {
     final conflicts = <TransitConflict>[];
 
     for (final transit in _tripData.transits) {
-      if (exclusions.transitIds.contains(transit.id)) continue;
+      if (exclusions.transitIds.contains(transit.id)) {
+        continue;
+      }
 
       final entityRange = TimeRange(
         start: transit.departureDateTime!,
@@ -699,8 +741,9 @@ class UnifiedConflictScanner {
       );
 
       final position = entityRange.analyzePosition(referenceRange);
-      if (!ConflictRules.isConflicting(position, sourceEntity, transit))
+      if (!ConflictRules.isConflicting(position, sourceEntity, transit)) {
         continue;
+      }
 
       final clamped =
           EntityClamper.clampTransit(transit, referenceRange, position);
@@ -724,9 +767,12 @@ class UnifiedConflictScanner {
     final conflicts = <StayConflict>[];
 
     for (final stay in _tripData.stays) {
-      if (exclusions.stayIds.contains(stay.id)) continue;
-      if (stay.checkinDateTime == null || stay.checkoutDateTime == null)
+      if (exclusions.stayIds.contains(stay.id)) {
         continue;
+      }
+      if (stay.checkinDateTime == null || stay.checkoutDateTime == null) {
+        continue;
+      }
 
       final entityRange = TimeRange(
         start: stay.checkinDateTime!,
@@ -734,7 +780,9 @@ class UnifiedConflictScanner {
       );
 
       final position = entityRange.analyzePosition(referenceRange);
-      if (!ConflictRules.isConflicting(position, sourceEntity, stay)) continue;
+      if (!ConflictRules.isConflicting(position, sourceEntity, stay)) {
+        continue;
+      }
 
       final clamped = EntityClamper.clampStay(stay, referenceRange, position);
 
@@ -758,8 +806,12 @@ class UnifiedConflictScanner {
 
     for (final itineraryPlanData in _tripData.itineraries) {
       for (final sight in itineraryPlanData.sights) {
-        if (exclusions.sightIds.contains(sight.id)) continue;
-        if (sight.visitTime == null) continue;
+        if (exclusions.sightIds.contains(sight.id)) {
+          continue;
+        }
+        if (sight.visitTime == null) {
+          continue;
+        }
 
         final entityRange = TimeRange(
           start: sight.visitTime!,
@@ -767,8 +819,9 @@ class UnifiedConflictScanner {
         );
 
         final position = entityRange.analyzePosition(referenceRange);
-        if (!ConflictRules.isConflicting(position, sourceEntity, sight))
+        if (!ConflictRules.isConflicting(position, sourceEntity, sight)) {
           continue;
+        }
 
         final clamped =
             EntityClamper.clampSight(sight, referenceRange, position);
@@ -799,7 +852,9 @@ class UnifiedConflictScanner {
       );
 
       final position = stayRange.analyzePosition(newTripRange);
-      if (!ConflictRules._isMetadataConflict(position)) continue;
+      if (!ConflictRules._isMetadataConflict(position)) {
+        continue;
+      }
 
       final clamped = EntityClamper.clampStayToDateRange(stay, newTripRange);
 
@@ -823,7 +878,9 @@ class UnifiedConflictScanner {
       final transitRange = TimeRange(start: dep, end: arr);
 
       final position = transitRange.analyzePosition(newTripRange);
-      if (!ConflictRules._isMetadataConflict(position)) continue;
+      if (!ConflictRules._isMetadataConflict(position)) {
+        continue;
+      }
 
       // Transits outside date range cannot be clamped - clear times
       final modified = transit.clone();
@@ -846,7 +903,9 @@ class UnifiedConflictScanner {
 
     for (final itineraryPlanData in _tripData.itineraries) {
       for (final sight in itineraryPlanData.sights) {
-        if (sight.visitTime == null) continue;
+        if (sight.visitTime == null) {
+          continue;
+        }
 
         final sightRange = TimeRange(
           start: sight.visitTime!,
@@ -854,7 +913,9 @@ class UnifiedConflictScanner {
         );
 
         final position = sightRange.analyzePosition(newTripRange);
-        if (!ConflictRules._isMetadataConflict(position)) continue;
+        if (!ConflictRules._isMetadataConflict(position)) {
+          continue;
+        }
 
         // Sights outside date range - clear visit time
         final modified = sight.clone();

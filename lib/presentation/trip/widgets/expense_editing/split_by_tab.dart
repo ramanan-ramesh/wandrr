@@ -40,8 +40,8 @@ class _SplitByTabState extends State<SplitByTab> {
 
   Widget _buildSplitByContributorTile(String contributor,
       String currentUserName, bool isNoLongerTripmate, BuildContext context) {
-    bool isSelected = widget.splitBy.contains(contributor);
-    bool isCurrentUser = contributor == currentUserName;
+    var isSelected = widget.splitBy.contains(contributor);
+    var isCurrentUser = contributor == currentUserName;
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
 
     final displayName = isCurrentUser
@@ -49,7 +49,7 @@ class _SplitByTabState extends State<SplitByTab> {
         : contributor.split('@').first;
 
     return ListTile(
-      key: ValueKey('SplitByTab_ContributorTile'),
+      key: const ValueKey('SplitByTab_ContributorTile'),
       title: Row(
         children: [
           if (isNoLongerTripmate) ...[
@@ -91,7 +91,7 @@ class _SplitByTabState extends State<SplitByTab> {
               backgroundColor: isNoLongerTripmate
                   ? (isLightTheme ? AppColors.warning : AppColors.warningLight)
                   : null,
-              child: Icon(
+              child: const Icon(
                 Icons.check,
                 size: 12,
               ),

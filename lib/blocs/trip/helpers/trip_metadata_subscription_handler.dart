@@ -62,7 +62,9 @@ class TripMetadataSubscriptionHandler {
         return;
       }
 
-      if (eventData.isFromExplicitAction || _isBlocClosed()) return;
+      if (eventData.isFromExplicitAction || _isBlocClosed()) {
+        return;
+      }
 
       _handleDateChanges(eventData);
       final metadata = CollectionItemChangeMetadata(
@@ -83,7 +85,9 @@ class TripMetadataSubscriptionHandler {
         return;
       }
 
-      if (eventData.isFromExplicitAction || _isBlocClosed()) return;
+      if (eventData.isFromExplicitAction || _isBlocClosed()) {
+        return;
+      }
 
       final metadata = CollectionItemChangeMetadata(
         eventData.modifiedCollectionItem,
@@ -103,7 +107,9 @@ class TripMetadataSubscriptionHandler {
         return;
       }
 
-      if (eventData.isFromExplicitAction || _isBlocClosed()) return;
+      if (eventData.isFromExplicitAction || _isBlocClosed()) {
+        return;
+      }
 
       final metadata = CollectionItemChangeMetadata(
         eventData.modifiedCollectionItem,

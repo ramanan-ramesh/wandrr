@@ -32,9 +32,6 @@ class CheckListModelImplementation extends CheckListFacade
   CheckListFacade get facade => clone();
 
   @override
-  String? id;
-
-  @override
   Map<String, dynamic> toJson() {
     return {
       _titleField: title!,

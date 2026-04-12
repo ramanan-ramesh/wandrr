@@ -10,8 +10,7 @@ class UpdateDialog extends StatelessWidget {
   final UpdateInfo updateInfo;
 
   const UpdateDialog({
-    super.key,
-    required this.updateInfo,
+    required this.updateInfo, super.key,
   });
 
   @override
@@ -74,11 +73,11 @@ class UpdateDialog extends StatelessWidget {
                         onPressed: () => _launchURL(context),
                         style: ButtonStyle(
                           backgroundColor:
-                              WidgetStatePropertyAll(Colors.transparent),
+                              const WidgetStatePropertyAll(Colors.transparent),
                           shadowColor:
-                              WidgetStatePropertyAll(Colors.transparent),
-                          padding: WidgetStatePropertyAll(
-                              const EdgeInsets.symmetric(vertical: 12)),
+                              const WidgetStatePropertyAll(Colors.transparent),
+                          padding: const WidgetStatePropertyAll(
+                              EdgeInsets.symmetric(vertical: 12)),
                           shape: WidgetStatePropertyAll(RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           )),

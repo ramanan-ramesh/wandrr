@@ -23,52 +23,52 @@ class TravelEditorForm {
   Finder get transitOptionPicker => find.descendant(
       of: find.byType(TravelEditor),
       matching: find
-          .byKey(ValueKey('TransitEditor_TransitOptionPicker_DropdownButton')));
+          .byKey(const ValueKey('TransitEditor_TransitOptionPicker_DropdownButton')));
 
   Finder get transitOperatorEditingField => find.descendant(
       of: find.byType(TravelEditor),
       matching:
-          find.byKey(ValueKey('TransitEditor_TransitOperator_TextField')));
+          find.byKey(const ValueKey('TransitEditor_TransitOperator_TextField')));
 
   Finder get confirmationIdEditingField => find.descendant(
       of: find.byType(TravelEditor),
-      matching: find.byKey(ValueKey('TransitEditor_ConfirmationId_TextField')));
+      matching: find.byKey(const ValueKey('TransitEditor_ConfirmationId_TextField')));
 
   Finder get airportLocationAutoCompleteTextField => find.descendant(
       of: find.byType(AirportsDataEditorSection),
-      matching: find.byKey(ValueKey('PlatformAutoComplete_TextField')));
+      matching: find.byKey(const ValueKey('PlatformAutoComplete_TextField')));
 
   /// Airport options are rendered in an Overlay, so search globally by key.
   Finder get airportLocationOption =>
-      find.byKey(ValueKey('PlatformAutoComplete_ListTile'));
+      find.byKey(const ValueKey('PlatformAutoComplete_ListTile'));
 
   Finder get geoLocationAutoCompleteTextField => find.descendant(
       of: find.descendant(
           of: find.byType(TravelEditor),
           matching: find.byType(PlatformGeoLocationAutoComplete)),
-      matching: find.byKey(ValueKey('PlatformAutoComplete_TextField')));
+      matching: find.byKey(const ValueKey('PlatformAutoComplete_TextField')));
 
   /// Finds geo-location option items in the autocomplete dropdown.
   /// Options are rendered in an Overlay (not under PlatformGeoLocationAutoComplete),
   /// so we search globally by key.
   Finder get geoLocationOption =>
-      find.byKey(ValueKey('PlatformAutoComplete_ListTile'));
+      find.byKey(const ValueKey('PlatformAutoComplete_ListTile'));
 
   Finder get airlineNameAutoCompleteTextField => find.descendant(
       of: find.descendant(
           of: find.byType(FlightDetailsEditor),
           matching: find.byType(
               PlatformAutoComplete<(String airLineName, String airLineCode)>)),
-      matching: find.byKey(ValueKey('PlatformAutoComplete_TextField')));
+      matching: find.byKey(const ValueKey('PlatformAutoComplete_TextField')));
 
   /// Airline options are rendered in an Overlay, so search globally by key.
   Finder get airlineNameOption =>
-      find.byKey(ValueKey('PlatformAutoComplete_ListTile'));
+      find.byKey(const ValueKey('PlatformAutoComplete_ListTile'));
 
   Finder get airlineNumberTextField => find.descendant(
       of: find.byType(FlightDetailsEditor),
       matching:
-          find.byKey(ValueKey('FlightDetailsEditor_FlightNumber_TextField')));
+          find.byKey(const ValueKey('FlightDetailsEditor_FlightNumber_TextField')));
 
   // Select a transit option from drop-down
   Future<void> selectTransitOption(

@@ -13,8 +13,9 @@ class MockCurrencyConverterHandler implements MockApiHandler {
 
   /// Initialize the handler by loading currency data
   static Future<void> loadCurrencyData() async {
-    if (_currencyData != null) return;
-    // Use embedded data directly - more reliable for tests
+    if (_currencyData != null) {
+      return;
+    }
     _currencyData = _getEmbeddedCurrencyData();
   }
 

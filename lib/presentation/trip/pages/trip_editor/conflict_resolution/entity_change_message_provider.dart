@@ -106,7 +106,9 @@ class EntityChangeMessageProvider {
     if (plan.sightChanges.isNotEmpty) {
       parts.add('${plan.sightChanges.length} sight(s)');
     }
-    if (parts.isEmpty) return 'No conflicts.';
+    if (parts.isEmpty) {
+      return 'No conflicts.';
+    }
     return parts.join(', ');
   }
 }

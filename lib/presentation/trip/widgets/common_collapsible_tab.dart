@@ -21,20 +21,18 @@ class CommonCollapsibleTab<T> extends StatefulWidget {
       expandedBuilder;
   final bool Function(T item)? isValidBuilder;
   final Widget Function(
-    BuildContext context,
-    int index,
-    T item,
-    bool expanded,
-    Color accentColor,
-    VoidCallback toggle,
-    VoidCallback delete,
-    VoidCallback notifyParent,
-  )? itemHeaderBuilder;
+      BuildContext context,
+      int index,
+      T item,
+      Color accentColor,
+      VoidCallback toggle,
+      VoidCallback delete,
+      VoidCallback notifyParent,
+      {required bool expanded})? itemHeaderBuilder;
   final int? initialExpandedIndex;
   final bool isLoading;
 
   const CommonCollapsibleTab({
-    super.key,
     required this.items,
     required this.addButtonLabel,
     required this.addButtonIcon,
@@ -42,6 +40,7 @@ class CommonCollapsibleTab<T> extends StatefulWidget {
     required this.onItemsChanged,
     required this.titleBuilder,
     required this.expandedBuilder,
+    super.key,
     this.previewBuilder,
     this.accentColorBuilder,
     this.isValidBuilder,
@@ -67,7 +66,7 @@ class _CommonCollapsibleTabState<T> extends State<CommonCollapsibleTab<T>> {
 
   @override
   void dispose() {
-    for (var notifier in _itemNotifiers.values) {
+    for (final notifier in _itemNotifiers.values) {
       notifier.dispose();
     }
     super.dispose();
@@ -172,7 +171,9 @@ class _CommonCollapsibleTabState<T> extends State<CommonCollapsibleTab<T>> {
       physics: const NeverScrollableScrollPhysics(),
       onReorder: (oldIndex, newIndex) {
         setState(() {
-          if (newIndex > oldIndex) newIndex -= 1;
+          if (newIndex > oldIndex) {
+            newIndex -= 1;
+          }
           final item = widget.items.removeAt(oldIndex);
           widget.items.insert(newIndex, item);
           widget.onItemsChanged();
@@ -234,7 +235,9 @@ class _CommonCollapsibleTabState<T> extends State<CommonCollapsibleTab<T>> {
   void _deleteItem(int index) {
     setState(() {
       widget.items.removeAt(index);
-      if (_expandedIndex == index) _expandedIndex = null;
+      if (_expandedIndex == index) {
+        _expandedIndex = null;
+      }
     });
     widget.onItemsChanged();
   }
@@ -264,18 +267,16 @@ class _CollapsibleEntry<T> extends StatelessWidget {
   final VoidCallback notifyChanged;
   final ValueNotifier<int> itemNotifier;
   final Widget Function(
-    BuildContext context,
-    int index,
-    T item,
-    bool expanded,
-    Color accentColor,
-    VoidCallback toggle,
-    VoidCallback delete,
-    VoidCallback notifyParent,
-  )? itemHeaderBuilder;
+      BuildContext context,
+      int index,
+      T item,
+      Color accentColor,
+      VoidCallback toggle,
+      VoidCallback delete,
+      VoidCallback notifyParent,
+      {required bool expanded})? itemHeaderBuilder;
 
   const _CollapsibleEntry({
-    super.key,
     required this.index,
     required this.item,
     required this.expanded,
@@ -287,6 +288,7 @@ class _CollapsibleEntry<T> extends StatelessWidget {
     required this.expandedBuilder,
     required this.notifyChanged,
     required this.itemNotifier,
+    super.key,
     this.itemHeaderBuilder,
   });
 
@@ -318,11 +320,11 @@ class _CollapsibleEntry<T> extends StatelessWidget {
                 context,
                 index,
                 item,
-                expanded,
                 accentColor,
                 onToggle,
                 onDelete,
                 notifyChanged,
+                expanded: expanded,
               )
             else
               _buildHeader(context),

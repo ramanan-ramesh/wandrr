@@ -14,8 +14,7 @@ class ItineraryNotesViewer extends StatefulWidget {
   final DateTime day;
 
   const ItineraryNotesViewer({
-    super.key,
-    required this.day,
+    required this.day, super.key,
   });
 
   @override

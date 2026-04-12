@@ -56,6 +56,7 @@ class SightModelImplementation extends SightFacade
     );
   }
 
+  @override
   Map<String, dynamic> toJson() {
     return {
       _nameField: name,

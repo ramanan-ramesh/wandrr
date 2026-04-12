@@ -20,7 +20,6 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants
 /// Supports any entity type (Transit/Lodging/Sight) that can have timeline conflicts.
 ///
 /// Usage:
-/// - Pass a [conflictDetectionCallback] to enable conflict detection.
 /// - The page will show a conflict warning banner when conflicts are detected.
 /// - Users can navigate to the conflict resolution subpage to resolve conflicts.
 /// - FAB is disabled until conflicts are acknowledged.
@@ -44,7 +43,6 @@ class ConflictAwareActionPage<T extends TripEntity> extends StatefulWidget {
   final bool isEditing;
 
   const ConflictAwareActionPage({
-    super.key,
     required this.tripEntity,
     required this.scrollController,
     required this.title,
@@ -54,6 +52,7 @@ class ConflictAwareActionPage<T extends TripEntity> extends StatefulWidget {
     required this.actionIcon,
     required this.tripData,
     required this.isEditing,
+    super.key,
   });
 
   @override
@@ -88,8 +87,8 @@ class _ConflictAwareActionPageState<T extends TripEntity>
 
   @override
   Widget build(BuildContext context) {
-    const double fabBottomMargin = 25.0;
-    final double bottomPadding =
+    const fabBottomMargin = 25.0;
+    const bottomPadding =
         TripEditorPageConstants.fabSize + fabBottomMargin + 16.0;
 
     return BlocProvider<TripEntityEditorBloc<T>>(
@@ -119,9 +118,11 @@ class _ConflictAwareActionPageState<T extends TripEntity>
             ),
             BlocListener<TripManagementBloc, TripManagementState>(
               listenWhen: (_, current) =>
-                  _isSubmitting && current is UpdatedTripEntity,
+                  _isSubmitting && current.isTripEntityUpdated<T>(),
               listener: (context, state) {
-                if (!_isSubmitting) return;
+                if (!_isSubmitting) {
+                  return;
+                }
                 if (state is UpdatedTripEntity) {
                   _pendingOperations--;
                   if (_pendingOperations <= 0) {
@@ -173,11 +174,11 @@ class _ConflictAwareActionPageState<T extends TripEntity>
                       children: [
                         SingleChildScrollView(
                           controller: widget.scrollController,
-                          padding: EdgeInsets.fromLTRB(0, 0, 0, bottomPadding),
+                          padding: const EdgeInsets.only(bottom: bottomPadding),
                           child: _AnimatedActionPage(child: _pageContent),
                         ),
                         SingleChildScrollView(
-                          padding: EdgeInsets.fromLTRB(0, 0, 0, bottomPadding),
+                          padding: const EdgeInsets.only(bottom: bottomPadding),
                           child: BlocBuilder<TripEntityEditorBloc<T>,
                               TripEntityEditorState<T>>(
                             buildWhen: (_, current) =>
@@ -191,7 +192,9 @@ class _ConflictAwareActionPageState<T extends TripEntity>
                                       onBackPressed: _navigateToEditor,
                                       onConflictsResolved: _navigateToEditor,
                                       onConflictsChanged: () {
-                                        if (mounted) setState(() {});
+                                        if (mounted) {
+                                          setState(() {});
+                                        }
                                       },
                                     )
                                   : const SizedBox.shrink();
@@ -271,9 +274,9 @@ class _ConflictAwareActionPageState<T extends TripEntity>
     return AppBar(
       leading: _isViewingConflictResolution
           ? IconButton(
-              icon: Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back),
               style: isLightTheme
-                  ? ButtonStyle(
+                  ? const ButtonStyle(
                       backgroundColor:
                           WidgetStatePropertyAll(AppColors.brandSecondary),
                     )
@@ -281,9 +284,9 @@ class _ConflictAwareActionPageState<T extends TripEntity>
               onPressed: _navigateToEditor,
             )
           : IconButton(
-              icon: Icon(Icons.close),
+              icon: const Icon(Icons.close),
               style: isLightTheme
-                  ? ButtonStyle(
+                  ? const ButtonStyle(
                       backgroundColor:
                           WidgetStatePropertyAll(AppColors.brandSecondary),
                     )
@@ -305,7 +308,7 @@ class _ConflictAwareActionPageState<T extends TripEntity>
       bool isLightTheme, int conflictsCount) {
     return IconButton(
       style: isLightTheme
-          ? ButtonStyle(
+          ? const ButtonStyle(
               backgroundColor: WidgetStatePropertyAll(AppColors.brandSecondary),
             )
           : null,
@@ -317,7 +320,7 @@ class _ConflictAwareActionPageState<T extends TripEntity>
             top: 0,
             child: Container(
               padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.error,
                 shape: BoxShape.circle,
               ),
@@ -536,29 +539,41 @@ class _StickyConflictBanner<T extends TripEntity> extends StatelessWidget {
   }
 
   int _countClampedEntities(TripEntityUpdatePlan conflictPlan) {
-    int count = 0;
+    var count = 0;
     for (final change in conflictPlan.transitChanges) {
-      if (change.isClamped) count++;
+      if (change.isClamped) {
+        count++;
+      }
     }
     for (final change in conflictPlan.stayChanges) {
-      if (change.isClamped) count++;
+      if (change.isClamped) {
+        count++;
+      }
     }
     for (final change in conflictPlan.sightChanges) {
-      if (change.isClamped) count++;
+      if (change.isClamped) {
+        count++;
+      }
     }
     return count;
   }
 
   int _countDeletionEntities(TripEntityUpdatePlan conflictPlan) {
-    int count = 0;
+    var count = 0;
     for (final change in conflictPlan.transitChanges) {
-      if (change.isMarkedForDeletion) count++;
+      if (change.isMarkedForDeletion) {
+        count++;
+      }
     }
     for (final change in conflictPlan.stayChanges) {
-      if (change.isMarkedForDeletion) count++;
+      if (change.isMarkedForDeletion) {
+        count++;
+      }
     }
     for (final change in conflictPlan.sightChanges) {
-      if (change.isMarkedForDeletion) count++;
+      if (change.isMarkedForDeletion) {
+        count++;
+      }
     }
     return count;
   }
@@ -643,7 +658,8 @@ class _AnimatedActionPageState extends State<_AnimatedActionPage>
 
   Widget _buildEditorCard(BuildContext context, Widget child) {
     final isBigLayout = context.isBigLayout;
-    final cardBorderRadius = EditorTheme.getCardBorderRadius(isBigLayout);
+    final cardBorderRadius =
+        EditorTheme.getCardBorderRadius(isBigLayout: isBigLayout);
     return Container(
       margin: EdgeInsets.all(
         isBigLayout

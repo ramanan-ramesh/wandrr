@@ -1,7 +1,4 @@
-import 'auth_type.dart';
-
 class PlatformUser {
-  final AuthenticationType authenticationType;
   final String userName;
   final String? displayName;
   final String userID;
@@ -9,7 +6,6 @@ class PlatformUser {
 
   const PlatformUser.fromAuth(
       {required this.userName,
-      required this.authenticationType,
       required this.userID,
       this.displayName,
       this.photoUrl});
@@ -19,8 +15,5 @@ class PlatformUser {
       required String authenticationTypeRawValue,
       required this.userID,
       this.displayName,
-      this.photoUrl})
-      : authenticationType = AuthenticationType.values.firstWhere((authValue) =>
-            authValue.toString() ==
-            'AuthenticationType.$authenticationTypeRawValue');
+      this.photoUrl});
 }

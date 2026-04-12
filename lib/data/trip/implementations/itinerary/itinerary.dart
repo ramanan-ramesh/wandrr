@@ -76,9 +76,9 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
           tripId: tripId,
           day: day,
           id: planDataId,
-          sights: [],
-          notes: [],
-          checkLists: [],
+          sights: const [],
+          notes: const [],
+          checkLists: const [],
         );
 
     return ItineraryModelImplementation._(
@@ -100,6 +100,7 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
   @override
   String get id => day.toIso8601String();
 
+  @override
   Future<bool> updatePlanData(ItineraryPlanData planData) async {
     var didUpdate = false;
     _shouldListenToPlanDataChanges = false;
@@ -123,6 +124,7 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
     return didUpdate;
   }
 
+  @override
   ItineraryFacade clone() {
     return ItineraryModelImplementation._(
       tripId: tripId,

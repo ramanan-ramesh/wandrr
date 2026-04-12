@@ -13,11 +13,7 @@ class TotalExpenseDisplay extends StatefulWidget {
   final Function(CurrencyData) onCurrencySelected;
 
   const TotalExpenseDisplay({
-    super.key,
-    required this.amount,
-    required this.selectedCurrency,
-    required this.allCurrencies,
-    required this.onCurrencySelected,
+    required this.amount, required this.selectedCurrency, required this.allCurrencies, required this.onCurrencySelected, super.key,
   });
 
   @override
@@ -210,12 +206,12 @@ class _TotalExpenseDisplayState extends State<TotalExpenseDisplay> {
                   hintText: context.localizations.searchForCurrency,
                   prefixIcon: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Icon(Icons.search),
+                    child: const Icon(Icons.search),
                   ),
                   prefixIconConstraints: const BoxConstraints(minWidth: 60),
                   suffixIcon: IconButton(
                     onPressed: _toggleMode,
-                    icon: Icon(
+                    icon: const Icon(
                       Icons.close,
                     ),
                   ),

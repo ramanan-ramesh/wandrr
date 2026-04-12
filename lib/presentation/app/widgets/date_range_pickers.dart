@@ -224,7 +224,7 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
           color: isLightTheme
               ? AppColors.brandPrimary
               : AppColors.brandPrimaryLight),
-      okButtonTextStyle: TextStyle(color: AppColors.brandPrimary),
+      okButtonTextStyle: const TextStyle(color: AppColors.brandPrimary),
       cancelButtonTextStyle:
           TextStyle(color: !isLightTheme ? Colors.black54 : Colors.white70),
       cancelButton: IgnorePointer(

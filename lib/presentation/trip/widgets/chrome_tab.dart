@@ -7,7 +7,7 @@ class ChromeTabBar extends StatelessWidget {
   final Map<IconData, String> iconsAndTitles;
 
   const ChromeTabBar(
-      {super.key, this.tabController, required this.iconsAndTitles});
+      {required this.iconsAndTitles, super.key, this.tabController});
 
   @override
   Widget build(BuildContext context) {

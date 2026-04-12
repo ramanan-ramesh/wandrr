@@ -31,7 +31,7 @@ extension TripEditorActionMetadata on TripEditorAction {
     }
   }
 
-  String getSubtitle(AppLocalizations l10n, bool isEditing) {
+  String getSubtitle(AppLocalizations l10n, {required bool isEditing}) {
     switch (this) {
       case TripEditorAction.travel:
         return isEditing

@@ -11,7 +11,7 @@ class TripEntityUpdateHandler<T extends TripEntity> extends StatelessWidget {
   final bool Function(T beforeUpdate, T afterUpdate) shouldRebuild;
 
   const TripEntityUpdateHandler(
-      {super.key, required this.widgetBuilder, required this.shouldRebuild});
+      {required this.widgetBuilder, required this.shouldRebuild, super.key});
 
   @override
   Widget build(BuildContext context) {

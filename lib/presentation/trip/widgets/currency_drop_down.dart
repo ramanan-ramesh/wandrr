@@ -80,7 +80,9 @@ class _PlatformCurrencyDropDownState extends State<PlatformCurrencyDropDown> {
 
   void _openDropdown() {
     final renderBox = context.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
+    if (renderBox == null) {
+      return;
+    }
 
     final size = renderBox.size;
 

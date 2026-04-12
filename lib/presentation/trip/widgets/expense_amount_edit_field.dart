@@ -79,7 +79,7 @@ class _PlatformExpenseAmountEditFieldState
   @override
   Widget build(BuildContext context) {
     return TextField(
-      key: Key('ExpenseAmountEditField_TextField'),
+      key: const Key('ExpenseAmountEditField_TextField'),
       readOnly: widget.isReadonly,
       style: TextStyle(color: widget.textColor),
       textInputAction: widget.textInputAction,

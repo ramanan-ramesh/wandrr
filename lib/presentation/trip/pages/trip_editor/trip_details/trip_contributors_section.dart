@@ -20,9 +20,7 @@ class TripContributorsEditorSection extends StatefulWidget {
   final ValueChanged<Iterable<String>> onContributorsChanged;
 
   const TripContributorsEditorSection({
-    super.key,
-    required this.contributors,
-    required this.onContributorsChanged,
+    required this.contributors, required this.onContributorsChanged, super.key,
   });
 
   @override
@@ -110,7 +108,7 @@ class _TripContributorsEditorSectionState
   Widget _buildAddContributorButton(BuildContext context) {
     return AnimatedContainer(
       duration: _kAnimationDurationShort,
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: TextButton.icon(
         onPressed: () {
           setState(() {
@@ -139,7 +137,7 @@ class _TripContributorsEditorSectionState
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
-      duration: Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 400),
       curve: Curves.elasticOut,
       builder: (context, value, child) {
         return Transform.scale(
@@ -148,7 +146,7 @@ class _TripContributorsEditorSectionState
         );
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -238,7 +236,7 @@ class _TripContributorsEditorSectionState
                     : _validateAndAddContributor,
                 borderRadius: _kBorderRadiusMedium,
                 child: Container(
-                  padding: EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: _isCheckingUserExistence
@@ -325,11 +323,11 @@ class _TripContributorsEditorSectionState
       _isAddContributorFieldVisible = false;
       _userExistenceError = null;
       widget.onContributorsChanged(_contributors);
-    } catch (e) {
+    } on Exception catch (e) {
       // Set error and trigger validation
       setState(() {
         _isCheckingUserExistence = false;
-        _userExistenceError = 'Error checking user: ${e.toString()}';
+        _userExistenceError = 'Error checking user: $e';
       });
       _userNameFieldFormKey.currentState?.validate();
     }

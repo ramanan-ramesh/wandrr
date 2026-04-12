@@ -101,7 +101,9 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
     UpdateJourneyTimeRange event,
     Emitter<TripEntityEditorState<TEntity>> emit,
   ) {
-    if (editableEntity is! TransitFacade) return;
+    if (editableEntity is! TransitFacade) {
+      return;
+    }
     final newPlan =
         _detectJourneyConflicts(event.legs) as TripEntityUpdatePlan<TEntity>?;
     _handlePlanUpdate(newPlan, emit);
@@ -111,7 +113,9 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
     UpdateSightsTimeRange event,
     Emitter<TripEntityEditorState<TEntity>> emit,
   ) {
-    if (editableEntity is! ItineraryPlanData) return;
+    if (editableEntity is! ItineraryPlanData) {
+      return;
+    }
 
     final overlapError = _checkSightOverlaps(event.sights);
     if (overlapError != null) {
@@ -128,7 +132,9 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
     UpdateConflictedEntityTimeRange event,
     Emitter<TripEntityEditorState<TEntity>> emit,
   ) {
-    if (_currentPlan == null) return;
+    if (_currentPlan == null) {
+      return;
+    }
 
     final result = _buildScanner().resolveConflictedEntityTimeChange(
       modifiedChange: event.change,
@@ -163,7 +169,9 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
     ToggleConflictedEntityDeletion event,
     Emitter<TripEntityEditorState<TEntity>> emit,
   ) {
-    if (_currentPlan == null) return;
+    if (_currentPlan == null) {
+      return;
+    }
 
     final newIsDeleted = !event.change.isMarkedForDeletion;
     if (newIsDeleted) {
@@ -171,7 +179,8 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
     } else {
       event.change.restore();
     }
-    _currentPlan!.syncExpenseDeletionState(event.change.original, newIsDeleted);
+    _currentPlan!.syncExpenseDeletionState(event.change.original,
+        isDeleted: newIsDeleted);
 
     emit(PlanItemsUpdated<TEntity>(_sectionsOf([event.change])));
   }
@@ -254,10 +263,12 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
       return;
     }
 
-    if (structurallyChanged.isNotEmpty)
+    if (structurallyChanged.isNotEmpty) {
       emit(PlanUpdated<TEntity>(structurallyChanged));
-    if (contentChanged.isNotEmpty)
+    }
+    if (contentChanged.isNotEmpty) {
       emit(PlanItemsUpdated<TEntity>(contentChanged));
+    }
   }
 
   /// Compares [oldItems] to [newItems]:
@@ -273,7 +284,9 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
     final wasEmpty = oldItems.isEmpty;
     final nowEmpty = newItems.isEmpty;
 
-    if (wasEmpty && nowEmpty) return;
+    if (wasEmpty && nowEmpty) {
+      return;
+    }
     if (wasEmpty != nowEmpty) {
       structural.add(section);
       return;
@@ -295,13 +308,17 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
       final o = oldById[n.original.id];
       return o == null || o != n;
     });
-    if (anyContentDiff) content.add(section);
+    if (anyContentDiff) {
+      content.add(section);
+    }
   }
 
   /// Merges [newConflicts] into the current plan.
   /// Returns the set of sections that received new items.
   Set<Type> _mergeNewConflicts(Iterable<EntityChangeBase> newConflicts) {
-    if (newConflicts.isEmpty || _currentPlan == null) return const {};
+    if (newConflicts.isEmpty || _currentPlan == null) {
+      return const {};
+    }
 
     final added = <Type>{};
     for (final change in newConflicts) {
@@ -319,15 +336,16 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
     return added;
   }
 
-  /// Returns the set of entity types touched by [changes].
   Set<Type> _sectionsOf(Iterable<EntityChangeBase> changes) {
     final sections = <Type>{};
     for (final c in changes) {
-      if (c is StayChange)
+      if (c is StayChange) {
         sections.add(LodgingFacade);
-      else if (c is TransitChange)
+      } else if (c is TransitChange) {
         sections.add(TransitFacade);
-      else if (c is SightChange) sections.add(SightFacade);
+      } else if (c is SightChange) {
+        sections.add(SightFacade);
+      }
     }
     return sections;
   }
@@ -341,7 +359,9 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
     final conflicts = StayConflictDetector(
             stay: stay, scanner: _buildScanner(), isNewEntity: _isNewEntity)
         .detectConflicts();
-    if (conflicts == null) return null;
+    if (conflicts == null) {
+      return null;
+    }
     return _createTripEntityUpdatePlan(
         conflicts, (originalEntity ?? editableEntity) as LodgingFacade, stay);
   }
@@ -351,7 +371,9 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
     final conflicts = JourneyConflictDetector(
             legs: legs, scanner: _buildScanner(), isNewEntity: _isNewEntity)
         .detectConflicts();
-    if (conflicts == null) return null;
+    if (conflicts == null) {
+      return null;
+    }
     return _createTripEntityUpdatePlan(
         conflicts,
         (originalEntity ?? editableEntity) as TransitFacade,
@@ -365,7 +387,9 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
     final conflicts = ItineraryConflictDetector(
             sights: sights, scanner: _buildScanner(), isNewEntity: _isNewEntity)
         .detectConflicts();
-    if (conflicts == null) return null;
+    if (conflicts == null) {
+      return null;
+    }
     return _createTripEntityUpdatePlan(
         conflicts,
         (originalEntity ?? editableEntity) as ItineraryPlanData,
@@ -376,11 +400,13 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
       TripMetadataFacade metadata) {
     final conflicts = _buildScanner().scanForMetadataUpdate(
         oldMetadata: _tripData.tripMetadata, newMetadata: metadata);
-    if (conflicts == null) return null;
+    if (conflicts == null) {
+      return null;
+    }
     final tripEntityUpdatePlan = _createTripEntityUpdatePlan(
         conflicts, conflicts.oldMetadata, conflicts.newMetadata);
     tripEntityUpdatePlan.expenseChanges
-      ..addAll(conflicts.expenseEntities.map(_toExpenseChange));
+        .addAll(conflicts.expenseEntities.map(_toExpenseChange));
     return tripEntityUpdatePlan;
   }
 
@@ -390,15 +416,19 @@ class TripEntityEditorBloc<TEntity extends TripEntity>
 
   ConflictedEntityTimeRangeError<TEntity>? _checkSightOverlaps(
       List<SightFacade> sights) {
-    for (int i = 0; i < sights.length; i++) {
+    for (var i = 0; i < sights.length; i++) {
       final s1 = sights[i];
-      if (s1.visitTime == null) continue;
+      if (s1.visitTime == null) {
+        continue;
+      }
       final r1 = TimeRange(
           start: s1.visitTime!,
           end: s1.visitTime!.add(const Duration(minutes: 1)));
-      for (int j = i + 1; j < sights.length; j++) {
+      for (var j = i + 1; j < sights.length; j++) {
         final s2 = sights[j];
-        if (s2.visitTime == null) continue;
+        if (s2.visitTime == null) {
+          continue;
+        }
         final r2 = TimeRange(
             start: s2.visitTime!,
             end: s2.visitTime!.add(const Duration(minutes: 1)));

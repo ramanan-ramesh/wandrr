@@ -115,7 +115,7 @@ class TestHelpers {
 
     // === LOCATIONS ===
     final londonAirport = {
-      'latLon': GeoPoint(51.5074, -0.1278),
+      'latLon': const GeoPoint(51.5074, -0.1278),
       'context': {
         'type': 'airport',
         'name': 'London Airport',
@@ -126,17 +126,17 @@ class TestHelpers {
     };
 
     final parisAirport = {
-      'latLon': GeoPoint(48.8566, 2.3522),
+      'latLon': const GeoPoint(48.8566, 2.3522),
       'context': {
         'type': 'airport',
         'name': 'Charles de Gaulle International Airport',
-        'city': 'Paris (Roissy-en-France, Val-d\'Oise)',
+        'city': "Paris (Roissy-en-France, Val-d'Oise)",
         'iata': 'CDG',
         'locationType': 'airport',
       }
     };
     final amsterdamAirport = {
-      'latLon': GeoPoint(52.3779, 4.76389),
+      'latLon': const GeoPoint(52.3779, 4.76389),
       'context': {
         'type': 'airport',
         'name': 'Amsterdam Airport Schiphol',
@@ -148,7 +148,7 @@ class TestHelpers {
 
     // City locations
     final parisCity = {
-      'latLon': GeoPoint(48.8566, 2.3522),
+      'latLon': const GeoPoint(48.8566, 2.3522),
       'context': {
         'type': 'city',
         'locationType': 'city',
@@ -169,7 +169,7 @@ class TestHelpers {
     };
 
     final versaillesLocation = {
-      'latLon': GeoPoint(48.8049, 2.1204),
+      'latLon': const GeoPoint(48.8049, 2.1204),
       'context': {
         'type': 'town',
         'locationType': 'city',
@@ -190,7 +190,7 @@ class TestHelpers {
     };
 
     final brusselsLocation = {
-      'latLon': GeoPoint(50.8503, 4.3517),
+      'latLon': const GeoPoint(50.8503, 4.3517),
       'context': {
         'type': 'city',
         'locationType': 'city',
@@ -211,7 +211,7 @@ class TestHelpers {
     };
 
     final amsterdamLocation = {
-      'latLon': GeoPoint(52.3676, 4.9041),
+      'latLon': const GeoPoint(52.3676, 4.9041),
       'context': {
         'type': 'city',
         'locationType': 'city',
@@ -233,7 +233,7 @@ class TestHelpers {
 
     // Attraction locations
     final eiffelTowerLocation = {
-      'latLon': GeoPoint(48.8584, 2.2945),
+      'latLon': const GeoPoint(48.8584, 2.2945),
       'context': {
         'type': 'attraction',
         'locationType': 'attraction',
@@ -254,7 +254,7 @@ class TestHelpers {
     };
 
     final louvreLocation = {
-      'latLon': GeoPoint(48.8606, 2.3376),
+      'latLon': const GeoPoint(48.8606, 2.3376),
       'context': {
         'type': 'attraction',
         'locationType': 'attraction',
@@ -275,7 +275,7 @@ class TestHelpers {
     };
 
     final atomiumLocation = {
-      'latLon': GeoPoint(50.8950, 4.3414),
+      'latLon': const GeoPoint(50.8950, 4.3414),
       'context': {
         'type': 'attraction',
         'locationType': 'attraction',
@@ -296,7 +296,7 @@ class TestHelpers {
     };
 
     final rijksmuseumLocation = {
-      'latLon': GeoPoint(52.3600, 4.8852),
+      'latLon': const GeoPoint(52.3600, 4.8852),
       'context': {
         'type': 'attraction',
         'locationType': 'attraction',
@@ -317,7 +317,7 @@ class TestHelpers {
     };
 
     final keukenhofLocation = {
-      'latLon': GeoPoint(52.3600, 4.8852),
+      'latLon': const GeoPoint(52.3600, 4.8852),
       'context': {
         'type': 'attraction',
         'locationType': 'attraction',
@@ -865,7 +865,7 @@ class TestHelpers {
 
   /// Get the position of a widget
   static Offset getWidgetPosition(WidgetTester tester, Finder finder) {
-    final RenderBox renderBox = tester.renderObject(finder);
+    final renderBox = tester.renderObject<RenderBox>(finder);
     return renderBox.localToGlobal(Offset.zero);
   }
 
@@ -889,10 +889,8 @@ class TestHelpers {
   }
 
   static Future<void> selectDateRange(
-      WidgetTester tester,
-      bool shouldOpenDateRangePickerDialog,
-      DateTime tripStartDate,
-      int numberOfDays) async {
+      WidgetTester tester, DateTime tripStartDate, int numberOfDays,
+      {required bool shouldOpenDateRangePickerDialog}) async {
     if (shouldOpenDateRangePickerDialog) {
       final dateRangePicker = find.byType(PlatformDateRangePicker);
       await TestHelpers.tapWidget(tester, dateRangePicker);
@@ -992,9 +990,9 @@ class TestHelpers {
   static Future<void> scrollGuardVerify(
     WidgetTester tester, {
     required Finder scrollableFinder,
-    ScrollController Function(Finder scrollableFinder)? getController,
     required Finder widgetFinder,
     required Future<void> Function() verification,
+    ScrollController Function(Finder scrollableFinder)? getController,
     bool scrollToTop = true,
     int maxScrollAttempts = 10,
     Offset scrollDelta = const Offset(0, -300),
@@ -1017,7 +1015,7 @@ class TestHelpers {
     }
 
     // Scroll down to find the widget
-    for (int attempt = 0; attempt < maxScrollAttempts; attempt++) {
+    for (var attempt = 0; attempt < maxScrollAttempts; attempt++) {
       await tester.drag(scrollableFinder, scrollDelta);
       await tester.pumpAndSettle();
 
@@ -1046,7 +1044,7 @@ class TestHelpers {
     await tester.pumpAndSettle();
 
     // Scroll to top first
-    for (int i = 0; i < 5; i++) {
+    for (var i = 0; i < 5; i++) {
       await tester.drag(scrollableFinder, const Offset(0, 500));
       await tester.pumpAndSettle();
     }
@@ -1055,7 +1053,7 @@ class TestHelpers {
     expect(widgetFinder, findsNothing, reason: reason);
 
     // Scroll down and check at each position
-    for (int attempt = 0; attempt < maxScrollAttempts; attempt++) {
+    for (var attempt = 0; attempt < maxScrollAttempts; attempt++) {
       await tester.drag(scrollableFinder, scrollDelta);
       await tester.pumpAndSettle();
       expect(widgetFinder, findsNothing, reason: reason);
@@ -1069,8 +1067,8 @@ class TestHelpers {
     WidgetTester tester, {
     required Finder scrollableFinder,
     required Finder widgetFinder,
-    ScrollController Function(Finder scrollableFinder)? getController,
     required String reason,
+    ScrollController Function(Finder scrollableFinder)? getController,
     int maxScrollAttempts = 10,
     Offset scrollDelta = const Offset(0, -300),
   }) async {
@@ -1088,7 +1086,7 @@ class TestHelpers {
     }
 
     // Scroll down and check at each position
-    for (int attempt = 0; attempt < maxScrollAttempts; attempt++) {
+    for (var attempt = 0; attempt < maxScrollAttempts; attempt++) {
       await tester.drag(scrollableFinder, scrollDelta);
       await tester.pumpAndSettle();
       if (widgetFinder.evaluate().isNotEmpty) {
@@ -1122,7 +1120,7 @@ class TestHelpers {
     await tester.pumpAndSettle();
 
     // Scroll to top first
-    for (int i = 0; i < 5; i++) {
+    for (var i = 0; i < 5; i++) {
       await tester.drag(scrollableFinder, const Offset(0, 500));
       await tester.pumpAndSettle();
     }
@@ -1179,7 +1177,7 @@ class TestHelpers {
     await tester.pumpAndSettle();
 
     // Scroll to top first
-    for (int i = 0; i < 5; i++) {
+    for (var i = 0; i < 5; i++) {
       await tester.drag(scrollableFinder, const Offset(0, 500));
       await tester.pumpAndSettle();
     }

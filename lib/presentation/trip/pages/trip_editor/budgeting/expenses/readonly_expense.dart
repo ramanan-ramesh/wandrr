@@ -16,7 +16,7 @@ class ReadonlyExpenseListItem extends StatelessWidget {
   final ExpenseBearingTripEntity expenseBearingTripEntity;
   final Map<ExpenseCategory, String> categoryNames;
 
-  ReadonlyExpenseListItem({
+  const ReadonlyExpenseListItem({
     required this.expenseBearingTripEntity,
     required this.categoryNames,
     super.key,
@@ -30,7 +30,9 @@ class ReadonlyExpenseListItem extends StatelessWidget {
   static const double _kInnerPadding = 2.0;
 
   String get _subTitle {
-    if (_expense.dateTime == null) return '';
+    if (_expense.dateTime == null) {
+      return '';
+    }
     return 'Paid on ${_expense.dateTime!.monthFormat} ${_expense.dateTime!.day}';
   }
 
@@ -131,7 +133,7 @@ class _DeleteButton extends StatelessWidget {
               : AppColors.error.withValues(alpha: 0.2),
           shape: BoxShape.circle,
         ),
-        child: Icon(
+        child: const Icon(
           Icons.delete_outline,
           size: 18,
           color: AppColors.error,

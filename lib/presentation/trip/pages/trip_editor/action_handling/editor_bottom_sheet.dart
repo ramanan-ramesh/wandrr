@@ -12,9 +12,9 @@ class TripEntityEditorBottomSheet<T extends TripEntity> extends StatefulWidget {
   final ItineraryPlanDataEditorConfig? planDataEditorConfig;
 
   const TripEntityEditorBottomSheet({
-    super.key,
     required this.tripEditorAction,
     required this.tripEntity,
+    super.key,
     this.planDataEditorConfig,
   });
 
@@ -56,7 +56,7 @@ class _TripEntityEditorBottomSheetState<T extends TripEntity>
           final factory = EditorPageFactory(
             tripData: context.activeTrip,
             title: widget.tripEditorAction
-                .getSubtitle(context.localizations, true),
+                .getSubtitle(context.localizations, isEditing: true),
             isEditing: true,
             onClosePressed: Navigator.of(context).pop,
             scrollController: scrollController,

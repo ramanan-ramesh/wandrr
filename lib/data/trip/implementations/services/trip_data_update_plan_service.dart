@@ -160,13 +160,19 @@ class TripEntityDataUpdatePlanService {
   ) {
     for (final change in changes) {
       // Skip if not a standalone expense
-      if (change.modified is! StandaloneExpense) continue;
+      if (change.modified is! StandaloneExpense) {
+        continue;
+      }
 
       // Skip if not marked for inclusion and not being deleted
-      if (!change.includeInSplitBy && !change.isMarkedForDeletion) continue;
+      if (!change.includeInSplitBy && !change.isMarkedForDeletion) {
+        continue;
+      }
 
       // Skip invalid entities
-      if (!change.modified.validate()) continue;
+      if (!change.modified.validate()) {
+        continue;
+      }
 
       final entity = change.modified as StandaloneExpense;
       final doc = expenseCollection.repositoryItemCreator(entity);

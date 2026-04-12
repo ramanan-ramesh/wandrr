@@ -12,6 +12,7 @@ class TimezoneIndicator extends StatelessWidget {
 
   const TimezoneIndicator({
     required this.location,
+    super.key,
   });
 
   @override
@@ -20,11 +21,12 @@ class TimezoneIndicator extends StatelessWidget {
     var timezoneString =
         latLngToTimezoneString(location.latitude, location.longitude);
     timezoneString = timezoneString.replaceAll('_', ' ');
-    return _buildAnimatedChip(context, isLightTheme, timezoneString);
+    return _buildAnimatedChip(context, timezoneString,
+        isLightTheme: isLightTheme);
   }
 
-  static Widget _buildAnimatedChip(
-      BuildContext context, bool isLightTheme, String text) {
+  static Widget _buildAnimatedChip(BuildContext context, String text,
+      {required bool isLightTheme}) {
     return TweenAnimationBuilder<double>(
       duration: _scaleAnimationDuration,
       curve: Curves.easeOutBack,
@@ -36,13 +38,13 @@ class TimezoneIndicator extends StatelessWidget {
             duration: _containerAnimationDuration,
             curve: Curves.easeInOut,
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-            decoration: _buildDecoration(isLightTheme),
+            decoration: _buildDecoration(isLightTheme: isLightTheme),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildIcon(isLightTheme),
+                _buildIcon(isLightTheme: isLightTheme),
                 const SizedBox(width: 10),
-                _buildTimezoneText(context, isLightTheme, text),
+                _buildTimezoneText(context, text, isLightTheme: isLightTheme),
               ],
             ),
           ),
@@ -51,7 +53,7 @@ class TimezoneIndicator extends StatelessWidget {
     );
   }
 
-  static BoxDecoration _buildDecoration(bool isLightTheme) {
+  static BoxDecoration _buildDecoration({required bool isLightTheme}) {
     return BoxDecoration(
       gradient: LinearGradient(
         colors: [
@@ -71,7 +73,7 @@ class TimezoneIndicator extends StatelessWidget {
     );
   }
 
-  static Widget _buildIcon(bool isLightTheme) {
+  static Widget _buildIcon({required bool isLightTheme}) {
     return Icon(
       Icons.public_rounded,
       size: 20,
@@ -79,8 +81,8 @@ class TimezoneIndicator extends StatelessWidget {
     );
   }
 
-  static Widget _buildTimezoneText(
-      BuildContext context, bool isLightTheme, String timezoneString) {
+  static Widget _buildTimezoneText(BuildContext context, String timezoneString,
+      {required bool isLightTheme}) {
     return Text(
       timezoneString,
       style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -104,9 +106,9 @@ class DualTimezoneIndicator extends StatelessWidget {
   final LocationFacade arrivalLocation;
 
   const DualTimezoneIndicator({
-    super.key,
     required this.departureLocation,
     required this.arrivalLocation,
+    super.key,
   });
 
   @override
@@ -122,8 +124,8 @@ class DualTimezoneIndicator extends StatelessWidget {
 
     // Same timezone → show only one
     if (departureTz == arrivalTz) {
-      return TimezoneIndicator._buildAnimatedChip(
-          context, isLightTheme, departureTz);
+      return TimezoneIndicator._buildAnimatedChip(context, departureTz,
+          isLightTheme: isLightTheme);
     }
 
     final depParts = departureTz.split('/');
@@ -137,11 +139,13 @@ class DualTimezoneIndicator extends StatelessWidget {
       final depCity = depParts.sublist(1).join('/');
       final arrCity = arrParts.sublist(1).join('/');
       return TimezoneIndicator._buildAnimatedChip(
-          context, isLightTheme, '$region: $depCity → $arrCity');
+          context, '$region: $depCity → $arrCity',
+          isLightTheme: isLightTheme);
     }
 
     // Different regions → show "FullTz1 → FullTz2"
     return TimezoneIndicator._buildAnimatedChip(
-        context, isLightTheme, '$departureTz → $arrivalTz');
+        context, '$departureTz → $arrivalTz',
+        isLightTheme: isLightTheme);
   }
 }

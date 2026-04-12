@@ -31,12 +31,12 @@ class EntityChangeSection<T> extends StatefulWidget {
   final ValueChanged<bool>? onExpansionChanged;
 
   const EntityChangeSection({
-    super.key,
     required this.icon,
     required this.title,
-    this.iconColor,
     required this.items,
     required this.itemBuilder,
+    super.key,
+    this.iconColor,
     this.infoMessage,
     this.initiallyExpanded = false,
     this.onExpansionChanged,
@@ -57,7 +57,9 @@ class _EntityChangeSectionState<T> extends State<EntityChangeSection<T>> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.items.isEmpty) return const SizedBox.shrink();
+    if (widget.items.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final effectiveIconColor = widget.iconColor ??
@@ -186,14 +188,14 @@ class EntityChangeItemCard extends StatelessWidget {
   final Widget? child;
 
   const EntityChangeItemCard({
-    super.key,
     required this.isDeleted,
-    this.isClamped = false,
     required this.icon,
-    this.iconColor,
     required this.title,
-    this.subtitle,
     required this.onToggleDelete,
+    super.key,
+    this.isClamped = false,
+    this.iconColor,
+    this.subtitle,
     this.child,
   });
 

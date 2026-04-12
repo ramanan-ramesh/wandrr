@@ -159,7 +159,8 @@ Future<void> runHomePageCreateTripFlowTest(
   print('✓ Thumbnail "${lastThumbnailImage.fileName}" selected');
 
   // Enter trip name
-  final tripNameField = find.byKey(Key('TripCreatorDialog_TripNameField'));
+  final tripNameField =
+      find.byKey(const Key('TripCreatorDialog_TripNameField'));
   const tripName = 'Test Trip';
   await TestHelpers.enterText(tester, tripNameField, tripName);
   print('✓ Trip name "$tripName" entered');
@@ -177,12 +178,13 @@ Future<void> runHomePageCreateTripFlowTest(
       reason: 'First possible selectable date should be today');
 
   // Select range: Current day plus 15 days.
-  await TestHelpers.selectDateRange(tester, false, currentDateTime, 15);
+  await TestHelpers.selectDateRange(
+      tester, shouldOpenDateRangePickerDialog: false, currentDateTime, 15);
   print(
       '✓ Date range selected: ${currentDateTime.toIso8601String().substring(0, 10)} + 15 days');
 
   // Enter budget
-  var budget = Money(currency: 'EUR', amount: 50000);
+  var budget = const Money(currency: 'EUR', amount: 50000);
   await CommonFormElements(TripCreatorDialog)
       .expenseEditor
       .enterMoneyAmount(tester, budget);
@@ -255,7 +257,7 @@ Future _changeLanguageAndVerifyLocale(
   final languageMenu = find.byIcon(Icons.translate);
   await TestHelpers.tapWidget(tester, languageMenu);
 
-  final languageOption = find.byKey(Key('ToolBar_LanguageSwitcher_' + locale));
+  final languageOption = find.byKey(Key('ToolBar_LanguageSwitcher_$locale'));
   await TestHelpers.tapWidget(tester, languageOption);
   var context = tester.element(find.byType(HomePage));
   await _verifyCurrentLocale(context, locale);
@@ -277,7 +279,7 @@ Future<void> _verifyCurrentLocale(Element context, String locale) async {
 Future<void> _switchAndVerifyThemeMode(
     WidgetTester tester, ThemeMode themeMode) async {
   //Click on theme switcher
-  final themeOption = find.byKey(Key('ToolBar_ThemeSwitcher'));
+  final themeOption = find.byKey(const Key('ToolBar_ThemeSwitcher'));
   await TestHelpers.tapWidget(tester, themeOption);
 
   // Verify theme mode is updated to light

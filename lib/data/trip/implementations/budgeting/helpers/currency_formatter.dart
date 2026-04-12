@@ -38,7 +38,7 @@ class CurrencyFormatter {
     final decimalPart = parts[1];
 
     final intBuffer = StringBuffer();
-    for (int i = 0; i < integerPart.length; i++) {
+    for (var i = 0; i < integerPart.length; i++) {
       if (i != 0 && (integerPart.length - i) % 3 == 0) {
         intBuffer.write(thousandsSeparator);
       }

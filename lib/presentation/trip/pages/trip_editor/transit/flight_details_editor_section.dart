@@ -13,7 +13,9 @@ class FlightDetailsEditor extends StatefulWidget {
   final Function(String?) onOperatorChanged;
 
   const FlightDetailsEditor(
-      {required this.initialOperator, required this.onOperatorChanged});
+      {required this.initialOperator,
+      required this.onOperatorChanged,
+      super.key});
 
   @override
   State<FlightDetailsEditor> createState() => _FlightDetailsEditorState();
@@ -214,7 +216,8 @@ class _FlightDetailsEditorState extends State<FlightDetailsEditor>
                 const SizedBox(width: _kFlightNumberSectionSpacing),
                 Expanded(
                   child: TextField(
-                    key: ValueKey('FlightDetailsEditor_FlightNumber_TextField'),
+                    key: const ValueKey(
+                        'FlightDetailsEditor_FlightNumber_TextField'),
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
@@ -237,7 +240,7 @@ class _FlightDetailsEditorState extends State<FlightDetailsEditor>
                         letterSpacing: _kFlightNumberLetterSpacing,
                       ),
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(
+                      contentPadding: const EdgeInsets.symmetric(
                         horizontal: _kFlightNumberInputHorizontalPadding,
                         vertical: _kFlightNumberInputVerticalPadding,
                       ),

@@ -12,7 +12,7 @@ class ItineraryNavigator extends StatefulWidget {
   /// Used by the trip editor page to know which day to create new itinerary items for.
   final void Function(DateTime) onNavigatedToDate;
 
-  const ItineraryNavigator({super.key, required this.onNavigatedToDate});
+  const ItineraryNavigator({required this.onNavigatedToDate, super.key});
 
   @override
   State<ItineraryNavigator> createState() => _ItineraryNavigatorState();
@@ -126,8 +126,8 @@ class _ItineraryNavigatorState extends State<ItineraryNavigator>
       _tryNavigateToDate(_currentDate.add(const Duration(days: 1)));
 
   Widget _buildNavigationBar() {
-    final bool canGoPrevious = _currentDate.isAfter(_startDate);
-    final bool canGoNext = _currentDate.isBefore(_endDate);
+    final canGoPrevious = _currentDate.isAfter(_startDate);
+    final canGoNext = _currentDate.isBefore(_endDate);
 
     return Container(
       padding: const EdgeInsets.symmetric(

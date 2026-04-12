@@ -45,7 +45,7 @@ final _contributors = [TestConfig.testEmail, TestConfig.tripMateUserName];
 
 ExpenseFacade _emptyExpense() => ExpenseFacade(
       currency: _currency,
-      paidBy: {TestConfig.testEmail: 0.0},
+      paidBy: const {TestConfig.testEmail: 0.0},
       splitBy: _contributors,
     );
 
@@ -981,8 +981,8 @@ Future<void> runJourneyExcludesAllLegsTest(
   WidgetTester tester,
   SharedPreferences sharedPreferences,
 ) async {
-  final leg1Id = 'leg_1';
-  final leg2Id = 'leg_2';
+  const leg1Id = 'leg_1';
+  const leg2Id = 'leg_2';
 
   final exclusions = ScanExclusions.forTransits({leg1Id, leg2Id});
   expect(exclusions.transitIds.containsAll({leg1Id, leg2Id}), true,

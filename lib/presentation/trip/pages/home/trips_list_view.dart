@@ -27,7 +27,7 @@ import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart
 import 'thumbnail_selector.dart';
 
 class TripListView extends StatefulWidget {
-  TripListView({
+  const TripListView({
     super.key,
   });
 
@@ -122,7 +122,7 @@ class _TripListViewState extends State<TripListView> {
       _selectedPastYear = pastYears.first;
     }
 
-    List<Widget> slivers = [];
+    var slivers = <Widget>[];
 
     // Upcoming Section
     if (upcomingTripsRaw.isNotEmpty) {
@@ -191,7 +191,9 @@ class _TripListViewState extends State<TripListView> {
               label: Text(year.toString()),
               selected: selectedYear == year,
               onSelected: (selected) {
-                if (selected) onSelected(year);
+                if (selected) {
+                  onSelected(year);
+                }
               },
             ),
           );
@@ -240,7 +242,7 @@ class _TripListViewState extends State<TripListView> {
 class _TripMetadataGridItem extends StatelessWidget {
   final String tripId;
 
-  _TripMetadataGridItem({required this.tripId});
+  const _TripMetadataGridItem({required this.tripId});
 
   @override
   Widget build(BuildContext context) {
@@ -281,7 +283,7 @@ class _TripMetadataGridItem extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16.0, vertical: 3),
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           gradient: AppColors.brandGradient,
                         ),
                         child: FittedBox(

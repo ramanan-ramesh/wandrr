@@ -29,9 +29,9 @@ class ConflictResolutionSubpage<T extends TripEntity> extends StatelessWidget {
   final VoidCallback? onConflictsChanged;
 
   const ConflictResolutionSubpage({
-    super.key,
     required this.onBackPressed,
     required this.onConflictsResolved,
+    super.key,
     this.onConflictsChanged,
   });
 
@@ -213,8 +213,8 @@ class _ConflictConfirmButton<T extends TripEntity> extends StatelessWidget {
 // =============================================================================
 
 /// Container for all conflict sections.
-/// Each [ConflictSectionBuilder] rebuilds only when [PlanUpdated] includes its
-/// own [ConflictSection]; [PlanCleared] collapses all of them.
+/// Each ConflictSectionBuilder rebuilds only when PlanUpdated includes its
+/// own conflict section; PlanCleared collapses all of them.
 class _DynamicConflictSections<T extends TripEntity> extends StatelessWidget {
   final VoidCallback? onConflictsChanged;
 
@@ -256,9 +256,13 @@ class _DynamicConflictSections<T extends TripEntity> extends StatelessWidget {
     Type entityType,
     MessageContext messageContext,
   ) {
-    if (changes.isEmpty) return const SizedBox.shrink();
+    if (changes.isEmpty) {
+      return const SizedBox.shrink();
+    }
     final plan = context.tripEntityUpdatePlan<T>();
-    if (plan == null) return const SizedBox.shrink();
+    if (plan == null) {
+      return const SizedBox.shrink();
+    }
 
     return OptimizedEntityChangeSection<T>(
       entityType: entityType,
@@ -287,7 +291,9 @@ class _ExpensesSectionSelector<T extends TripEntity> extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<TripEntityEditorBloc<T>, TripEntityEditorState<T>>(
       buildWhen: (_, current) {
-        if (current is PlanCleared<T>) return true;
+        if (current is PlanCleared<T>) {
+          return true;
+        }
         if (current is PlanUpdated<T>) {
           return current.affectedSections.contains(ExpenseBearingTripEntity);
         }

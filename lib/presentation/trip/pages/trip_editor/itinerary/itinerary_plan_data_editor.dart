@@ -28,10 +28,7 @@ class ItineraryPlanDataEditor extends StatefulWidget {
   final ItineraryPlanDataEditorConfig config;
 
   const ItineraryPlanDataEditor({
-    super.key,
-    required this.planData,
-    required this.onPlanDataUpdated,
-    required this.config,
+    required this.planData, required this.onPlanDataUpdated, required this.config, super.key,
   });
 
   @override
@@ -265,7 +262,7 @@ class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
       case PlanDataType.checklist:
         _stableChecklists.add(CheckListFacade.newUiEntry(
           tripId: tripMetadata.id!,
-          items: [],
+          items: const [],
         ));
     }
   }

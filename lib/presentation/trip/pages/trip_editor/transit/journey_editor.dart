@@ -80,7 +80,7 @@ class JourneyEditorState extends State<JourneyEditor> {
   /// Returns the number of dispatched update events so the caller can track
   /// completion.
   int saveAllLegs(BuildContext context) {
-    int operationCount = 0;
+    var operationCount = 0;
 
     // 1. Delete legs that were removed during this editing session.
     for (final leg in _removedLegs) {
@@ -106,11 +106,12 @@ class JourneyEditorState extends State<JourneyEditor> {
       final isNew = leg.id == null || leg.id!.isEmpty;
       if (isNew) {
         context.addTripManagementEvent(
-          UpdateTripEntity<TransitFacade>.create(tripEntity: leg),
+            UpdateTripEntity<TransitFacade>.create(tripEntity: leg)
         );
-      } else {
+      }
+      else {
         context.addTripManagementEvent(
-          UpdateTripEntity<TransitFacade>.update(tripEntity: leg),
+            UpdateTripEntity<TransitFacade>.update(tripEntity: leg)
         );
       }
       operationCount++;
@@ -140,8 +141,8 @@ class JourneyEditorState extends State<JourneyEditor> {
     }
 
     // Find the index of the clicked leg and expand it
-    int expandedIndex = 0;
-    for (int i = 0; i < _legs.length; i++) {
+    var expandedIndex = 0;
+    for (var i = 0; i < _legs.length; i++) {
       if (_legs[i].id == widget.initialLeg.id) {
         expandedIndex = i;
         break;
@@ -163,7 +164,10 @@ class JourneyEditorState extends State<JourneyEditor> {
 
     // Generate journeyId if this is converting from standalone
     if (_journeyId == null) {
-      _journeyId = DateTime.now().millisecondsSinceEpoch.toString();
+      _journeyId = DateTime
+          .now()
+          .millisecondsSinceEpoch
+          .toString();
       // Update existing leg with journeyId
       _legs.first.journeyId = _journeyId;
     }
@@ -194,7 +198,9 @@ class JourneyEditorState extends State<JourneyEditor> {
   }
 
   void _removeLeg(int index) {
-    if (_legs.length <= 1) return; // Can't remove the last leg
+    if (_legs.length <= 1) {
+      return; // Can't remove the last leg
+    }
 
     final legToRemove = _legs[index];
 
@@ -256,8 +262,9 @@ class JourneyEditorState extends State<JourneyEditor> {
   bool _validateTimeSequence() {
     // Sort legs by departure time
     final sortedLegs = List<TransitFacade>.from(_legs)
-      ..sort((a, b) => (a.departureDateTime ?? DateTime(0))
-          .compareTo(b.departureDateTime ?? DateTime(0)));
+      ..sort((a, b) =>
+          (a.departureDateTime ?? DateTime(0))
+              .compareTo(b.departureDateTime ?? DateTime(0)));
 
     for (var i = 0; i < sortedLegs.length; i++) {
       final leg = sortedLegs[i];
@@ -265,8 +272,10 @@ class JourneyEditorState extends State<JourneyEditor> {
       // Check arrival is at least 1 minute after departure
       if (leg.departureDateTime != null && leg.arrivalDateTime != null) {
         final minArrival =
-            leg.departureDateTime!.add(const Duration(minutes: 1));
-        if (leg.arrivalDateTime!.isBefore(minArrival)) return false;
+        leg.departureDateTime!.add(const Duration(minutes: 1));
+        if (leg.arrivalDateTime!.isBefore(minArrival)) {
+          return false;
+        }
       }
 
       // Check connecting leg's departure is on or after previous leg's arrival
@@ -274,7 +283,9 @@ class JourneyEditorState extends State<JourneyEditor> {
         final prevArrival = sortedLegs[i - 1].arrivalDateTime;
         final currentDeparture = leg.departureDateTime;
         if (prevArrival != null && currentDeparture != null) {
-          if (currentDeparture.isBefore(prevArrival)) return false;
+          if (currentDeparture.isBefore(prevArrival)) {
+            return false;
+          }
         }
       }
     }
@@ -282,7 +293,9 @@ class JourneyEditorState extends State<JourneyEditor> {
   }
 
   TransitJourneyFacade? _getJourneyFacade() {
-    if (_journeyId == null || _legs.length < 2) return null;
+    if (_journeyId == null || _legs.length < 2) {
+      return null;
+    }
     return TransitJourneyFacade(
       journeyId: _journeyId!,
       tripId: _legs.first.tripId,
@@ -337,7 +350,9 @@ class JourneyEditorState extends State<JourneyEditor> {
 
   Widget _buildValidationBanner(TransitJourneyFacade journey) {
     final errors = journey.getValidationErrors();
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final isLightTheme = Theme
+        .of(context)
+        .brightness == Brightness.light;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -360,12 +375,18 @@ class JourneyEditorState extends State<JourneyEditor> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              '${errors.length} validation error${errors.length > 1 ? 's' : ''}',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color:
-                        isLightTheme ? AppColors.error : AppColors.errorLight,
-                    fontWeight: FontWeight.bold,
-                  ),
+              '${errors.length} validation error${errors.length > 1
+                  ? 's'
+                  : ''}',
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(
+                color:
+                isLightTheme ? AppColors.error : AppColors.errorLight,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -385,8 +406,9 @@ class JourneyEditorState extends State<JourneyEditor> {
     if (_legs.length > 1) {
       // Sort legs by departure time to find the correct order
       final sortedLegs = List<TransitFacade>.from(_legs)
-        ..sort((a, b) => (a.departureDateTime ?? DateTime(9999))
-            .compareTo(b.departureDateTime ?? DateTime(9999)));
+        ..sort((a, b) =>
+            (a.departureDateTime ?? DateTime(9999))
+                .compareTo(b.departureDateTime ?? DateTime(9999)));
       final legIndexInSorted = sortedLegs.indexOf(leg);
       if (legIndexInSorted > 0) {
         final previousLeg = sortedLegs[legIndexInSorted - 1];
@@ -409,7 +431,9 @@ class JourneyEditorState extends State<JourneyEditor> {
   }
 
   Widget _buildAddLegButton() {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final isLightTheme = Theme
+        .of(context)
+        .brightness == Brightness.light;
 
     return Container(
       margin: const EdgeInsets.all(12),
@@ -442,7 +466,9 @@ class JourneyRouteHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final isLightTheme = Theme
+        .of(context)
+        .brightness == Brightness.light;
 
     return Container(
       margin: const EdgeInsets.all(12),
@@ -451,13 +477,13 @@ class JourneyRouteHeader extends StatelessWidget {
         gradient: LinearGradient(
           colors: isLightTheme
               ? [
-                  AppColors.brandPrimary.withValues(alpha: 0.1),
-                  AppColors.info.withValues(alpha: 0.1),
-                ]
+            AppColors.brandPrimary.withValues(alpha: 0.1),
+            AppColors.info.withValues(alpha: 0.1),
+          ]
               : [
-                  AppColors.brandPrimaryLight.withValues(alpha: 0.2),
-                  AppColors.infoLight.withValues(alpha: 0.2),
-                ],
+            AppColors.brandPrimaryLight.withValues(alpha: 0.2),
+            AppColors.infoLight.withValues(alpha: 0.2),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -517,12 +543,18 @@ class JourneyRouteHeader extends StatelessWidget {
   }
 
   String _getCityName(LocationFacade? location) {
-    if (location == null) return '?';
+    if (location == null) {
+      return '?';
+    }
     // Try city from context first, then name from context
     final city = location.context.city;
-    if (city != null && city.isNotEmpty) return city;
+    if (city != null && city.isNotEmpty) {
+      return city;
+    }
     final name = location.context.name;
-    if (name.isNotEmpty) return name;
+    if (name.isNotEmpty) {
+      return name;
+    }
     return '?';
   }
 
@@ -549,35 +581,41 @@ class _CityChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final isLightTheme = Theme
+        .of(context)
+        .brightness == Brightness.light;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: isEndpoint
             ? (isLightTheme
-                ? AppColors.brandPrimary.withValues(alpha: 0.2)
-                : AppColors.brandPrimaryLight.withValues(alpha: 0.3))
+            ? AppColors.brandPrimary.withValues(alpha: 0.2)
+            : AppColors.brandPrimaryLight.withValues(alpha: 0.3))
             : (isLightTheme ? Colors.grey.shade200 : Colors.grey.shade700),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: isEndpoint
               ? (isLightTheme
-                  ? AppColors.brandPrimary
-                  : AppColors.brandPrimaryLight)
+              ? AppColors.brandPrimary
+              : AppColors.brandPrimaryLight)
               : Colors.grey.shade400,
         ),
       ),
       child: Text(
         city,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: isEndpoint ? FontWeight.bold : FontWeight.normal,
-              color: isEndpoint
-                  ? (isLightTheme
-                      ? AppColors.brandPrimary
-                      : AppColors.brandPrimaryLight)
-                  : null,
-            ),
+        style: Theme
+            .of(context)
+            .textTheme
+            .bodyMedium
+            ?.copyWith(
+          fontWeight: isEndpoint ? FontWeight.bold : FontWeight.normal,
+          color: isEndpoint
+              ? (isLightTheme
+              ? AppColors.brandPrimary
+              : AppColors.brandPrimaryLight)
+              : null,
+        ),
       ),
     );
   }
@@ -645,10 +683,14 @@ class _ConnectionSegment extends StatelessWidget {
               padding: const EdgeInsets.only(top: 2),
               child: Text(
                 duration!,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.grey.shade600,
-                      fontSize: 10,
-                    ),
+                style: Theme
+                    .of(context)
+                    .textTheme
+                    .labelSmall
+                    ?.copyWith(
+                  color: Colors.grey.shade600,
+                  fontSize: 10,
+                ),
               ),
             ),
         ],
@@ -665,7 +707,9 @@ class _LayoverChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final isLightTheme = Theme
+        .of(context)
+        .brightness == Brightness.light;
     final hours = duration.inHours;
     final minutes = duration.inMinutes % 60;
     final text = hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
@@ -681,11 +725,15 @@ class _LayoverChip extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: isLightTheme ? AppColors.warning : AppColors.warningLight,
-              fontWeight: FontWeight.w600,
-              fontSize: 10,
-            ),
+        style: Theme
+            .of(context)
+            .textTheme
+            .labelSmall
+            ?.copyWith(
+          color: isLightTheme ? AppColors.warning : AppColors.warningLight,
+          fontWeight: FontWeight.w600,
+          fontSize: 10,
+        ),
       ),
     );
   }
@@ -720,7 +768,9 @@ class CollapsibleLegSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final isLightTheme = Theme
+        .of(context)
+        .brightness == Brightness.light;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -790,32 +840,45 @@ class _LegSectionHeader extends StatelessWidget {
   });
 
   String _getCityName(LocationFacade? location) {
-    if (location == null) return '?';
+    if (location == null) {
+      return '?';
+    }
     // Try city from context first, then name from context
     final city = location.context.city;
-    if (city != null && city.isNotEmpty) return city;
+    if (city != null && city.isNotEmpty) {
+      return city;
+    }
     final name = location.context.name;
-    if (name.isNotEmpty) return name;
+    if (name.isNotEmpty) {
+      return name;
+    }
     return '?';
   }
 
   String _formatLegTimes() {
     final dep = leg.departureDateTime;
     final arr = leg.arrivalDateTime;
-    if (dep == null && arr == null) return 'Times not set';
+    if (dep == null && arr == null) {
+      return 'Times not set';
+    }
 
     final depStr = dep != null
-        ? '${dep.day}/${dep.month} ${dep.hour.toString().padLeft(2, '0')}:${dep.minute.toString().padLeft(2, '0')}'
+        ? '${dep.day}/${dep.month} ${dep.hour.toString().padLeft(2, '0')}:${dep
+        .minute.toString().padLeft(2, '0')}'
         : '--';
     final arrStr = arr != null
-        ? '${arr.hour.toString().padLeft(2, '0')}:${arr.minute.toString().padLeft(2, '0')}'
+        ? '${arr.hour.toString().padLeft(2, '0')}:${arr.minute
+        .toString()
+        .padLeft(2, '0')}'
         : '--';
     return '$depStr → $arrStr';
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final isLightTheme = Theme
+        .of(context)
+        .brightness == Brightness.light;
 
     return InkWell(
       onTap: onToggle,
@@ -834,19 +897,28 @@ class _LegSectionHeader extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${_getCityName(leg.departureLocation)} → ${_getCityName(leg.arrivalLocation)}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    '${_getCityName(leg.departureLocation)} → ${_getCityName(
+                        leg.arrivalLocation)}',
+                    style: Theme
+                        .of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     _formatLegTimes(),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isLightTheme
-                              ? Colors.grey.shade600
-                              : Colors.grey.shade400,
-                        ),
+                    style: Theme
+                        .of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(
+                      color: isLightTheme
+                          ? Colors.grey.shade600
+                          : Colors.grey.shade400,
+                    ),
                   ),
                 ],
               ),
@@ -913,13 +985,13 @@ class _LegNumberBadge extends StatelessWidget {
       child: Center(
         child: isValid
             ? Text(
-                '$number',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              )
+          '$number',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+        )
             : const Icon(Icons.error, color: Colors.white, size: 16),
       ),
     );
@@ -962,7 +1034,7 @@ class _JourneySummaryFooterState extends State<JourneySummaryFooter> {
     }
   }
 
-  void _calculateTotalExpense() async {
+  Future<void> _calculateTotalExpense() async {
     setState(() {
       _isLoading = true;
       _totalExpense = 0.0;
@@ -1010,7 +1082,9 @@ class _JourneySummaryFooterState extends State<JourneySummaryFooter> {
 
   @override
   Widget build(BuildContext context) {
-    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+    final isLightTheme = Theme
+        .of(context)
+        .brightness == Brightness.light;
     final totalDuration = _calculateTotalDuration();
 
     return Container(
@@ -1029,7 +1103,9 @@ class _JourneySummaryFooterState extends State<JourneySummaryFooter> {
           _SummaryItem(
             icon: Icons.flight_takeoff,
             label:
-                '${widget.journey.legs.length} leg${widget.journey.legs.length > 1 ? 's' : ''}',
+            '${widget.journey.legs.length} leg${widget.journey.legs.length > 1
+                ? 's'
+                : ''}',
           ),
           if (totalDuration != null)
             _SummaryItem(
@@ -1038,15 +1114,15 @@ class _JourneySummaryFooterState extends State<JourneySummaryFooter> {
             ),
           _isLoading
               ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
               : _SummaryItem(
-                  icon: Icons.payments,
-                  label:
-                      '${_totalExpense.toStringAsFixed(2)} ${widget.targetCurrency}',
-                ),
+            icon: Icons.payments,
+            label:
+            '${_totalExpense.toStringAsFixed(2)} ${widget.targetCurrency}',
+          ),
         ],
       ),
     );
@@ -1069,9 +1145,13 @@ class _SummaryItem extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+          style: Theme
+              .of(context)
+              .textTheme
+              .bodySmall
+              ?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );

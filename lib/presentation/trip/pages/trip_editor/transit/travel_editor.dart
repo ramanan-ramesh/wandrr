@@ -115,14 +115,15 @@ class _TravelEditorState extends State<TravelEditor> {
   BoxDecoration _buildBadgeDecoration() {
     var isLightTheme = context.isLightTheme;
     final isBigLayout = context.isBigLayout;
-    final cardBorderRadius = EditorTheme.getCardBorderRadius(isBigLayout);
+    final cardBorderRadius =
+        EditorTheme.getCardBorderRadius(isBigLayout: isBigLayout);
     return BoxDecoration(
-      gradient: EditorTheme.createPrimaryGradient(isLightTheme),
+      gradient: EditorTheme.createPrimaryGradient(isLightTheme: isLightTheme),
       borderRadius: BorderRadius.only(
         topLeft: Radius.circular(cardBorderRadius - 2),
         bottomRight: const Radius.circular(16),
       ),
-      boxShadow: [EditorTheme.createBadgeShadow(isLightTheme)],
+      boxShadow: [EditorTheme.createBadgeShadow(isLightTheme: isLightTheme)],
     );
   }
 
@@ -178,7 +179,7 @@ class _TravelEditorState extends State<TravelEditor> {
 
   Widget _buildConfirmationField(BuildContext context) {
     return TextFormField(
-      key: ValueKey('TransitEditor_ConfirmationId_TextField'),
+      key: const ValueKey('TransitEditor_ConfirmationId_TextField'),
       decoration: InputDecoration(
         labelText: '${context.localizations.confirmation} #',
         prefixIcon: const Icon(Icons.confirmation_number_rounded),
@@ -227,7 +228,7 @@ class _TravelEditorState extends State<TravelEditor> {
     widget.onTransitUpdated(needsRebuild: false);
   }
 
-  void _updateLocation(bool isArrival, LocationFacade? newLocation) {
+  void _updateLocation({required bool isArrival, LocationFacade? newLocation}) {
     setState(() {
       if (isArrival) {
         _transitFacade.arrivalLocation = newLocation;
@@ -238,7 +239,7 @@ class _TravelEditorState extends State<TravelEditor> {
     widget.onTransitUpdated(needsRebuild: true);
   }
 
-  void _updateDateTime(bool isArrival, DateTime updatedDateTime) {
+  void _updateDateTime(DateTime updatedDateTime, {required bool isArrival}) {
     setState(() {
       if (isArrival) {
         _transitFacade.arrivalDateTime = updatedDateTime;
@@ -252,19 +253,19 @@ class _TravelEditorState extends State<TravelEditor> {
 
 class _JourneySection extends StatelessWidget {
   final TransitFacade transitFacade;
-  final void Function(bool isArrival, LocationFacade? newLocation)
+  final void Function({required bool isArrival, LocationFacade? newLocation})
       onLocationChanged;
-  final void Function(bool isArrival, DateTime updatedDateTime)
+  final void Function(DateTime updatedDateTime, {required bool isArrival})
       onDateTimeChanged;
 
   /// Minimum allowed departure date time (e.g., previous leg's arrival time)
   final DateTime? minDepartureDateTime;
 
   const _JourneySection({
-    Key? key,
     required this.transitFacade,
     required this.onLocationChanged,
     required this.onDateTimeChanged,
+    Key? key,
     this.minDepartureDateTime,
   }) : super(key: key);
 
@@ -340,10 +341,10 @@ class _JourneySection extends StatelessWidget {
       transitFacade: transitFacade,
       isDeparture: isDeparture,
       onLocationChanged: (newLocation) {
-        onLocationChanged(!isDeparture, newLocation);
+        onLocationChanged(isArrival: !isDeparture, newLocation: newLocation);
       },
       onDateTimeChanged: (updatedDateTime) =>
-          onDateTimeChanged(!isDeparture, updatedDateTime),
+          onDateTimeChanged(updatedDateTime, isArrival: !isDeparture),
       // Pass min departure time constraint for connecting legs
       minDateTime: isDeparture ? minDepartureDateTime : null,
     );

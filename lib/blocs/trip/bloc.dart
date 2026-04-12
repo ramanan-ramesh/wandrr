@@ -36,13 +36,15 @@ class TripManagementBloc
   ApiServicesRepositoryModifier? _apiServicesRepository;
 
   // Helper classes
-  final TripEntityUpdateHandler _updateHandler = TripEntityUpdateHandler();
+  static const TripEntityUpdateHandler _updateHandler =
+      TripEntityUpdateHandler();
   TripMetadataSubscriptionHandler? _metadataSubscriptionHandler;
   ItinerarySubscriptionHandler? _itinerarySubscriptionHandler;
 
   TripDataModelEventHandler? get _activeTrip => _tripRepository?.activeTrip;
 
-  TripManagementBloc(this._currentUserName) : super(LoadingTripManagement()) {
+  TripManagementBloc(this._currentUserName)
+      : super(const LoadingTripManagement()) {
     on<_OnStartup>(_onStartup);
     on<LoadTrip>(_onLoadTrip);
     on<SelectExpenseBearingTripEntity>(_onSelectExpenseBearingTripEntity);
@@ -57,7 +59,7 @@ class TripManagementBloc
     on<EditItineraryPlanData>(_onEditItineraryPlanData);
     on<CopyTrip>(_onCopyTrip);
 
-    add(_OnStartup());
+    add(const _OnStartup());
   }
 
   @override
@@ -73,13 +75,13 @@ class TripManagementBloc
     if (_tripRepository == null) {
       _tripRepository = await TripRepositoryImplementation.createInstance(
           userName: _currentUserName);
-      _initializeMetadataSubscriptionHandler();
+      await _initializeMetadataSubscriptionHandler();
       if (_tripRepository!.tripMetadataCollection.isLoaded) {
-        _preloadMostVisited();
+        unawaited(_preloadMostVisited());
       } else {
-        _tripRepository!.tripMetadataCollection.onLoaded
-            .firstWhere((loaded) => loaded)
-            .then((_) => _preloadMostVisited());
+        await _tripRepository!.tripMetadataCollection.onLoaded
+            .firstWhere((loaded) => loaded);
+        unawaited(_preloadMostVisited());
       }
     }
     emit(LoadedRepository(tripRepository: _tripRepository!));
@@ -92,7 +94,7 @@ class TripManagementBloc
     _metadataSubscriptionHandler = null;
     _itinerarySubscriptionHandler = null;
 
-    emit(NavigateToHome());
+    emit(const NavigateToHome());
   }
 
   FutureOr<void> _onLoadTrip(
@@ -110,8 +112,9 @@ class TripManagementBloc
         }
         _apiServicesRepository ??=
             await ApiServicesRepositoryImpl.createInstance();
-        final tripInstance = _tripRepository!
-            .loadTrip(event.tripMetadata, _apiServicesRepository!, true);
+        final tripInstance = _tripRepository!.loadTrip(
+            event.tripMetadata, _apiServicesRepository!,
+            activateTrip: true);
 
         _subscribeToTripEntityCollections(tripInstance);
         await _createItineraryPlanDataSubscriptions(tripInstance);
@@ -120,8 +123,9 @@ class TripManagementBloc
       } else {
         _apiServicesRepository ??=
             await ApiServicesRepositoryImpl.createInstance();
-        final tripInstance = _tripRepository!
-            .loadTrip(event.tripMetadata, _apiServicesRepository!, true);
+        final tripInstance = _tripRepository!.loadTrip(
+            event.tripMetadata, _apiServicesRepository!,
+            activateTrip: true);
         LoadedTripPreview(tripData: tripInstance);
       }
     }
@@ -277,19 +281,20 @@ class TripManagementBloc
   }
 
   // Preload most visited trip in the background once metadata is available
-  void _preloadMostVisited() async {
+  Future<void> _preloadMostVisited() async {
     final mostVisited = await TripVisitTracker.getMostVisitedTrip(
         _tripRepository!.tripMetadataCollection.collectionItems);
     if (mostVisited != null) {
       _apiServicesRepository ??=
           await ApiServicesRepositoryImpl.createInstance();
       // Load in background (Fire-and-forget, TripRepository caches it)
-      _tripRepository!.loadTrip(mostVisited, _apiServicesRepository!, false);
+      _tripRepository!
+          .loadTrip(mostVisited, _apiServicesRepository!, activateTrip: false);
     }
   }
 
   /// Initializes metadata subscription handler
-  void _initializeMetadataSubscriptionHandler() {
+  Future _initializeMetadataSubscriptionHandler() async {
     _metadataSubscriptionHandler = TripMetadataSubscriptionHandler(
       tripMetadataCollection: _tripRepository!.tripMetadataCollection,
       subscriptionManager: _subscriptionManager,
@@ -388,9 +393,10 @@ class TripManagementBloc
   FutureOr<void> _onCopyTrip(
       CopyTrip event, Emitter<TripManagementState> emit) async {
     final originalStartDate = event.sourceTripMetadata.startDate!;
+    final originalEndDate = event.sourceTripMetadata.endDate!;
     final dateOffset = event.newStartDate.difference(originalStartDate);
-    final shifted = DateTime(originalStartDate.year, originalStartDate.month,
-            originalStartDate.day)
+    final shifted = DateTime(
+            originalEndDate.year, originalEndDate.month, originalEndDate.day)
         .add(dateOffset);
     final newEndDate = DateTime(shifted.year, shifted.month, shifted.day);
     final newTripMetadata = TripMetadataFacade(

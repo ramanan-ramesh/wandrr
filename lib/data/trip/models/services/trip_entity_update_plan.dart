@@ -89,11 +89,17 @@ class TripEntityUpdatePlan<T extends TripEntity> {
 
   /// Tri-state for expense selection: null = some, true = all, false = none
   bool? get expenseSelectionState {
-    if (expenseChanges.isEmpty) return false;
+    if (expenseChanges.isEmpty) {
+      return false;
+    }
     final selectedCount =
         expenseChanges.where((e) => e.includeInSplitBy).length;
-    if (selectedCount == 0) return false;
-    if (selectedCount == expenseChanges.length) return true;
+    if (selectedCount == 0) {
+      return false;
+    }
+    if (selectedCount == expenseChanges.length) {
+      return true;
+    }
     return null;
   }
 
@@ -118,7 +124,7 @@ class TripEntityUpdatePlan<T extends TripEntity> {
   }
 
   /// Syncs expense deletion state when an ExpenseBearingTripEntity is deleted/restored
-  void syncExpenseDeletionState(TripEntity entity, bool isDeleted) {
+  void syncExpenseDeletionState(TripEntity entity, {required bool isDeleted}) {
     for (final change in expenseChanges) {
       if (change.original.id == entity.id) {
         if (isDeleted) {

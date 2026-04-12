@@ -17,7 +17,7 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
-  const TripEditorAppBar();
+  const TripEditorAppBar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +28,8 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: !context.isBigLayout
           ? [
               _createPrintButton(context),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3.0),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 3.0),
                 child: CollaboratorList(),
               ),
             ]
@@ -46,8 +46,8 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: _createTitleAndDate(context),
         ),
         if (context.isBigLayout)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3.0),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 3.0),
             child: CollaboratorList(),
           ),
       ],
@@ -98,7 +98,7 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
       },
       icon: const Icon(Icons.home_rounded),
       style: context.isLightTheme
-          ? ButtonStyle(
+          ? const ButtonStyle(
               backgroundColor: WidgetStatePropertyAll(AppColors.brandSecondary),
             )
           : null,
@@ -111,7 +111,7 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
       icon: const Icon(Icons.print_rounded),
       tooltip: 'Print trip',
       style: context.isLightTheme
-          ? ButtonStyle(
+          ? const ButtonStyle(
               backgroundColor: WidgetStatePropertyAll(AppColors.brandSecondary),
             )
           : null,

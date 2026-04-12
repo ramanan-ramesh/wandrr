@@ -15,9 +15,7 @@ class ItineraryChecklistTab extends StatefulWidget {
   final DateTime day;
 
   const ItineraryChecklistTab({
-    super.key,
-    required this.onChanged,
-    required this.day,
+    required this.onChanged, required this.day, super.key,
   });
 
   @override

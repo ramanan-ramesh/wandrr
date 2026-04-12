@@ -164,9 +164,9 @@ class FirestoreModelCollection<Model>
           .doc(leafRepositoryItem.documentReference.id);
 
       try {
-        await typedDocRef.set(leafRepositoryItem, SetOptions(merge: false));
+        await typedDocRef.set(leafRepositoryItem, SetOptions(merge: true));
         didUpdate = true;
-      } catch (e) {
+      } on Exception {
         didUpdate = false;
       }
 
@@ -183,12 +183,16 @@ class FirestoreModelCollection<Model>
 
   void _onCollectionDataUpdate(
       List<DocumentChange<RepositoryDocument<Model>>> documentChanges) {
-    if (!_shouldListenToUpdates) return;
+    if (!_shouldListenToUpdates) {
+      return;
+    }
     if (!_isLoaded) {
       _isLoaded = true;
       _isLoadedStreamController.add(true);
     }
-    if (documentChanges.isEmpty) return;
+    if (documentChanges.isEmpty) {
+      return;
+    }
     for (final documentChange in documentChanges) {
       var documentSnapshot = documentChange.doc;
       var leafRepositoryItem = documentSnapshot.data();
@@ -266,9 +270,11 @@ class FirestoreModelCollection<Model>
   final Query<RepositoryDocument<Model>>? typedQuery;
 
   void startListening() {
-    if (_collectionStreamSubscription != null) return;
+    if (_collectionStreamSubscription != null) {
+      return;
+    }
     _shouldListenToUpdates = false;
-    final Query<RepositoryDocument<Model>> queryToUse = typedQuery != null
+    final queryToUse = typedQuery != null
         ? typedQuery!
         : (_typedCollectionReference as Query<RepositoryDocument<Model>>);
     _collectionStreamSubscription = queryToUse

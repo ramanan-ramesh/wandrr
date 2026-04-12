@@ -70,11 +70,21 @@ class DateTimeChange<T extends TripEntity> extends EntityChangeBase<T> {
   /// Set members after mutating the modified entity.
   @override
   bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! DateTimeChange<T>) return false;
-    if (original.id != other.original.id) return false;
-    if (isDelete != other.isDelete) return false;
-    if (isClamped != other.isClamped) return false;
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other is! DateTimeChange<T>) {
+      return false;
+    }
+    if (original.id != other.original.id) {
+      return false;
+    }
+    if (isDelete != other.isDelete) {
+      return false;
+    }
+    if (isClamped != other.isClamped) {
+      return false;
+    }
     return _modifiedTimeEquals(other);
   }
 
@@ -112,8 +122,12 @@ class ExpenseSplitChange extends EntityChangeBase<ExpenseBearingTripEntity> {
 
   @override
   bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! ExpenseSplitChange) return false;
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other is! ExpenseSplitChange) {
+      return false;
+    }
     return original.id == other.original.id &&
         isDelete == other.isDelete &&
         isClamped == other.isClamped &&

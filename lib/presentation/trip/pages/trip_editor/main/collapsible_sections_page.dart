@@ -14,8 +14,7 @@ class CollapsibleSectionsPage extends StatefulWidget {
   final int? initiallyExpandedIndex;
 
   const CollapsibleSectionsPage({
-    super.key,
-    required this.sections,
+    required this.sections, super.key,
     this.initiallyExpandedIndex,
   });
 
@@ -144,7 +143,7 @@ class _CollapsibleSectionContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final expandedColor = AppColors.brandPrimary;
+    const expandedColor = AppColors.brandPrimary;
     final unexpandedColor = theme.colorScheme.surfaceContainerHighest;
     final sectionColor = isExpanded ? expandedColor : unexpandedColor;
     final container = Container(

@@ -10,10 +10,7 @@ class ContributorBadge extends StatelessWidget {
   final String? localizedYouText;
 
   const ContributorBadge({
-    super.key,
-    required this.contributorName,
-    required this.currentUserName,
-    required this.currentContributors,
+    required this.contributorName, required this.currentUserName, required this.currentContributors, super.key,
     this.localizedYouText,
   });
 
@@ -102,10 +99,7 @@ class CompactContributorBadge extends StatelessWidget {
   final TextStyle? textStyle;
 
   const CompactContributorBadge({
-    super.key,
-    required this.contributorName,
-    required this.currentUserName,
-    required this.currentContributors,
+    required this.contributorName, required this.currentUserName, required this.currentContributors, super.key,
     this.localizedYouText,
     this.textStyle,
   });

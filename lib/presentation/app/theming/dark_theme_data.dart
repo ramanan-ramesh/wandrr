@@ -14,7 +14,7 @@ ThemeData createDarkThemeData(BuildContext context) {
     ),
     textButtonTheme: TextButtonThemeData(
       style: ButtonStyle(
-        backgroundColor: WidgetStatePropertyAll(AppColors.brandPrimaryLight),
+        backgroundColor: const WidgetStatePropertyAll(AppColors.brandPrimaryLight),
         foregroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.disabled)) {
             return AppColors.neutral100; // More pronounced for disabled
@@ -42,7 +42,7 @@ ThemeData createDarkThemeData(BuildContext context) {
         borderRadius: BorderRadius.circular(ThemeConstants.cardBorderRadius),
       ),
     ),
-    bottomSheetTheme: BottomSheetThemeData(
+    bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: AppColors.darkSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
@@ -63,7 +63,7 @@ ThemeData createDarkThemeData(BuildContext context) {
       selectedColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: BorderSide(
+        side: const BorderSide(
           color: AppColors.brandPrimaryLight,
           width: 2.0,
         ),
@@ -88,7 +88,7 @@ ThemeData createDarkThemeData(BuildContext context) {
       elevation: 10,
       // Match light theme elevation
       shadowColor: AppColors.withOpacity(Colors.black, 0.5),
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius),
         ),
@@ -106,9 +106,9 @@ ThemeData createDarkThemeData(BuildContext context) {
     ),
     iconButtonTheme: IconButtonThemeData(
       style: ButtonStyle(
-        iconColor: WidgetStatePropertyAll(AppColors.brandSecondary),
-        backgroundColor: WidgetStatePropertyAll(AppColors.brandPrimaryLight),
-        foregroundColor: WidgetStatePropertyAll(AppColors.brandSecondary),
+        iconColor: const WidgetStatePropertyAll(AppColors.brandSecondary),
+        backgroundColor: const WidgetStatePropertyAll(AppColors.brandPrimaryLight),
+        foregroundColor: const WidgetStatePropertyAll(AppColors.brandSecondary),
         shape: WidgetStatePropertyAll(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -131,7 +131,7 @@ ThemeData createDarkThemeData(BuildContext context) {
     tabBarTheme: TabBarThemeData(
       indicator: BoxDecoration(
         borderRadius: BorderRadius.circular(ThemeConstants.tabIndicatorRadius),
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [AppColors.brandPrimaryLight, AppColors.brandAccent],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -160,8 +160,8 @@ ThemeData createDarkThemeData(BuildContext context) {
     ),
     dropdownMenuTheme: DropdownMenuThemeData(
       menuStyle: MenuStyle(
-        backgroundColor: WidgetStatePropertyAll(AppColors.darkSurface),
-        elevation: WidgetStatePropertyAll(8),
+        backgroundColor: const WidgetStatePropertyAll(AppColors.darkSurface),
+        elevation: const WidgetStatePropertyAll(8),
         shape: WidgetStatePropertyAll(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -169,8 +169,8 @@ ThemeData createDarkThemeData(BuildContext context) {
         ),
       ),
     ),
-    inputDecorationTheme: InputDecorationTheme(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    inputDecorationTheme: const InputDecorationTheme(
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       hintStyle: TextStyle(
         fontStyle: FontStyle.italic,
         color: AppColors.neutral500,

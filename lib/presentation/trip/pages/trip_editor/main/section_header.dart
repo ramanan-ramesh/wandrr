@@ -32,12 +32,14 @@ class SectionHeader extends StatelessWidget {
     required this.isExpanded,
     required this.rotationController,
     required this.onTap,
+    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = _SectionHeaderColors.fromTheme(theme, isExpanded);
+    final colors =
+        _SectionHeaderColors.fromTheme(theme, isExpanded: isExpanded);
 
     return Material(
       color: Colors.transparent,
@@ -52,14 +54,14 @@ class SectionHeader extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: colors.backgroundGradient,
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(_kHeaderCornerRadius),
-              topRight: Radius.circular(_kHeaderCornerRadius),
+              topLeft: const Radius.circular(_kHeaderCornerRadius),
+              topRight: const Radius.circular(_kHeaderCornerRadius),
               bottomLeft: isExpanded
                   ? Radius.zero
-                  : Radius.circular(_kHeaderCornerRadius),
+                  : const Radius.circular(_kHeaderCornerRadius),
               bottomRight: isExpanded
                   ? Radius.zero
-                  : Radius.circular(_kHeaderCornerRadius),
+                  : const Radius.circular(_kHeaderCornerRadius),
             ),
           ),
           child: Row(
@@ -149,7 +151,8 @@ class _SectionHeaderColors {
     required this.chevronBgColor,
   });
 
-  factory _SectionHeaderColors.fromTheme(ThemeData theme, bool isExpanded) {
+  factory _SectionHeaderColors.fromTheme(ThemeData theme,
+      {required bool isExpanded}) {
     final isDark = theme.brightness == Brightness.dark;
     final headerColor = isExpanded
         ? AppColors.brandPrimary

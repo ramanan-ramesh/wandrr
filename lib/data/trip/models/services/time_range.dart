@@ -10,9 +10,9 @@ class TimeRange {
   /// Analyzes the temporal position of this range relative to [other].
   ///
   /// Note: Adjacent events (this.end == other.start or this.start == other.end)
-  /// are classified as [beforeEvent] or [afterEvent], NOT as overlapping.
+  /// are classified as beforeEvent or afterEvent, NOT as overlapping.
   /// Only truly overlapping boundaries (start==start or end==end) are
-  /// classified as [exactBoundaryMatch].
+  /// classified as exactBoundaryMatch.
   EntityTimelinePosition analyzePosition(TimeRange other) {
     // Check for exact overlapping boundaries (NOT adjacent events).
     // start==other.start or end==other.end means true overlap.
@@ -74,7 +74,7 @@ class TimeRange {
       return true;
     }
 
-    for (int i = 1; i < dateTimes.length; i++) {
+    for (var i = 1; i < dateTimes.length; i++) {
       if (dateTimes[i].isBefore(dateTimes[i - 1])) {
         return false;
       }

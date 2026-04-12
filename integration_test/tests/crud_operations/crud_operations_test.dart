@@ -83,8 +83,8 @@ Future<void> runAddSightTest(WidgetTester tester) async {
     print('✓ Navigated to Sights tab');
 
     // Look for add button (typically a + icon or add button)
-    final addButton = find.byWidgetPredicate((widget) => (widget is Icon &&
-        (widget.icon == Icons.add || widget.icon == Icons.add_circle_outline)));
+    final addButton = find.byWidgetPredicate((widget) => widget is Icon &&
+        (widget.icon == Icons.add || widget.icon == Icons.add_circle_outline));
 
     if (addButton.evaluate().isNotEmpty) {
       await TestHelpers.tapWidget(tester, addButton.first);

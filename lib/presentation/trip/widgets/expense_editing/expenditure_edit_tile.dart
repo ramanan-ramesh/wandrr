@@ -119,7 +119,7 @@ class _ExpenditureEditTileState extends State<ExpenditureEditTile>
         ),
         _buildTabBar(context),
         ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: 300, minHeight: 200),
+          constraints: const BoxConstraints(maxHeight: 300, minHeight: 200),
           child: TabBarView(
             controller: _tabController,
             children: [

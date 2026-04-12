@@ -104,7 +104,7 @@ class _PlatformSubmitterFABState extends State<PlatformSubmitterFAB> {
 
   FloatingActionButton _buildFloatingActionButton(bool canEnable) {
     var isLightTheme = context.isLightTheme;
-    final bool isButtonEnabled = canEnable && !_isLoading;
+    final isButtonEnabled = canEnable && !_isLoading;
 
     return FloatingActionButton(
       heroTag: null,

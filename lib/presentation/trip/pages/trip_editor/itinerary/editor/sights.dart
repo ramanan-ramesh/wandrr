@@ -24,11 +24,7 @@ class ItinerarySightsEditor extends StatefulWidget {
   final int? initialExpandedIndex;
 
   const ItinerarySightsEditor({
-    super.key,
-    required this.sights,
-    required this.onSightsChanged,
-    required this.onSightTimesChanged,
-    required this.day,
+    required this.sights, required this.onSightsChanged, required this.onSightTimesChanged, required this.day, super.key,
     this.initialExpandedIndex,
   });
 

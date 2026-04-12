@@ -18,7 +18,7 @@ import 'unified_conflict_scanner.dart';
 /// - Build time ranges from entity data
 /// - Aggregate conflicts from multiple sub-entities (e.g., journey legs)
 ///
-/// The [isNewEntity] parameter is consistently used across all detectors to:
+/// The isNewEntity parameter is consistently used across all detectors to:
 /// - Exclude the entity being edited from conflict scanning (when editing existing)
 /// - Include all entities in scanning (when creating new, since no ID exists yet)
 abstract class EntityConflictDetector<T> {
@@ -133,7 +133,9 @@ class JourneyConflictDetector
 
   @override
   AggregatedConflicts? detectConflicts() {
-    if (legs.isEmpty) return null;
+    if (legs.isEmpty) {
+      return null;
+    }
 
     final allTransitConflicts = <TransitConflict>[];
     final allStayConflicts = <StayConflict>[];
@@ -228,7 +230,9 @@ class ItineraryConflictDetector
         : ScanExclusions.forSights(sightIds);
 
     for (final sight in sights) {
-      if (sight.visitTime == null) continue;
+      if (sight.visitTime == null) {
+        continue;
+      }
 
       final referenceRange = TimeRange(
         start: sight.visitTime!,

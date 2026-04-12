@@ -26,7 +26,7 @@ void main() {
       await sharedPreferences.clear();
       try {
         await Firebase.initializeApp();
-      } catch (e) {
+      } on Exception catch (e) {
         print('Firebase already initialized or initialization skipped: $e');
       }
       await FirebaseEmulatorHelper.configureEmulators();

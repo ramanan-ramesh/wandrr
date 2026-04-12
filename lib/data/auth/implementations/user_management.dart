@@ -13,7 +13,6 @@ import 'package:wandrr/data/trip/implementations/collection_names.dart';
 
 class UserManagement implements UserManagementModifier {
   static const _userNameField = 'userName';
-  static const _authenticationTypeField = 'authType';
   static const _userIDField = 'userID';
   static const _displayNameField = 'displayName';
   static const _photoUrlField = 'photoUrl';
@@ -38,15 +37,8 @@ class UserManagement implements UserManagementModifier {
     var currentUser = FirebaseAuth.instance.currentUser;
     PlatformUser? platformUser;
     if (currentUser != null) {
-      var authenticationType = AuthenticationType.emailPassword;
-      var authTypeInLocalStorage =
-          sharedPreferences.getString(_authenticationTypeField) as String;
-      authenticationType = AuthenticationType.values.firstWhere(
-          (element) => element.name == authTypeInLocalStorage,
-          orElse: () => AuthenticationType.emailPassword);
       platformUser = PlatformUser.fromAuth(
           userName: currentUser.email!,
-          authenticationType: authenticationType,
           userID: currentUser.uid,
           displayName: currentUser.displayName,
           photoUrl: currentUser.photoURL);
@@ -181,7 +173,7 @@ class UserManagement implements UserManagementModifier {
       return await _signInWithCredential(userCredential, existingUserDocument);
     } on FirebaseAuthException catch (e) {
       return _getAuthFailureReason(e.code, e.message);
-    } catch (e) {
+    } on Exception {
       return AuthStatus.undefined;
     }
   }
@@ -253,13 +245,11 @@ class UserManagement implements UserManagementModifier {
             _userToJsonDocument(authProviderUser.email!, authenticationType));
         activeUser = PlatformUser.fromAuth(
             userName: authProviderUser.email!,
-            authenticationType: authenticationType,
             userID: addedUserDocument.id,
             photoUrl: authProviderUser.photoURL);
       } else {
         activeUser = PlatformUser.fromAuth(
             userName: authProviderUser.email!,
-            authenticationType: authenticationType,
             userID: existingUserDocument.id,
             photoUrl: authProviderUser.photoURL);
       }
@@ -274,8 +264,6 @@ class UserManagement implements UserManagementModifier {
     if (activeUser != null) {
       await _localStorage.setString(_userIDField, activeUser!.userID);
       await _localStorage.setString(_userNameField, activeUser!.userName);
-      await _localStorage.setString(
-          _authenticationTypeField, activeUser!.authenticationType.name);
       var displayName = activeUser!.displayName;
       if (displayName != null && displayName.isNotEmpty) {
         await _localStorage.setString(_displayNameField, displayName);
@@ -291,7 +279,6 @@ class UserManagement implements UserManagementModifier {
   static Future<void> _clearCache(SharedPreferences localStorage) async {
     await localStorage.remove(_userIDField);
     await localStorage.remove(_userNameField);
-    await localStorage.remove(_authenticationTypeField);
     await localStorage.remove(_displayNameField);
     await localStorage.remove(_photoUrlField);
   }
@@ -317,10 +304,7 @@ class UserManagement implements UserManagementModifier {
 
   static Map<String, dynamic> _userToJsonDocument(
           String userName, AuthenticationType authenticationType) =>
-      {
-        _userNameField: userName,
-        _authenticationTypeField: authenticationType.name
-      };
+      {_userNameField: userName};
 
   UserManagement._(
       {required this.activeUser, required SharedPreferences localStorage})

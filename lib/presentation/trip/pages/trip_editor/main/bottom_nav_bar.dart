@@ -34,9 +34,7 @@ class BottomNavBar extends StatelessWidget {
   final Function(int) onNavBarItemTapped;
 
   const BottomNavBar({
-    super.key,
-    required this.selectedIndex,
-    required this.onNavBarItemTapped,
+    required this.selectedIndex, required this.onNavBarItemTapped, super.key,
   });
 
   @override
@@ -125,18 +123,18 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double iconSize =
+    final iconSize =
         selected ? _kIconSizeSelected : _kIconSizeUnselected;
-    final Color iconColor = selected
+    final iconColor = selected
         ? context.navBarIconSelectedColor
         : context.navBarIconUnselectedColor;
-    final Color textColor = selected
+    final textColor = selected
         ? context.navBarTextSelectedColor
         : context.navBarTextUnselectedColor;
-    final TextStyle baseStyle = selected
+    final baseStyle = selected
         ? Theme.of(context).textTheme.labelLarge!
         : Theme.of(context).textTheme.labelMedium!;
-    final TextStyle textStyle = baseStyle.copyWith(
+    final textStyle = baseStyle.copyWith(
       color: textColor,
       fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
       fontSize: selected ? (baseStyle.fontSize! * 1.2) : baseStyle.fontSize,

@@ -25,16 +25,18 @@ class ConflictSectionBuilder<T extends TripEntity> extends StatelessWidget {
       builder;
 
   const ConflictSectionBuilder({
-    super.key,
     required this.entityType,
     required this.builder,
+    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TripEntityEditorBloc<T>, TripEntityEditorState<T>>(
       buildWhen: (_, current) {
-        if (current is PlanCleared<T>) return true;
+        if (current is PlanCleared<T>) {
+          return true;
+        }
         if (current is PlanUpdated<T>) {
           return current.affectedSections.contains(entityType);
         }
@@ -42,7 +44,9 @@ class ConflictSectionBuilder<T extends TripEntity> extends StatelessWidget {
       },
       builder: (context, _) {
         final changes = _changesFor(context);
-        if (changes.isEmpty) return const SizedBox.shrink();
+        if (changes.isEmpty) {
+          return const SizedBox.shrink();
+        }
         return builder(context, changes);
       },
     );
@@ -50,7 +54,9 @@ class ConflictSectionBuilder<T extends TripEntity> extends StatelessWidget {
 
   List<EntityChangeBase> _changesFor(BuildContext context) {
     final plan = context.tripEntityUpdatePlan<T>();
-    if (plan == null) return const [];
+    if (plan == null) {
+      return const [];
+    }
     if (entityType == LodgingFacade) {
       return plan.stayChanges.cast<EntityChangeBase>();
     } else if (entityType == TransitFacade) {
@@ -78,10 +84,10 @@ class ConflictItemBuilder<T extends TripEntity> extends StatelessWidget {
   final Widget Function(BuildContext context, EntityChangeBase change) builder;
 
   const ConflictItemBuilder({
-    super.key,
     required this.entityId,
     required this.entityType,
     required this.builder,
+    super.key,
   });
 
   @override
@@ -95,7 +101,9 @@ class ConflictItemBuilder<T extends TripEntity> extends StatelessWidget {
       },
       builder: (context, _) {
         final change = _findChange(context);
-        if (change == null) return const SizedBox.shrink();
+        if (change == null) {
+          return const SizedBox.shrink();
+        }
         return builder(context, change);
       },
     );
@@ -103,7 +111,9 @@ class ConflictItemBuilder<T extends TripEntity> extends StatelessWidget {
 
   EntityChangeBase? _findChange(BuildContext context) {
     final plan = context.tripEntityUpdatePlan<T>();
-    if (plan == null) return null;
+    if (plan == null) {
+      return null;
+    }
     final List<EntityChangeBase> list;
     if (entityType == LodgingFacade) {
       list = plan.stayChanges.cast<EntityChangeBase>();
@@ -133,11 +143,11 @@ class ConflictItemListener<T extends TripEntity> extends StatelessWidget {
   final Widget child;
 
   const ConflictItemListener({
-    super.key,
     required this.entityId,
     required this.entityType,
     required this.onUpdated,
     required this.child,
+    super.key,
   });
 
   @override
@@ -148,7 +158,9 @@ class ConflictItemListener<T extends TripEntity> extends StatelessWidget {
           current.affectedSections.contains(entityType),
       listener: (context, _) {
         final plan = context.tripEntityUpdatePlan<T>();
-        if (plan == null) return;
+        if (plan == null) {
+          return;
+        }
         final List<EntityChangeBase> list;
         if (entityType == LodgingFacade) {
           list = plan.stayChanges.cast<EntityChangeBase>();
@@ -160,7 +172,9 @@ class ConflictItemListener<T extends TripEntity> extends StatelessWidget {
           return;
         }
         final change = list.where((c) => c.original.id == entityId).firstOrNull;
-        if (change != null) onUpdated(context, change);
+        if (change != null) {
+          onUpdated(context, change);
+        }
       },
       child: child,
     );

@@ -101,7 +101,9 @@ class _TripEditorSmallLayoutPageState extends State<_TripEditorSmallLayout> {
       bottomNavigationBar: BottomNavBar(
         selectedIndex: _currentPageIndex,
         onNavBarItemTapped: (selectedPageIndex) {
-          if (selectedPageIndex == _currentPageIndex) return;
+          if (selectedPageIndex == _currentPageIndex) {
+            return;
+          }
           setState(() {
             _currentPageIndex = selectedPageIndex;
           });
@@ -139,7 +141,9 @@ class _TripEditorPageInternal extends StatelessWidget {
                   context.tripRepository.activeTrip!.isFullyLoadedValue,
               builder: (context, snapshot) {
                 final isLoaded = snapshot.data ?? false;
-                if (isLoaded) return const SizedBox.shrink();
+                if (isLoaded) {
+                  return const SizedBox.shrink();
+                }
                 return const LinearProgressIndicator();
               },
             ),
@@ -232,7 +236,7 @@ class _TripEditorPageInternal extends StatelessWidget {
   Widget _createAddButton(BuildContext pageContext) {
     if (pageContext.isBigLayout) {
       return Padding(
-        padding: EdgeInsets.only(bottom: 24.0),
+        padding: const EdgeInsets.only(bottom: 24.0),
         child: SizedBox(
           height: TripEditorPageConstants.fabSize,
           width: TripEditorPageConstants.fabSize,
@@ -240,7 +244,7 @@ class _TripEditorPageInternal extends StatelessWidget {
             child: FloatingActionButton(
               heroTag: 'tripEditorAddButtonWithNav',
               onPressed: () => _onAddButtonPressed(pageContext),
-              child: Icon(Icons.add),
+              child: const Icon(Icons.add),
             ),
           ),
         ),
@@ -270,7 +274,7 @@ class _TripEditorPageInternal extends StatelessWidget {
     }
     _showModalBottomSheet(
       TripEntityCreatorBottomSheet(
-        supportedActions: [
+        supportedActions: const [
           TripEditorAction.expense,
           TripEditorAction.travel,
           TripEditorAction.stay,

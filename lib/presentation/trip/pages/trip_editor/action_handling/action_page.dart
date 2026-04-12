@@ -20,7 +20,6 @@ class TripEditorActionPage<T extends TripEntity> extends StatefulWidget {
   final VoidCallback onClosePressed;
 
   const TripEditorActionPage({
-    super.key,
     required this.tripEntity,
     required this.scrollController,
     required this.title,
@@ -28,6 +27,7 @@ class TripEditorActionPage<T extends TripEntity> extends StatefulWidget {
     required this.pageContentCreator,
     required this.actionIcon,
     required this.onClosePressed,
+    super.key,
   });
 
   @override
@@ -57,14 +57,16 @@ class _TripEditorActionPageState<T extends TripEntity>
 
   @override
   Widget build(BuildContext context) {
-    const double _fabBottomMargin = 25.0;
-    final double _bottomPadding =
-        TripEditorPageConstants.fabSize + _fabBottomMargin + 16.0;
+    const fabBottomMargin = 25.0;
+    const bottomPadding =
+        TripEditorPageConstants.fabSize + fabBottomMargin + 16.0;
 
     return BlocListener<TripManagementBloc, TripManagementState>(
       listenWhen: (_, current) => _isSubmitting && current is UpdatedTripEntity,
       listener: (context, state) {
-        if (!_isSubmitting) return;
+        if (!_isSubmitting) {
+          return;
+        }
         if (state is UpdatedTripEntity) {
           _pendingOperations--;
           if (_pendingOperations <= 0) {
@@ -82,7 +84,7 @@ class _TripEditorActionPageState<T extends TripEntity>
                 leading: IconButton(
                     icon: const Icon(Icons.close),
                     style: context.isLightTheme
-                        ? ButtonStyle(
+                        ? const ButtonStyle(
                             backgroundColor: WidgetStatePropertyAll(
                                 AppColors.brandSecondary),
                           )
@@ -97,7 +99,7 @@ class _TripEditorActionPageState<T extends TripEntity>
               Expanded(
                 child: SingleChildScrollView(
                   controller: widget.scrollController,
-                  padding: EdgeInsets.fromLTRB(0, 0, 0, _bottomPadding),
+                  padding: const EdgeInsets.only(bottom: bottomPadding),
                   child: _AnimatedActionPage(
                     child: pageContent,
                   ),
@@ -106,7 +108,7 @@ class _TripEditorActionPageState<T extends TripEntity>
             ],
           ),
           Positioned(
-            bottom: _fabBottomMargin,
+            bottom: fabBottomMargin,
             left: 0,
             right: 0,
             child: Center(
@@ -124,6 +126,7 @@ class _TripEditorActionPageState<T extends TripEntity>
       width: TripEditorPageConstants.fabSize,
       child: AnimatedOpacity(
         opacity: 1.0,
+        duration: const Duration(milliseconds: 3000),
         child: ValueListenableBuilder<bool>(
           valueListenable: validityNotifier,
           builder: (context, isValid, _) {
@@ -146,7 +149,6 @@ class _TripEditorActionPageState<T extends TripEntity>
             );
           },
         ),
-        duration: Duration(milliseconds: 3000),
       ),
     );
   }
@@ -224,7 +226,8 @@ class _AnimatedActionPageState extends State<_AnimatedActionPage>
 
   Widget _buildEditorCard(BuildContext context, Widget child) {
     final isBigLayout = context.isBigLayout;
-    final cardBorderRadius = EditorTheme.getCardBorderRadius(isBigLayout);
+    final cardBorderRadius =
+        EditorTheme.getCardBorderRadius(isBigLayout: isBigLayout);
     return Container(
       margin: EdgeInsets.all(
         isBigLayout

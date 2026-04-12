@@ -18,6 +18,7 @@ class CheckListFacade extends Equatable implements TripEntity<CheckListFacade> {
   CheckListFacade.newUiEntry(
       {required this.items, required this.tripId, this.title, this.id});
 
+  @override
   CheckListFacade clone() => CheckListFacade(
       items: List.from(items.map((item) => item.clone())),
       tripId: tripId,

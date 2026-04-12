@@ -30,7 +30,7 @@ class BudgetingModule implements BudgetingModuleEventHandler {
   final ApiService<(Money, String), double?> currencyConverter;
   String defaultCurrency;
   final String currentUserName;
-  Iterable<String> _contributors;
+  final Iterable<String> _contributors;
   final Iterable<CurrencyData> supportedCurrencies;
 
   // Helper classes - each with single responsibility

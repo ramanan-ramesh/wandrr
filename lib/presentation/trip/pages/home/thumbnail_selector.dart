@@ -45,9 +45,7 @@ class TripThumbnailCarouselSelector extends StatefulWidget {
   final ValueChanged<String> onChanged;
 
   const TripThumbnailCarouselSelector({
-    Key? key,
-    required this.selectedThumbnailTag,
-    required this.onChanged,
+    required this.selectedThumbnailTag, required this.onChanged, Key? key,
   }) : super(key: key);
 
   @override
@@ -181,9 +179,7 @@ class _TripThumbnailCarouselSelectorState
 
 class ThumbnailPicker extends StatelessWidget {
   ThumbnailPicker({
-    super.key,
-    required this.tripMetaDataFacade,
-    required this.widgetContext,
+    required this.tripMetaDataFacade, required this.widgetContext, super.key,
   });
 
   final TripMetadataFacade tripMetaDataFacade;

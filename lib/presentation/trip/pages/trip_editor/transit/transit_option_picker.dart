@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/transit/transit_option_metadata.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/transit/transit_option_metadata.dart';
 
 class TransitOptionPicker extends StatefulWidget {
   final Iterable<TransitOptionMetadata> options;
@@ -16,7 +16,7 @@ class TransitOptionPicker extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _TransitOptionPickerState createState() => _TransitOptionPickerState();
+  State<TransitOptionPicker> createState() => _TransitOptionPickerState();
 }
 
 class _TransitOptionPickerState extends State<TransitOptionPicker> {
@@ -73,7 +73,8 @@ class _TransitOptionPickerState extends State<TransitOptionPicker> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<TransitOption>(
-          key: ValueKey('TransitEditor_TransitOptionPicker_DropdownButton'),
+          key: const ValueKey(
+              'TransitEditor_TransitOptionPicker_DropdownButton'),
           value: _selectedValue,
           icon: Icon(Icons.arrow_drop_down_rounded, color: iconColor),
           items: transitOptionMetadatas.map((metadata) {
@@ -82,7 +83,7 @@ class _TransitOptionPickerState extends State<TransitOptionPicker> {
               child: Row(
                 children: [
                   Icon(metadata.icon, color: iconColor, size: _kIconSize),
-                  SizedBox(width: 12.0),
+                  const SizedBox(width: 12.0),
                   Text(
                     metadata.name,
                     style: TextStyle(

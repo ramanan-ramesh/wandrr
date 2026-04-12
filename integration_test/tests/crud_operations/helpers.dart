@@ -131,8 +131,8 @@ class CommonFormElements {
   CommonFormElements(this.editorPage)
       : expenseEditor = ExpenseEditorHelpers(editorPage);
 
-  Finder get noteEditingField =>
-      descendantOfEditorPage(find.byKey(ValueKey('NoteEditor_TextField')));
+  Finder get noteEditingField => descendantOfEditorPage(
+      find.byKey(const ValueKey('NoteEditor_TextField')));
 
   Finder get datePicker =>
       descendantOfEditorPage(find.byType(PlatformDatePicker));
@@ -237,13 +237,15 @@ class CommonFormElements {
     // Helper to scroll a picker column and wait for settle.
     Future<void> scrollPickerColumn(
         FixedExtentScrollController? controller, int targetItem) async {
-      if (controller == null) return;
+      if (controller == null) {
+        return;
+      }
       // Use animateToItem with a short duration rather than jumpToItem.
       // jumpToItem on newly-attached controllers in a test environment may
       // not reliably trigger onSelectedItemChanged / ScrollEndNotification,
       // whereas animateToItem produces a proper scroll animation that
       // pumpAndSettle can track.
-      controller.animateToItem(
+      await controller.animateToItem(
         targetItem,
         duration: const Duration(milliseconds: 50),
         curve: Curves.linear,
@@ -293,22 +295,22 @@ class ExpenseEditorHelpers {
 
   ExpenseEditorHelpers(this.editorPage);
 
-  Finder get paidByTabContributorTile =>
-      descendantOfPaidByTab(find.byKey(ValueKey('PaidByTab_ContributorTile')));
+  Finder get paidByTabContributorTile => descendantOfPaidByTab(
+      find.byKey(const ValueKey('PaidByTab_ContributorTile')));
 
   Finder get splitByContributorTile => descendantOfSplitByByTab(
-      find.byKey(ValueKey('SplitByTab_ContributorTile')));
+      find.byKey(const ValueKey('SplitByTab_ContributorTile')));
 
   Future<void> enterMoneyAmount(WidgetTester tester, Money money) async {
     var textField = descendantOfPaidByTab(
-        find.byKey(Key('ExpenseAmountEditField_TextField')));
+        find.byKey(const Key('ExpenseAmountEditField_TextField')));
     await tester.enterText(textField, money.amount.toString());
     await TestHelpers.tapWidget(
         tester,
-        descendantOfPaidByTab(
-            find.byKey(Key('PlatformMoneyEditField_CurrencyPickerButton'))));
+        descendantOfPaidByTab(find
+            .byKey(const Key('PlatformMoneyEditField_CurrencyPickerButton'))));
     var searchField = descendantOfPaidByTab(
-        find.byKey(Key('PlatformMoneyEditField_TextField')));
+        find.byKey(const Key('PlatformMoneyEditField_TextField')));
     await TestHelpers.enterText(tester, searchField, money.currency);
 
     final currencyListTile = descendantOfPaidByTab(find.byKey(

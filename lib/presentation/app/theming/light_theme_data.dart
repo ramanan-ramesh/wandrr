@@ -13,7 +13,7 @@ ThemeData createLightThemeData(BuildContext context) {
     ),
     textButtonTheme: TextButtonThemeData(
       style: ButtonStyle(
-        backgroundColor: WidgetStatePropertyAll(AppColors.brandPrimary),
+        backgroundColor: const WidgetStatePropertyAll(AppColors.brandPrimary),
         foregroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.disabled)) {
             return AppColors
@@ -40,13 +40,13 @@ ThemeData createLightThemeData(BuildContext context) {
       elevation: 12, // Increased elevation for better prominence
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(ThemeConstants.cardBorderRadius),
-        side: BorderSide(
+        side: const BorderSide(
           color: AppColors.neutral200, // Subtle border for definition
           width: 1,
         ),
       ),
     ),
-    bottomSheetTheme: BottomSheetThemeData(
+    bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: AppColors.lightSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
@@ -67,7 +67,7 @@ ThemeData createLightThemeData(BuildContext context) {
       selectedColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: BorderSide(
+        side: const BorderSide(
           color: AppColors.brandPrimary,
           width: 2.0,
         ),
@@ -80,7 +80,7 @@ ThemeData createLightThemeData(BuildContext context) {
       elevation: 10,
       // Even higher elevation for more shadow
       shadowColor: AppColors.withOpacity(AppColors.brandSecondary, 0.22),
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius),
         ),
@@ -98,9 +98,9 @@ ThemeData createLightThemeData(BuildContext context) {
     ),
     iconButtonTheme: IconButtonThemeData(
       style: ButtonStyle(
-        iconColor: WidgetStatePropertyAll(Colors.white),
-        backgroundColor: WidgetStatePropertyAll(AppColors.brandPrimary),
-        foregroundColor: WidgetStatePropertyAll(Colors.white),
+        iconColor: const WidgetStatePropertyAll(Colors.white),
+        backgroundColor: const WidgetStatePropertyAll(AppColors.brandPrimary),
+        foregroundColor: const WidgetStatePropertyAll(Colors.white),
         shape: WidgetStatePropertyAll(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -121,7 +121,7 @@ ThemeData createLightThemeData(BuildContext context) {
       splashColor: AppColors.withOpacity(Colors.white, 0.3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
+        side: const BorderSide(
           color: AppColors.brandPrimary, // Green border for contrast
           width: 2,
         ),
@@ -130,7 +130,7 @@ ThemeData createLightThemeData(BuildContext context) {
     tabBarTheme: TabBarThemeData(
       indicator: BoxDecoration(
         borderRadius: BorderRadius.circular(ThemeConstants.tabIndicatorRadius),
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [
             AppColors.brandPrimary,
             AppColors.brandSecondary,
@@ -164,7 +164,7 @@ ThemeData createLightThemeData(BuildContext context) {
       elevation: 4,
       shadowColor: AppColors.withOpacity(AppColors.brandPrimaryDark, 0.22),
       centerTitle: true,
-      titleTextStyle: TextStyle(
+      titleTextStyle: const TextStyle(
         color: Colors.white,
         fontSize: 18,
         fontWeight: FontWeight.w700,
@@ -177,8 +177,8 @@ ThemeData createLightThemeData(BuildContext context) {
     ),
     dropdownMenuTheme: DropdownMenuThemeData(
       menuStyle: MenuStyle(
-        backgroundColor: WidgetStatePropertyAll(AppColors.lightSurface),
-        elevation: WidgetStatePropertyAll(8),
+        backgroundColor: const WidgetStatePropertyAll(AppColors.lightSurface),
+        elevation: const WidgetStatePropertyAll(8),
         shape: WidgetStatePropertyAll(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -186,8 +186,8 @@ ThemeData createLightThemeData(BuildContext context) {
         ),
       ),
     ),
-    inputDecorationTheme: InputDecorationTheme(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    inputDecorationTheme: const InputDecorationTheme(
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       hintStyle: TextStyle(
         fontStyle: FontStyle.italic,
         color: AppColors.neutral500,

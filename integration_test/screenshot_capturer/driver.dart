@@ -16,7 +16,7 @@ Future<void> main() async {
   await integrationDriver(
     onScreenshot: (String screenshotName, List<int> screenshotBytes,
         [Map<String, Object?>? args]) async {
-      final Directory screenshotDir = Directory('screenshots');
+      final screenshotDir = Directory('screenshots');
       if (!await screenshotDir.exists()) {
         await screenshotDir.create(recursive: true);
       }
@@ -24,8 +24,8 @@ Future<void> main() async {
       // Determine folder and clean filename based on prefix
       String folderName;
       String cleanFileName;
-      bool isPhone = false;
-      bool isTablet = false;
+      var isPhone = false;
+      var isTablet = false;
 
       final prefixMap = {
         'phone_': 'phone',
@@ -37,20 +37,23 @@ Future<void> main() async {
         if (screenshotName.startsWith(prefix)) {
           folderName = name;
           cleanFileName = screenshotName.substring(prefix.length);
-          if (name == 'phone') isPhone = true;
-          if (name == 'tablet') isTablet = true;
+          if (name == 'phone') {
+            isPhone = true;
+          }
+          if (name == 'tablet') {
+            isTablet = true;
+          }
         }
       });
 
       // Create device-specific subdirectory
-      final Directory deviceDir =
-          Directory('${screenshotDir.path}/$folderName');
+      final deviceDir = Directory('${screenshotDir.path}/$folderName');
       if (!await deviceDir.exists()) {
         await deviceDir.create(recursive: true);
       }
 
       // Post-process: overlay screenshot onto device frame
-      List<int> finalImageBytes = screenshotBytes;
+      var finalImageBytes = screenshotBytes;
 
       if (isPhone || isTablet) {
         try {
@@ -59,13 +62,13 @@ Future<void> main() async {
             isPhone: isPhone,
           );
           print('Successfully processed screenshot with device frame');
-        } catch (e) {
+        } on Exception catch (e) {
           print('Error processing screenshot: $e');
           print('Saving original screenshot without frame');
         }
       }
 
-      final File imageFile = File('${deviceDir.path}/$cleanFileName.png');
+      final imageFile = File('${deviceDir.path}/$cleanFileName.png');
       await imageFile.writeAsBytes(finalImageBytes);
 
       print('Saved screenshot to: ${imageFile.path}');
@@ -96,7 +99,7 @@ Future<List<int>> _overlayScreenshotOnFrame(
   final expectedHeight = isPhone ? 2337 : 1600;
 
   // Check if screenshot needs to be resized to match expected dimensions
-  img.Image finalScreenshot = screenshot;
+  var finalScreenshot = screenshot;
   if (screenshot.width != expectedWidth ||
       screenshot.height != expectedHeight) {
     print(

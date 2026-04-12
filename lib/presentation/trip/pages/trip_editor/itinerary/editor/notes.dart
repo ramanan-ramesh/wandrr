@@ -15,9 +15,9 @@ class ItineraryNotesEditor extends StatefulWidget {
   /// The parent is responsible for keeping this list alive across rebuilds so
   /// that in-progress text edits are never discarded.
   const ItineraryNotesEditor({
-    super.key,
     required List<Note> stableNotes,
     required this.onNotesChanged,
+    super.key,
     this.initialExpandedIndex,
   }) : notes = stableNotes;
 
@@ -47,7 +47,9 @@ class _ItineraryNotesEditorState extends State<ItineraryNotesEditor> {
             // `n` is now a Note object
             final raw = n.text.trim();
             final untitledText = context.localizations.untitled;
-            if (raw.isEmpty) return untitledText;
+            if (raw.isEmpty) {
+              return untitledText;
+            }
             final firstLine = raw.split('\n').first.trim();
             return firstLine.isEmpty ? untitledText : firstLine;
           },
@@ -55,7 +57,7 @@ class _ItineraryNotesEditorState extends State<ItineraryNotesEditor> {
             // `n` is now a Note object
             final raw = n.text.replaceAll('\n', ' ').trim();
             final preview =
-                raw.length <= 80 ? raw : raw.substring(0, 80).trim() + '…';
+                raw.length <= 80 ? raw : '${raw.substring(0, 80).trim()}…';
             return Text(
               preview,
               maxLines: 1,

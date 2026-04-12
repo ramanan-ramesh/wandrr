@@ -19,9 +19,9 @@ class NoteEditor extends StatefulWidget {
   final VoidCallback onChanged;
 
   const NoteEditor({
-    super.key,
     required this.note,
     required this.onChanged,
+    super.key,
   });
 
   @override
@@ -104,7 +104,9 @@ class _NoteEditorState extends State<NoteEditor>
     if (caret > 0 && caret <= newText.length) {
       final insertedNewline = newText.length == _previousText.length + 1 &&
           newText[caret - 1] == '\n';
-      if (insertedNewline) _maybeAutoContinueBullet(newText, caret);
+      if (insertedNewline) {
+        _maybeAutoContinueBullet(newText, caret);
+      }
     }
     _previousText = newText;
 
@@ -114,13 +116,17 @@ class _NoteEditorState extends State<NoteEditor>
   }
 
   void _maybeAutoContinueBullet(String text, int caret) {
-    if (caret < 1) return;
+    if (caret < 1) {
+      return;
+    }
     final prevLineEndExclusive = caret - 1;
     final prevNewline = prevLineEndExclusive > 0
         ? text.lastIndexOf('\n', prevLineEndExclusive - 1)
         : -1;
     final prevLineStart = prevNewline + 1;
-    if (prevLineStart >= prevLineEndExclusive) return;
+    if (prevLineStart >= prevLineEndExclusive) {
+      return;
+    }
     final prevLineRaw = text.substring(prevLineStart, prevLineEndExclusive);
     final leadingSpacesLen = prevLineRaw.length - prevLineRaw.trimLeft().length;
     final prevLine = prevLineRaw.trimLeft();
@@ -155,7 +161,7 @@ class _NoteEditorState extends State<NoteEditor>
           focusNode: _keyboardFocusNode,
           onKeyEvent: _handleKeyEvent,
           child: TextField(
-            key: ValueKey('NoteEditor_TextField'),
+            key: const ValueKey('NoteEditor_TextField'),
             focusNode: _textFieldFocusNode,
             controller: _controller,
             keyboardType: TextInputType.multiline,
@@ -217,7 +223,9 @@ class _NoteEditorState extends State<NoteEditor>
   bool _currentLineHasBullet() {
     final text = _controller.text;
     final selection = _controller.selection;
-    if (selection.start < 0) return false;
+    if (selection.start < 0) {
+      return false;
+    }
 
     final start = selection.start;
     final end = selection.end;
@@ -229,16 +237,20 @@ class _NoteEditorState extends State<NoteEditor>
         '\n', end > start && text[end - 1] == '\n' ? end - 1 : end);
     final selectionEndLineEnd = nextNewline == -1 ? text.length : nextNewline;
 
-    if (selectionStartLineStart >= selectionEndLineEnd) return false;
+    if (selectionStartLineStart >= selectionEndLineEnd) {
+      return false;
+    }
 
     final selectedLinesRaw =
         text.substring(selectionStartLineStart, selectionEndLineEnd);
     final lines = selectedLinesRaw.split('\n');
 
-    bool anyNonEmpty = false;
-    for (var lineRaw in lines) {
+    var anyNonEmpty = false;
+    for (final lineRaw in lines) {
       final line = lineRaw.trimLeft();
-      if (line.isEmpty) continue;
+      if (line.isEmpty) {
+        continue;
+      }
       anyNonEmpty = true;
       final hasBullet = line.startsWith(_kBulletPrefix) ||
           line.startsWith('- ') ||
@@ -248,7 +260,9 @@ class _NoteEditorState extends State<NoteEditor>
       }
     }
 
-    if (!anyNonEmpty && lines.length == 1) return false;
+    if (!anyNonEmpty && lines.length == 1) {
+      return false;
+    }
     return anyNonEmpty;
   }
 
@@ -266,7 +280,9 @@ class _NoteEditorState extends State<NoteEditor>
     final selection = _controller.selection;
     final start = selection.start;
     final end = selection.end;
-    if (start < 0 || end < 0) return;
+    if (start < 0 || end < 0) {
+      return;
+    }
 
     final prevNewline = start > 0 ? text.lastIndexOf('\n', start - 1) : -1;
     final selectionStartLineStart = prevNewline + 1;
@@ -280,7 +296,7 @@ class _NoteEditorState extends State<NoteEditor>
     final lines = selectedLinesRaw.split('\n');
     final updatedLines = <String>[];
 
-    for (var lineRaw in lines) {
+    for (final lineRaw in lines) {
       final leadingSpacesLen = lineRaw.length - lineRaw.trimLeft().length;
       final indent = lineRaw.substring(0, leadingSpacesLen);
       final lineContent = lineRaw.substring(leadingSpacesLen);
@@ -289,7 +305,7 @@ class _NoteEditorState extends State<NoteEditor>
           lineContent.startsWith('- ') ||
           lineContent.startsWith('* ');
 
-      String updatedLine = lineRaw;
+      var updatedLine = lineRaw;
 
       if (hasBullet && !forceAdd) {
         String contentAfterBullet;
@@ -311,29 +327,31 @@ class _NoteEditorState extends State<NoteEditor>
     }
 
     int mapOffset(int offset) {
-      if (offset <= selectionStartLineStart) return offset;
-      int mapped = selectionStartLineStart;
-      int currentOriginalOffset = selectionStartLineStart;
+      if (offset <= selectionStartLineStart) {
+        return offset;
+      }
+      var mapped = selectionStartLineStart;
+      var currentOriginalOffset = selectionStartLineStart;
 
-      for (int i = 0; i < lines.length; i++) {
+      for (var i = 0; i < lines.length; i++) {
         final originalLine = lines[i];
         final updatedLine = updatedLines[i];
 
-        int lineOriginalEnd = currentOriginalOffset + originalLine.length;
-        bool isLast = i == lines.length - 1;
-        int nextOriginalOffset = lineOriginalEnd + (isLast ? 0 : 1);
+        var lineOriginalEnd = currentOriginalOffset + originalLine.length;
+        var isLast = i == lines.length - 1;
+        var nextOriginalOffset = lineOriginalEnd + (isLast ? 0 : 1);
 
         if (offset <= nextOriginalOffset) {
-          int offsetInLine = offset - currentOriginalOffset;
+          var offsetInLine = offset - currentOriginalOffset;
           if (offsetInLine > originalLine.length) {
             return mapped + updatedLine.length + (offset - lineOriginalEnd);
           }
           final leadingSpacesLen =
               originalLine.length - originalLine.trimLeft().length;
-          int lengthDiff = updatedLine.length - originalLine.length;
+          var lengthDiff = updatedLine.length - originalLine.length;
 
           if (offsetInLine >= leadingSpacesLen) {
-            int newOffsetInLine = offsetInLine + lengthDiff;
+            var newOffsetInLine = offsetInLine + lengthDiff;
             if (newOffsetInLine < leadingSpacesLen && lengthDiff < 0) {
               newOffsetInLine = leadingSpacesLen;
             }
@@ -354,8 +372,8 @@ class _NoteEditorState extends State<NoteEditor>
         updatedSelectionText +
         text.substring(selectionEndLineEnd);
 
-    int newBase = mapOffset(selection.baseOffset);
-    int newExtent = mapOffset(selection.extentOffset);
+    var newBase = mapOffset(selection.baseOffset);
+    var newExtent = mapOffset(selection.extentOffset);
 
     _previousText = newText;
     widget.note.text = newText; // Update the object

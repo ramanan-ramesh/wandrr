@@ -28,13 +28,13 @@ class StayDateTimeRangeEditor extends StatefulWidget {
   final bool showOriginalTimes;
 
   const StayDateTimeRangeEditor({
-    super.key,
     required this.checkinDateTime,
     required this.checkoutDateTime,
     required this.tripStartDate,
     required this.tripEndDate,
-    this.location,
     required this.onStayRangeChanged,
+    super.key,
+    this.location,
     this.originalCheckinDateTime,
     this.originalCheckoutDateTime,
     this.showOriginalTimes = false,
@@ -56,20 +56,21 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
         if (widget.showOriginalTimes &&
             widget.originalCheckinDateTime != null &&
             widget.originalCheckoutDateTime != null)
-          _buildOriginalTimesChip(context, isLightTheme),
-        _buildCheckinSection(context, isLightTheme),
+          _buildOriginalTimesChip(context, isLightTheme: isLightTheme),
+        _buildCheckinSection(context, isLightTheme: isLightTheme),
         const SizedBox(height: 16),
-        _buildCheckoutSection(context, isLightTheme),
+        _buildCheckoutSection(context, isLightTheme: isLightTheme),
         if (widget.checkinDateTime != null &&
             widget.checkoutDateTime != null) ...[
           const SizedBox(height: 12),
-          _buildFooterIndicators(context, isLightTheme),
+          _buildFooterIndicators(context, isLightTheme: isLightTheme),
         ],
       ],
     );
   }
 
-  Widget _buildOriginalTimesChip(BuildContext context, bool isLightTheme) {
+  Widget _buildOriginalTimesChip(BuildContext context,
+      {required bool isLightTheme}) {
     final originalCheckin = widget.originalCheckinDateTime!;
     final originalCheckout = widget.originalCheckoutDateTime!;
 
@@ -112,7 +113,8 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
     );
   }
 
-  Widget _buildCheckinSection(BuildContext context, bool isLightTheme) {
+  Widget _buildCheckinSection(BuildContext context,
+      {required bool isLightTheme}) {
     return _DateTimeSection(
       label: 'Check-in',
       icon: Icons.login_rounded,
@@ -136,7 +138,8 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
     );
   }
 
-  Widget _buildCheckoutSection(BuildContext context, bool isLightTheme) {
+  Widget _buildCheckoutSection(BuildContext context,
+      {required bool isLightTheme}) {
     return _DateTimeSection(
       label: 'Check-out',
       icon: Icons.logout_rounded,
@@ -179,7 +182,7 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
               onOkTapped: () {
                 Navigator.of(dialogContext).pop();
               },
-              config: _createCalendarConfig(isLightTheme),
+              config: _createCalendarConfig(isLightTheme: isLightTheme),
               onValueChanged: _handleDateRangeChanged,
               value: [widget.checkinDateTime, widget.checkoutDateTime],
             ),
@@ -190,7 +193,7 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
   }
 
   CalendarDatePicker2WithActionButtonsConfig _createCalendarConfig(
-      bool isLightTheme) {
+      {required bool isLightTheme}) {
     return CalendarDatePicker2WithActionButtonsConfig(
       firstDate: widget.tripStartDate,
       lastDate: widget.tripEndDate.add(const Duration(days: 1)),
@@ -212,34 +215,22 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
           color: isLightTheme
               ? AppColors.brandPrimary
               : AppColors.brandPrimaryLight),
-      okButtonTextStyle: TextStyle(color: AppColors.brandPrimary),
+      okButtonTextStyle: const TextStyle(color: AppColors.brandPrimary),
       cancelButtonTextStyle:
           TextStyle(color: !isLightTheme ? Colors.black54 : Colors.white70),
-      cancelButton: IgnorePointer(
-        child: IconButton(
-          onPressed: null,
-          icon: Icon(Icons.cancel_rounded,
-              color: !isLightTheme ? Colors.black54 : Colors.white70),
-        ),
-      ),
-      okButton: IgnorePointer(
-        child: IconButton(
-          onPressed: null,
-          icon: Icon(Icons.done_rounded,
-              color: !isLightTheme ? Colors.black54 : Colors.white70),
-        ),
-      ),
     );
   }
 
   void _handleDateRangeChanged(List<DateTime?> dates) {
-    if (dates.isEmpty) return;
+    if (dates.isEmpty) {
+      return;
+    }
 
-    DateTime checkin = widget.checkinDateTime ?? DateTime.now();
-    DateTime checkout = widget.checkoutDateTime ?? DateTime.now();
-    bool changed = false;
+    var checkin = widget.checkinDateTime ?? DateTime.now();
+    var checkout = widget.checkoutDateTime ?? DateTime.now();
+    var changed = false;
 
-    if (dates.length >= 1 && dates.first != null) {
+    if (dates.isNotEmpty && dates.first != null) {
       final newCheckin = dates.first!;
       final currentCheckin = widget.checkinDateTime;
       final hour = currentCheckin?.hour ?? 14;
@@ -274,7 +265,8 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
     }
   }
 
-  Widget _buildFooterIndicators(BuildContext context, bool isLightTheme) {
+  Widget _buildFooterIndicators(BuildContext context,
+      {required bool isLightTheme}) {
     final nights =
         widget.checkoutDateTime!.differenceInDays(widget.checkinDateTime!);
 
@@ -284,13 +276,13 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
           TimezoneIndicator(location: widget.location!),
           const SizedBox(width: 16),
         ],
-        _buildDurationChip(context, nights, isLightTheme),
+        _buildDurationChip(context, nights, isLightTheme: isLightTheme),
       ],
     );
   }
 
-  Widget _buildDurationChip(
-      BuildContext context, int nights, bool isLightTheme) {
+  Widget _buildDurationChip(BuildContext context, int nights,
+      {required bool isLightTheme}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -568,10 +560,10 @@ class TimeSliderWidget extends StatelessWidget {
   final Color? accentColor;
 
   const TimeSliderWidget({
-    super.key,
     required this.label,
     required this.currentTime,
     required this.onTimeChanged,
+    super.key,
     this.accentColor,
   });
 

@@ -47,8 +47,8 @@ Future<void> runBudgetTileUnderBudgetTest(WidgetTester tester) async {
       totalExpenditure / tripRepo.activeTrip!.tripMetadata.budget.amount;
 
   // Get the progress indicator widget
-  final LinearProgressIndicator indicator =
-      tester.widget(progressIndicator.first);
+  final indicator =
+      tester.widget<LinearProgressIndicator>(progressIndicator.first);
 
   // Verify the progress value is not null (has a value)
   expect(indicator.value == expenseToBudgetRatio, isTrue,
@@ -88,7 +88,7 @@ Future<void> runBudgetTileOverBudgetTest(WidgetTester tester) async {
     title: 'Dummy expense',
     expense: ExpenseFacade(
         currency: TestConfig.testTripCurrency,
-        paidBy: {TestConfig.tripMateUserName: 200.0},
+        paidBy: const {TestConfig.tripMateUserName: 200.0},
         splitBy: tripMetadata.contributors),
   );
   BlocProvider.of<TripManagementBloc>(context)
@@ -110,11 +110,12 @@ Future<void> runBudgetTileOverBudgetTest(WidgetTester tester) async {
   final budgetPercentage = tripMetadata.budget.amount /
       tripRepo.activeTrip!.budgetingModule.totalExpenditure;
   final excessPercentage = 1.0 - budgetPercentage;
-  final FractionallySizedBox indicator1 =
-      tester.widget(progressIndicator.first);
+  final indicator1 =
+      tester.widget<FractionallySizedBox>(progressIndicator.first);
   expect(indicator1.widthFactor == budgetPercentage, isTrue,
       reason: 'Indicator 1 should have correct percentage value');
-  final FractionallySizedBox indicator2 = tester.widget(progressIndicator.last);
+  final indicator2 =
+      tester.widget<FractionallySizedBox>(progressIndicator.last);
   expect(indicator2.widthFactor == excessPercentage, isTrue,
       reason: 'Progress indicator should have correct percentage value');
 
@@ -148,7 +149,8 @@ Future<void> runDebtSummaryTest(WidgetTester tester) async {
   // Test data has 2 contributors: TestConfig.testEmail and TestConfig.tripMateUserName
   // All expenses are paid by testEmail and split between both
   // So tripMate owes testEmail money
-  final debtRowContainer = find.byKey(ValueKey('DebtSummaryTile_Debt_Row'));
+  final debtRowContainer =
+      find.byKey(const ValueKey('DebtSummaryTile_Debt_Row'));
   expect(find.textContaining('owes'), findsOneWidget,
       reason: 'Debt summary should show one row');
   final contributorBadges = find.descendant(

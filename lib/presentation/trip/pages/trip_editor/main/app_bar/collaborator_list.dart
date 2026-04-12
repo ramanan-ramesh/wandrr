@@ -46,7 +46,7 @@ class CollaboratorList extends StatelessWidget {
                   fit: BoxFit.cover,
                 ),
               )
-            : Icon(Icons.person, size: _kAvatarOffset),
+            : const Icon(Icons.person, size: _kAvatarOffset),
       ),
     ));
 
@@ -63,7 +63,7 @@ class CollaboratorList extends StatelessWidget {
       ..add(Positioned(
         left: numberOfAvatars * _kAvatarRadius,
         child: _createClickableRoundedButton(
-            Icon(
+            const Icon(
               Icons.add_rounded,
               color: Colors.black,
             ),

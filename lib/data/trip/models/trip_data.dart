@@ -45,11 +45,15 @@ abstract class TripDataModelEventHandler extends TripDataFacade
   /// 4. Recalculate total expenditure
   Future<void> applyUpdatePlan(TripEntityUpdatePlan plan);
 
+  @override
   ItineraryFacadeCollectionEventHandler get itineraryCollection;
 
+  @override
   ModelCollectionModifier<TransitFacade> get transitCollection;
 
+  @override
   ModelCollectionModifier<LodgingFacade> get lodgingCollection;
 
+  @override
   ModelCollectionModifier<StandaloneExpense> get expenseCollection;
 }

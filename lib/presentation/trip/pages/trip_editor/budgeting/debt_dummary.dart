@@ -82,7 +82,7 @@ class _DebtRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
-        key: ValueKey('DebtSummaryTile_Debt_Row'),
+        key: const ValueKey('DebtSummaryTile_Debt_Row'),
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           ContributorBadge(

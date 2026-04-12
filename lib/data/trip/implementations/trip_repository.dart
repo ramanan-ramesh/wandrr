@@ -71,7 +71,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
 
   @override
   TripDataModelEventHandler loadTrip(TripMetadataFacade tripMetadata,
-      ApiServicesRepositoryFacade apiServicesRepository, bool activateTrip) {
+      ApiServicesRepositoryFacade apiServicesRepository,
+      {required bool activateTrip}) {
     if (!_tripDataCache.containsKey(tripMetadata.id)) {
       final tripToCache = TripDataModelImplementation.createInstance(
           tripMetadata,
@@ -91,7 +92,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
       TripMetadataFacade tripMetadata,
       TripMetadataFacade targetTrip,
       ApiServicesRepositoryFacade apiServicesRepository) async {
-    loadTrip(tripMetadata, apiServicesRepository, false);
+    loadTrip(tripMetadata, apiServicesRepository, activateTrip: false);
     final tripToCopy = _tripDataCache[tripMetadata.id]!;
 
     Future<TripMetadataFacade> createCopy() async {
@@ -99,7 +100,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
           sourceTripData: tripToCopy,
           targetTripMetadata: targetTrip,
           apiServicesRepository: apiServicesRepository);
-      loadTrip(copiedTripMetadata, apiServicesRepository, false);
+      loadTrip(copiedTripMetadata, apiServicesRepository, activateTrip: false);
       return copiedTripMetadata;
     }
 
@@ -123,7 +124,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     await _tripMetadataUpdatedEventSubscription.cancel();
     await _tripMetadataDeletedEventSubscription.cancel();
     await tripMetadataCollection.dispose();
-    for (var trip in _tripDataCache.values) {
+    for (final trip in _tripDataCache.values) {
       await trip.dispose();
     }
     _tripDataCache.clear();
@@ -173,7 +174,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     batch.delete(tripMetadataCollection
         .repositoryItemCreator(tripMetadataToDelete)
         .documentReference);
-    for (var itinerary in tripToDelete.itineraryCollection) {
+    for (final itinerary in tripToDelete.itineraryCollection) {
       final itineraryPlanDataModelImplementation =
           ItineraryPlanDataModelImplementation(
               tripId: tripMetadata.id!,
@@ -183,18 +184,18 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
               checkLists: itinerary.planData.checkLists);
       batch.delete(itineraryPlanDataModelImplementation.documentReference);
     }
-    for (var transit in tripToDelete.transitCollection.collectionItems) {
+    for (final transit in tripToDelete.transitCollection.collectionItems) {
       final transitModelImplementation =
           TransitImplementation.fromModelFacade(transitModelFacade: transit);
       batch.delete(transitModelImplementation.documentReference);
     }
-    for (var lodging in tripToDelete.lodgingCollection.collectionItems) {
+    for (final lodging in tripToDelete.lodgingCollection.collectionItems) {
       final lodgingModelImplementation =
           LodgingModelImplementation.fromModelFacade(
               lodgingModelFacade: lodging);
       batch.delete(lodgingModelImplementation.documentReference);
     }
-    for (var expense in tripToDelete.expenseCollection.collectionItems) {
+    for (final expense in tripToDelete.expenseCollection.collectionItems) {
       final expenseModelImplementation =
           StandaloneExpenseModelImplementation.fromModelFacade(
               expenseModelFacade: expense);

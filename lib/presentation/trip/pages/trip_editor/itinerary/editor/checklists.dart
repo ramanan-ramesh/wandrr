@@ -14,9 +14,7 @@ class ItineraryChecklistsEditor extends StatelessWidget {
   final int? initialExpandedIndex;
 
   const ItineraryChecklistsEditor({
-    super.key,
-    required this.checklists,
-    required this.onChecklistsChanged,
+    required this.checklists, required this.onChecklistsChanged, super.key,
     this.initialExpandedIndex,
   });
 
@@ -34,7 +32,7 @@ class ItineraryChecklistsEditor extends StatelessWidget {
           addButtonIcon: Icons.checklist_rounded,
           createItem: () => CheckListFacade.newUiEntry(
             tripId: context.activeTripId,
-            items: [],
+            items: const [],
           ),
           onItemsChanged: onChecklistsChanged,
           titleBuilder: _effectiveTitle,
@@ -159,7 +157,7 @@ class _ChecklistEditorContentState extends State<_ChecklistEditorContent> {
           controller: _titleController,
           decoration: InputDecoration(
             labelText: context.localizations.title,
-            border: OutlineInputBorder(
+            border: const OutlineInputBorder(
               borderSide: BorderSide.none,
               borderRadius:
                   BorderRadius.all(Radius.circular(_kBorderRadiusLarge)),
@@ -220,12 +218,7 @@ class _ChecklistItemRow extends StatefulWidget {
   final VoidCallback onToggleChecked;
 
   const _ChecklistItemRow({
-    super.key,
-    required this.item,
-    required this.itemNumber,
-    required this.onChanged,
-    required this.onDelete,
-    required this.onToggleChecked,
+    required this.item, required this.itemNumber, required this.onChanged, required this.onDelete, required this.onToggleChecked, super.key,
   });
 
   @override

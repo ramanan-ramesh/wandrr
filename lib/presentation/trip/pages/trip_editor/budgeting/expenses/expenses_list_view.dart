@@ -106,9 +106,9 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       key: const ValueKey('SortControls_Row'),
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
+        const Expanded(
           child: BudgetTile(
-            key: const ValueKey('ExpenseListView_BudgetTile'),
+            key: ValueKey('ExpenseListView_BudgetTile'),
           ),
         ),
         const SizedBox(width: 8),
@@ -130,7 +130,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
             Padding(
               padding: const EdgeInsets.all(3.0),
               child: Row(
-                key: ValueKey('ExpenseListView_SortByCost_Row'),
+                key: const ValueKey('ExpenseListView_SortByCost_Row'),
                 children: [
                   const Icon(Icons.attach_money_rounded),
                   const SizedBox(width: _kIconSpacing),
@@ -149,7 +149,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
             Padding(
               padding: const EdgeInsets.all(3.0),
               child: Row(
-                key: ValueKey('ExpenseListView_SortByDate_Row'),
+                key: const ValueKey('ExpenseListView_SortByDate_Row'),
                 children: [
                   const Icon(Icons.calendar_today_rounded),
                   const SizedBox(width: _kIconSpacing),

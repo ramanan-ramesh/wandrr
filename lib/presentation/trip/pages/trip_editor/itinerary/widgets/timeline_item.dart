@@ -232,7 +232,7 @@ class _DeleteButton extends StatelessWidget {
           color: themeHelper.getDeleteButtonBackgroundColor(),
           shape: BoxShape.circle,
         ),
-        child: Icon(
+        child: const Icon(
           Icons.delete_outline,
           size: 18,
           color: AppColors.error,
@@ -287,7 +287,7 @@ class _ConfirmationChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
+          const Icon(
             Icons.confirmation_number_rounded,
             size: 16,
             color: AppColors.success,

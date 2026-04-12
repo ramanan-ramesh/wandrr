@@ -26,9 +26,9 @@ class ExpenseEditor extends StatelessWidget {
   ExpenseFacade get _expense => expenseBearingTripEntity.expense;
 
   ExpenseEditor({
-    super.key,
     required this.expenseBearingTripEntity,
     required this.onExpenseUpdated,
+    super.key,
   });
 
   @override
@@ -116,14 +116,14 @@ class ExpenseEditor extends StatelessWidget {
   BoxDecoration _buildBadgeDecoration(BuildContext context) {
     final isLightTheme = context.isLightTheme;
     final cardBorderRadius =
-        EditorTheme.getCardBorderRadius(context.isBigLayout);
+        EditorTheme.getCardBorderRadius(isBigLayout: context.isBigLayout);
     return BoxDecoration(
-      gradient: EditorTheme.createPrimaryGradient(isLightTheme),
+      gradient: EditorTheme.createPrimaryGradient(isLightTheme: isLightTheme),
       borderRadius: BorderRadius.only(
         topLeft: Radius.circular(cardBorderRadius - 2),
         bottomRight: const Radius.circular(16),
       ),
-      boxShadow: [EditorTheme.createBadgeShadow(isLightTheme)],
+      boxShadow: [EditorTheme.createBadgeShadow(isLightTheme: isLightTheme)],
     );
   }
 

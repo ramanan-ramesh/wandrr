@@ -42,8 +42,8 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
   }
 
   @override
-  Future<void> close() {
-    _updateRemoteConfigSubscription?.cancel();
+  Future<void> close() async {
+    await _updateRemoteConfigSubscription?.cancel();
     return super.close();
   }
 
@@ -61,7 +61,7 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
   FutureOr<void> _onThemeChange(
       ChangeTheme event, Emitter<MasterPageState> emit) async {
     await _appDataRepository!.setActiveThemeMode(event.themeModeToChangeTo);
-    emit(ActiveThemeModeChanged());
+    emit(const ActiveThemeModeChanged());
   }
 
   FutureOr<void> _onLanguageChange(
@@ -70,20 +70,20 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
       return;
     }
     await _appDataRepository!.setActiveLanguage(event.languageToChangeTo);
-    emit(ActiveLanguageChanged());
+    emit(const ActiveLanguageChanged());
   }
 
   FutureOr<void> _onLogout(Logout event, Emitter<MasterPageState> emit) async {
     var didSignOut = await _appDataRepository!.userManagement.trySignOut();
     if (didSignOut) {
-      emit(AuthStateChanged(authStatus: AuthStatus.loggedOut));
+      emit(const AuthStateChanged(authStatus: AuthStatus.loggedOut));
     }
   }
 
   FutureOr<void> _onAuthenticateWithUsernamePassword(
       AuthenticateWithUsernamePassword event,
       Emitter<MasterPageState> emit) async {
-    emit(AuthStateChanged(authStatus: AuthStatus.authenticating));
+    emit(const AuthStateChanged(authStatus: AuthStatus.authenticating));
     var authStatus = AuthStatus.undefined;
     if (event.shouldRegister) {
       authStatus = await _appDataRepository!.userManagement
@@ -95,7 +95,7 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
               userName: event.userName, password: event.password);
     }
     if (authStatus == AuthStatus.loggedIn) {
-      emit(AuthStateChanged(authStatus: AuthStatus.loggedIn));
+      emit(const AuthStateChanged(authStatus: AuthStatus.loggedIn));
     } else {
       emit(AuthStateChanged(authStatus: authStatus));
     }
@@ -103,11 +103,11 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
 
   FutureOr<void> _onAuthenticateWithThirdParty(
       AuthenticateWithThirdParty event, Emitter<MasterPageState> emit) async {
-    emit(AuthStateChanged(authStatus: AuthStatus.authenticating));
+    emit(const AuthStateChanged(authStatus: AuthStatus.authenticating));
     var authStatus = await _appDataRepository!.userManagement
         .trySignInWithThirdParty(event.authenticationType);
     if (authStatus == AuthStatus.loggedIn) {
-      emit(AuthStateChanged(authStatus: AuthStatus.loggedIn));
+      emit(const AuthStateChanged(authStatus: AuthStatus.loggedIn));
     } else {
       emit(AuthStateChanged(authStatus: authStatus));
     }
@@ -118,7 +118,7 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
     var didResendVerificationEmail = await _appDataRepository!.userManagement
         .resendVerificationEmail(event.userName, event.password);
     if (didResendVerificationEmail) {
-      emit(AuthStateChanged(authStatus: AuthStatus.verificationResent));
+      emit(const AuthStateChanged(authStatus: AuthStatus.verificationResent));
     }
   }
 

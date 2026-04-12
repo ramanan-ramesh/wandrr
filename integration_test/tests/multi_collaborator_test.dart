@@ -346,11 +346,11 @@ Future<void> runDebtCalculationTest(WidgetTester tester) async {
   print('  4. Display simplified debt relationships');
   print('');
   print('✓ Example with 3 contributors:');
-  print('  - Expense: \$1 hotel');
-  print('  - PaidBy: Alice = \$1, Bob = \$1, Charlie = \$1');
+  print(r'  - Expense: $1 hotel');
+  print(r'  - PaidBy: Alice = $1, Bob = $1, Charlie = $1');
   print('  - SplitBy: [Alice, Bob, Charlie]');
-  print('  - Fair share: \$1 each');
-  print('  - Result: Bob owes Alice \$1, Charlie owes Alice \$1');
+  print(r'  - Fair share: $1 each');
+  print(r'  - Result: Bob owes Alice $1, Charlie owes Alice $1');
 }
 
 /// Test: Adding contributor updates expense splitting
@@ -467,18 +467,18 @@ Future<void> runMultipleContributorsScenarioTest(WidgetTester tester) async {
   print('  Alice, Bob, and Charlie are going on a trip');
   print('');
   print('  Day 1:');
-  print('    - Flight: \$1 (Alice paid, split 3 ways = \$1 each)');
-  print('    - Hotel: \$1 (Bob paid, split 3 ways = \$1 each)');
-  print('    - Dinner: \$1 (Charlie paid, split 3 ways = \$1 each)');
+  print(r'    - Flight: $1 (Alice paid, split 3 ways = $1 each)');
+  print(r'    - Hotel: $1 (Bob paid, split 3 ways = $1 each)');
+  print(r'    - Dinner: $1 (Charlie paid, split 3 ways = $1 each)');
   print('');
   print('  Calculations:');
-  print('    Alice: Paid \$1, Share \$1 → Others owe Alice \$1');
-  print('    Bob: Paid \$1, Share \$1 → Bob owes \$1');
-  print('    Charlie: Paid \$1, Share \$1 → Charlie owes \$1');
+  print(r'    Alice: Paid $1, Share $1 → Others owe Alice $1');
+  print(r'    Bob: Paid $1, Share $1 → Bob owes $1');
+  print(r'    Charlie: Paid $1, Share $1 → Charlie owes $1');
   print('');
   print('  Debt Summary:');
-  print('    Bob owes Alice: \$1');
-  print('    Charlie owes Alice: \$1');
+  print(r'    Bob owes Alice: $1');
+  print(r'    Charlie owes Alice: $1');
   print('');
   print('✓ Debt summary simplifies and shows net debts');
 }

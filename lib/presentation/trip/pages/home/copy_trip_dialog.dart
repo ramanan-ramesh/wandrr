@@ -13,7 +13,7 @@ import 'package:wandrr/presentation/trip/widgets/unified_trip_dialog.dart';
 class CopyTripDialog extends StatefulWidget {
   final TripMetadataFacade sourceTrip;
 
-  const CopyTripDialog({Key? key, required this.sourceTrip}) : super(key: key);
+  const CopyTripDialog({required this.sourceTrip, Key? key}) : super(key: key);
 
   @override
   State<CopyTripDialog> createState() => _CopyTripDialogState();

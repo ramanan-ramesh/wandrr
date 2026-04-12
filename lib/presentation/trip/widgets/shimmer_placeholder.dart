@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class ShimmerPlaceholder extends StatefulWidget {
@@ -25,8 +27,8 @@ class _ShimmerPlaceholderState extends State<ShimmerPlaceholder>
   void initState() {
     super.initState();
     _controller = AnimationController(
-        duration: const Duration(milliseconds: 1500), vsync: this)
-      ..repeat(reverse: true);
+        duration: const Duration(milliseconds: 1500), vsync: this);
+    unawaited(_controller.repeat(reverse: true));
     _animation = Tween<double>(begin: 0.2, end: 0.5).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
@@ -47,7 +49,7 @@ class _ShimmerPlaceholderState extends State<ShimmerPlaceholder>
           width: widget.width,
           height: widget.height,
           decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(_animation.value),
+            color: Colors.grey.withValues(alpha: _animation.value),
             borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
           ),
         );

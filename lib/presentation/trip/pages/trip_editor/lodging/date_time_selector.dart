@@ -74,7 +74,9 @@ class _DateTimeSelectorState extends State<DateTimeSelector> {
   }
 
   void _handleDateRangeChanged(DateTime? newStartDate, DateTime? newEndDate) {
-    if (newStartDate == null || newEndDate == null) return;
+    if (newStartDate == null || newEndDate == null) {
+      return;
+    }
     final checkinHour =
         widget.checkinDateTime?.hour ?? widget.defaultCheckinHour;
     final checkinMinute = widget.checkinDateTime?.minute ?? 0;
@@ -331,9 +333,15 @@ class _TimeSlider extends StatelessWidget {
 
   String _formatTime(int hour, int minute) {
     final minuteStr = minute.toString().padLeft(2, '0');
-    if (hour == 0) return '12:$minuteStr AM';
-    if (hour < 12) return '$hour:$minuteStr AM';
-    if (hour == 12) return '12:$minuteStr PM';
+    if (hour == 0) {
+      return '12:$minuteStr AM';
+    }
+    if (hour < 12) {
+      return '$hour:$minuteStr AM';
+    }
+    if (hour == 12) {
+      return '12:$minuteStr PM';
+    }
     return '${hour - 12}:$minuteStr PM';
   }
 }

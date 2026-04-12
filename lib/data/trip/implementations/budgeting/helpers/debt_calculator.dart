@@ -63,11 +63,15 @@ class DebtCalculator {
 
     for (final expense in allExpenses) {
       final splitBy = expense.splitBy;
-      if (splitBy.length <= 1) continue;
+      if (splitBy.length <= 1) {
+        continue;
+      }
 
       final totalExpense = await currencyConverter
           .queryData((expense.totalExpense, defaultCurrency));
-      if (totalExpense == null) continue;
+      if (totalExpense == null) {
+        continue;
+      }
 
       final averageExpense = totalExpense / splitBy.length;
       final paidBy = expense.paidBy;
@@ -102,7 +106,9 @@ class DebtCalculator {
       var amountOwed = owingEntry.value;
 
       for (final owedEntry in owed.entries) {
-        if (amountOwed == 0) break;
+        if (amountOwed == 0) {
+          break;
+        }
 
         final amountToSettle =
             amountOwed < owedEntry.value ? amountOwed : owedEntry.value;

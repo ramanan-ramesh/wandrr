@@ -20,9 +20,7 @@ class TripDetailsEditor extends StatefulWidget {
   final VoidCallback onTripMetadataUpdated;
 
   const TripDetailsEditor({
-    super.key,
-    required this.tripMetadataFacade,
-    required this.onTripMetadataUpdated,
+    required this.tripMetadataFacade, required this.onTripMetadataUpdated, super.key,
   });
 
   @override

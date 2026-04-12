@@ -17,6 +17,7 @@ abstract class AppDataFacade {
 abstract class AppDataModifier extends AppDataFacade {
   Future<void> initialize();
 
+  @override
   UserManagementModifier get userManagement;
 
   Future setActiveLanguage(String language);

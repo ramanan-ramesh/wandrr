@@ -89,8 +89,7 @@ class PlatformDatePicker extends StatefulWidget {
   final Alignment? widgetAnchor, dialogAnchor;
 
   const PlatformDatePicker({
-    super.key,
-    required this.onDateSelected,
+    required this.onDateSelected, super.key,
     this.selectedDate,
     this.calendarConfig,
     this.widgetAnchor,
@@ -168,7 +167,7 @@ CalendarDatePicker2WithActionButtonsConfig _createDefaultDatePickerConfig(
         color: isLightTheme
             ? AppColors.brandPrimary
             : AppColors.brandPrimaryLight),
-    okButtonTextStyle: TextStyle(color: AppColors.brandPrimary),
+    okButtonTextStyle: const TextStyle(color: AppColors.brandPrimary),
     cancelButtonTextStyle:
         TextStyle(color: !isLightTheme ? Colors.black54 : Colors.white70),
     cancelButton: TextButton(

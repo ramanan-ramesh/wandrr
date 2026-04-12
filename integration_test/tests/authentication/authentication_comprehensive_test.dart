@@ -240,8 +240,8 @@ Future<void> runSignUpExistingEmail(
   TestLogger.logTestStart('5/10',
       'sign up with existing email (should show error or verificationPending)');
 
-  final testEmail = TestConfig.testEmail;
-  final testPassword = TestConfig.testPassword;
+  const testEmail = TestConfig.testEmail;
+  const testPassword = TestConfig.testPassword;
 
   // TEST: Launch app and navigate to sign up on LoginPage
   await FirebaseEmulatorHelper.createFirebaseAuthUser(
@@ -301,8 +301,8 @@ Future<void> runSignInWrongPassword(
 ) async {
   TestLogger.logTestStart('6/10', 'sign in with wrong password');
 
-  final testEmail = TestConfig.testEmail;
-  final wrongPassword = r'WrongPassword123$';
+  const testEmail = TestConfig.testEmail;
+  const wrongPassword = r'WrongPassword123$';
 
   // Launch the app
   await FirebaseEmulatorHelper.createFirebaseAuthUser(
@@ -501,8 +501,8 @@ Future<void> runSignInNonExistentUser(
 ) async {
   TestLogger.logTestStart('9/10', 'sign in with non-existent user');
 
-  final nonExistentEmail = 'nonexistent@example.com';
-  final testPassword = r'Password123$';
+  const nonExistentEmail = 'nonexistent@example.com';
+  const testPassword = r'Password123$';
 
   // Launch the app
   await TestHelpers.pumpAndSettleApp(tester);
@@ -552,8 +552,8 @@ Future<void> runSignOutTest(
   TestLogger.logTestStart('10/10', 'sign out functionality');
 
   // First, sign in
-  final testEmail = TestConfig.testEmail;
-  final testPassword = TestConfig.testPassword;
+  const testEmail = TestConfig.testEmail;
+  const testPassword = TestConfig.testPassword;
 
   await FirebaseEmulatorHelper.createFirebaseAuthUser(
     email: TestConfig.testEmail,

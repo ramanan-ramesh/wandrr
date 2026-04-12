@@ -24,9 +24,7 @@ class ItinerarySightsViewer extends StatelessWidget {
   static const double _kEmptyIconSize = 48.0;
 
   const ItinerarySightsViewer({
-    super.key,
-    required this.tripId,
-    required this.day,
+    required this.tripId, required this.day, super.key,
   });
 
   @override
@@ -134,7 +132,7 @@ class ItinerarySightsViewer extends StatelessWidget {
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(
+                                          const Icon(
                                             Icons.access_time_rounded,
                                             size: 12,
                                             color: AppColors.brandPrimary,
@@ -211,7 +209,7 @@ class ItinerarySightsViewer extends StatelessWidget {
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(
+                                          const Icon(
                                             Icons.payments_rounded,
                                             size: 12,
                                             color: AppColors.warning,

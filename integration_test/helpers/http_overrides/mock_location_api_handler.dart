@@ -164,15 +164,13 @@ class MockLocationApiHandler implements MockApiHandler {
 
   /// Get all dummy locations as LocationFacade objects
   static List<LocationFacade> getDummyLocations() {
-    if (_cachedLocations == null) {
-      _cachedLocations = dummyLocationJsons.map((json) {
+    _cachedLocations ??= dummyLocationJsons.map((json) {
         return LocationFacade(
           latitude: double.parse(json['lat'] as String),
           longitude: double.parse(json['lon'] as String),
           context: GeoLocationApiContext.fromApi(json),
         );
       }).toList();
-    }
     return _cachedLocations!;
   }
 

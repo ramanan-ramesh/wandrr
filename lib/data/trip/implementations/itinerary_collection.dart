@@ -20,7 +20,7 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
   final String tripId;
   DateTime _startDate;
   DateTime _endDate;
-  List<ItineraryModelEventHandler> _itineraries;
+  final List<ItineraryModelEventHandler> _itineraries;
 
   static ItineraryCollection createInstance({
     required ModelCollectionFacade<TransitFacade> transitCollection,
@@ -43,10 +43,10 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
 
     // Reconcile items that may have arrived during `_createItineraryList` awaits
     // avoiding the silent missing items bug.
-    for (var transit in transitCollection.collectionItems) {
+    for (final transit in transitCollection.collectionItems) {
       collection._addOrRemoveTransitToItinerary(transit, false);
     }
-    for (var lodging in lodgingCollection.collectionItems) {
+    for (final lodging in lodgingCollection.collectionItems) {
       collection._addOrRemoveLodgingToItinerary(lodging, false);
     }
 
@@ -57,12 +57,12 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
 
   @override
   Future dispose() async {
-    for (var subscription in _subscriptions) {
+    for (final subscription in _subscriptions) {
       await subscription.cancel();
     }
     _subscriptions.clear();
 
-    for (var itinerary in _itineraries) {
+    for (final itinerary in _itineraries) {
       await itinerary.dispose();
     }
     _itineraries.clear();
@@ -132,8 +132,8 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
         id: dayKey,
         day: date,
         sights: sightsForDay,
-        notes: [],
-        checkLists: [],
+        notes: const [],
+        checkLists: const [],
       );
       if (sightsForDay.isNotEmpty) {
         batch.set(planData.documentReference, planData.toJson());
@@ -293,7 +293,9 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
     for (final dayKey in sightOps.affectedDays) {
       final itinerary = _itineraries
           .firstWhereOrNull((it) => it.day.itineraryDateFormat == dayKey);
-      if (itinerary == null) continue;
+      if (itinerary == null) {
+        continue;
+      }
 
       // Build updated sights list
       final currentSights = List<SightFacade>.from(itinerary.planData.sights);
@@ -542,7 +544,9 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
     _subscriptions.add(collectionRef.snapshots().listen((snapshot) {
       for (final docChange in snapshot.docChanges) {
         final doc = docChange.doc;
-        if (!doc.exists) continue;
+        if (!doc.exists) {
+          continue;
+        }
 
         final dayKey = doc.id;
         final matchingItinerary = _itineraries.firstWhereOrNull(

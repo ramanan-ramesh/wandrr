@@ -344,7 +344,9 @@ class TripPrintService {
       final jId = t.journeyId;
       if (jId != null && jId.isNotEmpty && mergedIds.contains(jId)) {
         // Merged journey — add a single event per journey per day
-        if (handledJourneys.contains(jId)) continue;
+        if (handledJourneys.contains(jId)) {
+          continue;
+        }
         // Collect all legs of this journey in the filtered list
         final legs = transits.where((l) => l.journeyId == jId).toList()
           ..sort((a, b) => (a.departureDateTime ?? DateTime(0))
@@ -428,7 +430,9 @@ class TripPrintService {
         options.includeChecklist && plan.checkLists.isNotEmpty;
 
     final hasAnyContent = events.isNotEmpty || hasNotes || hasChecklists;
-    if (!hasAnyContent) return [];
+    if (!hasAnyContent) {
+      return [];
+    }
 
     // Merge timeline events + non-timeline items
     final allEntries = <pw.Widget>[
@@ -631,7 +635,7 @@ class TripPrintService {
         child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text((cl.title ?? 'Checklist').toString().toUpperCase(),
+              pw.Text((cl.title ?? 'Checklist').toUpperCase(),
                   style: pw.TextStyle(
                       fontSize: 8,
                       fontWeight: pw.FontWeight.bold,
@@ -668,8 +672,12 @@ class TripPrintService {
     // First apply inter/intra city filter
     var filtered = transits.where((t) {
       final isInter = _isInterCity(t);
-      if (isInter && !options.includeInterCityTransit) return false;
-      if (!isInter && !options.includeIntraCityTransit) return false;
+      if (isInter && !options.includeInterCityTransit) {
+        return false;
+      }
+      if (!isInter && !options.includeIntraCityTransit) {
+        return false;
+      }
       return true;
     }).toList();
 
@@ -687,7 +695,9 @@ class TripPrintService {
   bool _isInterCity(TransitFacade t) {
     final dep = t.departureLocation?.context.city;
     final arr = t.arrivalLocation?.context.city;
-    if (dep == null || arr == null) return true;
+    if (dep == null || arr == null) {
+      return true;
+    }
     return dep.toLowerCase() != arr.toLowerCase();
   }
 

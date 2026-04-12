@@ -26,7 +26,9 @@ class ItinerarySubscriptionHandler {
   Future<void> createSubscriptions() async {
     for (final itinerary in _itineraryCollection) {
       final planDataSubscription = itinerary.planDataStream.listen((eventData) {
-        if (eventData.isFromExplicitAction || _isBlocClosed()) return;
+        if (eventData.isFromExplicitAction || _isBlocClosed()) {
+          return;
+        }
 
         final metadata = CollectionItemChangeMetadata(
           eventData.modifiedCollectionItem,

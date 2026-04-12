@@ -38,49 +38,63 @@ class TransitClampingStrategy implements EntityClampingStrategy<TransitFacade> {
   ) {
     final depTime = transit.departureDateTime;
     final arrTime = transit.arrivalDateTime;
-    if (depTime == null || arrTime == null) return null;
+    if (depTime == null || arrTime == null) {
+      return null;
+    }
 
     DateTime? clampedDep, clampedArr;
 
     switch (position) {
       case EntityTimelinePosition.exactBoundaryMatch:
-        // exactBoundaryMatch now means start==start or end==end (true overlap)
         if (_isSameTime(depTime, conflictRange.start)) {
-          // Transit starts at same time as conflict → push departure after conflict end
           clampedDep = conflictRange.end.add(const Duration(minutes: 1));
-          if (!arrTime.isAfter(clampedDep)) return null;
+          if (!arrTime.isAfter(clampedDep)) {
+            return null;
+          }
         } else if (_isSameTime(arrTime, conflictRange.end)) {
-          // Transit ends at same time as conflict → pull arrival before conflict start
           clampedArr = conflictRange.start.subtract(const Duration(minutes: 1));
-          if (!depTime.isBefore(clampedArr)) return null;
+          if (!depTime.isBefore(clampedArr)) {
+            return null;
+          }
         } else if (_isSameTime(depTime, conflictRange.end)) {
-          // Fallback: transit starts when conflict ends
           clampedDep = conflictRange.end.add(const Duration(minutes: 1));
-          if (!arrTime.isAfter(clampedDep)) return null;
+          if (!arrTime.isAfter(clampedDep)) {
+            return null;
+          }
         } else if (_isSameTime(arrTime, conflictRange.start)) {
-          // Fallback: transit ends when conflict starts
           clampedArr = conflictRange.start.subtract(const Duration(minutes: 1));
-          if (!depTime.isBefore(clampedArr)) return null;
+          if (!depTime.isBefore(clampedArr)) {
+            return null;
+          }
         }
 
       case EntityTimelinePosition.startsDuringEndsAfter:
         clampedDep = conflictRange.end.add(const Duration(minutes: 1));
-        if (!arrTime.isAfter(clampedDep)) return null;
+        if (!arrTime.isAfter(clampedDep)) {
+          return null;
+        }
 
       case EntityTimelinePosition.startsBeforeEndsDuring:
         clampedArr = conflictRange.start.subtract(const Duration(minutes: 1));
-        if (!depTime.isBefore(clampedArr)) return null;
+        if (!depTime.isBefore(clampedArr)) {
+          return null;
+        }
 
       default:
-        // Contains, containedIn - cannot clamp
         return null;
     }
 
-    if (clampedDep == null && clampedArr == null) return null;
+    if (clampedDep == null && clampedArr == null) {
+      return null;
+    }
 
     final clamped = transit.clone();
-    if (clampedDep != null) clamped.departureDateTime = clampedDep;
-    if (clampedArr != null) clamped.arrivalDateTime = clampedArr;
+    if (clampedDep != null) {
+      clamped.departureDateTime = clampedDep;
+    }
+    if (clampedArr != null) {
+      clamped.arrivalDateTime = clampedArr;
+    }
     return clamped;
   }
 }
@@ -97,48 +111,63 @@ class StayClampingStrategy implements EntityClampingStrategy<LodgingFacade> {
   ) {
     final checkin = stay.checkinDateTime;
     final checkout = stay.checkoutDateTime;
-    if (checkin == null || checkout == null) return null;
+    if (checkin == null || checkout == null) {
+      return null;
+    }
 
     DateTime? clampedCheckin, clampedCheckout;
 
     switch (position) {
       case EntityTimelinePosition.exactBoundaryMatch:
-        // exactBoundaryMatch now means start==start or end==end (true overlap)
         if (_isSameTime(checkin, conflictRange.start)) {
-          // Stay checks in at same time as conflict → push checkin after conflict end
           clampedCheckin = _roundToNextHalfHour(conflictRange.end);
-          if (!checkout.isAfter(clampedCheckin)) return null;
+          if (!checkout.isAfter(clampedCheckin)) {
+            return null;
+          }
         } else if (_isSameTime(checkout, conflictRange.end)) {
-          // Stay checks out at same time as conflict → pull checkout before conflict start
           clampedCheckout = _roundToPreviousHalfHour(conflictRange.start);
-          if (!checkin.isBefore(clampedCheckout)) return null;
+          if (!checkin.isBefore(clampedCheckout)) {
+            return null;
+          }
         } else if (_isSameTime(checkin, conflictRange.end)) {
-          // Fallback: stay checkin when conflict ends
           clampedCheckin = _roundToNextHalfHour(conflictRange.end);
-          if (!checkout.isAfter(clampedCheckin)) return null;
+          if (!checkout.isAfter(clampedCheckin)) {
+            return null;
+          }
         } else if (_isSameTime(checkout, conflictRange.start)) {
-          // Fallback: stay checkout when conflict starts
           clampedCheckout = _roundToPreviousHalfHour(conflictRange.start);
-          if (!checkin.isBefore(clampedCheckout)) return null;
+          if (!checkin.isBefore(clampedCheckout)) {
+            return null;
+          }
         }
 
       case EntityTimelinePosition.startsDuringEndsAfter:
         clampedCheckin = _roundToNextHalfHour(conflictRange.end);
-        if (!checkout.isAfter(clampedCheckin)) return null;
+        if (!checkout.isAfter(clampedCheckin)) {
+          return null;
+        }
 
       case EntityTimelinePosition.startsBeforeEndsDuring:
         clampedCheckout = _roundToPreviousHalfHour(conflictRange.start);
-        if (!checkin.isBefore(clampedCheckout)) return null;
+        if (!checkin.isBefore(clampedCheckout)) {
+          return null;
+        }
 
       default:
         return null;
     }
 
-    if (clampedCheckin == null && clampedCheckout == null) return null;
+    if (clampedCheckin == null && clampedCheckout == null) {
+      return null;
+    }
 
     final clamped = stay.clone();
-    if (clampedCheckin != null) clamped.checkinDateTime = clampedCheckin;
-    if (clampedCheckout != null) clamped.checkoutDateTime = clampedCheckout;
+    if (clampedCheckin != null) {
+      clamped.checkinDateTime = clampedCheckin;
+    }
+    if (clampedCheckout != null) {
+      clamped.checkoutDateTime = clampedCheckout;
+    }
     return clamped;
   }
 
@@ -180,29 +209,29 @@ class SightClampingStrategy implements EntityClampingStrategy<SightFacade> {
     EntityTimelinePosition position,
   ) {
     final visitTime = sight.visitTime;
-    if (visitTime == null) return null;
+    if (visitTime == null) {
+      return null;
+    }
 
     DateTime? clampedTime;
 
     switch (position) {
       case EntityTimelinePosition.exactBoundaryMatch:
-        // exactBoundaryMatch now means start==start or end==end
         final visitEnd = visitTime.add(const Duration(minutes: 1));
         if (_isSameTime(visitTime, conflictRange.start)) {
-          // Sight visit at same time as conflict start → push after conflict
           clampedTime = conflictRange.end.add(const Duration(minutes: 1));
         } else if (_isSameTime(visitEnd, conflictRange.end)) {
-          // Sight visit-end matches conflict end → pull before conflict
           clampedTime =
               conflictRange.start.subtract(const Duration(minutes: 1));
         }
 
       default:
-        // Sights are points in time - can only clamp exact boundary matches
         return null;
     }
 
-    if (clampedTime == null) return null;
+    if (clampedTime == null) {
+      return null;
+    }
 
     final clamped = sight.clone();
     clamped.visitTime = clampedTime;
@@ -222,8 +251,8 @@ class StayDateRangeClampingStrategy {
     final checkin = stay.checkinDateTime!;
     final checkout = stay.checkoutDateTime!;
 
-    DateTime clampedCheckin = checkin;
-    DateTime clampedCheckout = checkout;
+    var clampedCheckin = checkin;
+    var clampedCheckout = checkout;
 
     // Clamp checkin to be within range
     if (checkin.isBefore(newTripRange.start)) {
@@ -252,7 +281,9 @@ class StayDateRangeClampingStrategy {
     }
 
     // Validate clamped dates
-    if (!clampedCheckin.isBefore(clampedCheckout)) return null;
+    if (!clampedCheckin.isBefore(clampedCheckout)) {
+      return null;
+    }
 
     // Same day check-in/check-out is not valid for overnight stays
     if (clampedCheckin.year == clampedCheckout.year &&
@@ -275,10 +306,10 @@ class StayDateRangeClampingStrategy {
 /// Unified service for clamping entity times.
 /// Uses strategy pattern internally to delegate to appropriate strategy.
 class EntityClamper {
-  static final _transitStrategy = const TransitClampingStrategy();
-  static final _stayStrategy = const StayClampingStrategy();
-  static final _sightStrategy = const SightClampingStrategy();
-  static final _stayDateRangeStrategy = const StayDateRangeClampingStrategy();
+  static const _transitStrategy = TransitClampingStrategy();
+  static const _stayStrategy = StayClampingStrategy();
+  static const _sightStrategy = SightClampingStrategy();
+  static const _stayDateRangeStrategy = StayDateRangeClampingStrategy();
 
   const EntityClamper._();
 

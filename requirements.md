@@ -1,7 +1,7 @@
 # Wandrr — Product Requirements Specification
 
 > **Version:** 1.1  
-> **Last Updated:** 2026-03-31  
+> **Last Updated:** 2026-03-31
 > **Status:** Active
 
 ---

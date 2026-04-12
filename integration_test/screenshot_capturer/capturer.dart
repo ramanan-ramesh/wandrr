@@ -122,7 +122,7 @@ Future<void> _closeActionPage(WidgetTester tester) async {
 Future<void> _switchThemeMode(WidgetTester tester) async {
   final toolbarButton = find.byIcon(Icons.settings);
   await TestHelpers.tapWidget(tester, toolbarButton);
-  final themeOption = find.byKey(Key('ToolBar_ThemeSwitcher'));
+  final themeOption = find.byKey(const Key('ToolBar_ThemeSwitcher'));
   await TestHelpers.tapWidget(tester, themeOption);
   await TestHelpers.tapWidget(tester, toolbarButton);
 }
@@ -153,12 +153,13 @@ Future<void> _generateScreenshot(WidgetTester tester,
     IntegrationTestWidgetsFlutterBinding binding, String screenshotName) async {
   await tester.pumpAndSettle();
   final isLargeScreen = TestHelpers.isLargeScreen(tester);
-  final screenShotNameForDevice =
-      _generateScreenshotNameForDevice(isLargeScreen, screenshotName);
+  final screenShotNameForDevice = _generateScreenshotNameForDevice(
+      screenshotName,
+      isLargeScreen: isLargeScreen);
   await binding.takeScreenshot(screenShotNameForDevice);
 }
 
-String _generateScreenshotNameForDevice(
-    bool isLargeScreen, String screenshotName) {
+String _generateScreenshotNameForDevice(String screenshotName,
+    {required bool isLargeScreen}) {
   return isLargeScreen ? 'tablet_$screenshotName' : 'phone_$screenshotName';
 }

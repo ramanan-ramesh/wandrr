@@ -21,12 +21,12 @@ class BudgetingPage extends StatelessWidget {
       CollapsibleSection(
         title: 'Debt',
         icon: Icons.money_off_rounded,
-        child: DebtSummaryTile(),
+        child: const DebtSummaryTile(),
       ),
       CollapsibleSection(
         title: 'Breakdown',
         icon: Icons.pie_chart_rounded,
-        child: BudgetBreakdownTile(),
+        child: const BudgetBreakdownTile(),
       ),
     ];
     return CollapsibleSectionsPage(

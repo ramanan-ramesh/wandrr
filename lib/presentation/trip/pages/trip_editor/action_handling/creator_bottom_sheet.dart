@@ -18,9 +18,9 @@ class TripEntityCreatorBottomSheet extends StatefulWidget {
   final DateTime currentlyDisplayedItineraryDate;
 
   const TripEntityCreatorBottomSheet({
-    super.key,
     required this.supportedActions,
     required this.currentlyDisplayedItineraryDate,
+    super.key,
   });
 
   @override
@@ -45,20 +45,20 @@ class _TripEntityCreatorBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    const double _fabBottomMargin = 25.0;
-    final double _bottomPadding =
-        TripEditorPageConstants.fabSize + _fabBottomMargin + 16.0;
+    const fabBottomMargin = 25.0;
+    const bottomPadding =
+        TripEditorPageConstants.fabSize + fabBottomMargin + 16.0;
 
     return DraggableScrollableSheet(
       expand: false,
       shouldCloseOnMinExtent: false,
-      initialChildSize: selectedAction != null ? 0.8 : 0.5,
+      initialChildSize: selectedAction != null ? 0.8 : 0.7,
       maxChildSize: 0.85,
       minChildSize: selectedAction != null ? 0.8 : 0.5,
       builder: (context, scrollController) {
         if (selectedAction == null) {
           return _createSupportedActionsListView(
-              scrollController, _bottomPadding);
+              scrollController, bottomPadding);
         }
         // Build the editor page once and cache it. Subsequent builder calls
         // (from scrolling) reuse the cached widget so editableClone/keys
@@ -74,7 +74,8 @@ class _TripEntityCreatorBottomSheetState
     final entity = selectedAction!.createEntity(context);
     final factory = EditorPageFactory(
       tripData: context.activeTrip,
-      title: selectedAction!.getSubtitle(context.localizations, false),
+      title:
+          selectedAction!.getSubtitle(context.localizations, isEditing: false),
       isEditing: false,
       onClosePressed: () => setState(() {
         selectedAction = null;
@@ -108,9 +109,10 @@ class _TripEntityCreatorBottomSheetState
       TripEditorAction action, BuildContext context) {
     final icon = action.icon;
     final title = action.getCreatorTitle(context.localizations);
-    final subtitle = action.getSubtitle(context.localizations, false);
+    final subtitle =
+        action.getSubtitle(context.localizations, isEditing: false);
     return ListTile(
-      key: ValueKey('TripEntityCreator_Action_ListTile'),
+      key: const ValueKey('TripEntityCreator_Action_ListTile'),
       contentPadding: const EdgeInsets.all(20.0),
       onTap: () {
         if (selectedAction == action) {

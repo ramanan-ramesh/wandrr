@@ -47,8 +47,12 @@ class TransitJourneyFacade {
 
   /// Validates all legs and their time sequence
   bool validate() {
-    if (legs.isEmpty) return false;
-    if (!legs.every((leg) => leg.validate())) return false;
+    if (legs.isEmpty) {
+      return false;
+    }
+    if (!legs.every((leg) => leg.validate())) {
+      return false;
+    }
 
     // Validate time sequence:
     // 1. Each leg's arrival must be at least 1 minute after its departure
@@ -60,7 +64,9 @@ class TransitJourneyFacade {
       if (leg.departureDateTime != null && leg.arrivalDateTime != null) {
         final minArrival =
             leg.departureDateTime!.add(const Duration(minutes: 1));
-        if (leg.arrivalDateTime!.isBefore(minArrival)) return false;
+        if (leg.arrivalDateTime!.isBefore(minArrival)) {
+          return false;
+        }
       }
 
       // Check connecting leg's departure is on or after previous leg's arrival
@@ -68,7 +74,9 @@ class TransitJourneyFacade {
         final prevArrival = legs[i - 1].arrivalDateTime;
         final currentDeparture = leg.departureDateTime;
         if (prevArrival != null && currentDeparture != null) {
-          if (currentDeparture.isBefore(prevArrival)) return false;
+          if (currentDeparture.isBefore(prevArrival)) {
+            return false;
+          }
         }
       }
     }
@@ -115,10 +123,14 @@ class TransitJourneyFacade {
 
   /// Calculate layover duration between two legs
   Duration? getLayoverDuration(int fromLegIndex) {
-    if (fromLegIndex < 0 || fromLegIndex >= legs.length - 1) return null;
+    if (fromLegIndex < 0 || fromLegIndex >= legs.length - 1) {
+      return null;
+    }
     final currentArrival = legs[fromLegIndex].arrivalDateTime;
     final nextDeparture = legs[fromLegIndex + 1].departureDateTime;
-    if (currentArrival == null || nextDeparture == null) return null;
+    if (currentArrival == null || nextDeparture == null) {
+      return null;
+    }
     return nextDeparture.difference(currentArrival);
   }
 }

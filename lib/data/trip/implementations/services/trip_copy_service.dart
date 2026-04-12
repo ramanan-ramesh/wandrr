@@ -35,13 +35,16 @@ class TripCopyService {
     final batch = FirebaseFirestore.instance.batch();
 
     // Wait for trip data to be fully loaded
-    await sourceTripData.isFullyLoaded.firstWhere((isLoaded) => isLoaded);
+    if (!sourceTripData.isFullyLoadedValue) {
+      await sourceTripData.isFullyLoaded.lastWhere((isLoaded) => isLoaded);
+    }
 
     // Create new trip metadata document to get the new trip ID
     final newTripMetadataRef = FirebaseFirestore.instance
         .collection(FirestoreCollections.tripMetadataCollectionName)
         .doc();
     final newTripId = newTripMetadataRef.id;
+    targetTripMetadata.id = newTripId;
 
     // 1. Write trip metadata
     final newTripMetadata = TripMetadataModelImplementation.fromModelFacade(

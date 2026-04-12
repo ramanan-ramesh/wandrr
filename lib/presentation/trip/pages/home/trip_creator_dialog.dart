@@ -111,7 +111,7 @@ class TripCreatorDialog extends StatelessWidget {
 
   TextField _createTripNameField(BuildContext context) {
     return TextField(
-      key: Key('TripCreatorDialog_TripNameField'),
+      key: const Key('TripCreatorDialog_TripNameField'),
       onChanged: _updateTripName,
       textInputAction: TextInputAction.next,
       decoration: InputDecoration(
@@ -162,12 +162,12 @@ class TripCreatorDialog extends StatelessWidget {
 
   Widget _buildCreateTripButton(BuildContext context) {
     return PlatformSubmitterFAB.conditionallyEnabled(
-      child: const Icon(Icons.done_rounded),
       callback: () {
         _submitTripCreationEvent();
         Navigator.of(context).pop();
       },
       valueNotifier: _tripCreationMetadataValidityNotifier,
+      child: const Icon(Icons.done_rounded),
     );
   }
 

@@ -125,7 +125,7 @@ class FirebaseEmulatorHelper {
       if (kDebugMode) {
         print('✓ Test cleanup complete\n');
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (kDebugMode) {
         print('✗ Error during test cleanup: $e');
       }
@@ -135,14 +135,14 @@ class FirebaseEmulatorHelper {
   /// This is required because the emulator doesn't automatically verify emails
   /// and user_management.dart checks emailVerified status
   ///
-  /// [user] - The Firebase User object to verify (must be signed in)
+  /// [email] - The email address of the user to verify (must be signed in)
   /// Returns true if verification was successful
   /// Manually verify email using Firebase Auth Emulator Admin REST API
   /// This uses admin privileges to set emailVerified=true
   static Future _verifyEmailInEmulator(String email) async {
     try {
-      final host = _emulatorHost;
-      final port = _authEmulatorPort;
+      const host = _emulatorHost;
+      const port = _authEmulatorPort;
 
       // Get current user details (must be signed in)
       final currentUser = FirebaseAuth.instance.currentUser;
@@ -158,7 +158,7 @@ class FirebaseEmulatorHelper {
         print('  → Verifying email for: $email');
       }
 
-      final updateUrl =
+      const updateUrl =
           'http://$host:$port/identitytoolkit.googleapis.com/v1/accounts:update?key=wandrr-15f70';
 
       // Admin request body: Use localId (UID) + emailVerified
@@ -186,7 +186,7 @@ class FirebaseEmulatorHelper {
         }
         throw Exception('Error verifying email in emulator');
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (kDebugMode) {
         print('✗ Error verifying email in emulator: $e');
       }
@@ -272,12 +272,12 @@ class FirebaseEmulatorHelper {
         print('\n--- Clearing ALL Auth users ---');
       }
 
-      final host = _emulatorHost; // '10.0.2.2' for Android emulator
-      final port = _authEmulatorPort; // 9099
+      const host = _emulatorHost; // '10.0.2.2' for Android emulator
+      const port = _authEmulatorPort; // 9099
       const projectId = 'wandrr-15f70'; // From your firebase.json
 
       // Emulator-specific endpoint to flush/clear all user records
-      final clearUrl =
+      const clearUrl =
           'http://$host:$port/emulator/v1/projects/$projectId/accounts';
 
       final response = await http.delete(
@@ -324,7 +324,7 @@ class FirebaseEmulatorHelper {
 
       // DELETE /emulator/v1/projects/{project}/databases/(default)/documents
       // clears every document in the emulated Firestore database.
-      final clearUrl =
+      const clearUrl =
           'http://$host:$port/emulator/v1/projects/$projectId/databases/(default)/documents';
 
       final response = await http.delete(Uri.parse(clearUrl));
@@ -341,7 +341,7 @@ class FirebaseEmulatorHelper {
         throw Exception(
             'Firestore emulator flush failed: ${response.statusCode}');
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (kDebugMode) {
         print('✗ Error clearing Firestore data: $e');
       }

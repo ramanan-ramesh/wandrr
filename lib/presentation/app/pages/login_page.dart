@@ -45,7 +45,7 @@ class _LoginPageState extends State<LoginPage>
     return Center(
       child: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Card(
             child: FocusTraversalGroup(
               policy: OrderedTraversalPolicy(),
@@ -91,10 +91,9 @@ class _LoginPageState extends State<LoginPage>
 
   Widget _createSubmitButton(BuildContext context) {
     return _AuthStateObserver(
-      onAuthStateChangeBuilder: (state, canEnableFormElement) =>
+      onAuthStateChangeBuilder: (state, {required bool canEnableFormElement}) =>
           PlatformSubmitterFAB.form(
         key: const Key('login_submit_button'),
-        child: Icon(Icons.login_rounded),
         formState: _formKey,
         isEnabledInitially: canEnableFormElement,
         validationSuccessCallback: () {
@@ -106,6 +105,7 @@ class _LoginPageState extends State<LoginPage>
               password: password,
               shouldRegister: _tabController.index == 1));
         },
+        child: const Icon(Icons.login_rounded),
       ),
     );
   }
@@ -126,7 +126,8 @@ class _LoginPageState extends State<LoginPage>
   Widget _createAlternateAuthProviderButton(AuthenticationType thirdParty,
           AssetGenImage thirdPartyLogoAsset, BuildContext context) =>
       _AuthStateObserver(
-        onAuthStateChangeBuilder: (state, canEnableFormElement) => Material(
+        onAuthStateChangeBuilder:
+            (state, {required bool canEnableFormElement}) => Material(
           shape: const CircleBorder(),
           clipBehavior: Clip.hardEdge,
           color: Colors.transparent,
@@ -195,7 +196,7 @@ class _EmailVerificationStatusMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _AuthStateObserver(
-      onAuthStateChangeBuilder: (state, canEnableFormElement) {
+      onAuthStateChangeBuilder: (state, {required bool canEnableFormElement}) {
         if (state is AuthStateChanged &&
             (state.authStatus == AuthStatus.verificationPending ||
                 state.authStatus == AuthStatus.verificationResent)) {
@@ -210,7 +211,7 @@ class _EmailVerificationStatusMessage extends StatelessWidget {
             ),
           );
         }
-        return SizedBox.shrink();
+        return const SizedBox.shrink();
       },
     );
   }
@@ -226,7 +227,7 @@ class _ResendVerificationMailButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _AuthStateObserver(
-      onAuthStateChangeBuilder: (state, canEnableFormElement) {
+      onAuthStateChangeBuilder: (state, {required bool canEnableFormElement}) {
         var isVisible = state is AuthStateChanged &&
             (state.authStatus == AuthStatus.verificationPending ||
                 state.authStatus == AuthStatus.verificationResent);
@@ -272,7 +273,8 @@ class _UserNameFieldState extends State<_UserNameField> {
             _errorText = null;
           }
         },
-        onAuthStateChangeBuilder: (state, canEnableFormElement) =>
+        onAuthStateChangeBuilder: (state,
+                {required bool canEnableFormElement}) =>
             PlatformTextElements.createUsernameFormField(
           key: const Key('username_field'),
           context: context,
@@ -340,8 +342,8 @@ class _PasswordFieldState extends State<_PasswordField> {
             _errorText = null;
           }
         },
-        onAuthStateChangeBuilder: (state, canEnableFormElement) =>
-            TextFormField(
+        onAuthStateChangeBuilder:
+            (state, {required bool canEnableFormElement}) => TextFormField(
           key: const Key('password_field'),
           readOnly: !canEnableFormElement,
           focusNode: focusNode,
@@ -395,8 +397,8 @@ class _PasswordFieldState extends State<_PasswordField> {
 
 class _AuthStateObserver extends StatelessWidget {
   final void Function(AuthStateChanged state)? onAuthStateChangeListener;
-  final Widget Function(MasterPageState state, bool canEnableFormElement)
-      onAuthStateChangeBuilder;
+  final Widget Function(MasterPageState state,
+      {required bool canEnableFormElement}) onAuthStateChangeBuilder;
 
   const _AuthStateObserver({
     required this.onAuthStateChangeBuilder,
@@ -415,7 +417,8 @@ class _AuthStateObserver extends StatelessWidget {
           var canEnable = !(state is AuthStateChanged &&
               (state.authStatus == AuthStatus.authenticating ||
                   state.authStatus == AuthStatus.loggedIn));
-          return onAuthStateChangeBuilder(state, canEnable);
+          return onAuthStateChangeBuilder(state,
+              canEnableFormElement: canEnable);
         },
         buildWhen: (previousState, currentState) =>
             currentState is AuthStateChanged,

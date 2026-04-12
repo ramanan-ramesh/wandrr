@@ -65,7 +65,6 @@ analyzer:
     prefer_const_declarations: warning
     prefer_const_literals_to_create_immutables: warning
     prefer_contains: warning
-    prefer_expression_function_bodies: warning
     prefer_final_fields: warning
     prefer_final_in_for_each: warning
     prefer_interpolation_to_compose_strings: warning
@@ -77,6 +76,9 @@ analyzer:
     prefer_null_aware_operators: warning
     prefer_spread_collections: warning
     prefer_typing_uninitialized_variables: warning
+
+    # Integration test overrides
+    avoid_print: ignore
 
 linter:
   rules:
@@ -153,17 +155,13 @@ linter:
     prefer_typing_uninitialized_variables: true
 
     # Info / stylistic rules
-    secure_pubspec_urls: true
-    sized_box_shrink_expand: true
-    sort_pub_dependencies: false
-    strict_top_level_inference: true
+    avoid_print: false
     switch_on_type: true
     type_init_formals: true
     unawaited_futures: true
     unnecessary_brace_in_string_interps: true
     unnecessary_breaks: true
     unnecessary_const: true
-    unnecessary_lambdas: true
     unnecessary_late: true
     unnecessary_library_name: true
     unnecessary_new: true
@@ -181,8 +179,7 @@ linter:
     unnecessary_underscores: true
     unreachable_from_main: true
     unrelated_type_equality_checks: true
-    use_colored_box: true
-    use_decorated_box: true
+    use_build_context_synchronously: false
     use_is_even_rather_than_modulo: true
     use_named_constants: true
     use_null_aware_elements: true
@@ -190,3 +187,4 @@ linter:
     use_setters_to_change_properties: true
     use_string_in_part_of_directives: true
     void_checks: true
+

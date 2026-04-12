@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lat_lng_to_timezone/lat_lng_to_timezone.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
-import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
@@ -32,7 +31,7 @@ class TimelineEventFactory {
 
   /// Collects all timeline events for the given itinerary
   List<TimelineEvent> collectTimelineEvents(ItineraryFacade itinerary) {
-    final List<TimelineEvent> timelineEvents = [];
+    final timelineEvents = <TimelineEvent>[];
     timelineEvents.addAll(_createLodgingEvents(itinerary));
     timelineEvents.addAll(_createTransitEvents(itinerary.transits));
     timelineEvents.addAll(_createTimedSightEvents(itinerary.planData.sights));
@@ -121,7 +120,9 @@ class TimelineEventFactory {
     // Process journey transits (grouped and sorted)
     for (final entry in journeyTransits.entries) {
       final journey = journeyService.getJourney(entry.key);
-      if (journey == null) continue;
+      if (journey == null) {
+        continue;
+      }
 
       // Filter to only legs that appear on this itinerary day
       final legsOnThisDay = entry.value.toList()
@@ -230,13 +231,19 @@ class TimelineEventFactory {
 
   /// Get city name from location, preferring city over full name
   String _getCityName(dynamic location) {
-    if (location == null) return '?';
+    if (location == null) {
+      return '?';
+    }
     if (location is LocationFacade) {
       // Try to get city first, then name from context
       final city = location.context.city;
-      if (city != null && city.isNotEmpty) return city;
+      if (city != null && city.isNotEmpty) {
+        return city;
+      }
       final name = location.context.name;
-      if (name.isNotEmpty) return name;
+      if (name.isNotEmpty) {
+        return name;
+      }
       return '?';
     }
     return '?';
@@ -244,9 +251,13 @@ class TimelineEventFactory {
 
   /// Calculate layover duration string
   String? _calculateLayoverString(DateTime? arrival, DateTime? departure) {
-    if (arrival == null || departure == null) return null;
+    if (arrival == null || departure == null) {
+      return null;
+    }
     final duration = departure.difference(arrival);
-    if (duration.isNegative) return null;
+    if (duration.isNegative) {
+      return null;
+    }
     final hours = duration.inHours;
     final minutes = duration.inMinutes % 60;
     if (hours > 0 && minutes > 0) {

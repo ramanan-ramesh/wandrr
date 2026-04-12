@@ -285,7 +285,7 @@ class _ExpenseMatcher extends Matcher {
       return false;
     }
 
-    for (var key in expected.paidBy.keys) {
+    for (final key in expected.paidBy.keys) {
       if (!actual.paidBy.containsKey(key)) {
         matchState['field'] = 'paidBy[$key]';
         matchState['expected'] = 'key exists';
@@ -308,7 +308,7 @@ class _ExpenseMatcher extends Matcher {
       return false;
     }
 
-    for (int i = 0; i < expected.splitBy.length; i++) {
+    for (var i = 0; i < expected.splitBy.length; i++) {
       if (actual.splitBy[i] != expected.splitBy[i]) {
         matchState['field'] = 'splitBy[$i]';
         matchState['expected'] = expected.splitBy[i];

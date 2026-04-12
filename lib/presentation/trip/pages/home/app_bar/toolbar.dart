@@ -32,14 +32,14 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return MenuAnchor(
       controller: _menuController,
-      alignmentOffset: Offset(0, 7),
+      alignmentOffset: const Offset(0, 7),
       style: MenuStyle(
         backgroundColor: WidgetStatePropertyAll(
           !context.isLightTheme ? AppColors.darkSurface : null,
         ),
-        padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
+        padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
             EdgeInsets.symmetric(vertical: 6)),
-        shape: WidgetStatePropertyAll<OutlinedBorder>(
+        shape: const WidgetStatePropertyAll<OutlinedBorder>(
           RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(15))),
         ),
@@ -52,7 +52,7 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
         return IconButton(
           onPressed: _toggleMainMenu,
           style: context.isLightTheme
-              ? ButtonStyle(
+              ? const ButtonStyle(
                   backgroundColor:
                       WidgetStatePropertyAll(AppColors.brandSecondary),
                 )
@@ -60,7 +60,7 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
           icon: RotationTransition(
             turns:
                 Tween<double>(begin: 0, end: 1).animate(_settingsTurnAnimation),
-            child: Icon(
+            child: const Icon(
               Icons.settings,
             ),
           ),
@@ -80,7 +80,7 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
       child: MenuItemButton(
         leadingIcon: const Icon(Icons.logout),
         onPressed: () {
-          context.addMasterPageEvent(Logout());
+          context.addMasterPageEvent(const Logout());
         },
         child: Text(context.localizations.logout),
       ),
@@ -114,7 +114,7 @@ class _ToolbarState extends State<Toolbar> with TickerProviderStateMixin {
             Text(context.localizations.darkTheme),
             const Spacer(),
             Switch.adaptive(
-              key: Key('ToolBar_ThemeSwitcher'),
+              key: const Key('ToolBar_ThemeSwitcher'),
               value: !context.isLightTheme,
               onChanged: (bool value) {
                 context.addMasterPageEvent(ChangeTheme(
@@ -180,15 +180,14 @@ class _LanguageSubmenu extends StatelessWidget {
           !context.isLightTheme ? AppColors.darkSurface : null,
         ),
         alignment: Alignment.centerRight,
-        elevation: WidgetStatePropertyAll<double>(14),
-        padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(EdgeInsets.zero),
-        shape: WidgetStatePropertyAll<OutlinedBorder>(
+        elevation: const WidgetStatePropertyAll<double>(14),
+        padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(EdgeInsets.zero),
+        shape: const WidgetStatePropertyAll<OutlinedBorder>(
           RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(12))),
         ),
       ),
       leadingIcon: const Icon(Icons.translate),
-      child: Text(context.localizations.language),
       menuChildren: <Widget>[
         Directionality(
           textDirection: TextDirection.rtl,
@@ -203,6 +202,7 @@ class _LanguageSubmenu extends StatelessWidget {
           ),
         )
       ],
+      child: Text(context.localizations.language),
     );
   }
 }
@@ -244,7 +244,7 @@ class _LanguageSubMenuEntry extends StatelessWidget {
                 child: Image.asset(
                   languageMetadata.flagAssetLocation,
                   key: Key(
-                      'ToolBar_LanguageSwitcher_' + languageMetadata.locale),
+                      'ToolBar_LanguageSwitcher_${languageMetadata.locale}'),
                   width: 35,
                   height: 35,
                   fit: BoxFit.fill,

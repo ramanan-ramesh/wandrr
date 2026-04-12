@@ -185,7 +185,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     title: 'Dinner at Le Comptoir',
     expense: ExpenseFacade(
       currency: defaultCurrency,
-      paidBy: {TestConfig.testEmail: 45.0},
+      paidBy: const {TestConfig.testEmail: 45.0},
       splitBy: contributors,
       dateTime: DateTime(2025, 9, 24, 20, 0),
       description: 'French cuisine',
@@ -198,7 +198,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     title: 'Souvenirs from Louvre',
     expense: ExpenseFacade(
       currency: defaultCurrency,
-      paidBy: {TestConfig.testEmail: 25.0},
+      paidBy: const {TestConfig.testEmail: 25.0},
       splitBy: contributors,
       dateTime: DateTime(2025, 9, 25, 12, 0),
       description: 'Postcards and magnets',
@@ -211,7 +211,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     title: 'Groceries',
     expense: ExpenseFacade(
       currency: defaultCurrency,
-      paidBy: {TestConfig.testEmail: 15.5},
+      paidBy: const {TestConfig.testEmail: 15.5},
       splitBy: contributors,
       dateTime: DateTime(2025, 9, 26),
       description: 'Snacks for the bus',
@@ -237,7 +237,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Paris Airport
   final parisAirportDocument = {
     'name': 'Charles de Gaulle International Airport',
-    'city': 'Paris (Roissy-en-France, Val-d\'Oise)',
+    'city': "Paris (Roissy-en-France, Val-d'Oise)",
     'iata': 'CDG',
   };
   final expectedParisAirportContext =
@@ -496,7 +496,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Flight: London to Paris
   final expectedOnwardFlightExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 250.0},
+    paidBy: const {TestConfig.testEmail: 250.0},
     splitBy: contributors,
   );
   final expectedOnwardFlightTransit = TransitFacade(
@@ -515,7 +515,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Train: Paris to Versailles
   final expectedTrainExpense1 = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 7.5},
+    paidBy: const {TestConfig.testEmail: 7.5},
     splitBy: contributors,
   );
   final expectedTrainToVersailles = TransitFacade(
@@ -533,7 +533,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Train return: Versailles to Paris
   final expectedTrainExpense2 = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 7.5},
+    paidBy: const {TestConfig.testEmail: 7.5},
     splitBy: contributors,
   );
   final expectedTrainFromVersailles = TransitFacade(
@@ -551,7 +551,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Bus: Paris to Brussels
   final expectedBusExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 35.0},
+    paidBy: const {TestConfig.testEmail: 35.0},
     splitBy: contributors,
   );
   final expectedBusTransit = TransitFacade(
@@ -570,7 +570,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Rented vehicle: Brussels to Atomium
   final expectedRentedVehicleExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 60.0},
+    paidBy: const {TestConfig.testEmail: 60.0},
     splitBy: contributors,
   );
   final expectedRentedVehicleTransit = TransitFacade(
@@ -589,7 +589,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Taxi: Atomium to Brussels
   final expectedTaxiExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 25.0},
+    paidBy: const {TestConfig.testEmail: 25.0},
     splitBy: contributors,
   );
   final expectedTaxiTransit = TransitFacade(
@@ -607,7 +607,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Ferry: Brussels to Amsterdam
   final expectedFerryExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 45.0},
+    paidBy: const {TestConfig.testEmail: 45.0},
     splitBy: contributors,
   );
   final expectedFerryTransit = TransitFacade(
@@ -626,7 +626,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Walk: Amsterdam to Rijksmuseum
   final expectedWalkExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 0.0},
+    paidBy: const {TestConfig.testEmail: 0.0},
     splitBy: contributors,
   );
   final expectedWalkTransit = TransitFacade(
@@ -643,7 +643,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Public transport: Rijksmuseum to Amsterdam
   final expectedPublicTransportExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 3.0},
+    paidBy: const {TestConfig.testEmail: 3.0},
     splitBy: contributors,
   );
   final expectedPublicTransportTransit = TransitFacade(
@@ -661,7 +661,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   //Flight: Amsterdam to London
   final expectedReturnFlightExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 200.0},
+    paidBy: const {TestConfig.testEmail: 200.0},
     splitBy: contributors,
   );
   final expectedReturnFlight = TransitFacade(
@@ -681,7 +681,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Paris hotel
   final expectedParisLodgingExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 450.0},
+    paidBy: const {TestConfig.testEmail: 450.0},
     splitBy: contributors,
   );
   final expectedParisLodging = LodgingFacade(
@@ -697,7 +697,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Brussels hotel (overnight)
   final expectedBrusselsLodgingExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 120.0},
+    paidBy: const {TestConfig.testEmail: 120.0},
     splitBy: contributors,
   );
   final expectedBrusselsLodging = LodgingFacade(
@@ -713,7 +713,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Amsterdam hostel
   final expectedAmsterdamLodgingExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 60.0},
+    paidBy: const {TestConfig.testEmail: 60.0},
     splitBy: contributors,
   );
   final expectedAmsterdamLodging = LodgingFacade(
@@ -730,7 +730,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Eiffel Tower sight
   final expectedEiffelTowerExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 26.0},
+    paidBy: const {TestConfig.testEmail: 26.0},
     splitBy: contributors,
   );
   final expectedEiffelTowerSight = SightFacade(
@@ -746,7 +746,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Palace of Versailles sight
   final expectedVersaillesExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 20.0},
+    paidBy: const {TestConfig.testEmail: 20.0},
     splitBy: contributors,
   );
   final expectedVersaillesSight = SightFacade(
@@ -762,7 +762,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Louvre Museum sight
   final expectedLouvreExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 17.0},
+    paidBy: const {TestConfig.testEmail: 17.0},
     splitBy: contributors,
   );
   final expectedLouvreSight = SightFacade(
@@ -778,7 +778,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Atomium sight
   final expectedAtomiumExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 16.0},
+    paidBy: const {TestConfig.testEmail: 16.0},
     splitBy: contributors,
   );
   final expectedAtomiumSight = SightFacade(
@@ -794,7 +794,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   // Rijksmuseum sight
   final expectedRijksmuseumExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 22.5},
+    paidBy: const {TestConfig.testEmail: 22.5},
     splitBy: contributors,
   );
   final expectedRijksmuseumSight = SightFacade(
@@ -808,7 +808,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   );
   final expectedKeukenhofExpense = ExpenseFacade(
     currency: defaultCurrency,
-    paidBy: {TestConfig.testEmail: 40.0},
+    paidBy: const {TestConfig.testEmail: 40.0},
     splitBy: contributors,
   );
   final expectedKeukenhofSight = SightFacade(
@@ -935,7 +935,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
     name: 'European Adventure',
     startDate: DateTime(2025, 9, 24),
     endDate: DateTime(2025, 9, 29),
-    budget: Money(currency: 'EUR', amount: 1500),
+    budget: const Money(currency: 'EUR', amount: 1500),
     contributors: contributors,
     thumbnailTag: 'urban',
   );
@@ -1041,7 +1041,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   ];
 
   // Check each expected transit has a match in the collection
-  for (var expectedTransit in expectedTransits) {
+  for (final expectedTransit in expectedTransits) {
     final matchFound = transitCollection.collectionItems.any(
       (actualTransit) =>
           matchesTransit(expectedTransit).matches(actualTransit, {}),
@@ -1065,7 +1065,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   ];
 
   // Check each expected lodging has a match in the collection
-  for (var expectedLodging in expectedLodgings) {
+  for (final expectedLodging in expectedLodgings) {
     final matchFound = lodgingCollection.collectionItems.any(
       (actualLodging) =>
           matchesLodging(expectedLodging).matches(actualLodging, {}),
@@ -1089,7 +1089,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
   ];
 
   // Check each expected expense has a match in the collection
-  for (var expectedExpense in expectedExpenses) {
+  for (final expectedExpense in expectedExpenses) {
     final matchFound = expensesCollection.any(
       (actualExpense) =>
           matchesStandaloneExpense(expectedExpense).matches(actualExpense, {}),

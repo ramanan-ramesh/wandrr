@@ -25,14 +25,18 @@ class TripVisitTracker {
 
   static Future<TripMetadataFacade?> getMostVisitedTrip(
       Iterable<TripMetadataFacade> trips) async {
-    if (trips.isEmpty) return null;
+    if (trips.isEmpty) {
+      return null;
+    }
 
     final prefs = await SharedPreferences.getInstance();
     TripMetadataFacade? mostVisited;
-    int maxVisits = -1;
+    var maxVisits = -1;
 
     for (final trip in trips) {
-      if (trip.id == null) continue;
+      if (trip.id == null) {
+        continue;
+      }
       final key = '$_visitCountPrefix${trip.id}';
       final visits = prefs.getInt(key) ?? 0;
       if (visits > maxVisits) {

@@ -69,10 +69,16 @@ class _PrintTripDialogState extends State<PrintTripDialog> {
           final remaining = const Duration(seconds: 1) - elapsed;
           if (remaining > Duration.zero) {
             _minDelayTimer = Timer(remaining, () {
-              if (mounted) setState(() => _transitsReady = true);
+              if (mounted) {
+                setState(() {
+                  _transitsReady = true;
+                });
+              }
             });
           } else {
-            setState(() => _transitsReady = true);
+            setState(() {
+              _transitsReady = true;
+            });
           }
         }
       });
@@ -100,16 +106,24 @@ class _PrintTripDialogState extends State<PrintTripDialog> {
   bool _isInterCity(TransitFacade t) {
     final dep = t.departureLocation?.context.city;
     final arr = t.arrivalLocation?.context.city;
-    if (dep == null || arr == null) return true;
+    if (dep == null || arr == null) {
+      return true;
+    }
     return dep.toLowerCase() != arr.toLowerCase();
   }
 
   List<TransitFacade> get _visibleTransits {
-    if (!_transitsReady) return [];
+    if (!_transitsReady) {
+      return [];
+    }
     return _allTransits.where((t) {
       final isInter = _isInterCity(t);
-      if (isInter && !_includeInterCityTransit) return false;
-      if (!isInter && !_includeIntraCityTransit) return false;
+      if (isInter && !_includeInterCityTransit) {
+        return false;
+      }
+      if (!isInter && !_includeIntraCityTransit) {
+        return false;
+      }
       return true;
     }).toList();
   }
@@ -172,21 +186,27 @@ class _PrintTripDialogState extends State<PrintTripDialog> {
       final pdfBytes =
           await TripPrintService().generatePdf(widget.tripData, options);
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       Navigator.of(context).pop();
 
       await Printing.layoutPdf(
         onLayout: (_) async => pdfBytes,
         name: options.title,
       );
-    } catch (e) {
-      if (!mounted) return;
+    } on Exception catch (e) {
+      if (!mounted) {
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text('${context.localizations.pdfGenerationFailed}: $e')),
       );
     } finally {
-      if (mounted) setState(() => _isGenerating = false);
+      if (mounted) {
+        setState(() => _isGenerating = false);
+      }
     }
   }
 
@@ -417,14 +437,16 @@ class _PrintTripDialogState extends State<PrintTripDialog> {
             if (merged) {
               _mergedJourneyIds.add(group.journeyId!);
               for (final leg in group.legs) {
-                if (leg.id != null) _selectedTransitIds.add(leg.id!);
+                if (leg.id != null) {
+                  _selectedTransitIds.add(leg.id!);
+                }
               }
             } else {
               _mergedJourneyIds.remove(group.journeyId!);
             }
           });
         },
-        onLegToggled: (String id, bool selected) {
+        onLegToggled: (String id, {required bool selected}) {
           setState(() {
             if (selected) {
               _selectedTransitIds.add(id);
@@ -442,7 +464,9 @@ class _PrintTripDialogState extends State<PrintTripDialog> {
       transit: t,
       isSelected: isSelected,
       onChanged: (v) {
-        if (t.id == null) return;
+        if (t.id == null) {
+          return;
+        }
         setState(() {
           if (v) {
             _selectedTransitIds.add(t.id!);
@@ -593,7 +617,7 @@ class _JourneyGroupTile extends StatefulWidget {
   final bool isMerged;
   final Set<String> selectedIds;
   final ValueChanged<bool> onMergeToggled;
-  final void Function(String id, bool selected) onLegToggled;
+  final void Function(String id, {required bool selected}) onLegToggled;
 
   const _JourneyGroupTile({
     required this.group,
@@ -686,7 +710,7 @@ class _JourneyGroupTileState extends State<_JourneyGroupTile>
                           final select = v ?? false;
                           for (final leg in legs) {
                             if (leg.id != null) {
-                              widget.onLegToggled(leg.id!, select);
+                              widget.onLegToggled(leg.id!, selected: select);
                             }
                           }
                         },
@@ -754,7 +778,7 @@ class _JourneyGroupTileState extends State<_JourneyGroupTile>
                     return InkWell(
                       onTap: () {
                         if (leg.id != null) {
-                          widget.onLegToggled(leg.id!, !legSelected);
+                          widget.onLegToggled(leg.id!, selected: !legSelected);
                         }
                       },
                       child: Padding(
@@ -768,7 +792,8 @@ class _JourneyGroupTileState extends State<_JourneyGroupTile>
                                 value: legSelected,
                                 onChanged: (v) {
                                   if (leg.id != null) {
-                                    widget.onLegToggled(leg.id!, v ?? false);
+                                    widget.onLegToggled(leg.id!,
+                                        selected: v ?? false);
                                   }
                                 },
                                 visualDensity: VisualDensity.compact,

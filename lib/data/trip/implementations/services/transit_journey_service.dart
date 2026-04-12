@@ -38,7 +38,9 @@ class TransitJourneyService implements TransitJourneyServiceFacade {
   @override
   TransitJourneyFacade? getJourney(String journeyId) {
     final legs = _getLegsForJourney(journeyId);
-    if (legs.isEmpty) return null;
+    if (legs.isEmpty) {
+      return null;
+    }
     return TransitJourneyFacade(
       journeyId: journeyId,
       tripId: legs.first.tripId,
@@ -61,7 +63,7 @@ class TransitJourneyService implements TransitJourneyServiceFacade {
       return;
     }
 
-    double runningTotal = 0.0;
+    var runningTotal = 0.0;
 
     for (final leg in legs) {
       final expense = leg.expense;

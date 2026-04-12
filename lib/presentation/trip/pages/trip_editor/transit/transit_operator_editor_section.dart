@@ -106,13 +106,13 @@ class _TransitOperatorTextFieldState extends State<_TransitOperatorTextField> {
   @override
   Widget build(BuildContext context) {
     return TextField(
-      key: ValueKey('TransitEditor_TransitOperator_TextField'),
+      key: const ValueKey('TransitEditor_TransitOperator_TextField'),
       minLines: 1,
       maxLines: 1,
       controller: _controller,
       decoration: InputDecoration(
         labelText: context.localizations.carrierName,
-        prefixIcon: Icon(
+        prefixIcon: const Icon(
           Icons.directions_bus,
         ),
       ),
