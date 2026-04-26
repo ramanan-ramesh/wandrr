@@ -162,35 +162,30 @@ class BudgetTile extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Expanded(
-              child: Text(
-                budgetingModule.formatCurrency(
-                  Money(currency: budget.currency, amount: totalExpenditure),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  budgetingModule.formatCurrency(
+                    Money(currency: budget.currency, amount: totalExpenditure),
+                  ),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.bold,
+                      ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.bold,
-                    ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 2),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(width: 22),
-            Text(
-              'out of',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Text(
-                budgetingModule.formatCurrency(budget),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ),
-          ],
+        Text(
+          'of ${budgetingModule.formatCurrency(budget)}',
+          style: Theme.of(context).textTheme.bodySmall,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

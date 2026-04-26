@@ -11,7 +11,10 @@ class UnifiedTripDialog extends StatelessWidget {
   final double? maxWidth;
 
   const UnifiedTripDialog({
-    required this.title, required this.content, required this.actions, super.key,
+    required this.title,
+    required this.content,
+    required this.actions,
+    super.key,
     this.icon,
     this.headerBackground,
     this.maxWidth,
@@ -21,41 +24,57 @@ class UnifiedTripDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final isBig = context.isBigLayout;
     final effectiveMaxWidth = maxWidth ?? (isBig ? 600.0 : 500.0);
+    final margin = isBig
+        ? const EdgeInsets.all(24)
+        : const EdgeInsets.symmetric(horizontal: 12, vertical: 16);
+    final contentPadding = isBig
+        ? const EdgeInsets.fromLTRB(24, 20, 24, 8)
+        : const EdgeInsets.fromLTRB(16, 16, 16, 8);
+    final headerPadding = isBig
+        ? const EdgeInsets.fromLTRB(24, 32, 24, 24)
+        : const EdgeInsets.fromLTRB(16, 20, 16, 16);
 
-    return Center(
-      child: Container(
-        constraints: BoxConstraints(
-          maxWidth: effectiveMaxWidth,
-          maxHeight: MediaQuery.of(context).size.height * 0.9,
-        ),
-        margin: const EdgeInsets.all(24),
-        child: Material(
-          elevation: 24,
-          shadowColor: Colors.black54,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
+    // Wrap in a transparent Dialog so Flutter's default dialog surface
+    // (the grey background that bleeds around our custom Material) is not visible.
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.zero,
+      elevation: 0,
+      child: Center(
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: effectiveMaxWidth,
+            maxHeight: MediaQuery.of(context).size.height * 0.9,
           ),
-          clipBehavior: Clip.hardEdge,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildHeader(context),
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
-                  child: content,
+          margin: margin,
+          child: Material(
+            elevation: 24,
+            shadowColor: Colors.black54,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            clipBehavior: Clip.hardEdge,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildHeader(context, headerPadding),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: contentPadding,
+                    child: content,
+                  ),
                 ),
-              ),
-              _buildFooter(context),
-            ],
+                _buildFooter(context),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, EdgeInsets padding) {
     return Stack(
       children: [
         if (headerBackground != null)
@@ -69,7 +88,7 @@ class UnifiedTripDialog extends StatelessWidget {
             ),
           ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+          padding: padding,
           child: Row(
             children: [
               if (icon != null) ...[

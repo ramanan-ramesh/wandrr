@@ -7,8 +7,9 @@ import 'package:wandrr/data/trip/models/print_options.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/services/trip_print_service.dart';
+import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/trip/widgets/unified_trip_dialog.dart';
 
 /// Modal dialog that lets the user choose which sections to include in the
 /// printed PDF, then generates and shows a print preview.
@@ -214,119 +215,42 @@ class _PrintTripDialogState extends State<PrintTripDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final isBig = MediaQuery.of(context).size.width > 600;
-    final maxW = isBig ? 600.0 : 500.0;
-
-    return Center(
-      child: Container(
-        constraints: BoxConstraints(
-          maxWidth: maxW,
-          maxHeight: MediaQuery.of(context).size.height * 0.9,
-        ),
-        margin: const EdgeInsets.all(24),
-        child: Material(
-          elevation: 24,
-          shadowColor: Colors.black54,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          clipBehavior: Clip.hardEdge,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildHeader(context),
-              Flexible(child: _buildScrollBody(context, cs)),
-              _buildFooter(context, cs),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ── Header ────────────────────────────────────────────────────────────
-
-  Widget _buildHeader(BuildContext context) {
     final l10n = context.localizations;
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: Container(
-            decoration: const BoxDecoration(gradient: AppColors.brandGradient),
-          ),
+    final cs = Theme.of(context).colorScheme;
+    final groups = _transitGroups;
+
+    return UnifiedTripDialog(
+      title: l10n.printTrip,
+      icon: const Icon(Icons.picture_as_pdf_rounded),
+      content: _buildBody(context, cs, groups, l10n),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-          child: Row(
-            children: [
-              const Icon(Icons.picture_as_pdf_rounded,
-                  color: Colors.black, size: 32),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  l10n.printTrip,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ),
-              IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close_rounded, color: Colors.black54),
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
-          ),
+        FilledButton.icon(
+          onPressed: (!_transitsReady || _isGenerating) ? null : _onGenerate,
+          icon: _isGenerating
+              ? SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: cs.onPrimary,
+                  ),
+                )
+              : const Icon(Icons.print_rounded),
+          label: Text(_isGenerating ? l10n.generatingPdf : l10n.generatePdf),
         ),
       ],
     );
   }
 
-  // ── Footer ────────────────────────────────────────────────────────────
-
-  Widget _buildFooter(BuildContext context, ColorScheme cs) {
-    final l10n = context.localizations;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.cancel),
-          ),
-          const SizedBox(width: 8),
-          FilledButton.icon(
-            onPressed: (!_transitsReady || _isGenerating) ? null : _onGenerate,
-            icon: _isGenerating
-                ? SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: cs.onPrimary,
-                    ),
-                  )
-                : const Icon(Icons.print_rounded),
-            label: Text(_isGenerating ? l10n.generatingPdf : l10n.generatePdf),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Scroll body ───────────────────────────────────────────────────────
-
-  Widget _buildScrollBody(BuildContext context, ColorScheme cs) {
-    final l10n = context.localizations;
-    final groups = _transitGroups;
-
-    return ListView(
-      shrinkWrap: true,
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+  Widget _buildBody(BuildContext context, ColorScheme cs,
+      List<_TransitGroup> groups, AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         // ── Title field ─────────────────────────────────────────
         TextFormField(

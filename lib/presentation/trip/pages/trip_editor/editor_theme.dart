@@ -102,24 +102,34 @@ class EditorTheme {
     VoidCallback? onTap,
   }) {
     var header = Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          children: [
-            Icon(icon, color: iconColor, size: iconSize),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: (useLargeText
-                      ? Theme.of(context).textTheme.titleLarge
-                      : Theme.of(context).textTheme.titleMedium)
-                  ?.copyWith(
-                fontWeight: FontWeight.bold,
+        Flexible(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: iconColor, size: iconSize),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  title,
+                  style: (useLargeText
+                          ? Theme.of(context).textTheme.titleLarge
+                          : Theme.of(context).textTheme.titleMedium)
+                      ?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        if (trailing != null) trailing,
+        if (trailing != null) ...[
+          const SizedBox(width: 8),
+          trailing,
+        ],
       ],
     );
     if (onTap != null) {

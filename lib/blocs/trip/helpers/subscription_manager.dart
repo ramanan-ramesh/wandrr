@@ -34,35 +34,17 @@ class SubscriptionManager {
   }) {
     final addedSubscription =
         modelCollection.onDocumentAdded.listen((eventData) {
-      if (!eventData.isFromExplicitAction) {
-        final metadata = CollectionItemChangeMetadata(
-          eventData.modifiedCollectionItem,
-          isFromExplicitAction: false,
-        );
-        onAdded(metadata);
-      }
+      onAdded(eventData);
     });
 
     final deletedSubscription =
         modelCollection.onDocumentDeleted.listen((eventData) {
-      if (!eventData.isFromExplicitAction) {
-        final metadata = CollectionItemChangeMetadata(
-          eventData.modifiedCollectionItem,
-          isFromExplicitAction: false,
-        );
-        onDeleted(metadata);
-      }
+      onDeleted(eventData);
     });
 
     final updatedSubscription =
         modelCollection.onDocumentUpdated.listen((eventData) {
-      if (!eventData.isFromExplicitAction) {
-        final metadata = CollectionItemChangeMetadata(
-          eventData.modifiedCollectionItem,
-          isFromExplicitAction: false,
-        );
-        onUpdated(metadata);
-      }
+      onUpdated(eventData);
     });
 
     addTripStreamSubscription(addedSubscription);

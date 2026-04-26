@@ -24,7 +24,11 @@ class ItinerarySightsEditor extends StatefulWidget {
   final int? initialExpandedIndex;
 
   const ItinerarySightsEditor({
-    required this.sights, required this.onSightsChanged, required this.onSightTimesChanged, required this.day, super.key,
+    required this.sights,
+    required this.onSightsChanged,
+    required this.onSightTimesChanged,
+    required this.day,
+    super.key,
     this.initialExpandedIndex,
   });
 
@@ -188,12 +192,15 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
         Row(
           children: [
             if (sight.location != null)
-              TimezoneIndicator(location: sight.location!),
+              Flexible(
+                flex: 0,
+                child: TimezoneIndicator(location: sight.location!),
+              ),
             if (sight.location != null)
               const SizedBox(
                 width: _kSpacingMedium,
               ),
-            Expanded(
+            Flexible(
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.access_time),
                 label: Text(timeOfDay == null

@@ -20,7 +20,9 @@ class TripContributorsEditorSection extends StatefulWidget {
   final ValueChanged<Iterable<String>> onContributorsChanged;
 
   const TripContributorsEditorSection({
-    required this.contributors, required this.onContributorsChanged, super.key,
+    required this.contributors,
+    required this.onContributorsChanged,
+    super.key,
   });
 
   @override
@@ -80,13 +82,15 @@ class _TripContributorsEditorSectionState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              EditorTheme.createSectionHeader(
-                context,
-                icon: Icons.people_rounded,
-                title: 'Trip Mates',
-                iconColor: context.isLightTheme
-                    ? AppColors.success
-                    : AppColors.successLight,
+              Expanded(
+                child: EditorTheme.createSectionHeader(
+                  context,
+                  icon: Icons.people_rounded,
+                  title: 'Trip Mates',
+                  iconColor: context.isLightTheme
+                      ? AppColors.success
+                      : AppColors.successLight,
+                ),
               ),
               _buildAddContributorButton(context),
             ],

@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-
 import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 
 /// Itinerary-specific plan data with sights, notes, and checklists
@@ -52,17 +51,13 @@ class ItineraryPlanData extends Equatable
       );
 
   @override
-  bool validate() {
-    final errors = getValidationErrors();
-    return errors.isEmpty ||
-        errors.contains(ItineraryPlanDataValidationResult.noContent);
-  }
+  bool validate() => getValidationErrors().isEmpty;
 
   @override
   Iterable<ItineraryPlanDataValidationResult> getValidationErrors() {
-    // At least one of: sights, notes, or checklists must be present
+    // An empty plan is valid — content will be added during editing.
     if (sights.isEmpty && notes.isEmpty && checkLists.isEmpty) {
-      return [ItineraryPlanDataValidationResult.noContent];
+      return const [];
     }
 
     final errors = <ItineraryPlanDataValidationResult>[];
@@ -102,4 +97,3 @@ class ItineraryPlanData extends Equatable
   @override
   List<Object?> get props => [tripId, id, day, sights, notes, checkLists];
 }
-

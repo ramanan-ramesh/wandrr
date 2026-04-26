@@ -251,9 +251,8 @@ Future<void> runItineraryPlanDataValidationTest(
       sights: const [],
       notes: const [],
       checkLists: const []);
-  expect(e.validate(), true, reason: 'noContent=valid');
-  expect(e.getValidationErrors().first,
-      ItineraryPlanDataValidationResult.noContent);
+  expect(e.validate(), true, reason: 'empty plan is valid');
+  expect(e.getValidationErrors(), isEmpty);
 
   final vp =
       ItineraryPlanData(tripId: _tripId, day: DateTime(2025, 10, 1), sights: [

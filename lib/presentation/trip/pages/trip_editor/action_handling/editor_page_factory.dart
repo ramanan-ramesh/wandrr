@@ -65,11 +65,9 @@ class EditorPageFactory {
       },
       scrollController: scrollController,
       actionIcon: _actionIcon,
-      pageContentCreator: (editableEntity, validityNotifier, onUpdated) =>
-          TripDetailsEditor(
+      pageContentCreator: (editableEntity, onUpdated) => TripDetailsEditor(
         tripMetadataFacade: editableEntity,
         onTripMetadataUpdated: () {
-          validityNotifier.value = editableEntity.validate();
           onUpdated();
         },
       ),
@@ -91,7 +89,7 @@ class EditorPageFactory {
         // Write stable lists → clone right before the update event is emitted.
         final currentState = editorKey.currentState;
         currentState?.syncToEntity();
-        
+
         if (currentState?.shouldCopy == true) {
           final copy = editableClone.clone();
           copy.id = null;
@@ -101,12 +99,14 @@ class EditorPageFactory {
           for (final checkList in copy.checkLists) {
             checkList.id = null;
           }
-          ctx.addTripManagementEvent(UpdateTripEntity<ItineraryPlanData>.create(tripEntity: copy));
+          ctx.addTripManagementEvent(
+              UpdateTripEntity<ItineraryPlanData>.create(tripEntity: copy));
           return 1;
         } else {
-          final dateChanged = currentState != null && 
-              !currentState.planData.day.isOnSameDayAs(currentState.originalDate);
-          
+          final dateChanged = currentState != null &&
+              !currentState.planData.day
+                  .isOnSameDayAs(currentState.originalDate);
+
           if (dateChanged) {
             // It's a MOVE.
             // 1. Delete content at the old date
@@ -114,27 +114,28 @@ class EditorPageFactory {
               tripId: editableClone.tripId,
               day: currentState.originalDate,
             );
-            ctx.addTripManagementEvent(UpdateTripEntity<ItineraryPlanData>.delete(tripEntity: emptyOldPlan));
-            
+            ctx.addTripManagementEvent(
+                UpdateTripEntity<ItineraryPlanData>.delete(
+                    tripEntity: emptyOldPlan));
+
             // 2. Update/Create content at the new date
-            ctx.addTripManagementEvent(UpdateTripEntity<ItineraryPlanData>.update(tripEntity: editableClone));
+            ctx.addTripManagementEvent(
+                UpdateTripEntity<ItineraryPlanData>.update(
+                    tripEntity: editableClone));
             return 2;
           }
-          
+
           _emitUpdateEvent<ItineraryPlanData>(ctx, editableClone);
           return 1;
         }
       },
       scrollController: scrollController,
       actionIcon: _actionIcon,
-      pageContentCreator: (editableEntity, validityNotifier, onUpdated) =>
+      pageContentCreator: (editableEntity, onUpdated) =>
           ItineraryPlanDataEditor(
         key: editorKey,
         planData: editableEntity,
         onPlanDataUpdated: () {
-          validityNotifier.value =
-              editorKey.currentState?.validateCurrentState() ??
-                  editableEntity.validate();
           onUpdated();
         },
         config: itineraryConfig!,
@@ -155,14 +156,12 @@ class EditorPageFactory {
           journeyEditorKey.currentState?.saveAllLegs(ctx) ?? 0,
       scrollController: scrollController,
       actionIcon: _actionIcon,
-      pageContentCreator: (editableEntity, validityNotifier, onUpdated) =>
-          JourneyEditor(
+      pageContentCreator: (editableEntity, onUpdated) => JourneyEditor(
         key: journeyEditorKey,
         initialLeg: editableEntity,
         onJourneyUpdated: () {
           onUpdated();
         },
-        validityNotifier: validityNotifier,
       ),
     );
   }
@@ -180,14 +179,11 @@ class EditorPageFactory {
       },
       scrollController: scrollController,
       actionIcon: _actionIcon,
-      pageContentCreator: (editableEntity, validityNotifier, onUpdated) =>
-          LodgingEditor(
+      pageContentCreator: (editableEntity, onUpdated) => LodgingEditor(
         lodging: editableEntity,
         onLodgingUpdated: () {
-          validityNotifier.value = editableEntity.validate();
           onUpdated();
         },
-        validityNotifier: validityNotifier,
       ),
     );
   }

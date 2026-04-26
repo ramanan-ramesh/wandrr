@@ -1224,4 +1224,33 @@ printed.
   - Journey validation (per-leg + cross-leg sequence) runs before conflict detection. If validation fails, conflict detection is skipped entirely and `EntityValidationUpdated` is emitted with `JourneyValidationResult` enums.
   - `TransitJourneyServiceFacade.validateJourney()` returns `List<JourneyValidationResult>` (enum-based) instead of the old `String?` approach, keeping error messaging as a UI-layer concern.
 
+---
+
+## Changelog — v1.4 (2026-04-26)
+
+### Bug Fixes
+
+- **CopyTripDialog phone layout:** Reduced dialog margin and padding on phones (12px horizontal margin, 16px content padding) so content area is maximised on small screens.
+- **LodgingEditor time overflow:** Changed `_DateTimeSection` header from a single `Row` to `Wrap`, so date button + time chip wrap to a second line on narrow phones instead of overflowing.
+- **BudgetTile multi-line text:** Added `FittedBox(scaleDown)` and `maxLines: 1` + `TextOverflow.ellipsis` to currency amounts in the vertical phone layout.
+- **ItineraryPlanDataEditor "Set time" overflow:** Changed `TimezoneIndicator` to `Flexible(flex: 0)` and the `OutlinedButton` from `Expanded` to `Flexible` so they share available space without overflowing.
+- **EditorTheme section header overflow:** Wrapped the inner icon+title `Row` in `Expanded > Flexible` with `maxLines: 2` ellipsis, preventing overflow with long i18n strings (Hindi/Tamil).
+
+### Refactoring
+
+- **Validation consolidation:** Removed `_validityNotifier` (`ValueNotifier<bool>`) from `ConflictAwareActionPage`, `EditorPageFactory`, `LodgingEditor`, and `JourneyEditor`. The FAB now relies solely on `state.validationErrors` from `TripEntityEditorBloc` — no redundant `entity.validate()` calls in UI callbacks. `pageContentCreator` signature simplified from `(T, ValueNotifier, VoidCallback)` to `(T, VoidCallback)`.
+
+### Phone Layout Audit — Remaining Items to Watch
+
+The following areas should be monitored for text overflow when using Hindi/Tamil localizations on small phones (< 360dp width):
+
+| File | Risk |
+|------|------|
+| `journey_editor.dart` — `_LegSectionHeader` route text | Long city names in `"City → City"` format |
+| `journey_editor.dart` — `_SummaryItem` label | Currency amounts with long currency codes |
+| `conflict_aware_action_page.dart` — `_StickyConflictBanner` | "Resolve to save" + "Review" button in tight Row |
+| `expenses_list_view.dart` — sort toggle row | `BudgetTile` + `ToggleButtons` compete for width |
+| `unified_trip_dialog.dart` — header title | `headlineSmall` with long i18n titles |
+
+
 

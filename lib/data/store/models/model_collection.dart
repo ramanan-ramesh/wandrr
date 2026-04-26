@@ -17,7 +17,7 @@ abstract class ModelCollectionFacade<Model> {
   Iterable<Model> get collectionItems;
 
   bool get isLoaded;
-  
+
   Stream<bool> get onLoaded;
 }
 
@@ -30,6 +30,4 @@ abstract class ModelCollectionModifier<Model>
   FutureOr<bool> tryDeleteItem(Model toDelete);
 
   FutureOr<bool> tryUpdateItem(Model toUpdate);
-
-  Future<void> runUpdateTransaction(Future<void> Function() updateTransaction);
 }

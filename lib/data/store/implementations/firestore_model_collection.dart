@@ -14,6 +14,11 @@ class FirestoreModelCollection<Model>
       _typedCollectionReference;
   StreamSubscription? _collectionStreamSubscription;
   bool _isLoaded = false;
+
+  /// IDs of documents that were explicitly added/deleted/updated by local
+  /// actions. The Firestore listener will skip emitting stream events for
+  /// these IDs exactly once, since the caller already handles the UI change.
+  final Set<String> _pendingExplicitIds = {};
   final StreamController<bool> _isLoadedStreamController =
       StreamController<bool>.broadcast();
 
@@ -103,79 +108,45 @@ class FirestoreModelCollection<Model>
   RepositoryDocument<Model> Function(Model model) repositoryItemCreator;
 
   @override
-  Future<void> runUpdateTransaction(
-      Future<void> Function() updateTransaction) async {
-    _collectionStreamSubscription?.pause();
-    await updateTransaction();
-    _collectionStreamSubscription?.resume();
-  }
-
-  @override
   Future<Model?> tryAdd(Model toAdd) async {
-    RepositoryDocument<Model>? addedCollectionItem;
-
-    await runUpdateTransaction(() async {
-      var leafRepositoryItem = repositoryItemCreator(toAdd);
-      var addResult = await _typedCollectionReference.add(leafRepositoryItem);
-      addedCollectionItem = leafRepositoryItem;
-      addedCollectionItem!.id = addResult.id;
-      _collectionItems.add(addedCollectionItem!);
-      _additionStreamController.add(CollectionItemChangeMetadata(
-          addedCollectionItem!.facade,
-          isFromExplicitAction: true));
-    });
-
-    return addedCollectionItem?.facade;
+    var leafRepositoryItem = repositoryItemCreator(toAdd);
+    final addResult = await _typedCollectionReference.add(leafRepositoryItem);
+    leafRepositoryItem.id = addResult.id;
+    // Mark this ID so the listener skips emitting an 'added' stream event
+    // (the caller already handles the UI update).
+    _pendingExplicitIds.add(addResult.id);
+    return leafRepositoryItem.facade;
   }
 
   @override
   FutureOr<bool> tryDeleteItem(Model toDelete) async {
-    var didDelete = false;
-    await runUpdateTransaction(() async {
-      var leafRepositoryItem = repositoryItemCreator(toDelete);
-      didDelete = await _tryDeleteCollectionItem(leafRepositoryItem);
-      if (didDelete) {
-        _deletionStreamController.add(CollectionItemChangeMetadata(
-            leafRepositoryItem.facade,
-            isFromExplicitAction: true));
-      }
-    });
+    var leafRepositoryItem = repositoryItemCreator(toDelete);
+    final id = leafRepositoryItem.documentReference.id;
+    final didDelete = await _tryDeleteCollectionItem(leafRepositoryItem);
+    if (didDelete) {
+      _pendingExplicitIds.add(id);
+    }
     return didDelete;
   }
 
   @override
   FutureOr<bool> tryUpdateItem(Model toUpdate) async {
-    var didUpdate = false;
-    await runUpdateTransaction(() async {
-      var leafRepositoryItem = repositoryItemCreator(toUpdate);
-      var matchingElementIndex = _collectionItems.indexWhere((repositoryItem) =>
-          repositoryItem.documentReference.id ==
-          leafRepositoryItem.documentReference.id);
-      if (matchingElementIndex == -1) {
-        didUpdate = false;
-        return;
-      }
-      var collectionItemBeforeUpdate = _collectionItems[matchingElementIndex];
-
-      var typedDocRef = _typedCollectionReference
-          .doc(leafRepositoryItem.documentReference.id);
-
-      try {
-        await typedDocRef.set(leafRepositoryItem, SetOptions(merge: true));
-        didUpdate = true;
-      } on Exception {
-        didUpdate = false;
-      }
-
-      if (didUpdate) {
-        _collectionItems[matchingElementIndex] = leafRepositoryItem;
-        _updationStreamController.add(CollectionItemChangeMetadata(
-            CollectionItemChangeSet(
-                collectionItemBeforeUpdate.facade, leafRepositoryItem.facade),
-            isFromExplicitAction: true));
-      }
-    });
-    return didUpdate;
+    var leafRepositoryItem = repositoryItemCreator(toUpdate);
+    var matchingElementIndex = _collectionItems.indexWhere((repositoryItem) =>
+        repositoryItem.documentReference.id ==
+        leafRepositoryItem.documentReference.id);
+    if (matchingElementIndex == -1) {
+      return false;
+    }
+    var typedDocRef =
+        _typedCollectionReference.doc(leafRepositoryItem.documentReference.id);
+    try {
+      await typedDocRef.set(leafRepositoryItem, SetOptions(merge: true));
+    } on Exception {
+      return false;
+    }
+    _pendingExplicitIds.add(leafRepositoryItem.documentReference.id);
+    return true;
   }
 
   void _onCollectionDataUpdate(
@@ -202,11 +173,18 @@ class FirestoreModelCollection<Model>
                 element.documentReference.id ==
                 leafRepositoryItem.documentReference.id)) {
               _collectionItems.add(leafRepositoryItem);
-              _additionStreamController.add(CollectionItemChangeMetadata(
-                  leafRepositoryItem.facade,
-                  isFromExplicitAction: false));
+              // Only broadcast if this wasn't an explicit local action
+              if (!_pendingExplicitIds
+                  .remove(leafRepositoryItem.documentReference.id)) {
+                _additionStreamController.add(CollectionItemChangeMetadata(
+                    leafRepositoryItem.facade,
+                    isFromExplicitAction: false));
+              }
+            } else {
+              // Doc already present, consume the pending ID if any
+              _pendingExplicitIds
+                  .remove(leafRepositoryItem.documentReference.id);
             }
-
             break;
           }
         case DocumentChangeType.removed:
@@ -215,9 +193,13 @@ class FirestoreModelCollection<Model>
                 element.documentReference.id == documentSnapshot.id)) {
               _collectionItems.removeWhere((element) =>
                   element.documentReference.id == documentSnapshot.id);
-              _deletionStreamController.add(CollectionItemChangeMetadata(
-                  leafRepositoryItem.facade,
-                  isFromExplicitAction: false));
+              if (!_pendingExplicitIds.remove(documentSnapshot.id)) {
+                _deletionStreamController.add(CollectionItemChangeMetadata(
+                    leafRepositoryItem.facade,
+                    isFromExplicitAction: false));
+              }
+            } else {
+              _pendingExplicitIds.remove(documentSnapshot.id);
             }
             break;
           }
@@ -225,15 +207,19 @@ class FirestoreModelCollection<Model>
           {
             var matchingElementIndex = _collectionItems.indexWhere((element) =>
                 element.documentReference.id == documentSnapshot.id);
+            if (matchingElementIndex == -1) break;
             var collectionItemBeforeUpdate =
                 _collectionItems[matchingElementIndex];
+            _collectionItems[matchingElementIndex] = leafRepositoryItem;
             if (collectionItemBeforeUpdate.facade !=
-                leafRepositoryItem.facade) {
-              _collectionItems[matchingElementIndex] = leafRepositoryItem;
+                    leafRepositoryItem.facade &&
+                !_pendingExplicitIds.remove(documentSnapshot.id)) {
               _updationStreamController.add(CollectionItemChangeMetadata(
                   CollectionItemChangeSet(collectionItemBeforeUpdate.facade,
                       leafRepositoryItem.facade),
                   isFromExplicitAction: false));
+            } else {
+              _pendingExplicitIds.remove(documentSnapshot.id);
             }
             break;
           }
@@ -242,14 +228,14 @@ class FirestoreModelCollection<Model>
   }
 
   FutureOr<bool> _tryDeleteCollectionItem(RepositoryDocument toDelete) async {
-    var didDelete = false;
-    await toDelete.documentReference.delete().onError((error, stackTrace) {
-      didDelete = false;
-    }).then((value) {
-      didDelete = true;
-    });
-
-    return didDelete;
+    try {
+      await _typedCollectionReference
+          .doc(toDelete.documentReference.id)
+          .delete();
+      return true;
+    } on Exception catch (_) {
+      return false;
+    }
   }
 
   FirestoreModelCollection._({

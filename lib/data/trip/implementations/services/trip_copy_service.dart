@@ -12,7 +12,6 @@ import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
-import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
 /// Service that copies an entire trip (metadata + all sub-entities) into a new
@@ -94,9 +93,9 @@ class TripCopyService {
       WriteBatch batch) {
     for (final itineraryPlanData
         in itineraryCollection.map((e) => e.planData)) {
-      if (itineraryPlanData
-          .getValidationErrors()
-          .contains(ItineraryPlanDataValidationResult.noContent)) {
+      if (itineraryPlanData.sights.isEmpty &&
+          itineraryPlanData.notes.isEmpty &&
+          itineraryPlanData.checkLists.isEmpty) {
         continue;
       }
       final shiftedDay = _shiftDate(itineraryPlanData.day, dateOffset);

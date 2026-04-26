@@ -116,24 +116,30 @@ class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
     return tempPlanData.validate();
   }
 
+  /// Called by child editors whenever data changes. Syncs the stable working
+  /// lists back to [planData] so the bloc always sees current data for
+  /// validation, then notifies the parent.
+  void _onDataChanged() {
+    syncToEntity();
+    widget.onPlanDataUpdated();
+  }
+
   List<Widget> _buildTabWidgets() => [
         ItinerarySightsEditor(
           sights: _stableSights,
-          onSightsChanged: widget.onPlanDataUpdated,
-          onSightTimesChanged: () {
-            widget.onPlanDataUpdated();
-          },
+          onSightsChanged: _onDataChanged,
+          onSightTimesChanged: _onDataChanged,
           day: planData.day,
           initialExpandedIndex: _getInitialExpandedIndex(PlanDataType.sight),
         ),
         ItineraryNotesEditor(
           stableNotes: _stableNotes,
-          onNotesChanged: (_) => widget.onPlanDataUpdated(),
+          onNotesChanged: (_) => _onDataChanged(),
           initialExpandedIndex: _getInitialExpandedIndex(PlanDataType.note),
         ),
         ItineraryChecklistsEditor(
           checklists: _stableChecklists,
-          onChecklistsChanged: widget.onPlanDataUpdated,
+          onChecklistsChanged: _onDataChanged,
           initialExpandedIndex:
               _getInitialExpandedIndex(PlanDataType.checklist),
         ),

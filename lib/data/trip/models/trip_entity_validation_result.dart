@@ -33,7 +33,6 @@ enum LodgingValidationResult {
 
 enum ItineraryPlanDataValidationResult {
   valid,
-  noContent,
   sightInvalid,
   noteEmpty,
   checkListTitleNotValid,

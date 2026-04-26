@@ -92,9 +92,8 @@ class PlatformDialogElements {
       pageBuilder: (BuildContext context, Animation<double> animation,
           Animation<double> secondaryAnimation) {
         return Material(
-          child: Dialog(
-            child: dialogContentCreator(context),
-          ),
+          type: MaterialType.transparency,
+          child: dialogContentCreator(context),
         );
       },
       transitionBuilder: (ctx, anim1, anim2, child) => BackdropFilter(

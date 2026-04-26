@@ -19,13 +19,9 @@ class JourneyEditor extends StatefulWidget {
   /// Called when any leg in the journey is updated
   final VoidCallback onJourneyUpdated;
 
-  /// Notifier to track if FAB should be enabled
-  final ValueNotifier<bool>? validityNotifier;
-
   const JourneyEditor({
     required this.initialLeg,
     required this.onJourneyUpdated,
-    this.validityNotifier,
     super.key,
   });
 
@@ -181,7 +177,7 @@ class JourneyEditorState extends State<JourneyEditor> {
     });
 
     widget.onJourneyUpdated();
-    _updateValidity();
+
   }
 
   void _removeLeg(int index) {
@@ -218,7 +214,7 @@ class JourneyEditorState extends State<JourneyEditor> {
     context.addTripEntityEditorEvent<TransitFacade>(UpdateJourney(_legs));
 
     widget.onJourneyUpdated();
-    _updateValidity();
+
   }
 
   void _onLegUpdated(int index, {bool needsRebuild = true}) {
@@ -232,14 +228,7 @@ class JourneyEditorState extends State<JourneyEditor> {
       context.addTripEntityEditorEvent<TransitFacade>(UpdateJourney(_legs));
     }
     widget.onJourneyUpdated();
-    _updateValidity();
-  }
 
-  void _updateValidity() {
-    if (widget.validityNotifier != null) {
-      final journeyErrors = _journeyService.validateJourney(_legs);
-      widget.validityNotifier!.value = journeyErrors.isEmpty;
-    }
   }
 
   /// Deletes all legs of the current journey.  /// Returns the number of dispatched delete operations.

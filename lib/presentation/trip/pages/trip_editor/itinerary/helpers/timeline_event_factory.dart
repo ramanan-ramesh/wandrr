@@ -229,14 +229,14 @@ class TimelineEventFactory {
             transit.departureDateTime?.hourMinuteAmPmFormat ?? '--:--';
         final operatorInfo = _formatter.getTransitOperatorInfo(transit);
         subtitle =
-            'Departs $depTime${operatorInfo.isNotEmpty ? ' • $operatorInfo' : ''}';
+            '$depTime${operatorInfo.isNotEmpty ? ' • $operatorInfo' : ''}';
       } else {
         title = 'Arriving at $arrCity from $depCity';
         final arrTime =
             transit.arrivalDateTime?.hourMinuteAmPmFormat ?? '--:--';
         final operatorInfo = _formatter.getTransitOperatorInfo(transit);
         subtitle =
-            'Arrives $arrTime${operatorInfo.isNotEmpty ? ' • $operatorInfo' : ''}';
+            '$arrTime${operatorInfo.isNotEmpty ? ' • $operatorInfo' : ''}';
       }
     } else {
       // Same-day journey: existing compact "A → B" logic

@@ -233,7 +233,9 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
       okButton: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         decoration: BoxDecoration(
-          color: isLightTheme ? AppColors.brandPrimary : AppColors.brandPrimaryLight,
+          color: isLightTheme
+              ? AppColors.brandPrimary
+              : AppColors.brandPrimaryLight,
           borderRadius: BorderRadius.circular(8),
         ),
         child: const Text(
@@ -407,24 +409,37 @@ class _DateTimeSection extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Row(
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 8,
+      runSpacing: 8,
       children: [
-        Icon(icon, size: 20, color: iconColor),
-        const SizedBox(width: 8),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color:
-                    isLightTheme ? AppColors.neutral700 : AppColors.neutral300,
-              ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 20, color: iconColor),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isLightTheme
+                        ? AppColors.neutral700
+                        : AppColors.neutral300,
+                  ),
+            ),
+          ],
         ),
-        const Spacer(),
-        _buildDateButton(context),
-        if (dateTime != null) ...[
-          const SizedBox(width: 8),
-          _buildTimeChip(context),
-        ],
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildDateButton(context),
+            if (dateTime != null) ...[
+              const SizedBox(width: 8),
+              _buildTimeChip(context),
+            ],
+          ],
+        ),
       ],
     );
   }

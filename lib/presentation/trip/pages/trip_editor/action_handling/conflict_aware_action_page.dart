@@ -37,8 +37,8 @@ class ConflictAwareActionPage<T extends TripEntity<Enum>>
   /// Dispatches update events and returns the number of pending operations.
   final int Function(BuildContext context) onActionInvoked;
   final IconData actionIcon;
-  final Widget Function(T editableEntity, ValueNotifier<bool> validityNotifier,
-      VoidCallback onEntityUpdated) pageContentCreator;
+  final Widget Function(T editableEntity, VoidCallback onEntityUpdated)
+      pageContentCreator;
   final String title;
   final ScrollController? scrollController;
   final T tripEntity;
@@ -65,7 +65,6 @@ class ConflictAwareActionPage<T extends TripEntity<Enum>>
 
 class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
     extends State<ConflictAwareActionPage<T>> {
-  late final ValueNotifier<bool> _validityNotifier;
   late final Widget _pageContent;
   late final PageController _pageController;
   TripEntityEditorBloc<T>? _editorBloc;
@@ -76,15 +75,13 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
   @override
   void initState() {
     super.initState();
-    _validityNotifier = ValueNotifier<bool>(widget.tripEntity.validate());
     _pageController = PageController(initialPage: 0);
-    _pageContent = widget.pageContentCreator(
-        widget.tripEntity, _validityNotifier, _onEntityUpdated);
+    _pageContent =
+        widget.pageContentCreator(widget.tripEntity, _onEntityUpdated);
   }
 
   @override
   void dispose() {
-    _validityNotifier.dispose();
     _pageController.dispose();
     _editorBloc?.close();
     super.dispose();
@@ -430,41 +427,34 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
 
   Widget _createActionButton(BuildContext context, bool hasUnresolvedConflicts,
       bool hasValidationErrors) {
+    final canSubmit =
+        !hasUnresolvedConflicts && !hasValidationErrors && !_isSubmitting;
     return SizedBox(
       height: TripEditorPageConstants.fabSize,
       width: TripEditorPageConstants.fabSize,
-      child: ValueListenableBuilder<bool>(
-        valueListenable: _validityNotifier,
-        builder: (context, isValid, child) {
-          final canSubmit = isValid &&
-              !hasUnresolvedConflicts &&
-              !hasValidationErrors &&
-              !_isSubmitting;
-          return AnimatedOpacity(
-            opacity: 1.0,
-            duration: const Duration(milliseconds: 300),
-            child: FloatingActionButton(
-              heroTag: null,
-              onPressed: canSubmit
-                  ? () {
-                      context.addTripEntityEditorEvent<T>(const SubmitEntity());
-                    }
-                  : null,
-              backgroundColor:
-                  canSubmit ? AppColors.brandPrimary : Colors.grey.shade400,
-              child: _isSubmitting
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Icon(widget.actionIcon),
-            ),
-          );
-        },
+      child: AnimatedOpacity(
+        opacity: 1.0,
+        duration: const Duration(milliseconds: 300),
+        child: FloatingActionButton(
+          heroTag: null,
+          onPressed: canSubmit
+              ? () {
+                  context.addTripEntityEditorEvent<T>(const SubmitEntity());
+                }
+              : null,
+          backgroundColor:
+              canSubmit ? AppColors.brandPrimary : Colors.grey.shade400,
+          child: _isSubmitting
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : Icon(widget.actionIcon),
+        ),
       ),
     );
   }
