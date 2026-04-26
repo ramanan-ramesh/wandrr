@@ -12,7 +12,6 @@ class FirestoreModelCollection<Model>
     implements ModelCollectionModifier<Model> {
   final CollectionReference<LeafRepositoryItem<Model>>
       _typedCollectionReference;
-  bool _shouldListenToUpdates = false;
   StreamSubscription? _collectionStreamSubscription;
   bool _isLoaded = false;
   final StreamController<bool> _isLoadedStreamController =
@@ -107,10 +106,8 @@ class FirestoreModelCollection<Model>
   Future<void> runUpdateTransaction(
       Future<void> Function() updateTransaction) async {
     _collectionStreamSubscription?.pause();
-    _shouldListenToUpdates = false;
     await updateTransaction();
     _collectionStreamSubscription?.resume();
-    _shouldListenToUpdates = true;
   }
 
   @override
@@ -183,9 +180,6 @@ class FirestoreModelCollection<Model>
 
   void _onCollectionDataUpdate(
       List<DocumentChange<RepositoryDocument<Model>>> documentChanges) {
-    if (!_shouldListenToUpdates) {
-      return;
-    }
     if (!_isLoaded) {
       _isLoaded = true;
       _isLoadedStreamController.add(true);
@@ -273,13 +267,11 @@ class FirestoreModelCollection<Model>
     if (_collectionStreamSubscription != null) {
       return;
     }
-    _shouldListenToUpdates = false;
     final queryToUse = typedQuery != null
         ? typedQuery!
         : (_typedCollectionReference as Query<RepositoryDocument<Model>>);
     _collectionStreamSubscription = queryToUse
         .snapshots()
         .listen((event) => _onCollectionDataUpdate(event.docChanges));
-    _shouldListenToUpdates = true;
   }
 }

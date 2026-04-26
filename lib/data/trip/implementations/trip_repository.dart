@@ -161,13 +161,15 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   @override
   Future deleteTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository) async {
-    TripDataModelImplementation tripToDelete;
-    if (!_tripDataCache.containsKey(tripMetadata.id)) {
-      tripToDelete = TripDataModelImplementation.createInstance(tripMetadata,
-          apiServicesRepository, currentUserName, supportedCurrencies);
-    } else {
-      tripToDelete = _tripDataCache[tripMetadata.id]!;
+    final tripToDelete =
+        loadTrip(tripMetadata, apiServicesRepository, activateTrip: false);
+
+    // Ensure all sub-collections are loaded before building the delete batch,
+    // so no data is silently left behind.
+    if (!tripToDelete.isFullyLoadedValue) {
+      await tripToDelete.isFullyLoaded.firstWhere((isLoaded) => isLoaded);
     }
+
     final batch = FirebaseFirestore.instance.batch();
     var tripMetadataToDelete = tripMetadataCollection.collectionItems
         .firstWhere((item) => item.id == tripMetadata.id);
