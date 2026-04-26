@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wandrr/data/auth/models/auth_type.dart';
 
 /// Helper class to configure Firebase to use local emulators for integration tests
 class FirebaseEmulatorHelper {
@@ -97,8 +96,7 @@ class FirebaseEmulatorHelper {
     } else {
       final sharedPreferences = await SharedPreferences.getInstance();
       if (shouldSignIn) {
-        await sharedPreferences.setString(
-            'authType', AuthenticationType.emailPassword.name);
+        await sharedPreferences.setString('authType', 'emailPassword');
       }
     }
 
@@ -239,7 +237,7 @@ class FirebaseEmulatorHelper {
       // Create new user document
       await usersRef.add({
         'userName': email,
-        'authType': AuthenticationType.emailPassword.name,
+        'authType': 'emailPassword',
       });
 
       if (kDebugMode) {

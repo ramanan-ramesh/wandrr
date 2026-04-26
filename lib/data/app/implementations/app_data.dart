@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/app/models/language_metadata.dart';
 import 'package:wandrr/data/auth/implementations/user_management.dart';
@@ -19,6 +18,7 @@ class AppDataRepository extends AppDataModifier {
 
   @override
   final UserManagementModifier userManagement;
+
   @override
   String activeLanguage;
 
@@ -73,11 +73,8 @@ class AppDataRepository extends AppDataModifier {
         activeLanguage = initialLanguage,
         isBigLayout = false,
         languageMetadatas = [
-          LanguageMetadata(
-              Assets.images.flags.india.path, 'ta', _tamilLanguage),
-          LanguageMetadata(
-              Assets.images.flags.india.path, 'hi', _hindiLanguage),
-          LanguageMetadata(
-              Assets.images.flags.britain.path, 'en', _englishLanguage),
+          const LanguageMetadata('ta', _tamilLanguage),
+          const LanguageMetadata('hi', _hindiLanguage),
+          const LanguageMetadata('en', _englishLanguage),
         ];
 }

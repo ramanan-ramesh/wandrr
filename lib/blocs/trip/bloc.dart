@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip/helpers/itinerary_subscription_handler.dart';
 import 'package:wandrr/blocs/trip/helpers/subscription_manager.dart';
-import 'package:wandrr/blocs/trip/helpers/trip_entity_factory.dart';
 import 'package:wandrr/blocs/trip/helpers/trip_entity_update_handler.dart';
 import 'package:wandrr/blocs/trip/helpers/trip_metadata_subscription_handler.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
@@ -133,15 +132,6 @@ class TripManagementBloc
 
   FutureOr<void> _onUpdateTransit(UpdateTripEntity<TransitFacade> event,
       Emitter<TripManagementState> emit) async {
-    if (event.dataState == DataState.newUiEntry) {
-      var transit = TripEntityFactory.createTransit(
-        tripMetadata: _activeTrip!.tripMetadata,
-        existing: event.tripEntity,
-      );
-      emit(UpdatedTripEntity<TransitFacade>.createdNewUiEntry(
-          tripEntity: transit, isOperationSuccess: true));
-      return;
-    }
     await _updateHandler.updateTripEntityAndEmitState<TransitFacade>(
       tripEntity: event.tripEntity,
       requestedDataState: event.dataState,
@@ -152,15 +142,6 @@ class TripManagementBloc
 
   FutureOr<void> _onUpdateLodging(UpdateTripEntity<LodgingFacade> event,
       Emitter<TripManagementState> emit) async {
-    if (event.dataState == DataState.newUiEntry) {
-      var lodging = TripEntityFactory.createLodging(
-        tripMetadata: _activeTrip!.tripMetadata,
-        existing: event.tripEntity,
-      );
-      emit(UpdatedTripEntity<LodgingFacade>.createdNewUiEntry(
-          tripEntity: lodging, isOperationSuccess: true));
-      return;
-    }
     await _updateHandler.updateTripEntityAndEmitState<LodgingFacade>(
       tripEntity: event.tripEntity,
       requestedDataState: event.dataState,
@@ -171,15 +152,6 @@ class TripManagementBloc
 
   FutureOr<void> _onUpdateExpense(UpdateTripEntity<StandaloneExpense> event,
       Emitter<TripManagementState> emit) async {
-    if (event.dataState == DataState.newUiEntry) {
-      var expense = TripEntityFactory.createExpense(
-        tripMetadata: _activeTrip!.tripMetadata,
-        existing: event.tripEntity,
-      );
-      emit(UpdatedTripEntity<StandaloneExpense>.createdNewUiEntry(
-          tripEntity: expense, isOperationSuccess: true));
-      return;
-    }
     await _updateHandler.updateTripEntityAndEmitState<StandaloneExpense>(
       tripEntity: event.tripEntity,
       requestedDataState: event.dataState,

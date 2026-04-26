@@ -29,7 +29,7 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
     on<ChangeTheme>(_onThemeChange);
     on<ChangeLanguage>(_onLanguageChange);
     on<AuthenticateWithUsernamePassword>(_onAuthenticateWithUsernamePassword);
-    on<AuthenticateWithThirdParty>(_onAuthenticateWithThirdParty);
+    on<AuthenticateWithGoogle>(_onAuthenticateWithThirdParty);
     on<ResendEmailVerification>(_onResendEmailVerification);
     on<Logout>(_onLogout);
     on<_StartupInternal>(_onStartup);
@@ -102,10 +102,10 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
   }
 
   FutureOr<void> _onAuthenticateWithThirdParty(
-      AuthenticateWithThirdParty event, Emitter<MasterPageState> emit) async {
+      AuthenticateWithGoogle event, Emitter<MasterPageState> emit) async {
     emit(const AuthStateChanged(authStatus: AuthStatus.authenticating));
-    var authStatus = await _appDataRepository!.userManagement
-        .trySignInWithThirdParty(event.authenticationType);
+    var authStatus =
+        await _appDataRepository!.userManagement.trySignInWithGoogle();
     if (authStatus == AuthStatus.loggedIn) {
       emit(const AuthStateChanged(authStatus: AuthStatus.loggedIn));
     } else {

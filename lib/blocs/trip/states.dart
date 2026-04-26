@@ -71,12 +71,6 @@ class UpdatedTripEntity<T> extends TripManagementState {
   final DataState dataState;
   final bool isOperationSuccess;
 
-  UpdatedTripEntity.createdNewUiEntry(
-      {required T tripEntity, required this.isOperationSuccess})
-      : dataState = DataState.newUiEntry,
-        tripEntityModificationData = CollectionItemChangeMetadata(tripEntity,
-            isFromExplicitAction: true);
-
   const UpdatedTripEntity.created(
       {required this.tripEntityModificationData,
       required this.isOperationSuccess})

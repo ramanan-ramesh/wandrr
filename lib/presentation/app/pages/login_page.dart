@@ -5,7 +5,6 @@ import 'package:wandrr/blocs/app/bloc.dart';
 import 'package:wandrr/blocs/app/events.dart';
 import 'package:wandrr/blocs/app/states.dart';
 import 'package:wandrr/blocs/bloc_extensions.dart';
-import 'package:wandrr/data/auth/models/auth_type.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
@@ -118,12 +117,11 @@ class _LoginPageState extends State<LoginPage>
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 16.0),
-          _createAlternateAuthProviderButton(
-              AuthenticationType.google, Assets.images.googleLogo, context),
+          _createAlternateAuthProviderButton(Assets.images.googleLogo, context),
         ],
       );
 
-  Widget _createAlternateAuthProviderButton(AuthenticationType thirdParty,
+  Widget _createAlternateAuthProviderButton(
           AssetGenImage thirdPartyLogoAsset, BuildContext context) =>
       _AuthStateObserver(
         onAuthStateChangeBuilder:
@@ -134,8 +132,7 @@ class _LoginPageState extends State<LoginPage>
           child: InkWell(
             onTap: canEnableFormElement
                 ? () {
-                    context.addAuthenticationEvent(
-                        AuthenticateWithThirdParty(thirdParty));
+                    context.addAuthenticationEvent(AuthenticateWithGoogle());
                   }
                 : null,
             child: Ink.image(

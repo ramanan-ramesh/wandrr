@@ -207,7 +207,9 @@ class FirestoreModelCollection<Model>
           {
             var matchingElementIndex = _collectionItems.indexWhere((element) =>
                 element.documentReference.id == documentSnapshot.id);
-            if (matchingElementIndex == -1) break;
+            if (matchingElementIndex == -1) {
+              break;
+            }
             var collectionItemBeforeUpdate =
                 _collectionItems[matchingElementIndex];
             _collectionItems[matchingElementIndex] = leafRepositoryItem;

@@ -1,4 +1,3 @@
-import 'package:wandrr/data/auth/models/auth_type.dart';
 import 'package:wandrr/data/auth/models/platform_user.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 
@@ -11,8 +10,7 @@ abstract interface class UserManagementFacade {
 abstract interface class UserManagementModifier extends UserManagementFacade {
   Future<void> initialize();
 
-  Future<AuthStatus> trySignInWithThirdParty(
-      AuthenticationType authenticationType);
+  Future<AuthStatus> trySignInWithGoogle();
 
   Future<AuthStatus> trySignInWithUsernamePassword(
       {required String userName, required String password});

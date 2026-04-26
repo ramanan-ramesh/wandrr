@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wandrr/data/auth/models/auth_type.dart';
 import 'package:wandrr/data/auth/models/platform_user.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 import 'package:wandrr/data/auth/models/user_management.dart';
@@ -14,18 +13,18 @@ import 'package:wandrr/data/trip/implementations/collection_names.dart';
 class UserManagement implements UserManagementModifier {
   static const _userNameField = 'userName';
   static const _userIDField = 'userID';
-  static const _displayNameField = 'displayName';
-  static const _photoUrlField = 'photoUrl';
   static const String _usersDBCollectionName = 'users';
   static const String _googleWebClientIdField = 'webClientId';
-  static const _userNotFoundErrorMessage = 'user-not-found';
 
-  // List of all errors available here - https://firebase.google.com/docs/auth/admin/errors
+  static const _userNotFoundErrorMessage = 'user-not-found';
+  static const String _invalidEmailError = 'invalid-email';
+  static const String _wrongPasswordError = 'wrong-password';
+  static const String _emailAlreadyInUseError = 'email-already-in-use';
   static final Map<String, AuthStatus> _authenticationFailuresAndMessages = {
-    'invalid-email': AuthStatus.invalidEmail,
-    'wrong-password': AuthStatus.wrongPassword,
+    _invalidEmailError: AuthStatus.invalidEmail,
+    _wrongPasswordError: AuthStatus.wrongPassword,
     _userNotFoundErrorMessage: AuthStatus.noSuchUsernameExists,
-    'email-already-in-use': AuthStatus.usernameAlreadyExists
+    _emailAlreadyInUseError: AuthStatus.usernameAlreadyExists
   };
 
   final SharedPreferences _localStorage;
@@ -37,7 +36,7 @@ class UserManagement implements UserManagementModifier {
     var currentUser = FirebaseAuth.instance.currentUser;
     PlatformUser? platformUser;
     if (currentUser != null) {
-      platformUser = PlatformUser.fromAuth(
+      platformUser = PlatformUser(
           userName: currentUser.email!,
           userID: currentUser.uid,
           displayName: currentUser.displayName,
@@ -56,17 +55,16 @@ class UserManagement implements UserManagementModifier {
 
   @override
   Future<bool> doesUserNameExist(String userName) async {
-    var existingUserDocument = await _retrieveUserDocumentForUserName(userName);
-    return existingUserDocument != null && existingUserDocument.exists;
+    var existingUserId = await _retrieveUserIDForUserName(userName);
+    return existingUserId != null;
   }
 
   @override
   Future<AuthStatus> trySignInWithUsernamePassword(
       {required String userName, required String password}) async {
     try {
-      var existingUserDocument =
-          await _retrieveUserDocumentForUserName(userName);
-      if (existingUserDocument == null) {
+      var existingUserId = await _retrieveUserIDForUserName(userName);
+      if (existingUserId == null) {
         var userCredential = await FirebaseAuth.instance
             .signInWithEmailAndPassword(email: userName, password: password);
         if (userCredential.user != null) {
@@ -74,15 +72,13 @@ class UserManagement implements UserManagementModifier {
             await FirebaseAuth.instance.signOut();
             return AuthStatus.verificationPending;
           } else {
-            return await _signInWithCredential(
-                userCredential, existingUserDocument);
+            return await _signInWithCredential(userCredential, existingUserId);
           }
         }
       } else {
         var userCredential = await FirebaseAuth.instance
             .signInWithEmailAndPassword(email: userName, password: password);
-        return await _signInWithCredential(
-            userCredential, existingUserDocument);
+        return await _signInWithCredential(userCredential, existingUserId);
       }
     } on FirebaseAuthException catch (exception) {
       return _getAuthFailureReason(exception.code, exception.message);
@@ -94,9 +90,8 @@ class UserManagement implements UserManagementModifier {
   Future<AuthStatus> trySignUpWithUsernamePassword(
       {required String userName, required String password}) async {
     try {
-      var existingUserDocument =
-          await _retrieveUserDocumentForUserName(userName);
-      if (existingUserDocument == null) {
+      var existingUserId = await _retrieveUserIDForUserName(userName);
+      if (existingUserId == null) {
         try {
           var userCredential = await FirebaseAuth.instance
               .signInWithEmailAndPassword(email: userName, password: password);
@@ -114,7 +109,7 @@ class UserManagement implements UserManagementModifier {
       }
       var userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: userName, password: password);
-      unawaited(userCredential.user?.sendEmailVerification());
+      userCredential.user?.sendEmailVerification();
       await FirebaseAuth.instance.signOut();
       return AuthStatus.verificationPending;
     } on FirebaseAuthException catch (exception) {
@@ -123,16 +118,11 @@ class UserManagement implements UserManagementModifier {
   }
 
   @override
-  Future<AuthStatus> trySignInWithThirdParty(
-      AuthenticationType authenticationType) async {
-    if (authenticationType != AuthenticationType.google) {
-      return AuthStatus.undefined;
-    }
-
+  Future<AuthStatus> trySignInWithGoogle() async {
     try {
       GoogleSignIn googleSignIn;
       if (kIsWeb) {
-        var googleConfigDocument = await FirebaseFirestore.instance
+        final googleConfigDocument = await FirebaseFirestore.instance
             .collection(FirestoreCollections.appConfig)
             .doc('google')
             .get();
@@ -157,7 +147,7 @@ class UserManagement implements UserManagementModifier {
 
       final googleAuth = await googleUser.authentication;
 
-      if (googleAuth.accessToken == null && googleAuth.idToken == null) {
+      if (googleAuth.idToken == null) {
         return AuthStatus.undefined;
       }
 
@@ -168,9 +158,9 @@ class UserManagement implements UserManagementModifier {
 
       final userCredential =
           await FirebaseAuth.instance.signInWithCredential(credential);
-      final existingUserDocument =
-          await _retrieveUserDocumentForUserName(userCredential.user!.email!);
-      return await _signInWithCredential(userCredential, existingUserDocument);
+      final existingUserId =
+          await _retrieveUserIDForUserName(userCredential.user!.email!);
+      return await _signInWithCredential(userCredential, existingUserId);
     } on FirebaseAuthException catch (e) {
       return _getAuthFailureReason(e.code, e.message);
     } on Exception {
@@ -210,48 +200,44 @@ class UserManagement implements UserManagementModifier {
     return false;
   }
 
-  Future<QueryDocumentSnapshot<Map<String, dynamic>>?>
-      _retrieveUserDocumentForUserName(String userName) async {
+  Future<String?> _retrieveUserIDForUserName(String userName) async {
     var usersCollectionReference =
         FirebaseFirestore.instance.collection(_usersDBCollectionName);
     var queryForExistingUserDocument = await usersCollectionReference
         .where(_userNameField, isEqualTo: userName)
         .get();
-    return queryForExistingUserDocument.docs.singleOrNull;
+    return queryForExistingUserDocument.docs.singleOrNull?.id;
   }
 
-  Future<AuthStatus> _signInWithCredential(UserCredential userCredential,
-      QueryDocumentSnapshot<Map<String, dynamic>>? existingUserDocument) async {
+  Future<AuthStatus> _signInWithCredential(
+      UserCredential userCredential, String? existingUserDocumentId) async {
     if (userCredential.user != null) {
       var didUpdateUserInDB = await _tryUpdateActiveUser(
-          authProviderUser: userCredential.user!,
-          authenticationType: AuthenticationType.emailPassword,
-          existingUserDocument: existingUserDocument);
+          firebaseUser: userCredential.user!,
+          existingUserDocumentId: existingUserDocumentId);
       return didUpdateUserInDB ? AuthStatus.loggedIn : AuthStatus.undefined;
     }
     return AuthStatus.undefined;
   }
 
   Future<bool> _tryUpdateActiveUser(
-      {required User authProviderUser,
-      required AuthenticationType authenticationType,
-      required QueryDocumentSnapshot<Map<String, dynamic>>?
-          existingUserDocument}) async {
+      {required User firebaseUser,
+      required String? existingUserDocumentId}) async {
     try {
-      if (existingUserDocument == null) {
+      if (existingUserDocumentId == null) {
         var usersCollectionReference =
             FirebaseFirestore.instance.collection(_usersDBCollectionName);
-        var addedUserDocument = await usersCollectionReference.add(
-            _userToJsonDocument(authProviderUser.email!, authenticationType));
-        activeUser = PlatformUser.fromAuth(
-            userName: authProviderUser.email!,
+        var addedUserDocument = await usersCollectionReference
+            .add({_userNameField: firebaseUser.email!});
+        activeUser = PlatformUser(
+            userName: firebaseUser.email!,
             userID: addedUserDocument.id,
-            photoUrl: authProviderUser.photoURL);
+            photoUrl: firebaseUser.photoURL);
       } else {
-        activeUser = PlatformUser.fromAuth(
-            userName: authProviderUser.email!,
-            userID: existingUserDocument.id,
-            photoUrl: authProviderUser.photoURL);
+        activeUser = PlatformUser(
+            userName: firebaseUser.email!,
+            userID: existingUserDocumentId,
+            photoUrl: firebaseUser.photoURL);
       }
       await _persistActiveUser();
       return true;
@@ -263,14 +249,6 @@ class UserManagement implements UserManagementModifier {
   Future _persistActiveUser() async {
     if (activeUser != null) {
       await _localStorage.setString(_userIDField, activeUser!.userID);
-      await _localStorage.setString(_userNameField, activeUser!.userName);
-      var displayName = activeUser!.displayName;
-      if (displayName != null && displayName.isNotEmpty) {
-        await _localStorage.setString(_displayNameField, displayName);
-      }
-      if (activeUser!.photoUrl != null) {
-        await _localStorage.setString(_photoUrlField, activeUser!.photoUrl!);
-      }
     } else {
       await _clearCache(_localStorage);
     }
@@ -278,9 +256,6 @@ class UserManagement implements UserManagementModifier {
 
   static Future<void> _clearCache(SharedPreferences localStorage) async {
     await localStorage.remove(_userIDField);
-    await localStorage.remove(_userNameField);
-    await localStorage.remove(_displayNameField);
-    await localStorage.remove(_photoUrlField);
   }
 
   static AuthStatus _getAuthFailureReason(
@@ -301,10 +276,6 @@ class UserManagement implements UserManagementModifier {
     }
     return authFailureReason;
   }
-
-  static Map<String, dynamic> _userToJsonDocument(
-          String userName, AuthenticationType authenticationType) =>
-      {_userNameField: userName};
 
   UserManagement._(
       {required this.activeUser, required SharedPreferences localStorage})

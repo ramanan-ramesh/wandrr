@@ -296,7 +296,7 @@ class _ValidationErrorItem extends StatelessWidget {
       ItineraryValidationResult.valid => 'Valid',
       // Fallback for any future enum values
       _ => error.name
-          .replaceAllMapped(RegExp(r'([A-Z])'), (m) => ' ${m[1]}')
+          .replaceAllMapped(RegExp('([A-Z])'), (m) => ' ${m[1]}')
           .trimLeft()
           .replaceFirst(error.name[0], error.name[0].toUpperCase()),
     };

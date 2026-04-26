@@ -18,9 +18,6 @@ class TripEntityUpdateHandler {
     required Emitter<TripManagementState> emit,
   }) async {
     switch (requestedDataState) {
-      case DataState.newUiEntry:
-        _emitNewUiEntry(tripEntity, emit);
-
       case DataState.create:
         await _handleCreate(tripEntity, modelCollection, emit);
 
@@ -36,15 +33,6 @@ class TripEntityUpdateHandler {
       default:
         break;
     }
-  }
-
-  /// Emits a new UI entry state
-  void _emitNewUiEntry<E extends TripEntity<Enum>>(
-      E tripEntity, Emitter<TripManagementState> emit) {
-    emit(UpdatedTripEntity<E>.createdNewUiEntry(
-      tripEntity: tripEntity,
-      isOperationSuccess: true,
-    ));
   }
 
   /// Handles the create operation

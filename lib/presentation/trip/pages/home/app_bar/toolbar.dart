@@ -4,6 +4,7 @@ import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/data/app/models/language_metadata.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/language_metadata_extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 class Toolbar extends StatefulWidget {
@@ -181,7 +182,8 @@ class _LanguageSubmenu extends StatelessWidget {
         ),
         alignment: Alignment.centerRight,
         elevation: const WidgetStatePropertyAll<double>(14),
-        padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(EdgeInsets.zero),
+        padding:
+            const WidgetStatePropertyAll<EdgeInsetsGeometry>(EdgeInsets.zero),
         shape: const WidgetStatePropertyAll<OutlinedBorder>(
           RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(12))),

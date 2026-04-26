@@ -256,7 +256,9 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
   }
 
   void _onEntityUpdated() {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     if (widget.tripEntity is! TransitFacade) {
       _editorBloc?.add(UpdateEntity<T>());
     }

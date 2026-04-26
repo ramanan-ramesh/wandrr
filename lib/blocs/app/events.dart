@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/auth/models/auth_type.dart';
 
 abstract class MasterPageEvent {
   const MasterPageEvent();
@@ -32,11 +31,7 @@ class AuthenticateWithUsernamePassword extends AuthenticationEvent {
       required this.shouldRegister});
 }
 
-class AuthenticateWithThirdParty extends AuthenticationEvent {
-  final AuthenticationType authenticationType;
-
-  const AuthenticateWithThirdParty(this.authenticationType);
-}
+class AuthenticateWithGoogle extends AuthenticationEvent {}
 
 class ResendEmailVerification extends AuthenticationEvent {
   final String userName;

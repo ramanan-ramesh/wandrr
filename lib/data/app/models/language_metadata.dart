@@ -1,5 +1,5 @@
 class LanguageMetadata {
-  final String flagAssetLocation, locale, name;
+  final String locale, name;
 
-  const LanguageMetadata(this.flagAssetLocation, this.locale, this.name);
+  const LanguageMetadata(this.locale, this.name);
 }

@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wandrr/data/auth/models/auth_type.dart';
 import 'package:wandrr/presentation/app/pages/login_page.dart';
 import 'package:wandrr/presentation/trip/pages/home/home_page.dart';
 
@@ -207,9 +206,7 @@ class FirestoreTestVerifier {
     final userData = querySnapshot.docs.first.data();
 
     expect(userData.containsKey('userName'), true);
-    expect(userData.containsKey('authType'), true);
     expect(userData['userName'], email);
-    expect(userData['authType'], AuthenticationType.emailPassword.name);
 
     return userData;
   }

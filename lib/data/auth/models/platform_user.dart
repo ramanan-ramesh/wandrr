@@ -4,15 +4,8 @@ class PlatformUser {
   final String userID;
   final String? photoUrl;
 
-  const PlatformUser.fromAuth(
+  const PlatformUser(
       {required this.userName,
-      required this.userID,
-      this.displayName,
-      this.photoUrl});
-
-  PlatformUser.fromCache(
-      {required this.userName,
-      required String authenticationTypeRawValue,
       required this.userID,
       this.displayName,
       this.photoUrl});
