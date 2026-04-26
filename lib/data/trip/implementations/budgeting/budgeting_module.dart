@@ -246,6 +246,51 @@ class BudgetingModule implements BudgetingModuleEventHandler {
     }
   }
 
+  // Collection loaded state tracking
+  bool _transitLoaded = false;
+  bool _lodgingLoaded = false;
+  bool _expenseLoaded = false;
+
+  bool get _allCollectionsLoaded =>
+      _transitLoaded && _lodgingLoaded && _expenseLoaded;
+
+  void _subscribeToCollectionLoadedEvents() {
+    // Check if already loaded at subscription time
+    _transitLoaded = _transitModelCollection.isLoaded;
+    _lodgingLoaded = _lodgingModelCollection.isLoaded;
+    _expenseLoaded = _expenseModelCollection.isLoaded;
+
+    _addSubscription(_transitModelCollection.onLoaded.listen((loaded) {
+      if (loaded) {
+        _transitLoaded = true;
+        _recalculateIfAllLoaded();
+      }
+    }));
+    _addSubscription(_lodgingModelCollection.onLoaded.listen((loaded) {
+      if (loaded) {
+        _lodgingLoaded = true;
+        _recalculateIfAllLoaded();
+      }
+    }));
+    _addSubscription(_expenseModelCollection.onLoaded.listen((loaded) {
+      if (loaded) {
+        _expenseLoaded = true;
+        _recalculateIfAllLoaded();
+      }
+    }));
+
+    // If all already loaded, recalculate immediately
+    if (_allCollectionsLoaded) {
+      recalculateTotalExpenditure();
+    }
+  }
+
+  void _recalculateIfAllLoaded() {
+    if (_allCollectionsLoaded) {
+      recalculateTotalExpenditure();
+    }
+  }
+
   BudgetingModule._(
     this._transitModelCollection,
     this._lodgingModelCollection,
@@ -271,6 +316,6 @@ class BudgetingModule implements BudgetingModuleEventHandler {
         _expenseSorter = ExpenseSorter(),
         _currencyFormatter = CurrencyFormatter(supportedCurrencies) {
     _subscribeToTotalExpenseReCalculationEvents();
-    recalculateTotalExpenditure();
+    _subscribeToCollectionLoadedEvents();
   }
 }

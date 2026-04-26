@@ -266,41 +266,57 @@ class _TripMetadataGridItem extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Stack(
-                  children: [
-                    currentThumbnail.image(fit: BoxFit.cover),
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: ThumbnailPicker(
-                          tripMetaDataFacade: tripMetaDataFacade,
-                          widgetContext: context),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0, vertical: 3),
-                        decoration: const BoxDecoration(
-                          gradient: AppColors.brandGradient,
-                        ),
-                        child: FittedBox(
-                          child: Text(
-                            subTitle,
-                            style: TextStyle(
-                              fontSize: Theme.of(context)
-                                  .textTheme
-                                  .labelMedium!
-                                  .fontSize,
-                              color: Colors.black,
+                Expanded(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      currentThumbnail.image(
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        frameBuilder:
+                            (context, child, frame, wasSynchronouslyLoaded) {
+                          if (wasSynchronouslyLoaded || frame != null) {
+                            return child;
+                          }
+                          return ShimmerPlaceholder(
+                            borderRadius: BorderRadius.circular(0),
+                          );
+                        },
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: ThumbnailPicker(
+                            tripMetaDataFacade: tripMetaDataFacade,
+                            widgetContext: context),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 3),
+                          decoration: const BoxDecoration(
+                            gradient: AppColors.brandGradient,
+                          ),
+                          child: FittedBox(
+                            child: Text(
+                              subTitle,
+                              style: TextStyle(
+                                fontSize: Theme.of(context)
+                                    .textTheme
+                                    .labelMedium!
+                                    .fontSize,
+                                color: Colors.black,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 Card(
                   shape: const StadiumBorder(),

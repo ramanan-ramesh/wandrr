@@ -84,7 +84,7 @@ class TransitJourneyFacade {
   }
 
   /// Get validation errors for display
-  List<JourneyValidationError> getValidationErrors() {
+  Iterable<JourneyValidationError> getValidationErrors() {
     final errors = <JourneyValidationError>[];
 
     for (var i = 0; i < legs.length; i++) {

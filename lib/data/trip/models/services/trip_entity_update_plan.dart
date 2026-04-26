@@ -5,7 +5,7 @@ import 'entity_change.dart';
 
 /// Unified plan for updating trip entities.
 /// Works for both TripMetadata updates and conflict resolution.
-class TripEntityUpdatePlan<T extends TripEntity> {
+class TripEntityUpdatePlan<T extends TripEntity<Enum>> {
   /// The entity being edited (before changes)
   final T oldEntity;
 
@@ -124,7 +124,7 @@ class TripEntityUpdatePlan<T extends TripEntity> {
   }
 
   /// Syncs expense deletion state when an ExpenseBearingTripEntity is deleted/restored
-  void syncExpenseDeletionState(TripEntity entity, {required bool isDeleted}) {
+  void syncExpenseDeletionState(TripEntity<Enum> entity, {required bool isDeleted}) {
     for (final change in expenseChanges) {
       if (change.original.id == entity.id) {
         if (isDeleted) {
@@ -165,5 +165,5 @@ class TripEntityUpdatePlan<T extends TripEntity> {
 }
 
 /// Backward-compatible type aliases
-typedef TripDataUpdatePlan = TripEntityUpdatePlan<TripEntity>;
+typedef TripDataUpdatePlan = TripEntityUpdatePlan<TripEntity<Enum>>;
 typedef TripMetadataUpdatePlan = TripEntityUpdatePlan<TripMetadataFacade>;

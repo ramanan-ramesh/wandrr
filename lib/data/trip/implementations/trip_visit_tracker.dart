@@ -11,12 +11,6 @@ class TripVisitTracker {
     await prefs.setInt(key, currentCount + 1);
   }
 
-  static Future<int> getVisitCount(String tripId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final key = '$_visitCountPrefix$tripId';
-    return prefs.getInt(key) ?? 0;
-  }
-
   static Future<void> deleteVisitCount(String tripId) async {
     final prefs = await SharedPreferences.getInstance();
     final key = '$_visitCountPrefix$tripId';

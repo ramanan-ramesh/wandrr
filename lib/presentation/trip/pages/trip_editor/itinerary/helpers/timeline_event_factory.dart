@@ -156,12 +156,24 @@ class TimelineEventFactory {
           );
         }
 
+        // Detect multi-day legs (departure and arrival on different calendar days)
+        final dep = leg.departureDateTime;
+        final arr = leg.arrivalDateTime;
+        final isMultiDay = dep != null && arr != null && !_isSameDay(dep, arr);
+
+        // For a multi-day leg showing on the departure day: departure-day view.
+        // For a multi-day leg showing on the arrival day: arrival-day view.
+        // The leg appears on this itinerary day either via its departure or arrival.
+        final isDepartureDayView = dep == null || _isSameDay(dep, itineraryDay);
+
         yield _createConnectedTransitEvent(
           transit: leg,
           position: position,
           journeyId: entry.key,
           layoverDuration: layoverDuration,
           journey: journey,
+          isMultiDay: isMultiDay,
+          isDepartureDayView: isDepartureDayView,
         );
       }
     }
@@ -198,20 +210,50 @@ class TimelineEventFactory {
     required String journeyId,
     required TransitJourneyFacade journey,
     String? layoverDuration,
+    bool isMultiDay = false,
+    bool isDepartureDayView = true,
   }) {
     final metadata = context.getTransitOptionMetadata(transit.transitOption);
 
-    // Use city names for compact display
     final depCity = _getCityName(transit.departureLocation);
     final arrCity = _getCityName(transit.arrivalLocation);
-    final title = '$depCity → $arrCity';
 
-    // Format time range
-    final depTime = transit.departureDateTime?.hourMinuteAmPmFormat ?? '--:--';
-    final arrTime = transit.arrivalDateTime?.hourMinuteAmPmFormat ?? '--:--';
-    final operatorInfo = _formatter.getTransitOperatorInfo(transit);
-    final subtitle =
-        '$depTime → $arrTime${operatorInfo.isNotEmpty ? ' • $operatorInfo' : ''}';
+    String title;
+    String subtitle;
+
+    if (isMultiDay) {
+      // Multi-day journey: show directional narrative instead of "A → B"
+      if (isDepartureDayView) {
+        title = 'Departing $depCity to $arrCity';
+        final depTime =
+            transit.departureDateTime?.hourMinuteAmPmFormat ?? '--:--';
+        final operatorInfo = _formatter.getTransitOperatorInfo(transit);
+        subtitle =
+            'Departs $depTime${operatorInfo.isNotEmpty ? ' • $operatorInfo' : ''}';
+      } else {
+        title = 'Arriving at $arrCity from $depCity';
+        final arrTime =
+            transit.arrivalDateTime?.hourMinuteAmPmFormat ?? '--:--';
+        final operatorInfo = _formatter.getTransitOperatorInfo(transit);
+        subtitle =
+            'Arrives $arrTime${operatorInfo.isNotEmpty ? ' • $operatorInfo' : ''}';
+      }
+    } else {
+      // Same-day journey: existing compact "A → B" logic
+      if (depCity == arrCity && depCity != '?') {
+        final depName = _getPlaceName(transit.departureLocation);
+        final arrName = _getPlaceName(transit.arrivalLocation);
+        title = '$depName → $arrName ($depCity)';
+      } else {
+        title = '$depCity → $arrCity';
+      }
+      final depTime =
+          transit.departureDateTime?.hourMinuteAmPmFormat ?? '--:--';
+      final arrTime = transit.arrivalDateTime?.hourMinuteAmPmFormat ?? '--:--';
+      final operatorInfo = _formatter.getTransitOperatorInfo(transit);
+      subtitle =
+          '$depTime → $arrTime${operatorInfo.isNotEmpty ? ' • $operatorInfo' : ''}';
+    }
 
     return TransitJourneyTimelineEvent(
       time: transit.departureDateTime ?? DateTime.now(),
@@ -224,6 +266,8 @@ class TimelineEventFactory {
       position: position,
       layoverDuration: layoverDuration,
       journey: journey,
+      isMultiDay: isMultiDay,
+      isDepartureDayView: isDepartureDayView,
       notes: transit.notes,
       confirmationId: transit.confirmationId,
     );
@@ -248,6 +292,25 @@ class TimelineEventFactory {
     }
     return '?';
   }
+
+  /// Get place name from location (the specific place, not the city)
+  String _getPlaceName(dynamic location) {
+    if (location == null) {
+      return '?';
+    }
+    if (location is LocationFacade) {
+      final name = location.context.name;
+      if (name.isNotEmpty) {
+        return name;
+      }
+      return '?';
+    }
+    return '?';
+  }
+
+  /// Returns true when [a] and [b] fall on the same calendar day.
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   /// Calculate layover duration string
   String? _calculateLayoverString(DateTime? arrival, DateTime? departure) {

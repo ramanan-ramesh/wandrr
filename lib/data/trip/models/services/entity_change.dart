@@ -9,7 +9,7 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 enum ChangeAction { update, delete }
 
 /// Base class for entity changes
-abstract class EntityChangeBase<T extends TripEntity> {
+abstract class EntityChangeBase<T extends TripEntity<Enum>> {
   final T original;
   T modified;
   ChangeAction _action;
@@ -41,7 +41,7 @@ abstract class EntityChangeBase<T extends TripEntity> {
 }
 
 /// Change for entities with date/time conflicts (stays, transits, sights)
-class DateTimeChange<T extends TripEntity> extends EntityChangeBase<T> {
+class DateTimeChange<T extends TripEntity<Enum>> extends EntityChangeBase<T> {
   /// Position relative to reference time range
   final EntityTimelinePosition? timelinePosition;
 
@@ -110,7 +110,7 @@ class DateTimeChange<T extends TripEntity> extends EntityChangeBase<T> {
 }
 
 /// Change for expense split updates (when contributors change)
-class ExpenseSplitChange extends EntityChangeBase<ExpenseBearingTripEntity> {
+class ExpenseSplitChange extends EntityChangeBase<ExpenseBearingTripEntity<Enum>> {
   /// Whether to include new contributors in splitBy for this expense
   bool includeInSplitBy;
 

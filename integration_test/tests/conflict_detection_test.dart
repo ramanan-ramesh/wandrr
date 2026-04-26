@@ -588,7 +588,8 @@ Future<void> runSightOverlapSameDayTest(
     expense: _emptyExpense(),
   );
 
-  bloc.add(UpdateSightsTimeRange([sight1, sight2]));
+  bloc.editableEntity.sights = [sight1, sight2];
+  bloc.add(const UpdateEntity<ItineraryPlanData>());
   await tester.pump(const Duration(seconds: 2));
 
   expect(bloc.state, isA<ConflictedEntityTimeRangeError<ItineraryPlanData>>(),
@@ -688,7 +689,7 @@ Future<void> runSightNoConflictOnNonTimeChangeTest(
   print(
       '✓ REQ-CD-001: Non-time changes verified to not trigger conflict detection (by design)');
   print(
-      '  — UpdateSightsTimeRange is only dispatched when sight time signature changes');
+      '  — UpdateEntity is only dispatched when sight time signature changes');
   print(
       '  — Editing title, description, location, expense does not change time signature');
 }
@@ -855,12 +856,11 @@ Future<void> runConflictPlanConfirmationTest(
     entity: parisStay,
   );
 
-  bloc.add(UpdateEntityTimeRange<LodgingFacade>(
-    TimeRange(
-      start: DateTime(2025, 9, 26, 14, 0),
-      end: DateTime(2025, 9, 28, 11, 0),
-    ),
-  ));
+  // Mutate the editable entity's time range, then dispatch UpdateEntity
+  final editableStay = bloc.editableEntity;
+  editableStay.checkinDateTime = DateTime(2025, 9, 26, 14, 0);
+  editableStay.checkoutDateTime = DateTime(2025, 9, 28, 11, 0);
+  bloc.add(const UpdateEntity<LodgingFacade>());
   await tester.pump(const Duration(seconds: 2));
 
   final planAfterConflict = bloc.currentPlan;
@@ -895,12 +895,11 @@ Future<void> runToggleDeletionSyncsExpenseTest(
     entity: trip.tripMetadata,
   );
 
-  metaBloc.add(UpdateEntityTimeRange<TripMetadataFacade>(
-    TimeRange(
-      start: DateTime(2025, 9, 24),
-      end: DateTime(2025, 9, 26),
-    ),
-  ));
+  // Mutate the editable entity's time range, then dispatch UpdateEntity
+  final editableMeta = metaBloc.editableEntity;
+  editableMeta.startDate = DateTime(2025, 9, 24);
+  editableMeta.endDate = DateTime(2025, 9, 26);
+  metaBloc.add(const UpdateEntity<TripMetadataFacade>());
   await tester.pump(const Duration(seconds: 2));
 
   final plan = metaBloc.currentPlan;

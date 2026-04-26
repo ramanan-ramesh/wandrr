@@ -71,7 +71,7 @@ class JourneyPointEditor extends StatelessWidget {
                     ),
               ),
               const SizedBox(width: 4),
-              _createJourneyCityName(color),
+              Flexible(child: _createJourneyCityName(color)),
             ],
           ),
           const SizedBox(height: 12),

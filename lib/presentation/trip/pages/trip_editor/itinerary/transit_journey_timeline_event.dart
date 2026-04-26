@@ -19,6 +19,14 @@ class TransitJourneyTimelineEvent extends TimelineEvent<TransitFacade> {
   /// Reference to the full journey for navigation
   final TransitJourneyFacade journey;
 
+  /// True when departure and arrival fall on different calendar days.
+  final bool isMultiDay;
+
+  /// For multi-day legs: true when this event card represents the departure
+  /// side (shown on the departure day), false when it represents the arrival
+  /// side (shown on the arrival day).
+  final bool isDepartureDayView;
+
   TransitJourneyTimelineEvent({
     required super.time,
     required super.title,
@@ -30,6 +38,8 @@ class TransitJourneyTimelineEvent extends TimelineEvent<TransitFacade> {
     required this.position,
     required this.journey,
     this.layoverDuration,
+    this.isMultiDay = false,
+    this.isDepartureDayView = true,
     super.notes,
     super.confirmationId,
   });

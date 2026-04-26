@@ -285,7 +285,7 @@ class _TripEditorPageInternal extends StatelessWidget {
     );
   }
 
-  void _showTripEntityEditorBottomSheet<T extends TripEntity>({
+  void _showTripEntityEditorBottomSheet<T extends TripEntity<Enum>>({
     required T tripEntity,
     required TripEditorAction tripEditorAction,
     required BuildContext pageContext,

@@ -137,10 +137,7 @@ class TripEntityDataUpdatePlanService {
         batch.delete(doc.documentReference);
       } else if (change.isUpdate && change.modified.validate()) {
         // Add new contributors to expense splitBy if needed
-        final expenseChange = expenseChanges
-            .where((expenseChange) =>
-                expenseChange.original is ExpenseBearingTripEntity<T>)
-            .singleOrNull;
+        final expenseChange = expenseChanges.singleOrNull;
         if (expenseChange != null) {
           if (expenseChange.includeInSplitBy) {
             _addContributorsToExpense(

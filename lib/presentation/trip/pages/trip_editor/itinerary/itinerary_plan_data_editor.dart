@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
-import 'package:wandrr/blocs/trip_entity_editor/events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
@@ -28,7 +26,10 @@ class ItineraryPlanDataEditor extends StatefulWidget {
   final ItineraryPlanDataEditorConfig config;
 
   const ItineraryPlanDataEditor({
-    required this.planData, required this.onPlanDataUpdated, required this.config, super.key,
+    required this.planData,
+    required this.onPlanDataUpdated,
+    required this.config,
+    super.key,
   });
 
   @override
@@ -56,20 +57,26 @@ class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
   late final List<Widget> _tabWidgets;
   bool _tabWidgetsInitialized = false;
 
-  ItineraryPlanData get _planData => widget.planData;
+  ItineraryPlanData get planData => widget.planData;
+
+  late final DateTime originalDate;
+  bool isCopyIntent = false;
+
+  bool get shouldCopy => planData.day != originalDate && isCopyIntent;
 
   @override
   void initState() {
     super.initState();
+    originalDate = widget.planData.day;
     _tabController = TabController(length: 3, vsync: this);
     _tabController.index = _initialTabIndex(widget.config.planDataType);
     _tabController.addListener(_onTabChanged);
 
     // Snapshot the plan data into stable mutable lists once.
-    // _planData is already a clone so reading its getters here is safe.
-    _stableSights = List<SightFacade>.from(_planData.sights);
-    _stableNotes = _planData.notes.map(Note.new).toList();
-    _stableChecklists = List<CheckListFacade>.from(_planData.checkLists);
+    // planData is already a clone so reading its getters here is safe.
+    _stableSights = List<SightFacade>.from(planData.sights);
+    _stableNotes = planData.notes.map(Note.new).toList();
+    _stableChecklists = List<CheckListFacade>.from(planData.checkLists);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.config is CreateNewItineraryPlanDataComponentConfig) {
@@ -90,18 +97,18 @@ class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
   // sees the correct data.
   // ---------------------------------------------------------------------------
   void syncToEntity() {
-    _planData.sights = List<SightFacade>.from(_stableSights);
-    _planData.notes = _stableNotes.map((n) => n.text).toList();
-    _planData.checkLists = List<CheckListFacade>.from(_stableChecklists);
+    planData.sights = List<SightFacade>.from(_stableSights);
+    planData.notes = _stableNotes.map((n) => n.text).toList();
+    planData.checkLists = List<CheckListFacade>.from(_stableChecklists);
   }
 
   /// Validates current editor state against the stable working lists.
   /// Used by the parent to keep the FAB enabled/disabled correctly.
   bool validateCurrentState() {
     final tempPlanData = ItineraryPlanData(
-      tripId: _planData.tripId,
-      day: _planData.day,
-      id: _planData.id,
+      tripId: planData.tripId,
+      day: planData.day,
+      id: planData.id,
       sights: _stableSights,
       notes: _stableNotes.map((n) => n.text).toList(),
       checkLists: _stableChecklists,
@@ -115,11 +122,8 @@ class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
           onSightsChanged: widget.onPlanDataUpdated,
           onSightTimesChanged: () {
             widget.onPlanDataUpdated();
-            context.addTripEntityEditorEvent<ItineraryPlanData>(
-              UpdateSightsTimeRange(List<SightFacade>.from(_stableSights)),
-            );
           },
-          day: _planData.day,
+          day: planData.day,
           initialExpandedIndex: _getInitialExpandedIndex(PlanDataType.sight),
         ),
         ItineraryNotesEditor(
@@ -162,7 +166,7 @@ class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
   @override
   void didUpdateWidget(covariant ItineraryPlanDataEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.planData != _planData) {
+    if (oldWidget.planData != planData) {
       setState(() {});
     }
   }
@@ -190,28 +194,88 @@ class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
   }
 
   Widget _buildHeader() {
-    return EditorTheme.createSection(
-      context: context,
-      child: Row(
-        children: [
-          Icon(
-            Icons.explore_rounded,
-            color: context.isLightTheme ? AppColors.info : AppColors.infoLight,
-            size: _kHeaderIconSize,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        EditorTheme.createSection(
+          context: context,
+          child: Row(
+            children: [
+              Icon(
+                Icons.explore_rounded,
+                color:
+                    context.isLightTheme ? AppColors.info : AppColors.infoLight,
+                size: _kHeaderIconSize,
+              ),
+              const SizedBox(width: _kSpacingMedium),
+              Expanded(
+                child: Text(
+                  '${context.localizations.itinerary} - '
+                  '${planData.day.day}/${planData.day.month}/${planData.day.year}',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.edit_calendar_rounded,
+                  color: context.isLightTheme
+                      ? AppColors.brandPrimary
+                      : AppColors.brandPrimaryLight,
+                  size: 22,
+                ),
+                tooltip: 'Change date',
+                onPressed: _showDatePicker,
+              ),
+            ],
           ),
-          const SizedBox(width: _kSpacingMedium),
-          Expanded(
-            child: Text(
-              '${context.localizations.itinerary} - '
-              '${_planData.day.day}/${_planData.day.month}/${_planData.day.year}',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+        ),
+        if (planData.day != originalDate)
+          Padding(
+            padding: const EdgeInsets.only(
+                top: _kSpacingSmall,
+                left: _kSpacingSmall,
+                right: _kSpacingSmall),
+            child: EditorTheme.createSection(
+              context: context,
+              child: Row(children: [
+                Expanded(
+                  child: Text(
+                    "Keep original date's itinerary?",
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
+                ),
+                Switch(
+                  value: isCopyIntent,
+                  activeThumbColor: AppColors.brandPrimary,
+                  onChanged: (val) {
+                    setState(() => isCopyIntent = val);
+                  },
+                ),
+              ]),
             ),
           ),
-        ],
-      ),
+      ],
     );
+  }
+
+  void _showDatePicker() {
+    final tripMetadata = context.activeTrip.tripMetadata;
+    showDatePicker(
+      context: context,
+      initialDate: planData.day,
+      firstDate: tripMetadata.startDate!,
+      lastDate: tripMetadata.endDate!,
+    ).then((picked) {
+      if (picked != null && picked != planData.day) {
+        setState(() {
+          planData.day = picked;
+        });
+        widget.onPlanDataUpdated();
+      }
+    });
   }
 
   Widget _buildTabBar() {
@@ -253,7 +317,7 @@ class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
       case PlanDataType.sight:
         _stableSights.add(SightFacade.newEntry(
           tripId: tripMetadata.id!,
-          day: _planData.day,
+          day: planData.day,
           defaultCurrency: tripMetadata.budget.currency,
           contributors: tripMetadata.contributors,
         ));

@@ -67,7 +67,7 @@ class LoadedTripPreview extends TripManagementState {
 }
 
 class UpdatedTripEntity<T> extends TripManagementState {
-  final CollectionItemChangeMetadata<T> tripEntityModificationData;
+  final CollectionItemChangeMetadata<dynamic> tripEntityModificationData;
   final DataState dataState;
   final bool isOperationSuccess;
 

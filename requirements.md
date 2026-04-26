@@ -1,7 +1,7 @@
 # Wandrr — Product Requirements Specification
 
-> **Version:** 1.1  
-> **Last Updated:** 2026-03-31
+> **Version:** 1.3  
+> **Last Updated:** 2026-04-26
 > **Status:** Active
 
 ---
@@ -1191,3 +1191,37 @@ printed.
 - Empty sections (no stays, no transits, etc.) are omitted from the PDF.
 - Large trips paginate automatically.
 - If PDF generation fails, an error message is shown.
+
+---
+
+## Changelog — v1.2 (2026-04-22)
+
+### Bug Fixes
+
+- **Trip List Thumbnail Loading (Web):** Fixed layout shift where trip name text appeared at top with empty space below while the asset image loaded. Now shows a shimmer placeholder that reserves the full space until the image is ready.
+- **BudgetingModule Total Expenditure:** Fixed total expenditure not being calculated on initial load. The module now waits for transit, lodging, and expense collections to finish loading before computing totals.
+
+### Refactoring
+
+- **TripEntityEditorBloc Events Consolidation:**
+  - Removed `EntityUpdated`, `UpdateEntityTimeRange`, `UpdateJourneyTimeRange`, and `UpdateSightsTimeRange` events.
+  - Introduced `UpdateEntity<T>` (for stays, sights, trip metadata) which reads updated time ranges from the already-mutated `editableEntity`.
+  - Introduced `UpdateJourney` (for transits) which carries the full list of transit legs for conflict detection.
+  - Centralized entity-update dispatch in `ConflictAwareActionPage._onEntityUpdated` callback: automatically dispatches `UpdateEntity<T>()` for non-transit types; transit editors dispatch `UpdateJourney` directly with leg data.
+
+---
+
+## Changelog — v1.3 (2026-04-26)
+
+### Refactoring
+
+- **TripEntityEditorBloc States Simplification:**
+  - Replaced `PlanUpdated`, `PlanItemsUpdated`, and `PlanCleared` states with a single `ConflictPlanUpdated` state. The UI reads plan data from `bloc.currentPlan` directly; the state is a simple notification signal.
+  - Retained `ConflictedEntityTimeRangeError`, `ConflictPlanConfirmed`, and `EntitySubmitted` states unchanged.
+
+- **Journey Validation Improvements:**
+  - Moved `TransitJourneyServiceFacade` instantiation into the bloc (from `_tripData.transitCollection`), removing it from the `UpdateJourney` event payload. The service is now bloc-internal.
+  - Journey validation (per-leg + cross-leg sequence) runs before conflict detection. If validation fails, conflict detection is skipped entirely and `EntityValidationUpdated` is emitted with `JourneyValidationResult` enums.
+  - `TransitJourneyServiceFacade.validateJourney()` returns `List<JourneyValidationResult>` (enum-based) instead of the old `String?` approach, keeping error messaging as a UI-layer concern.
+
+

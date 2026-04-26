@@ -6,6 +6,7 @@ import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/services/transit_journey_service.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_journey.dart';
+import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 
 class TransitJourneyService implements TransitJourneyServiceFacade {
   final ModelCollectionFacade<TransitFacade> _legCollection;
@@ -52,6 +53,55 @@ class TransitJourneyService implements TransitJourneyServiceFacade {
       _legCollection.collectionItems
           .where((leg) => leg.journeyId == journeyId)
           .toList();
+
+  @override
+  List<TransitFacade> getJourneyLegs(
+      String? journeyId, TransitFacade fallback) {
+    if (journeyId == null) {
+      return [fallback];
+    }
+    final legs = _getLegsForJourney(journeyId);
+    return legs.isEmpty ? [fallback] : legs;
+  }
+
+  @override
+  bool cleanupJourneyIdIfLoneLeg(List<TransitFacade> legs) {
+    if (legs.length == 1) {
+      legs.first.journeyId = null;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  List<JourneyValidationResult> validateJourney(List<TransitFacade> legs) {
+    final errors = <JourneyValidationResult>{};
+
+    // Per-leg individual validation.
+    if (legs.any((leg) => !leg.validate())) {
+      errors.add(JourneyValidationResult.legHasErrors);
+    }
+
+    // Cross-leg sequence: sort by departure time, then check each consecutive pair.
+    if (legs.length > 1) {
+      final sorted = List<TransitFacade>.from(legs)
+        ..sort((a, b) => (a.departureDateTime ?? DateTime(0))
+            .compareTo(b.departureDateTime ?? DateTime(0)));
+
+      for (var i = 1; i < sorted.length; i++) {
+        final prevArrival = sorted[i - 1].arrivalDateTime;
+        final currDeparture = sorted[i].departureDateTime;
+        if (prevArrival != null &&
+            currDeparture != null &&
+            currDeparture.isBefore(prevArrival)) {
+          errors.add(JourneyValidationResult.sequenceViolation);
+          break;
+        }
+      }
+    }
+
+    return errors.toList();
+  }
 
   @override
   Stream<double> getTotalExpenseStream({

@@ -110,12 +110,10 @@ class ItineraryPlanDataModelImplementation extends ItineraryPlanData
   @override
   Map<String, dynamic> toJson() {
     return {
-      if (_sights.isNotEmpty)
-        _sightsField: _sights.map((sight) => sight.toJson()).toList(),
-      if (_notes.isNotEmpty) _notesField: _notes,
-      if (_checkLists.isNotEmpty)
-        _checkListsField:
-            _checkLists.map((checkList) => checkList.toJson()).toList(),
+      _sightsField: _sights.map((sight) => sight.toJson()).toList(),
+      _notesField: _notes,
+      _checkListsField:
+          _checkLists.map((checkList) => checkList.toJson()).toList(),
     };
   }
 

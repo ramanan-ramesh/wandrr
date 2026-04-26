@@ -3,16 +3,18 @@ import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
+import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
+
 /// Itinerary-specific plan data with sights, notes, and checklists
 class ItineraryPlanData extends Equatable
-    implements TripEntity<ItineraryPlanData> {
+    implements TripEntity<ItineraryPlanDataValidationResult> {
   final String tripId;
 
   @override
   String? id;
 
   /// The date this itinerary plan is for
-  final DateTime day;
+  DateTime day;
 
   /// List of sights/attractions to visit
   List<SightFacade> sights;
@@ -51,28 +53,31 @@ class ItineraryPlanData extends Equatable
 
   @override
   bool validate() {
-    var validationResult = getValidationResult();
-    return validationResult == ItineraryPlanDataValidationResult.valid ||
-        validationResult == ItineraryPlanDataValidationResult.noContent;
+    final errors = getValidationErrors();
+    return errors.isEmpty ||
+        errors.contains(ItineraryPlanDataValidationResult.noContent);
   }
 
-  ItineraryPlanDataValidationResult getValidationResult() {
+  @override
+  Iterable<ItineraryPlanDataValidationResult> getValidationErrors() {
     // At least one of: sights, notes, or checklists must be present
     if (sights.isEmpty && notes.isEmpty && checkLists.isEmpty) {
-      return ItineraryPlanDataValidationResult.noContent;
+      return [ItineraryPlanDataValidationResult.noContent];
     }
+
+    final errors = <ItineraryPlanDataValidationResult>[];
 
     // Validate sights
     if (sights.isNotEmpty) {
       if (sights.any((sight) => !sight.validate())) {
-        return ItineraryPlanDataValidationResult.sightInvalid;
+        errors.add(ItineraryPlanDataValidationResult.sightInvalid);
       }
     }
 
     // Validate notes
     if (notes.isNotEmpty) {
       if (notes.any((note) => note.isEmpty)) {
-        return ItineraryPlanDataValidationResult.noteEmpty;
+        errors.add(ItineraryPlanDataValidationResult.noteEmpty);
       }
     }
 
@@ -80,29 +85,21 @@ class ItineraryPlanData extends Equatable
     if (checkLists.isNotEmpty) {
       if (checkLists.any((checkList) =>
           checkList.title == null || checkList.title!.length < 3)) {
-        return ItineraryPlanDataValidationResult.checkListTitleNotValid;
+        errors.add(ItineraryPlanDataValidationResult.checkListTitleNotValid);
       }
       if (checkLists.any((checkList) =>
           checkList.items.isEmpty ||
           checkList.items
               .where((checkListItem) => checkListItem.item.isEmpty)
               .isNotEmpty)) {
-        return ItineraryPlanDataValidationResult.checkListItemEmpty;
+        errors.add(ItineraryPlanDataValidationResult.checkListItemEmpty);
       }
     }
 
-    return ItineraryPlanDataValidationResult.valid;
+    return errors;
   }
 
   @override
   List<Object?> get props => [tripId, id, day, sights, notes, checkLists];
 }
 
-enum ItineraryPlanDataValidationResult {
-  valid,
-  noContent,
-  sightInvalid,
-  noteEmpty,
-  checkListTitleNotValid,
-  checkListItemEmpty,
-}

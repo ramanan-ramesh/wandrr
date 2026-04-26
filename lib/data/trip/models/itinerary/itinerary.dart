@@ -10,10 +10,12 @@ import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
+import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 
 import 'itinerary_plan_data.dart';
 
-abstract class ItineraryFacade extends Equatable implements TripEntity {
+abstract class ItineraryFacade extends Equatable
+    implements TripEntity<ItineraryValidationResult> {
   String get tripId;
 
   DateTime get day;

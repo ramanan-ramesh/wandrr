@@ -8,6 +8,7 @@ import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 
 import 'itinerary_plan_data_implementation.dart';
 
@@ -157,10 +158,19 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
   bool? get stringify => true;
 
   @override
-  bool validate() {
-    return planData.validate() &&
-        !(fullDayLodging != null &&
-            (checkInLodging != null || checkOutLodging != null));
+  bool validate() => getValidationErrors().isEmpty;
+
+  @override
+  Iterable<ItineraryValidationResult> getValidationErrors() {
+    final errors = <ItineraryValidationResult>[];
+    if (!planData.validate()) {
+      errors.add(ItineraryValidationResult.planDataInvalid);
+    }
+    if (fullDayLodging != null &&
+        (checkInLodging != null || checkOutLodging != null)) {
+      errors.add(ItineraryValidationResult.duplicateLodging);
+    }
+    return errors;
   }
 
   void updatePlanDataFromRemote(

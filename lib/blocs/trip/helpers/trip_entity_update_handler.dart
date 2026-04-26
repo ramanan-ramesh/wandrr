@@ -11,7 +11,7 @@ class TripEntityUpdateHandler {
   const TripEntityUpdateHandler();
 
   /// Processes and updates a trip entity through CRUD operations
-  Future<void> updateTripEntityAndEmitState<E extends TripEntity>({
+  Future<void> updateTripEntityAndEmitState<E extends TripEntity<Enum>>({
     required E tripEntity,
     required DataState requestedDataState,
     required ModelCollectionModifier<E> modelCollection,
@@ -39,7 +39,7 @@ class TripEntityUpdateHandler {
   }
 
   /// Emits a new UI entry state
-  void _emitNewUiEntry<E extends TripEntity>(
+  void _emitNewUiEntry<E extends TripEntity<Enum>>(
       E tripEntity, Emitter<TripManagementState> emit) {
     emit(UpdatedTripEntity<E>.createdNewUiEntry(
       tripEntity: tripEntity,
@@ -48,7 +48,7 @@ class TripEntityUpdateHandler {
   }
 
   /// Handles the create operation
-  Future<void> _handleCreate<E extends TripEntity>(
+  Future<void> _handleCreate<E extends TripEntity<Enum>>(
     E tripEntity,
     ModelCollectionModifier<E> modelCollection,
     Emitter<TripManagementState> emit,
@@ -78,7 +78,7 @@ class TripEntityUpdateHandler {
   }
 
   /// Handles the delete operation
-  Future<void> _handleDelete<E extends TripEntity>(
+  Future<void> _handleDelete<E extends TripEntity<Enum>>(
     E tripEntity,
     ModelCollectionModifier<E> modelCollection,
     Emitter<TripManagementState> emit,
@@ -102,7 +102,7 @@ class TripEntityUpdateHandler {
   }
 
   /// Handles the update operation
-  Future<void> _handleUpdate<E extends TripEntity>(
+  Future<void> _handleUpdate<E extends TripEntity<Enum>>(
     E tripEntity,
     ModelCollectionModifier<E> modelCollection,
     Emitter<TripManagementState> emit,
@@ -132,7 +132,7 @@ class TripEntityUpdateHandler {
   }
 
   /// Handles the select operation
-  void _handleSelect<E extends TripEntity>(
+  void _handleSelect<E extends TripEntity<Enum>>(
     E tripEntity,
     ModelCollectionModifier<E> modelCollection,
     Emitter<TripManagementState> emit,

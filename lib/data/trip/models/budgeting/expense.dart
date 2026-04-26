@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
+import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 
 import 'expense_category.dart';
 import 'money.dart';
@@ -66,7 +67,9 @@ class ExpenseFacade extends Equatable {
 }
 
 /// Interface for trip entities that carry an attached expense (facade).
-abstract class ExpenseBearingTripEntity<T> implements TripEntity<T> {
+/// Interface for trip entities that carry an attached expense (facade).
+abstract class ExpenseBearingTripEntity<V extends Enum>
+    implements TripEntity<V> {
   /// The facade data for the expense attached to this trip entity
   ExpenseFacade expense;
 
@@ -81,7 +84,7 @@ abstract class ExpenseBearingTripEntity<T> implements TripEntity<T> {
 }
 
 class StandaloneExpense extends Equatable
-    implements ExpenseBearingTripEntity<StandaloneExpense> {
+    implements ExpenseBearingTripEntity<ExpenseValidationResult> {
   String tripId;
 
   @override
@@ -117,7 +120,20 @@ class StandaloneExpense extends Equatable
   List<Object?> get props => [expense, id];
 
   @override
-  bool validate() {
-    return expense.validate();
+  bool validate() => getValidationErrors().isEmpty;
+
+  @override
+  Iterable<ExpenseValidationResult> getValidationErrors() {
+    final errors = <ExpenseValidationResult>[];
+    if (expense.totalExpense.amount <= 0) {
+      errors.add(ExpenseValidationResult.invalidAmount);
+    }
+    if (expense.currency.isEmpty) {
+      errors.add(ExpenseValidationResult.invalidCurrency);
+    }
+    if (expense.paidBy.isEmpty || expense.splitBy.isEmpty) {
+      errors.add(ExpenseValidationResult.invalidSplit);
+    }
+    return errors;
   }
 }

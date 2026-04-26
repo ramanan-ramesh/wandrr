@@ -4,7 +4,6 @@ import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip_entity_editor/bloc.dart';
 import 'package:wandrr/blocs/trip_entity_editor/events.dart';
 import 'package:wandrr/blocs/trip_entity_editor/states.dart';
-import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
@@ -23,7 +22,8 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/u
 /// - Static layout (header, status bar, confirm button) doesn't rebuild on state changes
 /// - Each section (stays, transits, sights) rebuilds only when conflicts of that type change
 /// - Each conflict item rebuilds only when that specific item is updated
-class ConflictResolutionSubpage<T extends TripEntity> extends StatelessWidget {
+class ConflictResolutionSubpage<T extends TripEntity<Enum>>
+    extends StatelessWidget {
   final VoidCallback onBackPressed;
   final VoidCallback onConflictsResolved;
   final VoidCallback? onConflictsChanged;
@@ -74,7 +74,8 @@ class ConflictResolutionSubpage<T extends TripEntity> extends StatelessWidget {
 // =============================================================================
 
 /// Header with back button - static, no state listening needed
-class _ConflictResolutionHeader<T extends TripEntity> extends StatelessWidget {
+class _ConflictResolutionHeader<T extends TripEntity<Enum>>
+    extends StatelessWidget {
   final bool isLightTheme;
   final VoidCallback onBackPressed;
 
@@ -181,7 +182,8 @@ class _ConflictResolutionStatusBar extends StatelessWidget {
 }
 
 /// Confirm button - static, triggers BLoC event on press
-class _ConflictConfirmButton<T extends TripEntity> extends StatelessWidget {
+class _ConflictConfirmButton<T extends TripEntity<Enum>>
+    extends StatelessWidget {
   final bool isLightTheme;
   final VoidCallback onConflictsResolved;
 
@@ -213,9 +215,9 @@ class _ConflictConfirmButton<T extends TripEntity> extends StatelessWidget {
 // =============================================================================
 
 /// Container for all conflict sections.
-/// Each ConflictSectionBuilder rebuilds only when PlanUpdated includes its
-/// own conflict section; PlanCleared collapses all of them.
-class _DynamicConflictSections<T extends TripEntity> extends StatelessWidget {
+/// Each ConflictSectionBuilder rebuilds when ConflictPlanUpdated is emitted.
+class _DynamicConflictSections<T extends TripEntity<Enum>>
+    extends StatelessWidget {
   final VoidCallback? onConflictsChanged;
 
   const _DynamicConflictSections({this.onConflictsChanged});
@@ -282,23 +284,15 @@ class _DynamicConflictSections<T extends TripEntity> extends StatelessWidget {
   }
 }
 
-/// Expenses section – rebuilds only when [PlanUpdated] or [PlanCleared]
-/// includes the [ExpenseBearingTripEntity] type.
-class _ExpensesSectionSelector<T extends TripEntity> extends StatelessWidget {
+/// Expenses section – rebuilds when [ConflictPlanUpdated] is emitted.
+class _ExpensesSectionSelector<T extends TripEntity<Enum>>
+    extends StatelessWidget {
   const _ExpensesSectionSelector();
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TripEntityEditorBloc<T>, TripEntityEditorState<T>>(
-      buildWhen: (_, current) {
-        if (current is PlanCleared<T>) {
-          return true;
-        }
-        if (current is PlanUpdated<T>) {
-          return current.affectedSections.contains(ExpenseBearingTripEntity);
-        }
-        return false;
-      },
+      buildWhen: (_, current) => current is ConflictPlanUpdated<T>,
       builder: (context, _) {
         final plan = context.tripEntityUpdatePlan<T>();
         if (plan == null ||

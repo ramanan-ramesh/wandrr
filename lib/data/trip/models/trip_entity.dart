@@ -1,7 +1,9 @@
-abstract class TripEntity<T> {
+abstract class TripEntity<TValidationResult extends Enum> {
   String? get id;
 
-  T clone();
+  TripEntity<TValidationResult> clone();
 
   bool validate();
+
+  Iterable<TValidationResult> getValidationErrors();
 }

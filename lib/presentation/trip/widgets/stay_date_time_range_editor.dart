@@ -215,9 +215,36 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
           color: isLightTheme
               ? AppColors.brandPrimary
               : AppColors.brandPrimaryLight),
-      okButtonTextStyle: const TextStyle(color: AppColors.brandPrimary),
-      cancelButtonTextStyle:
-          TextStyle(color: !isLightTheme ? Colors.black54 : Colors.white70),
+      cancelButton: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade400),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          'Cancel',
+          style: TextStyle(
+            color: isLightTheme ? Colors.grey.shade700 : Colors.grey.shade300,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+      ),
+      okButton: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        decoration: BoxDecoration(
+          color: isLightTheme ? AppColors.brandPrimary : AppColors.brandPrimaryLight,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Text(
+          'Confirm',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+      ),
     );
   }
 

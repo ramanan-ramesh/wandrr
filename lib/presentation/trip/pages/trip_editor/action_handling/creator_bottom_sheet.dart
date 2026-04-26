@@ -52,9 +52,9 @@ class _TripEntityCreatorBottomSheetState
     return DraggableScrollableSheet(
       expand: false,
       shouldCloseOnMinExtent: false,
-      initialChildSize: selectedAction != null ? 0.8 : 0.45,
-      maxChildSize: 0.85,
-      minChildSize: selectedAction != null ? 0.8 : 0.3,
+      initialChildSize: selectedAction != null ? 0.85 : 0.45,
+      maxChildSize: selectedAction != null ? 0.85 : 0.45,
+      minChildSize: selectedAction != null ? 0.85 : 0.3,
       builder: (context, scrollController) {
         if (selectedAction == null) {
           return _createSupportedActionsView(
@@ -89,13 +89,11 @@ class _TripEntityCreatorBottomSheetState
       ScrollController scrollController, double bottomPadding) {
     final actions = widget.supportedActions.toList();
 
-    return SingleChildScrollView(
-      controller: scrollController,
-      padding: EdgeInsets.only(
+    return Padding(
+      padding: const EdgeInsets.only(
         left: 16,
         right: 16,
         top: 8,
-        bottom: bottomPadding,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

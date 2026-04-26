@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
-import 'package:wandrr/blocs/trip_entity_editor/events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
 import 'package:wandrr/presentation/trip/widgets/stay_date_time_range_editor.dart';
@@ -70,11 +67,6 @@ class _LodgingEditorState extends State<LodgingEditor> {
             _lodging.checkoutDateTime = checkout;
           });
           widget.onLodgingUpdated();
-          context.addTripEntityEditorEvent<LodgingFacade>(
-            UpdateEntityTimeRange<LodgingFacade>(
-              TimeRange(start: checkin, end: checkout),
-            ),
-          );
         },
       ),
     );

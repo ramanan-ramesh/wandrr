@@ -2,11 +2,12 @@ import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
+import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 
 import '../budgeting/expense_category.dart';
 
 class SightFacade extends Equatable
-    implements ExpenseBearingTripEntity<SightFacade> {
+    implements ExpenseBearingTripEntity<SightValidationResult> {
   final String tripId;
 
   @override
@@ -71,8 +72,19 @@ class SightFacade extends Equatable
       );
 
   @override
-  bool validate() {
-    return name.isNotEmpty && name.length >= 3;
+  bool validate() => getValidationErrors().isEmpty;
+
+  @override
+  Iterable<SightValidationResult> getValidationErrors() {
+    final errors = <SightValidationResult>[];
+    if (name.isEmpty || name.length < 3) {
+      errors.add(SightValidationResult.missingName);
+    }
+    // Location and time are optional for sights, but we can validate expense
+    if (!expense.validate()) {
+      errors.add(SightValidationResult.expenseInvalid);
+    }
+    return errors;
   }
 
   @override

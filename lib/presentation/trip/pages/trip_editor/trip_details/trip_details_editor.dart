@@ -1,49 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
-import 'package:wandrr/blocs/trip_entity_editor/events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
-import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/money_edit_field.dart';
-
 import 'trip_contributors_section.dart';
-
 const _kSectionHeaderSpacing = SizedBox(height: 12.0);
-
 class TripDetailsEditor extends StatefulWidget {
   final TripMetadataFacade tripMetadataFacade;
   final VoidCallback onTripMetadataUpdated;
-
   const TripDetailsEditor({
     required this.tripMetadataFacade, required this.onTripMetadataUpdated, super.key,
   });
-
   @override
   State<TripDetailsEditor> createState() => _TripDetailsEditorState();
 }
-
 class _TripDetailsEditorState extends State<TripDetailsEditor>
     with TickerProviderStateMixin {
   late final TextEditingController _titleController;
-
   @override
   void initState() {
     super.initState();
     _titleController =
         TextEditingController(text: widget.tripMetadataFacade.name);
   }
-
   @override
   void dispose() {
     _titleController.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -63,7 +51,6 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
       ],
     );
   }
-
   Widget _buildTitleSection(BuildContext context) {
     return EditorTheme.createSection(
       context: context,
@@ -88,7 +75,6 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
       ),
     );
   }
-
   Widget _buildDatesSection(BuildContext context) {
     return EditorTheme.createSection(
       context: context,
@@ -112,13 +98,6 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
                 widget.tripMetadataFacade.endDate = newEndDate;
               });
               widget.onTripMetadataUpdated();
-              if (newStartDate != null && newEndDate != null) {
-                context.addTripEntityEditorEvent<TripMetadataFacade>(
-                  UpdateEntityTimeRange<TripMetadataFacade>(
-                    TimeRange(start: newStartDate, end: newEndDate),
-                  ),
-                );
-              }
             },
           ),
           if (widget.tripMetadataFacade.startDate != null &&
@@ -128,7 +107,6 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
       ),
     );
   }
-
   Widget _buildDurationIndicator(BuildContext context) {
     final startDate = widget.tripMetadataFacade.startDate!;
     final endDate = widget.tripMetadataFacade.endDate!;
@@ -175,7 +153,6 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
       ),
     );
   }
-
   Widget _buildBudgetSection(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
     final allCurrencies = context.supportedCurrencies.toList();

@@ -13,12 +13,12 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 // CONFLICT SECTION BUILDER
 // =============================================================================
 
-/// Rebuilds only when the plan's structural change ([PlanUpdated] or [PlanCleared])
-/// includes this section's entity type.
+/// Rebuilds when the conflict plan changes ([ConflictPlanUpdated]).
 ///
 /// On rebuild, reads the current list directly from
 /// `context.tripEntityUpdatePlan<T>()` — no data is carried in the state.
-class ConflictSectionBuilder<T extends TripEntity> extends StatelessWidget {
+class ConflictSectionBuilder<T extends TripEntity<Enum>>
+    extends StatelessWidget {
   /// The entity type this section represents (e.g. LodgingFacade, TransitFacade, SightFacade).
   final Type entityType;
   final Widget Function(BuildContext context, List<EntityChangeBase> changes)
@@ -33,15 +33,7 @@ class ConflictSectionBuilder<T extends TripEntity> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TripEntityEditorBloc<T>, TripEntityEditorState<T>>(
-      buildWhen: (_, current) {
-        if (current is PlanCleared<T>) {
-          return true;
-        }
-        if (current is PlanUpdated<T>) {
-          return current.affectedSections.contains(entityType);
-        }
-        return false;
-      },
+      buildWhen: (_, current) => current is ConflictPlanUpdated<T>,
       builder: (context, _) {
         final changes = _changesFor(context);
         if (changes.isEmpty) {
@@ -72,11 +64,11 @@ class ConflictSectionBuilder<T extends TripEntity> extends StatelessWidget {
 // CONFLICT ITEM BUILDER
 // =============================================================================
 
-/// Rebuilds a single conflict item only when [PlanItemsUpdated] includes this
-/// item's entity type AND the plan still contains an entry with this [entityId].
+/// Rebuilds a single conflict item when [ConflictPlanUpdated] is emitted
+/// and the plan still contains an entry with this [entityId].
 ///
 /// Reads the latest change from `context.tripEntityUpdatePlan<T>()` directly.
-class ConflictItemBuilder<T extends TripEntity> extends StatelessWidget {
+class ConflictItemBuilder<T extends TripEntity<Enum>> extends StatelessWidget {
   final String entityId;
 
   /// The entity type this item represents (e.g. LodgingFacade, TransitFacade, SightFacade).
@@ -93,12 +85,7 @@ class ConflictItemBuilder<T extends TripEntity> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TripEntityEditorBloc<T>, TripEntityEditorState<T>>(
-      buildWhen: (_, current) {
-        if (current is PlanItemsUpdated<T>) {
-          return current.affectedSections.contains(entityType);
-        }
-        return false;
-      },
+      buildWhen: (_, current) => current is ConflictPlanUpdated<T>,
       builder: (context, _) {
         final change = _findChange(context);
         if (change == null) {
@@ -132,9 +119,9 @@ class ConflictItemBuilder<T extends TripEntity> extends StatelessWidget {
 // CONFLICT ITEM LISTENER
 // =============================================================================
 
-/// Side-effect listener that fires when [PlanItemsUpdated] touches this item's
-/// entity type (for snackbars, animations, etc.).
-class ConflictItemListener<T extends TripEntity> extends StatelessWidget {
+/// Side-effect listener that fires when [ConflictPlanUpdated] is emitted
+/// (for snackbars, animations, etc.).
+class ConflictItemListener<T extends TripEntity<Enum>> extends StatelessWidget {
   final String entityId;
 
   /// The entity type this listener tracks (e.g. LodgingFacade, TransitFacade, SightFacade).
@@ -153,9 +140,7 @@ class ConflictItemListener<T extends TripEntity> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocListener<TripEntityEditorBloc<T>, TripEntityEditorState<T>>(
-      listenWhen: (_, current) =>
-          current is PlanItemsUpdated<T> &&
-          current.affectedSections.contains(entityType),
+      listenWhen: (_, current) => current is ConflictPlanUpdated<T>,
       listener: (context, _) {
         final plan = context.tripEntityUpdatePlan<T>();
         if (plan == null) {

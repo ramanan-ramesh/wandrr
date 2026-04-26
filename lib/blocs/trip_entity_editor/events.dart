@@ -1,6 +1,4 @@
-import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
-import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
@@ -8,25 +6,22 @@ abstract class TripEntityEditorEvent {
   const TripEntityEditorEvent();
 }
 
-/// Time range changed on the primary entity.
-class UpdateEntityTimeRange<T extends TripEntity>
-    extends TripEntityEditorEvent {
-  final TimeRange range;
-
-  const UpdateEntityTimeRange(this.range);
+/// Unified update event for Stay, Sights (ItineraryPlanData), and TripMetadata.
+/// The bloc reads time ranges directly from `editableEntity` (already mutated
+/// by the editor) and runs conflict detection. Also handles non-time field
+/// changes (validation refresh).
+class UpdateEntity<T extends TripEntity<Enum>> extends TripEntityEditorEvent {
+  const UpdateEntity();
 }
 
-/// Time range changed on a transit journey (which has multiple legs).
-class UpdateJourneyTimeRange extends TripEntityEditorEvent {
+/// Unified update event for transit journeys.
+/// Carries all current in-memory legs so the bloc can validate cross-leg
+/// sequence and individual legs before running conflict detection.
+/// The bloc instantiates the journey service internally from tripData.
+class UpdateJourney extends TripEntityEditorEvent {
   final List<TransitFacade> legs;
 
-  const UpdateJourneyTimeRange(this.legs);
-}
-
-/// Time range changed on a conflicted entity.
-class UpdateSightsTimeRange extends TripEntityEditorEvent {
-  final List<SightFacade> sights;
-  UpdateSightsTimeRange(this.sights);
+  const UpdateJourney(this.legs);
 }
 
 class UpdateConflictedEntityTimeRange extends TripEntityEditorEvent {

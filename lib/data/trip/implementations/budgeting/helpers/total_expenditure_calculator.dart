@@ -59,9 +59,9 @@ class TotalExpenditureCalculator {
   }
 
   Iterable<ExpenseFacade> _collectExpenses<T extends TripEntity>(
-    Iterable<ExpenseBearingTripEntity<T>> expenseBearingTripEntities,
+    Iterable<ExpenseBearingTripEntity> expenseBearingTripEntities,
     String currentUserName,
-    Iterable<ExpenseBearingTripEntity<T>> expenseBearingTripEntitiesToExclude,
+    Iterable<ExpenseBearingTripEntity> expenseBearingTripEntitiesToExclude,
   ) sync* {
     for (final expenseBearingTripEntity in expenseBearingTripEntities) {
       if (!expenseBearingTripEntitiesToExclude

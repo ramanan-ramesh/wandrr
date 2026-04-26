@@ -1,11 +1,12 @@
 import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
+import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 
 import 'budgeting/money.dart';
 
 // ignore: must_be_immutable
 class TripMetadataFacade extends Equatable
-    implements TripEntity<TripMetadataFacade> {
+    implements TripEntity<TripMetadataValidationResult> {
   @override
   String? id;
 
@@ -67,13 +68,24 @@ class TripMetadataFacade extends Equatable
   }
 
   @override
-  bool validate() {
-    var hasValidName = name.isNotEmpty;
-    var hasValidDateRange = endDate != null &&
-        startDate != null &&
-        endDate!.compareTo(startDate!) >= 0;
+  bool validate() => getValidationErrors().isEmpty;
 
-    return hasValidName && hasValidDateRange;
+  @override
+  Iterable<TripMetadataValidationResult> getValidationErrors() {
+    final errors = <TripMetadataValidationResult>[];
+    if (name.isEmpty) {
+      errors.add(TripMetadataValidationResult.missingTitle);
+    }
+    if (startDate == null) {
+      errors.add(TripMetadataValidationResult.missingStartDate);
+    }
+    if (endDate == null) {
+      errors.add(TripMetadataValidationResult.missingEndDate);
+    }
+    if (startDate != null && endDate != null && endDate!.isBefore(startDate!)) {
+      errors.add(TripMetadataValidationResult.invalidDateRange);
+    }
+    return errors;
   }
 
   @override

@@ -263,6 +263,26 @@ class _ConnectedTransitCard extends StatelessWidget {
     }
   }
 
+  Color _positionBadgeColor(bool isLightTheme) {
+    if (event.isMultiDay) {
+      return event.isDepartureDayView
+          ? (isLightTheme ? AppColors.success : AppColors.successLight)
+          : (isLightTheme
+              ? AppColors.brandPrimary
+              : AppColors.brandPrimaryLight);
+    }
+    return isLightTheme ? AppColors.info : AppColors.infoLight;
+  }
+
+  IconData _positionBadgeIcon() {
+    if (event.isMultiDay) {
+      return event.isDepartureDayView
+          ? Icons.flight_takeoff_rounded
+          : Icons.flight_land_rounded;
+    }
+    return Icons.connecting_airports_rounded;
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeHelper = TimelineThemeHelper(context);
@@ -270,6 +290,7 @@ class _ConnectedTransitCard extends StatelessWidget {
     final isPartOfJourney =
         event.position != TravelLegConnectionPosition.standalone;
     final positionLabel = _getPositionLabel();
+    final transitStopCount = event.journey.legs.length - 1;
 
     return Container(
       margin: EdgeInsets.only(
@@ -309,29 +330,24 @@ class _ConnectedTransitCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: isLightTheme
-                          ? AppColors.info.withValues(alpha: 0.15)
-                          : AppColors.infoLight.withValues(alpha: 0.2),
+                      color: _positionBadgeColor(isLightTheme)
+                          .withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.connecting_airports_rounded,
+                          _positionBadgeIcon(),
                           size: 10,
-                          color: isLightTheme
-                              ? AppColors.info
-                              : AppColors.infoLight,
+                          color: _positionBadgeColor(isLightTheme),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           positionLabel,
                           style:
                               Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: isLightTheme
-                                        ? AppColors.info
-                                        : AppColors.infoLight,
+                                    color: _positionBadgeColor(isLightTheme),
                                     fontWeight: FontWeight.bold,
                                     fontSize: 9,
                                     letterSpacing: 0.5,
@@ -340,11 +356,52 @@ class _ConnectedTransitCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  // Multi-day badge
+                  if (event.isMultiDay) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isLightTheme
+                            ? AppColors.warning.withValues(alpha: 0.15)
+                            : AppColors.warningLight.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.date_range_rounded,
+                            size: 10,
+                            color: isLightTheme
+                                ? AppColors.warning
+                                : AppColors.warningLight,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'MULTI-DAY',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(
+                                  color: isLightTheme
+                                      ? AppColors.warning
+                                      : AppColors.warningLight,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 9,
+                                  letterSpacing: 0.5,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const Spacer(),
                   // Total legs indicator (on first leg only)
                   if (event.position == TravelLegConnectionPosition.start)
                     Text(
-                      '${event.journey.legs.length} stops',
+                      '$transitStopCount stop${transitStopCount != 1 ? 's' : ''}',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: isLightTheme
                                 ? Colors.grey.shade500
@@ -358,13 +415,6 @@ class _ConnectedTransitCard extends StatelessWidget {
           // Main content row
           Row(
             children: [
-              // Transit icon
-              Icon(
-                event.icon,
-                size: 18,
-                color: event.iconColor,
-              ),
-              const SizedBox(width: 10),
               // Route info
               Expanded(
                 child: Column(
@@ -408,11 +458,21 @@ class _ConnectedTransitCard extends StatelessWidget {
                   ),
                 ),
               const SizedBox(width: 4),
-              // Chevron for tap indication
-              Icon(
-                Icons.chevron_right,
-                size: 18,
-                color: Colors.grey.shade400,
+              // Delete button
+              GestureDetector(
+                onTap: () => event.onDelete(context),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.delete_outline,
+                    size: 16,
+                    color: AppColors.error,
+                  ),
+                ),
               ),
             ],
           ),

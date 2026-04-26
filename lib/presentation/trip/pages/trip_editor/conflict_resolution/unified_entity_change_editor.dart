@@ -923,7 +923,7 @@ class _TriStateCheckbox extends StatelessWidget {
 ///
 /// This widget should be used within a [ConflictSectionBuilder] which handles
 /// section-level rebuilds when conflicts are added/removed.
-class OptimizedEntityChangeSection<T extends TripEntity>
+class OptimizedEntityChangeSection<T extends TripEntity<Enum>>
     extends StatefulWidget {
   /// The entity type this section represents (e.g. LodgingFacade, TransitFacade, SightFacade).
   final Type entityType;
@@ -946,7 +946,7 @@ class OptimizedEntityChangeSection<T extends TripEntity>
       _OptimizedEntityChangeSectionState<T>();
 }
 
-class _OptimizedEntityChangeSectionState<T extends TripEntity>
+class _OptimizedEntityChangeSectionState<T extends TripEntity<Enum>>
     extends State<OptimizedEntityChangeSection<T>> {
   late EntityChangeMessageProvider _messageProvider;
   bool _isExpanded = false;
@@ -1137,8 +1137,8 @@ class _OptimizedEntityChangeSectionState<T extends TripEntity>
 }
 
 /// An individual change item that uses ConflictItemBuilder<T> for localized
-/// rebuilds driven by PlanItemsUpdated.
-class _OptimizedChangeItem<T extends TripEntity> extends StatelessWidget {
+/// rebuilds driven by ConflictPlanUpdated.
+class _OptimizedChangeItem<T extends TripEntity<Enum>> extends StatelessWidget {
   final EntityChangeBase change;
 
   /// The entity type this item represents (e.g. LodgingFacade, TransitFacade, SightFacade).

@@ -14,7 +14,7 @@ class GoToHome extends TripManagementEvent {
   const GoToHome();
 }
 
-class UpdateTripEntity<T extends TripEntity> extends TripManagementEvent {
+class UpdateTripEntity<T extends TripEntity<Enum>> extends TripManagementEvent {
   final T tripEntity;
   final DataState dataState;
 

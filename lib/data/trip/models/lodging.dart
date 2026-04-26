@@ -2,12 +2,13 @@ import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
+import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 
 import 'budgeting/expense_category.dart';
 
 // ignore: must_be_immutable
 class LodgingFacade extends Equatable
-    implements ExpenseBearingTripEntity<LodgingFacade> {
+    implements ExpenseBearingTripEntity<LodgingValidationResult> {
   LocationFacade? location;
 
   DateTime? checkinDateTime;
@@ -86,11 +87,30 @@ class LodgingFacade extends Equatable
   }
 
   @override
-  bool validate() =>
-      location != null &&
-      checkinDateTime != null &&
-      checkoutDateTime != null &&
-      expense.validate();
+  bool validate() => getValidationErrors().isEmpty;
+
+  @override
+  Iterable<LodgingValidationResult> getValidationErrors() {
+    final errors = <LodgingValidationResult>[];
+    if (location == null) {
+      errors.add(LodgingValidationResult.missingLocation);
+    }
+    if (checkinDateTime == null) {
+      errors.add(LodgingValidationResult.missingCheckinTime);
+    }
+    if (checkoutDateTime == null) {
+      errors.add(LodgingValidationResult.missingCheckoutTime);
+    }
+    if (checkinDateTime != null &&
+        checkoutDateTime != null &&
+        checkoutDateTime!.isBefore(checkinDateTime!)) {
+      errors.add(LodgingValidationResult.invalidTimeSequence);
+    }
+    if (!expense.validate()) {
+      errors.add(LodgingValidationResult.expenseInvalid);
+    }
+    return errors;
+  }
 
   @override
   String toString() {

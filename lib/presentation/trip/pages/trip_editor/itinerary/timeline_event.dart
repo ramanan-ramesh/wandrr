@@ -3,7 +3,7 @@ import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
-class TimelineEvent<T extends TripEntity> {
+class TimelineEvent<T extends TripEntity<Enum>> {
   final DateTime time;
   final String title;
   final String subtitle;

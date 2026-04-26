@@ -22,17 +22,53 @@ class TimelineEventFormatter {
         : locationDetail;
   }
 
-  /// Formats transit location detail
+  /// Formats transit location detail.
+  /// If departure and arrival are in the same city, shows place names with
+  /// city mentioned once: "Station A → Station B (City)".
+  /// Otherwise shows "City A → City B".
   String getTransitLocationDetail(TransitFacade transit) {
-    final departureLocation = transit.transitOption == TransitOption.flight
-        ? (transit.departureLocation!.context as AirportLocationContext)
-            .airportCode
-        : transit.departureLocation.toString();
-    final arrivalLocation = transit.transitOption == TransitOption.flight
-        ? (transit.arrivalLocation!.context as AirportLocationContext)
-            .airportCode
-        : transit.arrivalLocation.toString();
-    return '$departureLocation → $arrivalLocation';
+    if (transit.transitOption == TransitOption.flight) {
+      final depCode =
+          (transit.departureLocation!.context as AirportLocationContext)
+              .airportCode;
+      final arrCode =
+          (transit.arrivalLocation!.context as AirportLocationContext)
+              .airportCode;
+      return '$depCode → $arrCode';
+    }
+
+    final depName = transit.departureLocation!.context.name;
+    final arrName = transit.arrivalLocation!.context.name;
+    final depCity = transit.departureLocation!.context.city;
+    final arrCity = transit.arrivalLocation!.context.city;
+
+    // Same city: show place names with city mentioned once
+    if (depCity != null &&
+        arrCity != null &&
+        depCity == arrCity) {
+      final isDepNameCity = depName.isEmpty || depName == depCity;
+      final isArrNameCity = arrName.isEmpty || arrName == arrCity;
+      
+      if (isDepNameCity && isArrNameCity) {
+        return depCity;
+      } else if (isArrNameCity) {
+        return '$depName ($depCity)';
+      } else if (isDepNameCity) {
+        return '$arrName ($depCity)';
+      } else if (depName == arrName) {
+        return '$depName ($depCity)';
+      }
+      return '$depName → $arrName ($depCity)';
+    }
+
+    // Different cities: prefer city names, fall back to place names
+    final depLabel = (depCity != null && depCity.isNotEmpty) ? depCity : (depName.isEmpty ? '?' : depName);
+    final arrLabel = (arrCity != null && arrCity.isNotEmpty) ? arrCity : (arrName.isEmpty ? '?' : arrName);
+    
+    if (depLabel == arrLabel) {
+      return depLabel;
+    }
+    return '$depLabel → $arrLabel';
   }
 
   /// Gets the transit operator info
@@ -84,16 +120,22 @@ class TimelineEventFormatter {
         title: '${getTransitLocationDetail(transit)}\n$dateTimeText',
       );
     } else if (isDepartingToday) {
+      // Multi-day: show both origin and destination
+      final depName = _getOriginName(transit);
+      final destName = _getDestinationName(transit);
       return (
         eventTime: departure,
         title:
-            '${localizations.departAt} ${departure.hourMinuteAmPmFormat} ($departureTimezone) → ${_getDestinationName(transit)}',
+            '${localizations.departAt} ${departure.hourMinuteAmPmFormat} ($departureTimezone)\n$depName → $destName',
       );
     } else {
+      // Multi-day: show both origin and destination
+      final originName = _getOriginName(transit);
+      final destName = _getDestinationName(transit);
       return (
         eventTime: arrival,
         title:
-            '${localizations.arriveAt} ${arrival.hourMinuteAmPmFormat} ($arrivalTimezone) from ${_getOriginName(transit)}',
+            '${localizations.arriveAt} ${arrival.hourMinuteAmPmFormat} ($arrivalTimezone)\n$originName → $destName',
       );
     }
   }

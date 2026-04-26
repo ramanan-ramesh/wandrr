@@ -2,12 +2,13 @@ import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
+import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 
 import 'budgeting/expense_category.dart';
 
 // ignore: must_be_immutable
 class TransitFacade extends Equatable
-    implements ExpenseBearingTripEntity<TransitFacade> {
+    implements ExpenseBearingTripEntity<TransitValidationResult> {
   final String tripId;
 
   @override
@@ -148,22 +149,35 @@ class TransitFacade extends Equatable
   }
 
   @override
-  bool validate() {
-    var areLocationsValid =
-        departureLocation != null && arrivalLocation != null;
-    var areDateTimesValid = departureDateTime != null &&
-        arrivalDateTime != null &&
-        departureDateTime!.compareTo(arrivalDateTime!) < 0;
-    bool isTransitCarrierValid;
-    if (transitOption == TransitOption.flight) {
-      isTransitCarrierValid = _isFlightOperatorValid();
-    } else {
-      isTransitCarrierValid = true;
+  bool validate() => getValidationErrors().isEmpty;
+
+  @override
+  Iterable<TransitValidationResult> getValidationErrors() {
+    final errors = <TransitValidationResult>[];
+    if (departureLocation == null) {
+      errors.add(TransitValidationResult.missingDepartureLocation);
     }
-    return areLocationsValid &&
-        areDateTimesValid &&
-        isTransitCarrierValid &&
-        expense.validate();
+    if (arrivalLocation == null) {
+      errors.add(TransitValidationResult.missingArrivalLocation);
+    }
+    if (departureDateTime == null) {
+      errors.add(TransitValidationResult.missingDepartureTime);
+    }
+    if (arrivalDateTime == null) {
+      errors.add(TransitValidationResult.missingArrivalTime);
+    }
+    if (departureDateTime != null &&
+        arrivalDateTime != null &&
+        departureDateTime!.compareTo(arrivalDateTime!) >= 0) {
+      errors.add(TransitValidationResult.invalidTimeSequence);
+    }
+    if (transitOption == TransitOption.flight && !_isFlightOperatorValid()) {
+      errors.add(TransitValidationResult.invalidFlightOperator);
+    }
+    if (!expense.validate()) {
+      errors.add(TransitValidationResult.expenseInvalid);
+    }
+    return errors;
   }
 
   bool _isFlightOperatorValid() {

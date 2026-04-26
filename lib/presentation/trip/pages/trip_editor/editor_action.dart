@@ -19,13 +19,11 @@ extension TripEditorActionMetadata on TripEditorAction {
   String? getCreatorTitle(AppLocalizations l10n) {
     switch (this) {
       case TripEditorAction.travel:
-        return 'Travel Entry';
+        return 'Travel';
       case TripEditorAction.stay:
-        return 'Stay Entry';
+        return 'Stay';
       case TripEditorAction.expense:
-        return 'Expense Entry';
-      case TripEditorAction.tripDetails:
-        return 'Trip Details Entry';
+        return 'Expense';
       default:
         return null;
     }
@@ -65,7 +63,7 @@ extension TripEditorActionMetadata on TripEditorAction {
 
   /// Creates a new empty entity for this action type
   // TODO: Move this logic to backend or bloc
-  TripEntity createEntity(BuildContext context) {
+  TripEntity<Enum> createEntity(BuildContext context) {
     final trip = context.activeTrip;
     final contributors = trip.tripMetadata.contributors;
     final currency = trip.tripMetadata.budget.currency;

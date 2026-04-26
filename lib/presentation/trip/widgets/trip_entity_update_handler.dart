@@ -6,7 +6,7 @@ import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
-class TripEntityUpdateHandler<T extends TripEntity> extends StatelessWidget {
+class TripEntityUpdateHandler<T extends TripEntity<Enum>> extends StatelessWidget {
   final WidgetBuilder widgetBuilder;
   final bool Function(T beforeUpdate, T afterUpdate) shouldRebuild;
 

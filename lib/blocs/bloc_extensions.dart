@@ -33,16 +33,16 @@ extension BlocProviderExt on BuildContext {
 }
 
 extension TripEntityEditorBlocExt on BuildContext {
-  TripEntityEditorBloc<T> _getBloc<T extends TripEntity>() =>
+  TripEntityEditorBloc<T> _getBloc<T extends TripEntity<Enum>>() =>
       BlocProvider.of<TripEntityEditorBloc<T>>(this);
 
   /// Current conflict plan – always read from the bloc, not from states.
-  TripEntityUpdatePlan<T>? tripEntityUpdatePlan<T extends TripEntity>() =>
+  TripEntityUpdatePlan<T>? tripEntityUpdatePlan<T extends TripEntity<Enum>>() =>
       _getBloc<T>().currentPlan;
 
-  T editableEntity<T extends TripEntity>() => _getBloc<T>().editableEntity;
+  T editableEntity<T extends TripEntity<Enum>>() => _getBloc<T>().editableEntity;
 
-  void addTripEntityEditorEvent<T extends TripEntity>(
+  void addTripEntityEditorEvent<T extends TripEntity<Enum>>(
       TripEntityEditorEvent event) {
     _getBloc<T>().add(event);
   }

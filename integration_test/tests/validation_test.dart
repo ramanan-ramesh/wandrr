@@ -16,6 +16,7 @@ import 'package:wandrr/data/trip/models/location/geo_location_api_context.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
 import '../helpers/test_config.dart';
@@ -25,7 +26,9 @@ const _cur = 'EUR';
 final _contribs = [TestConfig.testEmail, TestConfig.tripMateUserName];
 
 ExpenseFacade _exp() => ExpenseFacade(
-    currency: _cur, paidBy: const {TestConfig.testEmail: 10.0}, splitBy: _contribs);
+    currency: _cur,
+    paidBy: const {TestConfig.testEmail: 10.0},
+    splitBy: _contribs);
 
 LocationFacade _loc() => LocationFacade(
     latitude: 48.85,
@@ -108,12 +111,12 @@ Future<void> runLodgingValidationTest(
       reason: 'No checkout');
   expect(
       LodgingFacade(
-              tripId: _tripId,
-              location: _loc(),
-              checkinDateTime: DateTime(2025, 10, 1),
-              checkoutDateTime: DateTime(2025, 10, 3),
-              expense: ExpenseFacade(currency: _cur, paidBy: const {}, splitBy: const []))
-          .validate(),
+          tripId: _tripId,
+          location: _loc(),
+          checkinDateTime: DateTime(2025, 10, 1),
+          checkoutDateTime: DateTime(2025, 10, 3),
+          expense: ExpenseFacade(
+              currency: _cur, paidBy: const {}, splitBy: const [])).validate(),
       false,
       reason: 'Bad expense');
   print('✓ Lodging: 5 scenarios passed');
@@ -226,7 +229,9 @@ Future<void> runCheckListValidationTest(
       false);
   expect(CheckListFacade(tripId: _tripId, title: '', items: [item]).validate(),
       false);
-  expect(CheckListFacade(tripId: _tripId, title: 'Pack', items: const []).validate(),
+  expect(
+      CheckListFacade(tripId: _tripId, title: 'Pack', items: const [])
+          .validate(),
       false);
   expect(
       CheckListFacade(
@@ -247,7 +252,8 @@ Future<void> runItineraryPlanDataValidationTest(
       notes: const [],
       checkLists: const []);
   expect(e.validate(), true, reason: 'noContent=valid');
-  expect(e.getValidationResult(), ItineraryPlanDataValidationResult.noContent);
+  expect(e.getValidationErrors().first,
+      ItineraryPlanDataValidationResult.noContent);
 
   final vp =
       ItineraryPlanData(tripId: _tripId, day: DateTime(2025, 10, 1), sights: [
@@ -273,7 +279,7 @@ Future<void> runItineraryPlanDataValidationTest(
             name: '',
             day: DateTime(2025, 10, 1),
             expense: _exp())
-      ], notes: const [], checkLists: const []).getValidationResult(),
+      ], notes: const [], checkLists: const []).getValidationErrors().first,
       ItineraryPlanDataValidationResult.sightInvalid);
 
   expect(
@@ -282,7 +288,7 @@ Future<void> runItineraryPlanDataValidationTest(
           day: DateTime(2025, 10, 1),
           sights: const [],
           notes: const [''],
-          checkLists: const []).getValidationResult(),
+          checkLists: const []).getValidationErrors().first,
       ItineraryPlanDataValidationResult.noteEmpty);
 
   expect(
@@ -296,7 +302,7 @@ Future<void> runItineraryPlanDataValidationTest(
                 tripId: _tripId,
                 title: 'AB',
                 items: [CheckListItem(item: 'X', isChecked: false)])
-          ]).getValidationResult(),
+          ]).getValidationErrors().first,
       ItineraryPlanDataValidationResult.checkListTitleNotValid);
 
   expect(
@@ -307,7 +313,7 @@ Future<void> runItineraryPlanDataValidationTest(
           notes: const [],
           checkLists: [
             CheckListFacade(tripId: _tripId, title: 'Pack', items: const [])
-          ]).getValidationResult(),
+          ]).getValidationErrors().first,
       ItineraryPlanDataValidationResult.checkListItemEmpty);
 
   expect(
@@ -321,7 +327,7 @@ Future<void> runItineraryPlanDataValidationTest(
                 tripId: _tripId,
                 title: 'Pack',
                 items: [CheckListItem(item: '', isChecked: false)])
-          ]).getValidationResult(),
+          ]).getValidationErrors().first,
       ItineraryPlanDataValidationResult.checkListItemEmpty);
   print('✓ ItineraryPlanData: 7 scenarios passed');
 }
@@ -337,7 +343,8 @@ Future<void> runExpenseFacadeValidationTest(
           .validate(),
       true);
   expect(
-      ExpenseFacade(currency: _cur, paidBy: const {}, splitBy: _contribs).validate(),
+      ExpenseFacade(currency: _cur, paidBy: const {}, splitBy: _contribs)
+          .validate(),
       false);
   expect(
       ExpenseFacade(
@@ -346,7 +353,9 @@ Future<void> runExpenseFacadeValidationTest(
           splitBy: const []).validate(),
       false);
   expect(
-      ExpenseFacade(currency: _cur, paidBy: const {}, splitBy: const []).validate(), false);
+      ExpenseFacade(currency: _cur, paidBy: const {}, splitBy: const [])
+          .validate(),
+      false);
   expect(
       ExpenseFacade(
           currency: _cur,
@@ -365,10 +374,10 @@ Future<void> runStandaloneExpenseValidationTest(
       true);
   expect(
       StandaloneExpense(
-              tripId: _tripId,
-              title: 'X',
-              expense: ExpenseFacade(currency: _cur, paidBy: const {}, splitBy: const []))
-          .validate(),
+          tripId: _tripId,
+          title: 'X',
+          expense: ExpenseFacade(
+              currency: _cur, paidBy: const {}, splitBy: const [])).validate(),
       false);
   print('✓ StandaloneExpense: 2 scenarios passed');
 }

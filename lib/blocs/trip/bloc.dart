@@ -191,17 +191,42 @@ class TripManagementBloc
   FutureOr<void> _onUpdateItineraryData(
       UpdateTripEntity<ItineraryPlanData> event,
       Emitter<TripManagementState> emit) async {
-    var itineraryDay = event.tripEntity.day;
-    var itinerary =
+    final itineraryDay = event.tripEntity.day;
+    final itinerary =
         _activeTrip!.itineraryCollection.getItineraryForDay(itineraryDay);
-    var itineraryPlanDataBeforeUpdate = itinerary.planData.clone();
-    var didUpdate = await itinerary.updatePlanData(event.tripEntity);
-    emit(UpdatedTripEntity.updated(
-        tripEntityModificationData: CollectionItemChangeMetadata(
-            CollectionItemChangeSet<ItineraryPlanData>(
-                itineraryPlanDataBeforeUpdate, event.tripEntity),
-            isFromExplicitAction: true),
-        isOperationSuccess: didUpdate));
+
+    if (event.dataState == DataState.delete) {
+      final beforeDelete = itinerary.planData.clone();
+      // Clearing all data is effectively deleting it in our model,
+      // but RepositoryDocument.delete would remove the doc entirely.
+      final emptyPlan = ItineraryPlanData.newEntry(
+          tripId: event.tripEntity.tripId, day: event.tripEntity.day);
+      final didUpdate = await itinerary.updatePlanData(emptyPlan);
+
+      emit(UpdatedTripEntity<ItineraryPlanData>.deleted(
+          tripEntityModificationData: CollectionItemChangeMetadata(beforeDelete,
+              isFromExplicitAction: true),
+          isOperationSuccess: didUpdate));
+      return;
+    }
+
+    final itineraryPlanDataBeforeUpdate = itinerary.planData.clone();
+    final didUpdate = await itinerary.updatePlanData(event.tripEntity);
+
+    if (event.dataState == DataState.create) {
+      emit(UpdatedTripEntity<ItineraryPlanData>.created(
+          tripEntityModificationData: CollectionItemChangeMetadata(
+              itineraryPlanDataBeforeUpdate,
+              isFromExplicitAction: true),
+          isOperationSuccess: didUpdate));
+    } else {
+      emit(UpdatedTripEntity<dynamic>.updated(
+          tripEntityModificationData: CollectionItemChangeMetadata(
+              CollectionItemChangeSet<ItineraryPlanData>(
+                  itineraryPlanDataBeforeUpdate, event.tripEntity),
+              isFromExplicitAction: true),
+          isOperationSuccess: didUpdate));
+    }
   }
 
   FutureOr<void> _onUpdateTripMetadata(
@@ -334,7 +359,7 @@ class TripManagementBloc
   }
 
   /// Subscribes to a specific trip entity collection
-  void _subscribeToTripEntityCollection<T extends TripEntity>(
+  void _subscribeToTripEntityCollection<T extends TripEntity<Enum>>(
     ModelCollectionFacade<T> collection,
   ) {
     _subscriptionManager.subscribeToCollectionUpdates<T>(

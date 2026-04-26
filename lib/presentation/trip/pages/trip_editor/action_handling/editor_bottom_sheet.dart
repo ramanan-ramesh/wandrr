@@ -6,7 +6,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/edito
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
-class TripEntityEditorBottomSheet<T extends TripEntity> extends StatefulWidget {
+class TripEntityEditorBottomSheet<T extends TripEntity<Enum>> extends StatefulWidget {
   final TripEditorAction tripEditorAction;
   final T tripEntity;
   final ItineraryPlanDataEditorConfig? planDataEditorConfig;
@@ -23,7 +23,7 @@ class TripEntityEditorBottomSheet<T extends TripEntity> extends StatefulWidget {
       _TripEntityEditorBottomSheetState<T>();
 }
 
-class _TripEntityEditorBottomSheetState<T extends TripEntity>
+class _TripEntityEditorBottomSheetState<T extends TripEntity<Enum>>
     extends State<TripEntityEditorBottomSheet<T>> {
   /// The editor page is built once and reused across DraggableScrollableSheet
   /// rebuilds (which happen on every scroll). Without this, a new
