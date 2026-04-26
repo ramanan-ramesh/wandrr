@@ -1,10 +1,10 @@
-import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/collection_item_document.dart';
 import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/itinerary/check_list_item.dart';
 
 // ignore: must_be_immutable
 class CheckListModelImplementation extends CheckListFacade
-    implements LeafRepositoryItem<CheckListFacade> {
+    implements CollectionItem<CheckListFacade> {
   static const _itemsField = 'items';
   static const _titleField = 'title';
   static const _itemField = 'item';

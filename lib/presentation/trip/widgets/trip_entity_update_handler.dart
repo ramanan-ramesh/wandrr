@@ -3,10 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/store/models/collection_item_change_set.dart';
+import 'package:wandrr/data/store/models/change_set.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
-class TripEntityUpdateHandler<T extends TripEntity<Enum>> extends StatelessWidget {
+class TripEntityUpdateHandler<T extends TripEntity<Enum>>
+    extends StatelessWidget {
   final WidgetBuilder widgetBuilder;
   final bool Function(T beforeUpdate, T afterUpdate) shouldRebuild;
 
@@ -26,7 +27,7 @@ class TripEntityUpdateHandler<T extends TripEntity<Enum>> extends StatelessWidge
           if (updatedTripEntity.dataState == DataState.update) {
             var collectionChangeset = updatedTripEntity
                 .tripEntityModificationData
-                .modifiedCollectionItem as CollectionItemChangeSet<T>;
+                .collectionItemChange as Changeset<T>;
             return shouldRebuild(collectionChangeset.beforeUpdate,
                 collectionChangeset.afterUpdate);
           }

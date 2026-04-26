@@ -43,10 +43,10 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
 
     // Reconcile items that may have arrived during `_createItineraryList` awaits
     // avoiding the silent missing items bug.
-    for (final transit in transitCollection.collectionItems) {
+    for (final transit in transitCollection.items) {
       collection._addOrRemoveTransitToItinerary(transit, false);
     }
-    for (final lodging in lodgingCollection.collectionItems) {
+    for (final lodging in lodgingCollection.items) {
       collection._addOrRemoveLodgingToItinerary(lodging, false);
     }
 
@@ -345,10 +345,10 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
         startDate.calculateDaysInBetween(endDate, includeExtraDay: true);
     final itineraries = <ItineraryModelEventHandler>[];
 
-    final transitsPerDay = _groupTransitsByDay(
-        transitCollection.collectionItems, startDate, numberOfDays);
-    final lodgingsPerDay = _groupLodgingsByDay(
-        lodgingCollection.collectionItems, startDate, numberOfDays);
+    final transitsPerDay =
+        _groupTransitsByDay(transitCollection.items, startDate, numberOfDays);
+    final lodgingsPerDay =
+        _groupLodgingsByDay(lodgingCollection.items, startDate, numberOfDays);
 
     for (var i = 0; i < numberOfDays; i++) {
       final day = startDate.add(Duration(days: i));
@@ -395,36 +395,36 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
       ModelCollectionFacade<LodgingFacade> lodgingCollection) {
     _subscriptions
         .add(transitCollection.onDocumentAdded.listen((eventData) async {
-      var transitAdded = eventData.modifiedCollectionItem;
+      var transitAdded = eventData.collectionItemChange;
       _addOrRemoveTransitToItinerary(transitAdded, false);
     }));
     _subscriptions
         .add(transitCollection.onDocumentDeleted.listen((eventData) async {
-      var transitDeleted = eventData.modifiedCollectionItem;
+      var transitDeleted = eventData.collectionItemChange;
       _addOrRemoveTransitToItinerary(transitDeleted, true);
     }));
     _subscriptions
         .add(transitCollection.onDocumentUpdated.listen((eventData) async {
-      var transitBeforeUpdate = eventData.modifiedCollectionItem.beforeUpdate;
-      var transitAfterUpdate = eventData.modifiedCollectionItem.afterUpdate;
+      var transitBeforeUpdate = eventData.collectionItemChange.beforeUpdate;
+      var transitAfterUpdate = eventData.collectionItemChange.afterUpdate;
       _addOrRemoveTransitToItinerary(transitBeforeUpdate, true);
       _addOrRemoveTransitToItinerary(transitAfterUpdate, false);
     }));
     _subscriptions
         .add(lodgingCollection.onDocumentAdded.listen((eventData) async {
-      var lodgingAdded = eventData.modifiedCollectionItem;
+      var lodgingAdded = eventData.collectionItemChange;
       _addOrRemoveLodgingToItinerary(lodgingAdded, false);
     }));
     _subscriptions
         .add(lodgingCollection.onDocumentUpdated.listen((eventData) async {
-      var lodgingBeforeUpdate = eventData.modifiedCollectionItem.beforeUpdate;
-      var lodgingAfterUpdate = eventData.modifiedCollectionItem.afterUpdate;
+      var lodgingBeforeUpdate = eventData.collectionItemChange.beforeUpdate;
+      var lodgingAfterUpdate = eventData.collectionItemChange.afterUpdate;
       _addOrRemoveLodgingToItinerary(lodgingBeforeUpdate, true);
       _addOrRemoveLodgingToItinerary(lodgingAfterUpdate, false);
     }));
     _subscriptions
         .add(lodgingCollection.onDocumentDeleted.listen((eventData) async {
-      var lodgingDeleted = eventData.modifiedCollectionItem;
+      var lodgingDeleted = eventData.collectionItemChange;
       _addOrRemoveLodgingToItinerary(lodgingDeleted, true);
     }));
   }

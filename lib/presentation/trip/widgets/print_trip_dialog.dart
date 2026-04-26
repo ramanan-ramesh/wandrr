@@ -87,7 +87,7 @@ class _PrintTripDialogState extends State<PrintTripDialog> {
   }
 
   void _initTransits() {
-    _allTransits = widget.tripData.transitCollection.collectionItems.toList()
+    _allTransits = widget.tripData.transitCollection.items.toList()
       ..sort((a, b) => (a.departureDateTime ?? DateTime(0))
           .compareTo(b.departureDateTime ?? DateTime(0)));
     _selectedTransitIds =

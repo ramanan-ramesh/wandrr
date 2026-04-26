@@ -2,32 +2,31 @@ import 'dart:async';
 
 import 'package:wandrr/data/app/models/dispose.dart';
 
+import 'change_set.dart';
 import 'collection_item_change_metadata.dart';
-import 'collection_item_change_set.dart';
-import 'leaf_repository_item.dart';
+import 'collection_item_document.dart';
 
-abstract class ModelCollectionFacade<Model> {
-  Stream<CollectionItemChangeMetadata<Model>> get onDocumentAdded;
+abstract class ModelCollectionFacade<TModel> {
+  Stream<CollectionItemChangeMetadata<TModel>> get onDocumentAdded;
 
-  Stream<CollectionItemChangeMetadata<CollectionItemChangeSet<Model>>>
-      get onDocumentUpdated;
+  Stream<CollectionItemChangeMetadata<Changeset<TModel>>> get onDocumentUpdated;
 
-  Stream<CollectionItemChangeMetadata<Model>> get onDocumentDeleted;
+  Stream<CollectionItemChangeMetadata<TModel>> get onDocumentDeleted;
 
-  Iterable<Model> get collectionItems;
+  Iterable<TModel> get items;
 
   bool get isLoaded;
 
   Stream<bool> get onLoaded;
 }
 
-abstract class ModelCollectionModifier<Model>
-    extends ModelCollectionFacade<Model> implements Dispose {
-  RepositoryDocument<Model> Function(Model) get repositoryItemCreator;
+abstract class ModelCollectionModifier<TModel>
+    extends ModelCollectionFacade<TModel> implements Dispose {
+  CollectionDocument<TModel> Function(TModel) get collectionDocumentCreator;
 
-  Future<Model?> tryAdd(Model toAdd);
+  Future<TModel?> tryAdd(TModel toAdd);
 
-  FutureOr<bool> tryDeleteItem(Model toDelete);
+  Future<bool> tryDeleteItem(TModel toDelete);
 
-  FutureOr<bool> tryUpdateItem(Model toUpdate);
+  Future<bool> tryUpdateItem(TModel toUpdate);
 }

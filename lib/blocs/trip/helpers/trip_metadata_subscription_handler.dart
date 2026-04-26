@@ -1,7 +1,7 @@
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/helpers/subscription_manager.dart';
+import 'package:wandrr/data/store/models/change_set.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
-import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
@@ -58,7 +58,7 @@ class TripMetadataSubscriptionHandler {
   void _subscribeToUpdates() {
     final subscription =
         _tripMetadataCollection.onDocumentUpdated.listen((eventData) {
-      if (_shouldIgnoreEvent(eventData.modifiedCollectionItem.afterUpdate.id)) {
+      if (_shouldIgnoreEvent(eventData.collectionItemChange.afterUpdate.id)) {
         return;
       }
 
@@ -68,7 +68,7 @@ class TripMetadataSubscriptionHandler {
 
       _handleDateChanges(eventData);
       final metadata = CollectionItemChangeMetadata(
-        eventData.modifiedCollectionItem,
+        eventData.collectionItemChange,
         isFromExplicitAction: false,
       );
       _addEvent(_createUpdateEvent(metadata));
@@ -81,7 +81,7 @@ class TripMetadataSubscriptionHandler {
   void _subscribeToAdded() {
     final subscription =
         _tripMetadataCollection.onDocumentAdded.listen((eventData) {
-      if (_shouldIgnoreEvent(eventData.modifiedCollectionItem.id)) {
+      if (_shouldIgnoreEvent(eventData.collectionItemChange.id)) {
         return;
       }
 
@@ -90,7 +90,7 @@ class TripMetadataSubscriptionHandler {
       }
 
       final metadata = CollectionItemChangeMetadata(
-        eventData.modifiedCollectionItem,
+        eventData.collectionItemChange,
         isFromExplicitAction: false,
       );
       _addEvent(_createAddEvent(metadata));
@@ -103,7 +103,7 @@ class TripMetadataSubscriptionHandler {
   void _subscribeToDeleted() {
     final subscription =
         _tripMetadataCollection.onDocumentDeleted.listen((eventData) {
-      if (_shouldIgnoreEvent(eventData.modifiedCollectionItem.id)) {
+      if (_shouldIgnoreEvent(eventData.collectionItemChange.id)) {
         return;
       }
 
@@ -112,7 +112,7 @@ class TripMetadataSubscriptionHandler {
       }
 
       final metadata = CollectionItemChangeMetadata(
-        eventData.modifiedCollectionItem,
+        eventData.collectionItemChange,
         isFromExplicitAction: false,
       );
       _addEvent(_createDeleteEvent(metadata));
@@ -128,10 +128,9 @@ class TripMetadataSubscriptionHandler {
 
   /// Handles trip date changes and recreates itinerary subscriptions if needed
   void _handleDateChanges(
-      CollectionItemChangeMetadata<CollectionItemChangeSet<TripMetadataFacade>>
-          eventData) {
-    final updatedMetadata = eventData.modifiedCollectionItem.afterUpdate;
-    final beforeUpdate = eventData.modifiedCollectionItem.beforeUpdate;
+      CollectionItemChangeMetadata<Changeset<TripMetadataFacade>> eventData) {
+    final updatedMetadata = eventData.collectionItemChange.afterUpdate;
+    final beforeUpdate = eventData.collectionItemChange.beforeUpdate;
 
     final hasStartDateChanged =
         !beforeUpdate.startDate!.isOnSameDayAs(updatedMetadata.startDate!);

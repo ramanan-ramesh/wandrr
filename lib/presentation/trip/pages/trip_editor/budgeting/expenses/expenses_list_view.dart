@@ -337,9 +337,9 @@ class _ExpenseListViewState extends State<ExpenseListView> {
   void _refreshExpenses() {
     final activeTrip = context.activeTrip;
     final list = <ExpenseBearingTripEntity>[];
-    list.addAll(activeTrip.expenseCollection.collectionItems);
-    list.addAll(activeTrip.transitCollection.collectionItems);
-    list.addAll(activeTrip.lodgingCollection.collectionItems);
+    list.addAll(activeTrip.expenseCollection.items);
+    list.addAll(activeTrip.transitCollection.items);
+    list.addAll(activeTrip.lodgingCollection.items);
     list.addAll(activeTrip.itineraryCollection
         .expand((itineraryPlanData) => itineraryPlanData.planData.sights));
     _expenses = list

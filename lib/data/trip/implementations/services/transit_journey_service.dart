@@ -21,7 +21,7 @@ class TransitJourneyService implements TransitJourneyServiceFacade {
   List<TransitJourneyFacade> get journeys {
     final grouped = <String, List<TransitFacade>>{};
 
-    for (final leg in _legCollection.collectionItems) {
+    for (final leg in _legCollection.items) {
       if (leg.journeyId != null) {
         grouped.putIfAbsent(leg.journeyId!, () => []).add(leg);
       }
@@ -50,9 +50,7 @@ class TransitJourneyService implements TransitJourneyServiceFacade {
   }
 
   List<TransitFacade> _getLegsForJourney(String journeyId) =>
-      _legCollection.collectionItems
-          .where((leg) => leg.journeyId == journeyId)
-          .toList();
+      _legCollection.items.where((leg) => leg.journeyId == journeyId).toList();
 
   @override
   List<TransitFacade> getJourneyLegs(

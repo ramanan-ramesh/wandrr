@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/collection_item_document.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 
 class ExpenseModelImplementation extends ExpenseFacade
-    implements LeafRepositoryItem<ExpenseFacade> {
+    implements CollectionItem<ExpenseFacade> {
   static const _currencyField = 'currency';
   static const _paidByField = 'paidBy';
   static const _splitByField = 'splitBy';
@@ -68,7 +68,7 @@ class ExpenseModelImplementation extends ExpenseFacade
 }
 
 class StandaloneExpenseModelImplementation extends StandaloneExpense
-    implements RepositoryDocument<StandaloneExpense> {
+    implements CollectionDocument<StandaloneExpense> {
   static const _titleField = 'title';
   static const _categoryField = 'category';
   static const _expenseField = 'expense';
@@ -110,7 +110,7 @@ class StandaloneExpenseModelImplementation extends StandaloneExpense
     return {
       if (title.isNotEmpty) _titleField: title,
       _categoryField: category.name,
-      _expenseField: (expense as LeafRepositoryItem).toJson(),
+      _expenseField: (expense as CollectionItem).toJson(),
     };
   }
 

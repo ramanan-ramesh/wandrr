@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/collection_item_document.dart';
 import 'package:wandrr/data/trip/implementations/budgeting/expense.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
@@ -7,7 +7,7 @@ import 'package:wandrr/data/trip/models/transit.dart';
 
 // ignore: must_be_immutable
 class TransitImplementation extends TransitFacade
-    implements RepositoryDocument<TransitFacade> {
+    implements CollectionDocument<TransitFacade> {
   static const _departureLocationField = 'departureLocation';
   static const _departureDateTimeField = 'departureDateTime';
   static const _arrivalLocationField = 'arrivalLocation';
@@ -77,12 +77,11 @@ class TransitImplementation extends TransitFacade
   Map<String, dynamic> toJson() {
     return {
       _transitOptionField: transitOption.name,
-      _expenseField: (expense as LeafRepositoryItem).toJson(),
+      _expenseField: (expense as CollectionItem).toJson(),
       _departureDateTimeField: Timestamp.fromDate(departureDateTime!),
       _arrivalDateTimeField: Timestamp.fromDate(arrivalDateTime!),
-      _departureLocationField:
-          (departureLocation as LeafRepositoryItem?)?.toJson(),
-      _arrivalLocationField: (arrivalLocation as LeafRepositoryItem?)?.toJson(),
+      _departureLocationField: (departureLocation as CollectionItem?)?.toJson(),
+      _arrivalLocationField: (arrivalLocation as CollectionItem?)?.toJson(),
       if (journeyId != null && journeyId!.isNotEmpty)
         _journeyIdField: journeyId,
       if (confirmationId != null && confirmationId!.isNotEmpty)

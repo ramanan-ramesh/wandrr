@@ -6,8 +6,8 @@ import 'package:wandrr/blocs/trip/helpers/subscription_manager.dart';
 import 'package:wandrr/blocs/trip/helpers/trip_entity_update_handler.dart';
 import 'package:wandrr/blocs/trip/helpers/trip_metadata_subscription_handler.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/store/models/change_set.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
-import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/api_services/repository.dart';
 import 'package:wandrr/data/trip/implementations/trip_repository.dart';
@@ -98,7 +98,7 @@ class TripManagementBloc
 
   FutureOr<void> _onLoadTrip(
       LoadTrip event, Emitter<TripManagementState> emit) async {
-    var tripMetadata = _tripRepository!.tripMetadataCollection.collectionItems
+    var tripMetadata = _tripRepository!.tripMetadataCollection.items
         .where((element) => element.id == event.tripMetadata.id)
         .firstOrNull;
     if (tripMetadata != null) {
@@ -194,7 +194,7 @@ class TripManagementBloc
     } else {
       emit(UpdatedTripEntity<dynamic>.updated(
           tripEntityModificationData: CollectionItemChangeMetadata(
-              CollectionItemChangeSet<ItineraryPlanData>(
+              Changeset<ItineraryPlanData>(
                   itineraryPlanDataBeforeUpdate, event.tripEntity),
               isFromExplicitAction: true),
           isOperationSuccess: didUpdate));
@@ -280,7 +280,7 @@ class TripManagementBloc
   // Preload most visited trip in the background once metadata is available
   Future<void> _preloadMostVisited() async {
     final mostVisited = await TripVisitTracker.getMostVisitedTrip(
-        _tripRepository!.tripMetadataCollection.collectionItems);
+        _tripRepository!.tripMetadataCollection.items);
     if (mostVisited != null) {
       _apiServicesRepository ??=
           await ApiServicesRepositoryImpl.createInstance();

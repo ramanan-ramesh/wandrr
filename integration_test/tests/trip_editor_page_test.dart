@@ -1023,7 +1023,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // === VERIFY TRANSIT COLLECTION ===
   final transitCollection = trip.transitCollection;
-  expect(transitCollection.collectionItems.length, 10,
+  expect(transitCollection.items.length, 10,
       reason: 'Transit collection should contain 10 transits');
 
   // Verify transits in collection match expected facade instances
@@ -1042,7 +1042,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Check each expected transit has a match in the collection
   for (final expectedTransit in expectedTransits) {
-    final matchFound = transitCollection.collectionItems.any(
+    final matchFound = transitCollection.items.any(
       (actualTransit) =>
           matchesTransit(expectedTransit).matches(actualTransit, {}),
     );
@@ -1055,7 +1055,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // === VERIFY LODGING COLLECTION ===
   final lodgingCollection = trip.lodgingCollection;
-  expect(lodgingCollection.collectionItems.length, 3,
+  expect(lodgingCollection.items.length, 3,
       reason: 'Lodging collection should contain 3 lodgings');
 
   final expectedLodgings = [
@@ -1066,7 +1066,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
 
   // Check each expected lodging has a match in the collection
   for (final expectedLodging in expectedLodgings) {
-    final matchFound = lodgingCollection.collectionItems.any(
+    final matchFound = lodgingCollection.items.any(
       (actualLodging) =>
           matchesLodging(expectedLodging).matches(actualLodging, {}),
     );
@@ -1078,7 +1078,7 @@ Future<void> runTripRepositoryValuesTest(WidgetTester tester) async {
       '✓ Lodging collection verified (3 lodgings with all properties matching expected facades)');
 
   // === VERIFY EXPENSES COLLECTION ===
-  final expensesCollection = trip.expenseCollection.collectionItems;
+  final expensesCollection = trip.expenseCollection.items;
   expect(expensesCollection.length, 3,
       reason: 'Expenses collection should contain 3 pure expenses');
 

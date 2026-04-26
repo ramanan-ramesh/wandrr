@@ -141,7 +141,7 @@ class TripCopyService {
       String newTripId,
       String collectionName,
       WriteBatch batch) {
-    for (final tripEntity in tripEntityCollection.collectionItems) {
+    for (final tripEntity in tripEntityCollection.items) {
       tripEntityTransformer(tripEntity, dateOffset);
       final newDocRef = FirebaseFirestore.instance
           .collection(FirestoreCollections.tripCollectionName)
@@ -149,7 +149,7 @@ class TripCopyService {
           .collection(collectionName)
           .doc();
       final tripEntityRepositoryItem =
-          tripEntityCollection.repositoryItemCreator(tripEntity);
+          tripEntityCollection.collectionDocumentCreator(tripEntity);
       batch.set(newDocRef, tripEntityRepositoryItem.toJson());
     }
   }

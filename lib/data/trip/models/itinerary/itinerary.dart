@@ -4,8 +4,8 @@ import 'dart:collection';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/app/models/dispose.dart';
+import 'package:wandrr/data/store/models/change_set.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
-import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -33,9 +33,8 @@ abstract class ItineraryFacade extends Equatable
 
 abstract class ItineraryModelEventHandler extends ItineraryFacade
     implements Dispose {
-  Stream<
-      CollectionItemChangeMetadata<
-          CollectionItemChangeSet<ItineraryPlanData>>> get planDataStream;
+  Stream<CollectionItemChangeMetadata<Changeset<ItineraryPlanData>>>
+      get planDataStream;
 
   Future<bool> updatePlanData(ItineraryPlanData planData);
 

@@ -29,21 +29,21 @@ class TotalExpenditureCalculator {
 
     // Collect transit expenses
     expensesToConsider.addAll(_collectExpenses<TransitFacade>(
-      transits.collectionItems,
+      transits.items,
       currentUserName,
       transitsToExclude,
     ));
 
     // Collect lodging expenses
     expensesToConsider.addAll(_collectExpenses<LodgingFacade>(
-      lodgings.collectionItems,
+      lodgings.items,
       currentUserName,
       lodgingsToExclude,
     ));
 
     // Collect standalone expenses
     expensesToConsider.addAll(_collectExpenses<StandaloneExpense>(
-      expenses.collectionItems,
+      expenses.items,
       currentUserName,
       [],
     ));

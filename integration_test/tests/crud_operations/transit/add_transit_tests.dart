@@ -605,7 +605,7 @@ Future<void> _submitAndVerify(
   late StreamSubscription<CollectionItemChangeMetadata<TransitFacade>> sub;
   sub = collection.onDocumentAdded.listen((event) async {
     if (event.isFromExplicitAction && !completer.isCompleted) {
-      completer.complete(event.modifiedCollectionItem);
+      completer.complete(event.collectionItemChange);
       await sub.cancel();
     }
   });

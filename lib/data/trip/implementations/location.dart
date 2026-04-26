@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/collection_item_document.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/location/location_context.dart';
 
 // ignore: must_be_immutable
 class LocationModelImplementation extends LocationFacade
-    implements LeafRepositoryItem<LocationFacade> {
+    implements CollectionItem<LocationFacade> {
   static const String _contextField = 'context';
   static const String _latitudeLongitudeField = 'latLon';
 

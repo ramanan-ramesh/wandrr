@@ -1,7 +1,7 @@
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/store/models/change_set.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
-import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
@@ -18,10 +18,10 @@ abstract class TripManagementState {
       } else {
         var modifiedCollectionItem = (this as UpdatedTripEntity)
             .tripEntityModificationData
-            .modifiedCollectionItem;
+            .collectionItemChange;
         if (modifiedCollectionItem is T) {
           return isOperationSuccess;
-        } else if (modifiedCollectionItem is CollectionItemChangeSet &&
+        } else if (modifiedCollectionItem is Changeset &&
             modifiedCollectionItem.afterUpdate is T) {
           return isOperationSuccess;
         }

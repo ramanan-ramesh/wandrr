@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/collection_item_document.dart';
 import 'package:wandrr/data/trip/implementations/budgeting/expense.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 
 class SightModelImplementation extends SightFacade
-    implements LeafRepositoryItem<SightFacade> {
+    implements CollectionItem<SightFacade> {
   static const String _nameField = 'name';
   static const String _locationField = 'location';
   static const String _visitTimeField = 'visitTime';
@@ -61,7 +61,7 @@ class SightModelImplementation extends SightFacade
     return {
       _nameField: name,
       if (location != null)
-        _locationField: (location as LeafRepositoryItem?)?.toJson(),
+        _locationField: (location as CollectionItem?)?.toJson(),
       if (visitTime != null)
         _visitTimeField:
             visitTime != null ? Timestamp.fromDate(visitTime!) : null,

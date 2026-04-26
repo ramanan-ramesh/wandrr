@@ -5,7 +5,7 @@ import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/data/store/models/collection_item_change_set.dart';
+import 'package:wandrr/data/store/models/change_set.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
@@ -158,7 +158,7 @@ class _TripEditorPageInternal extends StatelessWidget {
   void _onBlocStateChanged(BuildContext context, TripManagementState state) {
     if (state is SelectedExpenseBearingTripEntity) {
       final expenseBearingTripEntity =
-          state.tripEntityModificationData.modifiedCollectionItem;
+          state.tripEntityModificationData.collectionItemChange;
       _showTripEntityEditorBottomSheet<ExpenseBearingTripEntity>(
         tripEditorAction: TripEditorAction.expense,
         tripEntity: expenseBearingTripEntity,
@@ -167,8 +167,8 @@ class _TripEditorPageInternal extends StatelessWidget {
     } else if (state is UpdatedTripEntity &&
         state.dataState == DataState.update) {
       final modifiedItem =
-          state.tripEntityModificationData.modifiedCollectionItem;
-      if (modifiedItem is CollectionItemChangeSet<TripMetadataFacade>) {
+          state.tripEntityModificationData.collectionItemChange;
+      if (modifiedItem is Changeset<TripMetadataFacade>) {
         _handleTripMetadataUpdate(
           context: context,
           oldMetadata: modifiedItem.beforeUpdate,
@@ -177,8 +177,7 @@ class _TripEditorPageInternal extends StatelessWidget {
       }
     } else if (state is UpdatedTripEntity &&
         state.dataState == DataState.select) {
-      final tripEntity =
-          state.tripEntityModificationData.modifiedCollectionItem;
+      final tripEntity = state.tripEntityModificationData.collectionItemChange;
       if (tripEntity is TransitFacade) {
         _showTripEntityEditorBottomSheet<TransitFacade>(
           tripEditorAction: TripEditorAction.travel,

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/store/models/collection_item_change_set.dart';
+import 'package:wandrr/data/store/models/change_set.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
@@ -34,8 +34,8 @@ class TimelineRebuildHelper {
   bool _shouldRebuildForLodging(TripManagementState state) {
     final tripEntityUpdatedState = state as UpdatedTripEntity;
     final dataState = tripEntityUpdatedState.dataState;
-    final collectionItemChangeset = tripEntityUpdatedState
-        .tripEntityModificationData.modifiedCollectionItem;
+    final collectionItemChangeset =
+        tripEntityUpdatedState.tripEntityModificationData.collectionItemChange;
 
     if (dataState == DataState.delete || dataState == DataState.create) {
       final lodging = collectionItemChangeset as LodgingFacade;
@@ -43,7 +43,7 @@ class TimelineRebuildHelper {
     }
 
     if (dataState == DataState.update) {
-      if (collectionItemChangeset is! CollectionItemChangeSet<LodgingFacade>) {
+      if (collectionItemChangeset is! Changeset<LodgingFacade>) {
         return false;
       }
       final lodgingBeforeUpdate = collectionItemChangeset.beforeUpdate;
@@ -65,8 +65,8 @@ class TimelineRebuildHelper {
   bool _shouldRebuildForTransit(TripManagementState state) {
     final tripEntityUpdatedState = state as UpdatedTripEntity;
     final dataState = tripEntityUpdatedState.dataState;
-    final collectionItemChangeset = tripEntityUpdatedState
-        .tripEntityModificationData.modifiedCollectionItem;
+    final collectionItemChangeset =
+        tripEntityUpdatedState.tripEntityModificationData.collectionItemChange;
 
     if (dataState == DataState.delete || dataState == DataState.create) {
       final transit = collectionItemChangeset as TransitFacade;
@@ -74,7 +74,7 @@ class TimelineRebuildHelper {
     }
 
     if (dataState == DataState.update) {
-      if (collectionItemChangeset is! CollectionItemChangeSet<TransitFacade>) {
+      if (collectionItemChangeset is! Changeset<TransitFacade>) {
         return false;
       }
       final transitBeforeUpdate = collectionItemChangeset.beforeUpdate;
@@ -97,10 +97,9 @@ class TimelineRebuildHelper {
 
     if (dataState == DataState.update) {
       final collectionItemChangeset = tripEntityUpdatedState
-          .tripEntityModificationData.modifiedCollectionItem;
+          .tripEntityModificationData.collectionItemChange;
 
-      if (collectionItemChangeset
-          is! CollectionItemChangeSet<ItineraryPlanData>) {
+      if (collectionItemChangeset is! Changeset<ItineraryPlanData>) {
         return false;
       }
 

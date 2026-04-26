@@ -139,15 +139,15 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     _tripMetadataUpdatedEventSubscription =
         tripMetadataCollection.onDocumentUpdated.listen((eventData) async {
       if (activeTrip?.tripMetadata.id !=
-          eventData.modifiedCollectionItem.afterUpdate.id) {
+          eventData.collectionItemChange.afterUpdate.id) {
         return;
       }
       await activeTrip!
-          .updateTripMetadata(eventData.modifiedCollectionItem.afterUpdate);
+          .updateTripMetadata(eventData.collectionItemChange.afterUpdate);
     });
     _tripMetadataDeletedEventSubscription =
         tripMetadataCollection.onDocumentDeleted.listen((eventData) async {
-      var tripId = eventData.modifiedCollectionItem.id;
+      var tripId = eventData.collectionItemChange.id;
       await FirebaseFirestore.instance
           .collection(FirestoreCollections.tripCollectionName)
           .doc(tripId)
@@ -171,10 +171,10 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     }
 
     final batch = FirebaseFirestore.instance.batch();
-    var tripMetadataToDelete = tripMetadataCollection.collectionItems
+    var tripMetadataToDelete = tripMetadataCollection.items
         .firstWhere((item) => item.id == tripMetadata.id);
     batch.delete(tripMetadataCollection
-        .repositoryItemCreator(tripMetadataToDelete)
+        .collectionDocumentCreator(tripMetadataToDelete)
         .documentReference);
     for (final itinerary in tripToDelete.itineraryCollection) {
       final itineraryPlanDataModelImplementation =
@@ -186,18 +186,18 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
               checkLists: itinerary.planData.checkLists);
       batch.delete(itineraryPlanDataModelImplementation.documentReference);
     }
-    for (final transit in tripToDelete.transitCollection.collectionItems) {
+    for (final transit in tripToDelete.transitCollection.items) {
       final transitModelImplementation =
           TransitImplementation.fromModelFacade(transitModelFacade: transit);
       batch.delete(transitModelImplementation.documentReference);
     }
-    for (final lodging in tripToDelete.lodgingCollection.collectionItems) {
+    for (final lodging in tripToDelete.lodgingCollection.items) {
       final lodgingModelImplementation =
           LodgingModelImplementation.fromModelFacade(
               lodgingModelFacade: lodging);
       batch.delete(lodgingModelImplementation.documentReference);
     }
-    for (final expense in tripToDelete.expenseCollection.collectionItems) {
+    for (final expense in tripToDelete.expenseCollection.items) {
       final expenseModelImplementation =
           StandaloneExpenseModelImplementation.fromModelFacade(
               expenseModelFacade: expense);

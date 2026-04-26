@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/collection_item_document.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
@@ -8,7 +8,7 @@ import 'budgeting/expense.dart';
 
 // ignore: must_be_immutable
 class LodgingModelImplementation extends LodgingFacade
-    implements RepositoryDocument<LodgingFacade> {
+    implements CollectionDocument<LodgingFacade> {
   static const _locationField = 'location';
   static const _confirmationIdField = 'confirmationId';
   static const _expenseField = 'expense';
@@ -60,8 +60,8 @@ class LodgingModelImplementation extends LodgingFacade
   @override
   Map<String, dynamic> toJson() {
     return {
-      _locationField: (location as LeafRepositoryItem).toJson(),
-      _expenseField: (expense as LeafRepositoryItem).toJson(),
+      _locationField: (location as CollectionItem).toJson(),
+      _expenseField: (expense as CollectionItem).toJson(),
       _checkinDateTimeField: Timestamp.fromDate(checkinDateTime!),
       _checkoutDateTimeField: Timestamp.fromDate(checkoutDateTime!),
       if (confirmationId != null && confirmationId!.isNotEmpty)

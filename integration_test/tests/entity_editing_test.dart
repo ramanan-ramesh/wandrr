@@ -315,7 +315,7 @@ Future<void> runConnectedJourneyDisplayTest(
   final trip = RepositoryProvider.of<TripRepositoryFacade>(context).activeTrip!;
 
   // Collect all transits that share a journeyId
-  final allTransits = trip.transitCollection.collectionItems;
+  final allTransits = trip.transitCollection.items;
   final journeyGroups = <String, List<dynamic>>{};
   for (final transit in allTransits) {
     final jid = transit.journeyId;

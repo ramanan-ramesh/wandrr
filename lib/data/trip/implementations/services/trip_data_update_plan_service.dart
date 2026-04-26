@@ -133,7 +133,7 @@ class TripEntityDataUpdatePlanService {
   ) {
     for (final change in changes) {
       if (change.isDelete) {
-        final doc = modelCollection.repositoryItemCreator(change.original);
+        final doc = modelCollection.collectionDocumentCreator(change.original);
         batch.delete(doc.documentReference);
       } else if (change.isUpdate && change.modified.validate()) {
         // Add new contributors to expense splitBy if needed
@@ -144,7 +144,7 @@ class TripEntityDataUpdatePlanService {
                 expenseChange.modified.expense, addedContributors);
           }
         }
-        final doc = modelCollection.repositoryItemCreator(change.modified);
+        final doc = modelCollection.collectionDocumentCreator(change.modified);
         batch.update(doc.documentReference, doc.toJson());
       }
     }
@@ -172,7 +172,7 @@ class TripEntityDataUpdatePlanService {
       }
 
       final entity = change.modified as StandaloneExpense;
-      final doc = expenseCollection.repositoryItemCreator(entity);
+      final doc = expenseCollection.collectionDocumentCreator(entity);
 
       if (change.isMarkedForDeletion) {
         batch.delete(doc.documentReference);

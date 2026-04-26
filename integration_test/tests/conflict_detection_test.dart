@@ -847,7 +847,7 @@ Future<void> runConflictPlanConfirmationTest(
 ) async {
   final trip = await _navigateAndGetTrip(tester);
 
-  final parisStay = trip.lodgingCollection.collectionItems.firstWhere(
+  final parisStay = trip.lodgingCollection.items.firstWhere(
     (s) => s.checkinDateTime?.day == 24 && s.checkinDateTime?.month == 9,
   );
 
@@ -936,7 +936,7 @@ Future<void> runSelfExclusionEditingExistingTest(
 ) async {
   final trip = await _navigateAndGetTrip(tester);
 
-  final parisStay = trip.lodgingCollection.collectionItems.firstWhere(
+  final parisStay = trip.lodgingCollection.items.firstWhere(
     (s) => s.checkinDateTime?.day == 24 && s.checkinDateTime?.month == 9,
   );
   expect(parisStay.id, isNotNull, reason: 'Existing stay should have an ID');

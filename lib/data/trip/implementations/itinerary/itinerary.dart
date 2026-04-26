@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wandrr/data/store/models/change_set.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
-import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
@@ -47,13 +47,10 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
   set fullDayLodging(LodgingFacade? lodging) => _fullDayLodging = lodging;
 
   @override
-  Stream<
-      CollectionItemChangeMetadata<
-          CollectionItemChangeSet<ItineraryPlanData>>> get planDataStream =>
-      _planDataStreamController.stream;
+  Stream<CollectionItemChangeMetadata<Changeset<ItineraryPlanData>>>
+      get planDataStream => _planDataStreamController.stream;
   final StreamController<
-          CollectionItemChangeMetadata<
-              CollectionItemChangeSet<ItineraryPlanData>>>
+          CollectionItemChangeMetadata<Changeset<ItineraryPlanData>>>
       _planDataStreamController = StreamController.broadcast();
 
   @override
@@ -119,7 +116,7 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
     if (didUpdate) {
       _planData = leafRepositoryItem;
       _planDataStreamController.add(CollectionItemChangeMetadata(
-          CollectionItemChangeSet(planDataBeforeUpdate, _planData.facade),
+          Changeset(planDataBeforeUpdate, _planData.facade),
           isFromExplicitAction: true));
     }
     return didUpdate;
@@ -181,7 +178,7 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
     var planDataBeforeUpdate = _planData.facade;
     _planData = planDataModelImplementation;
     _planDataStreamController.add(CollectionItemChangeMetadata(
-        CollectionItemChangeSet(planDataBeforeUpdate, _planData.facade),
+        Changeset(planDataBeforeUpdate, _planData.facade),
         isFromExplicitAction: false));
   }
 

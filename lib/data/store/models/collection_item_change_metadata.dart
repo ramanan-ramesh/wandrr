@@ -1,7 +1,7 @@
 class CollectionItemChangeMetadata<T> {
-  final T modifiedCollectionItem;
+  final T collectionItemChange;
   final bool isFromExplicitAction;
 
-  const CollectionItemChangeMetadata(this.modifiedCollectionItem,
+  const CollectionItemChangeMetadata(this.collectionItemChange,
       {required this.isFromExplicitAction});
 }

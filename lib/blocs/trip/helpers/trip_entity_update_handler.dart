@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
+import 'package:wandrr/data/store/models/change_set.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
-import 'package:wandrr/data/store/models/collection_item_change_set.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
@@ -71,7 +71,7 @@ class TripEntityUpdateHandler {
     ModelCollectionModifier<E> modelCollection,
     Emitter<TripManagementState> emit,
   ) async {
-    final entityExists = modelCollection.collectionItems
+    final entityExists = modelCollection.items
         .whereType<TripEntity>()
         .any((element) => element.id == tripEntity.id);
 
@@ -100,7 +100,7 @@ class TripEntityUpdateHandler {
       return;
     }
 
-    final collectionItem = modelCollection.collectionItems
+    final collectionItem = modelCollection.items
         .whereType<E>()
         .where((element) => element.id == tripEntityId)
         .firstOrNull;
@@ -112,7 +112,7 @@ class TripEntityUpdateHandler {
     final didUpdate = await modelCollection.tryUpdateItem(tripEntity);
     emit(UpdatedTripEntity.updated(
       tripEntityModificationData: CollectionItemChangeMetadata(
-        CollectionItemChangeSet<E>(collectionItem, tripEntity),
+        Changeset<E>(collectionItem, tripEntity),
         isFromExplicitAction: true,
       ),
       isOperationSuccess: didUpdate,
@@ -125,7 +125,7 @@ class TripEntityUpdateHandler {
     ModelCollectionModifier<E> modelCollection,
     Emitter<TripManagementState> emit,
   ) {
-    final originalTripEntity = modelCollection.collectionItems
+    final originalTripEntity = modelCollection.items
         .whereType<TripEntity>()
         .where((e) => e.id == tripEntity.id)
         .firstOrNull as E?;

@@ -546,7 +546,7 @@ class _TripEditorPageState extends State<_TripEditorPage> {
   void _loadTripById() {
     _hasTriedLoadingTrip = true;
     final tripRepo = context.tripRepository;
-    final tripMetadata = tripRepo.tripMetadataCollection.collectionItems
+    final tripMetadata = tripRepo.tripMetadataCollection.items
         .where((trip) => trip.id == widget.tripId)
         .firstOrNull;
 

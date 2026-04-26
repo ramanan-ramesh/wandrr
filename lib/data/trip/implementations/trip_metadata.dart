@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/collection_item_document.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
 // ignore: must_be_immutable
 class TripMetadataModelImplementation extends TripMetadataFacade
-    implements RepositoryDocument<TripMetadataFacade> {
+    implements CollectionDocument<TripMetadataFacade> {
   static const String _startDateField = 'startDate';
   static const String _endDateField = 'endDate';
   static const String _nameField = 'name';

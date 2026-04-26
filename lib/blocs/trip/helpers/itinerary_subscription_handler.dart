@@ -31,7 +31,7 @@ class ItinerarySubscriptionHandler {
         }
 
         final metadata = CollectionItemChangeMetadata(
-          eventData.modifiedCollectionItem,
+          eventData.collectionItemChange,
           isFromExplicitAction: false,
         );
         _onUpdated(metadata);

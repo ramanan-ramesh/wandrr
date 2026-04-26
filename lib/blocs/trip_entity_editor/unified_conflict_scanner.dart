@@ -1006,10 +1006,10 @@ class TripConflictDataSnapshot {
 
   factory TripConflictDataSnapshot.fromTripData(TripDataFacade tripData) {
     return TripConflictDataSnapshot(
-      transits: tripData.transitCollection.collectionItems,
-      stays: tripData.lodgingCollection.collectionItems,
+      transits: tripData.transitCollection.items,
+      stays: tripData.lodgingCollection.items,
       itineraries: tripData.itineraryCollection.map((e) => e.planData),
-      expenses: tripData.expenseCollection.collectionItems,
+      expenses: tripData.expenseCollection.items,
     );
   }
 }

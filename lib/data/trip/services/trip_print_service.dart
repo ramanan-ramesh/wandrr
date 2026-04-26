@@ -48,13 +48,13 @@ class TripPrintService {
         startDate.calculateDaysInBetween(endDate, includeExtraDay: true);
 
     // ── Resolve selected transits ─────────────────────────────────────
-    final allTransits = tripData.transitCollection.collectionItems.toList()
+    final allTransits = tripData.transitCollection.items.toList()
       ..sort((a, b) => (a.departureDateTime ?? DateTime(0))
           .compareTo(b.departureDateTime ?? DateTime(0)));
     final filteredTransits = _filterTransits(allTransits, options);
 
     final allExpenses = <ExpenseBearingTripEntity>[
-      ...tripData.expenseCollection.collectionItems,
+      ...tripData.expenseCollection.items,
     ];
 
     // ── Collect untimed sights across all days ────────────────────────

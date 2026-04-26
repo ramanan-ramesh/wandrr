@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wandrr/data/store/models/leaf_repository_item.dart';
+import 'package:wandrr/data/store/models/collection_item_document.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
@@ -10,7 +10,7 @@ import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'sight.dart';
 
 class ItineraryPlanDataModelImplementation extends ItineraryPlanData
-    implements RepositoryDocument<ItineraryPlanData> {
+    implements CollectionDocument<ItineraryPlanData> {
   static const String _sightsField = 'sights';
   static const String _notesField = 'notes';
   static const String _checkListsField = 'checkLists';

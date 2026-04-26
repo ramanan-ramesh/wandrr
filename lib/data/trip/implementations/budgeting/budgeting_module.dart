@@ -74,9 +74,9 @@ class BudgetingModule implements BudgetingModuleEventHandler {
 
   /// Collects all expenses from transit, lodging, standalone expenses, and sights
   Iterable<ExpenseBearingTripEntity> _collectAllExpenses() sync* {
-    yield* _transitModelCollection.collectionItems;
-    yield* _lodgingModelCollection.collectionItems;
-    yield* _expenseModelCollection.collectionItems;
+    yield* _transitModelCollection.items;
+    yield* _lodgingModelCollection.items;
+    yield* _expenseModelCollection.items;
     for (final itinerary in _itineraryCollection) {
       yield* itinerary.planData.sights;
     }

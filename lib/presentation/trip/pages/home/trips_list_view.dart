@@ -53,7 +53,7 @@ class _TripListViewState extends State<TripListView> {
             builder: (context, snapshot) {
               final isLoaded = snapshot.data ?? false;
               var tripMetadatas = context
-                  .tripRepository.tripMetadataCollection.collectionItems
+                  .tripRepository.tripMetadataCollection.items
                   .toList(growable: false)
                 ..sort((tripMetadata1, tripMetadata2) => tripMetadata1
                     .startDate!
@@ -249,7 +249,7 @@ class _TripMetadataGridItem extends StatelessWidget {
     return TripEntityUpdateHandler<TripMetadataFacade>(
       widgetBuilder: (context) {
         var tripMetaDataFacade = context
-            .tripRepository.tripMetadataCollection.collectionItems
+            .tripRepository.tripMetadataCollection.items
             .firstWhere((element) => element.id == tripId);
         var subTitle =
             '${tripMetaDataFacade.startDate!.dayDateMonthFormat} to ${tripMetaDataFacade.endDate!.dayDateMonthFormat}';

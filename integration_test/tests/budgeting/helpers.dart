@@ -55,9 +55,9 @@ Future<List<ExpenseBearingTripEntity>> getSortedExpensesFromRepository(
       TestHelpers.getApiServicesRepository(tester).currencyConverter;
   var activeTrip = tripRepo.activeTrip!;
   final allExpenses = <ExpenseBearingTripEntity>[];
-  allExpenses.addAll(activeTrip.expenseCollection.collectionItems);
-  allExpenses.addAll(activeTrip.transitCollection.collectionItems);
-  allExpenses.addAll(activeTrip.lodgingCollection.collectionItems);
+  allExpenses.addAll(activeTrip.expenseCollection.items);
+  allExpenses.addAll(activeTrip.transitCollection.items);
+  allExpenses.addAll(activeTrip.lodgingCollection.items);
   allExpenses.addAll(activeTrip.itineraryCollection
       .expand((itinerary) => itinerary.planData.sights));
   allExpenses.removeWhere((expense) =>
