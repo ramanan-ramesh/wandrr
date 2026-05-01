@@ -456,7 +456,7 @@
     "iata": "3L"
   },
   {
-    "name": "AmericanConnection[8]",
+    "name": "AmericanConnection[7]",
     "iata": "AX"
   },
   {
@@ -766,10 +766,6 @@
   {
     "name": "Air Iceland",
     "iata": "NY"
-  },
-  {
-    "name": "Air Philippines",
-    "iata": "2P"
   },
   {
     "name": "Air Georgian",
@@ -3820,6 +3816,10 @@
     "iata": "PB"
   },
   {
+    "name": "PAL Express",
+    "iata": "2P"
+  },
+  {
     "name": "PAN Air",
     "iata": "PV"
   },
@@ -3906,6 +3906,10 @@
   {
     "name": "Paramount Airways",
     "iata": "I7"
+  },
+  {
+    "name": "Parata Air",
+    "iata": "WE"
   },
   {
     "name": "Pascan Aviation",
@@ -4192,7 +4196,7 @@
     "iata": "RL"
   },
   {
-    "name": "Buzz (Ryanair)",
+    "name": "Buzz (Polish airline)",
     "iata": "RR"
   },
   {
