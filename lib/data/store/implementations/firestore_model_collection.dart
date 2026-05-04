@@ -119,12 +119,15 @@ class FirestoreModelCollection<TModel>
   @override
   Future<bool> tryDeleteItem(TModel toDelete) async {
     final collectionDocument = collectionDocumentCreator(toDelete);
-    final id = collectionDocument.documentReference.id;
-    final didDelete = await _tryDeleteCollectionItem(collectionDocument);
-    if (didDelete) {
-      _idListFromExplicitActions.add(id);
+    try {
+      await _typedCollectionReference
+          .doc(collectionDocument.documentReference.id)
+          .delete();
+      _idListFromExplicitActions.add(collectionDocument.documentReference.id);
+      return true;
+    } on Exception catch (_) {
+      return false;
     }
-    return didDelete;
   }
 
   @override
@@ -137,7 +140,8 @@ class FirestoreModelCollection<TModel>
       return false;
     }
     try {
-      await collectionDocument.documentReference
+      await _typedCollectionReference
+          .doc(collectionDocument.documentReference.id)
           .set(collectionDocument, SetOptions(merge: true));
     } on Exception {
       return false;
@@ -223,17 +227,6 @@ class FirestoreModelCollection<TModel>
             break;
           }
       }
-    }
-  }
-
-  FutureOr<bool> _tryDeleteCollectionItem(CollectionDocument toDelete) async {
-    try {
-      await _typedCollectionReference
-          .doc(toDelete.documentReference.id)
-          .delete();
-      return true;
-    } on Exception catch (_) {
-      return false;
     }
   }
 

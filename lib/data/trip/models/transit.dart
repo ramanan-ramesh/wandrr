@@ -8,7 +8,7 @@ import 'budgeting/expense_category.dart';
 
 // ignore: must_be_immutable
 class TransitFacade extends Equatable
-    implements ExpenseBearingTripEntity<TransitValidationResult> {
+    implements ExpenseBearingTripEntity<TransitValidationError> {
   final String tripId;
 
   @override
@@ -152,30 +152,30 @@ class TransitFacade extends Equatable
   bool validate() => getValidationErrors().isEmpty;
 
   @override
-  Iterable<TransitValidationResult> getValidationErrors() {
-    final errors = <TransitValidationResult>[];
+  Iterable<TransitValidationError> getValidationErrors() {
+    final errors = <TransitValidationError>[];
     if (departureLocation == null) {
-      errors.add(TransitValidationResult.missingDepartureLocation);
+      errors.add(TransitValidationError.missingDepartureLocation);
     }
     if (arrivalLocation == null) {
-      errors.add(TransitValidationResult.missingArrivalLocation);
+      errors.add(TransitValidationError.missingArrivalLocation);
     }
     if (departureDateTime == null) {
-      errors.add(TransitValidationResult.missingDepartureTime);
+      errors.add(TransitValidationError.missingDepartureTime);
     }
     if (arrivalDateTime == null) {
-      errors.add(TransitValidationResult.missingArrivalTime);
+      errors.add(TransitValidationError.missingArrivalTime);
     }
     if (departureDateTime != null &&
         arrivalDateTime != null &&
         departureDateTime!.compareTo(arrivalDateTime!) >= 0) {
-      errors.add(TransitValidationResult.invalidTimeSequence);
+      errors.add(TransitValidationError.invalidTimeSequence);
     }
     if (transitOption == TransitOption.flight && !_isFlightOperatorValid()) {
-      errors.add(TransitValidationResult.invalidFlightOperator);
+      errors.add(TransitValidationError.invalidFlightOperator);
     }
     if (!expense.validate()) {
-      errors.add(TransitValidationResult.expenseInvalid);
+      errors.add(TransitValidationError.expenseInvalid);
     }
     return errors;
   }

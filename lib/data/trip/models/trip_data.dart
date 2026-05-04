@@ -22,24 +22,20 @@ abstract class TripDataFacade {
 
   BudgetingModuleFacade get budgetingModule;
 
-  /// Stream that emits true when all trip data collections are fully loaded
   Stream<bool> get isFullyLoaded;
 
-  /// Current loading status - true if fully loaded, false otherwise
   bool get isFullyLoadedValue;
 }
 
 abstract class TripDataModelEventHandler extends TripDataFacade
     implements Dispose {
-  /// Updates trip metadata and applies all necessary rebalancing
-  /// @deprecated Use applyUpdatePlan for more control over the update process
   Future updateTripMetadata(TripMetadataFacade tripMetadata);
 
   /// Applies a pre-computed update plan using batch writes
   /// This is the preferred way to handle trip metadata changes
   ///
   /// The update order is:
-  /// 1. Update currency (if changed)
+  /// 1. Update budget currency (if changed)
   /// 2. Update/delete transits, stays, sights, expenses (entity changes)
   /// 3. Update itinerary days (add/remove days)
   /// 4. Recalculate total expenditure

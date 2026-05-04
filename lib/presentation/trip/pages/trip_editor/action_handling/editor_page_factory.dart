@@ -60,7 +60,8 @@ class EditorPageFactory {
       title: title,
       onClosePressed: onClosePressed,
       onActionInvoked: (ctx) {
-        _emitUpdateEvent<TripMetadataFacade>(ctx, entity);
+        _emitUpdateEvent<TripMetadataFacade>(
+            ctx, ctx.editableEntity<TripMetadataFacade>());
         return 1;
       },
       scrollController: scrollController,
@@ -75,23 +76,22 @@ class EditorPageFactory {
   }
 
   Widget _createItineraryPage(ItineraryPlanData entity) {
-    // Clone so the editor never mutates the repository's live object.
-    final editableClone = entity.clone();
     final editorKey = GlobalKey<ItineraryPlanDataEditorState>();
 
     return ConflictAwareActionPage<ItineraryPlanData>(
-      tripEntity: editableClone,
+      tripEntity: entity,
       tripData: tripData,
       isEditing: isEditing,
       title: title,
       onClosePressed: onClosePressed,
       onActionInvoked: (ctx) {
-        // Write stable lists → clone right before the update event is emitted.
+        final editableEntity = ctx.editableEntity<ItineraryPlanData>();
+        // Write stable lists → entity right before the update event is emitted.
         final currentState = editorKey.currentState;
         currentState?.syncToEntity();
 
         if (currentState?.shouldCopy == true) {
-          final copy = editableClone.clone();
+          final copy = editableEntity.clone();
           copy.id = null;
           for (final sight in copy.sights) {
             sight.id = null;
@@ -111,7 +111,7 @@ class EditorPageFactory {
             // It's a MOVE.
             // 1. Delete content at the old date
             final emptyOldPlan = ItineraryPlanData.newEntry(
-              tripId: editableClone.tripId,
+              tripId: editableEntity.tripId,
               day: currentState.originalDate,
             );
             ctx.addTripManagementEvent(
@@ -121,11 +121,11 @@ class EditorPageFactory {
             // 2. Update/Create content at the new date
             ctx.addTripManagementEvent(
                 UpdateTripEntity<ItineraryPlanData>.update(
-                    tripEntity: editableClone));
+                    tripEntity: editableEntity));
             return 2;
           }
 
-          _emitUpdateEvent<ItineraryPlanData>(ctx, editableClone);
+          _emitUpdateEvent<ItineraryPlanData>(ctx, editableEntity);
           return 1;
         }
       },
@@ -174,7 +174,8 @@ class EditorPageFactory {
       title: title,
       onClosePressed: onClosePressed,
       onActionInvoked: (ctx) {
-        _emitUpdateEvent<LodgingFacade>(ctx, entity);
+        _emitUpdateEvent<LodgingFacade>(
+            ctx, ctx.editableEntity<LodgingFacade>());
         return 1;
       },
       scrollController: scrollController,

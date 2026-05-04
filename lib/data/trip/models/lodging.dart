@@ -8,7 +8,7 @@ import 'budgeting/expense_category.dart';
 
 // ignore: must_be_immutable
 class LodgingFacade extends Equatable
-    implements ExpenseBearingTripEntity<LodgingValidationResult> {
+    implements ExpenseBearingTripEntity<LodgingValidationError> {
   LocationFacade? location;
 
   DateTime? checkinDateTime;
@@ -90,24 +90,24 @@ class LodgingFacade extends Equatable
   bool validate() => getValidationErrors().isEmpty;
 
   @override
-  Iterable<LodgingValidationResult> getValidationErrors() {
-    final errors = <LodgingValidationResult>[];
+  Iterable<LodgingValidationError> getValidationErrors() {
+    final errors = <LodgingValidationError>[];
     if (location == null) {
-      errors.add(LodgingValidationResult.missingLocation);
+      errors.add(LodgingValidationError.missingLocation);
     }
     if (checkinDateTime == null) {
-      errors.add(LodgingValidationResult.missingCheckinTime);
+      errors.add(LodgingValidationError.missingCheckinTime);
     }
     if (checkoutDateTime == null) {
-      errors.add(LodgingValidationResult.missingCheckoutTime);
+      errors.add(LodgingValidationError.missingCheckoutTime);
     }
     if (checkinDateTime != null &&
         checkoutDateTime != null &&
         checkoutDateTime!.isBefore(checkinDateTime!)) {
-      errors.add(LodgingValidationResult.invalidTimeSequence);
+      errors.add(LodgingValidationError.invalidTimeSequence);
     }
     if (!expense.validate()) {
-      errors.add(LodgingValidationResult.expenseInvalid);
+      errors.add(LodgingValidationError.expenseInvalid);
     }
     return errors;
   }

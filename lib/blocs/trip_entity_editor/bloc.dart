@@ -11,6 +11,7 @@ import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
+import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
 import 'conflict_detectors.dart';
@@ -82,6 +83,13 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
     UpdateEntity<TEntity> event,
     Emitter<TripEntityEditorState<TEntity>> emit,
   ) {
+    final validationErrors = editableEntity.getValidationErrors();
+    emit(EntityValidationUpdated<TEntity>(validationErrors: validationErrors));
+    if (validationErrors.isNotEmpty) {
+      _currentPlan = null;
+      return;
+    }
+
     TripEntityUpdatePlan<TEntity>? newPlan;
 
     if (editableEntity is LodgingFacade) {
@@ -109,7 +117,8 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
           _detectItineraryConflicts(sights) as TripEntityUpdatePlan<TEntity>?;
     }
 
-    _handlePlanUpdate(newPlan, emit);
+    // Validation already passed — pass empty errors, no re-computation needed.
+    _handlePlanUpdate(newPlan, emit, const []);
   }
 
   /// Unified handler for transit journey updates. Uses the bloc-level journey
@@ -123,19 +132,29 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
       return;
     }
 
-    // Use the bloc-level service for authoritative journey validation.
-    final journeyErrors = _journeyService.validateJourney(event.legs);
-    if (journeyErrors.isNotEmpty) {
-      // Surface the enum errors so the UI can react, but do NOT run conflict
-      // detection — conflicts are meaningless with an invalid journey.
+    // Collect per-leg validation errors from every leg (deduplicated).
+    final perLegErrors = <Enum>{};
+    for (final leg in event.legs) {
+      perLegErrors.addAll(leg.getValidationErrors());
+    }
+
+    // Cross-leg journey sequence errors (e.g. sequenceViolation).
+    // Filter out the umbrella legHasErrors entry — specific per-leg errors replace it.
+    final crossLegErrors = _journeyService
+        .validateJourney(event.legs)
+        .where((e) => e != JourneyValidationError.legHasErrors);
+
+    final allErrors = [...perLegErrors, ...crossLegErrors];
+    emit(EntityValidationUpdated<TEntity>(validationErrors: allErrors));
+    if (allErrors.isNotEmpty) {
       _currentPlan = null;
-      emit(EntityValidationUpdated<TEntity>(validationErrors: journeyErrors));
       return;
     }
 
     final newPlan =
         _detectJourneyConflicts(event.legs) as TripEntityUpdatePlan<TEntity>?;
-    _handlePlanUpdate(newPlan, emit);
+    // Validation already passed — pass empty errors, no re-computation needed.
+    _handlePlanUpdate(newPlan, emit, const []);
   }
 
   void _onUpdateConflictedEntityTimeRange(
@@ -223,16 +242,13 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
   void _handlePlanUpdate(
     TripEntityUpdatePlan<TEntity>? newPlan,
     Emitter<TripEntityEditorState<TEntity>> emit,
+    Iterable<Enum> knownValidationErrors,
   ) {
     _currentPlan = (newPlan != null && newPlan.hasConflicts) ? newPlan : null;
 
     if (_currentPlan != null) {
       emit(ConflictPlanUpdated<TEntity>(
-          validationErrors: editableEntity.getValidationErrors()));
-    } else {
-      // No conflicts — emit validation update so FAB state refreshes.
-      emit(EntityValidationUpdated<TEntity>(
-          validationErrors: editableEntity.getValidationErrors()));
+          validationErrors: knownValidationErrors));
     }
   }
 

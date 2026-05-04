@@ -22,7 +22,7 @@ abstract class TripRepositoryEventHandler extends TripRepositoryFacade
   @override
   TripDataModelEventHandler? get activeTrip;
 
-  TripDataModelEventHandler loadTrip(TripMetadataFacade tripMetadata,
+  Future<TripDataModelEventHandler> loadTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository,
       {required bool activateTrip});
 

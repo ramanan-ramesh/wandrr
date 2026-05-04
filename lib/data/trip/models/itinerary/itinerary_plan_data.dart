@@ -6,7 +6,7 @@ import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 
 /// Itinerary-specific plan data with sights, notes, and checklists
 class ItineraryPlanData extends Equatable
-    implements TripEntity<ItineraryPlanDataValidationResult> {
+    implements TripEntity<ItineraryPlanDataValidationError> {
   final String tripId;
 
   @override
@@ -54,40 +54,31 @@ class ItineraryPlanData extends Equatable
   bool validate() => getValidationErrors().isEmpty;
 
   @override
-  Iterable<ItineraryPlanDataValidationResult> getValidationErrors() {
+  Iterable<ItineraryPlanDataValidationError> getValidationErrors() {
     // An empty plan is valid — content will be added during editing.
     if (sights.isEmpty && notes.isEmpty && checkLists.isEmpty) {
       return const [];
     }
 
-    final errors = <ItineraryPlanDataValidationResult>[];
+    final errors = <ItineraryPlanDataValidationError>[];
 
-    // Validate sights
-    if (sights.isNotEmpty) {
-      if (sights.any((sight) => !sight.validate())) {
-        errors.add(ItineraryPlanDataValidationResult.sightInvalid);
-      }
+    if (sights.isNotEmpty && sights.any((sight) => !sight.validate())) {
+      errors.add(ItineraryPlanDataValidationError.sightInvalid);
     }
 
-    // Validate notes
-    if (notes.isNotEmpty) {
-      if (notes.any((note) => note.isEmpty)) {
-        errors.add(ItineraryPlanDataValidationResult.noteEmpty);
-      }
+    if (notes.isNotEmpty && notes.any((note) => note.isEmpty)) {
+      errors.add(ItineraryPlanDataValidationError.noteEmpty);
     }
 
-    // Validate checklists
     if (checkLists.isNotEmpty) {
       if (checkLists.any((checkList) =>
           checkList.title == null || checkList.title!.length < 3)) {
-        errors.add(ItineraryPlanDataValidationResult.checkListTitleNotValid);
+        errors.add(ItineraryPlanDataValidationError.checkListTitleNotValid);
       }
       if (checkLists.any((checkList) =>
           checkList.items.isEmpty ||
-          checkList.items
-              .where((checkListItem) => checkListItem.item.isEmpty)
-              .isNotEmpty)) {
-        errors.add(ItineraryPlanDataValidationResult.checkListItemEmpty);
+          checkList.items.any((item) => item.item.isEmpty))) {
+        errors.add(ItineraryPlanDataValidationError.checkListItemEmpty);
       }
     }
 

@@ -67,7 +67,7 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
     extends State<ConflictAwareActionPage<T>> {
   late final Widget _pageContent;
   late final PageController _pageController;
-  TripEntityEditorBloc<T>? _editorBloc;
+  late final TripEntityEditorBloc<T> _editorBloc;
   int _pageIndex = 0;
   bool _isSubmitting = false;
   int _pendingOperations = 0;
@@ -76,14 +76,26 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
-    _pageContent =
-        widget.pageContentCreator(widget.tripEntity, _onEntityUpdated);
+    _editorBloc = widget.isEditing
+        ? TripEntityEditorBloc<T>.forEditing(
+            tripData: widget.tripData,
+            entity: widget.tripEntity,
+          )
+        : TripEntityEditorBloc<T>.forCreation(
+            tripData: widget.tripData,
+            entity: widget.tripEntity,
+          );
+    // Build page content now — bloc.editableEntity is guaranteed to be set.
+    _pageContent = widget.pageContentCreator(
+      _editorBloc.editableEntity,
+      _onEntityUpdated,
+    );
   }
 
   @override
   void dispose() {
     _pageController.dispose();
-    _editorBloc?.close();
+    _editorBloc.close();
     super.dispose();
   }
 
@@ -93,20 +105,8 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
     const bottomPadding =
         TripEditorPageConstants.fabSize + fabBottomMargin + 16.0;
 
-    return BlocProvider<TripEntityEditorBloc<T>>(
-      create: (context) {
-        final bloc = widget.isEditing
-            ? TripEntityEditorBloc<T>.forEditing(
-                tripData: widget.tripData,
-                entity: widget.tripEntity,
-              )
-            : TripEntityEditorBloc<T>.forCreation(
-                tripData: widget.tripData,
-                entity: widget.tripEntity,
-              );
-        _editorBloc = bloc;
-        return bloc;
-      },
+    return BlocProvider<TripEntityEditorBloc<T>>.value(
+      value: _editorBloc,
       child: Builder(builder: (context) {
         return MultiBlocListener(
           listeners: [
@@ -154,7 +154,8 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
                       TripEntityEditorState<T>>(
                     buildWhen: (_, current) =>
                         current is ConflictPlanUpdated ||
-                        current is ConflictPlanConfirmed,
+                        current is ConflictPlanConfirmed ||
+                        current is EntityValidationUpdated,
                     builder: (context, _) {
                       final plan = context.tripEntityUpdatePlan<T>();
                       final hasUnconfirmedConflicts = plan != null &&
@@ -260,7 +261,7 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
       return;
     }
     if (widget.tripEntity is! TransitFacade) {
-      _editorBloc?.add(UpdateEntity<T>());
+      _editorBloc.add(UpdateEntity<T>());
     }
   }
 

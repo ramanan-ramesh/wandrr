@@ -6,7 +6,7 @@ import 'check_list_item.dart';
 
 // ignore: must_be_immutable
 class CheckListFacade extends Equatable
-    implements TripEntity<CheckListValidationResult> {
+    implements TripEntity<CheckListValidationError> {
   String? title;
   final List<CheckListItem> items;
   final String tripId;
@@ -33,15 +33,15 @@ class CheckListFacade extends Equatable
   bool validate() => getValidationErrors().isEmpty;
 
   @override
-  Iterable<CheckListValidationResult> getValidationErrors() {
-    final errors = <CheckListValidationResult>[];
+  Iterable<CheckListValidationError> getValidationErrors() {
+    final errors = <CheckListValidationError>[];
     if (title == null || title!.isEmpty) {
-      errors.add(CheckListValidationResult.missingTitle);
+      errors.add(CheckListValidationError.missingTitle);
     }
     if (items.isEmpty) {
-      errors.add(CheckListValidationResult.itemsEmpty);
+      errors.add(CheckListValidationError.itemsEmpty);
     } else if (items.any((item) => item.item.isEmpty)) {
-      errors.add(CheckListValidationResult.itemEmpty);
+      errors.add(CheckListValidationError.itemEmpty);
     }
     return errors;
   }

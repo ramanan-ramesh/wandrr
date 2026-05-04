@@ -15,7 +15,7 @@ import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 import 'itinerary_plan_data.dart';
 
 abstract class ItineraryFacade extends Equatable
-    implements TripEntity<ItineraryValidationResult> {
+    implements TripEntity<ItineraryValidationError> {
   String get tripId;
 
   DateTime get day;

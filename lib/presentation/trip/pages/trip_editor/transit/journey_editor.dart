@@ -126,7 +126,8 @@ class JourneyEditorState extends State<JourneyEditor> {
         _journeyService.getJourneyLegs(_journeyId, widget.initialLeg);
     _legs = serviceLeg.map((l) => l.clone()).toList();
 
-    // Find the index of the clicked leg and expand it
+    _sortLegs();
+    // Find the index of the clicked leg after sorting
     var expandedIndex = 0;
     for (var i = 0; i < _legs.length; i++) {
       if (_legs[i].id == widget.initialLeg.id) {
@@ -141,6 +142,16 @@ class JourneyEditorState extends State<JourneyEditor> {
   void _toggleLegExpansion(int index) {
     setState(() {
       _expandedStates[index] = !_expandedStates[index];
+    });
+  }
+
+  /// Sorts [_legs] in-place by departure date/time (nulls last).
+  void _sortLegs() {
+    _legs.sort((a, b) {
+      if (a.departureDateTime == null && b.departureDateTime == null) return 0;
+      if (a.departureDateTime == null) return 1;
+      if (b.departureDateTime == null) return -1;
+      return a.departureDateTime!.compareTo(b.departureDateTime!);
     });
   }
 
@@ -174,10 +185,12 @@ class JourneyEditorState extends State<JourneyEditor> {
       for (var i = 0; i < _expandedStates.length - 1; i++) {
         _expandedStates[i] = false;
       }
+      // New leg has no departure time yet so sort won't change order,
+      // but call it for consistency.
+      _sortLegs();
     });
 
     widget.onJourneyUpdated();
-
   }
 
   void _removeLeg(int index) {
@@ -214,7 +227,6 @@ class JourneyEditorState extends State<JourneyEditor> {
     context.addTripEntityEditorEvent<TransitFacade>(UpdateJourney(_legs));
 
     widget.onJourneyUpdated();
-
   }
 
   void _onLegUpdated(int index, {bool needsRebuild = true}) {
@@ -222,13 +234,13 @@ class JourneyEditorState extends State<JourneyEditor> {
     // Expense changes don't need rebuilds and calling setState disrupts text field editing.
     if (needsRebuild) {
       setState(() {
-        // Trigger rebuild to update header with new leg data
+        // Re-sort legs so the order reflects any departure time changes.
+        _sortLegs();
       });
       // Time or location might have changed, trigger conflict scan
       context.addTripEntityEditorEvent<TransitFacade>(UpdateJourney(_legs));
     }
     widget.onJourneyUpdated();
-
   }
 
   /// Deletes all legs of the current journey.  /// Returns the number of dispatched delete operations.
@@ -342,19 +354,11 @@ class JourneyEditorState extends State<JourneyEditor> {
     final isValid = leg.validate();
     final canRemove = _legs.length > 1;
 
-    // Get previous leg's arrival time for constraining departure picker
-    // The legs are displayed sorted by departure time, so use the sorted order
+    // Get previous leg's arrival time for constraining departure picker.
+    // _legs is kept sorted by departure time so we can use the index directly.
     DateTime? minDepartureDateTime;
-    if (_legs.length > 1) {
-      // Sort legs by departure time to find the correct order
-      final sortedLegs = List<TransitFacade>.from(_legs)
-        ..sort((a, b) => (a.departureDateTime ?? DateTime(9999))
-            .compareTo(b.departureDateTime ?? DateTime(9999)));
-      final legIndexInSorted = sortedLegs.indexOf(leg);
-      if (legIndexInSorted > 0) {
-        final previousLeg = sortedLegs[legIndexInSorted - 1];
-        minDepartureDateTime = previousLeg.arrivalDateTime;
-      }
+    if (_legs.length > 1 && index > 0) {
+      minDepartureDateTime = _legs[index - 1].arrivalDateTime;
     }
 
     return CollapsibleLegSection(
@@ -1000,12 +1004,14 @@ class _JourneySummaryFooterState extends State<JourneySummaryFooter> {
   }
 
   String? _calculateTotalDuration() {
-    if (widget.journey.departureDateTime == null ||
-        widget.journey.arrivalDateTime == null) {
+    final firstLegDepartureDateTime =
+        widget.journey.legs.first.departureDateTime;
+    final lastLegArrivalDateTime = widget.journey.legs.last.arrivalDateTime;
+    if (firstLegDepartureDateTime == null || lastLegArrivalDateTime == null) {
       return null;
     }
-    final duration = widget.journey.arrivalDateTime!
-        .difference(widget.journey.departureDateTime!);
+    final duration =
+        lastLegArrivalDateTime.difference(firstLegDepartureDateTime);
     final hours = duration.inHours;
     final minutes = duration.inMinutes % 60;
     if (hours > 0) {

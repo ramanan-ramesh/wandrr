@@ -234,66 +234,58 @@ class _ValidationErrorItem extends StatelessWidget {
   String _getErrorTitle(Enum error) {
     return switch (error) {
       // Transit
-      TransitValidationResult.missingDepartureLocation =>
+      TransitValidationError.missingDepartureLocation =>
         'Departure location missing',
-      TransitValidationResult.missingArrivalLocation =>
+      TransitValidationError.missingArrivalLocation =>
         'Arrival location missing',
-      TransitValidationResult.missingDepartureTime => 'Departure time not set',
-      TransitValidationResult.missingArrivalTime => 'Arrival time not set',
-      TransitValidationResult.invalidTimeSequence => 'Arrival before departure',
-      TransitValidationResult.invalidFlightOperator =>
+      TransitValidationError.missingDepartureTime => 'Departure time not set',
+      TransitValidationError.missingArrivalTime => 'Arrival time not set',
+      TransitValidationError.invalidTimeSequence => 'Arrival before departure',
+      TransitValidationError.invalidFlightOperator =>
         'Invalid carrier / operator',
-      TransitValidationResult.expenseInvalid => 'Expense details invalid',
-      TransitValidationResult.valid => 'Valid',
+      TransitValidationError.expenseInvalid => 'Expense details invalid',
       // Journey
-      JourneyValidationResult.legHasErrors => 'One or more legs have errors',
-      JourneyValidationResult.sequenceViolation => 'Legs overlap in time',
+      JourneyValidationError.legHasErrors => 'One or more legs have errors',
+      JourneyValidationError.sequenceViolation => 'Legs overlap in time',
       // Lodging
-      LodgingValidationResult.missingLocation => 'Property location missing',
-      LodgingValidationResult.missingCheckinTime =>
+      LodgingValidationError.missingLocation => 'Property location missing',
+      LodgingValidationError.missingCheckinTime =>
         'Check-in date/time not set',
-      LodgingValidationResult.missingCheckoutTime =>
+      LodgingValidationError.missingCheckoutTime =>
         'Check-out date/time not set',
-      LodgingValidationResult.invalidTimeSequence =>
+      LodgingValidationError.invalidTimeSequence =>
         'Check-out before check-in',
-      LodgingValidationResult.expenseInvalid => 'Expense details invalid',
-      LodgingValidationResult.valid => 'Valid',
+      LodgingValidationError.expenseInvalid => 'Expense details invalid',
       // Itinerary plan data
-      ItineraryPlanDataValidationResult.sightInvalid => 'A place is incomplete',
-      ItineraryPlanDataValidationResult.noteEmpty => 'A note is empty',
-      ItineraryPlanDataValidationResult.checkListTitleNotValid =>
+      ItineraryPlanDataValidationError.sightInvalid => 'A place is incomplete',
+      ItineraryPlanDataValidationError.noteEmpty => 'A note is empty',
+      ItineraryPlanDataValidationError.checkListTitleNotValid =>
         'Checklist title too short',
-      ItineraryPlanDataValidationResult.checkListItemEmpty =>
+      ItineraryPlanDataValidationError.checkListItemEmpty =>
         'A checklist item is empty',
-      ItineraryPlanDataValidationResult.valid => 'Valid',
       // Sight
-      SightValidationResult.missingName => 'Place name missing',
-      SightValidationResult.missingLocation => 'Place location not set',
-      SightValidationResult.missingTime => 'Visit time not set',
-      SightValidationResult.expenseInvalid => 'Expense details invalid',
-      SightValidationResult.valid => 'Valid',
+      SightValidationError.missingName => 'Place name missing',
+      SightValidationError.missingLocation => 'Place location not set',
+      SightValidationError.missingTime => 'Visit time not set',
+      SightValidationError.expenseInvalid => 'Expense details invalid',
       // Checklist
-      CheckListValidationResult.missingTitle => 'Checklist title missing',
-      CheckListValidationResult.itemsEmpty => 'Checklist has no items',
-      CheckListValidationResult.itemEmpty => 'A checklist item is empty',
-      CheckListValidationResult.valid => 'Valid',
+      CheckListValidationError.missingTitle => 'Checklist title missing',
+      CheckListValidationError.itemsEmpty => 'Checklist has no items',
+      CheckListValidationError.itemEmpty => 'A checklist item is empty',
       // Trip metadata
-      TripMetadataValidationResult.missingTitle => 'Trip name missing',
-      TripMetadataValidationResult.missingStartDate => 'Start date not set',
-      TripMetadataValidationResult.missingEndDate => 'End date not set',
-      TripMetadataValidationResult.invalidDateRange =>
+      TripMetadataValidationError.missingTitle => 'Trip name missing',
+      TripMetadataValidationError.missingStartDate => 'Start date not set',
+      TripMetadataValidationError.missingEndDate => 'End date not set',
+      TripMetadataValidationError.invalidDateRange =>
         'End date is before start date',
-      TripMetadataValidationResult.valid => 'Valid',
       // Expense
-      ExpenseValidationResult.invalidAmount => 'Expense amount is invalid',
-      ExpenseValidationResult.invalidCurrency => 'Currency not selected',
-      ExpenseValidationResult.invalidSplit => 'Expense split is incomplete',
-      ExpenseValidationResult.valid => 'Valid',
+      ExpenseValidationError.invalidAmount => 'Expense amount is invalid',
+      ExpenseValidationError.invalidCurrency => 'Currency not selected',
+      ExpenseValidationError.invalidSplit => 'Expense split is incomplete',
       // Itinerary
-      ItineraryValidationResult.planDataInvalid => 'Day plan has errors',
-      ItineraryValidationResult.duplicateLodging =>
+      ItineraryValidationError.planDataInvalid => 'Day plan has errors',
+      ItineraryValidationError.duplicateLodging =>
         'Duplicate stay on the same day',
-      ItineraryValidationResult.valid => 'Valid',
       // Fallback for any future enum values
       _ => error.name
           .replaceAllMapped(RegExp('([A-Z])'), (m) => ' ${m[1]}')
@@ -305,80 +297,82 @@ class _ValidationErrorItem extends StatelessWidget {
   String _getErrorDescription(Enum error) {
     return switch (error) {
       // Transit
-      TransitValidationResult.missingDepartureLocation =>
+      TransitValidationError.missingDepartureLocation =>
         'Select where this leg departs from.',
-      TransitValidationResult.missingArrivalLocation =>
+      TransitValidationError.missingArrivalLocation =>
         'Select where this leg arrives.',
-      TransitValidationResult.missingDepartureTime =>
+      TransitValidationError.missingDepartureTime =>
         'Set the departure date and time.',
-      TransitValidationResult.missingArrivalTime =>
+      TransitValidationError.missingArrivalTime =>
         'Set the arrival date and time.',
-      TransitValidationResult.invalidTimeSequence =>
+      TransitValidationError.invalidTimeSequence =>
         'The arrival time must be after the departure time.',
-      TransitValidationResult.invalidFlightOperator =>
+      TransitValidationError.invalidFlightOperator =>
         'Enter a valid airline or carrier name.',
-      TransitValidationResult.expenseInvalid =>
+      TransitValidationError.expenseInvalid =>
         'Check the amount, currency, and who paid.',
       // Journey
-      JourneyValidationResult.legHasErrors =>
+      JourneyValidationError.legHasErrors =>
         'Fix the highlighted legs before saving.',
-      JourneyValidationResult.sequenceViolation =>
+      JourneyValidationError.sequenceViolation =>
         'A leg departs before the previous leg has arrived.',
       // Lodging
-      LodgingValidationResult.missingLocation =>
+      LodgingValidationError.missingLocation =>
         'Search for and select the property location.',
-      LodgingValidationResult.missingCheckinTime =>
+      LodgingValidationError.missingCheckinTime =>
         'Set the check-in date and time.',
-      LodgingValidationResult.missingCheckoutTime =>
+      LodgingValidationError.missingCheckoutTime =>
         'Set the check-out date and time.',
-      LodgingValidationResult.invalidTimeSequence =>
+      LodgingValidationError.invalidTimeSequence =>
         'The check-out time must be after the check-in time.',
-      LodgingValidationResult.expenseInvalid =>
+      LodgingValidationError.expenseInvalid =>
         'Check the amount, currency, and who paid.',
       // Itinerary plan data
-      ItineraryPlanDataValidationResult.sightInvalid =>
+      ItineraryPlanDataValidationError.sightInvalid =>
         'Fill in the name and location for every place.',
-      ItineraryPlanDataValidationResult.noteEmpty =>
+      ItineraryPlanDataValidationError.noteEmpty =>
         'Remove or fill in the empty note.',
-      ItineraryPlanDataValidationResult.checkListTitleNotValid =>
+      ItineraryPlanDataValidationError.checkListTitleNotValid =>
         'The checklist title must be at least 3 characters.',
-      ItineraryPlanDataValidationResult.checkListItemEmpty =>
+      ItineraryPlanDataValidationError.checkListItemEmpty =>
         'Remove or fill in every empty checklist item.',
       // Sight
-      SightValidationResult.missingName => 'Enter a name for this place.',
-      SightValidationResult.missingLocation =>
+      SightValidationError.missingName => 'Enter a name for this place.',
+      SightValidationError.missingLocation =>
         'Search for and select a location for this place.',
-      SightValidationResult.missingTime => 'Set a visit time for this place.',
-      SightValidationResult.expenseInvalid =>
+      SightValidationError.missingTime => 'Set a visit time for this place.',
+      SightValidationError.expenseInvalid =>
         'Check the amount, currency, and who paid.',
       // Checklist
-      CheckListValidationResult.missingTitle =>
+      CheckListValidationError.missingTitle =>
         'Enter a title for this checklist (minimum 3 characters).',
-      CheckListValidationResult.itemsEmpty =>
+      CheckListValidationError.itemsEmpty =>
         'Add at least one item to the checklist.',
-      CheckListValidationResult.itemEmpty =>
+      CheckListValidationError.itemEmpty =>
         'Remove or fill in every empty checklist item.',
       // Trip metadata
-      TripMetadataValidationResult.missingTitle =>
+      TripMetadataValidationError.missingTitle =>
         'Enter a name for your trip.',
-      TripMetadataValidationResult.missingStartDate =>
+      TripMetadataValidationError.missingStartDate =>
         'Set the trip start date.',
-      TripMetadataValidationResult.missingEndDate => 'Set the trip end date.',
-      TripMetadataValidationResult.invalidDateRange =>
+      TripMetadataValidationError.missingEndDate => 'Set the trip end date.',
+      TripMetadataValidationError.invalidDateRange =>
         'The end date must be on or after the start date.',
       // Expense
-      ExpenseValidationResult.invalidAmount => 'Enter a positive amount.',
-      ExpenseValidationResult.invalidCurrency =>
+      ExpenseValidationError.invalidAmount => 'Enter a positive amount.',
+      ExpenseValidationError.invalidCurrency =>
         'Choose a currency for this expense.',
-      ExpenseValidationResult.invalidSplit =>
+      ExpenseValidationError.invalidSplit =>
         'Make sure the expense is assigned to at least one person.',
       // Itinerary
-      ItineraryValidationResult.planDataInvalid =>
+      ItineraryValidationError.planDataInvalid =>
         'Fix the errors in the day plan before saving.',
-      ItineraryValidationResult.duplicateLodging =>
+      ItineraryValidationError.duplicateLodging =>
         'Only one stay can be active on the same day.',
       // Valid and fallback — no description needed
       _ => '',
     };
   }
 }
+
+

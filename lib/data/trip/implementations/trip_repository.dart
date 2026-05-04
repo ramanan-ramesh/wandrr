@@ -25,15 +25,15 @@ import 'trip_data.dart';
 class TripRepositoryImplementation implements TripRepositoryEventHandler {
   static const _contributorsField = 'contributors';
 
-  late final StreamSubscription _tripMetadataUpdatedEventSubscription;
-  late final StreamSubscription _tripMetadataDeletedEventSubscription;
+  late final StreamSubscription _tripMetadataUpdateSubscription;
+  late final StreamSubscription _tripMetadataDeleteSubscription;
 
   static Future<TripRepositoryImplementation> createInstance(
-      {required String userName}) async {
-    var tripsCollectionReference = FirebaseFirestore.instance
+      String userName) async {
+    final tripsCollectionReference = FirebaseFirestore.instance
         .collection(FirestoreCollections.tripMetadataCollectionName);
 
-    var tripMetadataModelCollection = FirestoreModelCollection.createInstance(
+    final tripMetadataModelCollection = FirestoreModelCollection.createInstance(
         tripsCollectionReference,
         TripMetadataModelImplementation.fromDocumentSnapshot,
         (tripMetadataModuleFacade) =>
@@ -44,7 +44,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
 
     final jsonString = await rootBundle.loadString(Assets.supportedCurrencies);
     final List<dynamic> jsonResponse = json.decode(jsonString);
-    var currencyDataList =
+    final currencyDataList =
         jsonResponse.map((json) => CurrencyData.fromJson(json)).toList();
 
     return TripRepositoryImplementation._(
@@ -70,9 +70,9 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   }
 
   @override
-  TripDataModelEventHandler loadTrip(TripMetadataFacade tripMetadata,
+  Future<TripDataModelEventHandler> loadTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository,
-      {required bool activateTrip}) {
+      {required bool activateTrip}) async {
     if (!_tripDataCache.containsKey(tripMetadata.id)) {
       final tripToCache = TripDataModelImplementation.createInstance(
           tripMetadata,
@@ -82,6 +82,10 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
       _tripDataCache[tripMetadata.id!] = tripToCache;
     }
     if (activateTrip) {
+      if (activeTrip != null &&
+          activeTrip!.tripMetadata.id != tripMetadata.id) {
+        await activeTrip!.dispose();
+      }
       activeTrip = _tripDataCache[tripMetadata.id];
     }
     return _tripDataCache[tripMetadata.id]!;
@@ -92,7 +96,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
       TripMetadataFacade tripMetadata,
       TripMetadataFacade targetTrip,
       ApiServicesRepositoryFacade apiServicesRepository) async {
-    loadTrip(tripMetadata, apiServicesRepository, activateTrip: false);
+    await loadTrip(tripMetadata, apiServicesRepository, activateTrip: false);
     final tripToCopy = _tripDataCache[tripMetadata.id]!;
 
     Future<TripMetadataFacade> createCopy() async {
@@ -100,7 +104,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
           sourceTripData: tripToCopy,
           targetTripMetadata: targetTrip,
           apiServicesRepository: apiServicesRepository);
-      loadTrip(copiedTripMetadata, apiServicesRepository, activateTrip: false);
+      await loadTrip(copiedTripMetadata, apiServicesRepository,
+          activateTrip: false);
       return copiedTripMetadata;
     }
 
@@ -121,8 +126,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
 
   @override
   Future dispose() async {
-    await _tripMetadataUpdatedEventSubscription.cancel();
-    await _tripMetadataDeletedEventSubscription.cancel();
+    await _tripMetadataUpdateSubscription.cancel();
+    await _tripMetadataDeleteSubscription.cancel();
     await tripMetadataCollection.dispose();
     for (final trip in _tripDataCache.values) {
       await trip.dispose();
@@ -131,38 +136,11 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     activeTrip = null;
   }
 
-  TripRepositoryImplementation._(
-    this.tripMetadataCollection,
-    this.currentUserName,
-    this.supportedCurrencies,
-  ) {
-    _tripMetadataUpdatedEventSubscription =
-        tripMetadataCollection.onDocumentUpdated.listen((eventData) async {
-      if (activeTrip?.tripMetadata.id !=
-          eventData.collectionItemChange.afterUpdate.id) {
-        return;
-      }
-      await activeTrip!
-          .updateTripMetadata(eventData.collectionItemChange.afterUpdate);
-    });
-    _tripMetadataDeletedEventSubscription =
-        tripMetadataCollection.onDocumentDeleted.listen((eventData) async {
-      var tripId = eventData.collectionItemChange.id;
-      await FirebaseFirestore.instance
-          .collection(FirestoreCollections.tripCollectionName)
-          .doc(tripId)
-          .delete();
-      if (tripId == activeTrip?.tripMetadata.id) {
-        await unloadActiveTrip();
-      }
-    });
-  }
-
   @override
   Future deleteTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository) async {
-    final tripToDelete =
-        loadTrip(tripMetadata, apiServicesRepository, activateTrip: false);
+    final tripToDelete = await loadTrip(tripMetadata, apiServicesRepository,
+        activateTrip: false);
 
     // Ensure all sub-collections are loaded before building the delete batch,
     // so no data is silently left behind.
@@ -171,7 +149,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     }
 
     final batch = FirebaseFirestore.instance.batch();
-    var tripMetadataToDelete = tripMetadataCollection.items
+    final tripMetadataToDelete = tripMetadataCollection.items
         .firstWhere((item) => item.id == tripMetadata.id);
     batch.delete(tripMetadataCollection
         .collectionDocumentCreator(tripMetadataToDelete)
@@ -212,5 +190,28 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
       _tripDataCache.remove(tripMetadata.id);
     }
     await TripVisitTracker.deleteVisitCount(tripMetadata.id!);
+  }
+
+  TripRepositoryImplementation._(
+    this.tripMetadataCollection,
+    this.currentUserName,
+    this.supportedCurrencies,
+  ) {
+    _tripMetadataUpdateSubscription =
+        tripMetadataCollection.onDocumentUpdated.listen((eventData) async {
+      if (activeTrip?.tripMetadata.id !=
+          eventData.collectionItemChange.afterUpdate.id) {
+        return;
+      }
+      await activeTrip!
+          .updateTripMetadata(eventData.collectionItemChange.afterUpdate);
+    });
+    _tripMetadataDeleteSubscription =
+        tripMetadataCollection.onDocumentDeleted.listen((eventData) async {
+      final tripId = eventData.collectionItemChange.id;
+      if (tripId == activeTrip?.tripMetadata.id) {
+        await unloadActiveTrip();
+      }
+    });
   }
 }

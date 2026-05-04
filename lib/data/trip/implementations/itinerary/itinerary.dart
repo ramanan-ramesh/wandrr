@@ -158,14 +158,14 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
   bool validate() => getValidationErrors().isEmpty;
 
   @override
-  Iterable<ItineraryValidationResult> getValidationErrors() {
-    final errors = <ItineraryValidationResult>[];
+  Iterable<ItineraryValidationError> getValidationErrors() {
+    final errors = <ItineraryValidationError>[];
     if (!planData.validate()) {
-      errors.add(ItineraryValidationResult.planDataInvalid);
+      errors.add(ItineraryValidationError.planDataInvalid);
     }
     if (fullDayLodging != null &&
         (checkInLodging != null || checkOutLodging != null)) {
-      errors.add(ItineraryValidationResult.duplicateLodging);
+      errors.add(ItineraryValidationError.duplicateLodging);
     }
     return errors;
   }

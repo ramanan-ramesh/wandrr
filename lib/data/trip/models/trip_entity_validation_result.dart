@@ -1,8 +1,7 @@
-/// Common validation results for all trip entities.
+/// Common validation errors for all trip entities.
 /// Each entity type implements its own specific enum.
 
-enum TransitValidationResult {
-  valid,
+enum TransitValidationError {
   missingDepartureLocation,
   missingArrivalLocation,
   missingDepartureTime,
@@ -12,9 +11,9 @@ enum TransitValidationResult {
   expenseInvalid,
 }
 
-/// Validation results for multi-leg journeys.
+/// Validation errors for multi-leg journeys.
 /// Combines per-leg individual errors and cross-leg sequence errors.
-enum JourneyValidationResult {
+enum JourneyValidationError {
   /// At least one leg has its own validation errors (see TransitValidationResult).
   legHasErrors,
 
@@ -22,8 +21,7 @@ enum JourneyValidationResult {
   sequenceViolation,
 }
 
-enum LodgingValidationResult {
-  valid,
+enum LodgingValidationError {
   missingLocation,
   missingCheckinTime,
   missingCheckoutTime,
@@ -31,46 +29,40 @@ enum LodgingValidationResult {
   expenseInvalid,
 }
 
-enum ItineraryPlanDataValidationResult {
-  valid,
+enum ItineraryPlanDataValidationError {
   sightInvalid,
   noteEmpty,
   checkListTitleNotValid,
   checkListItemEmpty,
 }
 
-enum SightValidationResult {
-  valid,
+enum SightValidationError {
   missingName,
   missingLocation,
   missingTime,
   expenseInvalid,
 }
 
-enum CheckListValidationResult {
-  valid,
+enum CheckListValidationError {
   missingTitle,
   itemsEmpty,
   itemEmpty,
 }
 
-enum TripMetadataValidationResult {
-  valid,
+enum TripMetadataValidationError {
   missingTitle,
   missingStartDate,
   missingEndDate,
   invalidDateRange,
 }
 
-enum ExpenseValidationResult {
-  valid,
+enum ExpenseValidationError {
   invalidAmount,
   invalidCurrency,
   invalidSplit,
 }
 
-enum ItineraryValidationResult {
-  valid,
+enum ItineraryValidationError {
   planDataInvalid,
   duplicateLodging,
 }

@@ -18,25 +18,6 @@ class TransitJourneyService implements TransitJourneyServiceFacade {
   }) : _currencyConverter = currencyConverter;
 
   @override
-  List<TransitJourneyFacade> get journeys {
-    final grouped = <String, List<TransitFacade>>{};
-
-    for (final leg in _legCollection.items) {
-      if (leg.journeyId != null) {
-        grouped.putIfAbsent(leg.journeyId!, () => []).add(leg);
-      }
-    }
-
-    return grouped.entries
-        .map((e) => TransitJourneyFacade(
-              journeyId: e.key,
-              tripId: e.value.first.tripId,
-              unsortedLegs: e.value,
-            ))
-        .toList();
-  }
-
-  @override
   TransitJourneyFacade? getJourney(String journeyId) {
     final legs = _getLegsForJourney(journeyId);
     if (legs.isEmpty) {
@@ -48,9 +29,6 @@ class TransitJourneyService implements TransitJourneyServiceFacade {
       unsortedLegs: legs,
     );
   }
-
-  List<TransitFacade> _getLegsForJourney(String journeyId) =>
-      _legCollection.items.where((leg) => leg.journeyId == journeyId).toList();
 
   @override
   List<TransitFacade> getJourneyLegs(
@@ -72,12 +50,12 @@ class TransitJourneyService implements TransitJourneyServiceFacade {
   }
 
   @override
-  List<JourneyValidationResult> validateJourney(List<TransitFacade> legs) {
-    final errors = <JourneyValidationResult>{};
+  List<JourneyValidationError> validateJourney(List<TransitFacade> legs) {
+    final errors = <JourneyValidationError>{};
 
     // Per-leg individual validation.
     if (legs.any((leg) => !leg.validate())) {
-      errors.add(JourneyValidationResult.legHasErrors);
+      errors.add(JourneyValidationError.legHasErrors);
     }
 
     // Cross-leg sequence: sort by departure time, then check each consecutive pair.
@@ -92,7 +70,7 @@ class TransitJourneyService implements TransitJourneyServiceFacade {
         if (prevArrival != null &&
             currDeparture != null &&
             currDeparture.isBefore(prevArrival)) {
-          errors.add(JourneyValidationResult.sequenceViolation);
+          errors.add(JourneyValidationError.sequenceViolation);
           break;
         }
       }
@@ -135,4 +113,7 @@ class TransitJourneyService implements TransitJourneyServiceFacade {
       }
     }
   }
+
+  List<TransitFacade> _getLegsForJourney(String journeyId) =>
+      _legCollection.items.where((leg) => leg.journeyId == journeyId).toList();
 }

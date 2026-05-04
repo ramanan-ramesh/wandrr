@@ -84,7 +84,7 @@ abstract class ExpenseBearingTripEntity<V extends Enum>
 }
 
 class StandaloneExpense extends Equatable
-    implements ExpenseBearingTripEntity<ExpenseValidationResult> {
+    implements ExpenseBearingTripEntity<ExpenseValidationError> {
   String tripId;
 
   @override
@@ -123,16 +123,16 @@ class StandaloneExpense extends Equatable
   bool validate() => getValidationErrors().isEmpty;
 
   @override
-  Iterable<ExpenseValidationResult> getValidationErrors() {
-    final errors = <ExpenseValidationResult>[];
+  Iterable<ExpenseValidationError> getValidationErrors() {
+    final errors = <ExpenseValidationError>[];
     if (expense.totalExpense.amount <= 0) {
-      errors.add(ExpenseValidationResult.invalidAmount);
+      errors.add(ExpenseValidationError.invalidAmount);
     }
     if (expense.currency.isEmpty) {
-      errors.add(ExpenseValidationResult.invalidCurrency);
+      errors.add(ExpenseValidationError.invalidCurrency);
     }
     if (expense.paidBy.isEmpty || expense.splitBy.isEmpty) {
-      errors.add(ExpenseValidationResult.invalidSplit);
+      errors.add(ExpenseValidationError.invalidSplit);
     }
     return errors;
   }

@@ -279,7 +279,7 @@ Future<void> runItineraryPlanDataValidationTest(
             day: DateTime(2025, 10, 1),
             expense: _exp())
       ], notes: const [], checkLists: const []).getValidationErrors().first,
-      ItineraryPlanDataValidationResult.sightInvalid);
+      ItineraryPlanDataValidationError.sightInvalid);
 
   expect(
       ItineraryPlanData(
@@ -288,7 +288,7 @@ Future<void> runItineraryPlanDataValidationTest(
           sights: const [],
           notes: const [''],
           checkLists: const []).getValidationErrors().first,
-      ItineraryPlanDataValidationResult.noteEmpty);
+      ItineraryPlanDataValidationError.noteEmpty);
 
   expect(
       ItineraryPlanData(
@@ -302,7 +302,7 @@ Future<void> runItineraryPlanDataValidationTest(
                 title: 'AB',
                 items: [CheckListItem(item: 'X', isChecked: false)])
           ]).getValidationErrors().first,
-      ItineraryPlanDataValidationResult.checkListTitleNotValid);
+      ItineraryPlanDataValidationError.checkListTitleNotValid);
 
   expect(
       ItineraryPlanData(
@@ -313,7 +313,7 @@ Future<void> runItineraryPlanDataValidationTest(
           checkLists: [
             CheckListFacade(tripId: _tripId, title: 'Pack', items: const [])
           ]).getValidationErrors().first,
-      ItineraryPlanDataValidationResult.checkListItemEmpty);
+      ItineraryPlanDataValidationError.checkListItemEmpty);
 
   expect(
       ItineraryPlanData(
@@ -327,7 +327,7 @@ Future<void> runItineraryPlanDataValidationTest(
                 title: 'Pack',
                 items: [CheckListItem(item: '', isChecked: false)])
           ]).getValidationErrors().first,
-      ItineraryPlanDataValidationResult.checkListItemEmpty);
+      ItineraryPlanDataValidationError.checkListItemEmpty);
   print('✓ ItineraryPlanData: 7 scenarios passed');
 }
 

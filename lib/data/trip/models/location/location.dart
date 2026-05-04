@@ -4,10 +4,8 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'airport_location_context.dart';
 import 'location_context.dart';
 
-enum LocationValidationResult { valid }
-
 // ignore: must_be_immutable
-class LocationFacade extends Equatable implements TripEntity<LocationValidationResult> {
+class LocationFacade extends Equatable implements TripEntity<Never> {
   final double latitude;
   final double longitude;
 
@@ -38,7 +36,7 @@ class LocationFacade extends Equatable implements TripEntity<LocationValidationR
   bool validate() => true;
 
   @override
-  Iterable<LocationValidationResult> getValidationErrors() => const [];
+  Iterable<Never> getValidationErrors() => const [];
 
   @override
   List<Object?> get props => [latitude, longitude, context];

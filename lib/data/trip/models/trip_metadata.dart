@@ -6,7 +6,7 @@ import 'budgeting/money.dart';
 
 // ignore: must_be_immutable
 class TripMetadataFacade extends Equatable
-    implements TripEntity<TripMetadataValidationResult> {
+    implements TripEntity<TripMetadataValidationError> {
   @override
   String? id;
 
@@ -71,19 +71,19 @@ class TripMetadataFacade extends Equatable
   bool validate() => getValidationErrors().isEmpty;
 
   @override
-  Iterable<TripMetadataValidationResult> getValidationErrors() {
-    final errors = <TripMetadataValidationResult>[];
+  Iterable<TripMetadataValidationError> getValidationErrors() {
+    final errors = <TripMetadataValidationError>[];
     if (name.isEmpty) {
-      errors.add(TripMetadataValidationResult.missingTitle);
+      errors.add(TripMetadataValidationError.missingTitle);
     }
     if (startDate == null) {
-      errors.add(TripMetadataValidationResult.missingStartDate);
+      errors.add(TripMetadataValidationError.missingStartDate);
     }
     if (endDate == null) {
-      errors.add(TripMetadataValidationResult.missingEndDate);
+      errors.add(TripMetadataValidationError.missingEndDate);
     }
     if (startDate != null && endDate != null && endDate!.isBefore(startDate!)) {
-      errors.add(TripMetadataValidationResult.invalidDateRange);
+      errors.add(TripMetadataValidationError.invalidDateRange);
     }
     return errors;
   }

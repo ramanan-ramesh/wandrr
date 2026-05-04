@@ -9,9 +9,6 @@ import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 /// Service for managing multi-leg journeys.
 /// Handles grouping, validation, querying operations, and expense calculations.
 abstract class TransitJourneyServiceFacade {
-  /// Get all grouped journeys
-  List<TransitJourneyFacade> get journeys;
-
   /// Get a specific journey by ID
   TransitJourneyFacade? getJourney(String journeyId);
 
@@ -31,7 +28,7 @@ abstract class TransitJourneyServiceFacade {
   ///   [TransitFacade.validate()] check.
   /// - [JourneyValidationResult.sequenceViolation]: a leg's departure time is
   ///   before the previous leg's arrival time.
-  List<JourneyValidationResult> validateJourney(List<TransitFacade> legs);
+  List<JourneyValidationError> validateJourney(List<TransitFacade> legs);
 
   /// Calculates total expense for given legs in the target currency.
   /// Returns a Stream that emits the converted total as each leg's expense is converted.

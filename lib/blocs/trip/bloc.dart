@@ -72,8 +72,8 @@ class TripManagementBloc
   FutureOr<void> _onStartup(
       _OnStartup event, Emitter<TripManagementState> emit) async {
     if (_tripRepository == null) {
-      _tripRepository = await TripRepositoryImplementation.createInstance(
-          userName: _currentUserName);
+      _tripRepository =
+          await TripRepositoryImplementation.createInstance(_currentUserName);
       await _initializeMetadataSubscriptionHandler();
       if (_tripRepository!.tripMetadataCollection.isLoaded) {
         unawaited(_preloadMostVisited());
@@ -111,7 +111,7 @@ class TripManagementBloc
         }
         _apiServicesRepository ??=
             await ApiServicesRepositoryImpl.createInstance();
-        final tripInstance = _tripRepository!.loadTrip(
+        final tripInstance = await _tripRepository!.loadTrip(
             event.tripMetadata, _apiServicesRepository!,
             activateTrip: true);
 
@@ -122,7 +122,7 @@ class TripManagementBloc
       } else {
         _apiServicesRepository ??=
             await ApiServicesRepositoryImpl.createInstance();
-        final tripInstance = _tripRepository!.loadTrip(
+        final tripInstance = await _tripRepository!.loadTrip(
             event.tripMetadata, _apiServicesRepository!,
             activateTrip: true);
         LoadedTripPreview(tripData: tripInstance);
@@ -285,7 +285,7 @@ class TripManagementBloc
       _apiServicesRepository ??=
           await ApiServicesRepositoryImpl.createInstance();
       // Load in background (Fire-and-forget, TripRepository caches it)
-      _tripRepository!
+      await _tripRepository!
           .loadTrip(mostVisited, _apiServicesRepository!, activateTrip: false);
     }
   }
