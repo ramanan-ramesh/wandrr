@@ -26,13 +26,13 @@ abstract class TripRepositoryEventHandler extends TripRepositoryFacade
       ApiServicesRepositoryFacade apiServicesRepository,
       {required bool activateTrip});
 
-  Future deleteTrip(TripMetadataFacade tripMetadata,
-      ApiServicesRepositoryFacade apiServicesRepository);
+  Future unloadActiveTrip();
 
   Future<TripMetadataFacade> copyTrip(
       TripMetadataFacade tripToCopy,
       TripMetadataFacade targetTrip,
       ApiServicesRepositoryFacade apiServicesRepository);
 
-  Future unloadActiveTrip();
+  Future deleteTrip(TripMetadataFacade tripMetadata,
+      ApiServicesRepositoryFacade apiServicesRepository);
 }

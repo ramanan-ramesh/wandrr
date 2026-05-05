@@ -1,10 +1,10 @@
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/date_picker.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/editor_page_factory.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';

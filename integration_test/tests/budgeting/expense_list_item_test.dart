@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_sort_options.dart';
@@ -8,6 +7,7 @@ import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/services/budgeting_service.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/expenses_list_view.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/readonly_expense.dart';
@@ -28,8 +28,7 @@ Future<void> runExpenseListItemTest(WidgetTester tester) async {
   final allExpensesFromTripRepo =
       await getSortedExpensesFromRepository(tester, ExpenseSortOption.newToOld);
 
-  final budgetingModule =
-      TestHelpers.getTripRepository(tester).activeTrip!.budgetingModule;
+  final budgetingService = TestHelpers.getBudgetingService(tester);
   await TestHelpers.evaluateWidgetsByScrollingWithPredicate<
       ReadonlyExpenseListItem>(
     tester: tester,
@@ -43,7 +42,7 @@ Future<void> runExpenseListItemTest(WidgetTester tester) async {
         : widget.expenseBearingTripEntity.id!,
     expectedCount: allExpensesFromTripRepo.length,
     predicate: (ReadonlyExpenseListItem widget) async {
-      return await _evaluateExpenseListItem(widget, tester, budgetingModule);
+      return await _evaluateExpenseListItem(widget, tester, budgetingService);
     },
   );
 }
@@ -51,7 +50,7 @@ Future<void> runExpenseListItemTest(WidgetTester tester) async {
 Future<String?> _evaluateExpenseListItem(
     ReadonlyExpenseListItem expenseListItem,
     WidgetTester tester,
-    BudgetingModuleFacade budgetingModule) async {
+    BudgetingServiceFacade budgetingService) async {
   final expense = expenseListItem.expenseBearingTripEntity;
   var expectedCategory = expense.category;
   var expenseListItemFinder = find.byWidget(expenseListItem);
@@ -98,7 +97,7 @@ Future<String?> _evaluateExpenseListItem(
   }
   final totalExpenseAmount =
       expense.expense.paidBy.values.fold(0.0, (p, e) => p + e);
-  final formattedAmount = budgetingModule.formatCurrency(
+  final formattedAmount = budgetingService.formatCurrency(
       Money(amount: totalExpenseAmount, currency: expense.expense.currency));
   final isTotalAmountFound = find
           .descendant(

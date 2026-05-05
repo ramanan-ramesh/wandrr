@@ -112,7 +112,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
               : const SizedBox.shrink(),
           accentColorBuilder: (s) =>
               s.name.isNotEmpty ? AppColors.success : AppColors.error,
-          isValidBuilder: (s) => s.validate(),
+          isValidBuilder: (s) => s.getValidationErrors().isEmpty,
           expandedBuilder: (ctx, index, sight, notifyParent) =>
               _buildSightEditor(ctx, sight, notifyParent),
           initialExpandedIndex: widget.initialExpandedIndex,

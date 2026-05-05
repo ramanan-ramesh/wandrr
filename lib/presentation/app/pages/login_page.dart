@@ -4,11 +4,11 @@ import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/blocs/app/bloc.dart';
 import 'package:wandrr/blocs/app/events.dart';
 import 'package:wandrr/blocs/app/states.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

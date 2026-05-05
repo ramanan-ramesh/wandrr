@@ -2,10 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 

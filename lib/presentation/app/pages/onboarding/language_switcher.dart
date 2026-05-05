@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/app/events.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/data/app/models/language_metadata.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/app/language_metadata_extension.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 
 class LanguageSwitcher extends StatefulWidget {
   const LanguageSwitcher({super.key});

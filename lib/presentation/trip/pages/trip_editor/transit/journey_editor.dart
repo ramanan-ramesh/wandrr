@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip_entity_editor/events.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
@@ -7,6 +6,7 @@ import 'package:wandrr/data/trip/models/services/transit_journey_service.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_journey.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/transit/travel_editor.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
@@ -148,9 +148,15 @@ class JourneyEditorState extends State<JourneyEditor> {
   /// Sorts [_legs] in-place by departure date/time (nulls last).
   void _sortLegs() {
     _legs.sort((a, b) {
-      if (a.departureDateTime == null && b.departureDateTime == null) return 0;
-      if (a.departureDateTime == null) return 1;
-      if (b.departureDateTime == null) return -1;
+      if (a.departureDateTime == null && b.departureDateTime == null) {
+        return 0;
+      }
+      if (a.departureDateTime == null) {
+        return 1;
+      }
+      if (b.departureDateTime == null) {
+        return -1;
+      }
       return a.departureDateTime!.compareTo(b.departureDateTime!);
     });
   }
@@ -233,10 +239,7 @@ class JourneyEditorState extends State<JourneyEditor> {
     // Only call setState if the change requires a visual rebuild (e.g., location/time changes).
     // Expense changes don't need rebuilds and calling setState disrupts text field editing.
     if (needsRebuild) {
-      setState(() {
-        // Re-sort legs so the order reflects any departure time changes.
-        _sortLegs();
-      });
+      setState(_sortLegs);
       // Time or location might have changed, trigger conflict scan
       context.addTripEntityEditorEvent<TransitFacade>(UpdateJourney(_legs));
     }
@@ -351,7 +354,7 @@ class JourneyEditorState extends State<JourneyEditor> {
   Widget _buildCollapsibleLegEditor(int index) {
     final leg = _legs[index];
     final isExpanded = _expandedStates[index];
-    final isValid = leg.validate();
+    final isValid = leg.getValidationErrors().isEmpty;
     final canRemove = _legs.length > 1;
 
     // Get previous leg's arrival time for constraining departure picker.

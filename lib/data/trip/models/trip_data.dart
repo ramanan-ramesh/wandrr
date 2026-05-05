@@ -3,7 +3,6 @@ import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 
-import 'budgeting/budgeting_module.dart';
 import 'budgeting/expense.dart';
 import 'lodging.dart';
 import 'transit.dart';
@@ -19,8 +18,6 @@ abstract class TripDataFacade {
   ModelCollectionFacade<StandaloneExpense> get expenseCollection;
 
   ItineraryFacadeCollection get itineraryCollection;
-
-  BudgetingModuleFacade get budgetingModule;
 
   Stream<bool> get isFullyLoaded;
 

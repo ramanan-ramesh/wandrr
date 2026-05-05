@@ -155,12 +155,9 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
   bool? get stringify => true;
 
   @override
-  bool validate() => getValidationErrors().isEmpty;
-
-  @override
   Iterable<ItineraryValidationError> getValidationErrors() {
     final errors = <ItineraryValidationError>[];
-    if (!planData.validate()) {
+    if (!planData.getValidationErrors().isEmpty) {
       errors.add(ItineraryValidationError.planDataInvalid);
     }
     if (fullDayLodging != null &&

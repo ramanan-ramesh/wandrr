@@ -3,7 +3,5 @@ abstract class TripEntity<TValidationResult extends Enum> {
 
   TripEntity<TValidationResult> clone();
 
-  bool validate();
-
   Iterable<TValidationResult> getValidationErrors();
 }

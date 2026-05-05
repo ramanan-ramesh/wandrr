@@ -50,14 +50,12 @@ class FirestoreModelCollection<TModel>
       );
     }
 
-    final collection = FirestoreModelCollection<Model>._(
+    return FirestoreModelCollection<Model>._(
       typedCollectionReference: typedCollectionReference,
-      typedQuery: typedQuery,
+      typedReadQuery: typedQuery,
       collectionDocumentCreator: collectionDocumentCreator,
       collectionItems: [],
     );
-    collection.startListening();
-    return collection;
   }
 
   @override
@@ -152,13 +150,9 @@ class FirestoreModelCollection<TModel>
 
   void _onCollectionDataUpdate(
       List<DocumentChange<CollectionDocument<TModel>>> documentChanges) {
-    if (!_isLoaded) {
-      _isLoaded = true;
-      _isLoadedStreamController.add(true);
-    }
-    if (documentChanges.isEmpty) {
-      return;
-    }
+    // Capture whether this is the very first snapshot before mutating state.
+    final isInitialLoad = !_isLoaded;
+
     for (final documentChange in documentChanges) {
       final documentSnapshot = documentChange.doc;
       final collectionDocument = documentSnapshot.data();
@@ -174,15 +168,20 @@ class FirestoreModelCollection<TModel>
                 element.documentReference.id ==
                 collectionDocument.documentReference.id)) {
               _items.add(collectionDocument);
-              // Only broadcast if this wasn't an explicit local action
-              if (!_idListFromExplicitActions
-                  .remove(collectionDocument.documentReference.id)) {
+              // During initial load, skip change-stream events entirely —
+              // listeners will read from [items] after [onLoaded] fires.
+              if (!isInitialLoad &&
+                  !_idListFromExplicitActions
+                      .remove(collectionDocument.documentReference.id)) {
                 _additionStreamController.add(CollectionItemChangeMetadata(
                     collectionDocument.facade,
                     isFromExplicitAction: false));
+              } else {
+                _idListFromExplicitActions
+                    .remove(collectionDocument.documentReference.id);
               }
             } else {
-              // Doc already present, consume the pending ID if any
+              // Doc already present, consume the pending ID if any.
               _idListFromExplicitActions
                   .remove(collectionDocument.documentReference.id);
             }
@@ -194,10 +193,13 @@ class FirestoreModelCollection<TModel>
                 element.documentReference.id == documentSnapshot.id)) {
               _items.removeWhere((element) =>
                   element.documentReference.id == documentSnapshot.id);
-              if (!_idListFromExplicitActions.remove(documentSnapshot.id)) {
+              if (!isInitialLoad &&
+                  !_idListFromExplicitActions.remove(documentSnapshot.id)) {
                 _deletionStreamController.add(CollectionItemChangeMetadata(
                     collectionDocument.facade,
                     isFromExplicitAction: false));
+              } else {
+                _idListFromExplicitActions.remove(documentSnapshot.id);
               }
             } else {
               _idListFromExplicitActions.remove(documentSnapshot.id);
@@ -213,41 +215,48 @@ class FirestoreModelCollection<TModel>
             }
             final collectionItemBeforeUpdate = _items[matchingElementIndex];
             _items[matchingElementIndex] = collectionDocument;
-            final hasFacadeChanged =
-                collectionItemBeforeUpdate.facade != collectionDocument.facade;
-            final wasFromExplicitAction =
-                _idListFromExplicitActions.remove(documentSnapshot.id);
 
-            if (hasFacadeChanged && !wasFromExplicitAction) {
-              _updationStreamController.add(CollectionItemChangeMetadata(
-                  Changeset(collectionItemBeforeUpdate.facade,
-                      collectionDocument.facade),
-                  isFromExplicitAction: false));
+            if (!isInitialLoad) {
+              final hasFacadeChanged = collectionItemBeforeUpdate.facade !=
+                  collectionDocument.facade;
+              final wasFromExplicitAction =
+                  _idListFromExplicitActions.remove(documentSnapshot.id);
+
+              if (hasFacadeChanged && !wasFromExplicitAction) {
+                _updationStreamController.add(CollectionItemChangeMetadata(
+                    Changeset(collectionItemBeforeUpdate.facade,
+                        collectionDocument.facade),
+                    isFromExplicitAction: false));
+              }
+            } else {
+              _idListFromExplicitActions.remove(documentSnapshot.id);
             }
             break;
           }
       }
     }
+
+    // Emit [onLoaded] only after all items from the first snapshot are
+    // committed to [_items], so listeners see a fully-populated collection.
+    if (isInitialLoad) {
+      _isLoaded = true;
+      _isLoadedStreamController.add(true);
+    }
   }
 
   FirestoreModelCollection._({
-    required this.collectionDocumentCreator,
     required CollectionReference<CollectionDocument<TModel>>
         typedCollectionReference,
-    required this.typedQuery,
+    required this.collectionDocumentCreator,
+    required Query<CollectionDocument<TModel>>? typedReadQuery,
     required List<CollectionDocument<TModel>> collectionItems,
   })  : _typedCollectionReference = typedCollectionReference,
-        _items = collectionItems;
-
-  final Query<CollectionDocument<TModel>>? typedQuery;
-
-  void startListening() {
+        _items = collectionItems {
     if (_collectionStreamSubscription != null) {
       return;
     }
-    final queryToUse = typedQuery != null
-        ? typedQuery!
-        : (_typedCollectionReference as Query<CollectionDocument<TModel>>);
+    final queryToUse = typedReadQuery ??
+        (_typedCollectionReference as Query<CollectionDocument<TModel>>);
     _collectionStreamSubscription = queryToUse
         .snapshots()
         .listen((event) => _onCollectionDataUpdate(event.docChanges));

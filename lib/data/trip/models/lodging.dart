@@ -87,9 +87,6 @@ class LodgingFacade extends Equatable
   }
 
   @override
-  bool validate() => getValidationErrors().isEmpty;
-
-  @override
   Iterable<LodgingValidationError> getValidationErrors() {
     final errors = <LodgingValidationError>[];
     if (location == null) {
@@ -106,7 +103,7 @@ class LodgingFacade extends Equatable
         checkoutDateTime!.isBefore(checkinDateTime!)) {
       errors.add(LodgingValidationError.invalidTimeSequence);
     }
-    if (!expense.validate()) {
+    if (!expense.isValid) {
       errors.add(LodgingValidationError.expenseInvalid);
     }
     return errors;

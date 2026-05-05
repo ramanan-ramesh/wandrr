@@ -1253,4 +1253,10 @@ The following areas should be monitored for text overflow when using Hindi/Tamil
 | `unified_trip_dialog.dart` — header title | `headlineSmall` with long i18n titles |
 
 
+### Architecture — BudgetingModule → BudgetingServiceFacade Refactoring
 
+- **Extracted service layer facade:** `BudgetingServiceFacade` (`lib/data/trip/models/services/budgeting_service.dart`) is a read-only abstract interface for budgeting operations (debt calculation, expense grouping, sorting, currency formatting, total expenditure stream). It lives in the models/services layer so the UI and BLoC layers can depend on it without importing implementation details.
+- **Lifecycle-bound:** The service is instantiated alongside `TripDataFacade` and shares its lifecycle. Once the trip data is disposed, the service must not be used. `TripDataFacade` now exposes `BudgetingServiceFacade get budgetingService` (previously `BudgetingModuleFacade get budgetingModule`).
+- **Internal event handler preserved:** `BudgetingModuleEventHandler` (internal) still extends `BudgetingServiceFacade` and adds mutation methods (`recalculateTotalExpenditure`, `updateCurrency`, `dispose`). Only the BLoC/implementation layer uses the event handler.
+- **Constructor simplified:** `BudgetingModule.createInstance` now accepts `TripDataFacade` plus `currencyConverter`, `supportedCurrencies`, and `currentUserName` — no longer needs individual collection references.
+- **All UI references renamed:** `context.activeTrip.budgetingModule` → `context.activeTrip.budgetingService` across all presentation widgets and integration tests.

@@ -72,16 +72,13 @@ class SightFacade extends Equatable
       );
 
   @override
-  bool validate() => getValidationErrors().isEmpty;
-
-  @override
   Iterable<SightValidationError> getValidationErrors() {
     final errors = <SightValidationError>[];
     if (name.isEmpty || name.length < 3) {
       errors.add(SightValidationError.missingName);
     }
     // Location and time are optional for sights, but we can validate expense
-    if (!expense.validate()) {
+    if (!expense.isValid) {
       errors.add(SightValidationError.expenseInvalid);
     }
     return errors;

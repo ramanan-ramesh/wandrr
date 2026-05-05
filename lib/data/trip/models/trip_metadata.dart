@@ -68,9 +68,6 @@ class TripMetadataFacade extends Equatable
   }
 
   @override
-  bool validate() => getValidationErrors().isEmpty;
-
-  @override
   Iterable<TripMetadataValidationError> getValidationErrors() {
     final errors = <TripMetadataValidationError>[];
     if (name.isEmpty) {

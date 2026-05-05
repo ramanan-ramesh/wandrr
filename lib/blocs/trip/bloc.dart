@@ -10,6 +10,7 @@ import 'package:wandrr/data/store/models/change_set.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/api_services/repository.dart';
+import 'package:wandrr/data/trip/implementations/services/budgeting/budgeting_service.dart';
 import 'package:wandrr/data/trip/implementations/trip_repository.dart';
 import 'package:wandrr/data/trip/implementations/trip_visit_tracker.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
@@ -17,6 +18,8 @@ import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/services/budgeting_service.dart';
+import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
@@ -33,6 +36,12 @@ class TripManagementBloc
   final SubscriptionManager _subscriptionManager = SubscriptionManager();
   final String _currentUserName;
   ApiServicesRepositoryModifier? _apiServicesRepository;
+
+  /// Budgeting service owned by this Bloc, lifecycle-bound to the active trip.
+  BudgetingServiceModifier? _budgetingService;
+
+  /// Read-only view of the active budgeting service, exposed to the UI.
+  BudgetingServiceFacade? get budgetingService => _budgetingService;
 
   // Helper classes
   static const TripEntityUpdateHandler _updateHandler =
@@ -66,6 +75,8 @@ class TripManagementBloc
     await _subscriptionManager.dispose();
     await _tripRepository?.dispose();
     await _apiServicesRepository?.dispose();
+    await _budgetingService?.dispose();
+    _budgetingService = null;
     await super.close();
   }
 
@@ -93,6 +104,9 @@ class TripManagementBloc
     _metadataSubscriptionHandler = null;
     _itinerarySubscriptionHandler = null;
 
+    await _budgetingService?.dispose();
+    _budgetingService = null;
+
     emit(const NavigateToHome());
   }
 
@@ -117,6 +131,26 @@ class TripManagementBloc
 
         _subscribeToTripEntityCollections(tripInstance);
         await _createItineraryPlanDataSubscriptions(tripInstance);
+
+        // Create and initialise the budgeting service for this trip.
+        await _budgetingService?.dispose();
+        _budgetingService = BudgetingService.create(
+          tripData: tripInstance,
+          currencyConverter: _apiServicesRepository!.currencyConverter,
+          supportedCurrencies: _tripRepository!.supportedCurrencies,
+          currentUserName: _currentUserName,
+        );
+
+        // Trigger initial recalculation once all collections are loaded.
+        if (tripInstance.isFullyLoadedValue) {
+          unawaited(_budgetingService!.recalculateTotalExpenditure());
+        } else {
+          tripInstance.isFullyLoaded.firstWhere((loaded) => loaded).then((_) {
+            if (!isClosed) {
+              _budgetingService?.recalculateTotalExpenditure();
+            }
+          });
+        }
 
         emit(ActivatedTrip(apiServicesRepository: _apiServicesRepository!));
       } else {
@@ -169,8 +203,6 @@ class TripManagementBloc
 
     if (event.dataState == DataState.delete) {
       final beforeDelete = itinerary.planData.clone();
-      // Clearing all data is effectively deleting it in our model,
-      // but RepositoryDocument.delete would remove the doc entirely.
       final emptyPlan = ItineraryPlanData.newEntry(
           tripId: event.tripEntity.tripId, day: event.tripEntity.day);
       final didUpdate = await itinerary.updatePlanData(emptyPlan);
@@ -179,6 +211,8 @@ class TripManagementBloc
           tripEntityModificationData: CollectionItemChangeMetadata(beforeDelete,
               isFromExplicitAction: true),
           isOperationSuccess: didUpdate));
+
+      unawaited(_budgetingService?.recalculateTotalExpenditure());
       return;
     }
 
@@ -199,6 +233,8 @@ class TripManagementBloc
               isFromExplicitAction: true),
           isOperationSuccess: didUpdate));
     }
+
+    unawaited(_budgetingService?.recalculateTotalExpenditure());
   }
 
   FutureOr<void> _onUpdateTripMetadata(
@@ -222,26 +258,26 @@ class TripManagementBloc
       Emitter<TripManagementState> emit) {
     switch (event.dateState) {
       case DataState.create:
-        {
-          emit(UpdatedTripEntity<T>.created(
-              tripEntityModificationData: event.updateData,
-              isOperationSuccess: event.isOperationSuccess));
-          break;
-        }
+        emit(UpdatedTripEntity<T>.created(
+            tripEntityModificationData: event.updateData,
+            isOperationSuccess: event.isOperationSuccess));
       case DataState.delete:
-        {
-          emit(UpdatedTripEntity<T>.deleted(
-              tripEntityModificationData: event.updateData,
-              isOperationSuccess: event.isOperationSuccess));
-          break;
-        }
+        emit(UpdatedTripEntity<T>.deleted(
+            tripEntityModificationData: event.updateData,
+            isOperationSuccess: event.isOperationSuccess));
       case DataState.update:
-        {
-          var updateState = UpdatedTripEntity<T>.updated(
-              tripEntityModificationData: event.updateData,
-              isOperationSuccess: event.isOperationSuccess);
-          emit(updateState);
-          break;
+        emit(UpdatedTripEntity<T>.updated(
+            tripEntityModificationData: event.updateData,
+            isOperationSuccess: event.isOperationSuccess));
+        // Handle external (Firestore-triggered) metadata currency changes.
+        final change = event.updateData.collectionItemChange;
+        if (change is Changeset<TripMetadataFacade>) {
+          final oldCurrency = change.beforeUpdate.budget.currency;
+          final newCurrency = change.afterUpdate.budget.currency;
+          if (oldCurrency != newCurrency) {
+            _budgetingService?.updateCurrency(newCurrency);
+          }
+          unawaited(_budgetingService?.recalculateTotalExpenditure());
         }
       default:
         break;
@@ -277,20 +313,17 @@ class TripManagementBloc
     ));
   }
 
-  // Preload most visited trip in the background once metadata is available
   Future<void> _preloadMostVisited() async {
     final mostVisited = await TripVisitTracker.getMostVisitedTrip(
         _tripRepository!.tripMetadataCollection.items);
     if (mostVisited != null) {
       _apiServicesRepository ??=
           await ApiServicesRepositoryImpl.createInstance();
-      // Load in background (Fire-and-forget, TripRepository caches it)
       await _tripRepository!
           .loadTrip(mostVisited, _apiServicesRepository!, activateTrip: false);
     }
   }
 
-  /// Initializes metadata subscription handler
   Future _initializeMetadataSubscriptionHandler() async {
     _metadataSubscriptionHandler = TripMetadataSubscriptionHandler(
       tripMetadataCollection: _tripRepository!.tripMetadataCollection,
@@ -317,7 +350,6 @@ class TripManagementBloc
     _metadataSubscriptionHandler!.createSubscriptions();
   }
 
-  /// Subscribes to all trip entity collections
   void _subscribeToTripEntityCollections(TripDataModelEventHandler tripData) {
     _subscribeToTripEntityCollection<TransitFacade>(
       tripData.transitCollection,
@@ -330,7 +362,6 @@ class TripManagementBloc
     );
   }
 
-  /// Subscribes to a specific trip entity collection
   void _subscribeToTripEntityCollection<T extends TripEntity<Enum>>(
     ModelCollectionFacade<T> collection,
   ) {
@@ -342,6 +373,7 @@ class TripManagementBloc
             metadata,
             isOperationSuccess: true,
           ));
+          _budgetingService?.recalculateTotalExpenditure();
         }
       },
       onDeleted: (metadata) {
@@ -350,6 +382,7 @@ class TripManagementBloc
             metadata,
             isOperationSuccess: true,
           ));
+          _budgetingService?.recalculateTotalExpenditure();
         }
       },
       onUpdated: (metadata) {
@@ -358,12 +391,12 @@ class TripManagementBloc
             metadata,
             isOperationSuccess: true,
           ));
+          _budgetingService?.recalculateTotalExpenditure();
         }
       },
     );
   }
 
-  /// Creates subscriptions for itinerary plan data
   Future<void> _createItineraryPlanDataSubscriptions(
       TripDataModelEventHandler tripData) async {
     _itinerarySubscriptionHandler = ItinerarySubscriptionHandler(
@@ -376,6 +409,7 @@ class TripManagementBloc
             metadata,
             isOperationSuccess: true,
           ));
+          _budgetingService?.recalculateTotalExpenditure();
         }
       },
     );
@@ -385,6 +419,34 @@ class TripManagementBloc
   Future<void> _onApplyTripMetadataUpdatePlan(
       ApplyTripDataUpdatePlan event, Emitter<TripManagementState> emit) async {
     await _activeTrip?.applyUpdatePlan(event.updatePlan);
+
+    // Drive budgeting updates that the service no longer handles internally.
+    final plan = event.updatePlan;
+    final bs = _budgetingService;
+    if (bs != null) {
+      var currencyChanged = false;
+      var needsRecalculation = plan.hasConflicts;
+
+      if (plan is TripEntityUpdatePlan<TripMetadataFacade>) {
+        final oldMeta = plan.oldEntity;
+        final newMeta = plan.newEntity;
+
+        currencyChanged = oldMeta.budget.currency != newMeta.budget.currency;
+        final datesChanged = oldMeta.startDate != newMeta.startDate ||
+            oldMeta.endDate != newMeta.endDate;
+
+        needsRecalculation =
+            needsRecalculation || currencyChanged || datesChanged;
+
+        if (currencyChanged) {
+          bs.updateCurrency(newMeta.budget.currency);
+        }
+      }
+
+      if (needsRecalculation) {
+        await bs.recalculateTotalExpenditure();
+      }
+    }
   }
 
   FutureOr<void> _onCopyTrip(

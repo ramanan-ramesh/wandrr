@@ -4,7 +4,7 @@ import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 
-import 'budgeting/expense.dart';
+import 'expense.dart';
 
 // ignore: must_be_immutable
 class LodgingModelImplementation extends LodgingFacade

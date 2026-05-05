@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
+import 'package:wandrr/data/trip/models/services/budgeting_service.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
@@ -23,11 +24,11 @@ class BudgetTile extends StatelessWidget {
 
   Widget _createTile(BuildContext context) {
     final activeTrip = context.activeTrip;
-    final budgetingModule = activeTrip.budgetingModule;
+    final budgetingService = context.budgetingService;
     final budget = activeTrip.tripMetadata.budget;
     return StreamBuilder<double>(
-      stream: budgetingModule.totalExpenditureStream,
-      initialData: budgetingModule.totalExpenditure,
+      stream: budgetingService.totalExpenditureStream,
+      initialData: budgetingService.totalExpenditure,
       builder: (context, snapshot) {
         final totalExpenditure = snapshot.data ?? 0.0;
         final budgetAmount = budget.amount;
@@ -52,9 +53,9 @@ class BudgetTile extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               context.isBigLayout
-                  ? _buildHorizontalBudgetDisplay(
-                      context, budgetingModule, budget, color, totalExpenditure)
-                  : _buildVerticalBudgetDisplay(context, budgetingModule,
+                  ? _buildHorizontalBudgetDisplay(context, budgetingService,
+                      budget, color, totalExpenditure)
+                  : _buildVerticalBudgetDisplay(context, budgetingService,
                       budget, color, totalExpenditure, isOverBudget),
               const SizedBox(height: 4),
               _createTotalExpensePercentageDisplay(
@@ -100,7 +101,7 @@ class BudgetTile extends StatelessWidget {
 
   Widget _buildHorizontalBudgetDisplay(
     BuildContext context,
-    BudgetingModuleFacade budgetingModule,
+    BudgetingServiceFacade budgetingService,
     Money budget,
     Color color,
     double totalExpenditure,
@@ -118,7 +119,7 @@ class BudgetTile extends StatelessWidget {
           color: color,
         ),
         Text(
-          budgetingModule.formatCurrency(
+          budgetingService.formatCurrency(
             Money(currency: budget.currency, amount: totalExpenditure),
           ),
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -131,7 +132,7 @@ class BudgetTile extends StatelessWidget {
           style: Theme.of(context).textTheme.bodySmall,
         ),
         Text(
-          budgetingModule.formatCurrency(budget),
+          budgetingService.formatCurrency(budget),
           style: Theme.of(context).textTheme.bodySmall,
         ),
       ],
@@ -140,7 +141,7 @@ class BudgetTile extends StatelessWidget {
 
   Widget _buildVerticalBudgetDisplay(
     BuildContext context,
-    dynamic budgetingModule,
+    dynamic budgetingService,
     Money budget,
     Color color,
     double totalExpenditure,
@@ -166,7 +167,7 @@ class BudgetTile extends StatelessWidget {
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  budgetingModule.formatCurrency(
+                  budgetingService.formatCurrency(
                     Money(currency: budget.currency, amount: totalExpenditure),
                   ),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -182,7 +183,7 @@ class BudgetTile extends StatelessWidget {
         ),
         const SizedBox(height: 2),
         Text(
-          'of ${budgetingModule.formatCurrency(budget)}',
+          'of ${budgetingService.formatCurrency(budget)}',
           style: Theme.of(context).textTheme.bodySmall,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

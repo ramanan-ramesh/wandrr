@@ -24,9 +24,9 @@ abstract class TransitJourneyServiceFacade {
   /// constraints.
   ///
   /// Returns an empty list when the journey is valid.
-  /// - [JourneyValidationResult.legHasErrors]: at least one leg fails its own
+  /// - [JourneyValidationError.legHasErrors]: at least one leg fails its own
   ///   [TransitFacade.validate()] check.
-  /// - [JourneyValidationResult.sequenceViolation]: a leg's departure time is
+  /// - [JourneyValidationError.sequenceViolation]: a leg's departure time is
   ///   before the previous leg's arrival time.
   List<JourneyValidationError> validateJourney(List<TransitFacade> legs);
 

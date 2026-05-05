@@ -42,7 +42,7 @@ Future<void> runBudgetTileUnderBudgetTest(WidgetTester tester) async {
 
   final tripRepo = TestHelpers.getTripRepository(tester);
   final totalExpenditure =
-      tripRepo.activeTrip!.budgetingModule.totalExpenditure;
+      TestHelpers.getBudgetingService(tester).totalExpenditure;
   final expenseToBudgetRatio =
       totalExpenditure / tripRepo.activeTrip!.tripMetadata.budget.amount;
 
@@ -108,7 +108,7 @@ Future<void> runBudgetTileOverBudgetTest(WidgetTester tester) async {
 
   // Get the progress indicator widget
   final budgetPercentage = tripMetadata.budget.amount /
-      tripRepo.activeTrip!.budgetingModule.totalExpenditure;
+      TestHelpers.getBudgetingService(tester).totalExpenditure;
   final excessPercentage = 1.0 - budgetPercentage;
   final indicator1 =
       tester.widget<FractionallySizedBox>(progressIndicator.first);

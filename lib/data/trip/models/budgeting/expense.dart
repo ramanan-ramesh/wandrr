@@ -58,9 +58,7 @@ class ExpenseFacade extends Equatable {
             expenseModelFacade.dateTime!.day);
   }
 
-  bool validate() {
-    return paidBy.isNotEmpty && splitBy.isNotEmpty;
-  }
+  bool get isValid => paidBy.isNotEmpty && splitBy.isNotEmpty;
 
   @override
   List<Object?> get props => [description, currency, paidBy, splitBy, dateTime];
@@ -118,9 +116,6 @@ class StandaloneExpense extends Equatable
 
   @override
   List<Object?> get props => [expense, id];
-
-  @override
-  bool validate() => getValidationErrors().isEmpty;
 
   @override
   Iterable<ExpenseValidationError> getValidationErrors() {

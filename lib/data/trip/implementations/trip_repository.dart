@@ -6,8 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/data/store/implementations/firestore_model_collection.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
-import 'package:wandrr/data/trip/implementations/budgeting/expense.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
+import 'package:wandrr/data/trip/implementations/expense.dart';
 import 'package:wandrr/data/trip/implementations/itinerary/itinerary_plan_data_implementation.dart';
 import 'package:wandrr/data/trip/implementations/lodging.dart';
 import 'package:wandrr/data/trip/implementations/transit.dart';
@@ -75,10 +75,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
       {required bool activateTrip}) async {
     if (!_tripDataCache.containsKey(tripMetadata.id)) {
       final tripToCache = TripDataModelImplementation.createInstance(
-          tripMetadata,
-          apiServicesRepository,
-          currentUserName,
-          supportedCurrencies);
+          tripMetadata, apiServicesRepository);
       _tripDataCache[tripMetadata.id!] = tripToCache;
     }
     if (activateTrip) {

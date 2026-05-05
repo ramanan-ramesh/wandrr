@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/unified_trip_dialog.dart';
 
 class DeleteTripDialog extends StatelessWidget {

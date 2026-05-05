@@ -62,18 +62,26 @@ Future<void> runTripMetadataValidationTest(
       budget: const Money(currency: 'INR', amount: 0),
       contributors: _contribs,
       thumbnailTag: 'roadTrip');
-  expect(v.validate(), true);
-  expect((v.clone()..name = '').validate(), false, reason: 'Empty name');
-  expect((v.clone()..startDate = null).validate(), false, reason: 'No start');
-  expect((v.clone()..endDate = null).validate(), false, reason: 'No end');
+  expect(v.getValidationErrors().isEmpty, true);
+  expect((v.clone()..name = '').getValidationErrors().isEmpty, false,
+      reason: 'Empty name');
+  expect((v.clone()..startDate = null).getValidationErrors().isEmpty, false,
+      reason: 'No start');
+  expect((v.clone()..endDate = null).getValidationErrors().isEmpty, false,
+      reason: 'No end');
   expect(
       (v.clone()
             ..startDate = DateTime(2025, 10, 5)
             ..endDate = DateTime(2025, 10, 1))
-          .validate(),
+          .getValidationErrors()
+          .isEmpty,
       false,
       reason: 'End < start');
-  expect((v.clone()..endDate = DateTime(2025, 10, 1)).validate(), true,
+  expect(
+      (v.clone()..endDate = DateTime(2025, 10, 1))
+          .getValidationErrors()
+          .isEmpty,
+      true,
       reason: 'Same day');
   print('✓ TripMetadata: 6 scenarios passed');
 }
@@ -87,8 +95,9 @@ Future<void> runLodgingValidationTest(
       checkinDateTime: DateTime(2025, 10, 1, 14),
       checkoutDateTime: DateTime(2025, 10, 3, 11),
       expense: _exp());
-  expect(v.validate(), true);
-  expect((v.clone()..location = null).validate(), false, reason: 'No loc');
+  expect(v.getValidationErrors().isEmpty, true);
+  expect((v.clone()..location = null).getValidationErrors().isEmpty, false,
+      reason: 'No loc');
   expect(
       LodgingFacade(
               tripId: _tripId,
@@ -96,7 +105,8 @@ Future<void> runLodgingValidationTest(
               checkinDateTime: null,
               checkoutDateTime: DateTime(2025, 10, 3),
               expense: _exp())
-          .validate(),
+          .getValidationErrors()
+          .isEmpty,
       false,
       reason: 'No checkin');
   expect(
@@ -106,7 +116,8 @@ Future<void> runLodgingValidationTest(
               checkinDateTime: DateTime(2025, 10, 1),
               checkoutDateTime: null,
               expense: _exp())
-          .validate(),
+          .getValidationErrors()
+          .isEmpty,
       false,
       reason: 'No checkout');
   expect(
@@ -116,7 +127,9 @@ Future<void> runLodgingValidationTest(
           checkinDateTime: DateTime(2025, 10, 1),
           checkoutDateTime: DateTime(2025, 10, 3),
           expense: ExpenseFacade(
-              currency: _cur, paidBy: const {}, splitBy: const [])).validate(),
+              currency: _cur,
+              paidBy: const {},
+              splitBy: const [])).getValidationErrors().isEmpty,
       false,
       reason: 'Bad expense');
   print('✓ Lodging: 5 scenarios passed');
@@ -134,15 +147,25 @@ Future<void> runTransitValidationTest(
       arrivalDateTime: DateTime(2025, 10, 1, 12),
       expense: _exp(),
       operator: 'RER');
-  expect(v.validate(), true);
-  expect((v.clone()..departureLocation = null).validate(), false);
-  expect((v.clone()..arrivalLocation = null).validate(), false);
-  expect((v.clone()..departureDateTime = null).validate(), false);
-  expect((v.clone()..arrivalDateTime = null).validate(), false);
+  expect(v.getValidationErrors().isEmpty, true);
+  expect((v.clone()..departureLocation = null).getValidationErrors().isEmpty,
+      false);
   expect(
-      (v.clone()..arrivalDateTime = DateTime(2025, 10, 1, 9)).validate(), false,
+      (v.clone()..arrivalLocation = null).getValidationErrors().isEmpty, false);
+  expect((v.clone()..departureDateTime = null).getValidationErrors().isEmpty,
+      false);
+  expect(
+      (v.clone()..arrivalDateTime = null).getValidationErrors().isEmpty, false);
+  expect(
+      (v.clone()..arrivalDateTime = DateTime(2025, 10, 1, 9))
+          .getValidationErrors()
+          .isEmpty,
+      false,
       reason: 'Arr<dep');
-  expect((v.clone()..arrivalDateTime = DateTime(2025, 10, 1, 10)).validate(),
+  expect(
+      (v.clone()..arrivalDateTime = DateTime(2025, 10, 1, 10))
+          .getValidationErrors()
+          .isEmpty,
       false,
       reason: 'Arr==dep');
   // Flight operator (REQ-TR-005)
@@ -155,13 +178,16 @@ Future<void> runTransitValidationTest(
       arrivalDateTime: DateTime(2025, 10, 1, 14),
       expense: _exp(),
       operator: 'IndiGo 6E 2341');
-  expect(f.validate(), true, reason: '≥3 tokens');
-  expect((f.clone()..operator = 'IndiGo').validate(), false, reason: '1 token');
-  expect((f.clone()..operator = 'IndiGo 6E').validate(), false,
+  expect(f.getValidationErrors().isEmpty, true, reason: '≥3 tokens');
+  expect((f.clone()..operator = 'IndiGo').getValidationErrors().isEmpty, false,
+      reason: '1 token');
+  expect(
+      (f.clone()..operator = 'IndiGo 6E').getValidationErrors().isEmpty, false,
       reason: '2 tokens');
-  expect((f.clone()..operator = '').validate(), false);
-  expect((f.clone()..operator = null).validate(), false);
-  expect((f.clone()..operator = 'IndiGo 6E ').validate(), false,
+  expect((f.clone()..operator = '').getValidationErrors().isEmpty, false);
+  expect((f.clone()..operator = null).getValidationErrors().isEmpty, false);
+  expect(
+      (f.clone()..operator = 'IndiGo 6E ').getValidationErrors().isEmpty, false,
       reason: 'Trailing space');
   // Walk
   expect(
@@ -173,7 +199,7 @@ Future<void> runTransitValidationTest(
               departureDateTime: DateTime(2025, 10, 1, 10),
               arrivalDateTime: DateTime(2025, 10, 1, 10, 30),
               expense: _exp())
-          .validate(),
+          .getValidationErrors().isEmpty,
       true,
       reason: 'Walk no op');
   print('✓ Transit: 14 scenarios passed');
@@ -188,7 +214,8 @@ Future<void> runSightValidationTest(
               name: 'Eiffel Tower',
               day: DateTime(2025, 10, 1),
               expense: _exp())
-          .validate(),
+          .getValidationErrors()
+          .isEmpty,
       true);
   expect(
       SightFacade(
@@ -196,7 +223,8 @@ Future<void> runSightValidationTest(
               name: '',
               day: DateTime(2025, 10, 1),
               expense: _exp())
-          .validate(),
+          .getValidationErrors()
+          .isEmpty,
       false);
   expect(
       SightFacade(
@@ -204,7 +232,8 @@ Future<void> runSightValidationTest(
               name: 'Ab',
               day: DateTime(2025, 10, 1),
               expense: _exp())
-          .validate(),
+          .getValidationErrors()
+          .isEmpty,
       false);
   expect(
       SightFacade(
@@ -212,7 +241,8 @@ Future<void> runSightValidationTest(
               name: 'Abc',
               day: DateTime(2025, 10, 1),
               expense: _exp())
-          .validate(),
+          .getValidationErrors()
+          .isEmpty,
       true);
   print('✓ Sight: 4 scenarios passed');
 }
@@ -222,22 +252,32 @@ Future<void> runCheckListValidationTest(
     WidgetTester tester, SharedPreferences sp) async {
   final item = CheckListItem(item: 'Passport', isChecked: false);
   expect(
-      CheckListFacade(tripId: _tripId, title: 'Pack', items: [item]).validate(),
+      CheckListFacade(tripId: _tripId, title: 'Pack', items: [item])
+          .getValidationErrors()
+          .isEmpty,
       true);
   expect(
-      CheckListFacade(tripId: _tripId, title: null, items: [item]).validate(),
+      CheckListFacade(tripId: _tripId, title: null, items: [item])
+          .getValidationErrors()
+          .isEmpty,
       false);
-  expect(CheckListFacade(tripId: _tripId, title: '', items: [item]).validate(),
+  expect(
+      CheckListFacade(tripId: _tripId, title: '', items: [item])
+          .getValidationErrors()
+          .isEmpty,
       false);
   expect(
       CheckListFacade(tripId: _tripId, title: 'Pack', items: const [])
-          .validate(),
+          .getValidationErrors()
+          .isEmpty,
       false);
   expect(
       CheckListFacade(
-          tripId: _tripId,
-          title: 'Pack',
-          items: [CheckListItem(item: '', isChecked: false)]).validate(),
+              tripId: _tripId,
+              title: 'Pack',
+              items: [CheckListItem(item: '', isChecked: false)])
+          .getValidationErrors()
+          .isEmpty,
       false);
   print('✓ CheckList: 5 scenarios passed');
 }
@@ -251,7 +291,7 @@ Future<void> runItineraryPlanDataValidationTest(
       sights: const [],
       notes: const [],
       checkLists: const []);
-  expect(e.validate(), true, reason: 'empty plan is valid');
+  expect(e.getValidationErrors().isEmpty, true, reason: 'empty plan is valid');
   expect(e.getValidationErrors(), isEmpty);
 
   final vp =
@@ -269,7 +309,7 @@ Future<void> runItineraryPlanDataValidationTest(
         title: 'List',
         items: [CheckListItem(item: 'X', isChecked: false)])
   ]);
-  expect(vp.validate(), true);
+  expect(vp.getValidationErrors().isEmpty, true);
 
   expect(
       ItineraryPlanData(tripId: _tripId, day: DateTime(2025, 10, 1), sights: [
@@ -339,27 +379,27 @@ Future<void> runExpenseFacadeValidationTest(
               currency: _cur,
               paidBy: const {TestConfig.testEmail: 100},
               splitBy: _contribs)
-          .validate(),
+          .isValid,
       true);
   expect(
       ExpenseFacade(currency: _cur, paidBy: const {}, splitBy: _contribs)
-          .validate(),
+          .isValid,
       false);
   expect(
       ExpenseFacade(
           currency: _cur,
           paidBy: const {TestConfig.testEmail: 100},
-          splitBy: const []).validate(),
+          splitBy: const []).isValid,
       false);
   expect(
       ExpenseFacade(currency: _cur, paidBy: const {}, splitBy: const [])
-          .validate(),
+          .isValid,
       false);
   expect(
       ExpenseFacade(
           currency: _cur,
           paidBy: const {TestConfig.testEmail: 0},
-          splitBy: const [TestConfig.testEmail]).validate(),
+          splitBy: const [TestConfig.testEmail]).isValid,
       true);
   print('✓ ExpenseFacade: 5 scenarios passed');
 }
@@ -369,14 +409,17 @@ Future<void> runStandaloneExpenseValidationTest(
     WidgetTester tester, SharedPreferences sp) async {
   expect(
       StandaloneExpense(tripId: _tripId, title: 'X', expense: _exp())
-          .validate(),
+          .getValidationErrors()
+          .isEmpty,
       true);
   expect(
       StandaloneExpense(
           tripId: _tripId,
           title: 'X',
           expense: ExpenseFacade(
-              currency: _cur, paidBy: const {}, splitBy: const [])).validate(),
+              currency: _cur,
+              paidBy: const {},
+              splitBy: const [])).getValidationErrors().isEmpty,
       false);
   print('✓ StandaloneExpense: 2 scenarios passed');
 }

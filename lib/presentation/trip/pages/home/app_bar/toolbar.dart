@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/app/events.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/data/app/models/language_metadata.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/language_metadata_extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 
 class Toolbar extends StatefulWidget {
   const Toolbar({super.key});

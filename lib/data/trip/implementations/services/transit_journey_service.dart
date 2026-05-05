@@ -54,7 +54,7 @@ class TransitJourneyService implements TransitJourneyServiceFacade {
     final errors = <JourneyValidationError>{};
 
     // Per-leg individual validation.
-    if (legs.any((leg) => !leg.validate())) {
+    if (legs.any((leg) => !leg.getValidationErrors().isEmpty)) {
       errors.add(JourneyValidationError.legHasErrors);
     }
 

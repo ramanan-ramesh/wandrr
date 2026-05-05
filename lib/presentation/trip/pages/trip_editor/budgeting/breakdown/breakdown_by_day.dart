@@ -3,6 +3,7 @@ import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 class BreakdownByDayChart extends StatefulWidget {
@@ -30,7 +31,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
   void initState() {
     super.initState();
     final activeTrip = context.activeTrip;
-    _dataFuture = activeTrip.budgetingModule.retrieveTotalExpensePerDay(
+    _dataFuture = context.budgetingService.groupExpensePerDay(
       activeTrip.tripMetadata.startDate!,
       activeTrip.tripMetadata.endDate!,
     );
@@ -40,7 +41,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
   Widget build(BuildContext context) {
     super.build(context); // required by AutomaticKeepAliveClientMixin
     final activeTrip = context.activeTrip;
-    final budgetingModule = activeTrip.budgetingModule;
+    final budgetingService = context.budgetingService;
     final tripMetadata = activeTrip.tripMetadata;
     final budgetCurrency = tripMetadata.budget.currency;
 
@@ -54,7 +55,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
         }
         if (data == null ||
             data.isEmpty ||
-            budgetingModule.totalExpenditure == 0) {
+            budgetingService.totalExpenditure == 0) {
           return Center(
             child: PlatformTextElements.createSubHeader(
               context: context,
@@ -147,7 +148,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              activeTrip.budgetingModule.formatCurrency(
+                              budgetingService.formatCurrency(
                                 Money(
                                     currency: budgetCurrency,
                                     amount: dailyExpense.value),

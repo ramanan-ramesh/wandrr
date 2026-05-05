@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
-import 'package:wandrr/data/trip/models/budgeting/budgeting_module.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
@@ -20,40 +19,22 @@ class TripEntityDataUpdatePlanService {
   final ModelCollectionModifier<LodgingFacade> lodgingCollection;
   final ModelCollectionModifier<StandaloneExpense> expenseCollection;
   final ItineraryFacadeCollectionEventHandler itineraryCollection;
-  final BudgetingModuleEventHandler budgetingModule;
 
   TripEntityDataUpdatePlanService({
     required this.transitCollection,
     required this.lodgingCollection,
     required this.expenseCollection,
     required this.itineraryCollection,
-    required this.budgetingModule,
   });
 
   /// Executes the update plan using batch writes
   Future<void> execute<T extends TripEntity>(
       TripEntityUpdatePlan<T> plan) async {
-    final isTripMetadataUpdate =
-        plan is TripEntityUpdatePlan<TripMetadataFacade>;
     final haveTripDatesChanged = _haveTripDatesChanged(plan);
-    final hasDefaultCurrencyChanged = _hasDefaultCurrencyChanged(plan);
 
-    // Step 0: Update currency if changed (TripMetadata only)
-    if (hasDefaultCurrencyChanged) {
-      final newMeta = plan.newEntity as TripMetadataFacade;
-      budgetingModule.updateCurrency(newMeta.budget.currency);
-    }
-
-    // Step 1: Execute all entity changes in a single batch
+    // Step 1: Execute all entity changes in a single batch if needed
     if (plan.hasConflicts || haveTripDatesChanged) {
       await _executeAllChanges(plan);
-    }
-
-    // Step 2: Recalculate total expenditure if needed
-    if (plan.hasConflicts ||
-        (isTripMetadataUpdate &&
-            (haveTripDatesChanged || hasDefaultCurrencyChanged))) {
-      await budgetingModule.recalculateTotalExpenditure();
     }
   }
 
@@ -66,16 +47,6 @@ class TripEntityDataUpdatePlanService {
     final newMeta = plan.newEntity as TripMetadataFacade;
     return !oldMeta.startDate!.isOnSameDayAs(newMeta.startDate!) ||
         !oldMeta.endDate!.isOnSameDayAs(newMeta.endDate!);
-  }
-
-  bool _hasDefaultCurrencyChanged<T extends TripEntity>(
-      TripEntityUpdatePlan<T> plan) {
-    if (plan is! TripEntityUpdatePlan<TripMetadataFacade>) {
-      return false;
-    }
-    final oldMeta = plan.oldEntity as TripMetadataFacade;
-    final newMeta = plan.newEntity as TripMetadataFacade;
-    return oldMeta.budget.currency != newMeta.budget.currency;
   }
 
   Future<void> _executeAllChanges<T extends TripEntity>(
@@ -135,7 +106,8 @@ class TripEntityDataUpdatePlanService {
       if (change.isDelete) {
         final doc = modelCollection.collectionDocumentCreator(change.original);
         batch.delete(doc.documentReference);
-      } else if (change.isUpdate && change.modified.validate()) {
+      } else if (change.isUpdate &&
+          change.modified.getValidationErrors().isEmpty) {
         // Add new contributors to expense splitBy if needed
         final expenseChange = expenseChanges.singleOrNull;
         if (expenseChange != null) {
@@ -167,7 +139,7 @@ class TripEntityDataUpdatePlanService {
       }
 
       // Skip invalid entities
-      if (!change.modified.validate()) {
+      if (change.modified.getValidationErrors().isNotEmpty) {
         continue;
       }
 

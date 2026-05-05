@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
@@ -10,6 +9,7 @@ import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/action_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/conflict_aware_action_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/expense_editor.dart';

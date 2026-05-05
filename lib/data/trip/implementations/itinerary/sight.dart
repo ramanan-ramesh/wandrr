@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/collection_item_document.dart';
-import 'package:wandrr/data/trip/implementations/budgeting/expense.dart';
+import 'package:wandrr/data/trip/implementations/expense.dart';
 import 'package:wandrr/data/trip/implementations/location.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 

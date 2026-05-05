@@ -113,7 +113,7 @@ class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
       notes: _stableNotes.map((n) => n.text).toList(),
       checkLists: _stableChecklists,
     );
-    return tempPlanData.validate();
+    return tempPlanData.getValidationErrors().isEmpty;
   }
 
   /// Called by child editors whenever data changes. Syncs the stable working

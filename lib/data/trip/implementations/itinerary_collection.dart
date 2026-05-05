@@ -72,20 +72,6 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
   Iterator<ItineraryModelEventHandler> get iterator => _itineraries.iterator;
 
   @override
-  Future<void> updateTripDays(DateTime startDate, DateTime endDate) async {
-    var writeBatch = FirebaseFirestore.instance.batch();
-    final updateLocalState = await prepareTripDaysUpdate(
-      writeBatch,
-      startDate,
-      endDate,
-      [], // No sight changes for simple updateTripDays
-      [], // No expense changes
-    );
-    await writeBatch.commit();
-    await updateLocalState();
-  }
-
-  @override
   Future<Future<void> Function()> prepareTripDaysUpdate(
     WriteBatch batch,
     DateTime startDate,
@@ -244,12 +230,12 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
           sightsToRemove[originalDayKey]!.add(change.original.id!);
           affectedDays.add(originalDayKey);
 
-          if (modifiedSight.validate()) {
+          if (modifiedSight.getValidationErrors().isEmpty) {
             sightsToAdd.putIfAbsent(newDayKey, () => []);
             sightsToAdd[newDayKey]!.add(modifiedSight);
             affectedDays.add(newDayKey);
           }
-        } else if (modifiedSight.validate()) {
+        } else if (modifiedSight.getValidationErrors().isEmpty) {
           // Same day, just update
           sightsToUpdate.putIfAbsent(originalDayKey, () => []);
           sightsToUpdate[originalDayKey]!.add(modifiedSight);

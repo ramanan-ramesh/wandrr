@@ -51,9 +51,6 @@ class ItineraryPlanData extends Equatable
       );
 
   @override
-  bool validate() => getValidationErrors().isEmpty;
-
-  @override
   Iterable<ItineraryPlanDataValidationError> getValidationErrors() {
     // An empty plan is valid — content will be added during editing.
     if (sights.isEmpty && notes.isEmpty && checkLists.isEmpty) {
@@ -62,7 +59,7 @@ class ItineraryPlanData extends Equatable
 
     final errors = <ItineraryPlanDataValidationError>[];
 
-    if (sights.isNotEmpty && sights.any((sight) => !sight.validate())) {
+    if (sights.isNotEmpty && sights.any((sight) => !sight.getValidationErrors().isEmpty)) {
       errors.add(ItineraryPlanDataValidationError.sightInvalid);
     }
 

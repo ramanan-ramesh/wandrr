@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
@@ -11,7 +10,9 @@ import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_sort_options.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/readonly_expense.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
@@ -314,7 +315,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       setState(() {
         _selectedSortOption = newSortOption;
         _animationToken++;
-        _sortingFuture = context.activeTrip.budgetingModule
+        _sortingFuture = context.budgetingService
             .sortExpenses(_expenses, _selectedSortOption);
       });
     }
@@ -348,8 +349,8 @@ class _ExpenseListViewState extends State<ExpenseListView> {
         )
         .toList();
     _animationToken++;
-    _sortingFuture = context.activeTrip.budgetingModule
-        .sortExpenses(_expenses, _selectedSortOption);
+    _sortingFuture =
+        context.budgetingService.sortExpenses(_expenses, _selectedSortOption);
   }
 
   void _initializeCategoryNames() {

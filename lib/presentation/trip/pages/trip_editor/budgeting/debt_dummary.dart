@@ -3,6 +3,7 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/debt_data.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/contributor_badge.dart';
 
@@ -16,12 +17,12 @@ class DebtSummaryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final activeTrip = context.activeTrip;
     final currentUserName = context.activeUser!.userName;
-    final budgetingModule = activeTrip.budgetingModule;
+    final budgetingService = context.budgetingService;
     final appLocalizations = context.localizations;
     final currentContributors = activeTrip.tripMetadata.contributors;
 
     return FutureBuilder<Iterable<DebtData>>(
-      future: budgetingModule.retrieveDebtDataList(),
+      future: budgetingService.calculateDebt(),
       builder: (context, snapshot) {
         final isDone = snapshot.connectionState == ConnectionState.done;
         final hasData = snapshot.hasData && snapshot.data != null;
@@ -31,7 +32,7 @@ class DebtSummaryTile extends StatelessWidget {
         final debtDataList =
             hasData ? snapshot.data!.toList() : const <DebtData>[];
         final noExpenses =
-            budgetingModule.totalExpenditure == 0 || debtDataList.isEmpty;
+            budgetingService.totalExpenditure == 0 || debtDataList.isEmpty;
 
         final childWidget = noExpenses
             ? Center(child: Text(context.localizations.noExpensesToSplit))
@@ -41,7 +42,7 @@ class DebtSummaryTile extends StatelessWidget {
                     .map((e) => _DebtRow(
                           owedBy: e.owedBy,
                           owedTo: e.owedTo,
-                          amountText: budgetingModule.formatCurrency(e.money),
+                          amountText: budgetingService.formatCurrency(e.money),
                           currentUserName: currentUserName,
                           currentContributors: currentContributors,
                           appLocalizations: appLocalizations,

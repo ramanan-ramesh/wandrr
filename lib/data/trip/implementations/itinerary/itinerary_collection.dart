@@ -8,8 +8,8 @@ import 'package:wandrr/data/trip/implementations/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
-import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
+import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
@@ -244,12 +244,12 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
           sightsToRemove[originalDayKey]!.add(change.original.id!);
           affectedDays.add(originalDayKey);
 
-          if (modifiedSight.validate()) {
+          if (modifiedSight.getValidationErrors().isEmpty) {
             sightsToAdd.putIfAbsent(newDayKey, () => []);
             sightsToAdd[newDayKey]!.add(modifiedSight);
             affectedDays.add(newDayKey);
           }
-        } else if (modifiedSight.validate()) {
+        } else if (modifiedSight.getValidationErrors().isEmpty) {
           // Same day, just update
           sightsToUpdate.putIfAbsent(originalDayKey, () => []);
           sightsToUpdate[originalDayKey]!.add(modifiedSight);

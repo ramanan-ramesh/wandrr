@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/asset_manager/extension.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/unified_trip_dialog.dart';
 
 const double _kSelectedImageScaleFactor = 1.18;
@@ -45,7 +45,9 @@ class TripThumbnailCarouselSelector extends StatefulWidget {
   final ValueChanged<String> onChanged;
 
   const TripThumbnailCarouselSelector({
-    required this.selectedThumbnailTag, required this.onChanged, Key? key,
+    required this.selectedThumbnailTag,
+    required this.onChanged,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -179,7 +181,9 @@ class _TripThumbnailCarouselSelectorState
 
 class ThumbnailPicker extends StatelessWidget {
   ThumbnailPicker({
-    required this.tripMetaDataFacade, required this.widgetContext, super.key,
+    required this.tripMetaDataFacade,
+    required this.widgetContext,
+    super.key,
   });
 
   final TripMetadataFacade tripMetaDataFacade;

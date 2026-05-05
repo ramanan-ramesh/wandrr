@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 
 class TimelineEvent<T extends TripEntity<Enum>> {
   final DateTime time;

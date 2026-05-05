@@ -149,9 +149,6 @@ class TransitFacade extends Equatable
   }
 
   @override
-  bool validate() => getValidationErrors().isEmpty;
-
-  @override
   Iterable<TransitValidationError> getValidationErrors() {
     final errors = <TransitValidationError>[];
     if (departureLocation == null) {
@@ -174,7 +171,7 @@ class TransitFacade extends Equatable
     if (transitOption == TransitOption.flight && !_isFlightOperatorValid()) {
       errors.add(TransitValidationError.invalidFlightOperator);
     }
-    if (!expense.validate()) {
+    if (!expense.isValid) {
       errors.add(TransitValidationError.expenseInvalid);
     }
     return errors;

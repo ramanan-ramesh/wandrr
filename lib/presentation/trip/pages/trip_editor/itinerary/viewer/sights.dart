@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:wandrr/blocs/bloc_extensions.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
@@ -24,7 +24,9 @@ class ItinerarySightsViewer extends StatelessWidget {
   static const double _kEmptyIconSize = 48.0;
 
   const ItinerarySightsViewer({
-    required this.tripId, required this.day, super.key,
+    required this.tripId,
+    required this.day,
+    super.key,
   });
 
   @override
@@ -216,7 +218,7 @@ class ItinerarySightsViewer extends StatelessWidget {
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            context.activeTrip.budgetingModule
+                                            context.budgetingService
                                                 .formatCurrency(
                                                     s.expense.totalExpense),
                                             style: Theme.of(c)

@@ -33,9 +33,6 @@ class LocationFacade extends Equatable implements TripEntity<Never> {
   }
 
   @override
-  bool validate() => true;
-
-  @override
   Iterable<Never> getValidationErrors() => const [];
 
   @override

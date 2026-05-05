@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
+import 'package:wandrr/data/trip/models/services/budgeting_service.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
@@ -86,6 +88,13 @@ class TestHelpers {
       {Type type = TripEditorPage}) {
     final context = tester.element(find.byType(type));
     return RepositoryProvider.of<ApiServicesRepositoryFacade>(context);
+  }
+
+  /// Returns the [BudgetingServiceFacade] owned by [TripManagementBloc].
+  static BudgetingServiceFacade getBudgetingService(WidgetTester tester,
+      {Type type = TripEditorPage}) {
+    final context = tester.element(find.byType(type));
+    return BlocProvider.of<TripManagementBloc>(context).budgetingService!;
   }
 
   /// Create a test trip for trip editor tests

@@ -30,9 +30,6 @@ class CheckListFacade extends Equatable
   List<Object?> get props => [title, items, tripId];
 
   @override
-  bool validate() => getValidationErrors().isEmpty;
-
-  @override
   Iterable<CheckListValidationError> getValidationErrors() {
     final errors = <CheckListValidationError>[];
     if (title == null || title!.isEmpty) {

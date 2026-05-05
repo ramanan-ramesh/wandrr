@@ -29,13 +29,13 @@ abstract class ItineraryFacade extends Equatable
   LodgingFacade? get checkOutLodging;
 
   LodgingFacade? get fullDayLodging;
+
+  Stream<CollectionItemChangeMetadata<Changeset<ItineraryPlanData>>>
+      get planDataStream;
 }
 
 abstract class ItineraryModelEventHandler extends ItineraryFacade
     implements Dispose {
-  Stream<CollectionItemChangeMetadata<Changeset<ItineraryPlanData>>>
-      get planDataStream;
-
   Future<bool> updatePlanData(ItineraryPlanData planData);
 
   void addTransit(TransitFacade transitToAdd);
@@ -57,8 +57,6 @@ abstract class ItineraryFacadeCollection<T extends ItineraryFacade>
 abstract class ItineraryFacadeCollectionEventHandler
     extends ItineraryFacadeCollection<ItineraryModelEventHandler>
     implements Dispose {
-  Future<void> updateTripDays(DateTime startDate, DateTime endDate);
-
   /// Prepares itinerary day changes and sight updates to be executed in an external WriteBatch.
   /// This allows all changes (itinerary days + sight updates) to be committed atomically in a single batch.
   ///
