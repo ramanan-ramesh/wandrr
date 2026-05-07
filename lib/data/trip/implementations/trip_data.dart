@@ -70,8 +70,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
         itineraries,
         apiServicesRepository.currencyConverter);
 
-    instance._initUpdatePlanService();
-
     return instance;
   }
 
@@ -134,15 +132,6 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     await _isFullyLoadedController.close();
   }
 
-  void _initUpdatePlanService() {
-    _updatePlanService = TripEntityDataUpdatePlanService(
-      transitCollection: transitCollection,
-      lodgingCollection: lodgingCollection,
-      expenseCollection: expenseCollection,
-      itineraryCollection: itineraryCollection,
-    );
-  }
-
   TripDataModelImplementation._(
       TripMetadataModelImplementation tripMetadata,
       this.transitCollection,
@@ -154,13 +143,21 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
     transitCollection.onLoaded.listen(checkLoadedStatus);
     lodgingCollection.onLoaded.listen(checkLoadedStatus);
     expenseCollection.onLoaded.listen(checkLoadedStatus);
+    itineraryCollection.onLoaded.listen(checkLoadedStatus);
     checkLoadedStatus(null);
+    _updatePlanService = TripEntityDataUpdatePlanService(
+      transitCollection: transitCollection,
+      lodgingCollection: lodgingCollection,
+      expenseCollection: expenseCollection,
+      itineraryCollection: itineraryCollection,
+    );
   }
 
   void checkLoadedStatus(_) {
     _isFullyLoadedValue = transitCollection.isLoaded &&
         lodgingCollection.isLoaded &&
-        expenseCollection.isLoaded;
+        expenseCollection.isLoaded &&
+        itineraryCollection.isLoaded;
     _isFullyLoadedController.add(_isFullyLoadedValue);
   }
 }

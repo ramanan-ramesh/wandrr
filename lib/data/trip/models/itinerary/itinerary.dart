@@ -16,8 +16,6 @@ import 'itinerary_plan_data.dart';
 
 abstract class ItineraryFacade extends Equatable
     implements TripEntity<ItineraryValidationError> {
-  String get tripId;
-
   DateTime get day;
 
   ItineraryPlanData get planData;
@@ -34,34 +32,22 @@ abstract class ItineraryFacade extends Equatable
       get planDataStream;
 }
 
-abstract class ItineraryModelEventHandler extends ItineraryFacade
-    implements Dispose {
-  Future<bool> updatePlanData(ItineraryPlanData planData);
-
-  void addTransit(TransitFacade transitToAdd);
-
-  void removeTransit(TransitFacade transit);
-
-  set checkInLodging(LodgingFacade? lodging);
-
-  set checkOutLodging(LodgingFacade? lodging);
-
-  set fullDayLodging(LodgingFacade? lodging);
-}
-
 abstract class ItineraryFacadeCollection<T extends ItineraryFacade>
     extends IterableBase<T> {
   T getItineraryForDay(DateTime dateTime);
+
+  bool get isLoaded;
+
+  Stream<bool> get onLoaded;
 }
 
 abstract class ItineraryFacadeCollectionEventHandler
-    extends ItineraryFacadeCollection<ItineraryModelEventHandler>
-    implements Dispose {
+    extends ItineraryFacadeCollection<ItineraryFacade> implements Dispose {
   /// Prepares itinerary day changes and sight updates to be executed in an external WriteBatch.
   /// This allows all changes (itinerary days + sight updates) to be committed atomically in a single batch.
   ///
   /// Returns a Future that resolves to a function which updates local state after batch commits.
-  Future<Future<void> Function()> prepareTripDaysUpdate(
+  Future<void Function()> prepareTripDaysUpdate(
     WriteBatch batch,
     DateTime startDate,
     DateTime endDate,
@@ -71,8 +57,10 @@ abstract class ItineraryFacadeCollectionEventHandler
 
   /// Prepares sight updates only (for conflict resolution, without changing trip days).
   /// Returns a Future that resolves to a function which updates local state after batch commits.
-  Future<Future<void> Function()> prepareSightUpdates(
+  void prepareSightUpdates(
     WriteBatch batch,
     Iterable<SightChange> sightChanges,
   );
+
+  Future<bool> updatePlanData(ItineraryPlanData planData);
 }

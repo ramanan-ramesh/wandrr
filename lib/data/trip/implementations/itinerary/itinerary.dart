@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/change_set.dart';
 import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
@@ -12,12 +11,19 @@ import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 
 import 'itinerary_plan_data_implementation.dart';
 
-class ItineraryModelImplementation implements ItineraryModelEventHandler {
+/// Concrete itinerary. Implements the public [ItineraryFacade] read interface.
+///
+/// Mutation methods (transit/lodging writes, plan-data application) are
+/// package-internal: they are only called from [ItineraryCollection] which
+/// stores and manages instances of this type directly.
+class ItineraryModelImplementation implements ItineraryFacade {
   @override
   final String tripId;
 
   @override
   final DateTime day;
+
+  // ── transits ──────────────────────────────────────────────────────────────
 
   @override
   Iterable<TransitFacade> get transits =>
@@ -25,26 +31,33 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
         ..sort((a, b) => a.departureDateTime!.compareTo(b.departureDateTime!));
   final List<TransitFacade> _transits;
 
+  void addTransit(TransitFacade transit) {
+    if (!_transits.any((t) => t.id == transit.id)) {
+      _transits.add(transit);
+    }
+  }
+
+  void removeTransit(String transitId) =>
+      _transits.removeWhere((t) => t.id == transitId);
+
+  // ── lodging ───────────────────────────────────────────────────────────────
+
   @override
   LodgingFacade? get checkInLodging => _checkInLodging?.clone();
   LodgingFacade? _checkInLodging;
-
-  @override
-  set checkInLodging(LodgingFacade? lodging) => _checkInLodging = lodging;
+  set checkInLodging(LodgingFacade? v) => _checkInLodging = v;
 
   @override
   LodgingFacade? get checkOutLodging => _checkOutLodging?.clone();
   LodgingFacade? _checkOutLodging;
-
-  @override
-  set checkOutLodging(LodgingFacade? lodging) => _checkOutLodging = lodging;
+  set checkOutLodging(LodgingFacade? v) => _checkOutLodging = v;
 
   @override
   LodgingFacade? get fullDayLodging => _fullDayLodging?.clone();
   LodgingFacade? _fullDayLodging;
+  set fullDayLodging(LodgingFacade? v) => _fullDayLodging = v;
 
-  @override
-  set fullDayLodging(LodgingFacade? lodging) => _fullDayLodging = lodging;
+  // ── plan data ─────────────────────────────────────────────────────────────
 
   @override
   Stream<CollectionItemChangeMetadata<Changeset<ItineraryPlanData>>>
@@ -57,7 +70,69 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
   ItineraryPlanData get planData => _planData.clone();
   ItineraryPlanDataModelImplementation _planData;
 
-  var _shouldListenToPlanDataChanges = true;
+  /// Applies [newPlanData] as the current plan data.
+  ///
+  /// During the collection's initial load [silent] is `true`: the internal
+  /// state is updated but nothing is emitted on [planDataStream].  After the
+  /// collection is fully loaded every call emits on the stream so that
+  /// subscribers can react to incremental changes.
+  ///
+  /// [isFromExplicitAction] distinguishes UI-driven writes from remote syncs.
+  void applyPlanData(
+    ItineraryPlanDataModelImplementation newPlanData, {
+    bool isFromExplicitAction = false,
+    bool silent = false,
+  }) {
+    final before = _planData.facade;
+    _planData = newPlanData;
+    if (!silent) {
+      _planDataStreamController.add(CollectionItemChangeMetadata(
+          Changeset(before, _planData.facade),
+          isFromExplicitAction: isFromExplicitAction));
+    }
+  }
+
+  // ── lifecycle ─────────────────────────────────────────────────────────────
+
+  Future<void> dispose() async => _planDataStreamController.close();
+
+  // ── TripEntity / Equatable ────────────────────────────────────────────────
+
+  @override
+  String get id => day.toIso8601String();
+
+  @override
+  ItineraryFacade clone() => ItineraryModelImplementation._(
+        tripId: tripId,
+        day: day,
+        planData: ItineraryPlanDataModelImplementation.fromModelFacade(
+            _planData.facade),
+        transits: _transits.map((e) => e.clone()).toList(),
+        checkInLodging: _checkInLodging?.clone(),
+        checkOutLodging: _checkOutLodging?.clone(),
+        fullDayLodging: _fullDayLodging?.clone(),
+      );
+
+  @override
+  List<Object?> get props => [tripId, day, planData, transits, checkInLodging];
+
+  @override
+  bool? get stringify => true;
+
+  @override
+  Iterable<ItineraryValidationError> getValidationErrors() {
+    final errors = <ItineraryValidationError>[];
+    if (planData.getValidationErrors().isNotEmpty) {
+      errors.add(ItineraryValidationError.planDataInvalid);
+    }
+    if (fullDayLodging != null &&
+        (checkInLodging != null || checkOutLodging != null)) {
+      errors.add(ItineraryValidationError.duplicateLodging);
+    }
+    return errors;
+  }
+
+  // ── factory / constructor ─────────────────────────────────────────────────
 
   static ItineraryModelImplementation createInstance({
     required String tripId,
@@ -69,114 +144,23 @@ class ItineraryModelImplementation implements ItineraryModelEventHandler {
     ItineraryPlanDataModelImplementation? planData,
   }) {
     final planDataId = day.itineraryDateFormat;
-    var planDataModelImplementation = planData ??
-        ItineraryPlanDataModelImplementation(
-          tripId: tripId,
-          day: day,
-          id: planDataId,
-          sights: const [],
-          notes: const [],
-          checkLists: const [],
-        );
-
     return ItineraryModelImplementation._(
       tripId: tripId,
       day: day,
-      planData: planDataModelImplementation,
+      planData: planData ??
+          ItineraryPlanDataModelImplementation(
+            tripId: tripId,
+            day: day,
+            id: planDataId,
+            sights: const [],
+            notes: const [],
+            checkLists: const [],
+          ),
       transits: transits.toList(),
       checkInLodging: checkinLodging,
       checkOutLodging: checkoutLodging,
       fullDayLodging: fullDayLodging,
     );
-  }
-
-  @override
-  Future dispose() async {
-    await _planDataStreamController.close();
-  }
-
-  @override
-  String get id => day.toIso8601String();
-
-  @override
-  Future<bool> updatePlanData(ItineraryPlanData planData) async {
-    var didUpdate = false;
-    _shouldListenToPlanDataChanges = false;
-    var leafRepositoryItem =
-        ItineraryPlanDataModelImplementation.fromModelFacade(planData);
-    var planDataBeforeUpdate = _planData.facade;
-    didUpdate = await _planData.documentReference
-        .set(leafRepositoryItem.toJson(), SetOptions(merge: false))
-        .then((value) {
-      return true;
-    }).catchError((error, stackTrace) {
-      return false;
-    });
-    _shouldListenToPlanDataChanges = true;
-    if (didUpdate) {
-      _planData = leafRepositoryItem;
-      _planDataStreamController.add(CollectionItemChangeMetadata(
-          Changeset(planDataBeforeUpdate, _planData.facade),
-          isFromExplicitAction: true));
-    }
-    return didUpdate;
-  }
-
-  @override
-  ItineraryFacade clone() {
-    return ItineraryModelImplementation._(
-      tripId: tripId,
-      day: day,
-      planData: ItineraryPlanDataModelImplementation.fromModelFacade(
-          _planData.facade),
-      transits: _transits.map((e) => e.clone()).toList(),
-      checkInLodging: checkInLodging?.clone(),
-      checkOutLodging: checkOutLodging?.clone(),
-      fullDayLodging: fullDayLodging?.clone(),
-    );
-  }
-
-  @override
-  void addTransit(TransitFacade transitToAdd) {
-    if (!_transits.any((transit) => transit.id == transitToAdd.id)) {
-      _transits.add(transitToAdd);
-    }
-  }
-
-  @override
-  void removeTransit(TransitFacade transit) {
-    _transits.removeWhere((t) => t.id == transit.id);
-  }
-
-  @override
-  List<Object?> get props => [tripId, day, planData, transits, checkInLodging];
-
-  @override
-  bool? get stringify => true;
-
-  @override
-  Iterable<ItineraryValidationError> getValidationErrors() {
-    final errors = <ItineraryValidationError>[];
-    if (!planData.getValidationErrors().isEmpty) {
-      errors.add(ItineraryValidationError.planDataInvalid);
-    }
-    if (fullDayLodging != null &&
-        (checkInLodging != null || checkOutLodging != null)) {
-      errors.add(ItineraryValidationError.duplicateLodging);
-    }
-    return errors;
-  }
-
-  void updatePlanDataFromRemote(
-      ItineraryPlanDataModelImplementation planDataModelImplementation) {
-    if (!_shouldListenToPlanDataChanges) {
-      return;
-    }
-    var planDataBeforeUpdate = _planData.facade;
-    _planData = planDataModelImplementation;
-    _planDataStreamController.add(CollectionItemChangeMetadata(
-        Changeset(planDataBeforeUpdate, _planData.facade),
-        isFromExplicitAction: false));
   }
 
   ItineraryModelImplementation._({

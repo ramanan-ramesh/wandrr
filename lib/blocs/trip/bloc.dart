@@ -205,19 +205,19 @@ class TripManagementBloc
       final beforeDelete = itinerary.planData.clone();
       final emptyPlan = ItineraryPlanData.newEntry(
           tripId: event.tripEntity.tripId, day: event.tripEntity.day);
-      final didUpdate = await itinerary.updatePlanData(emptyPlan);
+      final didUpdate =
+          await _activeTrip!.itineraryCollection.updatePlanData(emptyPlan);
 
       emit(UpdatedTripEntity<ItineraryPlanData>.deleted(
           tripEntityModificationData: CollectionItemChangeMetadata(beforeDelete,
               isFromExplicitAction: true),
           isOperationSuccess: didUpdate));
-
-      unawaited(_budgetingService?.recalculateTotalExpenditure());
       return;
     }
 
     final itineraryPlanDataBeforeUpdate = itinerary.planData.clone();
-    final didUpdate = await itinerary.updatePlanData(event.tripEntity);
+    final didUpdate =
+        await _activeTrip!.itineraryCollection.updatePlanData(event.tripEntity);
 
     if (event.dataState == DataState.create) {
       emit(UpdatedTripEntity<ItineraryPlanData>.created(
@@ -233,8 +233,6 @@ class TripManagementBloc
               isFromExplicitAction: true),
           isOperationSuccess: didUpdate));
     }
-
-    unawaited(_budgetingService?.recalculateTotalExpenditure());
   }
 
   FutureOr<void> _onUpdateTripMetadata(
@@ -373,7 +371,6 @@ class TripManagementBloc
             metadata,
             isOperationSuccess: true,
           ));
-          _budgetingService?.recalculateTotalExpenditure();
         }
       },
       onDeleted: (metadata) {
@@ -382,7 +379,6 @@ class TripManagementBloc
             metadata,
             isOperationSuccess: true,
           ));
-          _budgetingService?.recalculateTotalExpenditure();
         }
       },
       onUpdated: (metadata) {
@@ -391,7 +387,6 @@ class TripManagementBloc
             metadata,
             isOperationSuccess: true,
           ));
-          _budgetingService?.recalculateTotalExpenditure();
         }
       },
     );
@@ -409,7 +404,6 @@ class TripManagementBloc
             metadata,
             isOperationSuccess: true,
           ));
-          _budgetingService?.recalculateTotalExpenditure();
         }
       },
     );

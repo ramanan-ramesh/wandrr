@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/api_service.dart';
 import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/debt_data.dart';
@@ -19,11 +20,14 @@ import 'helpers/expense_aggregator.dart';
 import 'helpers/expense_sorter.dart';
 import 'helpers/total_expenditure_calculator.dart';
 
-/// Stateless-subscription implementation of [BudgetingServiceModifier].
+/// Implementation of [BudgetingServiceModifier].
+///
+/// Subscribes internally to transit / lodging / expense / itinerary collection
+/// change events and calls [recalculateTotalExpenditure] automatically.
 class BudgetingService implements BudgetingServiceModifier {
   final TripDataFacade _tripData;
   final ApiService<(Money, String), double?> _currencyConverter;
-  final String currentUserName;
+  final String _currentUserName;
   final Iterable<CurrencyData> supportedCurrencies;
   String defaultCurrency;
 
@@ -34,12 +38,17 @@ class BudgetingService implements BudgetingServiceModifier {
   final ExpenseSorter _expenseSorter;
   final CurrencyFormatter _currencyFormatter;
 
+  // Subscription management
+  final List<StreamSubscription> _collectionSubscriptions = [];
+  final List<StreamSubscription> _itinerarySubscriptions = [];
+
   BudgetingService.create({
     required TripDataFacade tripData,
     required ApiService<(Money, String), double?> currencyConverter,
     required this.supportedCurrencies,
-    required this.currentUserName,
-  })  : _tripData = tripData,
+    required String currentUserName,
+  })  : _currentUserName = currentUserName,
+        _tripData = tripData,
         _currencyConverter = currencyConverter,
         defaultCurrency = tripData.tripMetadata.budget.currency,
         _expenditureCalculator = TotalExpenditureCalculator(currencyConverter),
@@ -52,10 +61,20 @@ class BudgetingService implements BudgetingServiceModifier {
           defaultCurrency: tripData.tripMetadata.budget.currency,
         ),
         _expenseSorter = ExpenseSorter(),
-        _currencyFormatter = CurrencyFormatter(supportedCurrencies);
+        _currencyFormatter = CurrencyFormatter(supportedCurrencies) {
+    _subscribeToCollectionChangeEvents();
+  }
 
   @override
   Future<void> dispose() async {
+    for (final s in _collectionSubscriptions) {
+      await s.cancel();
+    }
+    _collectionSubscriptions.clear();
+    for (final s in _itinerarySubscriptions) {
+      await s.cancel();
+    }
+    _itinerarySubscriptions.clear();
     await _totalExpenditureStreamController.close();
   }
 
@@ -102,6 +121,10 @@ class BudgetingService implements BudgetingServiceModifier {
   Future recalculateTotalExpenditure(
       {Iterable<TransitFacade> deletedTransits = const [],
       Iterable<LodgingFacade> deletedLodgings = const []}) async {
+    // Refresh itinerary subscriptions to pick up any newly-created itinerary
+    // items (e.g. after a date-range change).
+    _refreshItinerarySubscriptions();
+
     final updated = await _expenditureCalculator.calculate(
       transits: _tripData.transitCollection,
       lodgings: _tripData.lodgingCollection,
@@ -109,7 +132,7 @@ class BudgetingService implements BudgetingServiceModifier {
       itineraries: _tripData.itineraryCollection
           as ItineraryFacadeCollectionEventHandler,
       defaultCurrency: defaultCurrency,
-      currentUserName: currentUserName,
+      currentUserName: _currentUserName,
       transitsToExclude: deletedTransits,
       lodgingsToExclude: deletedLodgings,
     );
@@ -157,4 +180,49 @@ class BudgetingService implements BudgetingServiceModifier {
 
   @override
   String formatCurrency(Money money) => _currencyFormatter.format(money);
+
+  // ---------------------------------------------------------------------------
+  // Internal subscription management
+  // ---------------------------------------------------------------------------
+
+  /// Subscribes to add/update/delete events on transit, lodging and expense
+  /// collections so totals are recalculated automatically.
+  void _subscribeToCollectionChangeEvents() {
+    void subscribe(ModelCollectionFacade collection) {
+      _collectionSubscriptions.add(
+        collection.onDocumentAdded.listen((_) => recalculateTotalExpenditure()),
+      );
+      _collectionSubscriptions.add(
+        collection.onDocumentDeleted
+            .listen((_) => recalculateTotalExpenditure()),
+      );
+      _collectionSubscriptions.add(
+        collection.onDocumentUpdated
+            .listen((_) => recalculateTotalExpenditure()),
+      );
+    }
+
+    subscribe(_tripData.transitCollection);
+    subscribe(_tripData.lodgingCollection);
+    subscribe(_tripData.expenseCollection);
+
+    _refreshItinerarySubscriptions();
+  }
+
+  /// Cancels existing itinerary plan-data subscriptions and re-subscribes to
+  /// the current itinerary set.  Called on construction and after each
+  /// recalculation so that new itineraries (e.g. after a date-range change)
+  /// are automatically included.
+  void _refreshItinerarySubscriptions() {
+    for (final s in _itinerarySubscriptions) {
+      s.cancel();
+    }
+    _itinerarySubscriptions.clear();
+
+    for (final itinerary in _tripData.itineraryCollection) {
+      _itinerarySubscriptions.add(
+        itinerary.planDataStream.listen((_) => recalculateTotalExpenditure()),
+      );
+    }
+  }
 }

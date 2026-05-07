@@ -59,7 +59,8 @@ class ItineraryPlanData extends Equatable
 
     final errors = <ItineraryPlanDataValidationError>[];
 
-    if (sights.isNotEmpty && sights.any((sight) => !sight.getValidationErrors().isEmpty)) {
+    if (sights.isNotEmpty &&
+        sights.any((sight) => sight.getValidationErrors().isNotEmpty)) {
       errors.add(ItineraryPlanDataValidationError.sightInvalid);
     }
 

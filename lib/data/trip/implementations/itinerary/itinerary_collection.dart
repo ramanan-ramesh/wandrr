@@ -7,9 +7,10 @@ import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
+import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
-import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
+import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 
@@ -20,19 +21,36 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
   final String tripId;
   DateTime _startDate;
   DateTime _endDate;
-  final List<ItineraryModelEventHandler> _itineraries;
+  final List<ItineraryModelImplementation> _itineraries;
+  final ModelCollectionFacade<TransitFacade> _transitCollection;
+  final ModelCollectionFacade<LodgingFacade> _lodgingCollection;
+
+  /// Day keys of plan-data writes triggered by an explicit local action.
+  /// The Firestore listener will skip emitting a stream event for these,
+  /// since the collection already emits one with isFromExplicitAction: true.
+  final Set<String> _explicitPlanDataUpdateIds = {};
+
+  bool _isPlanDataLoaded = false;
+
+  @override
+  bool get isLoaded => _isLoaded;
+  bool _isLoaded = false;
+
+  @override
+  Stream<bool> get onLoaded => _isLoadedController.stream;
+  final StreamController<bool> _isLoadedController =
+      StreamController<bool>.broadcast(sync: true);
 
   static ItineraryCollection createInstance({
     required ModelCollectionFacade<TransitFacade> transitCollection,
     required ModelCollectionFacade<LodgingFacade> lodgingCollection,
     required TripMetadataFacade tripMetadata,
   }) {
-    final itineraries = _createItineraryList(
-      tripMetadata: tripMetadata,
-      transitCollection: transitCollection,
-      lodgingCollection: lodgingCollection,
-    );
-    var collection = ItineraryCollection._(
+    // Always create skeleton itineraries (no transit/lodging data yet).
+    // Transits/lodgings are populated in one pass once both collections are loaded.
+    final itineraries =
+        _createSkeletonItineraryList(tripMetadata: tripMetadata);
+    return ItineraryCollection._(
       transitCollection: transitCollection,
       lodgingCollection: lodgingCollection,
       tripId: tripMetadata.id!,
@@ -40,19 +58,6 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
       endDate: tripMetadata.endDate!,
       itineraries: itineraries,
     );
-
-    // Reconcile items that may have arrived during `_createItineraryList` awaits
-    // avoiding the silent missing items bug.
-    for (final transit in transitCollection.items) {
-      collection._addOrRemoveTransitToItinerary(transit, false);
-    }
-    for (final lodging in lodgingCollection.items) {
-      collection._addOrRemoveLodgingToItinerary(lodging, false);
-    }
-
-    collection._listenToItineraryDataCollection();
-
-    return collection;
   }
 
   @override
@@ -66,27 +71,14 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
       await itinerary.dispose();
     }
     _itineraries.clear();
+    await _isLoadedController.close();
   }
 
   @override
-  Iterator<ItineraryModelEventHandler> get iterator => _itineraries.iterator;
+  Iterator<ItineraryFacade> get iterator => _itineraries.iterator;
 
   @override
-  Future<void> updateTripDays(DateTime startDate, DateTime endDate) async {
-    var writeBatch = FirebaseFirestore.instance.batch();
-    final updateLocalState = await prepareTripDaysUpdate(
-      writeBatch,
-      startDate,
-      endDate,
-      [], // No sight changes for simple updateTripDays
-      [], // No expense changes
-    );
-    await writeBatch.commit();
-    await updateLocalState();
-  }
-
-  @override
-  Future<Future<void> Function()> prepareTripDaysUpdate(
+  Future<void Function()> prepareTripDaysUpdate(
     WriteBatch batch,
     DateTime startDate,
     DateTime endDate,
@@ -111,7 +103,7 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
       final dayKey = date.itineraryDateFormat;
       var itinerary =
           _itineraries.singleWhere((it) => it.day.isOnSameDayAs(date));
-      itinerary.dispose();
+      await itinerary.dispose();
       var planData = ItineraryPlanDataModelImplementation.fromModelFacade(
           itinerary.planData);
       batch.delete(planData.documentReference);
@@ -120,7 +112,7 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
     }
 
     // Create new itineraries for added days
-    final newItineraries = <ItineraryModelEventHandler>[];
+    final newItineraries = <ItineraryModelImplementation>[];
     for (final date in datesToAdd) {
       final dayKey = date.itineraryDateFormat;
 
@@ -192,12 +184,16 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
     }
 
     // Return function to update local state after batch commits
-    return () async {
+    return () {
       _itineraries.removeWhere((it) => datesToRemove.contains(it.day));
       _itineraries.addAll(newItineraries);
       _itineraries.sort((a, b) => a.day.compareTo(b.day));
       _startDate = startDate;
       _endDate = endDate;
+      // Populate transits/lodgings on newly added itinerary day instances.
+      if (_isLoaded) {
+        _reconcileFromCollections();
+      }
     };
   }
 
@@ -233,7 +229,9 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
 
         // Apply expense update if exists
         final expenseChange = expenseChanges.singleWhereOrNull((e) =>
-            e.original is SightFacade && e.original.id == modifiedSight.id);
+            e.original is SightFacade &&
+            (e.original as SightFacade).day == modifiedSight.day &&
+            e.original.id == modifiedSight.id);
         if (expenseChange != null) {
           modifiedSight.expense = expenseChange.modified.expense;
         }
@@ -267,18 +265,18 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
   }
 
   @override
-  ItineraryModelEventHandler getItineraryForDay(DateTime dateTime) {
+  ItineraryFacade getItineraryForDay(DateTime dateTime) {
     return _itineraries
         .singleWhere((itinerary) => itinerary.day.isOnSameDayAs(dateTime));
   }
 
   @override
-  Future<Future<void> Function()> prepareSightUpdates(
+  void prepareSightUpdates(
     WriteBatch batch,
     Iterable<SightChange> sightChanges,
-  ) async {
+  ) {
     if (sightChanges.isEmpty) {
-      return () async {};
+      return;
     }
 
     // Build sight operations using current trip date range
@@ -327,106 +325,106 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
 
       batch.set(updatedPlanData.documentReference, updatedPlanData.toJson());
     }
-
-    // Return function to update local state after batch commits
-    return () async {
-      // Local state updates will happen via stream listeners
-    };
   }
 
-  static List<ItineraryModelEventHandler> _createItineraryList({
+  /// Creates day-skeleton itineraries for the trip date range with no
+  /// transit or lodging data. Transits/lodgings are populated later in one
+  /// pass via [_reconcileFromCollections].
+  static List<ItineraryModelImplementation> _createSkeletonItineraryList({
     required TripMetadataFacade tripMetadata,
-    required ModelCollectionFacade<TransitFacade> transitCollection,
-    required ModelCollectionFacade<LodgingFacade> lodgingCollection,
   }) {
     final startDate = tripMetadata.startDate!;
     final endDate = tripMetadata.endDate!;
     final numberOfDays =
         startDate.calculateDaysInBetween(endDate, includeExtraDay: true);
-    final itineraries = <ItineraryModelEventHandler>[];
-
-    final transitsPerDay =
-        _groupTransitsByDay(transitCollection.items, startDate, numberOfDays);
-    final lodgingsPerDay =
-        _groupLodgingsByDay(lodgingCollection.items, startDate, numberOfDays);
+    final itineraries = <ItineraryModelImplementation>[];
 
     for (var i = 0; i < numberOfDays; i++) {
       final day = startDate.add(Duration(days: i));
-      var transits = transitsPerDay.entries
-          .firstWhere((mapElement) => mapElement.key.isOnSameDayAs(day))
-          .value;
-      var lodgings = lodgingsPerDay.entries
-              .where((mapElement) => mapElement.key.isOnSameDayAs(day))
-              .firstOrNull
-              ?.value ??
-          [];
-
-      final checkinLodging = lodgings
-          .where((lodging) => lodging.checkinDateTime!.isOnSameDayAs(day))
-          .firstOrNull;
-      final checkoutLodging = lodgings
-          .where((lodging) => lodging.checkoutDateTime!.isOnSameDayAs(day))
-          .firstOrNull;
-      final fullDayLodging = lodgings
-          .where((lodging) =>
-              day.isAfter(lodging.checkinDateTime!) &&
-              day
-                  .copyWith(hour: 23, minute: 59, second: 59)
-                  .isBefore(lodging.checkoutDateTime!))
-          .firstOrNull;
-
-      var itinerary = ItineraryModelImplementation.createInstance(
+      itineraries.add(ItineraryModelImplementation.createInstance(
         tripId: tripMetadata.id!,
         day: day,
-        transits: transits.toList(),
-        checkinLodging: checkinLodging,
-        checkoutLodging: checkoutLodging,
-        fullDayLodging: fullDayLodging,
-      );
-      itineraries.add(
-        itinerary,
-      );
+        transits: const [],
+        checkinLodging: null,
+        checkoutLodging: null,
+        fullDayLodging: null,
+      ));
     }
     return itineraries;
   }
 
-  void _initializeListeners(
-      ModelCollectionFacade<TransitFacade> transitCollection,
-      ModelCollectionFacade<LodgingFacade> lodgingCollection) {
-    _subscriptions
-        .add(transitCollection.onDocumentAdded.listen((eventData) async {
-      var transitAdded = eventData.collectionItemChange;
-      _addOrRemoveTransitToItinerary(transitAdded, false);
-    }));
-    _subscriptions
-        .add(transitCollection.onDocumentDeleted.listen((eventData) async {
-      var transitDeleted = eventData.collectionItemChange;
-      _addOrRemoveTransitToItinerary(transitDeleted, true);
-    }));
-    _subscriptions
-        .add(transitCollection.onDocumentUpdated.listen((eventData) async {
-      var transitBeforeUpdate = eventData.collectionItemChange.beforeUpdate;
-      var transitAfterUpdate = eventData.collectionItemChange.afterUpdate;
-      _addOrRemoveTransitToItinerary(transitBeforeUpdate, true);
-      _addOrRemoveTransitToItinerary(transitAfterUpdate, false);
-    }));
-    _subscriptions
-        .add(lodgingCollection.onDocumentAdded.listen((eventData) async {
-      var lodgingAdded = eventData.collectionItemChange;
-      _addOrRemoveLodgingToItinerary(lodgingAdded, false);
-    }));
-    _subscriptions
-        .add(lodgingCollection.onDocumentUpdated.listen((eventData) async {
-      var lodgingBeforeUpdate = eventData.collectionItemChange.beforeUpdate;
-      var lodgingAfterUpdate = eventData.collectionItemChange.afterUpdate;
-      _addOrRemoveLodgingToItinerary(lodgingBeforeUpdate, true);
-      _addOrRemoveLodgingToItinerary(lodgingAfterUpdate, false);
-    }));
-    _subscriptions
-        .add(lodgingCollection.onDocumentDeleted.listen((eventData) async {
-      var lodgingDeleted = eventData.collectionItemChange;
-      _addOrRemoveLodgingToItinerary(lodgingDeleted, true);
-    }));
+  /// Marks the collection as loaded once transits, lodgings, AND the initial
+  /// plan-data snapshot have all been delivered.
+  void _checkAndMarkLoaded() {
+    if (_transitCollection.isLoaded &&
+        _lodgingCollection.isLoaded &&
+        _isPlanDataLoaded &&
+        !_isLoaded) {
+      _reconcileFromCollections();
+
+      _isLoaded = true;
+      _isLoadedController.add(true);
+
+      // Real-time change listeners — only process events after the initial
+      // bulk-load reconciliation is complete (_isLoaded == true).
+      _subscriptions.add(_transitCollection.onDocumentAdded.listen((eventData) {
+        if (!_isLoaded) {
+          return;
+        }
+        _addOrRemoveTransitToItinerary(eventData.collectionItemChange, false);
+      }));
+      _subscriptions
+          .add(_transitCollection.onDocumentDeleted.listen((eventData) {
+        if (!_isLoaded) {
+          return;
+        }
+        _addOrRemoveTransitToItinerary(eventData.collectionItemChange, true);
+      }));
+      _subscriptions
+          .add(_transitCollection.onDocumentUpdated.listen((eventData) {
+        if (!_isLoaded) {
+          return;
+        }
+        _addOrRemoveTransitToItinerary(
+            eventData.collectionItemChange.beforeUpdate, true);
+        _addOrRemoveTransitToItinerary(
+            eventData.collectionItemChange.afterUpdate, false);
+      }));
+      _subscriptions.add(_lodgingCollection.onDocumentAdded.listen((eventData) {
+        if (!_isLoaded) {
+          return;
+        }
+        _addOrRemoveLodgingToItinerary(eventData.collectionItemChange, false);
+      }));
+      _subscriptions
+          .add(_lodgingCollection.onDocumentUpdated.listen((eventData) {
+        if (!_isLoaded) {
+          return;
+        }
+        _addOrRemoveLodgingToItinerary(
+            eventData.collectionItemChange.beforeUpdate, true);
+        _addOrRemoveLodgingToItinerary(
+            eventData.collectionItemChange.afterUpdate, false);
+      }));
+      _subscriptions
+          .add(_lodgingCollection.onDocumentDeleted.listen((eventData) {
+        if (!_isLoaded) {
+          return;
+        }
+        _addOrRemoveLodgingToItinerary(eventData.collectionItemChange, true);
+      }));
+    }
+  }
+
+  /// Idempotently applies all items from both underlying collections to the
+  /// current itinerary instances.
+  void _reconcileFromCollections() {
+    for (final transit in _transitCollection.items) {
+      _addOrRemoveTransitToItinerary(transit, false);
+    }
+    for (final lodging in _lodgingCollection.items) {
+      _addOrRemoveLodgingToItinerary(lodging, false);
+    }
   }
 
   void _addOrRemoveTransitToItinerary(TransitFacade transit, bool toDelete) {
@@ -441,7 +439,7 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
                   .isBefore(transit.arrivalDateTime!);
       if (isItineraryDayOnOrAfterDeparture && isItineraryDayOnOrBeforeArrival) {
         if (toDelete) {
-          itinerary.removeTransit(transit);
+          itinerary.removeTransit(transit.id!);
         } else {
           itinerary.addTransit(transit);
         }
@@ -466,48 +464,6 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
     }
   }
 
-  static Map<DateTime, Iterable<TransitFacade>> _groupTransitsByDay(
-    Iterable<TransitFacade> transits,
-    DateTime startDate,
-    int numberOfDays,
-  ) {
-    final transitsPerDay = <DateTime, List<TransitFacade>>{};
-    for (var i = 0; i < numberOfDays; i++) {
-      final day = startDate.add(Duration(days: i));
-      transitsPerDay[day] = transits
-          .where((transit) =>
-              (day.isAfter(transit.departureDateTime!) ||
-                  day.isOnSameDayAs(transit.departureDateTime!)) &&
-              (day
-                      .copyWith(hour: 23, minute: 59, second: 59)
-                      .isBefore(transit.arrivalDateTime!) ||
-                  day.isOnSameDayAs(transit.arrivalDateTime!)))
-          .toList();
-    }
-    return transitsPerDay;
-  }
-
-  static Map<DateTime, Iterable<LodgingFacade>> _groupLodgingsByDay(
-    Iterable<LodgingFacade> lodgings,
-    DateTime startDate,
-    int numberOfDays,
-  ) {
-    final lodgingsPerDay = <DateTime, List<LodgingFacade>>{};
-    for (var i = 0; i < numberOfDays; i++) {
-      final day = startDate.add(Duration(days: i));
-      lodgingsPerDay[day] = lodgings
-          .where((lodging) =>
-              (day.isAfter(lodging.checkinDateTime!) ||
-                  day.isOnSameDayAs(lodging.checkinDateTime!)) &&
-              (day
-                      .copyWith(hour: 23, minute: 59, second: 59)
-                      .isBefore(lodging.checkoutDateTime!) ||
-                  day.isOnSameDayAs(lodging.checkoutDateTime!)))
-          .toList();
-    }
-    return lodgingsPerDay;
-  }
-
   Set<DateTime> _getDateRange(DateTime startDate, DateTime endDate) {
     final dateSet = <DateTime>{};
     var currentDate = startDate;
@@ -528,11 +484,57 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
     required ModelCollectionFacade<LodgingFacade> lodgingCollection,
     required DateTime startDate,
     required DateTime endDate,
-    required List<ItineraryModelEventHandler> itineraries,
+    required List<ItineraryModelImplementation> itineraries,
   })  : _startDate = startDate,
         _endDate = endDate,
-        _itineraries = itineraries {
-    _initializeListeners(transitCollection, lodgingCollection);
+        _itineraries = itineraries,
+        _transitCollection = transitCollection,
+        _lodgingCollection = lodgingCollection {
+    _listenToItineraryDataCollection();
+    if (transitCollection.isLoaded && lodgingCollection.isLoaded) {
+      _checkAndMarkLoaded();
+    } else {
+      // Update isLoaded whenever either collection reports it has fully loaded.
+      if (transitCollection.isLoaded && lodgingCollection.isLoaded) {
+        _checkAndMarkLoaded();
+      } else {
+        if (!transitCollection.isLoaded) {
+          _subscriptions.add(
+              transitCollection.onLoaded.listen((_) => _checkAndMarkLoaded()));
+        }
+        if (!lodgingCollection.isLoaded) {
+          _subscriptions.add(
+              lodgingCollection.onLoaded.listen((_) => _checkAndMarkLoaded()));
+        }
+        // One may already be loaded; check now in case it won't fire onLoaded.
+        _checkAndMarkLoaded();
+      }
+    }
+  }
+
+  @override
+  Future<bool> updatePlanData(ItineraryPlanData planData) async {
+    final matchingItinerary = _itineraries
+        .firstWhereOrNull((it) => it.day.isOnSameDayAs(planData.day));
+    if (matchingItinerary == null) {
+      return false;
+    }
+
+    final leafRepositoryItem =
+        ItineraryPlanDataModelImplementation.fromModelFacade(planData);
+
+    final didUpdate = await leafRepositoryItem.documentReference
+        .set(leafRepositoryItem.toJson(), SetOptions(merge: false))
+        .then((_) => true)
+        .catchError((_, __) => false);
+
+    if (didUpdate) {
+      // Mark so the Firestore listener skips re-emitting this change.
+      _explicitPlanDataUpdateIds.add(leafRepositoryItem.id!);
+      matchingItinerary.applyPlanData(leafRepositoryItem,
+          isFromExplicitAction: true);
+    }
+    return didUpdate;
   }
 
   void _listenToItineraryDataCollection() {
@@ -542,6 +544,10 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
         .collection(FirestoreCollections.itineraryDataCollectionName);
 
     _subscriptions.add(collectionRef.snapshots().listen((snapshot) {
+      // Capture whether this is the very first snapshot before mutating state,
+      // mirroring the FirestoreModelCollection.isInitialLoad pattern.
+      final isInitialLoad = !_isPlanDataLoaded;
+
       for (final docChange in snapshot.docChanges) {
         final doc = docChange.doc;
         if (!doc.exists) {
@@ -552,17 +558,43 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
         final matchingItinerary = _itineraries.firstWhereOrNull(
           (it) => it.planData.id == dayKey,
         );
+        if (matchingItinerary == null) {
+          continue;
+        }
 
-        if (matchingItinerary != null) {
+        // During initial load: apply silently — consumers read planData after
+        // isLoaded fires; planDataStream takes over for subsequent changes.
+        if (isInitialLoad) {
           final planDataModel =
               ItineraryPlanDataModelImplementation.fromDocumentSnapshot(
             tripId: tripId,
             documentData: doc.data() as Map<String, dynamic>,
             day: matchingItinerary.day,
           );
-          (matchingItinerary as ItineraryModelImplementation)
-              .updatePlanDataFromRemote(planDataModel);
+          matchingItinerary.applyPlanData(planDataModel, silent: true);
+          continue;
         }
+
+        // If this write was triggered by a local explicit action, skip
+        // re-emitting — the collection already emitted the event directly.
+        if (_explicitPlanDataUpdateIds.remove(dayKey)) {
+          continue;
+        }
+
+        final planDataModel =
+            ItineraryPlanDataModelImplementation.fromDocumentSnapshot(
+          tripId: tripId,
+          documentData: doc.data() as Map<String, dynamic>,
+          day: matchingItinerary.day,
+        );
+        matchingItinerary.applyPlanData(planDataModel);
+      }
+
+      // After the first snapshot is fully processed, signal plan-data readiness
+      // and check whether the collection as a whole is now loaded.
+      if (isInitialLoad) {
+        _isPlanDataLoaded = true;
+        _checkAndMarkLoaded();
       }
     }));
   }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
@@ -52,7 +53,7 @@ class TripEntityDataUpdatePlanService {
   Future<void> _executeAllChanges<T extends TripEntity>(
       TripEntityUpdatePlan<T> plan) async {
     final batch = FirebaseFirestore.instance.batch();
-    Future<void> Function()? updateLocalItineraryState;
+    VoidCallback? updateLocalItineraryState;
 
     // For TripMetadata updates, prepare itinerary day updates
     if (plan is TripEntityUpdatePlan<TripMetadataFacade> &&
@@ -68,8 +69,7 @@ class TripEntityDataUpdatePlanService {
       );
     } else if (plan.sightChanges.isNotEmpty) {
       // For conflict resolution, just update sights
-      updateLocalItineraryState = await itineraryCollection.prepareSightUpdates(
-          batch, plan.sightChanges);
+      itineraryCollection.prepareSightUpdates(batch, plan.sightChanges);
     }
 
     // Process transit changes
@@ -90,9 +90,7 @@ class TripEntityDataUpdatePlanService {
     await batch.commit();
 
     // Update local itinerary state after successful commit
-    if (updateLocalItineraryState != null) {
-      await updateLocalItineraryState();
-    }
+    updateLocalItineraryState?.call();
   }
 
   void _processChanges<T extends TripEntity>(
