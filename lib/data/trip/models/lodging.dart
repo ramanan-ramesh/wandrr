@@ -123,6 +123,9 @@ class LodgingFacade extends Equatable
     return 'Unnamed Entry';
   }
 
+  // Normalise nullable-but-semantically-empty string fields.
+  static String? _n(String? s) => (s == null || s.isEmpty) ? null : s;
+
   @override
   List<Object?> get props => [
         location,
@@ -130,8 +133,8 @@ class LodgingFacade extends Equatable
         checkoutDateTime,
         id,
         tripId,
-        confirmationId,
+        _n(confirmationId),
         expense,
-        notes
+        _n(notes),
       ];
 }

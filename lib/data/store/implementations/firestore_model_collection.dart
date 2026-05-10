@@ -8,6 +8,71 @@ import 'package:wandrr/data/store/models/model_collection.dart';
 
 /// A Firestore-backed collection that manages a set of models with automatic synchronization.
 /// Uses Firestore's withConverter API for type-safe document conversion.
+///
+/// ## Lifecycle
+///
+/// On construction a Firestore snapshot listener is attached immediately.
+/// The very first snapshot populates [_items] and fires [onLoaded] once —
+/// **no change-stream events are emitted during this initial load**.
+/// Consumers should read [items] after [onLoaded] fires for initial state.
+///
+/// ## Write operations (`tryAdd` / `tryDeleteItem` / `tryUpdateItem`)
+///
+/// All three write methods are **synchronous and fire-and-forget**:
+/// - They mark the document ID in [_idListFromExplicitActions].
+/// - They submit the Firestore write without awaiting it.
+/// - They do **not** mutate [_items] or emit any events directly.
+///
+/// The Firestore snapshot listener is the **sole source of truth** for both
+/// local-state mutations and stream emissions.
+///
+/// ## Event-emission contract (post initial-load only)
+///
+/// ### [onDocumentAdded]
+/// Fires once per `DocumentChangeType.added` echo whose ID is not already
+/// in [_items].
+/// - `isFromExplicitAction: true`  → triggered by a local [tryAdd] call.
+/// - `isFromExplicitAction: false` → remote add from another collaborator.
+/// - **Guarantee**: one event per [tryAdd] call (Firestore always echoes
+///   new documents as `added`).
+///
+/// ### [onDocumentDeleted]
+/// Fires once per `DocumentChangeType.removed` echo whose ID was in [_items].
+/// - `isFromExplicitAction: true`  → triggered by a local [tryDeleteItem].
+/// - `isFromExplicitAction: false` → remote delete.
+/// - **Guarantee**: one event per [tryDeleteItem] call, provided the document
+///   exists in [_items] at the time of the echo.
+///
+/// ### [onDocumentUpdated]
+/// Fires on `DocumentChangeType.modified` echoes, **with different suppression
+/// rules depending on the action source**:
+/// - **Explicit action** (`isFromExplicitAction: true`): emitted whenever
+///   Firestore delivers a `modified` echo **and** the document ID was marked
+///   by [tryUpdateItem].  Always emitted regardless of whether
+///   `beforeUpdate.facade == afterUpdate.facade`, because a facade-equal write
+///   is still a confirmed change that callers need to count.
+///   **Important**: Firestore does **not** deliver a `modified` echo for a
+///   no-op write (data identical to what is already stored on the server).
+///   Callers that track operation completion via `_pendingOperations` must
+///   therefore *not* count updates where the entity is unchanged — see
+///   `saveAllLegs` which compares each leg against `transitCollection.items`
+///   before dispatching and counting an update event.
+/// - **Remote change** (`isFromExplicitAction: false`): only emitted when
+///   `beforeUpdate.facade != afterUpdate.facade`. Suppresses noise from
+///   server-side metadata writes that produce no real data change and avoids
+///   unnecessary UI rebuilds.
+///
+/// ## Implication for `saveAllLegs` / `_pendingOperations`
+///
+/// `ConflictAwareActionPage` sets `_pendingOperations = operationCount`
+/// (the number of bloc events dispatched by `saveAllLegs`) and decrements it
+/// on every `UpdatedTripEntity<T>` state.  The counts match only when:
+/// - Each [tryAdd]         → exactly 1 `onDocumentAdded`  → 1 decrement.
+/// - Each [tryDeleteItem]  → exactly 1 `onDocumentDeleted` → 1 decrement.
+/// - Each [tryUpdateItem]  → exactly 1 `onDocumentUpdated` → 1 decrement,
+///   but **only when Firestore echoes `modified`**, which requires the written
+///   data to differ from what is already stored.  Callers must compare before
+///   dispatching; `saveAllLegs` does this via `stored != leg`.
 class FirestoreModelCollection<TModel>
     implements ModelCollectionModifier<TModel> {
   final CollectionReference<CollectionDocument<TModel>>
@@ -104,48 +169,44 @@ class FirestoreModelCollection<TModel>
   CollectionDocument<TModel> Function(TModel model) collectionDocumentCreator;
 
   @override
-  Future<TModel?> tryAdd(TModel toAdd) async {
+  void tryAdd(TModel toAdd) {
     final collectionDocument = collectionDocumentCreator(toAdd);
-    final addResult = await _typedCollectionReference.add(collectionDocument);
-    collectionDocument.id = addResult.id;
-    // Mark this ID so the listener skips emitting an 'added' stream event
-    // (the caller already handles the UI update).
-    _idListFromExplicitActions.add(addResult.id);
-    return collectionDocument.facade;
+    // Generate a local document reference so the ID is known immediately
+    // without awaiting Firestore.
+    final docRef = _typedCollectionReference.doc();
+    collectionDocument.id = docRef.id;
+    // Mark ID — the snapshot listener will emit onDocumentAdded with
+    // isFromExplicitAction: true when the echo arrives.
+    _idListFromExplicitActions.add(docRef.id);
+    // Fire-and-forget — no need to await.
+    docRef.set(collectionDocument, SetOptions(merge: false));
   }
 
   @override
-  Future<bool> tryDeleteItem(TModel toDelete) async {
+  void tryDeleteItem(TModel toDelete) {
     final collectionDocument = collectionDocumentCreator(toDelete);
-    try {
-      await _typedCollectionReference
-          .doc(collectionDocument.documentReference.id)
-          .delete();
-      _idListFromExplicitActions.add(collectionDocument.documentReference.id);
-      return true;
-    } on Exception catch (_) {
-      return false;
-    }
+    final docId = collectionDocument.documentReference.id;
+    // Mark ID — the snapshot listener will emit onDocumentDeleted with
+    // isFromExplicitAction: true when the echo arrives.
+    _idListFromExplicitActions.add(docId);
+    // Fire-and-forget — no need to await.
+    _typedCollectionReference.doc(docId).delete();
   }
 
   @override
-  Future<bool> tryUpdateItem(TModel toUpdate) async {
+  void tryUpdateItem(TModel toUpdate) {
     final collectionDocument = collectionDocumentCreator(toUpdate);
-    final matchingElementIndex = _items.indexWhere((document) =>
-        document.documentReference.id ==
-        collectionDocument.documentReference.id);
-    if (matchingElementIndex == -1) {
-      return false;
+    final docId = collectionDocument.documentReference.id;
+    if (!_items.any((document) => document.documentReference.id == docId)) {
+      return;
     }
-    try {
-      await _typedCollectionReference
-          .doc(collectionDocument.documentReference.id)
-          .set(collectionDocument, SetOptions(merge: true));
-    } on Exception {
-      return false;
-    }
-    _idListFromExplicitActions.add(collectionDocument.documentReference.id);
-    return true;
+    // Mark ID — the snapshot listener will emit onDocumentUpdated with
+    // isFromExplicitAction: true when the echo arrives.
+    _idListFromExplicitActions.add(docId);
+    // Fire-and-forget — no need to await.
+    _typedCollectionReference
+        .doc(docId)
+        .set(collectionDocument, SetOptions(merge: true));
   }
 
   void _onCollectionDataUpdate(
@@ -164,72 +225,59 @@ class FirestoreModelCollection<TModel>
       switch (documentChange.type) {
         case DocumentChangeType.added:
           {
-            if (!_items.any((element) =>
-                element.documentReference.id ==
-                collectionDocument.documentReference.id)) {
+            final docId = collectionDocument.documentReference.id;
+            final isExplicit = _idListFromExplicitActions.remove(docId);
+            if (!_items.any((e) => e.documentReference.id == docId)) {
               _items.add(collectionDocument);
-              // During initial load, skip change-stream events entirely —
-              // listeners will read from [items] after [onLoaded] fires.
-              if (!isInitialLoad &&
-                  !_idListFromExplicitActions
-                      .remove(collectionDocument.documentReference.id)) {
+              // During initial load emit nothing — consumers read from [items]
+              // after [onLoaded] fires.
+              if (!isInitialLoad) {
                 _additionStreamController.add(CollectionItemChangeMetadata(
                     collectionDocument.facade,
-                    isFromExplicitAction: false));
-              } else {
-                _idListFromExplicitActions
-                    .remove(collectionDocument.documentReference.id);
+                    isFromExplicitAction: isExplicit));
               }
-            } else {
-              // Doc already present, consume the pending ID if any.
-              _idListFromExplicitActions
-                  .remove(collectionDocument.documentReference.id);
             }
             break;
           }
         case DocumentChangeType.removed:
           {
-            if (_items.any((element) =>
-                element.documentReference.id == documentSnapshot.id)) {
-              _items.removeWhere((element) =>
-                  element.documentReference.id == documentSnapshot.id);
-              if (!isInitialLoad &&
-                  !_idListFromExplicitActions.remove(documentSnapshot.id)) {
+            final docId = documentSnapshot.id;
+            final isExplicit = _idListFromExplicitActions.remove(docId);
+            if (_items.any((e) => e.documentReference.id == docId)) {
+              _items.removeWhere((e) => e.documentReference.id == docId);
+              if (!isInitialLoad) {
                 _deletionStreamController.add(CollectionItemChangeMetadata(
                     collectionDocument.facade,
-                    isFromExplicitAction: false));
-              } else {
-                _idListFromExplicitActions.remove(documentSnapshot.id);
+                    isFromExplicitAction: isExplicit));
               }
-            } else {
-              _idListFromExplicitActions.remove(documentSnapshot.id);
             }
             break;
           }
         case DocumentChangeType.modified:
           {
-            final matchingElementIndex = _items.indexWhere((element) =>
-                element.documentReference.id == documentSnapshot.id);
+            final docId = documentSnapshot.id;
+            final matchingElementIndex =
+                _items.indexWhere((e) => e.documentReference.id == docId);
             if (matchingElementIndex == -1) {
               break;
             }
+            final isExplicit = _idListFromExplicitActions.remove(docId);
             final collectionItemBeforeUpdate = _items[matchingElementIndex];
             _items[matchingElementIndex] = collectionDocument;
-
-            if (!isInitialLoad) {
-              final hasFacadeChanged = collectionItemBeforeUpdate.facade !=
-                  collectionDocument.facade;
-              final wasFromExplicitAction =
-                  _idListFromExplicitActions.remove(documentSnapshot.id);
-
-              if (hasFacadeChanged && !wasFromExplicitAction) {
-                _updationStreamController.add(CollectionItemChangeMetadata(
-                    Changeset(collectionItemBeforeUpdate.facade,
-                        collectionDocument.facade),
-                    isFromExplicitAction: false));
-              }
-            } else {
-              _idListFromExplicitActions.remove(documentSnapshot.id);
+            // Always emit for explicit actions so callers tracking
+            // _pendingOperations receive exactly one completion signal per
+            // tryUpdateItem call (see class-level doc for details).
+            // For remote changes, only emit when the facade actually changed
+            // to avoid spurious UI rebuilds.
+            final shouldEmit = !isInitialLoad &&
+                (isExplicit ||
+                    collectionItemBeforeUpdate.facade !=
+                        collectionDocument.facade);
+            if (shouldEmit) {
+              _updationStreamController.add(CollectionItemChangeMetadata(
+                  Changeset(collectionItemBeforeUpdate.facade,
+                      collectionDocument.facade),
+                  isFromExplicitAction: isExplicit));
             }
             break;
           }

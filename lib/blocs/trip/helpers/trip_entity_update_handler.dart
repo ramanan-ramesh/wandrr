@@ -1,8 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
-import 'package:wandrr/data/store/models/change_set.dart';
-import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
@@ -19,13 +17,13 @@ class TripEntityUpdateHandler {
   }) async {
     switch (requestedDataState) {
       case DataState.create:
-        await _handleCreate(tripEntity, modelCollection, emit);
+        _handleCreate(tripEntity, modelCollection);
 
       case DataState.delete:
-        await _handleDelete(tripEntity, modelCollection, emit);
+        _handleDelete(tripEntity, modelCollection);
 
       case DataState.update:
-        await _handleUpdate(tripEntity, modelCollection, emit);
+        _handleUpdate(tripEntity, modelCollection);
 
       case DataState.select:
         _handleSelect(tripEntity, modelCollection, emit);
@@ -36,41 +34,18 @@ class TripEntityUpdateHandler {
   }
 
   /// Handles the create operation
-  Future<void> _handleCreate<E extends TripEntity<Enum>>(
-    E tripEntity,
-    ModelCollectionModifier<E> modelCollection,
-    Emitter<TripManagementState> emit,
-  ) async {
+  void _handleCreate<E extends TripEntity<Enum>>(
+      E tripEntity, ModelCollectionModifier<E> modelCollection) {
     if (tripEntity.id != null) {
       return;
     }
 
-    final addedEntity = await modelCollection.tryAdd(tripEntity);
-    if (addedEntity != null) {
-      emit(UpdatedTripEntity<E>.created(
-        tripEntityModificationData: CollectionItemChangeMetadata(
-          addedEntity,
-          isFromExplicitAction: true,
-        ),
-        isOperationSuccess: true,
-      ));
-    } else {
-      emit(UpdatedTripEntity<E>.created(
-        tripEntityModificationData: CollectionItemChangeMetadata(
-          tripEntity,
-          isFromExplicitAction: true,
-        ),
-        isOperationSuccess: false,
-      ));
-    }
+    modelCollection.tryAdd(tripEntity);
   }
 
   /// Handles the delete operation
-  Future<void> _handleDelete<E extends TripEntity<Enum>>(
-    E tripEntity,
-    ModelCollectionModifier<E> modelCollection,
-    Emitter<TripManagementState> emit,
-  ) async {
+  void _handleDelete<E extends TripEntity<Enum>>(
+      E tripEntity, ModelCollectionModifier<E> modelCollection) {
     final entityExists = modelCollection.items
         .whereType<TripEntity>()
         .any((element) => element.id == tripEntity.id);
@@ -79,22 +54,12 @@ class TripEntityUpdateHandler {
       return;
     }
 
-    final didDelete = await modelCollection.tryDeleteItem(tripEntity);
-    emit(UpdatedTripEntity<E>.deleted(
-      tripEntityModificationData: CollectionItemChangeMetadata(
-        tripEntity,
-        isFromExplicitAction: true,
-      ),
-      isOperationSuccess: didDelete,
-    ));
+    modelCollection.tryDeleteItem(tripEntity);
   }
 
   /// Handles the update operation
-  Future<void> _handleUpdate<E extends TripEntity<Enum>>(
-    E tripEntity,
-    ModelCollectionModifier<E> modelCollection,
-    Emitter<TripManagementState> emit,
-  ) async {
+  void _handleUpdate<E extends TripEntity<Enum>>(
+      E tripEntity, ModelCollectionModifier<E> modelCollection) {
     var tripEntityId = tripEntity.id;
     if (tripEntityId == null || tripEntityId.isEmpty) {
       return;
@@ -109,22 +74,14 @@ class TripEntityUpdateHandler {
       return;
     }
 
-    final didUpdate = await modelCollection.tryUpdateItem(tripEntity);
-    emit(UpdatedTripEntity.updated(
-      tripEntityModificationData: CollectionItemChangeMetadata(
-        Changeset<E>(collectionItem, tripEntity),
-        isFromExplicitAction: true,
-      ),
-      isOperationSuccess: didUpdate,
-    ));
+    modelCollection.tryUpdateItem(tripEntity);
   }
 
   /// Handles the select operation
   void _handleSelect<E extends TripEntity<Enum>>(
-    E tripEntity,
-    ModelCollectionModifier<E> modelCollection,
-    Emitter<TripManagementState> emit,
-  ) {
+      E tripEntity,
+      ModelCollectionModifier<E> modelCollection,
+      Emitter<TripManagementState> emit) {
     final originalTripEntity = modelCollection.items
         .whereType<TripEntity>()
         .where((e) => e.id == tripEntity.id)

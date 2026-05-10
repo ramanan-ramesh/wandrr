@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_theme_helper.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/transit_journey_timeline_event.dart';
@@ -225,6 +226,46 @@ class _ConnectedTransitCard extends StatelessWidget {
 
   const _ConnectedTransitCard({required this.event});
 
+  String? _getPlatformSeatText(BuildContext context) {
+    final activeUserName = context.activeUser?.userName;
+    final isFlight = event.data.transitOption == TransitOption.flight;
+    final label = isFlight ? 'Terminal' : 'Platform';
+    final dep = event.data.departurePlatform;
+    final arr = event.data.arrivalPlatform;
+
+    final parts = <String>[];
+
+    if (!event.isMultiDay) {
+      // Same-day transit: show both platforms compactly.
+      final hasArrival = arr != null && arr.isNotEmpty;
+      final hasDeparture = dep != null && dep.isNotEmpty;
+      if (hasDeparture && hasArrival) {
+        // Identical platforms → show once; different → "Dep: A → Arr: B".
+        parts.add('$label: $dep → $arr');
+      } else if (hasDeparture) {
+        parts.add('Dep $label: $dep');
+      } else if (hasArrival) {
+        parts.add('Arr $label: $arr');
+      }
+    } else {
+      // Multi-day: show only the platform relevant to this day's view.
+      final platform = event.isDepartureDayView ? dep : arr;
+      if (platform != null && platform.isNotEmpty) {
+        parts.add('$label: $platform');
+      }
+    }
+
+    final seatNumbers = event.data.seatNumbers;
+    if (seatNumbers != null && activeUserName != null) {
+      final mySeat = seatNumbers[activeUserName];
+      if (mySeat != null && mySeat.isNotEmpty) {
+        parts.add('Seat: $mySeat');
+      }
+    }
+
+    return parts.isEmpty ? null : parts.join(' • ');
+  }
+
   BorderRadius _getBorderRadius() {
     const radius = Radius.circular(TimelineConstants.cardRadius);
     switch (event.position) {
@@ -436,6 +477,18 @@ class _ConnectedTransitCard extends StatelessWidget {
                                 : Colors.grey.shade400,
                           ),
                     ),
+                    if (_getPlatformSeatText(context) != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        _getPlatformSeatText(context)!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: isLightTheme
+                                  ? Colors.grey.shade800
+                                  : Colors.grey.shade300,
+                              fontWeight: FontWeight.w500,
+                            ),
+                      ),
+                    ],
                   ],
                 ),
               ),

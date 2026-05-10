@@ -31,7 +31,7 @@ class TransitJourneyService implements TransitJourneyServiceFacade {
   }
 
   @override
-  List<TransitFacade> getJourneyLegs(
+  Iterable<TransitFacade> getJourneyLegs(
       String? journeyId, TransitFacade fallback) {
     if (journeyId == null) {
       return [fallback];

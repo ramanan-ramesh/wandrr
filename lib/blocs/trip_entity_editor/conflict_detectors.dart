@@ -125,10 +125,17 @@ class JourneyConflictDetector
   /// When false: All leg IDs are excluded to avoid self-conflict detection.
   final bool isNewEntity;
 
+  /// IDs of legs that have been staged for deletion in the editor but not yet
+  /// written to Firestore.  They are still present in the transit collection,
+  /// so without explicit exclusion the scanner would report a conflict between
+  /// a remaining leg and a deleted one.
+  final Set<String> removedLegIds;
+
   JourneyConflictDetector({
     required this.legs,
     required super.scanner,
     required this.isNewEntity,
+    this.removedLegIds = const {},
   });
 
   @override
@@ -141,15 +148,19 @@ class JourneyConflictDetector
     final allStayConflicts = <StayConflict>[];
     final allSightConflicts = <SightConflict>[];
 
-    // Collect IDs of all legs to exclude from conflict detection
+    // Collect IDs of all legs to exclude from conflict detection.
+    // Also exclude any legs staged for deletion (still in the collection but
+    // logically gone from this editing session).
     final legIds = legs
         .where((leg) => leg.id != null && leg.id!.isNotEmpty)
         .map((leg) => leg.id!)
-        .toSet();
+        .toSet()
+      ..addAll(removedLegIds);
 
     // For new entities, we don't have IDs yet, so no exclusions
     final exclusions = isNewEntity
-        ? const ScanExclusions()
+        ? ScanExclusions.forTransits(
+            removedLegIds) // still exclude removed legs
         : ScanExclusions.forTransits(legIds);
 
     for (final leg in legs) {

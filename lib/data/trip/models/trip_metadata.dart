@@ -85,7 +85,15 @@ class TripMetadataFacade extends Equatable
     return errors;
   }
 
+  // Sort contributors before comparison so order differences (e.g. from
+  // different Firestore read orders) don't produce false inequality.
   @override
-  List<Object?> get props =>
-      [id, startDate, endDate, name, contributors, budget];
+  List<Object?> get props => [
+        id,
+        startDate,
+        endDate,
+        name,
+        ([...contributors]..sort()),
+        budget,
+      ];
 }

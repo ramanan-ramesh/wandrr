@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/presentation/app/widgets/auto_complete.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/transit/airport_data_editor_section.dart';
@@ -22,17 +25,18 @@ class TravelEditorForm {
 
   Finder get transitOptionPicker => find.descendant(
       of: find.byType(TravelEditor),
-      matching: find
-          .byKey(const ValueKey('TransitEditor_TransitOptionPicker_DropdownButton')));
+      matching: find.byKey(
+          const ValueKey('TransitEditor_TransitOptionPicker_DropdownButton')));
 
   Finder get transitOperatorEditingField => find.descendant(
       of: find.byType(TravelEditor),
-      matching:
-          find.byKey(const ValueKey('TransitEditor_TransitOperator_TextField')));
+      matching: find
+          .byKey(const ValueKey('TransitEditor_TransitOperator_TextField')));
 
   Finder get confirmationIdEditingField => find.descendant(
       of: find.byType(TravelEditor),
-      matching: find.byKey(const ValueKey('TransitEditor_ConfirmationId_TextField')));
+      matching:
+          find.byKey(const ValueKey('TransitEditor_ConfirmationId_TextField')));
 
   Finder get airportLocationAutoCompleteTextField => find.descendant(
       of: find.byType(AirportsDataEditorSection),
@@ -67,8 +71,32 @@ class TravelEditorForm {
 
   Finder get airlineNumberTextField => find.descendant(
       of: find.byType(FlightDetailsEditor),
+      matching: find
+          .byKey(const ValueKey('FlightDetailsEditor_FlightNumber_TextField')));
+
+  Finder get departurePlatformEditingField => find.descendant(
+      of: find.byType(TravelEditor),
+      matching: find.byKey(
+          const ValueKey('JourneyPointEditor_Platform_TextField_Departure')));
+
+  Finder get arrivalPlatformEditingField => find.descendant(
+      of: find.byType(TravelEditor),
+      matching: find.byKey(
+          const ValueKey('JourneyPointEditor_Platform_TextField_Arrival')));
+
+  Finder get activeUserSeatEditingField => find.descendant(
+      of: find.byType(TravelEditor),
       matching:
-          find.byKey(const ValueKey('FlightDetailsEditor_FlightNumber_TextField')));
+          find.byKey(const ValueKey('TravelEditor_ActiveUserSeat_TextField')));
+
+  Finder get expandSeatsButton => find.descendant(
+      of: find.byType(TravelEditor),
+      matching: find.byKey(const ValueKey('TravelEditor_ExpandSeats_Button')));
+
+  Finder tripmateSeatEditingField(String userName) => find.descendant(
+      of: find.byType(TravelEditor),
+      matching: find
+          .byKey(ValueKey('TravelEditor_TripmateSeat_TextField_$userName')));
 
   // Select a transit option from drop-down
   Future<void> selectTransitOption(
@@ -123,4 +151,87 @@ class TravelEditorForm {
     print(
         '[OK] Departure "$departureLocation" -> Arrival "$arrivalLocation" set');
   }
+}
+
+/// Opens the Transit creator bottom-sheet and navigates into the TravelEditor.
+Future<void> openTransitCreatorPage(WidgetTester tester) async {
+  await openCreatorAndNavigateToEditor(
+    tester,
+    entityName: 'Transit',
+    icon: Icons.flight,
+    title: 'Travel Entry',
+    subTitle: 'Add transit information',
+    editorType: TravelEditor,
+  );
+  print('[OK] Transit creator opened');
+}
+
+/// Taps the ConflictAwareActionPage FAB to submit the transit form, awaits the
+/// newly-added [TransitFacade] from the collection stream, then runs [onTransitAdded].
+///
+/// [form] must be the same [TravelEditorForm] instance used to fill the form fields.
+Future<void> submitTransitAndVerify(
+  WidgetTester tester,
+  TravelEditorForm form, {
+  required Future<void> Function(TransitFacade transit) onTransitAdded,
+}) async {
+  // Subscribe BEFORE tapping so no event is missed.
+  final collection =
+      TestHelpers.getTripRepository(tester).activeTrip!.transitCollection;
+  final completer = Completer<TransitFacade>();
+  late StreamSubscription<CollectionItemChangeMetadata<TransitFacade>> sub;
+  sub = collection.onDocumentAdded.listen((event) async {
+    if (event.isFromExplicitAction && !completer.isCompleted) {
+      completer.complete(event.collectionItemChange);
+      await sub.cancel();
+    }
+  });
+
+  final fab = form.commonFormElements.createTripEntityButton;
+  expect(fab, findsOneWidget,
+      reason: 'ConflictAwareActionPage submit FAB must be present and enabled');
+  await TestHelpers.tapWidget(tester, fab);
+  print('[OK] Tapped ConflictAwareActionPage FAB -> submitted transit');
+
+  // Keep pumping until TravelEditor is dismissed or timeout.
+  final deadline = DateTime.now().add(const Duration(seconds: 15));
+  while (DateTime.now().isBefore(deadline)) {
+    await tester.pump(const Duration(milliseconds: 200));
+    if (find.byType(TravelEditor).evaluate().isEmpty) {
+      break;
+    }
+  }
+  await Future.delayed(const Duration(seconds: 5), () {
+    if (find.byType(TravelEditor).evaluate().isEmpty) {
+      return;
+    }
+  });
+
+  // Verify TravelEditor is dismissed.
+  expect(find.byType(TravelEditor), findsNothing,
+      reason:
+          'TravelEditor must be dismissed after Firestore operation completes');
+  print('[OK] Bottom-sheet dismissed');
+
+  // Await the stream event.
+  TransitFacade? transit;
+  if (completer.isCompleted) {
+    transit = await completer.future;
+  } else {
+    transit = await completer.future.timeout(
+      const Duration(seconds: 5),
+      onTimeout: () async {
+        await sub.cancel();
+        throw TestFailure(
+            'transitCollection.onDocumentAdded did not fire after editor dismissal');
+      },
+    );
+  }
+  await sub.cancel();
+
+  print(
+      '[OK] transitCollection.onDocumentAdded received: $transit (id: ${transit.id})');
+
+  await tester.pumpAndSettle();
+  await onTransitAdded(transit);
 }

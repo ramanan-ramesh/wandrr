@@ -14,7 +14,8 @@ abstract class TransitJourneyServiceFacade {
 
   /// Returns all legs for a journey, or a single-element list with [fallback]
   /// if [journeyId] is null or the journey is not found.
-  List<TransitFacade> getJourneyLegs(String? journeyId, TransitFacade fallback);
+  Iterable<TransitFacade> getJourneyLegs(
+      String? journeyId, TransitFacade fallback);
 
   /// If the provided list of legs has only one leg remaining, removes the journey ID from it.
   /// Returns `true` if it cleaned up a lone leg, `false` otherwise.

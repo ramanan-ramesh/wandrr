@@ -24,9 +24,9 @@ abstract class ModelCollectionModifier<TModel>
     extends ModelCollectionFacade<TModel> implements Dispose {
   CollectionDocument<TModel> Function(TModel) get collectionDocumentCreator;
 
-  Future<TModel?> tryAdd(TModel toAdd);
+  void tryAdd(TModel toAdd);
 
-  Future<bool> tryDeleteItem(TModel toDelete);
+  void tryDeleteItem(TModel toDelete);
 
-  Future<bool> tryUpdateItem(TModel toUpdate);
+  void tryUpdateItem(TModel toUpdate);
 }

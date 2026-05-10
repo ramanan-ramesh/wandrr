@@ -40,6 +40,7 @@ class TravelEditor extends StatefulWidget {
 
 class _TravelEditorState extends State<TravelEditor> {
   TransitFacade get _transitFacade => widget.transitFacade;
+  bool _isSeatsExpanded = false;
 
   @override
   void didUpdateWidget(covariant TravelEditor oldWidget) {
@@ -60,8 +61,10 @@ class _TravelEditorState extends State<TravelEditor> {
           transitFacade: _transitFacade,
           onLocationChanged: _updateLocation,
           onDateTimeChanged: _updateDateTime,
+          onPlatformChanged: _updatePlatform,
           minDepartureDateTime: widget.minDepartureDateTime,
         ),
+        _buildSeatNumbersSection(),
         if (_needsPriorBooking) _buildConfirmationIdSection(),
         _buildNotesSection(),
         if (_needsPriorBooking) _createPaymentDetailsSection(context),
@@ -90,6 +93,80 @@ class _TravelEditorState extends State<TravelEditor> {
             isEditable: true,
             callback: _handleExpenseUpdated,
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSeatNumbersSection() {
+    final activeUserName = context.activeUser?.userName;
+    final allContributors = context.activeTrip.tripMetadata.contributors;
+    
+    _transitFacade.seatNumbers ??= {};
+    
+    final otherContributors = allContributors.where((c) => c != activeUserName).toList();
+    
+    return EditorTheme.createSection(
+      context: context,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (activeUserName != null && allContributors.contains(activeUserName))
+            TextFormField(
+              key: const ValueKey('TravelEditor_ActiveUserSeat_TextField'),
+              decoration: InputDecoration(
+                labelText: 'My Seat Number',
+                prefixIcon: const Icon(Icons.event_seat_rounded),
+                suffixIcon: IconButton(
+                  key: const ValueKey('TravelEditor_ExpandSeats_Button'),
+                  icon: Icon(_isSeatsExpanded ? Icons.expand_less : Icons.expand_more),
+                  onPressed: () => setState(() => _isSeatsExpanded = !_isSeatsExpanded),
+                ),
+                filled: true,
+                fillColor: Colors.transparent,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              initialValue: _transitFacade.seatNumbers![activeUserName] ?? '',
+              onChanged: (val) {
+                _transitFacade.seatNumbers![activeUserName] = val;
+                widget.onTransitUpdated(needsRebuild: false);
+              },
+            ),
+          if (_isSeatsExpanded && otherContributors.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, left: 12, right: 12),
+              child: Column(
+                children: otherContributors.map((userName) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: TextFormField(
+                      key: ValueKey('TravelEditor_TripmateSeat_TextField_$userName'),
+                      decoration: InputDecoration(
+                        label: Text(
+                          '$userName\'s Seat',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        prefixIcon: const Icon(Icons.event_seat_outlined),
+                        filled: true,
+                        fillColor: Colors.transparent,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      initialValue: _transitFacade.seatNumbers![userName] ?? '',
+                      onChanged: (val) {
+                        _transitFacade.seatNumbers![userName] = val;
+                        widget.onTransitUpdated(needsRebuild: false);
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
         ],
       ),
     );
@@ -131,6 +208,7 @@ class _TravelEditorState extends State<TravelEditor> {
     setState(() {
       _clearOperatorIfNotNeeded(newOption);
       _clearFlightDataIfSwitchingFromFlight(newOption);
+      _clearPlatformAndSeatsIfNotNeeded(newOption);
       _transitFacade.transitOption = newOption;
     });
     widget.onTransitUpdated(needsRebuild: true);
@@ -145,6 +223,21 @@ class _TravelEditorState extends State<TravelEditor> {
 
     if (optionsWithoutOperator.contains(option)) {
       _transitFacade.operator = null;
+    }
+  }
+
+  void _clearPlatformAndSeatsIfNotNeeded(TransitOption option) {
+    final isSupported = option == TransitOption.bus ||
+        option == TransitOption.flight ||
+        option == TransitOption.train ||
+        option == TransitOption.ferry ||
+        option == TransitOption.cruise ||
+        option == TransitOption.publicTransport;
+
+    if (!isSupported) {
+      _transitFacade.departurePlatform = null;
+      _transitFacade.arrivalPlatform = null;
+      _transitFacade.seatNumbers = null;
     }
   }
 
@@ -249,6 +342,15 @@ class _TravelEditorState extends State<TravelEditor> {
     });
     widget.onTransitUpdated(needsRebuild: true);
   }
+
+  void _updatePlatform({required bool isArrival, String? newPlatform}) {
+    if (isArrival) {
+      _transitFacade.arrivalPlatform = newPlatform;
+    } else {
+      _transitFacade.departurePlatform = newPlatform;
+    }
+    widget.onTransitUpdated(needsRebuild: false);
+  }
 }
 
 class _JourneySection extends StatelessWidget {
@@ -257,6 +359,8 @@ class _JourneySection extends StatelessWidget {
       onLocationChanged;
   final void Function(DateTime updatedDateTime, {required bool isArrival})
       onDateTimeChanged;
+  final void Function({required bool isArrival, String? newPlatform})
+      onPlatformChanged;
 
   /// Minimum allowed departure date time (e.g., previous leg's arrival time)
   final DateTime? minDepartureDateTime;
@@ -265,6 +369,7 @@ class _JourneySection extends StatelessWidget {
     required this.transitFacade,
     required this.onLocationChanged,
     required this.onDateTimeChanged,
+    required this.onPlatformChanged,
     Key? key,
     this.minDepartureDateTime,
   }) : super(key: key);
@@ -345,6 +450,8 @@ class _JourneySection extends StatelessWidget {
       },
       onDateTimeChanged: (updatedDateTime) =>
           onDateTimeChanged(updatedDateTime, isArrival: !isDeparture),
+      platform: isDeparture ? transitFacade.departurePlatform : transitFacade.arrivalPlatform,
+      onPlatformChanged: (newPlatform) => onPlatformChanged(isArrival: !isDeparture, newPlatform: newPlatform),
       // Pass min departure time constraint for connecting legs
       minDateTime: isDeparture ? minDepartureDateTime : null,
     );

@@ -39,10 +39,6 @@ class JourneyEditorState extends State<JourneyEditor> {
   /// from the repository when the FAB (save) is tapped.
   final List<TransitFacade> _removedLegs = [];
 
-  /// When reducing to a single leg we must also strip the journeyId from it
-  /// in the repository.  Track it here so [saveAllLegs] can issue the update.
-  TransitFacade? _remainingLegJourneyIdUpdate;
-
   /// Get all legs in this journey (for saving)
   List<TransitFacade> get legs => List.unmodifiable(_legs);
 
@@ -73,12 +69,31 @@ class JourneyEditorState extends State<JourneyEditor> {
   /// Also flushes legs that were removed via [_removeLeg] since they are
   /// deferred until the user confirms with the FAB, not deleted immediately.
   ///
-  /// Returns the number of dispatched update events so the caller can track
-  /// completion.
+  /// Returns the number of BLoC events that will
+  /// produce a `UpdatedTripEntity<TransitFacade>` state, which
+  /// `ConflictAwareActionPage` uses as `_pendingOperations` to know when to pop.
+  ///
+  /// **Counting rules** (see `FirestoreModelCollection` class-level doc):
+  ///
+  /// - DELETE  → always 1 event per removed leg (Firestore always echoes
+  ///   `removed`). Count unconditionally.
+  ///
+  /// - CREATE  → 1 event only when `leg.id == null`.
+  ///   `TripEntityUpdateHandler._handleCreate` skips legs whose id is a
+  ///   non-null empty string, so those produce no event.
+  ///
+  /// - UPDATE  → 1 event only when the leg differs from the version already
+  ///   in `transitCollection`.  Firestore does **not** send a `modified` echo
+  ///   for no-op writes (identical data), so counting an identical update would
+  ///   stall `_pendingOperations` at 1 and prevent the page from popping.
+  ///   Note: `_remainingLegJourneyIdUpdate` (the lone leg whose `journeyId` was
+  ///   cleared in-memory) is already present in [_legs] and is handled here via
+  ///   the same comparison — no separate step needed.
   int saveAllLegs(BuildContext context) {
     var operationCount = 0;
+    final collection = context.activeTrip.transitCollection;
 
-    // 1. Delete legs that were removed during this editing session.
+    // 1. Delete legs removed during this editing session.
     for (final leg in _removedLegs) {
       context.addTripManagementEvent(
         UpdateTripEntity<TransitFacade>.delete(tripEntity: leg),
@@ -87,55 +102,59 @@ class JourneyEditorState extends State<JourneyEditor> {
     }
     _removedLegs.clear();
 
-    // 2. If the journey was reduced to one leg, persist the journeyId removal.
-    if (_remainingLegJourneyIdUpdate != null) {
-      context.addTripManagementEvent(
-        UpdateTripEntity<TransitFacade>.update(
-            tripEntity: _remainingLegJourneyIdUpdate!),
-      );
-      _remainingLegJourneyIdUpdate = null;
-      operationCount++;
-    }
-
-    // 3. Create / update the remaining active legs.
+    // 2. Create / update the remaining active legs.
     for (final leg in _legs) {
       final isNew = leg.id == null || leg.id!.isEmpty;
       if (isNew) {
         context.addTripManagementEvent(
             UpdateTripEntity<TransitFacade>.create(tripEntity: leg));
+        // _handleCreate skips non-null ids (including ""); only null → tryAdd
+        // → Firestore echo → event.
+        if (leg.id == null) {
+          operationCount++;
+        }
       } else {
-        context.addTripManagementEvent(
-            UpdateTripEntity<TransitFacade>.update(tripEntity: leg));
+        // Only dispatch when the leg has actually changed vs what is stored.
+        // Firestore does not send a `modified` event for identical writes, so
+        // counting a no-op update would leave _pendingOperations stuck at > 0.
+        final stored =
+            collection.items.where((t) => t.id == leg.id).firstOrNull;
+        if (stored == null || stored != leg) {
+          context.addTripManagementEvent(
+              UpdateTripEntity<TransitFacade>.update(tripEntity: leg));
+          operationCount++;
+        }
       }
-      operationCount++;
     }
 
     return operationCount;
   }
+
+  /// IDs of legs staged for deletion — passed to the conflict scanner so that
+  /// removed legs are not reported as conflicts against remaining legs.
+  Set<String> _removedLegIds() => _removedLegs
+      .where((l) => l.id != null && l.id!.isNotEmpty)
+      .map((l) => l.id!)
+      .toSet();
 
   void _initializeLegs() {
     _journeyId = widget.initialLeg.journeyId;
 
     // Reset any deferred removal state from a previous editing session.
     _removedLegs.clear();
-    _remainingLegJourneyIdUpdate = null;
 
     // Use service to load legs – returns all journey legs or a single-element
     // list when there's no journey.
-    final serviceLeg =
-        _journeyService.getJourneyLegs(_journeyId, widget.initialLeg);
-    _legs = serviceLeg.map((l) => l.clone()).toList();
+    _legs =
+        _journeyService.getJourneyLegs(_journeyId, widget.initialLeg).toList();
 
     _sortLegs();
     // Find the index of the clicked leg after sorting
-    var expandedIndex = 0;
-    for (var i = 0; i < _legs.length; i++) {
-      if (_legs[i].id == widget.initialLeg.id) {
-        expandedIndex = i;
-        break;
-      }
-    }
-    _expandedStates = List.generate(_legs.length, (i) => i == expandedIndex);
+    final indexOfInitialTransit =
+        _legs.indexWhere((leg) => leg.id == widget.initialLeg.id);
+    final expandedLegIndex =
+        indexOfInitialTransit >= 0 ? indexOfInitialTransit : 0;
+    _expandedStates = List.generate(_legs.length, (i) => i == expandedLegIndex);
     _isInitialized = true;
   }
 
@@ -215,10 +234,8 @@ class JourneyEditorState extends State<JourneyEditor> {
         _journeyId = null;
 
         // If the remaining leg is already persisted we must strip its journeyId
-        // in the repository too – defer until the FAB is tapped.
-        if (_legs.first.id != null && _legs.first.id!.isNotEmpty) {
-          _remainingLegJourneyIdUpdate = _legs.first;
-        }
+        // in the repository too — handled via the change-comparison in saveAllLegs
+        // (the leg's journeyId is already null in-memory so stored != leg).
       }
     });
 
@@ -230,7 +247,10 @@ class JourneyEditorState extends State<JourneyEditor> {
 
     // Notify the TripEntityEditorBloc about the new journey shape so that
     // conflict detection re-runs with the updated leg list.
-    context.addTripEntityEditorEvent<TransitFacade>(UpdateJourney(_legs));
+    // Pass removed leg IDs so the scanner excludes them — they are still in
+    // the Firestore collection but logically gone from this editing session.
+    context.addTripEntityEditorEvent<TransitFacade>(
+        UpdateJourney(_legs, removedLegIds: _removedLegIds()));
 
     widget.onJourneyUpdated();
   }
@@ -241,7 +261,8 @@ class JourneyEditorState extends State<JourneyEditor> {
     if (needsRebuild) {
       setState(_sortLegs);
       // Time or location might have changed, trigger conflict scan
-      context.addTripEntityEditorEvent<TransitFacade>(UpdateJourney(_legs));
+      context.addTripEntityEditorEvent<TransitFacade>(
+          UpdateJourney(_legs, removedLegIds: _removedLegIds()));
     }
     widget.onJourneyUpdated();
   }

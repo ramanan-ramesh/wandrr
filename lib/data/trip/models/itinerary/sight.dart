@@ -93,7 +93,19 @@ class SightFacade extends Equatable
     return sightDescription;
   }
 
+  // Normalise nullable-but-semantically-empty string fields so that null and
+  // "" compare equal (e.g. id = "" for new entries vs null from Firestore).
+  static String? _n(String? s) => (s == null || s.isEmpty) ? null : s;
+
   @override
-  List<Object?> get props =>
-      [tripId, id, name, location, visitTime, expense, description, day];
+  List<Object?> get props => [
+        tripId,
+        _n(id),
+        name,
+        location,
+        visitTime,
+        expense,
+        _n(description),
+        day
+      ];
 }

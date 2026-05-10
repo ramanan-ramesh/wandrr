@@ -90,12 +90,14 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
       _editorBloc.editableEntity,
       _onEntityUpdated,
     );
+    _pendingOperations = 0;
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     _editorBloc.close();
+    _pendingOperations = 0;
     super.dispose();
   }
 

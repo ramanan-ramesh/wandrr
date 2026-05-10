@@ -469,6 +469,7 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
     - Subtitle (contextual detail, e.g., location name).
     - Notes preview (if any).
     - Confirmation ID badge (if any).
+    - Platform/Terminal (if any).
 - Tapping an event opens its editor.
 - Swiping an event offers a delete option.
 
@@ -537,8 +538,13 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 4. **Arrival:** Location search with autocomplete + date-time picker. For flights, airport-specific
    search.
 5. **Confirmation ID (conditional):** Shown only for bookable types. Optional.
-6. **Notes:** Optional expandable text area.
-7. **Payment Details (Expense):** Shared expense editing component.
+6. **Platform / Terminal:** Entered per location (Departure/Arrival) in the location editor.
+7. **Notes:** Optional expandable text area.
+8. **Payment Details (Expense):** Shared expense editing component.
+9. **Seat Numbers:** Managing seat numbers for all tripmates. Managed via an expandable section under the departure/arrival details.
+   - Shows active user's seat by default.
+   - Expandable to show all tripmates (email-based usernames).
+   - Handles long usernames with truncation.
 
 ### REQ-TR-002 — Validation
 
@@ -574,6 +580,16 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
   Europe/Amsterdam), the region is shown once with both cities: "Europe: Berlin → Amsterdam".
 - If the locations are in different regions, both full timezone strings are shown: "America/New
   York → Europe/London".
+
+### REQ-TR-007 — Platform / Terminal per Location
+- Platform or Terminal information is associated with specific locations (Departure/Arrival) rather than the transit leg as a whole.
+- The input field is only visible after a location is selected.
+
+### REQ-TR-008 — Seat Number Management UI
+- Seat numbers are managed via a specialized section.
+- Primary input for the current user is always visible.
+- An "Expand" option reveals input fields for all tripmates.
+- Usernames (which may be long email addresses) are truncated with ellipsis to prevent layout overflow.
 
 ---
 

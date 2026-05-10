@@ -6,7 +6,6 @@ import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
-import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/transit_journey_service.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -215,8 +214,8 @@ class TimelineEventFactory {
   }) {
     final metadata = context.getTransitOptionMetadata(transit.transitOption);
 
-    final depCity = _getCityName(transit.departureLocation);
-    final arrCity = _getCityName(transit.arrivalLocation);
+    final depLocation = transit.departureLocation?.toString() ?? '?';
+    final arrLocation = transit.arrivalLocation?.toString() ?? '?';
 
     String title;
     String subtitle;
@@ -224,14 +223,14 @@ class TimelineEventFactory {
     if (isMultiDay) {
       // Multi-day journey: show directional narrative instead of "A → B"
       if (isDepartureDayView) {
-        title = 'Departing $depCity to $arrCity';
+        title = 'Departing $depLocation to $arrLocation';
         final depTime =
             transit.departureDateTime?.hourMinuteAmPmFormat ?? '--:--';
         final operatorInfo = _formatter.getTransitOperatorInfo(transit);
         subtitle =
             '$depTime${operatorInfo.isNotEmpty ? ' • $operatorInfo' : ''}';
       } else {
-        title = 'Arriving at $arrCity from $depCity';
+        title = 'Arriving at $arrLocation from $depLocation';
         final arrTime =
             transit.arrivalDateTime?.hourMinuteAmPmFormat ?? '--:--';
         final operatorInfo = _formatter.getTransitOperatorInfo(transit);
@@ -239,14 +238,7 @@ class TimelineEventFactory {
             '$arrTime${operatorInfo.isNotEmpty ? ' • $operatorInfo' : ''}';
       }
     } else {
-      // Same-day journey: existing compact "A → B" logic
-      if (depCity == arrCity && depCity != '?') {
-        final depName = _getPlaceName(transit.departureLocation);
-        final arrName = _getPlaceName(transit.arrivalLocation);
-        title = '$depName → $arrName ($depCity)';
-      } else {
-        title = '$depCity → $arrCity';
-      }
+      title = '$depLocation → $arrLocation';
       final depTime =
           transit.departureDateTime?.hourMinuteAmPmFormat ?? '--:--';
       final arrTime = transit.arrivalDateTime?.hourMinuteAmPmFormat ?? '--:--';
@@ -271,41 +263,6 @@ class TimelineEventFactory {
       notes: transit.notes,
       confirmationId: transit.confirmationId,
     );
-  }
-
-  /// Get city name from location, preferring city over full name
-  String _getCityName(dynamic location) {
-    if (location == null) {
-      return '?';
-    }
-    if (location is LocationFacade) {
-      // Try to get city first, then name from context
-      final city = location.context.city;
-      if (city != null && city.isNotEmpty) {
-        return city;
-      }
-      final name = location.context.name;
-      if (name.isNotEmpty) {
-        return name;
-      }
-      return '?';
-    }
-    return '?';
-  }
-
-  /// Get place name from location (the specific place, not the city)
-  String _getPlaceName(dynamic location) {
-    if (location == null) {
-      return '?';
-    }
-    if (location is LocationFacade) {
-      final name = location.context.name;
-      if (name.isNotEmpty) {
-        return name;
-      }
-      return '?';
-    }
-    return '?';
   }
 
   /// Returns true when [a] and [b] fall on the same calendar day.

@@ -1,4 +1,4 @@
-﻿import 'dart:typed_data';
+import 'dart:typed_data';
 
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
@@ -522,6 +522,11 @@ class TripPrintService {
               if (t.operator != null && t.operator!.isNotEmpty)
                 pw.Text(t.operator!,
                     style: const pw.TextStyle(fontSize: 8, color: _muted)),
+              if (_platformAndSeatsWidget(t) != null)
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(top: 1),
+                  child: _platformAndSeatsWidget(t)!,
+                ),
             ]));
   }
 
@@ -551,6 +556,11 @@ class TripPrintService {
                       color: _black)),
               pw.Text(time,
                   style: const pw.TextStyle(fontSize: 8, color: _mid)),
+              if (_platformAndSeatsWidget(t, isArrival: true) != null)
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(top: 1),
+                  child: _platformAndSeatsWidget(t, isArrival: true)!,
+                ),
             ]));
   }
 
@@ -584,6 +594,11 @@ class TripPrintService {
                       color: _black)),
               pw.Text('Depart $depTime  \u2022  Arrive $arrTime',
                   style: const pw.TextStyle(fontSize: 8, color: _mid)),
+              if (_platformAndSeatsWidget(firstLeg) != null)
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(top: 1),
+                  child: _platformAndSeatsWidget(firstLeg)!,
+                ),
             ]));
   }
 
@@ -666,6 +681,42 @@ class TripPrintService {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────
+
+  pw.Widget? _platformAndSeatsWidget(TransitFacade t, {bool? isArrival}) {
+    final isFlight = t.transitOption == TransitOption.flight;
+    final platformLabel = isFlight ? 'Terminal' : 'Platform';
+
+    final parts = <String>[];
+
+    if (isArrival == null || !isArrival) {
+      if (t.departurePlatform != null && t.departurePlatform!.isNotEmpty) {
+        parts.add(
+            '${isArrival == null ? "Dep " : ""}$platformLabel: ${t.departurePlatform}');
+      }
+    }
+
+    if (isArrival == null || isArrival) {
+      if (t.arrivalPlatform != null && t.arrivalPlatform!.isNotEmpty) {
+        parts.add(
+            '${isArrival == null ? "Arr " : ""}$platformLabel: ${t.arrivalPlatform}');
+      }
+    }
+
+    if (t.seatNumbers != null && t.seatNumbers!.isNotEmpty) {
+      final seatStrings = t.seatNumbers!.entries
+          .where((e) => e.value.isNotEmpty)
+          .map((e) => '${e.key} (${e.value})')
+          .join(', ');
+      if (seatStrings.isNotEmpty) {
+        parts.add('Seats: $seatStrings');
+      }
+    }
+
+    if (parts.isEmpty) return null;
+
+    return pw.Text(parts.join('  \u2022  '),
+        style: const pw.TextStyle(fontSize: 8, color: _dark));
+  }
 
   List<TransitFacade> _filterTransits(
       List<TransitFacade> transits, PrintOptions options) {

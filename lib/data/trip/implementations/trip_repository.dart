@@ -79,10 +79,6 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
       _tripDataCache[tripMetadata.id!] = tripToCache;
     }
     if (activateTrip) {
-      if (activeTrip != null &&
-          activeTrip!.tripMetadata.id != tripMetadata.id) {
-        await activeTrip!.dispose();
-      }
       activeTrip = _tripDataCache[tripMetadata.id];
     }
     return _tripDataCache[tripMetadata.id]!;

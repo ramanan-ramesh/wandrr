@@ -35,6 +35,12 @@ class TransitFacade extends Equatable
 
   String? notes;
 
+  String? departurePlatform;
+
+  String? arrivalPlatform;
+
+  Map<String, String>? seatNumbers;
+
   @override
   ExpenseFacade expense;
 
@@ -62,6 +68,9 @@ class TransitFacade extends Equatable
       this.confirmationId,
       this.id,
       this.operator,
+      this.departurePlatform,
+      this.arrivalPlatform,
+      this.seatNumbers,
       String? notes})
       : notes = notes ?? '';
 
@@ -92,7 +101,10 @@ class TransitFacade extends Equatable
       confirmationId: confirmationId,
       id: id,
       operator: operator,
-      notes: notes);
+      notes: notes,
+      departurePlatform: departurePlatform,
+      arrivalPlatform: arrivalPlatform,
+      seatNumbers: seatNumbers != null ? Map.from(seatNumbers!) : null);
 
   void copyWith(TransitFacade transitModelFacade) {
     transitOption = transitModelFacade.transitOption;
@@ -105,6 +117,11 @@ class TransitFacade extends Equatable
     confirmationId = transitModelFacade.confirmationId;
     operator = transitModelFacade.operator;
     notes = transitModelFacade.notes;
+    departurePlatform = transitModelFacade.departurePlatform;
+    arrivalPlatform = transitModelFacade.arrivalPlatform;
+    seatNumbers = transitModelFacade.seatNumbers != null
+        ? Map.from(transitModelFacade.seatNumbers!)
+        : null;
   }
 
   @override
@@ -190,6 +207,12 @@ class TransitFacade extends Equatable
     return true;
   }
 
+  // Normalise nullable-but-semantically-empty values so that a field written
+  // as null by one code path and "" / {} by another compares equal.
+  static String? _n(String? s) => (s == null || s.isEmpty) ? null : s;
+  static Map<K, V>? _nm<K, V>(Map<K, V>? m) =>
+      (m == null || m.isEmpty) ? null : m;
+
   @override
   List<Object?> get props => [
         tripId,
@@ -199,11 +222,14 @@ class TransitFacade extends Equatable
         departureLocation,
         arrivalLocation,
         expense,
-        journeyId,
-        confirmationId,
+        _n(journeyId),
+        _n(confirmationId),
         id,
-        operator,
-        notes
+        _n(operator),
+        _n(notes),
+        _n(departurePlatform),
+        _n(arrivalPlatform),
+        _nm(seatNumbers),
       ];
 }
 

@@ -18,10 +18,18 @@ class UpdateEntity<T extends TripEntity<Enum>> extends TripEntityEditorEvent {
 /// Carries all current in-memory legs so the bloc can validate cross-leg
 /// sequence and individual legs before running conflict detection.
 /// The bloc instantiates the journey service internally from tripData.
+///
+/// [removedLegIds] — IDs of legs that have been staged for deletion in the
+/// editor but not yet written to Firestore.  They must be excluded from the
+/// conflict scanner so that a leg whose time now overlaps a *deleted* leg does
+/// not produce a spurious conflict.
 class UpdateJourney extends TripEntityEditorEvent {
   final List<TransitFacade> legs;
 
-  const UpdateJourney(this.legs);
+  /// IDs of legs removed in this editing session (staged, not yet persisted).
+  final Set<String> removedLegIds;
+
+  const UpdateJourney(this.legs, {this.removedLegIds = const {}});
 }
 
 class UpdateConflictedEntityTimeRange extends TripEntityEditorEvent {

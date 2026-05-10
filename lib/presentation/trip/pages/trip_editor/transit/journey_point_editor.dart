@@ -17,6 +17,8 @@ class JourneyPointEditor extends StatelessWidget {
   final bool isDeparture;
   final ValueChanged<LocationFacade?> onLocationChanged;
   final ValueChanged<DateTime> onDateTimeChanged;
+  final String? platform;
+  final ValueChanged<String?> onPlatformChanged;
 
   /// Minimum allowed date time for this point
   /// For departure: this is the previous leg's arrival time (for connecting legs)
@@ -24,7 +26,7 @@ class JourneyPointEditor extends StatelessWidget {
   final DateTime? minDateTime;
 
   const JourneyPointEditor({
-    required this.transitFacade, required this.isDeparture, required this.onLocationChanged, required this.onDateTimeChanged, Key? key,
+    required this.transitFacade, required this.isDeparture, required this.onLocationChanged, required this.onDateTimeChanged, required this.platform, required this.onPlatformChanged, Key? key,
     this.minDateTime,
   }) : super(key: key);
 
@@ -86,8 +88,43 @@ class JourneyPointEditor extends StatelessWidget {
                 ),
           const SizedBox(height: 12),
           _createDateTimeDetails(startDateTime, endDateTime, location),
+          if (location != null && _supportsPlatform()) ...[
+            const SizedBox(height: 12),
+            _buildPlatformField(context),
+          ],
         ],
       ),
+    );
+  }
+
+  bool _supportsPlatform() {
+    final option = transitFacade.transitOption;
+    return option == TransitOption.bus ||
+        option == TransitOption.flight ||
+        option == TransitOption.train ||
+        option == TransitOption.ferry ||
+        option == TransitOption.cruise ||
+        option == TransitOption.publicTransport;
+  }
+
+  Widget _buildPlatformField(BuildContext context) {
+    final isFlight = transitFacade.transitOption == TransitOption.flight;
+    final platformLabel = isFlight ? 'Terminal' : 'Platform';
+
+    return TextFormField(
+      key: ValueKey('JourneyPointEditor_Platform_TextField_${isDeparture ? 'Departure' : 'Arrival'}'),
+      decoration: InputDecoration(
+        labelText: platformLabel,
+        prefixIcon: Icon(isFlight ? Icons.flight_takeoff_rounded : Icons.train_rounded),
+        filled: true,
+        fillColor: Colors.transparent,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+      initialValue: platform,
+      onChanged: onPlatformChanged,
     );
   }
 
