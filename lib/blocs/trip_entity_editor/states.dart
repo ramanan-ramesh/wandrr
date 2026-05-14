@@ -8,16 +8,18 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 //
 // State taxonomy:
 //   [TripEntityInitialized]          – initial
-//   [EntityValidationUpdated]        – validation errors changed
+//   [EntityValidationUpdated]        – validation errors changed (signal only)
 //   [ConflictPlanUpdated]            – conflict plan changed (created/modified/cleared)
 //   [ConflictPlanConfirmed]          – user confirmed plan
 //   [ConflictedEntityTimeRangeError] – invalid time on a conflicted item
 //   [EntitySubmitted]                – final submission
+//
+// Validation errors are NOT carried on states. Read them from
+// `TripEntityEditorBloc.currentValidationErrors` whenever the UI needs them.
 // =============================================================================
 
 abstract class TripEntityEditorState<T extends TripEntity<Enum>> {
-  final Iterable<Enum> validationErrors;
-  const TripEntityEditorState({this.validationErrors = const []});
+  const TripEntityEditorState();
 }
 
 // ---------------------------------------------------------------------------
@@ -28,23 +30,22 @@ abstract class TripEntityEditorState<T extends TripEntity<Enum>> {
 class TripEntityInitialized<T extends TripEntity<Enum>>
     extends TripEntityEditorState<T> {
   final T editableEntity;
-  const TripEntityInitialized(this.editableEntity,
-      {Iterable<Enum> validationErrors = const []})
-      : super(validationErrors: validationErrors);
+  const TripEntityInitialized(this.editableEntity);
 }
 
-/// Emitted when entity content is updated to reflect new validation errors.
+/// Signal state emitted when validation errors change.
+/// Carries the current error set so the bloc can cache it and callers that
+/// only listen to this state type don't need a separate getter call.
 class EntityValidationUpdated<T extends TripEntity<Enum>>
     extends TripEntityEditorState<T> {
-  const EntityValidationUpdated({Iterable<Enum> validationErrors = const []})
-      : super(validationErrors: validationErrors);
+  final Iterable<Enum> validationErrors;
+  const EntityValidationUpdated({this.validationErrors = const []});
 }
 
 /// Emitted when the user confirms the conflict plan.
 class ConflictPlanConfirmed<T extends TripEntity<Enum>>
     extends TripEntityEditorState<T> {
-  const ConflictPlanConfirmed({Iterable<Enum> validationErrors = const []})
-      : super(validationErrors: validationErrors);
+  const ConflictPlanConfirmed();
 }
 
 /// Emitted when final submission happens.
@@ -55,22 +56,23 @@ class EntitySubmitted<T extends TripEntity<Enum>>
   /// Plan at time of submission – carried here since submission consumes it once.
   final TripEntityUpdatePlan<T>? currentPlan;
 
-  const EntitySubmitted(this.editableEntity, this.currentPlan,
-      {Iterable<Enum> validationErrors = const []})
-      : super(validationErrors: validationErrors);
+  const EntitySubmitted(this.editableEntity, this.currentPlan);
 }
 
 /// Emitted when editing a conflicted entity results in an unresolvable conflict.
 /// UI Response: show error snackbar; revert the conflicted entity's time values.
+/// The UI is responsible for building the error message from [conflictingEntity]
+/// (e.g. via its [toString] or a localised description based on its type).
 class ConflictedEntityTimeRangeError<T extends TripEntity<Enum>>
     extends TripEntityEditorState<T> {
   final EntityChangeBase change;
-  final String errorMessage;
+
+  /// The entity that [change]'s modified time conflicts with.
+  final TripEntity conflictingEntity;
+
   final dynamic oldTimeValues;
   const ConflictedEntityTimeRangeError(
-      this.change, this.errorMessage, this.oldTimeValues,
-      {Iterable<Enum> validationErrors = const []})
-      : super(validationErrors: validationErrors);
+      this.change, this.conflictingEntity, this.oldTimeValues);
 }
 
 // ---------------------------------------------------------------------------
@@ -85,6 +87,5 @@ class ConflictedEntityTimeRangeError<T extends TripEntity<Enum>>
 /// plan reference has been updated.
 class ConflictPlanUpdated<T extends TripEntity<Enum>>
     extends TripEntityEditorState<T> {
-  const ConflictPlanUpdated({Iterable<Enum> validationErrors = const []})
-      : super(validationErrors: validationErrors);
+  const ConflictPlanUpdated();
 }

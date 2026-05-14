@@ -72,18 +72,28 @@ class TripEntityDataUpdatePlanService {
       itineraryCollection.prepareSightUpdates(batch, plan.sightChanges);
     }
 
+    // Derive added contributors for metadata plans; empty for all other plans.
+    final Iterable<String> addedContributors;
+    if (plan is TripEntityUpdatePlan<TripMetadataFacade>) {
+      final oldMeta = plan.oldEntity as TripMetadataFacade;
+      final newMeta = plan.newEntity as TripMetadataFacade;
+      addedContributors =
+          newMeta.contributors.where((c) => !oldMeta.contributors.contains(c));
+    } else {
+      addedContributors = const [];
+    }
+
     // Process transit changes
     _processChanges<TransitFacade>(plan.transitChanges, plan.expenseChanges,
-        plan.addedContributors, transitCollection, batch);
+        addedContributors, transitCollection, batch);
 
     // Process stay changes
     _processChanges<LodgingFacade>(plan.stayChanges, plan.expenseChanges,
-        plan.addedContributors, lodgingCollection, batch);
+        addedContributors, lodgingCollection, batch);
 
     // Process standalone expense changes
     if (plan is TripEntityUpdatePlan<TripMetadataFacade>) {
-      _processExpenseChanges(
-          plan.expenseChanges, plan.addedContributors, batch);
+      _processExpenseChanges(plan.expenseChanges, addedContributors, batch);
     }
 
     // Commit all changes atomically
@@ -104,7 +114,7 @@ class TripEntityDataUpdatePlanService {
       if (change.isDelete) {
         final doc = modelCollection.collectionDocumentCreator(change.original);
         batch.delete(doc.documentReference);
-      } else if (change.isUpdate &&
+      } else if (change.action == ChangeAction.update &&
           change.modified.getValidationErrors().isEmpty) {
         // Add new contributors to expense splitBy if needed
         final expenseChange = expenseChanges.singleOrNull;

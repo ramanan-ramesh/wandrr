@@ -179,8 +179,10 @@ class ConflictResolutionResult {
   /// Whether the time change is valid (no unresolvable conflict with editable entity)
   final bool isValid;
 
-  /// Error message if invalid
-  final String? errorMessage;
+  /// The trip entity that the modified change conflicts with, when [isValid] is
+  /// false.  The UI is responsible for constructing an appropriate message from
+  /// this (e.g. via its [toString] or a localised description).
+  final TripEntity? conflictingEntity;
 
   /// The original change that was modified
   final EntityChangeBase? modifiedChange;
@@ -193,14 +195,15 @@ class ConflictResolutionResult {
 
   const ConflictResolutionResult._({
     required this.isValid,
-    this.errorMessage,
+    this.conflictingEntity,
     this.modifiedChange,
     this.affectedChanges = const [],
     this.newConflicts = const [],
   });
 
-  factory ConflictResolutionResult.invalid(String message) {
-    return ConflictResolutionResult._(isValid: false, errorMessage: message);
+  factory ConflictResolutionResult.invalid(TripEntity conflictingEntity) {
+    return ConflictResolutionResult._(
+        isValid: false, conflictingEntity: conflictingEntity);
   }
 
   factory ConflictResolutionResult.valid({
@@ -337,6 +340,11 @@ class UnifiedConflictScanner {
   /// For each conflict found, it attempts to clamp the conflicting entity.
   /// If clamping fails, the entity is marked for deletion.
   ///
+  /// For journey (multi-leg transit) editing, pass all current legs via
+  /// [editingJourneyLegs].  When non-empty, each leg is checked individually
+  /// against the modified entity using [ConflictRules.isConflicting] (with the
+  /// leg as source); [editableEntityRange] is ignored in that case.
+  ///
   /// Returns a [ConflictResolutionResult] containing all affected changes.
   ConflictResolutionResult resolveConflictedEntityTimeChange({
     required EntityChangeBase modifiedChange,
@@ -345,23 +353,39 @@ class UnifiedConflictScanner {
     required List<StayChange> existingStayChanges,
     required List<TransitChange> existingTransitChanges,
     required List<SightChange> existingSightChanges,
+    List<TransitFacade> editingJourneyLegs = const [],
   }) {
     final modifiedRange = _getTimeRangeFromChange(modifiedChange);
     if (modifiedRange == null) {
       return ConflictResolutionResult.valid(modifiedChange: modifiedChange);
     }
 
-    // Step 1: Check conflict with editable entity
-    if (editableEntityRange != null) {
+    // Step 1: Check conflict with editable entity / journey legs.
+    //
+    // For journey editing every leg is an independent editing "boundary" —
+    // the modified entity must not conflict with any of them.
+    if (editingJourneyLegs.isNotEmpty) {
+      for (final leg in editingJourneyLegs) {
+        if (leg.departureDateTime == null || leg.arrivalDateTime == null) {
+          continue;
+        }
+        final legRange = TimeRange(
+          start: leg.departureDateTime!,
+          end: leg.arrivalDateTime!,
+        );
+        if (ConflictRules.isConflicting(modifiedRange.analyzePosition(legRange),
+            leg, modifiedChange.modified)) {
+          return ConflictResolutionResult.invalid(leg);
+        }
+      }
+    } else if (editableEntityRange != null) {
       final position = modifiedRange.analyzePosition(editableEntityRange);
       final isConflicting = editableEntity is TripMetadataFacade
           ? ConflictRules._isMetadataConflict(position)
           : ConflictRules.isStandardConflict(position);
 
       if (isConflicting) {
-        return ConflictResolutionResult.invalid(
-          "Cannot conflict with the entity being edited",
-        );
+        return ConflictResolutionResult.invalid(editableEntity);
       }
     }
 

@@ -12,7 +12,7 @@ enum ChangeAction { update, delete }
 abstract class EntityChangeBase<T extends TripEntity<Enum>> {
   final T original;
   T modified;
-  ChangeAction _action;
+  ChangeAction action;
 
   /// Whether times were auto-clamped to resolve conflict
   bool isClamped;
@@ -20,24 +20,22 @@ abstract class EntityChangeBase<T extends TripEntity<Enum>> {
   EntityChangeBase({
     required this.original,
     required this.modified,
-    ChangeAction action = ChangeAction.update,
+    this.action = ChangeAction.update,
     this.isClamped = false,
-  }) : _action = action;
+  });
 
-  bool get isUpdate => _action == ChangeAction.update;
+  bool get isDelete => action == ChangeAction.delete;
 
-  bool get isDelete => _action == ChangeAction.delete;
-
-  bool get isMarkedForDeletion => _action == ChangeAction.delete;
+  bool get isMarkedForDeletion => action == ChangeAction.delete;
 
   /// A conflict is resolved if it's clamped OR marked for deletion
   bool get isResolved => isClamped || isMarkedForDeletion;
 
   void markAsResolved() => isClamped = true;
 
-  void markForDeletion() => _action = ChangeAction.delete;
+  void markForDeletion() => action = ChangeAction.delete;
 
-  void restore() => _action = ChangeAction.update;
+  void restore() => action = ChangeAction.update;
 }
 
 /// Change for entities with date/time conflicts (stays, transits, sights)
@@ -110,7 +108,8 @@ class DateTimeChange<T extends TripEntity<Enum>> extends EntityChangeBase<T> {
 }
 
 /// Change for expense split updates (when contributors change)
-class ExpenseSplitChange extends EntityChangeBase<ExpenseBearingTripEntity<Enum>> {
+class ExpenseSplitChange
+    extends EntityChangeBase<ExpenseBearingTripEntity<Enum>> {
   /// Whether to include new contributors in splitBy for this expense
   bool includeInSplitBy;
 

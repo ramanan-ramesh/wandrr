@@ -63,77 +63,25 @@ class TripEntityUpdatePlan<T extends TripEntity<Enum>> {
   /// Reset confirmation
   void resetConfirmation() => _isConfirmed = false;
 
-  /// Contributors added (only for TripMetadata)
-  Iterable<String> get addedContributors {
-    if (oldEntity is! TripMetadataFacade || newEntity is! TripMetadataFacade) {
-      return const [];
-    }
-    final oldMeta = oldEntity as TripMetadataFacade;
-    final newMeta = newEntity as TripMetadataFacade;
-    return newMeta.contributors.where((c) => !oldMeta.contributors.contains(c));
-  }
-
-  /// Contributors removed (only for TripMetadata)
-  Iterable<String> get removedContributors {
-    if (oldEntity is! TripMetadataFacade || newEntity is! TripMetadataFacade) {
-      return const [];
-    }
-    final oldMeta = oldEntity as TripMetadataFacade;
-    final newMeta = newEntity as TripMetadataFacade;
-    return oldMeta.contributors.where((c) => !newMeta.contributors.contains(c));
-  }
-
-  // =========================================================================
-  // Expense Selection (Tri-State)
-  // =========================================================================
-
-  /// Tri-state for expense selection: null = some, true = all, false = none
-  bool? get expenseSelectionState {
-    if (expenseChanges.isEmpty) {
-      return false;
-    }
-    final selectedCount =
-        expenseChanges.where((e) => e.includeInSplitBy).length;
-    if (selectedCount == 0) {
-      return false;
-    }
-    if (selectedCount == expenseChanges.length) {
-      return true;
-    }
-    return null;
-  }
-
-  void selectAllExpenses() {
+  void includeContributorInAllExpenses() {
     for (final c in expenseChanges) {
       c.includeInSplitBy = true;
     }
   }
 
-  void deselectAllExpenses() {
+  void removeContributorFromAllExpenses() {
     for (final c in expenseChanges) {
       c.includeInSplitBy = false;
     }
   }
 
-  void toggleExpenseSelection() {
-    if (expenseSelectionState == true) {
-      deselectAllExpenses();
+  void toggleExpenseState() {
+    final allSelected = expenseChanges.isNotEmpty &&
+        expenseChanges.every((e) => e.includeInSplitBy);
+    if (allSelected) {
+      removeContributorFromAllExpenses();
     } else {
-      selectAllExpenses();
-    }
-  }
-
-  /// Syncs expense deletion state when an ExpenseBearingTripEntity is deleted/restored
-  void syncExpenseDeletionState(TripEntity<Enum> entity, {required bool isDeleted}) {
-    for (final change in expenseChanges) {
-      if (change.original.id == entity.id) {
-        if (isDeleted) {
-          change.markForDeletion();
-        } else {
-          change.restore();
-        }
-        break;
-      }
+      includeContributorInAllExpenses();
     }
   }
 

@@ -17,7 +17,37 @@ import 'itinerary_plan_data_implementation.dart';
 /// package-internal: they are only called from [ItineraryCollection] which
 /// stores and manages instances of this type directly.
 class ItineraryModelImplementation implements ItineraryFacade {
-  @override
+  // ── factory / constructor ─────────────────────────────────────────────────
+
+  static ItineraryModelImplementation createInstance({
+    required String tripId,
+    required DateTime day,
+    required Iterable<TransitFacade> transits,
+    required LodgingFacade? checkinLodging,
+    required LodgingFacade? checkoutLodging,
+    required LodgingFacade? fullDayLodging,
+    ItineraryPlanDataModelImplementation? planData,
+  }) {
+    final planDataId = day.itineraryDateFormat;
+    return ItineraryModelImplementation._(
+      tripId: tripId,
+      day: day,
+      planData: planData ??
+          ItineraryPlanDataModelImplementation(
+            tripId: tripId,
+            day: day,
+            id: planDataId,
+            sights: const [],
+            notes: const [],
+            checkLists: const [],
+          ),
+      transits: transits.toList(),
+      checkInLodging: checkinLodging,
+      checkOutLodging: checkoutLodging,
+      fullDayLodging: fullDayLodging,
+    );
+  }
+
   final String tripId;
 
   @override
@@ -45,16 +75,19 @@ class ItineraryModelImplementation implements ItineraryFacade {
   @override
   LodgingFacade? get checkInLodging => _checkInLodging?.clone();
   LodgingFacade? _checkInLodging;
+
   set checkInLodging(LodgingFacade? v) => _checkInLodging = v;
 
   @override
   LodgingFacade? get checkOutLodging => _checkOutLodging?.clone();
   LodgingFacade? _checkOutLodging;
+
   set checkOutLodging(LodgingFacade? v) => _checkOutLodging = v;
 
   @override
   LodgingFacade? get fullDayLodging => _fullDayLodging?.clone();
   LodgingFacade? _fullDayLodging;
+
   set fullDayLodging(LodgingFacade? v) => _fullDayLodging = v;
 
   // ── plan data ─────────────────────────────────────────────────────────────
@@ -99,7 +132,7 @@ class ItineraryModelImplementation implements ItineraryFacade {
   // ── TripEntity / Equatable ────────────────────────────────────────────────
 
   @override
-  String get id => day.toIso8601String();
+  String get id => day.itineraryDateFormat;
 
   @override
   ItineraryFacade clone() => ItineraryModelImplementation._(
@@ -130,37 +163,6 @@ class ItineraryModelImplementation implements ItineraryFacade {
       errors.add(ItineraryValidationError.duplicateLodging);
     }
     return errors;
-  }
-
-  // ── factory / constructor ─────────────────────────────────────────────────
-
-  static ItineraryModelImplementation createInstance({
-    required String tripId,
-    required DateTime day,
-    required Iterable<TransitFacade> transits,
-    required LodgingFacade? checkinLodging,
-    required LodgingFacade? checkoutLodging,
-    required LodgingFacade? fullDayLodging,
-    ItineraryPlanDataModelImplementation? planData,
-  }) {
-    final planDataId = day.itineraryDateFormat;
-    return ItineraryModelImplementation._(
-      tripId: tripId,
-      day: day,
-      planData: planData ??
-          ItineraryPlanDataModelImplementation(
-            tripId: tripId,
-            day: day,
-            id: planDataId,
-            sights: const [],
-            notes: const [],
-            checkLists: const [],
-          ),
-      transits: transits.toList(),
-      checkInLodging: checkinLodging,
-      checkOutLodging: checkoutLodging,
-      fullDayLodging: fullDayLodging,
-    );
   }
 
   ItineraryModelImplementation._({

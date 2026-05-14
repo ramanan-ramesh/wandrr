@@ -31,6 +31,7 @@ enum LodgingValidationError {
 
 enum ItineraryPlanDataValidationError {
   sightInvalid,
+  sightsVisitTimesOverlap,
   noteEmpty,
   checkListTitleNotValid,
   checkListItemEmpty,

@@ -119,7 +119,8 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
                 } else if (state is ConflictedEntityTimeRangeError) {
                   final errorState = state as ConflictedEntityTimeRangeError;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(errorState.errorMessage)),
+                    SnackBar(
+                        content: Text(errorState.conflictingEntity.toString())),
                   );
                 }
               },
@@ -211,10 +212,15 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
                           padding: const EdgeInsets.only(bottom: bottomPadding),
                           child: BlocBuilder<TripEntityEditorBloc<T>,
                               TripEntityEditorState<T>>(
+                            buildWhen: (_, current) =>
+                                current is EntityValidationUpdated,
                             builder: (context, state) {
+                              final errors =
+                                  (state as EntityValidationUpdated<T>)
+                                      .validationErrors;
                               return ValidationErrorSubpage<T>(
                                 onBackPressed: _navigateToEditor,
-                                errors: state.validationErrors,
+                                errors: errors,
                               );
                             },
                           ),
@@ -232,19 +238,21 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
                   child: Center(
                     child: BlocBuilder<TripEntityEditorBloc<T>,
                         TripEntityEditorState<T>>(
-                      buildWhen: (previous, current) =>
+                      buildWhen: (_, current) =>
                           current is ConflictPlanUpdated ||
                           current is ConflictPlanConfirmed ||
-                          current is EntityValidationUpdated ||
-                          previous.validationErrors.length !=
-                              current.validationErrors.length,
+                          current is EntityValidationUpdated,
                       builder: (context, state) {
                         final conflictPlan = context.tripEntityUpdatePlan<T>();
                         final hasUnresolvedConflicts = conflictPlan != null &&
                             conflictPlan.hasConflicts &&
                             !conflictPlan.isConfirmed;
+                        // Validation errors are only non-empty in the
+                        // EntityValidationUpdated state; ConflictPlanUpdated /
+                        // ConflictPlanConfirmed imply validation passed.
                         final hasValidationErrors =
-                            state.validationErrors.isNotEmpty;
+                            state is EntityValidationUpdated<T> &&
+                                state.validationErrors.isNotEmpty;
                         return _createActionButton(context,
                             hasUnresolvedConflicts, hasValidationErrors);
                       },
@@ -308,8 +316,10 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
 
   Widget _buildAppBar(BuildContext context, int conflictsCount) {
     final isLightTheme = context.isLightTheme;
-    final validationErrorCount = context.select(
-        (TripEntityEditorBloc<T> bloc) => bloc.state.validationErrors.length);
+    final validationErrorCount = context.select((TripEntityEditorBloc<T> bloc) {
+      final s = bloc.state;
+      return s is EntityValidationUpdated<T> ? s.validationErrors.length : 0;
+    });
 
     return AppBar(
       leading: _pageIndex != 0

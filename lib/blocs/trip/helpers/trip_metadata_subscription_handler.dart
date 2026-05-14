@@ -19,7 +19,9 @@ typedef CreateTripMetadataEvent = TripManagementEvent Function(
 class TripMetadataSubscriptionHandler {
   final ModelCollectionFacade<TripMetadataFacade> _tripMetadataCollection;
   final SubscriptionManager _subscriptionManager;
-  final TripDataModelEventHandler? _activeTrip;
+
+  /// Returns the currently active trip at the time of an event (not captured at construction).
+  final TripDataModelEventHandler? Function() _getActiveTrip;
   final bool Function() _isBlocClosed;
   final void Function(TripManagementEvent) _addEvent;
   final OnTripMetadataChanged _onDateChanged;
@@ -30,7 +32,7 @@ class TripMetadataSubscriptionHandler {
   TripMetadataSubscriptionHandler({
     required ModelCollectionFacade<TripMetadataFacade> tripMetadataCollection,
     required SubscriptionManager subscriptionManager,
-    required TripDataModelEventHandler? activeTrip,
+    required TripDataModelEventHandler? Function() getActiveTrip,
     required bool Function() isBlocClosed,
     required void Function(TripManagementEvent) addEvent,
     required OnTripMetadataChanged onDateChanged,
@@ -39,7 +41,7 @@ class TripMetadataSubscriptionHandler {
     required CreateTripMetadataEvent createDeleteEvent,
   })  : _tripMetadataCollection = tripMetadataCollection,
         _subscriptionManager = subscriptionManager,
-        _activeTrip = activeTrip,
+        _getActiveTrip = getActiveTrip,
         _isBlocClosed = isBlocClosed,
         _addEvent = addEvent,
         _onDateChanged = onDateChanged,
@@ -121,16 +123,27 @@ class TripMetadataSubscriptionHandler {
     _subscriptionManager.addTripRepositorySubscription(subscription);
   }
 
-  /// Checks if the event should be ignored (not for active trip)
+  /// Returns true when the event should not be forwarded to the bloc.
+  /// Events for trips other than the active one are suppressed when a trip
+  /// is active; all events are processed when no trip is loaded (home screen).
   bool _shouldIgnoreEvent(String? eventId) {
-    return _activeTrip != null && _activeTrip!.tripMetadata.id != eventId;
+    final activeTrip = _getActiveTrip();
+    return activeTrip != null && activeTrip.tripMetadata.id != eventId;
   }
 
-  /// Handles trip date changes and recreates itinerary subscriptions if needed
+  /// Handles trip date changes and recreates itinerary subscriptions if needed.
+  /// Only acts when the updated metadata belongs to the currently active trip.
   void _handleDateChanges(
       CollectionItemChangeMetadata<Changeset<TripMetadataFacade>> eventData) {
     final updatedMetadata = eventData.collectionItemChange.afterUpdate;
     final beforeUpdate = eventData.collectionItemChange.beforeUpdate;
+
+    // Ignore date-change handling for trips other than the active one.
+    final activeTrip = _getActiveTrip();
+    if (activeTrip == null ||
+        activeTrip.tripMetadata.id != updatedMetadata.id) {
+      return;
+    }
 
     final hasStartDateChanged =
         !beforeUpdate.startDate!.isOnSameDayAs(updatedMetadata.startDate!);

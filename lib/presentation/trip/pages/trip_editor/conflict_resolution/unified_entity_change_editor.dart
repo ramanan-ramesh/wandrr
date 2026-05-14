@@ -42,6 +42,8 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
     required void Function(EntityChangeBase change) onDeletionToggled,
     Key? key,
   }) {
+    final oldMeta = updatePlan.oldEntity;
+    final newMeta = updatePlan.newEntity;
     return UnifiedEntityChangeEditor(
       key: key,
       updatePlan: updatePlan,
@@ -49,8 +51,10 @@ class UnifiedEntityChangeEditor extends StatefulWidget {
       onTimeRangeUpdated: onTimeRangeUpdated,
       onDeletionToggled: onDeletionToggled,
       expenseChanges: updatePlan.expenseChanges,
-      addedContributors: updatePlan.addedContributors,
-      removedContributors: updatePlan.removedContributors,
+      addedContributors:
+          newMeta.contributors.where((c) => !oldMeta.contributors.contains(c)),
+      removedContributors:
+          oldMeta.contributors.where((c) => !newMeta.contributors.contains(c)),
     );
   }
 
@@ -658,6 +662,22 @@ class _ExpensesSection extends StatefulWidget {
 class _ExpensesSectionState extends State<_ExpensesSection> {
   bool _isExpanded = false;
 
+  /// Tri-state: true = all selected, false = none, null = some.
+  bool? get _expenseSelectionState {
+    final changes = widget.updatePlan.expenseChanges;
+    if (changes.isEmpty) {
+      return false;
+    }
+    final selectedCount = changes.where((e) => e.includeInSplitBy).length;
+    if (selectedCount == 0) {
+      return false;
+    }
+    if (selectedCount == changes.length) {
+      return true;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final expenseChanges = widget.updatePlan.expenseChanges;
@@ -683,10 +703,10 @@ class _ExpensesSectionState extends State<_ExpensesSection> {
                 children: [
                   // Tri-state checkbox
                   _TriStateCheckbox(
-                    state: widget.updatePlan.expenseSelectionState,
+                    state: _expenseSelectionState,
                     onChanged: () {
                       setState(() {
-                        widget.updatePlan.toggleExpenseSelection();
+                        widget.updatePlan.toggleExpenseState();
                       });
                     },
                   ),

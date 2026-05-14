@@ -41,6 +41,7 @@ class BudgetingService implements BudgetingServiceModifier {
   // Subscription management
   final List<StreamSubscription> _collectionSubscriptions = [];
   final List<StreamSubscription> _itinerarySubscriptions = [];
+  bool _isDisposed = false;
 
   BudgetingService.create({
     required TripDataFacade tripData,
@@ -62,11 +63,23 @@ class BudgetingService implements BudgetingServiceModifier {
         ),
         _expenseSorter = ExpenseSorter(),
         _currencyFormatter = CurrencyFormatter(supportedCurrencies) {
-    _subscribeToCollectionChangeEvents();
+    // Trigger the initial recalculation once all collections are loaded.
+    // This is self-contained so callers don't need to orchestrate it.
+    if (_tripData.isFullyLoadedValue) {
+      _subscribeToCollectionChangeEvents();
+      recalculateTotalExpenditure();
+    } else {
+      _tripData.isFullyLoaded.firstWhere((loaded) => loaded).then((_) {
+        if (!_isDisposed) {
+          recalculateTotalExpenditure();
+        }
+      });
+    }
   }
 
   @override
   Future<void> dispose() async {
+    _isDisposed = true;
     for (final s in _collectionSubscriptions) {
       await s.cancel();
     }
@@ -121,9 +134,9 @@ class BudgetingService implements BudgetingServiceModifier {
   Future recalculateTotalExpenditure(
       {Iterable<TransitFacade> deletedTransits = const [],
       Iterable<LodgingFacade> deletedLodgings = const []}) async {
-    // Refresh itinerary subscriptions to pick up any newly-created itinerary
-    // items (e.g. after a date-range change).
-    _refreshItinerarySubscriptions();
+    if (_isDisposed) {
+      return;
+    }
 
     final updated = await _expenditureCalculator.calculate(
       transits: _tripData.transitCollection,
@@ -139,7 +152,9 @@ class BudgetingService implements BudgetingServiceModifier {
 
     if (_totalExpenditure != updated) {
       _totalExpenditure = updated;
-      _totalExpenditureStreamController.add(_totalExpenditure);
+      if (!_isDisposed) {
+        _totalExpenditureStreamController.add(_totalExpenditure);
+      }
     }
   }
 
@@ -188,7 +203,7 @@ class BudgetingService implements BudgetingServiceModifier {
   /// Subscribes to add/update/delete events on transit, lodging and expense
   /// collections so totals are recalculated automatically.
   void _subscribeToCollectionChangeEvents() {
-    void subscribe(ModelCollectionFacade collection) {
+    void subscribeToCollectionUpdates(ModelCollectionFacade collection) {
       _collectionSubscriptions.add(
         collection.onDocumentAdded.listen((_) => recalculateTotalExpenditure()),
       );
@@ -202,17 +217,20 @@ class BudgetingService implements BudgetingServiceModifier {
       );
     }
 
-    subscribe(_tripData.transitCollection);
-    subscribe(_tripData.lodgingCollection);
-    subscribe(_tripData.expenseCollection);
+    subscribeToCollectionUpdates(_tripData.transitCollection);
+    subscribeToCollectionUpdates(_tripData.lodgingCollection);
+    subscribeToCollectionUpdates(_tripData.expenseCollection);
 
     _refreshItinerarySubscriptions();
   }
 
-  /// Cancels existing itinerary plan-data subscriptions and re-subscribes to
-  /// the current itinerary set.  Called on construction and after each
-  /// recalculation so that new itineraries (e.g. after a date-range change)
-  /// are automatically included.
+  // Called by the bloc after an itinerary date-range change to pick up
+  // newly created / removed itinerary day instances.
+  @override
+  void refreshItinerarySubscriptions() {
+    _refreshItinerarySubscriptions();
+  }
+
   void _refreshItinerarySubscriptions() {
     for (final s in _itinerarySubscriptions) {
       s.cancel();

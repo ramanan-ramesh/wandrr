@@ -4,7 +4,6 @@ import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/services/entity_change.dart';
-import 'package:wandrr/data/trip/models/services/entity_timeline_position.dart';
 import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/services/transit_journey_service.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
@@ -39,9 +38,7 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
   TripEntityUpdatePlan<TEntity>? _currentPlan;
 
   /// For journey editing: the latest full set of legs from the most recent
-  /// [UpdateJourney] event.  Used by [_reconcileWithExistingPlan] to check
-  /// whether an already-resolved conflict entity still conflicts with the
-  /// updated journey legs, avoiding spurious re-clamps.
+  /// [UpdateJourney] event.
   List<TransitFacade> _latestJourneyLegs = [];
 
   /// Journey service instantiated once from tripData. Only used when TEntity
@@ -56,8 +53,7 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
   })  : _tripData = tripData,
         originalEntity = original,
         editableEntity = editable,
-        super(TripEntityInitialized<TEntity>(editable,
-            validationErrors: editable.getValidationErrors())) {
+        super(TripEntityInitialized<TEntity>(editable)) {
     on<UpdateEntity<TEntity>>(_onUpdateEntity);
     on<UpdateJourney>(_onUpdateJourney);
     on<UpdateConflictedEntityTimeRange>(_onUpdateConflictedEntityTimeRange);
@@ -113,18 +109,11 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
       final itinerary = editableEntity as ItineraryPlanData;
       final sights = List<SightFacade>.from(itinerary.sights);
 
-      final overlapError = _checkSightOverlaps(sights);
-      if (overlapError != null) {
-        emit(overlapError);
-        return;
-      }
-
       newPlan =
           _detectItineraryConflicts(sights) as TripEntityUpdatePlan<TEntity>?;
     }
 
-    // Validation already passed — pass empty errors, no re-computation needed.
-    _handlePlanUpdate(newPlan, emit, const []);
+    _handlePlanUpdate(newPlan, emit);
   }
 
   /// Unified handler for transit journey updates. Uses the bloc-level journey
@@ -163,8 +152,7 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
     final newPlan =
         _detectJourneyConflicts(event.legs, removedLegIds: event.removedLegIds)
             as TripEntityUpdatePlan<TEntity>?;
-    // Validation already passed — pass empty errors, no re-computation needed.
-    _handlePlanUpdate(newPlan, emit, const []);
+    _handlePlanUpdate(newPlan, emit);
   }
 
   void _onUpdateConflictedEntityTimeRange(
@@ -182,20 +170,19 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
       existingStayChanges: _currentPlan!.stayChanges,
       existingTransitChanges: _currentPlan!.transitChanges,
       existingSightChanges: _currentPlan!.sightChanges,
+      editingJourneyLegs: _latestJourneyLegs,
     );
 
     if (!result.isValid) {
       emit(ConflictedEntityTimeRangeError<TEntity>(
-          event.change, result.errorMessage!, event.change.original,
-          validationErrors: editableEntity.getValidationErrors()));
+          event.change, result.conflictingEntity!, event.change.original));
       return;
     }
 
     // Merge any newly discovered inter-conflicts.
     _mergeNewConflicts(result.newConflicts);
 
-    emit(ConflictPlanUpdated<TEntity>(
-        validationErrors: editableEntity.getValidationErrors()));
+    emit(const ConflictPlanUpdated());
   }
 
   void _onToggleConflictedEntityDeletion(
@@ -212,11 +199,18 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
     } else {
       event.change.restore();
     }
-    _currentPlan!.syncExpenseDeletionState(event.change.original,
-        isDeleted: newIsDeleted);
+    for (final change in _currentPlan!.expenseChanges) {
+      if (change.original.id == event.change.original.id) {
+        if (newIsDeleted) {
+          change.markForDeletion();
+        } else {
+          change.restore();
+        }
+        break;
+      }
+    }
 
-    emit(ConflictPlanUpdated<TEntity>(
-        validationErrors: editableEntity.getValidationErrors()));
+    emit(const ConflictPlanUpdated());
   }
 
   void _onConfirmConflictPlan(
@@ -224,16 +218,14 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
     Emitter<TripEntityEditorState<TEntity>> emit,
   ) {
     _currentPlan?.confirm();
-    emit(ConflictPlanConfirmed(
-        validationErrors: editableEntity.getValidationErrors()));
+    emit(const ConflictPlanConfirmed());
   }
 
   void _onSubmitEntity(
     SubmitEntity event,
     Emitter<TripEntityEditorState<TEntity>> emit,
   ) {
-    emit(EntitySubmitted<TEntity>(editableEntity, _currentPlan,
-        validationErrors: editableEntity.getValidationErrors()));
+    emit(EntitySubmitted<TEntity>(editableEntity, _currentPlan));
   }
 
   // ===========================================================================
@@ -256,7 +248,6 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
   void _handlePlanUpdate(
     TripEntityUpdatePlan<TEntity>? newPlan,
     Emitter<TripEntityEditorState<TEntity>> emit,
-    Iterable<Enum> knownValidationErrors,
   ) {
     final effectivePlan =
         (newPlan != null && newPlan.hasConflicts) ? newPlan : null;
@@ -270,8 +261,7 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
         : null;
 
     if (_currentPlan != null) {
-      emit(ConflictPlanUpdated<TEntity>(
-          validationErrors: knownValidationErrors));
+      emit(const ConflictPlanUpdated());
     }
   }
 
@@ -301,11 +291,13 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
   ///
   /// For each conflict entity in [newPlan] whose ID is already present in
   /// [_currentPlan]:
-  /// - If the existing (potentially user-modified) change still conflicts with
-  ///   the current editing entity / journey legs → substitute the fresh
-  ///   auto-clamp with the existing change (preserving the user's resolution).
-  /// - If the existing change no longer conflicts → drop it from [newPlan]
-  ///   (the user's resolution has become sufficient — no UI action needed).
+  /// - If the existing (user-modified) change does **not** conflict with the
+  ///   current editing entity / journey legs → the user's resolution is still
+  ///   valid; substitute the fresh auto-clamp with the existing change.
+  /// - If the existing change **does** conflict with the editing entity → the
+  ///   editing entity has moved such that the user's previous adjustment is now
+  ///   invalid.  Keep the fresh auto-clamp so the resolution UI resets to a
+  ///   safe, non-conflicting suggestion.
   ///
   /// Entities in [newPlan] that were never in [_currentPlan] are left as-is
   /// (fresh auto-clamp for newly introduced conflicts).
@@ -330,45 +322,53 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
     for (var i = newChanges.length - 1; i >= 0; i--) {
       final id = newChanges[i].original.id;
       final existing = id != null ? existingById[id] : null;
-      if (existing == null) continue; // new conflict — keep fresh detection
+      if (existing == null) {
+        continue; // new conflict — keep fresh detection
+      }
 
-      if (_existingChangeStillConflicts(existing)) {
-        // Preserve the user's resolution; don't overwrite with a fresh clamp.
+      if (!_existingChangeStillConflicts(existing)) {
         newChanges[i] = existing;
-      } else {
-        // User's resolution is now sufficient — remove from the new plan.
-        newChanges.removeAt(i);
       }
     }
   }
 
-  /// Returns true if [change]'s **modified** (user-resolved) entity still
-  /// conflicts with the current editing context (journey legs or single entity).
+  /// Returns `true` if [existingChange]'s **modified** (user-resolved) entity
+  /// still conflicts with the current editing context (journey legs or single
+  /// entity).
   ///
-  /// Uses [ConflictRules.isConflicting] for the same semantic checks applied
-  /// during conflict detection.
-  bool _existingChangeStillConflicts(EntityChangeBase change) {
+  /// Uses [ConflictRules.isConflicting] with the editing entity as *source* so
+  /// that entity-type-specific rules (e.g. Stay-vs-Transit vs
+  /// Transit-vs-Stay) are applied consistently with the scanner's own scans.
+  ///
+  /// A `true` result means the user's previous adjustment is now invalid
+  /// because the editing entity's range has moved into the conflict entity's
+  /// modified time window.  The caller should discard the existing change and
+  /// fall back to the fresh auto-clamp.
+  ///
+  /// A `false` result means the modified time is still clear of the editing
+  /// entity; the user's resolution can be preserved.
+  bool _existingChangeStillConflicts(EntityChangeBase existingChange) {
     // Extract the modified (resolved) entity and its time range.
     TripEntity? modified;
     TimeRange? modifiedRange;
 
-    if (change is StayChange) {
-      final stay = change.modified;
+    if (existingChange is StayChange) {
+      final stay = existingChange.modified;
       modified = stay;
       if (stay.checkinDateTime != null && stay.checkoutDateTime != null) {
         modifiedRange = TimeRange(
             start: stay.checkinDateTime!, end: stay.checkoutDateTime!);
       }
-    } else if (change is TransitChange) {
-      final transit = change.modified;
+    } else if (existingChange is TransitChange) {
+      final transit = existingChange.modified;
       modified = transit;
       if (transit.departureDateTime != null &&
           transit.arrivalDateTime != null) {
         modifiedRange = TimeRange(
             start: transit.departureDateTime!, end: transit.arrivalDateTime!);
       }
-    } else if (change is SightChange) {
-      final sight = change.modified;
+    } else if (existingChange is SightChange) {
+      final sight = existingChange.modified;
       modified = sight;
       if (sight.visitTime != null) {
         modifiedRange = TimeRange(
@@ -378,11 +378,15 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
     }
 
     if (modified == null || modifiedRange == null) {
-      return true; // conservative: keep if we can't determine range
+      return true; // conservative: treat as conflicting if range is unknown
     }
 
     // For journey editing check against ALL current legs; otherwise check
     // against the single editing entity.
+    //
+    // _getEditableEntityTimeRange() returns null for TransitFacade when
+    // journey legs are present, so the fallback list will be empty and
+    // the method conservatively returns false (no targets = no conflicts).
     final targets = _latestJourneyLegs.isNotEmpty
         ? _latestJourneyLegs
             .where(
@@ -398,9 +402,14 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
               (entity: editableEntity as TripEntity, range: r)
           ];
 
+    // editingEntity is the source so entity-type-specific ConflictRules
+    // branches (e.g. _isStayVsTransitOrSightConflict) match the scanner's own
+    // per-entity scan logic.
     for (final target in targets) {
-      final position = modifiedRange.analyzePosition(target.range);
-      if (ConflictRules.isConflicting(position, modified, target.entity)) {
+      if (ConflictRules.isConflicting(
+          modifiedRange.analyzePosition(target.range),
+          target.entity,
+          modified)) {
         return true;
       }
     }
@@ -475,39 +484,6 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
   // VALIDATION
   // ===========================================================================
 
-  ConflictedEntityTimeRangeError<TEntity>? _checkSightOverlaps(
-      List<SightFacade> sights) {
-    for (var i = 0; i < sights.length; i++) {
-      final s1 = sights[i];
-      if (s1.visitTime == null) {
-        continue;
-      }
-      final r1 = TimeRange(
-          start: s1.visitTime!,
-          end: s1.visitTime!.add(const Duration(minutes: 1)));
-      for (var j = i + 1; j < sights.length; j++) {
-        final s2 = sights[j];
-        if (s2.visitTime == null) {
-          continue;
-        }
-        final r2 = TimeRange(
-            start: s2.visitTime!,
-            end: s2.visitTime!.add(const Duration(minutes: 1)));
-        if (r1.overlapsWith(r2)) {
-          return ConflictedEntityTimeRangeError<TEntity>(
-            SightChange.forClamping(
-                original: s2,
-                modified: s2,
-                timelinePosition: EntityTimelinePosition.isOverlapping),
-            'Sights cannot overlap on the same day',
-            s2.clone(),
-          );
-        }
-      }
-    }
-    return null;
-  }
-
   TimeRange? _getEditableEntityTimeRange() {
     if (editableEntity is LodgingFacade) {
       final s = editableEntity as LodgingFacade;
@@ -515,10 +491,12 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
         return TimeRange(start: s.checkinDateTime!, end: s.checkoutDateTime!);
       }
     } else if (editableEntity is TransitFacade) {
-      final t = editableEntity as TransitFacade;
-      if (t.departureDateTime != null && t.arrivalDateTime != null) {
-        return TimeRange(start: t.departureDateTime!, end: t.arrivalDateTime!);
-      }
+      // For journey editing _latestJourneyLegs is the authoritative source of
+      // the current leg times; editableEntity is an initial snapshot and is
+      // stale after the first UpdateJourney event.  Return null so callers
+      // that need the journey's effective range consult _latestJourneyLegs
+      // directly
+      return null;
     } else if (editableEntity is TripMetadataFacade) {
       final m = editableEntity as TripMetadataFacade;
       if (m.startDate != null && m.endDate != null) {

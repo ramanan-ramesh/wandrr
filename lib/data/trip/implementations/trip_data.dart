@@ -103,6 +103,10 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
   @override
   bool get isFullyLoadedValue => _isFullyLoadedValue;
 
+  /// Subscriptions to each sub-collection's onLoaded stream so we can cancel
+  /// them in dispose and avoid callbacks on a destroyed object.
+  final List<StreamSubscription> _loadedSubscriptions = [];
+
   late final TripEntityDataUpdatePlanService _updatePlanService;
 
   @override
@@ -125,6 +129,10 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
 
   @override
   Future dispose() async {
+    for (final s in _loadedSubscriptions) {
+      await s.cancel();
+    }
+    _loadedSubscriptions.clear();
     await transitCollection.dispose();
     await lodgingCollection.dispose();
     await expenseCollection.dispose();
@@ -140,10 +148,11 @@ class TripDataModelImplementation extends TripDataModelEventHandler {
       this.itineraryCollection,
       this.currencyConverter)
       : _tripMetadataModelImplementation = tripMetadata {
-    transitCollection.onLoaded.listen(checkLoadedStatus);
-    lodgingCollection.onLoaded.listen(checkLoadedStatus);
-    expenseCollection.onLoaded.listen(checkLoadedStatus);
-    itineraryCollection.onLoaded.listen(checkLoadedStatus);
+    _loadedSubscriptions
+      ..add(transitCollection.onLoaded.listen(checkLoadedStatus))
+      ..add(lodgingCollection.onLoaded.listen(checkLoadedStatus))
+      ..add(expenseCollection.onLoaded.listen(checkLoadedStatus))
+      ..add(itineraryCollection.onLoaded.listen(checkLoadedStatus));
     checkLoadedStatus(null);
     _updatePlanService = TripEntityDataUpdatePlanService(
       transitCollection: transitCollection,

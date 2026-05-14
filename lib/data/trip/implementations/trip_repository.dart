@@ -7,10 +7,7 @@ import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/data/store/implementations/firestore_model_collection.dart';
 import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
-import 'package:wandrr/data/trip/implementations/expense.dart';
 import 'package:wandrr/data/trip/implementations/itinerary/itinerary_plan_data_implementation.dart';
-import 'package:wandrr/data/trip/implementations/lodging.dart';
-import 'package:wandrr/data/trip/implementations/transit.dart';
 import 'package:wandrr/data/trip/implementations/trip_metadata.dart';
 import 'package:wandrr/data/trip/implementations/trip_visit_tracker.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
@@ -70,13 +67,13 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   }
 
   @override
-  Future<TripDataModelEventHandler> loadTrip(TripMetadataFacade tripMetadata,
+  TripDataModelEventHandler loadTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository,
-      {required bool activateTrip}) async {
+      {required bool activateTrip}) {
     if (!_tripDataCache.containsKey(tripMetadata.id)) {
-      final tripToCache = TripDataModelImplementation.createInstance(
-          tripMetadata, apiServicesRepository);
-      _tripDataCache[tripMetadata.id!] = tripToCache;
+      _tripDataCache[tripMetadata.id!] =
+          TripDataModelImplementation.createInstance(
+              tripMetadata, apiServicesRepository);
     }
     if (activateTrip) {
       activeTrip = _tripDataCache[tripMetadata.id];
@@ -89,29 +86,20 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
       TripMetadataFacade tripMetadata,
       TripMetadataFacade targetTrip,
       ApiServicesRepositoryFacade apiServicesRepository) async {
-    await loadTrip(tripMetadata, apiServicesRepository, activateTrip: false);
+    loadTrip(tripMetadata, apiServicesRepository, activateTrip: false);
     final tripToCopy = _tripDataCache[tripMetadata.id]!;
 
-    Future<TripMetadataFacade> createCopy() async {
-      final copiedTripMetadata = await TripCopyService.copyTrip(
-          sourceTripData: tripToCopy,
-          targetTripMetadata: targetTrip,
-          apiServicesRepository: apiServicesRepository);
-      await loadTrip(copiedTripMetadata, apiServicesRepository,
-          activateTrip: false);
-      return copiedTripMetadata;
-    }
-
+    // Wait for trip data to be fully loaded before copying.
     if (!tripToCopy.isFullyLoadedValue) {
-      // Wait for trip data to be fully loaded before copying
-      await tripToCopy.isFullyLoaded.listen((isLoaded) async {
-        if (isLoaded) {
-          await createCopy();
-        }
-      }).asFuture();
+      await tripToCopy.isFullyLoaded.firstWhere((isLoaded) => isLoaded);
     }
 
-    return await createCopy();
+    final copiedTripMetadata = await TripCopyService.copyTrip(
+        sourceTripData: tripToCopy,
+        targetTripMetadata: targetTrip,
+        apiServicesRepository: apiServicesRepository);
+    loadTrip(copiedTripMetadata, apiServicesRepository, activateTrip: false);
+    return copiedTripMetadata;
   }
 
   @override
@@ -132,8 +120,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   @override
   Future deleteTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository) async {
-    final tripToDelete = await loadTrip(tripMetadata, apiServicesRepository,
-        activateTrip: false);
+    final tripToDelete =
+        loadTrip(tripMetadata, apiServicesRepository, activateTrip: false);
 
     // Ensure all sub-collections are loaded before building the delete batch,
     // so no data is silently left behind.
@@ -149,39 +137,27 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
         .documentReference);
     for (final itinerary in tripToDelete.itineraryCollection) {
       final itineraryPlanDataModelImplementation =
-          ItineraryPlanDataModelImplementation(
-              tripId: tripMetadata.id!,
-              day: itinerary.day,
-              sights: itinerary.planData.sights,
-              notes: itinerary.planData.notes,
-              checkLists: itinerary.planData.checkLists);
+          ItineraryPlanDataModelImplementation.fromModelFacade(
+              itinerary.planData);
       batch.delete(itineraryPlanDataModelImplementation.documentReference);
     }
-    for (final transit in tripToDelete.transitCollection.items) {
-      final transitModelImplementation =
-          TransitImplementation.fromModelFacade(transitModelFacade: transit);
-      batch.delete(transitModelImplementation.documentReference);
-    }
-    for (final lodging in tripToDelete.lodgingCollection.items) {
-      final lodgingModelImplementation =
-          LodgingModelImplementation.fromModelFacade(
-              lodgingModelFacade: lodging);
-      batch.delete(lodgingModelImplementation.documentReference);
-    }
-    for (final expense in tripToDelete.expenseCollection.items) {
-      final expenseModelImplementation =
-          StandaloneExpenseModelImplementation.fromModelFacade(
-              expenseModelFacade: expense);
-      batch.delete(expenseModelImplementation.documentReference);
+    for (final tripEntity in [
+      tripToDelete.transitCollection,
+      tripToDelete.lodgingCollection,
+      tripToDelete.expenseCollection
+    ]) {
+      for (final tripEntityItem in tripEntity.items) {
+        batch.delete(tripEntity
+            .collectionDocumentCreator(tripEntityItem)
+            .documentReference);
+      }
     }
     batch.delete(FirebaseFirestore.instance
         .collection(FirestoreCollections.tripCollectionName)
         .doc(tripMetadata.id));
     await tripToDelete.dispose();
     await batch.commit();
-    if (_tripDataCache.containsKey(tripMetadata.id)) {
-      _tripDataCache.remove(tripMetadata.id);
-    }
+    _tripDataCache.remove(tripMetadata.id);
     await TripVisitTracker.deleteVisitCount(tripMetadata.id!);
   }
 

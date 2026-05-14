@@ -249,15 +249,15 @@ class _ValidationErrorItem extends StatelessWidget {
       JourneyValidationError.sequenceViolation => 'Legs overlap in time',
       // Lodging
       LodgingValidationError.missingLocation => 'Property location missing',
-      LodgingValidationError.missingCheckinTime =>
-        'Check-in date/time not set',
+      LodgingValidationError.missingCheckinTime => 'Check-in date/time not set',
       LodgingValidationError.missingCheckoutTime =>
         'Check-out date/time not set',
-      LodgingValidationError.invalidTimeSequence =>
-        'Check-out before check-in',
+      LodgingValidationError.invalidTimeSequence => 'Check-out before check-in',
       LodgingValidationError.expenseInvalid => 'Expense details invalid',
       // Itinerary plan data
       ItineraryPlanDataValidationError.sightInvalid => 'A place is incomplete',
+      ItineraryPlanDataValidationError.sightsVisitTimesOverlap =>
+        'Two places share the same visit time',
       ItineraryPlanDataValidationError.noteEmpty => 'A note is empty',
       ItineraryPlanDataValidationError.checkListTitleNotValid =>
         'Checklist title too short',
@@ -330,6 +330,8 @@ class _ValidationErrorItem extends StatelessWidget {
       // Itinerary plan data
       ItineraryPlanDataValidationError.sightInvalid =>
         'Fill in the name and location for every place.',
+      ItineraryPlanDataValidationError.sightsVisitTimesOverlap =>
+        'Each place must have a unique visit time — two places cannot start at the same time.',
       ItineraryPlanDataValidationError.noteEmpty =>
         'Remove or fill in the empty note.',
       ItineraryPlanDataValidationError.checkListTitleNotValid =>
@@ -351,8 +353,7 @@ class _ValidationErrorItem extends StatelessWidget {
       CheckListValidationError.itemEmpty =>
         'Remove or fill in every empty checklist item.',
       // Trip metadata
-      TripMetadataValidationError.missingTitle =>
-        'Enter a name for your trip.',
+      TripMetadataValidationError.missingTitle => 'Enter a name for your trip.',
       TripMetadataValidationError.missingStartDate =>
         'Set the trip start date.',
       TripMetadataValidationError.missingEndDate => 'Set the trip end date.',
@@ -374,5 +375,3 @@ class _ValidationErrorItem extends StatelessWidget {
     };
   }
 }
-
-

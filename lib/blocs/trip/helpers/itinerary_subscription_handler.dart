@@ -7,36 +7,22 @@ typedef OnItineraryUpdated = void Function(CollectionItemChangeMetadata);
 
 /// Handles subscriptions for itinerary plan data
 class ItinerarySubscriptionHandler {
-  final ItineraryFacadeCollectionEventHandler _itineraryCollection;
+  final ItineraryFacadeCollection _itineraryCollection;
   final SubscriptionManager _subscriptionManager;
-  final bool Function() _isBlocClosed;
   final OnItineraryUpdated _onUpdated;
 
   ItinerarySubscriptionHandler({
-    required ItineraryFacadeCollectionEventHandler itineraryCollection,
+    required ItineraryFacadeCollection itineraryCollection,
     required SubscriptionManager subscriptionManager,
-    required bool Function() isBlocClosed,
     required OnItineraryUpdated onUpdated,
   })  : _itineraryCollection = itineraryCollection,
         _subscriptionManager = subscriptionManager,
-        _isBlocClosed = isBlocClosed,
         _onUpdated = onUpdated;
 
   /// Creates subscriptions for all itinerary plan data
   Future<void> createSubscriptions() async {
     for (final itinerary in _itineraryCollection) {
-      final planDataSubscription = itinerary.planDataStream.listen((eventData) {
-        if (eventData.isFromExplicitAction || _isBlocClosed()) {
-          return;
-        }
-
-        final metadata = CollectionItemChangeMetadata(
-          eventData.collectionItemChange,
-          isFromExplicitAction: false,
-        );
-        _onUpdated(metadata);
-      });
-
+      final planDataSubscription = itinerary.planDataStream.listen(_onUpdated);
       _subscriptionManager
           .addItineraryPlanDataSubscription(planDataSubscription);
     }

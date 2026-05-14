@@ -38,4 +38,9 @@ abstract class BudgetingServiceModifier extends BudgetingServiceFacade
       Iterable<LodgingFacade> deletedLodgings = const []});
 
   void updateCurrency(String defaultCurrency);
+
+  /// Re-subscribes to all itinerary plan-data streams.
+  /// Must be called after a trip date-range change so that newly created or
+  /// removed itinerary day instances are picked up.
+  void refreshItinerarySubscriptions();
 }

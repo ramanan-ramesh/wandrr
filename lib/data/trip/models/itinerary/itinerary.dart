@@ -62,5 +62,8 @@ abstract class ItineraryFacadeCollectionEventHandler
     Iterable<SightChange> sightChanges,
   );
 
-  Future<bool> updatePlanData(ItineraryPlanData planData);
+  /// Queues a Firestore write for [planData].  The snapshot listener is the
+  /// sole event source and will emit on [ItineraryFacade.planDataStream] with
+  /// the correct isFromExplicitAction value derived from the pending-IDs set.
+  void updatePlanData(ItineraryPlanData planData);
 }

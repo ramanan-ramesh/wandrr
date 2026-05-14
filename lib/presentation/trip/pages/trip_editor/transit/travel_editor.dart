@@ -101,17 +101,19 @@ class _TravelEditorState extends State<TravelEditor> {
   Widget _buildSeatNumbersSection() {
     final activeUserName = context.activeUser?.userName;
     final allContributors = context.activeTrip.tripMetadata.contributors;
-    
+
     _transitFacade.seatNumbers ??= {};
-    
-    final otherContributors = allContributors.where((c) => c != activeUserName).toList();
-    
+
+    final otherContributors =
+        allContributors.where((c) => c != activeUserName).toList();
+
     return EditorTheme.createSection(
       context: context,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (activeUserName != null && allContributors.contains(activeUserName))
+          if (activeUserName != null &&
+              allContributors.contains(activeUserName))
             TextFormField(
               key: const ValueKey('TravelEditor_ActiveUserSeat_TextField'),
               decoration: InputDecoration(
@@ -119,8 +121,10 @@ class _TravelEditorState extends State<TravelEditor> {
                 prefixIcon: const Icon(Icons.event_seat_rounded),
                 suffixIcon: IconButton(
                   key: const ValueKey('TravelEditor_ExpandSeats_Button'),
-                  icon: Icon(_isSeatsExpanded ? Icons.expand_less : Icons.expand_more),
-                  onPressed: () => setState(() => _isSeatsExpanded = !_isSeatsExpanded),
+                  icon: Icon(
+                      _isSeatsExpanded ? Icons.expand_less : Icons.expand_more),
+                  onPressed: () =>
+                      setState(() => _isSeatsExpanded = !_isSeatsExpanded),
                 ),
                 filled: true,
                 fillColor: Colors.transparent,
@@ -143,10 +147,11 @@ class _TravelEditorState extends State<TravelEditor> {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
                     child: TextFormField(
-                      key: ValueKey('TravelEditor_TripmateSeat_TextField_$userName'),
+                      key: ValueKey(
+                          'TravelEditor_TripmateSeat_TextField_$userName'),
                       decoration: InputDecoration(
                         label: Text(
-                          '$userName\'s Seat',
+                          "$userName's Seat",
                           overflow: TextOverflow.ellipsis,
                         ),
                         prefixIcon: const Icon(Icons.event_seat_outlined),
@@ -450,8 +455,11 @@ class _JourneySection extends StatelessWidget {
       },
       onDateTimeChanged: (updatedDateTime) =>
           onDateTimeChanged(updatedDateTime, isArrival: !isDeparture),
-      platform: isDeparture ? transitFacade.departurePlatform : transitFacade.arrivalPlatform,
-      onPlatformChanged: (newPlatform) => onPlatformChanged(isArrival: !isDeparture, newPlatform: newPlatform),
+      platform: isDeparture
+          ? transitFacade.departurePlatform
+          : transitFacade.arrivalPlatform,
+      onPlatformChanged: (newPlatform) =>
+          onPlatformChanged(isArrival: !isDeparture, newPlatform: newPlatform),
       // Pass min departure time constraint for connecting legs
       minDateTime: isDeparture ? minDepartureDateTime : null,
     );

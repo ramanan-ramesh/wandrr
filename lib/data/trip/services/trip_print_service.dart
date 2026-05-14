@@ -45,7 +45,7 @@ class TripPrintService {
     final startDate = meta.startDate!;
     final endDate = meta.endDate!;
     final totalDays =
-        startDate.calculateDaysInBetween(endDate, includeExtraDay: true);
+        startDate.calculateDaysInBetween(endDate, includeBoundaryDay: true);
 
     // ── Resolve selected transits ─────────────────────────────────────
     final allTransits = tripData.transitCollection.items.toList()
@@ -712,7 +712,9 @@ class TripPrintService {
       }
     }
 
-    if (parts.isEmpty) return null;
+    if (parts.isEmpty) {
+      return null;
+    }
 
     return pw.Text(parts.join('  \u2022  '),
         style: const pw.TextStyle(fontSize: 8, color: _dark));

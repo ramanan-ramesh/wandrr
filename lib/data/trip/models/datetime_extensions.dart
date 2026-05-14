@@ -2,11 +2,11 @@ import 'package:intl/intl.dart';
 
 extension DateTimeExt on DateTime {
   int calculateDaysInBetween(DateTime dateTime,
-      {bool includeExtraDay = false}) {
+      {bool includeBoundaryDay = false}) {
     var startDate = DateTime(year, month, day);
     var endDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
     var numberOfDaysOfTrip = startDate.difference(endDate).inDays;
-    return numberOfDaysOfTrip.abs() + (includeExtraDay ? 1 : 0);
+    return numberOfDaysOfTrip.abs() + (includeBoundaryDay ? 1 : 0);
   }
 
   bool isOnSameDayAs(DateTime dateTime) =>

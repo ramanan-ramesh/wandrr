@@ -64,6 +64,15 @@ class ItineraryPlanData extends Equatable
       errors.add(ItineraryPlanDataValidationError.sightInvalid);
     }
 
+    // Two or more sights sharing the same visit time is a conflict.
+    if (sights.length > 1) {
+      final nonNullTimes =
+          sights.map((s) => s.visitTime).whereType<DateTime>().toList();
+      if (nonNullTimes.toSet().length < nonNullTimes.length) {
+        errors.add(ItineraryPlanDataValidationError.sightsVisitTimesOverlap);
+      }
+    }
+
     if (notes.isNotEmpty && notes.any((note) => note.isEmpty)) {
       errors.add(ItineraryPlanDataValidationError.noteEmpty);
     }
