@@ -5,6 +5,7 @@ import 'package:wandrr/data/store/models/collection_item_change_metadata.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
+import 'package:wandrr/data/trip/models/services/budgeting_service.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
@@ -55,8 +56,12 @@ class NavigateToHome extends TripManagementState {
 
 class ActivatedTrip extends TripManagementState {
   final ApiServicesRepositoryFacade apiServicesRepository;
+  final BudgetingServiceFacade budgetingService;
 
-  const ActivatedTrip({required this.apiServicesRepository});
+  const ActivatedTrip({
+    required this.apiServicesRepository,
+    required this.budgetingService,
+  });
 }
 
 /// Emitted when a trip is loaded for preview (e.g., print) without activating.

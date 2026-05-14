@@ -36,7 +36,6 @@ class TripManagementBloc
   final String _currentUserName;
   ApiServicesRepositoryModifier? _apiServicesRepository;
 
-  BudgetingServiceFacade? get budgetingService => _budgetingService;
   BudgetingServiceModifier? _budgetingService;
 
   // Subscription Helper classes
@@ -171,7 +170,9 @@ class TripManagementBloc
         currentUserName: _currentUserName,
       );
 
-      emit(ActivatedTrip(apiServicesRepository: apiServices));
+      emit(ActivatedTrip(
+          apiServicesRepository: apiServices,
+          budgetingService: _budgetingService!));
     } else {
       final tripInstance = _tripRepository!
           .loadTrip(event.tripMetadata, apiServices, activateTrip: false);
@@ -386,7 +387,7 @@ class TripManagementBloc
 
     // Drive budgeting updates that the service no longer handles internally.
     final plan = event.updatePlan;
-    if (budgetingService != null) {
+    if (_budgetingService != null) {
       var currencyChanged = false;
       var needsRecalculation = plan.hasConflicts;
 

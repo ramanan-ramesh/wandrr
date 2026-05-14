@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/trip/bloc_extensions.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 import '../expenses/expenses_list_view.dart';
 

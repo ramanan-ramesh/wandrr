@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
+import 'package:wandrr/data/trip/models/services/budgeting_service.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
@@ -17,6 +18,9 @@ extension TripRepositoryExtensions on BuildContext {
 
   ApiServicesRepositoryFacade get apiServicesRepository =>
       RepositoryProvider.of<ApiServicesRepositoryFacade>(this);
+
+  BudgetingServiceFacade get budgetingService =>
+      RepositoryProvider.of<BudgetingServiceFacade>(this);
 
   TripDataFacade get activeTrip => tripRepository.activeTrip!;
 

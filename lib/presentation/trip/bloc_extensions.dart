@@ -5,7 +5,6 @@ import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/blocs/trip_entity_editor/bloc.dart';
 import 'package:wandrr/blocs/trip_entity_editor/events.dart';
-import 'package:wandrr/data/trip/models/services/budgeting_service.dart';
 import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 
@@ -14,10 +13,6 @@ import '../../blocs/app/events.dart';
 
 extension BlocProviderExt on BuildContext {
   MasterPageBloc get masterPageBloc => BlocProvider.of<MasterPageBloc>(this);
-
-  /// Read-only budgeting service owned by [TripManagementBloc].
-  BudgetingServiceFacade get budgetingService =>
-      BlocProvider.of<TripManagementBloc>(this).budgetingService!;
 
   TripManagementBloc get tripManagementBloc =>
       BlocProvider.of<TripManagementBloc>(this);

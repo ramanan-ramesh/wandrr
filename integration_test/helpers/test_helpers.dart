@@ -18,6 +18,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_n
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/itinerary_viewer.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
 import 'matchers.dart';
 import 'test_config.dart';
@@ -94,7 +95,7 @@ class TestHelpers {
   static BudgetingServiceFacade getBudgetingService(WidgetTester tester,
       {Type type = TripEditorPage}) {
     final context = tester.element(find.byType(type));
-    return BlocProvider.of<TripManagementBloc>(context).budgetingService!;
+    return context.budgetingService;
   }
 
   /// Create a test trip for trip editor tests

@@ -9,6 +9,7 @@ import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
+import 'package:wandrr/data/trip/models/services/budgeting_service.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/pages/login_page.dart';
@@ -439,6 +440,7 @@ class _TripEditorPageState extends State<_TripEditorPage> {
   bool _hasTriedLoadingTrip = false;
   bool _isLoadingComplete = false;
   ApiServicesRepositoryFacade? _apiServicesRepository;
+  BudgetingServiceFacade? _budgetingService;
 
   final _walkAnimation = SimpleAnimation('Walk');
   final _waveAnimation = SimpleAnimation('Wave');
@@ -609,8 +611,9 @@ class _TripEditorPageState extends State<_TripEditorPage> {
             !_hasTriedLoadingTrip) {
           _tryLoadTrip();
         } else if (state is ActivatedTrip) {
-          // Store the API services repository for later use
+          // Store both services for later use
           _apiServicesRepository = state.apiServicesRepository;
+          _budgetingService = state.budgetingService;
           _tryStopWalkStartWaveAnimation();
         }
       },
@@ -619,6 +622,7 @@ class _TripEditorPageState extends State<_TripEditorPage> {
         // don't show animation - just show an empty placeholder since we're leaving
         if (state is NavigateToHome || state is LoadedRepository) {
           _apiServicesRepository = null;
+          _budgetingService = null;
           return const SizedBox.shrink();
         }
 
@@ -629,19 +633,30 @@ class _TripEditorPageState extends State<_TripEditorPage> {
           return _buildAnimatedLoadingScreen(context);
         }
 
-        // Use stored API services repository if available (handles UpdatedTripEntity states)
-        if (_apiServicesRepository != null) {
-          return RepositoryProvider<ApiServicesRepositoryFacade>.value(
-            value: _apiServicesRepository!,
+        // Use stored repositories if available (handles UpdatedTripEntity states)
+        if (_apiServicesRepository != null && _budgetingService != null) {
+          return MultiRepositoryProvider(
+            providers: [
+              RepositoryProvider<ApiServicesRepositoryFacade>.value(
+                  value: _apiServicesRepository!),
+              RepositoryProvider<BudgetingServiceFacade>.value(
+                  value: _budgetingService!),
+            ],
             child: const TripEditorPage(),
           );
         }
 
-        // If ActivatedTrip state, store and use the repository
+        // If ActivatedTrip state, store and provide both repositories
         if (state is ActivatedTrip) {
           _apiServicesRepository = state.apiServicesRepository;
-          return RepositoryProvider<ApiServicesRepositoryFacade>.value(
-            value: _apiServicesRepository!,
+          _budgetingService = state.budgetingService;
+          return MultiRepositoryProvider(
+            providers: [
+              RepositoryProvider<ApiServicesRepositoryFacade>.value(
+                  value: _apiServicesRepository!),
+              RepositoryProvider<BudgetingServiceFacade>.value(
+                  value: _budgetingService!),
+            ],
             child: const TripEditorPage(),
           );
         }
