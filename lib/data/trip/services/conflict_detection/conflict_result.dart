@@ -1,11 +1,11 @@
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/services/entity_timeline_position.dart';
-import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/entity_timeline_position.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/time_range.dart';
 
 /// Raw conflict data without UI-specific information.
 /// This is pure data - no messages or formatting.
@@ -75,7 +75,9 @@ class MetadataUpdateConflicts extends AggregatedConflicts {
   final TripMetadataFacade newMetadata;
 
   const MetadataUpdateConflicts({
-    required this.oldMetadata, required this.newMetadata, super.transitConflicts = const [],
+    required this.oldMetadata,
+    required this.newMetadata,
+    super.transitConflicts = const [],
     super.stayConflicts = const [],
     super.sightConflicts = const [],
     this.expenseEntities = const [],

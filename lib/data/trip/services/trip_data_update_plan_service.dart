@@ -7,11 +7,11 @@ import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/services/entity_change.dart';
-import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/entity_change.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/trip_entity_update_plan.dart';
 
 /// Unified executor for TripEntityUpdatePlan using Firestore batch writes.
 /// Handles both TripMetadata updates and conflict resolution.

@@ -1,4 +1,4 @@
-import 'package:wandrr/data/trip/models/services/entity_timeline_position.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/entity_timeline_position.dart';
 
 /// Represents a time range with start and end bounds
 class TimeRange {
@@ -80,10 +80,5 @@ class TimeRange {
       }
     }
     return true;
-  }
-
-  //TODO: Use analyzePosition API
-  bool overlapsWith(TimeRange other) {
-    return start.isBefore(other.end) && other.start.isBefore(end);
   }
 }

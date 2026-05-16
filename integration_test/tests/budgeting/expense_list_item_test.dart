@@ -7,8 +7,8 @@ import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/services/budgeting_service.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
+import 'package:wandrr/data/trip/services/budgeting_service.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/expenses_list_view.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/readonly_expense.dart';
 

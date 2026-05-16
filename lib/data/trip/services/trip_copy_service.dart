@@ -3,7 +3,6 @@ import 'package:wandrr/data/store/models/model_collection.dart';
 import 'package:wandrr/data/trip/implementations/collection_names.dart';
 import 'package:wandrr/data/trip/implementations/itinerary/itinerary_plan_data_implementation.dart';
 import 'package:wandrr/data/trip/implementations/trip_metadata.dart';
-import 'package:wandrr/data/trip/models/api_services_repository.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
@@ -21,12 +20,10 @@ class TripCopyService {
   ///
   /// [sourceTripData] - The trip to copy.
   /// [targetTripMetadata] - The trip metadata to use for the new trip.
-  /// [apiServicesRepository] - The API services repository to use for the new trip.
   /// Returns the new [TripMetadataFacade] with its Firestore-generated ID.
   static Future<TripMetadataFacade> copyTrip({
     required TripDataModelEventHandler sourceTripData,
     required TripMetadataFacade targetTripMetadata,
-    required ApiServicesRepositoryFacade apiServicesRepository,
   }) async {
     final sourceTripMetadata = sourceTripData.tripMetadata;
     final dateOffset =

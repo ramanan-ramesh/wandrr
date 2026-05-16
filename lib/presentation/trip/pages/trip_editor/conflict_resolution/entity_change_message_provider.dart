@@ -1,4 +1,4 @@
-import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/trip_entity_update_plan.dart';
 
 /// Context for entity change messages
 enum MessageContext { metadataUpdate, timelineConflict }

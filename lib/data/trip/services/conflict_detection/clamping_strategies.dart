@@ -1,12 +1,24 @@
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/services/entity_timeline_position.dart';
-import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/entity_timeline_position.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/time_range.dart';
 
 // =============================================================================
-// TIME CLAMPING STRATEGIES - Strategy Pattern for entity-specific clamping
+// ENTITY CLAMPING STRATEGY CONTRACT
+// =============================================================================
+
+/// Abstract contract for entity-specific time clamping strategies.
+/// Each entity type has different clamping semantics.
+abstract class EntityClampingStrategy<T extends TripEntity> {
+  /// Attempts to clamp the entity to avoid the conflict range.
+  /// Returns null if clamping is not possible.
+  T? clamp(T entity, TimeRange conflictRange, EntityTimelinePosition position);
+}
+
+// =============================================================================
+// TIME CLAMPING STRATEGIES - Strategy pattern for entity-specific clamping
 // =============================================================================
 
 /// Compares two DateTimes at minute-level precision (ignoring seconds/millis).
@@ -16,14 +28,6 @@ bool _isSameTime(DateTime a, DateTime b) {
       a.day == b.day &&
       a.hour == b.hour &&
       a.minute == b.minute;
-}
-
-/// Base interface for entity time clamping strategies.
-/// Each entity type has different clamping semantics.
-abstract class EntityClampingStrategy<T extends TripEntity> {
-  /// Attempts to clamp the entity to avoid the conflict range.
-  /// Returns null if clamping is not possible.
-  T? clamp(T entity, TimeRange conflictRange, EntityTimelinePosition position);
 }
 
 /// Clamping strategy for Transit entities.
@@ -174,7 +178,6 @@ class StayClampingStrategy implements EntityClampingStrategy<LodgingFacade> {
   DateTime _roundToNextHalfHour(DateTime dt) {
     final normalized = dt.copyWith(second: 0, millisecond: 0, microsecond: 0);
     final minutes = normalized.minute;
-
     if (minutes == 0 || (minutes > 0 && minutes < 30)) {
       return normalized.copyWith(minute: 30);
     } else if (minutes == 30) {
@@ -187,7 +190,6 @@ class StayClampingStrategy implements EntityClampingStrategy<LodgingFacade> {
   DateTime _roundToPreviousHalfHour(DateTime dt) {
     final normalized = dt.copyWith(second: 0, millisecond: 0, microsecond: 0);
     final minutes = normalized.minute;
-
     if (minutes == 0) {
       return normalized.subtract(const Duration(minutes: 30));
     } else if (minutes > 0 && minutes <= 30) {
@@ -254,7 +256,6 @@ class StayDateRangeClampingStrategy {
     var clampedCheckin = checkin;
     var clampedCheckout = checkout;
 
-    // Clamp checkin to be within range
     if (checkin.isBefore(newTripRange.start)) {
       clampedCheckin = DateTime(
         newTripRange.start.year,
@@ -264,10 +265,9 @@ class StayDateRangeClampingStrategy {
         checkin.minute,
       );
     } else if (checkin.isAfter(newTripRange.end)) {
-      return null; // Checkin after trip ends - cannot clamp
+      return null;
     }
 
-    // Clamp checkout to be within range
     if (checkout.isAfter(newTripRange.end)) {
       clampedCheckout = DateTime(
         newTripRange.end.year,
@@ -277,15 +277,13 @@ class StayDateRangeClampingStrategy {
         checkout.minute,
       );
     } else if (checkout.isBefore(newTripRange.start)) {
-      return null; // Checkout before trip starts - cannot clamp
+      return null;
     }
 
-    // Validate clamped dates
     if (!clampedCheckin.isBefore(clampedCheckout)) {
       return null;
     }
 
-    // Same day check-in/check-out is not valid for overnight stays
     if (clampedCheckin.year == clampedCheckout.year &&
         clampedCheckin.month == clampedCheckout.month &&
         clampedCheckin.day == clampedCheckout.day) {
@@ -300,11 +298,10 @@ class StayDateRangeClampingStrategy {
 }
 
 // =============================================================================
-// CLAMPING SERVICE - Facade for all clamping operations
+// CLAMPING SERVICE FACADE
 // =============================================================================
 
-/// Unified service for clamping entity times.
-/// Uses strategy pattern internally to delegate to appropriate strategy.
+/// Unified facade for all entity time clamping operations.
 class EntityClamper {
   static const _transitStrategy = TransitClampingStrategy();
   static const _stayStrategy = StayClampingStrategy();
@@ -313,38 +310,30 @@ class EntityClamper {
 
   const EntityClamper._();
 
-  /// Clamps a transit to avoid the conflict range.
   static TransitFacade? clampTransit(
     TransitFacade transit,
     TimeRange conflictRange,
     EntityTimelinePosition position,
-  ) {
-    return _transitStrategy.clamp(transit, conflictRange, position);
-  }
+  ) =>
+      _transitStrategy.clamp(transit, conflictRange, position);
 
-  /// Clamps a stay to avoid the conflict range.
   static LodgingFacade? clampStay(
     LodgingFacade stay,
     TimeRange conflictRange,
     EntityTimelinePosition position,
-  ) {
-    return _stayStrategy.clamp(stay, conflictRange, position);
-  }
+  ) =>
+      _stayStrategy.clamp(stay, conflictRange, position);
 
-  /// Clamps a sight to avoid the conflict range.
   static SightFacade? clampSight(
     SightFacade sight,
     TimeRange conflictRange,
     EntityTimelinePosition position,
-  ) {
-    return _sightStrategy.clamp(sight, conflictRange, position);
-  }
+  ) =>
+      _sightStrategy.clamp(sight, conflictRange, position);
 
-  /// Clamps a stay to fit within the new trip date range.
   static LodgingFacade? clampStayToDateRange(
     LodgingFacade stay,
     TimeRange newTripRange,
-  ) {
-    return _stayDateRangeStrategy.clamp(stay, newTripRange);
-  }
+  ) =>
+      _stayDateRangeStrategy.clamp(stay, newTripRange);
 }

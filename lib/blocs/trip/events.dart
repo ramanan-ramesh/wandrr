@@ -1,9 +1,9 @@
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
-import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/trip_entity_update_plan.dart';
 
 abstract class TripManagementEvent {
   const TripManagementEvent();

@@ -3,16 +3,15 @@ import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/services/entity_change.dart';
-import 'package:wandrr/data/trip/models/services/entity_timeline_position.dart';
-import 'package:wandrr/data/trip/models/services/time_range.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-
-import 'clamping_strategies.dart';
-import 'conflict_result.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/clamping_strategies.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/conflict_result.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/entity_change.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/entity_timeline_position.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/time_range.dart';
 
 // =============================================================================
 // EXCLUSION CONFIGURATION
@@ -69,102 +68,30 @@ class ScanExclusions {
 }
 
 // =============================================================================
-// CONFLICT POSITION RULES
+// TRIP DATA SNAPSHOT
 // =============================================================================
 
-/// Determines which timeline positions constitute conflicts.
-/// Different entity combinations have different conflict semantics.
-///
-/// Core domain rules:
-/// - Transits/sights CAN happen during a stay (between checkin and checkout)
-///   without conflict. Only overlapping at exact checkin/checkout times or
-///   crossing those boundaries is a conflict.
-/// - Two stays, two transits, or a transit and a sight that overlap are conflicts.
-/// - Adjacent events (one ends when another starts) are never conflicts.
-class ConflictRules {
-  const ConflictRules._();
+/// A lightweight snapshot of trip models used as input for conflict scanning.
+class TripConflictDataSnapshot {
+  final Iterable<TransitFacade> transits;
+  final Iterable<LodgingFacade> stays;
+  final Iterable<ItineraryPlanData> itineraries;
+  final Iterable<ExpenseBearingTripEntity> expenses;
 
-  /// Check if position is a conflict for standard entity editing
-  /// (Transit or Sight being edited against another Transit or Sight)
-  static bool isStandardConflict(EntityTimelinePosition position) {
-    return position == EntityTimelinePosition.exactBoundaryMatch ||
-        position == EntityTimelinePosition.containedIn ||
-        position == EntityTimelinePosition.contains ||
-        position == EntityTimelinePosition.startsDuringEndsAfter ||
-        position == EntityTimelinePosition.startsBeforeEndsDuring;
-  }
+  const TripConflictDataSnapshot({
+    required this.transits,
+    required this.stays,
+    required this.itineraries,
+    required this.expenses,
+  });
 
-  /// Unified conflict check based on source entity type
-  static bool isConflicting(
-    EntityTimelinePosition position,
-    TripEntity sourceEntity,
-    TripEntity targetEntity,
-  ) {
-    if (sourceEntity is TripMetadataFacade) {
-      return _isMetadataConflict(position);
-    } else if (sourceEntity is LodgingFacade) {
-      return _isStaySourceConflict(position, targetEntity);
-    } else if ((sourceEntity is TransitFacade || sourceEntity is SightFacade) &&
-        targetEntity is LodgingFacade) {
-      // Transit/Sight vs Stay: special rules
-      return _isTransitOrSightVsStayConflict(position);
-    } else {
-      return isStandardConflict(position);
-    }
-  }
-
-  /// Check if position is a conflict for metadata updates
-  /// Entities must be fully within the new date range
-  static bool _isMetadataConflict(EntityTimelinePosition position) {
-    return position == EntityTimelinePosition.beforeEvent ||
-        position == EntityTimelinePosition.afterEvent ||
-        position == EntityTimelinePosition.startsBeforeEndsDuring ||
-        position == EntityTimelinePosition.startsDuringEndsAfter ||
-        position == EntityTimelinePosition.contains;
-  }
-
-  /// Check if position is a conflict when source is a Transit/Sight
-  /// and target is a Stay.
-  ///
-  /// A transit/sight happening fully inside a stay is NOT a conflict.
-  /// The stay "contains" the transit/sight's time range.
-  static bool _isTransitOrSightVsStayConflict(EntityTimelinePosition position) {
-    // "contains" means the target (stay) fully contains the source (transit/sight)
-    // → NOT a conflict, the transit/sight happens during the stay
-    return position == EntityTimelinePosition.exactBoundaryMatch ||
-        position == EntityTimelinePosition.startsDuringEndsAfter ||
-        position == EntityTimelinePosition.startsBeforeEndsDuring;
-    // containedIn would mean the stay is inside the transit/sight, which IS a conflict
-    // but that case is: stay contained in transit → covered by isStaySourceConflict
-  }
-
-  /// Check if position is a conflict when source is Stay
-  /// and target is a Transit/Sight.
-  ///
-  /// A transit/sight that is fully within the stay period is NOT a conflict.
-  /// Only events at exact checkin/checkout times or crossing those boundaries
-  /// are real conflicts.
-  static bool _isStayVsTransitOrSightConflict(EntityTimelinePosition position) {
-    // "containedIn" means the target (transit/sight) is fully within the
-    // source (stay) → NOT a conflict (you can travel/visit during your stay)
-    return position == EntityTimelinePosition.exactBoundaryMatch ||
-        position == EntityTimelinePosition.startsDuringEndsAfter ||
-        position == EntityTimelinePosition.startsBeforeEndsDuring;
-    // "contains" means the target (transit/sight) fully contains the stay
-    // → IS a conflict, but extremely unlikely for sights (1 min duration)
-  }
-
-  /// Check if position is a conflict when source is Stay
-  /// Target can be contained in a stay without conflict for transits/sights
-  static bool _isStaySourceConflict(
-    EntityTimelinePosition position,
-    TripEntity targetEntity,
-  ) {
-    if (targetEntity is TransitFacade || targetEntity is SightFacade) {
-      return _isStayVsTransitOrSightConflict(position);
-    }
-    // Stay vs Stay → standard overlap rules
-    return isStandardConflict(position);
+  factory TripConflictDataSnapshot.fromTripData(TripDataFacade tripData) {
+    return TripConflictDataSnapshot(
+      transits: tripData.transitCollection.items,
+      stays: tripData.lodgingCollection.items,
+      itineraries: tripData.itineraryCollection.map((e) => e.planData),
+      expenses: tripData.expenseCollection.items,
+    );
   }
 }
 
@@ -174,23 +101,24 @@ class ConflictRules {
 
 /// Result of validating/resolving a conflicted entity time change.
 ///
-/// Contains all affected changes that need UI updates.
+/// The UI is responsible for constructing an appropriate message from
+/// [conflictingEntity] (e.g. via its [toString] or a localised description).
 class ConflictResolutionResult {
-  /// Whether the time change is valid (no unresolvable conflict with editable entity)
+  /// Whether the time change is valid.
   final bool isValid;
 
-  /// The trip entity that the modified change conflicts with, when [isValid] is
-  /// false.  The UI is responsible for constructing an appropriate message from
-  /// this (e.g. via its [toString] or a localised description).
+  /// The trip entity that the modified change conflicts with, when [isValid]
+  /// is false.
   final TripEntity? conflictingEntity;
 
-  /// The original change that was modified
+  /// The original change that was modified.
   final EntityChangeBase? modifiedChange;
 
-  /// Changes that were affected (clamped or marked for deletion) due to inter-conflicts
+  /// Changes that were affected (clamped or marked for deletion) due to
+  /// inter-conflicts.
   final List<EntityChangeBase> affectedChanges;
 
-  /// New conflicts discovered from the trip repository
+  /// New conflicts discovered from the trip repository.
   final List<EntityChangeBase> newConflicts;
 
   const ConflictResolutionResult._({
@@ -219,7 +147,7 @@ class ConflictResolutionResult {
     );
   }
 
-  /// All changes that need UI updates (modified + affected + new)
+  /// All changes that need UI updates (modified + affected + new).
   Iterable<EntityChangeBase> get allUpdatedChanges sync* {
     if (modifiedChange != null) {
       yield modifiedChange!;
@@ -230,10 +158,86 @@ class ConflictResolutionResult {
 }
 
 // =============================================================================
+// CONFLICT POSITION RULES
+// =============================================================================
+
+/// Determines which timeline positions constitute conflicts.
+/// Different entity combinations have different conflict semantics.
+///
+/// Core domain rules:
+/// - Transits/sights CAN happen during a stay (between checkin and checkout)
+///   without conflict. Only overlapping at exact checkin/checkout times or
+///   crossing those boundaries is a conflict.
+/// - Two stays, two transits, or a transit and a sight that overlap are
+///   conflicts.
+/// - Adjacent events (one ends when another starts) are never conflicts.
+class ConflictRules {
+  const ConflictRules._();
+
+  /// Check if position is a conflict for standard entity editing
+  /// (Transit or Sight being edited against another Transit or Sight).
+  static bool isStandardConflict(EntityTimelinePosition position) {
+    return position == EntityTimelinePosition.exactBoundaryMatch ||
+        position == EntityTimelinePosition.containedIn ||
+        position == EntityTimelinePosition.contains ||
+        position == EntityTimelinePosition.startsDuringEndsAfter ||
+        position == EntityTimelinePosition.startsBeforeEndsDuring;
+  }
+
+  /// Unified conflict check based on source entity type.
+  static bool isConflicting(
+    EntityTimelinePosition position,
+    TripEntity sourceEntity,
+    TripEntity targetEntity,
+  ) {
+    if (sourceEntity is TripMetadataFacade) {
+      return _isMetadataConflict(position);
+    } else if (sourceEntity is LodgingFacade) {
+      return _isStaySourceConflict(position, targetEntity);
+    } else if ((sourceEntity is TransitFacade || sourceEntity is SightFacade) &&
+        targetEntity is LodgingFacade) {
+      return _isTransitOrSightVsStayConflict(position);
+    } else {
+      return isStandardConflict(position);
+    }
+  }
+
+  static bool _isMetadataConflict(EntityTimelinePosition position) {
+    return position == EntityTimelinePosition.beforeEvent ||
+        position == EntityTimelinePosition.afterEvent ||
+        position == EntityTimelinePosition.startsBeforeEndsDuring ||
+        position == EntityTimelinePosition.startsDuringEndsAfter ||
+        position == EntityTimelinePosition.contains;
+  }
+
+  static bool _isTransitOrSightVsStayConflict(EntityTimelinePosition position) {
+    return position == EntityTimelinePosition.exactBoundaryMatch ||
+        position == EntityTimelinePosition.startsDuringEndsAfter ||
+        position == EntityTimelinePosition.startsBeforeEndsDuring;
+  }
+
+  static bool _isStayVsTransitOrSightConflict(EntityTimelinePosition position) {
+    return position == EntityTimelinePosition.exactBoundaryMatch ||
+        position == EntityTimelinePosition.startsDuringEndsAfter ||
+        position == EntityTimelinePosition.startsBeforeEndsDuring;
+  }
+
+  static bool _isStaySourceConflict(
+    EntityTimelinePosition position,
+    TripEntity targetEntity,
+  ) {
+    if (targetEntity is TransitFacade || targetEntity is SightFacade) {
+      return _isStayVsTransitOrSightConflict(position);
+    }
+    return isStandardConflict(position);
+  }
+}
+
+// =============================================================================
 // UNIFIED CONFLICT SCANNER
 // =============================================================================
 
-/// Pure service for detecting timeline conflicts in trip data.
+/// Service for detecting timeline conflicts in trip data.
 ///
 /// Responsibilities:
 /// - Scan trip data for entities that conflict with a given time range
@@ -243,7 +247,6 @@ class ConflictResolutionResult {
 class UnifiedConflictScanner {
   final TripConflictDataSnapshot _tripData;
 
-  /// Assumed duration for sight visits when checking conflicts
   static const _sightDuration = Duration(minutes: 1);
 
   UnifiedConflictScanner({required TripConflictDataSnapshot tripData})
@@ -253,11 +256,6 @@ class UnifiedConflictScanner {
   // PRIMARY SCAN METHODS
   // ===========================================================================
 
-  /// Scans trip data for conflicts with the given time range.
-  ///
-  /// [referenceRange] - The time range to check against
-  /// [sourceEntity] - The entity being edited (determines conflict rules)
-  /// [exclusions] - Entities to exclude from scanning
   AggregatedConflicts scanForConflicts({
     required TimeRange referenceRange,
     required TripEntity sourceEntity,
@@ -270,7 +268,6 @@ class UnifiedConflictScanner {
     );
   }
 
-  /// Scans for entities affected by trip metadata date changes.
   MetadataUpdateConflicts? scanForMetadataUpdate({
     required TripMetadataFacade oldMetadata,
     required TripMetadataFacade newMetadata,
@@ -330,22 +327,12 @@ class UnifiedConflictScanner {
   // COMPREHENSIVE CONFLICT RESOLUTION
   // ===========================================================================
 
-  /// Validates and resolves all conflicts when a conflicted entity's time is changed.
-  ///
-  /// This method handles three types of conflicts:
-  /// 1. Conflict with the editable entity (the primary entity being edited)
-  /// 2. Inter-conflicts with other items already in the conflict plan
-  /// 3. New conflicts with entities in the trip repository
-  ///
-  /// For each conflict found, it attempts to clamp the conflicting entity.
-  /// If clamping fails, the entity is marked for deletion.
+  /// Validates and resolves all conflicts when a conflicted entity's time is
+  /// changed.
   ///
   /// For journey (multi-leg transit) editing, pass all current legs via
-  /// [editingJourneyLegs].  When non-empty, each leg is checked individually
-  /// against the modified entity using [ConflictRules.isConflicting] (with the
-  /// leg as source); [editableEntityRange] is ignored in that case.
-  ///
-  /// Returns a [ConflictResolutionResult] containing all affected changes.
+  /// [editingJourneyLegs]. When non-empty, each leg is checked individually
+  /// against the modified entity; [editableEntityRange] is ignored in that case.
   ConflictResolutionResult resolveConflictedEntityTimeChange({
     required EntityChangeBase modifiedChange,
     required TimeRange? editableEntityRange,
@@ -361,9 +348,6 @@ class UnifiedConflictScanner {
     }
 
     // Step 1: Check conflict with editable entity / journey legs.
-    //
-    // For journey editing every leg is an independent editing "boundary" —
-    // the modified entity must not conflict with any of them.
     if (editingJourneyLegs.isNotEmpty) {
       for (final leg in editingJourneyLegs) {
         if (leg.departureDateTime == null || leg.arrivalDateTime == null) {
@@ -392,7 +376,7 @@ class UnifiedConflictScanner {
     final affectedChanges = <EntityChangeBase>[];
     final newConflicts = <EntityChangeBase>[];
 
-    // Step 2: Check and resolve inter-conflicts with existing plan items
+    // Step 2: Check and resolve inter-conflicts with existing plan items.
     _resolveInterConflicts(
       modifiedChange: modifiedChange,
       modifiedRange: modifiedRange,
@@ -403,7 +387,7 @@ class UnifiedConflictScanner {
       affectedChanges: affectedChanges,
     );
 
-    // Step 3: Check for new conflicts in trip repository
+    // Step 3: Check for new conflicts in trip repository.
     _findAndResolveRepoConflicts(
       modifiedChange: modifiedChange,
       modifiedRange: modifiedRange,
@@ -414,7 +398,6 @@ class UnifiedConflictScanner {
       newConflicts: newConflicts,
     );
 
-    // Mark the modified change as resolved
     modifiedChange.markAsResolved();
 
     return ConflictResolutionResult.valid(
@@ -424,7 +407,6 @@ class UnifiedConflictScanner {
     );
   }
 
-  /// Resolves inter-conflicts between the modified change and other plan items.
   void _resolveInterConflicts({
     required EntityChangeBase modifiedChange,
     required TimeRange modifiedRange,
@@ -434,30 +416,24 @@ class UnifiedConflictScanner {
     required List<SightChange> sightChanges,
     required List<EntityChangeBase> affectedChanges,
   }) {
-    // Process all change lists
     _processInterConflictsInList(
-      modifiedChange: modifiedChange,
-      modifiedRange: modifiedRange,
-      editableEntity: editableEntity,
-      changes: stayChanges,
-      affectedChanges: affectedChanges,
-    );
-
+        modifiedChange: modifiedChange,
+        modifiedRange: modifiedRange,
+        editableEntity: editableEntity,
+        changes: stayChanges,
+        affectedChanges: affectedChanges);
     _processInterConflictsInList(
-      modifiedChange: modifiedChange,
-      modifiedRange: modifiedRange,
-      editableEntity: editableEntity,
-      changes: transitChanges,
-      affectedChanges: affectedChanges,
-    );
-
+        modifiedChange: modifiedChange,
+        modifiedRange: modifiedRange,
+        editableEntity: editableEntity,
+        changes: transitChanges,
+        affectedChanges: affectedChanges);
     _processInterConflictsInList(
-      modifiedChange: modifiedChange,
-      modifiedRange: modifiedRange,
-      editableEntity: editableEntity,
-      changes: sightChanges,
-      affectedChanges: affectedChanges,
-    );
+        modifiedChange: modifiedChange,
+        modifiedRange: modifiedRange,
+        editableEntity: editableEntity,
+        changes: sightChanges,
+        affectedChanges: affectedChanges);
   }
 
   void _processInterConflictsInList<T extends EntityChangeBase>({
@@ -486,19 +462,16 @@ class UnifiedConflictScanner {
         continue;
       }
 
-      // Try to clamp
       final clamped = _tryClampChange(change, modifiedRange, position);
       if (clamped) {
         affectedChanges.add(change);
       } else {
-        // Cannot clamp - mark for deletion
         change.markForDeletion();
         affectedChanges.add(change);
       }
     }
   }
 
-  /// Finds new conflicts in the trip repository and adds them to the plan.
   void _findAndResolveRepoConflicts({
     required EntityChangeBase modifiedChange,
     required TimeRange modifiedRange,
@@ -508,39 +481,29 @@ class UnifiedConflictScanner {
     required List<SightChange> existingSightChanges,
     required List<EntityChangeBase> newConflicts,
   }) {
-    // Build exclusions: exclude the modified entity + all entities already in plan + editable entity
     final existingIds = _collectExistingIds(
       modifiedChange,
       existingStayChanges,
       existingTransitChanges,
       existingSightChanges,
     );
-
-    // Also exclude the editable entity itself
     final editableExclusion = ScanExclusions.forEntity(editableEntity);
     final exclusions = existingIds.merge(editableExclusion);
 
-    // Scan for new conflicts
     final repoConflicts = scanForConflicts(
       referenceRange: modifiedRange,
       sourceEntity: modifiedChange.modified,
       exclusions: exclusions,
     );
 
-    // Convert new conflicts to changes and try to clamp them
     for (final conflict in repoConflicts.transitConflicts) {
-      final change = _toEntityChange<TransitFacade>(conflict);
-      newConflicts.add(change);
+      newConflicts.add(_toEntityChange<TransitFacade>(conflict));
     }
-
     for (final conflict in repoConflicts.stayConflicts) {
-      final change = _toEntityChange<LodgingFacade>(conflict);
-      newConflicts.add(change);
+      newConflicts.add(_toEntityChange<LodgingFacade>(conflict));
     }
-
     for (final conflict in repoConflicts.sightConflicts) {
-      final change = _toEntityChange<SightFacade>(conflict);
-      newConflicts.add(change);
+      newConflicts.add(_toEntityChange<SightFacade>(conflict));
     }
   }
 
@@ -554,7 +517,6 @@ class UnifiedConflictScanner {
     final stayIds = <String>{};
     final sightIds = <String>{};
 
-    // Add modified change's original ID
     final modifiedId = modifiedChange.original.id;
     if (modifiedId != null) {
       if (modifiedChange.modified is TransitFacade) {
@@ -566,7 +528,6 @@ class UnifiedConflictScanner {
       }
     }
 
-    // Add all existing change IDs
     for (final c in transitChanges) {
       if (c.original.id != null) {
         transitIds.add(c.original.id!);
@@ -584,16 +545,12 @@ class UnifiedConflictScanner {
     }
 
     return ScanExclusions(
-      transitIds: transitIds,
-      stayIds: stayIds,
-      sightIds: sightIds,
-    );
+        transitIds: transitIds, stayIds: stayIds, sightIds: sightIds);
   }
 
   bool _tryClampChange(EntityChangeBase change, TimeRange conflictRange,
       EntityTimelinePosition position) {
     final entity = change.modified;
-
     if (entity is TransitFacade) {
       final clamped =
           EntityClamper.clampTransit(entity, conflictRange, position);
@@ -617,112 +574,7 @@ class UnifiedConflictScanner {
         return true;
       }
     }
-
     return false;
-  }
-
-  // ===========================================================================
-  // LEGACY INTER-CONFLICT METHODS (kept for backward compatibility)
-  // ===========================================================================
-
-  /// Checks if a modified conflicted entity now conflicts with another conflicted entity.
-  /// @deprecated Use [resolveConflictedEntityTimeChange] for comprehensive resolution.
-  EntityChangeBase? findInterConflict({
-    required EntityChangeBase modifiedChange,
-    required List<StayChange> stayChanges,
-    required List<TransitChange> transitChanges,
-    required List<SightChange> sightChanges,
-    required TripEntity sourceEntity,
-  }) {
-    final modifiedRange = _getTimeRangeFromChange(modifiedChange);
-    if (modifiedRange == null) {
-      return null;
-    }
-
-    // Check against other stay changes
-    for (final change in stayChanges) {
-      if (_isSameChange(change, modifiedChange)) {
-        continue;
-      }
-      if (change.isMarkedForDeletion) {
-        continue;
-      }
-
-      final otherRange = _getTimeRangeFromChange(change);
-      if (otherRange == null) {
-        continue;
-      }
-
-      final position = modifiedRange.analyzePosition(otherRange);
-      if (ConflictRules.isConflicting(
-          position, sourceEntity, change.modified)) {
-        return change;
-      }
-    }
-
-    // Check against other transit changes
-    for (final change in transitChanges) {
-      if (_isSameChange(change, modifiedChange)) {
-        continue;
-      }
-      if (change.isMarkedForDeletion) {
-        continue;
-      }
-
-      final otherRange = _getTimeRangeFromChange(change);
-      if (otherRange == null) {
-        continue;
-      }
-
-      final position = modifiedRange.analyzePosition(otherRange);
-      if (ConflictRules.isConflicting(
-          position, sourceEntity, change.modified)) {
-        return change;
-      }
-    }
-
-    // Check against other sight changes
-    for (final change in sightChanges) {
-      if (_isSameChange(change, modifiedChange)) {
-        continue;
-      }
-      if (change.isMarkedForDeletion) {
-        continue;
-      }
-
-      final otherRange = _getTimeRangeFromChange(change);
-      if (otherRange == null) {
-        continue;
-      }
-
-      final position = modifiedRange.analyzePosition(otherRange);
-      if (ConflictRules.isConflicting(
-          position, sourceEntity, change.modified)) {
-        return change;
-      }
-    }
-
-    return null;
-  }
-
-  /// Attempts to clamp an inter-conflict.
-  /// @deprecated Use [resolveConflictedEntityTimeChange] for comprehensive resolution.
-  bool tryClampInterConflict({
-    required EntityChangeBase modifiedChange,
-    required EntityChangeBase conflictingChange,
-  }) {
-    final modifiedRange = _getTimeRangeFromChange(modifiedChange);
-    if (modifiedRange == null) {
-      return false;
-    }
-
-    final conflictingRange = _getTimeRangeFromChange(conflictingChange);
-    if (conflictingRange == null) {
-      return false;
-    }
-
-    final position = conflictingRange.analyzePosition(modifiedRange);
-    return _tryClampChange(conflictingChange, modifiedRange, position);
   }
 
   // ===========================================================================
@@ -753,33 +605,26 @@ class UnifiedConflictScanner {
     ScanExclusions exclusions,
   ) {
     final conflicts = <TransitConflict>[];
-
     for (final transit in _tripData.transits) {
       if (exclusions.transitIds.contains(transit.id)) {
         continue;
       }
-
       final entityRange = TimeRange(
         start: transit.departureDateTime!,
         end: transit.arrivalDateTime!,
       );
-
       final position = entityRange.analyzePosition(referenceRange);
       if (!ConflictRules.isConflicting(position, sourceEntity, transit)) {
         continue;
       }
-
-      final clamped =
-          EntityClamper.clampTransit(transit, referenceRange, position);
-
       conflicts.add(TransitConflict(
         entity: transit,
         entityTimeRange: entityRange,
         position: position,
-        clampedEntity: clamped,
+        clampedEntity:
+            EntityClamper.clampTransit(transit, referenceRange, position),
       ));
     }
-
     return conflicts;
   }
 
@@ -789,7 +634,6 @@ class UnifiedConflictScanner {
     ScanExclusions exclusions,
   ) {
     final conflicts = <StayConflict>[];
-
     for (final stay in _tripData.stays) {
       if (exclusions.stayIds.contains(stay.id)) {
         continue;
@@ -797,27 +641,21 @@ class UnifiedConflictScanner {
       if (stay.checkinDateTime == null || stay.checkoutDateTime == null) {
         continue;
       }
-
       final entityRange = TimeRange(
         start: stay.checkinDateTime!,
         end: stay.checkoutDateTime!,
       );
-
       final position = entityRange.analyzePosition(referenceRange);
       if (!ConflictRules.isConflicting(position, sourceEntity, stay)) {
         continue;
       }
-
-      final clamped = EntityClamper.clampStay(stay, referenceRange, position);
-
       conflicts.add(StayConflict(
         entity: stay,
         entityTimeRange: entityRange,
         position: position,
-        clampedEntity: clamped,
+        clampedEntity: EntityClamper.clampStay(stay, referenceRange, position),
       ));
     }
-
     return conflicts;
   }
 
@@ -827,7 +665,6 @@ class UnifiedConflictScanner {
     ScanExclusions exclusions,
   ) {
     final conflicts = <SightConflict>[];
-
     for (final itineraryPlanData in _tripData.itineraries) {
       for (final sight in itineraryPlanData.sights) {
         if (exclusions.sightIds.contains(sight.id)) {
@@ -836,29 +673,23 @@ class UnifiedConflictScanner {
         if (sight.visitTime == null) {
           continue;
         }
-
         final entityRange = TimeRange(
           start: sight.visitTime!,
           end: sight.visitTime!.add(_sightDuration),
         );
-
         final position = entityRange.analyzePosition(referenceRange);
         if (!ConflictRules.isConflicting(position, sourceEntity, sight)) {
           continue;
         }
-
-        final clamped =
-            EntityClamper.clampSight(sight, referenceRange, position);
-
         conflicts.add(SightConflict(
           entity: sight,
           entityTimeRange: entityRange,
           position: position,
-          clampedEntity: clamped,
+          clampedEntity:
+              EntityClamper.clampSight(sight, referenceRange, position),
         ));
       }
     }
-
     return conflicts;
   }
 
@@ -868,49 +699,37 @@ class UnifiedConflictScanner {
 
   List<StayConflict> _findStaysOutsideDateRange(TimeRange newTripRange) {
     final conflicts = <StayConflict>[];
-
     for (final stay in _tripData.stays) {
       final stayRange = TimeRange(
         start: stay.checkinDateTime!,
         end: stay.checkoutDateTime!,
       );
-
       final position = stayRange.analyzePosition(newTripRange);
       if (!ConflictRules._isMetadataConflict(position)) {
         continue;
       }
-
-      final clamped = EntityClamper.clampStayToDateRange(stay, newTripRange);
-
       conflicts.add(StayConflict(
         entity: stay,
         entityTimeRange: stayRange,
         position: position,
-        clampedEntity: clamped,
+        clampedEntity: EntityClamper.clampStayToDateRange(stay, newTripRange),
       ));
     }
-
     return conflicts;
   }
 
   List<TransitConflict> _findTransitsOutsideDateRange(TimeRange newTripRange) {
     final conflicts = <TransitConflict>[];
-
     for (final transit in _tripData.transits) {
-      final dep = transit.departureDateTime!;
-      final arr = transit.arrivalDateTime!;
-      final transitRange = TimeRange(start: dep, end: arr);
-
+      final transitRange = TimeRange(
+          start: transit.departureDateTime!, end: transit.arrivalDateTime!);
       final position = transitRange.analyzePosition(newTripRange);
       if (!ConflictRules._isMetadataConflict(position)) {
         continue;
       }
-
-      // Transits outside date range cannot be clamped - clear times
-      final modified = transit.clone();
-      modified.departureDateTime = null;
-      modified.arrivalDateTime = null;
-
+      final modified = transit.clone()
+        ..departureDateTime = null
+        ..arrivalDateTime = null;
       conflicts.add(TransitConflict(
         entity: transit,
         entityTimeRange: transitRange,
@@ -918,33 +737,25 @@ class UnifiedConflictScanner {
         clampedEntity: modified,
       ));
     }
-
     return conflicts;
   }
 
   List<SightConflict> _findSightsOutsideDateRange(TimeRange newTripRange) {
     final conflicts = <SightConflict>[];
-
     for (final itineraryPlanData in _tripData.itineraries) {
       for (final sight in itineraryPlanData.sights) {
         if (sight.visitTime == null) {
           continue;
         }
-
         final sightRange = TimeRange(
           start: sight.visitTime!,
           end: sight.visitTime!.add(_sightDuration),
         );
-
         final position = sightRange.analyzePosition(newTripRange);
         if (!ConflictRules._isMetadataConflict(position)) {
           continue;
         }
-
-        // Sights outside date range - clear visit time
-        final modified = sight.clone();
-        modified.visitTime = null;
-
+        final modified = sight.clone()..visitTime = null;
         conflicts.add(SightConflict(
           entity: sight,
           entityTimeRange: sightRange,
@@ -953,14 +764,11 @@ class UnifiedConflictScanner {
         ));
       }
     }
-
     return conflicts;
   }
 
   bool _haveContributorsChanged(
-    TripMetadataFacade oldMeta,
-    TripMetadataFacade newMeta,
-  ) {
+      TripMetadataFacade oldMeta, TripMetadataFacade newMeta) {
     final oldSet = oldMeta.contributors.toSet();
     final newSet = newMeta.contributors.toSet();
     return oldSet.difference(newSet).isNotEmpty ||
@@ -987,16 +795,12 @@ class UnifiedConflictScanner {
     if (entity is TransitFacade) {
       if (entity.departureDateTime != null && entity.arrivalDateTime != null) {
         return TimeRange(
-          start: entity.departureDateTime!,
-          end: entity.arrivalDateTime!,
-        );
+            start: entity.departureDateTime!, end: entity.arrivalDateTime!);
       }
     } else if (entity is LodgingFacade) {
       if (entity.checkinDateTime != null && entity.checkoutDateTime != null) {
         return TimeRange(
-          start: entity.checkinDateTime!,
-          end: entity.checkoutDateTime!,
-        );
+            start: entity.checkinDateTime!, end: entity.checkoutDateTime!);
       }
     } else if (entity is SightFacade) {
       if (entity.visitTime != null) {
@@ -1009,31 +813,6 @@ class UnifiedConflictScanner {
     return null;
   }
 
-  bool _isSameChange(EntityChangeBase a, EntityChangeBase b) {
-    return a.original.id == b.original.id;
-  }
-}
-
-/// A lightweight snapshot of trip models safe for isolate traversal.
-class TripConflictDataSnapshot {
-  final Iterable<TransitFacade> transits;
-  final Iterable<LodgingFacade> stays;
-  final Iterable<ItineraryPlanData> itineraries;
-  final Iterable<ExpenseBearingTripEntity> expenses;
-
-  const TripConflictDataSnapshot({
-    required this.transits,
-    required this.stays,
-    required this.itineraries,
-    required this.expenses,
-  });
-
-  factory TripConflictDataSnapshot.fromTripData(TripDataFacade tripData) {
-    return TripConflictDataSnapshot(
-      transits: tripData.transitCollection.items,
-      stays: tripData.lodgingCollection.items,
-      itineraries: tripData.itineraryCollection.map((e) => e.planData),
-      expenses: tripData.expenseCollection.items,
-    );
-  }
+  bool _isSameChange(EntityChangeBase a, EntityChangeBase b) =>
+      a.original.id == b.original.id;
 }

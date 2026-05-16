@@ -1,6 +1,6 @@
-import 'package:wandrr/data/trip/models/services/entity_change.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/entity_change.dart';
 
 abstract class TripEntityEditorEvent {
   const TripEntityEditorEvent();

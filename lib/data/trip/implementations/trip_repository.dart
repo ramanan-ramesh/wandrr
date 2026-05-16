@@ -16,7 +16,7 @@ import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 
-import 'services/trip_copy_service.dart';
+import 'package:wandrr/data/trip/services/trip_copy_service.dart';
 import 'trip_data.dart';
 
 class TripRepositoryImplementation implements TripRepositoryEventHandler {
@@ -33,7 +33,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     final tripMetadataModelCollection = FirestoreModelCollection.createInstance(
         tripsCollectionReference,
         TripMetadataModelImplementation.fromDocumentSnapshot,
-        (tripMetadataModuleFacade) =>
+            (tripMetadataModuleFacade) =>
             TripMetadataModelImplementation.fromModelFacade(
                 tripMetadataModelFacade: tripMetadataModuleFacade),
         query: tripsCollectionReference.where(_contributorsField,
@@ -42,7 +42,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     final jsonString = await rootBundle.loadString(Assets.supportedCurrencies);
     final List<dynamic> jsonResponse = json.decode(jsonString);
     final currencyDataList =
-        jsonResponse.map((json) => CurrencyData.fromJson(json)).toList();
+    jsonResponse.map((json) => CurrencyData.fromJson(json)).toList();
 
     return TripRepositoryImplementation._(
       tripMetadataModelCollection,
@@ -82,8 +82,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   }
 
   @override
-  Future<TripMetadataFacade> copyTrip(
-      TripMetadataFacade tripMetadata,
+  Future<TripMetadataFacade> copyTrip(TripMetadataFacade tripMetadata,
       TripMetadataFacade targetTrip,
       ApiServicesRepositoryFacade apiServicesRepository) async {
     loadTrip(tripMetadata, apiServicesRepository, activateTrip: false);
@@ -96,8 +95,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
 
     final copiedTripMetadata = await TripCopyService.copyTrip(
         sourceTripData: tripToCopy,
-        targetTripMetadata: targetTrip,
-        apiServicesRepository: apiServicesRepository);
+        targetTripMetadata: targetTrip);
     loadTrip(copiedTripMetadata, apiServicesRepository, activateTrip: false);
     return copiedTripMetadata;
   }
@@ -121,7 +119,7 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
   Future deleteTrip(TripMetadataFacade tripMetadata,
       ApiServicesRepositoryFacade apiServicesRepository) async {
     final tripToDelete =
-        loadTrip(tripMetadata, apiServicesRepository, activateTrip: false);
+    loadTrip(tripMetadata, apiServicesRepository, activateTrip: false);
 
     // Ensure all sub-collections are loaded before building the delete batch,
     // so no data is silently left behind.
@@ -137,8 +135,8 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
         .documentReference);
     for (final itinerary in tripToDelete.itineraryCollection) {
       final itineraryPlanDataModelImplementation =
-          ItineraryPlanDataModelImplementation.fromModelFacade(
-              itinerary.planData);
+      ItineraryPlanDataModelImplementation.fromModelFacade(
+          itinerary.planData);
       batch.delete(itineraryPlanDataModelImplementation.documentReference);
     }
     for (final tripEntity in [
@@ -161,26 +159,24 @@ class TripRepositoryImplementation implements TripRepositoryEventHandler {
     await TripVisitTracker.deleteVisitCount(tripMetadata.id!);
   }
 
-  TripRepositoryImplementation._(
-    this.tripMetadataCollection,
-    this.currentUserName,
-    this.supportedCurrencies,
-  ) {
+  TripRepositoryImplementation._(this.tripMetadataCollection,
+      this.currentUserName,
+      this.supportedCurrencies,) {
     _tripMetadataUpdateSubscription =
         tripMetadataCollection.onDocumentUpdated.listen((eventData) async {
-      if (activeTrip?.tripMetadata.id !=
-          eventData.collectionItemChange.afterUpdate.id) {
-        return;
-      }
-      await activeTrip!
-          .updateTripMetadata(eventData.collectionItemChange.afterUpdate);
-    });
+          if (activeTrip?.tripMetadata.id !=
+              eventData.collectionItemChange.afterUpdate.id) {
+            return;
+          }
+          await activeTrip!
+              .updateTripMetadata(eventData.collectionItemChange.afterUpdate);
+        });
     _tripMetadataDeleteSubscription =
         tripMetadataCollection.onDocumentDeleted.listen((eventData) async {
-      final tripId = eventData.collectionItemChange.id;
-      if (tripId == activeTrip?.tripMetadata.id) {
-        await unloadActiveTrip();
-      }
-    });
+          final tripId = eventData.collectionItemChange.id;
+          if (tripId == activeTrip?.tripMetadata.id) {
+            await unloadActiveTrip();
+          }
+        });
   }
 }

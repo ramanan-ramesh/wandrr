@@ -10,15 +10,14 @@ import 'package:wandrr/data/trip/models/budgeting/expense_sort_options.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/services/budgeting_service.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
-
-import 'helpers/currency_formatter.dart';
-import 'helpers/debt_calculator.dart';
-import 'helpers/expense_aggregator.dart';
-import 'helpers/expense_sorter.dart';
-import 'helpers/total_expenditure_calculator.dart';
+import 'package:wandrr/data/trip/services/budgeting/helpers/currency_formatter.dart';
+import 'package:wandrr/data/trip/services/budgeting/helpers/debt_calculator.dart';
+import 'package:wandrr/data/trip/services/budgeting/helpers/expense_aggregator.dart';
+import 'package:wandrr/data/trip/services/budgeting/helpers/expense_sorter.dart';
+import 'package:wandrr/data/trip/services/budgeting/helpers/total_expenditure_calculator.dart';
+import 'package:wandrr/data/trip/services/budgeting_service.dart';
 
 /// Implementation of [BudgetingServiceModifier].
 ///

@@ -1,6 +1,6 @@
-import 'package:wandrr/data/trip/models/services/entity_change.dart';
-import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/entity_change.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/trip_entity_update_plan.dart';
 
 // =============================================================================
 // TRIP ENTITY EDITOR STATES
@@ -30,6 +30,7 @@ abstract class TripEntityEditorState<T extends TripEntity<Enum>> {
 class TripEntityInitialized<T extends TripEntity<Enum>>
     extends TripEntityEditorState<T> {
   final T editableEntity;
+
   const TripEntityInitialized(this.editableEntity);
 }
 
@@ -39,6 +40,7 @@ class TripEntityInitialized<T extends TripEntity<Enum>>
 class EntityValidationUpdated<T extends TripEntity<Enum>>
     extends TripEntityEditorState<T> {
   final Iterable<Enum> validationErrors;
+
   const EntityValidationUpdated({this.validationErrors = const []});
 }
 
@@ -71,6 +73,7 @@ class ConflictedEntityTimeRangeError<T extends TripEntity<Enum>>
   final TripEntity conflictingEntity;
 
   final dynamic oldTimeValues;
+
   const ConflictedEntityTimeRangeError(
       this.change, this.conflictingEntity, this.oldTimeValues);
 }
