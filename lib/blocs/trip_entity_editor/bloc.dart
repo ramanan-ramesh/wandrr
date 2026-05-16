@@ -3,21 +3,21 @@ import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
-import 'package:wandrr/data/trip/models/services/entity_change.dart';
-import 'package:wandrr/data/trip/models/services/time_range.dart';
-import 'package:wandrr/data/trip/models/services/transit_journey_service.dart';
-import 'package:wandrr/data/trip/models/services/trip_entity_update_plan.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/conflict_detectors.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/conflict_result.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/conflict_scanner.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/entity_change.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/time_range.dart';
+import 'package:wandrr/data/trip/services/conflict_detection/trip_entity_update_plan.dart';
+import 'package:wandrr/data/trip/services/transit_journey_service.dart';
 
-import 'conflict_detectors.dart';
-import 'conflict_result.dart';
 import 'events.dart';
 import 'states.dart';
-import 'unified_conflict_scanner.dart';
 
 /// BLoC for editing trip entities with conflict detection and resolution.
 ///
