@@ -111,7 +111,7 @@ class TripEntityDataUpdatePlanService {
     WriteBatch batch,
   ) {
     for (final change in changes) {
-      if (change.isDelete) {
+      if (change.isMarkedForDeletion) {
         final doc = modelCollection.collectionDocumentCreator(change.original);
         batch.delete(doc.documentReference);
       } else if (change.action == ChangeAction.update &&

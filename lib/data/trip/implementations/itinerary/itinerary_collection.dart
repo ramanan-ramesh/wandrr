@@ -177,7 +177,7 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
       final originalDay = change.original.day;
       final originalDayKey = originalDay.itineraryDateFormat;
 
-      if (change.isDelete) {
+      if (change.isMarkedForDeletion) {
         sightsToRemove.putIfAbsent(originalDayKey, () => {});
         sightsToRemove[originalDayKey]!.add(change.original.id!);
         affectedDays.add(originalDayKey);

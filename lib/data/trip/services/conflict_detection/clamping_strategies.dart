@@ -21,15 +21,6 @@ abstract class EntityClampingStrategy<T extends TripEntity> {
 // TIME CLAMPING STRATEGIES - Strategy pattern for entity-specific clamping
 // =============================================================================
 
-/// Compares two DateTimes at minute-level precision (ignoring seconds/millis).
-bool _isSameTime(DateTime a, DateTime b) {
-  return a.year == b.year &&
-      a.month == b.month &&
-      a.day == b.day &&
-      a.hour == b.hour &&
-      a.minute == b.minute;
-}
-
 /// Clamping strategy for Transit entities.
 class TransitClampingStrategy implements EntityClampingStrategy<TransitFacade> {
   const TransitClampingStrategy();
@@ -50,22 +41,22 @@ class TransitClampingStrategy implements EntityClampingStrategy<TransitFacade> {
 
     switch (position) {
       case EntityTimelinePosition.exactBoundaryMatch:
-        if (_isSameTime(depTime, conflictRange.start)) {
+        if (TimeRange.isSameMinute(depTime, conflictRange.start)) {
           clampedDep = conflictRange.end.add(const Duration(minutes: 1));
           if (!arrTime.isAfter(clampedDep)) {
             return null;
           }
-        } else if (_isSameTime(arrTime, conflictRange.end)) {
+        } else if (TimeRange.isSameMinute(arrTime, conflictRange.end)) {
           clampedArr = conflictRange.start.subtract(const Duration(minutes: 1));
           if (!depTime.isBefore(clampedArr)) {
             return null;
           }
-        } else if (_isSameTime(depTime, conflictRange.end)) {
+        } else if (TimeRange.isSameMinute(depTime, conflictRange.end)) {
           clampedDep = conflictRange.end.add(const Duration(minutes: 1));
           if (!arrTime.isAfter(clampedDep)) {
             return null;
           }
-        } else if (_isSameTime(arrTime, conflictRange.start)) {
+        } else if (TimeRange.isSameMinute(arrTime, conflictRange.start)) {
           clampedArr = conflictRange.start.subtract(const Duration(minutes: 1));
           if (!depTime.isBefore(clampedArr)) {
             return null;
@@ -123,22 +114,22 @@ class StayClampingStrategy implements EntityClampingStrategy<LodgingFacade> {
 
     switch (position) {
       case EntityTimelinePosition.exactBoundaryMatch:
-        if (_isSameTime(checkin, conflictRange.start)) {
+        if (TimeRange.isSameMinute(checkin, conflictRange.start)) {
           clampedCheckin = _roundToNextHalfHour(conflictRange.end);
           if (!checkout.isAfter(clampedCheckin)) {
             return null;
           }
-        } else if (_isSameTime(checkout, conflictRange.end)) {
+        } else if (TimeRange.isSameMinute(checkout, conflictRange.end)) {
           clampedCheckout = _roundToPreviousHalfHour(conflictRange.start);
           if (!checkin.isBefore(clampedCheckout)) {
             return null;
           }
-        } else if (_isSameTime(checkin, conflictRange.end)) {
+        } else if (TimeRange.isSameMinute(checkin, conflictRange.end)) {
           clampedCheckin = _roundToNextHalfHour(conflictRange.end);
           if (!checkout.isAfter(clampedCheckin)) {
             return null;
           }
-        } else if (_isSameTime(checkout, conflictRange.start)) {
+        } else if (TimeRange.isSameMinute(checkout, conflictRange.start)) {
           clampedCheckout = _roundToPreviousHalfHour(conflictRange.start);
           if (!checkin.isBefore(clampedCheckout)) {
             return null;
@@ -215,20 +206,16 @@ class SightClampingStrategy implements EntityClampingStrategy<SightFacade> {
       return null;
     }
 
+    if (position != EntityTimelinePosition.exactBoundaryMatch) {
+      return null;
+    }
+
+    final visitEnd = visitTime.add(const Duration(minutes: 1));
     DateTime? clampedTime;
-
-    switch (position) {
-      case EntityTimelinePosition.exactBoundaryMatch:
-        final visitEnd = visitTime.add(const Duration(minutes: 1));
-        if (_isSameTime(visitTime, conflictRange.start)) {
-          clampedTime = conflictRange.end.add(const Duration(minutes: 1));
-        } else if (_isSameTime(visitEnd, conflictRange.end)) {
-          clampedTime =
-              conflictRange.start.subtract(const Duration(minutes: 1));
-        }
-
-      default:
-        return null;
+    if (TimeRange.isSameMinute(visitTime, conflictRange.start)) {
+      clampedTime = conflictRange.end.add(const Duration(minutes: 1));
+    } else if (TimeRange.isSameMinute(visitEnd, conflictRange.end)) {
+      clampedTime = conflictRange.start.subtract(const Duration(minutes: 1));
     }
 
     if (clampedTime == null) {

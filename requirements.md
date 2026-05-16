@@ -845,6 +845,9 @@ sheets. When the trip's currency is updated, budgeting data reflects the change 
 
 ### REQ-CD-003 — How Overlaps Are Classified
 
+- **Temporal precision:** All time comparisons use **minute-level granularity** (seconds and
+  sub-second values are ignored). Entity times are always entered at minute precision via time
+  pickers, and all clamping results are normalised to whole minutes.
 - **Adjacent events are not conflicts:** When one event ends at exactly the same time another
   starts (e.g., a transit arriving at 2:00 PM and a stay checking in at 2:00 PM), these are
   adjacent, not overlapping.
@@ -871,6 +874,9 @@ sheets. When the trip's currency is updated, budgeting data reflects the change 
   conflicts.
 - **Transit/Sight vs Transit/Sight:** All boundary matches, containments, and partial overlaps are
   conflicts.
+- **Incomplete entities skipped:** Entities with missing time values (e.g., a transit with no
+  departure or arrival time) are silently skipped during conflict scanning and never reported as
+  conflicting.
 
 ### REQ-CD-005 — Clamping (Auto-Resolution)
 

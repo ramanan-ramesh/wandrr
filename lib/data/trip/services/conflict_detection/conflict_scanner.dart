@@ -184,7 +184,7 @@ class ConflictRules {
         position == EntityTimelinePosition.startsBeforeEndsDuring;
   }
 
-  /// Unified conflict check based on source entity type.
+  /// Unified conflict check based on source/target entity types.
   static bool isConflicting(
     EntityTimelinePosition position,
     TripEntity sourceEntity,
@@ -192,14 +192,21 @@ class ConflictRules {
   ) {
     if (sourceEntity is TripMetadataFacade) {
       return _isMetadataConflict(position);
-    } else if (sourceEntity is LodgingFacade) {
-      return _isStaySourceConflict(position, targetEntity);
-    } else if ((sourceEntity is TransitFacade || sourceEntity is SightFacade) &&
-        targetEntity is LodgingFacade) {
-      return _isTransitOrSightVsStayConflict(position);
-    } else {
-      return isStandardConflict(position);
     }
+
+    // Stay vs Transit/Sight (or Transit/Sight vs Stay): only boundary
+    // overlaps and partial boundary crossings are conflicts.
+    // Transits and sights that are fully *contained within* a stay are allowed.
+    final involvesMixedStayAndMovement = (sourceEntity is LodgingFacade &&
+            (targetEntity is TransitFacade || targetEntity is SightFacade)) ||
+        ((sourceEntity is TransitFacade || sourceEntity is SightFacade) &&
+            targetEntity is LodgingFacade);
+
+    if (involvesMixedStayAndMovement) {
+      return _isStayBoundaryConflict(position);
+    }
+
+    return isStandardConflict(position);
   }
 
   static bool _isMetadataConflict(EntityTimelinePosition position) {
@@ -210,26 +217,13 @@ class ConflictRules {
         position == EntityTimelinePosition.contains;
   }
 
-  static bool _isTransitOrSightVsStayConflict(EntityTimelinePosition position) {
+  /// A stay-vs-transit/sight (or vice-versa) conflict: only boundary matches
+  /// and partial crossings count. Containment is not a conflict (travellers
+  /// can visit sights and take transits while checked in to a stay).
+  static bool _isStayBoundaryConflict(EntityTimelinePosition position) {
     return position == EntityTimelinePosition.exactBoundaryMatch ||
         position == EntityTimelinePosition.startsDuringEndsAfter ||
         position == EntityTimelinePosition.startsBeforeEndsDuring;
-  }
-
-  static bool _isStayVsTransitOrSightConflict(EntityTimelinePosition position) {
-    return position == EntityTimelinePosition.exactBoundaryMatch ||
-        position == EntityTimelinePosition.startsDuringEndsAfter ||
-        position == EntityTimelinePosition.startsBeforeEndsDuring;
-  }
-
-  static bool _isStaySourceConflict(
-    EntityTimelinePosition position,
-    TripEntity targetEntity,
-  ) {
-    if (targetEntity is TransitFacade || targetEntity is SightFacade) {
-      return _isStayVsTransitOrSightConflict(position);
-    }
-    return isStandardConflict(position);
   }
 }
 
@@ -377,15 +371,24 @@ class UnifiedConflictScanner {
     final newConflicts = <EntityChangeBase>[];
 
     // Step 2: Check and resolve inter-conflicts with existing plan items.
-    _resolveInterConflicts(
-      modifiedChange: modifiedChange,
-      modifiedRange: modifiedRange,
-      editableEntity: editableEntity,
-      stayChanges: existingStayChanges,
-      transitChanges: existingTransitChanges,
-      sightChanges: existingSightChanges,
-      affectedChanges: affectedChanges,
-    );
+    _processInterConflictsInList(
+        modifiedChange: modifiedChange,
+        modifiedRange: modifiedRange,
+        editableEntity: editableEntity,
+        changes: existingStayChanges,
+        affectedChanges: affectedChanges);
+    _processInterConflictsInList(
+        modifiedChange: modifiedChange,
+        modifiedRange: modifiedRange,
+        editableEntity: editableEntity,
+        changes: existingTransitChanges,
+        affectedChanges: affectedChanges);
+    _processInterConflictsInList(
+        modifiedChange: modifiedChange,
+        modifiedRange: modifiedRange,
+        editableEntity: editableEntity,
+        changes: existingSightChanges,
+        affectedChanges: affectedChanges);
 
     // Step 3: Check for new conflicts in trip repository.
     _findAndResolveRepoConflicts(
@@ -405,35 +408,6 @@ class UnifiedConflictScanner {
       affectedChanges: affectedChanges,
       newConflicts: newConflicts,
     );
-  }
-
-  void _resolveInterConflicts({
-    required EntityChangeBase modifiedChange,
-    required TimeRange modifiedRange,
-    required TripEntity editableEntity,
-    required List<StayChange> stayChanges,
-    required List<TransitChange> transitChanges,
-    required List<SightChange> sightChanges,
-    required List<EntityChangeBase> affectedChanges,
-  }) {
-    _processInterConflictsInList(
-        modifiedChange: modifiedChange,
-        modifiedRange: modifiedRange,
-        editableEntity: editableEntity,
-        changes: stayChanges,
-        affectedChanges: affectedChanges);
-    _processInterConflictsInList(
-        modifiedChange: modifiedChange,
-        modifiedRange: modifiedRange,
-        editableEntity: editableEntity,
-        changes: transitChanges,
-        affectedChanges: affectedChanges);
-    _processInterConflictsInList(
-        modifiedChange: modifiedChange,
-        modifiedRange: modifiedRange,
-        editableEntity: editableEntity,
-        changes: sightChanges,
-        affectedChanges: affectedChanges);
   }
 
   void _processInterConflictsInList<T extends EntityChangeBase>({
@@ -487,8 +461,8 @@ class UnifiedConflictScanner {
       existingTransitChanges,
       existingSightChanges,
     );
-    final editableExclusion = ScanExclusions.forEntity(editableEntity);
-    final exclusions = existingIds.merge(editableExclusion);
+    final exclusions =
+        existingIds.merge(ScanExclusions.forEntity(editableEntity));
 
     final repoConflicts = scanForConflicts(
       referenceRange: modifiedRange,
@@ -496,14 +470,14 @@ class UnifiedConflictScanner {
       exclusions: exclusions,
     );
 
-    for (final conflict in repoConflicts.transitConflicts) {
-      newConflicts.add(_toEntityChange<TransitFacade>(conflict));
+    for (final c in repoConflicts.transitConflicts) {
+      newConflicts.add(_toEntityChange(c));
     }
-    for (final conflict in repoConflicts.stayConflicts) {
-      newConflicts.add(_toEntityChange<LodgingFacade>(conflict));
+    for (final c in repoConflicts.stayConflicts) {
+      newConflicts.add(_toEntityChange(c));
     }
-    for (final conflict in repoConflicts.sightConflicts) {
-      newConflicts.add(_toEntityChange<SightFacade>(conflict));
+    for (final c in repoConflicts.sightConflicts) {
+      newConflicts.add(_toEntityChange(c));
     }
   }
 
@@ -517,17 +491,13 @@ class UnifiedConflictScanner {
     final stayIds = <String>{};
     final sightIds = <String>{};
 
-    final modifiedId = modifiedChange.original.id;
-    if (modifiedId != null) {
-      if (modifiedChange.modified is TransitFacade) {
-        transitIds.add(modifiedId);
-      } else if (modifiedChange.modified is LodgingFacade) {
-        stayIds.add(modifiedId);
-      } else if (modifiedChange.modified is SightFacade) {
-        sightIds.add(modifiedId);
-      }
-    }
+    // Exclude the entity being resolved (the modified change itself).
+    final modifiedExclusion = ScanExclusions.forEntity(modifiedChange.original);
+    transitIds.addAll(modifiedExclusion.transitIds);
+    stayIds.addAll(modifiedExclusion.stayIds);
+    sightIds.addAll(modifiedExclusion.sightIds);
 
+    // Exclude entities already tracked in existing conflict lists.
     for (final c in transitChanges) {
       if (c.original.id != null) {
         transitIds.add(c.original.id!);
@@ -607,6 +577,10 @@ class UnifiedConflictScanner {
     final conflicts = <TransitConflict>[];
     for (final transit in _tripData.transits) {
       if (exclusions.transitIds.contains(transit.id)) {
+        continue;
+      }
+      if (transit.departureDateTime == null ||
+          transit.arrivalDateTime == null) {
         continue;
       }
       final entityRange = TimeRange(

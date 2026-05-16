@@ -24,8 +24,6 @@ abstract class EntityChangeBase<T extends TripEntity<Enum>> {
     this.isClamped = false,
   });
 
-  bool get isDelete => action == ChangeAction.delete;
-
   bool get isMarkedForDeletion => action == ChangeAction.delete;
 
   /// A conflict is resolved if it's clamped OR marked for deletion
@@ -77,7 +75,7 @@ class DateTimeChange<T extends TripEntity<Enum>> extends EntityChangeBase<T> {
     if (original.id != other.original.id) {
       return false;
     }
-    if (isDelete != other.isDelete) {
+    if (isMarkedForDeletion != other.isMarkedForDeletion) {
       return false;
     }
     if (isClamped != other.isClamped) {
@@ -87,7 +85,7 @@ class DateTimeChange<T extends TripEntity<Enum>> extends EntityChangeBase<T> {
   }
 
   @override
-  int get hashCode => Object.hash(original.id, isDelete, isClamped);
+  int get hashCode => Object.hash(original.id, isMarkedForDeletion, isClamped);
 
   bool _modifiedTimeEquals(DateTimeChange<T> other) {
     final m = modified;
@@ -128,14 +126,14 @@ class ExpenseSplitChange
       return false;
     }
     return original.id == other.original.id &&
-        isDelete == other.isDelete &&
+        isMarkedForDeletion == other.isMarkedForDeletion &&
         isClamped == other.isClamped &&
         includeInSplitBy == other.includeInSplitBy;
   }
 
   @override
-  int get hashCode =>
-      Object.hash(original.id, isDelete, isClamped, includeInSplitBy);
+  int get hashCode => Object.hash(
+      original.id, isMarkedForDeletion, isClamped, includeInSplitBy);
 }
 
 /// Type aliases for cleaner API

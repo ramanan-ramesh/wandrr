@@ -422,8 +422,7 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
 
   TripEntityUpdatePlan<LodgingFacade>? _detectStayConflicts(
       LodgingFacade stay) {
-    final conflicts = StayConflictDetector(
-            stay: stay, scanner: _buildScanner(), isNewEntity: _isNewEntity)
+    final conflicts = StayConflictDetector(stay: stay, scanner: _buildScanner())
         .detectConflicts();
     if (conflicts == null) {
       return null;

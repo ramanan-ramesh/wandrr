@@ -7,30 +7,31 @@ import 'package:wandrr/data/trip/services/conflict_detection/conflict_scanner.da
 import 'package:wandrr/data/trip/services/conflict_detection/time_range.dart';
 
 // =============================================================================
+// DEDUPLICATION UTILITY
+// =============================================================================
+
+/// Returns a deduplicated copy of [conflicts], keeping the first occurrence
+/// of each entity ID. Entities without an ID are always retained.
+List<ConflictResult<E>> _deduplicateConflicts<E extends TripEntity>(
+    List<ConflictResult<E>> conflicts) {
+  final seen = <String>{};
+  final unique = <ConflictResult<E>>[];
+  for (final conflict in conflicts) {
+    final id = conflict.entity.id;
+    if (id == null || seen.add(id)) {
+      unique.add(conflict);
+    }
+  }
+  return unique;
+}
+
+// =============================================================================
 // ENTITY CONFLICT DETECTOR CONTRACT
 // =============================================================================
 
 /// Abstract contract for entity-specific conflict detectors.
 abstract class EntityConflictDetector<T> {
   AggregatedConflicts? detectConflicts();
-
-  /// Removes duplicate conflict results for the same entity ID.
-  List<ConflictResult<E>> deduplicateConflicts<E extends TripEntity>(
-    List<ConflictResult<E>> conflicts,
-  ) {
-    final seen = <String>{};
-    final unique = <ConflictResult<E>>[];
-    for (final conflict in conflicts) {
-      final id = conflict.entity.id;
-      if (id != null && !seen.contains(id)) {
-        seen.add(id);
-        unique.add(conflict);
-      } else if (id == null) {
-        unique.add(conflict);
-      }
-    }
-    return unique;
-  }
 }
 
 // =============================================================================
@@ -40,13 +41,8 @@ abstract class EntityConflictDetector<T> {
 class StayConflictDetector extends EntityConflictDetector<LodgingFacade> {
   final LodgingFacade stay;
   final UnifiedConflictScanner scanner;
-  final bool isNewEntity;
 
-  StayConflictDetector({
-    required this.stay,
-    required this.scanner,
-    required this.isNewEntity,
-  });
+  StayConflictDetector({required this.stay, required this.scanner});
 
   @override
   AggregatedConflicts? detectConflicts() {
@@ -123,9 +119,9 @@ class JourneyConflictDetector
     }
 
     final aggregated = AggregatedConflicts(
-      transitConflicts: deduplicateConflicts(allTransitConflicts),
-      stayConflicts: deduplicateConflicts(allStayConflicts),
-      sightConflicts: deduplicateConflicts(allSightConflicts),
+      transitConflicts: _deduplicateConflicts(allTransitConflicts),
+      stayConflicts: _deduplicateConflicts(allStayConflicts),
+      sightConflicts: _deduplicateConflicts(allSightConflicts),
     );
     return aggregated.isEmpty ? null : aggregated;
   }
@@ -181,9 +177,9 @@ class ItineraryConflictDetector
     }
 
     final aggregated = AggregatedConflicts(
-      transitConflicts: deduplicateConflicts(allTransitConflicts),
-      stayConflicts: deduplicateConflicts(allStayConflicts),
-      sightConflicts: deduplicateConflicts(allSightConflicts),
+      transitConflicts: _deduplicateConflicts(allTransitConflicts),
+      stayConflicts: _deduplicateConflicts(allStayConflicts),
+      sightConflicts: _deduplicateConflicts(allSightConflicts),
     );
     return aggregated.isEmpty ? null : aggregated;
   }

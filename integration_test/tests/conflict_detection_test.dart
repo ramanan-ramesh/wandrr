@@ -274,7 +274,6 @@ Future<void> runStayConflictWithOverlappingStayTest(
   final detector = StayConflictDetector(
     stay: overlappingStay,
     scanner: scanner,
-    isNewEntity: true,
   );
 
   final conflicts = detector.detectConflicts();
@@ -354,7 +353,6 @@ Future<void> runStayPartialOverlapClampingTest(
   final detector = StayConflictDetector(
     stay: partialStay,
     scanner: scanner,
-    isNewEntity: true,
   );
 
   final conflicts = detector.detectConflicts();
@@ -1020,7 +1018,6 @@ Future<void> runStayConflictsWithTransitAndSightTest(
   final detector = StayConflictDetector(
     stay: overlappingStay,
     scanner: scanner,
-    isNewEntity: true,
   );
 
   final conflicts = detector.detectConflicts();
