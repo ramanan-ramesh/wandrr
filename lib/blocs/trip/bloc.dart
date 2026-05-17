@@ -91,8 +91,7 @@ class TripManagementBloc
       : super(const LoadingTripManagement()) {
     on<_OnStartup>(_onStartup);
     on<LoadTrip>(_onLoadTrip);
-    on<UpdateTripEntity<ExpenseBearingTripEntity>>(
-        _onSelectExpenseBearingTripEntity);
+    on<SelectExpenseForDetails>(_onSelectExpenseForDetails);
     on<UpdateTripEntity<TransitFacade>>(_onUpdateTransit);
     on<UpdateTripEntity<LodgingFacade>>(_onUpdateLodging);
     on<GoToHome>(_onGoToHome);
@@ -277,22 +276,31 @@ class TripManagementBloc
     }
   }
 
-  Future<void> _onSelectExpenseBearingTripEntity(
-      UpdateTripEntity<ExpenseBearingTripEntity> event,
-      Emitter<TripManagementState> emit) async {
-    if (event.tripEntity is SightFacade) {
-      var selectedSight = event.tripEntity as SightFacade;
-      var itineraryPlanData = _activeTrip!.itineraryCollection
-          .getItineraryForDay(selectedSight.day)
+  /// Handles tapping an expense-bearing entity from the BudgetingPage.
+  ///
+  /// Previously this was wired to [UpdateTripEntity<ExpenseBearingTripEntity>],
+  /// but Dart's covariant generic subtyping caused the handler to also fire
+  /// whenever a [TransitFacade] or [LodgingFacade] was selected from the
+  /// timeline (because [UpdateTripEntity<TransitFacade>] IS-A
+  /// [UpdateTripEntity<ExpenseBearingTripEntity>] at runtime).  The dedicated
+  /// [SelectExpenseForDetails] event has no such subtyping ambiguity.
+  FutureOr<void> _onSelectExpenseForDetails(
+      SelectExpenseForDetails event, Emitter<TripManagementState> emit) {
+    final entity = event.tripEntity;
+    if (entity is SightFacade) {
+      // Sights appear in the expense list too; tapping one should open the
+      // itinerary editor, not the generic expense editor.
+      final itineraryPlanData = _activeTrip!.itineraryCollection
+          .getItineraryForDay(entity.day)
           .planData;
       add(EditItineraryPlanData(
-          day: selectedSight.day,
+          day: entity.day,
           planDataEditorConfig: UpdateItineraryPlanDataComponentConfig(
               planDataType: PlanDataType.sight,
-              index: itineraryPlanData.sights.indexOf(selectedSight))));
-      return;
+              index: itineraryPlanData.sights.indexOf(entity))));
+    } else {
+      emit(SelectedExpenseBearingTripEntity(tripEntity: entity));
     }
-    emit(SelectedExpenseBearingTripEntity(tripEntity: event.tripEntity));
   }
 
   FutureOr<void> _onEditItineraryPlanData(

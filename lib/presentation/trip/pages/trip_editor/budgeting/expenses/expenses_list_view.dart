@@ -411,8 +411,7 @@ class _ExpenseListItemState extends State<_ExpenseListItem> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => context.addTripManagementEvent(
-        UpdateTripEntity<ExpenseBearingTripEntity>.select(
-            tripEntity: _expenseBearingTripEntity),
+        SelectExpenseForDetails(tripEntity: _expenseBearingTripEntity),
       ),
       child: Material(
         color: Theme.of(context)
