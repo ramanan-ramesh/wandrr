@@ -11,39 +11,22 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final keyboardOpen = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
       appBar: const HomeAppBar(),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5.0),
-            child: _buildCreateTripButton(context),
-          ),
-        ],
-      ),
+      floatingActionButton: keyboardOpen
+          ? null
+          : FloatingActionButton.extended(
+              heroTag: 'homePageCreateTripButton',
+              onPressed: () => PlatformDialogElements.showGeneralDialog(
+                context,
+                (dialogContext) => TripCreatorDialog(widgetContext: context),
+              ),
+              label: Text(context.localizations.planTrip),
+              icon: const Icon(Icons.add_location_alt_rounded),
+            ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: const TripListView(),
-    );
-  }
-
-  Widget _buildCreateTripButton(BuildContext pageContext) {
-    var keyboardIsOpened = MediaQuery.of(pageContext).viewInsets.bottom != 0.0;
-    return Visibility(
-      visible: !keyboardIsOpened,
-      child: FloatingActionButton.extended(
-        heroTag: 'homePageCreateTripButton',
-        onPressed: () {
-          PlatformDialogElements.showGeneralDialog(
-            pageContext,
-            (dialogContext) => TripCreatorDialog(
-              widgetContext: pageContext,
-            ),
-          );
-        },
-        label: Text(pageContext.localizations.planTrip),
-        icon: const Icon(Icons.add_location_alt_rounded),
-      ),
     );
   }
 }

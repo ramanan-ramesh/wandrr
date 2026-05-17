@@ -13,6 +13,7 @@ import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/readonly_expense.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
@@ -248,6 +249,8 @@ class _ExpenseListViewState extends State<ExpenseListView> {
         : (_expenses.length < 3 ? 3 : _expenses.length + 1);
     return ListView.builder(
       key: const ValueKey('ExpensesListView_ListView'),
+      padding: const EdgeInsets.only(
+          bottom: TripEditorPageConstants.fabContentPaddingBig),
       itemCount: itemCount,
       itemBuilder: (context, index) {
         if (!isLoaded && index >= _expenses.length) {

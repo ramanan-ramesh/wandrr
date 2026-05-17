@@ -13,10 +13,10 @@ import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/services/conflict_detection/trip_entity_update_plan.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/bloc_extensions.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/validation_error_subpage.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/conflict_resolution/conflict_resolution_subpage.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/validation_error_subpage.dart';
 
 /// Enhanced action page that integrates conflict detection and resolution.
 /// Supports any entity type (Transit/Lodging/Sight) that can have timeline conflicts.

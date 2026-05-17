@@ -180,5 +180,20 @@
   "nLegs": "{count} legs",
   "tripDataLoading": "Loading trip data…",
   "noTransitsAvailable": "No transits available",
-  "openTripFirstToPrint": "Open the trip first to print it"
+  "openTripFirstToPrint": "Open the trip first to print it",
+  "changeThumbnail": "?????? ?????",
+  "tripStatusActive": "??????",
+  "tripStatusTomorrow": "??",
+  "tripStatusInDays": "{count} ????? ???",
+  "@tripStatusInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "startYourAdventure": "अपना साहसिक सफर शुरू करें",
+  "noTripsSubtitle": "अपनी पहली यात्रा की योजना बनाएं और यादें बनाएं जो जीवन भर रहें।",
+  "debt": "ऋण",
+  "breakdown": "विश्लेषण"
 }

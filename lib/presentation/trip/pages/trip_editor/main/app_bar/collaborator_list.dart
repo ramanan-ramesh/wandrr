@@ -12,7 +12,7 @@ import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart
 class CollaboratorList extends StatelessWidget {
   static const double _kAvatarRadius = 14;
   static const double _kAvatarOffset = 18.0;
-  static const int _maximumNumberOfAvatarsToShow = 3;
+  static const int _maximumNumberOfAvatarsToShow = 2;
 
   const CollaboratorList({super.key});
 
@@ -20,7 +20,8 @@ class CollaboratorList extends StatelessWidget {
   Widget build(BuildContext context) {
     return TripEntityUpdateHandler<TripMetadataFacade>(
       shouldRebuild: (beforeUpdate, afterUpdate) {
-        return !listEquals(beforeUpdate.contributors, afterUpdate.contributors);
+        return !setEquals(beforeUpdate.contributors.toSet(),
+            afterUpdate.contributors.toSet());
       },
       widgetBuilder: _createCollaboratorsManager,
     );

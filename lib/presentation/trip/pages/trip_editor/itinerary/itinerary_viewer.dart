@@ -120,7 +120,14 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      padding: EdgeInsets.fromLTRB(
+        12,
+        16,
+        12,
+        // Use the FAB-clearance injected via MediaQuery so the last timeline
+        // item is never hidden behind the floating action button.
+        MediaQuery.of(context).padding.bottom,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

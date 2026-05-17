@@ -1185,6 +1185,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open the trip first to print it'**
   String get openTripFirstToPrint;
+
+  /// No description provided for @changeThumbnail.
+  ///
+  /// In en, this message translates to:
+  /// **'Change thumbnail'**
+  String get changeThumbnail;
+
+  /// No description provided for @tripStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get tripStatusActive;
+
+  /// No description provided for @tripStatusTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get tripStatusTomorrow;
+
+  /// No description provided for @tripStatusInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'In {count} days'**
+  String tripStatusInDays(int count);
+
+  /// No description provided for @startYourAdventure.
+  ///
+  /// In en, this message translates to:
+  /// **'Start your adventure'**
+  String get startYourAdventure;
+
+  /// No description provided for @noTripsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan your first trip and make memories that last a lifetime.'**
+  String get noTripsSubtitle;
+
+  /// No description provided for @debt.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt'**
+  String get debt;
+
+  /// No description provided for @breakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakdown'**
+  String get breakdown;
 }
 
 class _AppLocalizationsDelegate

@@ -116,7 +116,8 @@ class SectionHeader extends StatelessWidget {
 
   Widget _buildChevron(_SectionHeaderColors colors) {
     return RotationTransition(
-      turns: rotationController,
+      // rotationController goes 0 → 1; map to 0 → 0.5 turns = 180° rotation.
+      turns: Tween<double>(begin: 0.0, end: 0.5).animate(rotationController),
       child: AnimatedContainer(
         duration: _kChevronAnimationDuration,
         padding: const EdgeInsets.all(_kHeaderChevronPadding),

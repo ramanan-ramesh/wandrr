@@ -9,8 +9,8 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/breakdown/b
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/breakdown/budget_breakdown_tile.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/budget_tile.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/expenses_list_view.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/main/horizontal_sections.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
+import 'package:wandrr/presentation/trip/widgets/chrome_tab.dart';
 import 'package:wandrr/presentation/trip/widgets/contributor_badge.dart';
 
 import '../../helpers/firebase_emulator_helper.dart';
@@ -138,9 +138,9 @@ Future<void> runDebtSummaryTest(WidgetTester tester) async {
 
   await tryNavigateToBudgetingPage(tester);
 
-  // Find and tap on Debt section to expand it
+  // Tap the Debt tab in ChromeTabBar to expand it.
   final debtSection = find.descendant(
-      of: find.byType(HorizontalSectionsList),
+      of: find.byType(ChromeTabBar),
       matching: find.byIcon(Icons.money_off_rounded));
   await TestHelpers.tapWidget(tester, debtSection);
   print('✓ Expanded Debt section');
@@ -182,9 +182,9 @@ Future<void> runBudgetBreakdownTest(WidgetTester tester) async {
 
   await tryNavigateToBudgetingPage(tester);
 
-  // Find and tap on Breakdown section to expand it
+  // Tap the Breakdown tab in ChromeTabBar to expand it.
   final breakdownSection = find.descendant(
-      of: find.byType(HorizontalSectionsList),
+      of: find.byType(ChromeTabBar),
       matching: find.byIcon(Icons.pie_chart_rounded));
   await TestHelpers.tapWidget(tester, breakdownSection);
   print('✓ Expanded Breakdown section');

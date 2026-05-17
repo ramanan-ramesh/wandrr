@@ -5,9 +5,9 @@ import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/validation_error_subpage.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/validation_error_subpage.dart';
 
 class TripEditorActionPage<T extends TripEntity<Enum>> extends StatefulWidget {
   /// Dispatches update events and returns the number of pending operations.
@@ -48,7 +48,8 @@ class _TripEditorActionPageState<T extends TripEntity<Enum>>
   @override
   void initState() {
     super.initState();
-    validityNotifier = ValueNotifier<Iterable<Enum>>(widget.tripEntity.getValidationErrors());
+    validityNotifier =
+        ValueNotifier<Iterable<Enum>>(widget.tripEntity.getValidationErrors());
     _pageController = PageController(initialPage: 0);
     pageContent = widget.pageContentCreator(validityNotifier);
   }
@@ -115,7 +116,8 @@ class _TripEditorActionPageState<T extends TripEntity<Enum>>
                     elevation: 0,
                     actions: [
                       if (errors.isNotEmpty && _pageIndex == 0)
-                        _createErrorCountIndicator(context.isLightTheme, errors.length),
+                        _createErrorCountIndicator(
+                            context.isLightTheme, errors.length),
                     ],
                   );
                 },
@@ -234,8 +236,7 @@ class _TripEditorActionPageState<T extends TripEntity<Enum>>
     }
   }
 
-  IconButton _createErrorCountIndicator(
-      bool isLightTheme, int errorCount) {
+  IconButton _createErrorCountIndicator(bool isLightTheme, int errorCount) {
     return IconButton(
       style: isLightTheme
           ? const ButtonStyle(

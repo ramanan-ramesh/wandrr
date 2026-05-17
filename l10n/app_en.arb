@@ -203,5 +203,20 @@
   },
   "tripDataLoading": "Loading trip data…",
   "noTransitsAvailable": "No transits available",
-  "openTripFirstToPrint": "Open the trip first to print it"
+  "openTripFirstToPrint": "Open the trip first to print it",
+  "changeThumbnail": "Change thumbnail",
+  "tripStatusActive": "Active",
+  "tripStatusTomorrow": "Tomorrow",
+  "tripStatusInDays": "In {count} days",
+  "@tripStatusInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "startYourAdventure": "Start your adventure",
+  "noTripsSubtitle": "Plan your first trip and make memories that last a lifetime.",
+  "debt": "Debt",
+  "breakdown": "Breakdown"
 }

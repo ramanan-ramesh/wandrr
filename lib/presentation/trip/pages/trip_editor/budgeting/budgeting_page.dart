@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/expenses/expenses_list_view.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/main/collapsible_section.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/main/collapsible_sections_page.dart';
+import 'package:wandrr/presentation/trip/widgets/chrome_tab.dart';
 
 import 'breakdown/budget_breakdown_tile.dart';
 import 'debt_dummary.dart';
@@ -12,26 +11,33 @@ class BudgetingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sections = [
-      CollapsibleSection(
-        title: context.localizations.expenses,
-        icon: Icons.wallet_travel_rounded,
-        child: const ExpenseListView(),
+    final l10n = context.localizations;
+    return DefaultTabController(
+      length: 3,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ChromeTabBar(
+            iconsAndTitles: {
+              Icons.wallet_travel_rounded: l10n.expenses,
+              Icons.money_off_rounded: l10n.debt,
+              Icons.pie_chart_rounded: l10n.breakdown,
+            },
+          ),
+          const Expanded(
+            child: TabBarView(
+              // Disable swipe so the inner TabBarView inside BudgetBreakdownTile
+              // can handle horizontal swipe gestures independently.
+              physics: NeverScrollableScrollPhysics(),
+              children: [
+                ExpenseListView(),
+                DebtSummaryTile(),
+                BudgetBreakdownTile(),
+              ],
+            ),
+          ),
+        ],
       ),
-      CollapsibleSection(
-        title: 'Debt',
-        icon: Icons.money_off_rounded,
-        child: const DebtSummaryTile(),
-      ),
-      CollapsibleSection(
-        title: 'Breakdown',
-        icon: Icons.pie_chart_rounded,
-        child: const BudgetBreakdownTile(),
-      ),
-    ];
-    return CollapsibleSectionsPage(
-      sections: sections,
-      initiallyExpandedIndex: 0,
     );
   }
 }

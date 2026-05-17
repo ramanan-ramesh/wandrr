@@ -55,7 +55,13 @@ class _ItineraryNotesViewerState extends State<ItineraryNotesViewer> {
               context.localizations.addNotesForThisDay, Icons.note_outlined);
         }
         return ListView.builder(
-          padding: const EdgeInsets.all(_kPaddingAll),
+          padding: EdgeInsets.fromLTRB(
+            _kPaddingAll,
+            _kPaddingAll,
+            _kPaddingAll,
+            // Ensure the last note card scrolls above the FAB.
+            MediaQuery.of(context).padding.bottom,
+          ),
           itemCount: notes.length,
           itemBuilder: (ctx, i) {
             final note = notes[i];

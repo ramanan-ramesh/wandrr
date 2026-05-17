@@ -576,4 +576,31 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get openTripFirstToPrint => 'Open the trip first to print it';
+
+  @override
+  String get changeThumbnail => '?????? ?????';
+
+  @override
+  String get tripStatusActive => '??????';
+
+  @override
+  String get tripStatusTomorrow => '??';
+
+  @override
+  String tripStatusInDays(int count) {
+    return '$count ????? ???';
+  }
+
+  @override
+  String get startYourAdventure => 'अपना साहसिक सफर शुरू करें';
+
+  @override
+  String get noTripsSubtitle =>
+      'अपनी पहली यात्रा की योजना बनाएं और यादें बनाएं जो जीवन भर रहें।';
+
+  @override
+  String get debt => 'ऋण';
+
+  @override
+  String get breakdown => 'विश्लेषण';
 }

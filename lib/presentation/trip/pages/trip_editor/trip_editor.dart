@@ -35,6 +35,16 @@ class _TripEditorPageState extends State<TripEditorPage> {
   final ValueNotifier<DateTime> _currentDateNotifier =
       ValueNotifier<DateTime>(DateTime.now());
 
+  int _currentPageIndex = 0;
+
+  // Created once and shared by both layout branches so that each page retains
+  // its state (e.g. ItineraryNavigator's current-day selection) across
+  // tab switches and layout changes.
+  late final Widget _itineraryPage = ItineraryNavigator(
+    onNavigatedToDate: (date) => _currentDateNotifier.value = date,
+  );
+  late final Widget _budgetingPage = const BudgetingPage();
+
   @override
   void dispose() {
     _currentDateNotifier.dispose();
@@ -44,56 +54,21 @@ class _TripEditorPageState extends State<TripEditorPage> {
   @override
   Widget build(BuildContext context) {
     final isBigLayout = context.isBigLayout;
+
     if (isBigLayout) {
       return _TripEditorPageInternal(
-        currentDateNotifier: _currentDateNotifier,
+        getDisplayedDate: () => _currentDateNotifier.value,
         body: Row(
           children: [
-            Expanded(
-                child: ItineraryNavigator(
-                    onNavigatedToDate: (date) =>
-                        _currentDateNotifier.value = date)),
-            const Expanded(child: BudgetingPage()),
+            Expanded(child: _itineraryPage),
+            Expanded(child: _budgetingPage),
           ],
         ),
       );
     }
-    return _TripEditorSmallLayout(currentDateNotifier: _currentDateNotifier);
-  }
-}
 
-class _TripEditorSmallLayout extends StatefulWidget {
-  final ValueNotifier<DateTime> currentDateNotifier;
-
-  const _TripEditorSmallLayout({required this.currentDateNotifier});
-
-  @override
-  State<_TripEditorSmallLayout> createState() =>
-      _TripEditorSmallLayoutPageState();
-}
-
-class _TripEditorSmallLayoutPageState extends State<_TripEditorSmallLayout> {
-  int _currentPageIndex = 0;
-
-  // Keep both pages alive in the widget tree via IndexedStack so that
-  // ItineraryNavigator retains its current-day selection when the user
-  // switches to the Budgeting tab and back.
-  late final Widget _itineraryPage;
-  late final Widget _budgetingPage;
-
-  @override
-  void initState() {
-    super.initState();
-    _itineraryPage = ItineraryNavigator(onNavigatedToDate: (date) {
-      widget.currentDateNotifier.value = date;
-    });
-    _budgetingPage = const BudgetingPage();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return _TripEditorPageInternal(
-      currentDateNotifier: widget.currentDateNotifier,
+      getDisplayedDate: () => _currentDateNotifier.value,
       body: IndexedStack(
         index: _currentPageIndex,
         children: [_itineraryPage, _budgetingPage],
@@ -116,11 +91,11 @@ class _TripEditorSmallLayoutPageState extends State<_TripEditorSmallLayout> {
 class _TripEditorPageInternal extends StatelessWidget {
   final Widget body;
   final Widget? bottomNavigationBar;
-  final ValueNotifier<DateTime> currentDateNotifier;
+  final DateTime Function() getDisplayedDate;
 
   const _TripEditorPageInternal({
     required this.body,
-    required this.currentDateNotifier,
+    required this.getDisplayedDate,
     this.bottomNavigationBar,
   });
 
@@ -147,7 +122,24 @@ class _TripEditorPageInternal extends StatelessWidget {
                 return const LinearProgressIndicator();
               },
             ),
-            Expanded(child: body),
+            Expanded(
+              child: MediaQuery(
+                // Inject the FAB clearance into padding.bottom so that every
+                // descendant scrollable can derive the correct bottom padding
+                // via MediaQuery.of(context).padding.bottom, without the page
+                // widget itself being shrunk (which causes empty whitespace).
+                data: MediaQuery.of(context).copyWith(
+                  padding: MediaQuery.of(context).padding.copyWith(
+                        bottom: MediaQuery.of(context).padding.bottom +
+                            (bottomNavigationBar == null
+                                ? TripEditorPageConstants.fabContentPaddingBig
+                                : TripEditorPageConstants
+                                    .fabContentPaddingSmall),
+                      ),
+                ),
+                child: body,
+              ),
+            ),
           ],
         ),
         bottomNavigationBar: bottomNavigationBar,
@@ -207,6 +199,7 @@ class _TripEditorPageInternal extends StatelessWidget {
     }
   }
 
+  //TODO: This should be shown while trying to add/edit a tripmate, not after the fact. We can move this logic to the TripContributorsEditorSection which is used for editing tripmates, but we still want to show the snackbar when tripmates are removed from the trip since that action doesn't have a conflict resolution step but still has the same outcome of preserving past expenses for historical accuracy.
   void _handleTripMetadataUpdate({
     required BuildContext context,
     required TripMetadataFacade oldMetadata,
@@ -233,30 +226,20 @@ class _TripEditorPageInternal extends StatelessWidget {
   }
 
   Widget _createAddButton(BuildContext pageContext) {
-    if (pageContext.isBigLayout) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 24.0),
-        child: SizedBox(
-          height: TripEditorPageConstants.fabSize,
-          width: TripEditorPageConstants.fabSize,
-          child: FittedBox(
-            child: FloatingActionButton(
-              heroTag: 'tripEditorAddButtonWithNav',
-              onPressed: () => _onAddButtonPressed(pageContext),
-              child: const Icon(Icons.add),
-            ),
+    var isBigLayout = pageContext.isBigLayout;
+    return Padding(
+      padding: EdgeInsets.only(bottom: isBigLayout ? 24.0 : 0.0),
+      child: SizedBox(
+        height: TripEditorPageConstants.fabSize,
+        width: TripEditorPageConstants.fabSize,
+        child: FittedBox(
+          child: FloatingActionButton(
+            heroTag: isBigLayout
+                ? 'tripEditorAddButtonWithNav'
+                : 'tripEditorAddButton',
+            onPressed: () => _onAddButtonPressed(pageContext),
+            child: const Icon(Icons.add),
           ),
-        ),
-      );
-    }
-    return SizedBox(
-      height: TripEditorPageConstants.fabSize,
-      width: TripEditorPageConstants.fabSize,
-      child: FittedBox(
-        child: FloatingActionButton(
-          heroTag: 'tripEditorAddButton',
-          onPressed: () => _onAddButtonPressed(pageContext),
-          child: const Icon(Icons.add),
         ),
       ),
     );
@@ -278,7 +261,7 @@ class _TripEditorPageInternal extends StatelessWidget {
           TripEditorAction.travel,
           TripEditorAction.stay,
         ],
-        currentlyDisplayedItineraryDate: currentDateNotifier.value,
+        currentlyDisplayedItineraryDate: getDisplayedDate(),
       ),
       pageContext,
     );

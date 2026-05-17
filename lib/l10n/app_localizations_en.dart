@@ -575,4 +575,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openTripFirstToPrint => 'Open the trip first to print it';
+
+  @override
+  String get changeThumbnail => 'Change thumbnail';
+
+  @override
+  String get tripStatusActive => 'Active';
+
+  @override
+  String get tripStatusTomorrow => 'Tomorrow';
+
+  @override
+  String tripStatusInDays(int count) {
+    return 'In $count days';
+  }
+
+  @override
+  String get startYourAdventure => 'Start your adventure';
+
+  @override
+  String get noTripsSubtitle =>
+      'Plan your first trip and make memories that last a lifetime.';
+
+  @override
+  String get debt => 'Debt';
+
+  @override
+  String get breakdown => 'Breakdown';
 }

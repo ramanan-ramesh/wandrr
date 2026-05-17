@@ -1,20 +1,30 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/section_header.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 
 import 'collapsible_section.dart';
-import 'horizontal_sections.dart';
 
-const double _kContainerHorizontalMargin = 8;
-const double _kContainerVerticalMargin = 4;
-const double _kContainerBorderRadius = 16;
+// Approximate total height of one section tile when fully collapsed.
+// = container vertical margin (4×2 = 8) + header vertical padding (10×2 = 20)
+//   + icon+padding row height (24 + 10×2 = 44) = 72 px.
+// Used by LayoutBuilder to compute the remaining height for expanded content.
+const double _kCollapsedSectionHeight = 72.0;
+
+const double _kContainerHorizontalMargin = 8.0;
+const double _kContainerVerticalMargin = 4.0;
+const double _kContainerBorderRadius = 16.0;
+const Duration _kExpandDuration = Duration(milliseconds: 380);
 
 class CollapsibleSectionsPage extends StatefulWidget {
   final List<CollapsibleSection> sections;
   final int? initiallyExpandedIndex;
 
   const CollapsibleSectionsPage({
-    required this.sections, super.key,
+    required this.sections,
+    super.key,
     this.initiallyExpandedIndex,
   });
 
@@ -26,117 +36,130 @@ class CollapsibleSectionsPage extends StatefulWidget {
 class _CollapsibleSectionsPageState extends State<CollapsibleSectionsPage>
     with TickerProviderStateMixin {
   int? _expandedSectionIndex;
-  late final List<AnimationController> _rotationControllers;
+
+  /// Per-section AnimationController: 0.0 = fully collapsed, 1.0 = fully expanded.
+  late final List<AnimationController> _controllers;
+
+  /// Whether the content widget for each section should be mounted in the tree.
+  /// Set to true immediately when expansion begins; set back to false only after
+  /// the collapse animation reaches AnimationStatus.dismissed, so the content
+  /// stays visible (and animates out) during the closing transition.
+  late final List<bool> _showContent;
 
   @override
   void initState() {
     super.initState();
+    final n = widget.sections.length;
     _expandedSectionIndex = widget.initiallyExpandedIndex;
-    _rotationControllers = List.generate(
-      widget.sections.length,
-      (i) => AnimationController(
-        duration: const Duration(milliseconds: 500),
+    _showContent = List.generate(n, (i) => i == _expandedSectionIndex);
+    _controllers = List.generate(n, (i) {
+      final ctrl = AnimationController(
+        duration: _kExpandDuration,
         vsync: this,
-        value: i == _expandedSectionIndex ? 0.5 : 0.0,
-      ),
-    );
+        value: i == _expandedSectionIndex ? 1.0 : 0.0,
+      );
+      ctrl.addStatusListener((status) {
+        if (status == AnimationStatus.dismissed && mounted) {
+          setState(() => _showContent[i] = false);
+        }
+      });
+      return ctrl;
+    });
   }
 
   @override
   void dispose() {
-    for (final controller in _rotationControllers) {
-      controller.dispose();
+    for (final c in _controllers) {
+      c.dispose();
     }
     super.dispose();
   }
 
+  void _handleSectionTap(int index) {
+    final wasExpanded = _expandedSectionIndex == index;
+    final previous = _expandedSectionIndex;
+
+    setState(() {
+      _expandedSectionIndex = wasExpanded ? null : index;
+      if (!wasExpanded) {
+        // Mount content before the expand animation starts.
+        _showContent[index] = true;
+      }
+      // On collapse: keep showContent true until the AnimationStatus.dismissed
+      // listener fires (content stays visible during the closing animation).
+    });
+
+    if (wasExpanded) {
+      _controllers[index].animateBack(0.0, curve: Curves.easeInOut);
+    } else {
+      _controllers[index].animateTo(1.0, curve: Curves.easeInOut);
+      if (previous != null && previous != index) {
+        _controllers[previous].animateBack(0.0, curve: Curves.easeInOut);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final expandedIndex = _expandedSectionIndex;
-    if (expandedIndex == null) {
-      return _buildAllCollapsedView();
-    }
-    return _buildExpandedView(expandedIndex);
-  }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final n = widget.sections.length;
+        // Height available to the expanded section after reserving space for
+        // all collapsed headers and the FAB clearance at the bottom.
+        final expandedContentHeight = math.max(
+          0.0,
+          constraints.maxHeight -
+              n * _kCollapsedSectionHeight -
+              TripEditorPageConstants.fabContentPaddingBig,
+        );
 
-  void _handleSectionTap(int index, bool isCurrentlyExpanded) {
-    setState(() {
-      final previousExpandedIndex = _expandedSectionIndex;
-      _expandedSectionIndex = isCurrentlyExpanded ? null : index;
-      if (isCurrentlyExpanded) {
-        _rotationControllers[index].animateTo(0.0, curve: Curves.easeInOut);
-      } else {
-        _rotationControllers[index].animateTo(0.5, curve: Curves.easeInOut);
-        if (previousExpandedIndex != null && previousExpandedIndex != index) {
-          _rotationControllers[previousExpandedIndex]
-              .animateTo(0.0, curve: Curves.easeInOut);
-        }
-      }
-    });
-  }
-
-  Widget _buildAllCollapsedView() {
-    return Center(
-      child: SingleChildScrollView(
-        child: Column(
-          children: List.generate(
-            widget.sections.length,
-            _buildSection,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildExpandedView(int expandedIndex) {
-    final sectionsAbove = widget.sections.sublist(0, expandedIndex);
-    final sectionsBelow = widget.sections.sublist(expandedIndex + 1);
-    final children = <Widget>[
-      if (sectionsAbove.length > 1)
-        HorizontalSectionsList(
-          sections: sectionsAbove,
-          onSectionTap: (index) => _handleSectionTap(index, false),
-        )
-      else if (sectionsAbove.length == 1)
-        _buildSection(expandedIndex - 1),
-      _buildSection(expandedIndex),
-      if (sectionsBelow.length > 1)
-        HorizontalSectionsList(
-          sections: sectionsBelow,
-          onSectionTap: (index) =>
-              _handleSectionTap(expandedIndex + 1 + index, false),
-        )
-      else if (sectionsBelow.length == 1)
-        _buildSection(expandedIndex + 1),
-    ];
-    return Column(children: children);
-  }
-
-  Widget _buildSection(int index) {
-    final section = widget.sections[index];
-    final isExpanded = _expandedSectionIndex == index;
-    return _CollapsibleSectionContainer(
-      index: index,
-      section: section,
-      isExpanded: isExpanded,
-      rotationController: _rotationControllers[index],
-      onTap: () => _handleSectionTap(index, isExpanded),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < n; i++)
+              _SectionTile(
+                section: widget.sections[i],
+                index: i,
+                isExpanded: _expandedSectionIndex == i,
+                showContent: _showContent[i],
+                controller: _controllers[i],
+                expandedContentHeight: expandedContentHeight,
+                onTap: () => _handleSectionTap(i),
+              ),
+            // Always reserve FAB clearance; also ensures the Column fills the
+            // available height when no section is expanded.
+            const SizedBox(
+                height: TripEditorPageConstants.fabContentPaddingBig),
+          ],
+        );
+      },
     );
   }
 }
 
-class _CollapsibleSectionContainer extends StatelessWidget {
-  final int index;
+// ---------------------------------------------------------------------------
+// Private tile widget
+// ---------------------------------------------------------------------------
+
+class _SectionTile extends StatelessWidget {
   final CollapsibleSection section;
+  final int index;
   final bool isExpanded;
-  final AnimationController rotationController;
+
+  /// Whether the content widget is currently mounted (true during expand and
+  /// during the collapse animation; false once fully collapsed).
+  final bool showContent;
+  final AnimationController controller;
+  final double expandedContentHeight;
   final VoidCallback onTap;
 
-  const _CollapsibleSectionContainer({
-    required this.index,
+  const _SectionTile({
     required this.section,
+    required this.index,
     required this.isExpanded,
-    required this.rotationController,
+    required this.showContent,
+    required this.controller,
+    required this.expandedContentHeight,
     required this.onTap,
   });
 
@@ -144,15 +167,22 @@ class _CollapsibleSectionContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     const expandedColor = AppColors.brandPrimary;
-    final unexpandedColor = theme.colorScheme.surfaceContainerHighest;
-    final sectionColor = isExpanded ? expandedColor : unexpandedColor;
-    final container = Container(
+    final collapsedColor = theme.colorScheme.surfaceContainerHighest;
+    final sectionColor = isExpanded ? expandedColor : collapsedColor;
+
+    return AnimatedContainer(
+      duration: _kExpandDuration,
+      curve: Curves.easeInOut,
       margin: const EdgeInsets.symmetric(
-          horizontal: _kContainerHorizontalMargin,
-          vertical: _kContainerVerticalMargin),
+        horizontal: _kContainerHorizontalMargin,
+        vertical: _kContainerVerticalMargin,
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [sectionColor.withAlpha(25), sectionColor.withAlpha(51)],
+          colors: [
+            sectionColor.withAlpha(25),
+            sectionColor.withAlpha(51),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -165,22 +195,42 @@ class _CollapsibleSectionContainer extends StatelessWidget {
         borderRadius: BorderRadius.circular(_kContainerBorderRadius),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           SectionHeader(
             index: index,
             title: section.title,
             icon: section.icon,
             isExpanded: isExpanded,
-            rotationController: rotationController,
+            rotationController: controller,
             onTap: onTap,
           ),
-          if (isExpanded) Expanded(child: section.child)
+          // SizeTransition animates the height from 0 → expandedContentHeight.
+          // axisAlignment: -1 keeps the top edge pinned (slides down from top).
+          SizeTransition(
+            sizeFactor: CurvedAnimation(
+              parent: controller,
+              curve: Curves.easeInOut,
+            ),
+            axisAlignment: -1.0,
+            child: showContent
+                ? FadeTransition(
+                    // Fade in starts at 20 % of the animation so the content
+                    // appears after the section has begun to open; mirrors on
+                    // collapse for a natural fade-out.
+                    opacity: CurvedAnimation(
+                      parent: controller,
+                      curve: const Interval(0.2, 1.0, curve: Curves.easeIn),
+                    ),
+                    child: SizedBox(
+                      height: expandedContentHeight,
+                      child: section.child,
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
         ],
       ),
     );
-    if (isExpanded) {
-      return Expanded(child: container);
-    }
-    return container;
   }
 }

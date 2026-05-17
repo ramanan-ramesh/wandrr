@@ -57,7 +57,12 @@ class _ItineraryChecklistTabState extends State<ItineraryChecklistTab> {
           return _emptyState(context);
         }
         return ListView.separated(
-          padding: const EdgeInsets.all(_kPaddingAll),
+          padding: EdgeInsets.fromLTRB(
+            _kPaddingAll,
+            _kPaddingAll,
+            _kPaddingAll,
+            MediaQuery.of(context).padding.bottom,
+          ),
           itemBuilder: (c, i) {
             final cl = checklists[i];
             final title = cl.title?.trim().isEmpty ?? true

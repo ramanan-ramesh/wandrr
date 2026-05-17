@@ -3,6 +3,7 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/debt_data.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/contributor_badge.dart';
 
@@ -49,8 +50,14 @@ class DebtSummaryTile extends StatelessWidget {
                     .toList(),
               );
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: _kRowVerticalPadding),
+        // Wrap in a scrollable so content never gets clipped and the FAB
+        // doesn't cover the last row.
+        return SingleChildScrollView(
+          padding: const EdgeInsets.only(
+            top: _kRowVerticalPadding,
+            bottom: TripEditorPageConstants.fabContentPaddingBig +
+                _kRowVerticalPadding,
+          ),
           child: childWidget,
         );
       },

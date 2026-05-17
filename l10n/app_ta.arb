@@ -180,5 +180,20 @@
   "nLegs": "{count} legs",
   "tripDataLoading": "Loading trip data…",
   "noTransitsAvailable": "No transits available",
-  "openTripFirstToPrint": "Open the trip first to print it"
+  "openTripFirstToPrint": "Open the trip first to print it",
+  "changeThumbnail": "???????? ??????",
+  "tripStatusActive": "?????????????",
+  "tripStatusTomorrow": "????",
+  "tripStatusInDays": "{count} ?????????",
+  "@tripStatusInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "startYourAdventure": "உங்கள் சாகசப் பயணத்தை தொடங்குங்கள்",
+  "noTripsSubtitle": "உங்கள் முதல் பயணத்தை திட்டமிடுங்கள் மற்றும் வாழ்நாள் முழுவதும் நினைவுகளை உருவாக்குங்கள்.",
+  "debt": "கடன்",
+  "breakdown": "விவரம்"
 }

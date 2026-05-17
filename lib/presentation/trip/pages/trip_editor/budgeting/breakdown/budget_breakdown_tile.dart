@@ -16,17 +16,11 @@ class BudgetBreakdownTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       builder: (BuildContext context, TripManagementState state) {
-        return Container(
-          constraints: const BoxConstraints(maxHeight: 600),
-          child: Card(
-            child: PlatformTabBar(
-              tabBarItems: <String, Widget>{
-                context.localizations.dayByDay: const BreakdownByDayChart(),
-                context.localizations.category:
-                    const BreakdownByCategoryChart(),
-              },
-            ),
-          ),
+        return PlatformTabBar(
+          tabBarItems: <String, Widget>{
+            context.localizations.dayByDay: const BreakdownByDayChart(),
+            context.localizations.category: const BreakdownByCategoryChart(),
+          },
         );
       },
       buildWhen: (previousState, currentState) {
