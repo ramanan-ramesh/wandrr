@@ -60,8 +60,9 @@ class EditorPageFactory {
       title: title,
       onClosePressed: onClosePressed,
       onActionInvoked: (ctx) {
-        _emitUpdateEvent<TripMetadataFacade>(
-            ctx, ctx.editableEntity<TripMetadataFacade>());
+        final editable = ctx.editableEntity<TripMetadataFacade>();
+        if (isEditing && editable == entity) return 0;
+        _emitUpdateEvent<TripMetadataFacade>(ctx, editable);
         return 1;
       },
       scrollController: scrollController,
@@ -125,6 +126,8 @@ class EditorPageFactory {
             return 2;
           }
 
+          // Simple update — skip if the entity is unchanged.
+          if (isEditing && editableEntity == entity) return 0;
           _emitUpdateEvent<ItineraryPlanData>(ctx, editableEntity);
           return 1;
         }
@@ -174,8 +177,9 @@ class EditorPageFactory {
       title: title,
       onClosePressed: onClosePressed,
       onActionInvoked: (ctx) {
-        _emitUpdateEvent<LodgingFacade>(
-            ctx, ctx.editableEntity<LodgingFacade>());
+        final editable = ctx.editableEntity<LodgingFacade>();
+        if (isEditing && editable == entity) return 0;
+        _emitUpdateEvent<LodgingFacade>(ctx, editable);
         return 1;
       },
       scrollController: scrollController,
@@ -197,6 +201,7 @@ class EditorPageFactory {
       title: title,
       onClosePressed: onClosePressed,
       onActionInvoked: (ctx) {
+        if (isEditing && editableEntity == entity) return 0;
         _emitUpdateEvent<StandaloneExpense>(ctx, editableEntity);
         return 1;
       },

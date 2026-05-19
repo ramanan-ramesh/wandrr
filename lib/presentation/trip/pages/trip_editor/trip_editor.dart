@@ -293,9 +293,13 @@ class _TripEditorPageInternal extends StatelessWidget {
           child: NotificationListener<ScrollUpdateNotification>(
             onNotification: (notification) {
               final primaryFocus = FocusManager.instance.primaryFocus;
-              if (primaryFocus == null) return false;
+              if (primaryFocus == null) {
+                return false;
+              }
               final focusedContext = primaryFocus.context;
-              if (focusedContext == null) return false;
+              if (focusedContext == null) {
+                return false;
+              }
               final renderBox = focusedContext.findRenderObject();
               if (renderBox is! RenderBox ||
                   !renderBox.hasSize ||

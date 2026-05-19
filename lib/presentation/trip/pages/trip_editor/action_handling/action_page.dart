@@ -228,6 +228,12 @@ class _TripEditorActionPageState<T extends TripEntity<Enum>>
 
   void _onSubmit() {
     final operationCount = widget.onActionInvoked(context);
+    // operationCount == 0 means the entity was unchanged — no Firestore echo
+    // will arrive, so we pop immediately rather than spinning forever.
+    if (operationCount == 0) {
+      if (mounted) Navigator.of(context).pop();
+      return;
+    }
     setState(() {
       _isSubmitting = true;
       _pendingOperations = operationCount;

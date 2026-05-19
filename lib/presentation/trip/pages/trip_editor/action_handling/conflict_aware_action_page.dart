@@ -102,7 +102,9 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
     if (keyboardHeight != _lastKeyboardHeight) {
       _lastKeyboardHeight = keyboardHeight;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _onScroll();
+        if (mounted) {
+          _onScroll();
+        }
       });
     }
   }
@@ -519,6 +521,12 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
           ApplyTripDataUpdatePlan(updatePlan: conflictPlan));
     }
     final operationCount = widget.onActionInvoked(context);
+    // operationCount == 0 means the entity was unchanged — no Firestore echo
+    // will arrive, so we pop immediately rather than spinning forever.
+    if (operationCount == 0) {
+      if (mounted) Navigator.of(context).pop();
+      return;
+    }
     setState(() {
       _isSubmitting = true;
       _pendingOperations = operationCount;
