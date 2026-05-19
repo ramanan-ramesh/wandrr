@@ -110,7 +110,7 @@ class _TransitOperatorTextFieldState extends State<_TransitOperatorTextField> {
       minLines: 1,
       maxLines: 1,
       controller: _controller,
-      scrollPadding: const EdgeInsets.only(bottom: 50),
+      scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
       decoration: InputDecoration(
         labelText: context.localizations.carrierName,
         prefixIcon: const Icon(

@@ -277,11 +277,51 @@ class _TripEditorPageInternal extends StatelessWidget {
         ],
         child: BlocProvider.value(
           value: BlocProvider.of<TripManagementBloc>(pageContext),
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(dialogContext).viewInsets.bottom,
+          // When the user scrolls the bottom-sheet content while an autocomplete
+          // options overlay is open, the overlay (rendered in the Overlay widget
+          // tree) stays fixed while the field scrolls away.
+          //
+          // Strategy: listen to ScrollUpdateNotifications (which fire continuously
+          // during a drag) and check whether the currently-focused widget is still
+          // within the visible screen area using localToGlobal.  We unfocus only
+          // when the field has scrolled *completely* out of view, so:
+          //   • Scrolling slowly inside the sheet keeps the dropdown open as long
+          //     as the field is still visible.
+          //   • Scrolling within the autocomplete options list itself is unaffected
+          //     because that list lives in a separate Overlay widget tree and its
+          //     ScrollUpdateNotifications never reach this listener.
+          child: NotificationListener<ScrollUpdateNotification>(
+            onNotification: (notification) {
+              final primaryFocus = FocusManager.instance.primaryFocus;
+              if (primaryFocus == null) return false;
+              final focusedContext = primaryFocus.context;
+              if (focusedContext == null) return false;
+              final renderBox = focusedContext.findRenderObject();
+              if (renderBox is! RenderBox ||
+                  !renderBox.hasSize ||
+                  !renderBox.attached) {
+                return false;
+              }
+
+              // Convert the focused widget's top-left corner to screen coordinates.
+              final topLeft = renderBox.localToGlobal(Offset.zero);
+              final fieldHeight = renderBox.size.height;
+              final screenHeight = MediaQuery.sizeOf(dialogContext).height;
+
+              // Dismiss only when the field is fully outside the visible area.
+              final scrolledAbove = topLeft.dy + fieldHeight < 0;
+              final scrolledBelow = topLeft.dy > screenHeight;
+              if (scrolledAbove || scrolledBelow) {
+                primaryFocus.unfocus();
+              }
+              return false; // let the notification keep bubbling
+            },
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(dialogContext).viewInsets.bottom,
+              ),
+              child: child,
             ),
-            child: child,
           ),
         ),
       ),

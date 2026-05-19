@@ -202,7 +202,7 @@ class _TotalExpenseDisplayState extends State<TotalExpenseDisplay> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextField(
-                scrollPadding: const EdgeInsets.only(bottom: 50),
+                scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 autofocus: true,

@@ -249,7 +249,7 @@ class _PlatformAutoCompleteState<T extends Object>
                     ),
                   Expanded(
                     child: TextFormField(
-                      scrollPadding: const EdgeInsets.only(bottom: 50),
+                      scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
                       key: const ValueKey('PlatformAutoComplete_TextField'),
                       controller: _textEditingController,
                       focusNode: _focusNode,

@@ -68,7 +68,7 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
         children: [
           TextFormField(
             controller: _titleController,
-            scrollPadding: const EdgeInsets.only(bottom: 50),
+            scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),

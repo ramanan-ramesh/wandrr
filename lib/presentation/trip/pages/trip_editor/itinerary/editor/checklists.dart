@@ -166,7 +166,7 @@ class _ChecklistEditorContentState extends State<_ChecklistEditorContent> {
             ),
             filled: true,
           ),
-          scrollPadding: const EdgeInsets.only(bottom: 50),
+          scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
           onChanged: (val) {
             widget.onChanged();
           },
@@ -300,7 +300,7 @@ class _ChecklistItemRowState extends State<_ChecklistItemRow> {
                         ?.withValues(alpha: 0.6)
                     : null,
               ),
-              scrollPadding: const EdgeInsets.only(bottom: 50),
+              scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
               onChanged: (val) {
                 widget.onChanged();
               },

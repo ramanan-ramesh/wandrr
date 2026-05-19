@@ -180,7 +180,7 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
           focusNode: _searchFocusNode,
           autofocus: true,
           onChanged: _updateSearch,
-          scrollPadding: const EdgeInsets.only(bottom: 50),
+          scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
           decoration: InputDecoration(
             hintText: context.localizations.searchForCurrency,
             prefixIcon: Material(

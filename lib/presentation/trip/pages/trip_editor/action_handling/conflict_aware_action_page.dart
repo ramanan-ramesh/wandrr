@@ -71,6 +71,8 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
   int _pageIndex = 0;
   bool _isSubmitting = false;
   int _pendingOperations = 0;
+  bool _isScrolledToBottom = false;
+  double _lastKeyboardHeight = 0;
 
   @override
   void initState() {
@@ -85,16 +87,40 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
             tripData: widget.tripData,
             entity: widget.tripEntity,
           );
-    // Build page content now — bloc.editableEntity is guaranteed to be set.
     _pageContent = widget.pageContentCreator(
       _editorBloc.editableEntity,
       _onEntityUpdated,
     );
     _pendingOperations = 0;
+    widget.scrollController?.addListener(_onScroll);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final keyboardHeight = MediaQuery.viewInsetsOf(context).bottom;
+    if (keyboardHeight != _lastKeyboardHeight) {
+      _lastKeyboardHeight = keyboardHeight;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _onScroll();
+      });
+    }
+  }
+
+  void _onScroll() {
+    final sc = widget.scrollController;
+    if (sc == null || !sc.hasClients) {
+      return;
+    }
+    final atBottom = sc.position.pixels >= sc.position.maxScrollExtent - 16.0;
+    if (atBottom != _isScrolledToBottom) {
+      setState(() => _isScrolledToBottom = atBottom);
+    }
   }
 
   @override
   void dispose() {
+    widget.scrollController?.removeListener(_onScroll);
     _pageController.dispose();
     _editorBloc.close();
     _pendingOperations = 0;
@@ -235,37 +261,41 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
                   bottom: fabBottomMargin,
                   left: 0,
                   right: 0,
-                  child: AnimatedOpacity(
-                    opacity:
-                        MediaQuery.viewInsetsOf(context).bottom > 0 ? 0.0 : 1.0,
-                    duration: const Duration(milliseconds: 180),
-                    curve: Curves.easeOut,
-                    child: IgnorePointer(
-                      ignoring: MediaQuery.viewInsetsOf(context).bottom > 0,
-                      child: Center(
-                        child: BlocBuilder<TripEntityEditorBloc<T>,
-                            TripEntityEditorState<T>>(
-                          buildWhen: (_, current) =>
-                              current is ConflictPlanUpdated ||
-                              current is ConflictPlanConfirmed ||
-                              current is EntityValidationUpdated,
-                          builder: (context, state) {
-                            final conflictPlan =
-                                context.tripEntityUpdatePlan<T>();
-                            final hasUnresolvedConflicts =
-                                conflictPlan != null &&
-                                    conflictPlan.hasConflicts &&
-                                    !conflictPlan.isConfirmed;
-                            final hasValidationErrors =
-                                state is EntityValidationUpdated<T> &&
-                                    state.validationErrors.isNotEmpty;
-                            return _createActionButton(context,
-                                hasUnresolvedConflicts, hasValidationErrors);
-                          },
+                  child: Builder(builder: (context) {
+                    final keyboardUp =
+                        MediaQuery.viewInsetsOf(context).bottom > 0;
+                    final fabVisible = !keyboardUp || _isScrolledToBottom;
+                    return AnimatedOpacity(
+                      opacity: fabVisible ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 180),
+                      curve: Curves.easeOut,
+                      child: IgnorePointer(
+                        ignoring: !fabVisible,
+                        child: Center(
+                          child: BlocBuilder<TripEntityEditorBloc<T>,
+                              TripEntityEditorState<T>>(
+                            buildWhen: (_, current) =>
+                                current is ConflictPlanUpdated ||
+                                current is ConflictPlanConfirmed ||
+                                current is EntityValidationUpdated,
+                            builder: (context, state) {
+                              final conflictPlan =
+                                  context.tripEntityUpdatePlan<T>();
+                              final hasUnresolvedConflicts =
+                                  conflictPlan != null &&
+                                      conflictPlan.hasConflicts &&
+                                      !conflictPlan.isConfirmed;
+                              final hasValidationErrors =
+                                  state is EntityValidationUpdated<T> &&
+                                      state.validationErrors.isNotEmpty;
+                              return _createActionButton(context,
+                                  hasUnresolvedConflicts, hasValidationErrors);
+                            },
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
                 ),
             ],
           ),

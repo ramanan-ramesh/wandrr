@@ -323,7 +323,7 @@ class _CurrencySearchableDropdownState
       mainAxisSize: MainAxisSize.min,
       children: [
         TextField(
-          scrollPadding: const EdgeInsets.only(bottom: 50),
+          scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
           controller: _searchController,
           autofocus: true,
           onChanged: _updateSearch,

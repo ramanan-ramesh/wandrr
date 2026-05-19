@@ -44,6 +44,7 @@ class _TripEditorActionPageState<T extends TripEntity<Enum>>
   int _pageIndex = 0;
   bool _isSubmitting = false;
   int _pendingOperations = 0;
+  bool _isScrolledToBottom = false;
 
   @override
   void initState() {
@@ -52,10 +53,23 @@ class _TripEditorActionPageState<T extends TripEntity<Enum>>
         ValueNotifier<Iterable<Enum>>(widget.tripEntity.getValidationErrors());
     _pageController = PageController(initialPage: 0);
     pageContent = widget.pageContentCreator(validityNotifier);
+    widget.scrollController?.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    final sc = widget.scrollController;
+    if (sc == null || !sc.hasClients) {
+      return;
+    }
+    final atBottom = sc.position.pixels >= sc.position.maxScrollExtent - 16.0;
+    if (atBottom != _isScrolledToBottom) {
+      setState(() => _isScrolledToBottom = atBottom);
+    }
   }
 
   @override
   void dispose() {
+    widget.scrollController?.removeListener(_onScroll);
     validityNotifier.dispose();
     _pageController.dispose();
     super.dispose();
@@ -159,16 +173,19 @@ class _TripEditorActionPageState<T extends TripEntity<Enum>>
               bottom: fabBottomMargin,
               left: 0,
               right: 0,
-              child: AnimatedOpacity(
-                opacity:
-                    MediaQuery.viewInsetsOf(context).bottom > 0 ? 0.0 : 1.0,
-                duration: const Duration(milliseconds: 180),
-                curve: Curves.easeOut,
-                child: IgnorePointer(
-                  ignoring: MediaQuery.viewInsetsOf(context).bottom > 0,
-                  child: Center(child: _createActionButton(context)),
-                ),
-              ),
+              child: Builder(builder: (context) {
+                final keyboardUp = MediaQuery.viewInsetsOf(context).bottom > 0;
+                final fabVisible = !keyboardUp || _isScrolledToBottom;
+                return AnimatedOpacity(
+                  opacity: fabVisible ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOut,
+                  child: IgnorePointer(
+                    ignoring: !fabVisible,
+                    child: Center(child: _createActionButton(context)),
+                  ),
+                );
+              }),
             ),
         ],
       ),

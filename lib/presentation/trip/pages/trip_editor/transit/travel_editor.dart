@@ -116,7 +116,7 @@ class _TravelEditorState extends State<TravelEditor> {
               allContributors.contains(activeUserName))
             TextFormField(
               key: const ValueKey('TravelEditor_ActiveUserSeat_TextField'),
-              scrollPadding: const EdgeInsets.only(bottom: 50),
+              scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
               decoration: InputDecoration(
                 labelText: 'My Seat Number',
                 prefixIcon: const Icon(Icons.event_seat_rounded),
@@ -150,7 +150,7 @@ class _TravelEditorState extends State<TravelEditor> {
                     child: TextFormField(
                       key: ValueKey(
                           'TravelEditor_TripmateSeat_TextField_$userName'),
-                      scrollPadding: const EdgeInsets.only(bottom: 50),
+                      scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
                       decoration: InputDecoration(
                         label: Text(
                           "$userName's Seat",
@@ -280,7 +280,7 @@ class _TravelEditorState extends State<TravelEditor> {
   Widget _buildConfirmationField(BuildContext context) {
     return TextFormField(
       key: const ValueKey('TransitEditor_ConfirmationId_TextField'),
-      scrollPadding: const EdgeInsets.only(bottom: 50),
+      scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
       decoration: InputDecoration(
         labelText: '${context.localizations.confirmation} #',
         prefixIcon: const Icon(Icons.confirmation_number_rounded),

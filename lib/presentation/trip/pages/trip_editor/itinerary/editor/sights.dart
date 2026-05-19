@@ -349,7 +349,7 @@ class _SightTitleFieldState extends State<_SightTitleField> {
         ),
         filled: true,
       ),
-      scrollPadding: const EdgeInsets.only(bottom: 50),
+      scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
     );
   }
 }

@@ -86,7 +86,7 @@ class _CopyTripDialogState extends State<CopyTripDialog> {
           children: [
             TextFormField(
               controller: _nameController,
-              scrollPadding: const EdgeInsets.only(bottom: 50),
+              scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
               decoration: InputDecoration(
                 labelText: context.localizations.tripName,
               ),

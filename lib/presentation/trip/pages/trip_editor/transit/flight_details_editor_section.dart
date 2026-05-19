@@ -252,7 +252,7 @@ class _FlightDetailsEditorState extends State<FlightDetailsEditor>
                     key: const ValueKey(
                         'FlightDetailsEditor_FlightNumber_TextField'),
                     keyboardType: TextInputType.number,
-                    scrollPadding: const EdgeInsets.only(bottom: 50),
+                    scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(4),

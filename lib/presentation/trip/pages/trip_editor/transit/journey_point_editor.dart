@@ -120,7 +120,7 @@ class JourneyPointEditor extends StatelessWidget {
     return TextFormField(
       key: ValueKey(
           'JourneyPointEditor_Platform_TextField_${isDeparture ? 'Departure' : 'Arrival'}'),
-      scrollPadding: const EdgeInsets.only(bottom: 50),
+      scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
       decoration: InputDecoration(
         labelText: platformLabel,
         prefixIcon:
