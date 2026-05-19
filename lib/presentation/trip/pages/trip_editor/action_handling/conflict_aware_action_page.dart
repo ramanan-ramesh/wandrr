@@ -235,27 +235,35 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
                   bottom: fabBottomMargin,
                   left: 0,
                   right: 0,
-                  child: Center(
-                    child: BlocBuilder<TripEntityEditorBloc<T>,
-                        TripEntityEditorState<T>>(
-                      buildWhen: (_, current) =>
-                          current is ConflictPlanUpdated ||
-                          current is ConflictPlanConfirmed ||
-                          current is EntityValidationUpdated,
-                      builder: (context, state) {
-                        final conflictPlan = context.tripEntityUpdatePlan<T>();
-                        final hasUnresolvedConflicts = conflictPlan != null &&
-                            conflictPlan.hasConflicts &&
-                            !conflictPlan.isConfirmed;
-                        // Validation errors are only non-empty in the
-                        // EntityValidationUpdated state; ConflictPlanUpdated /
-                        // ConflictPlanConfirmed imply validation passed.
-                        final hasValidationErrors =
-                            state is EntityValidationUpdated<T> &&
-                                state.validationErrors.isNotEmpty;
-                        return _createActionButton(context,
-                            hasUnresolvedConflicts, hasValidationErrors);
-                      },
+                  child: AnimatedOpacity(
+                    opacity:
+                        MediaQuery.viewInsetsOf(context).bottom > 0 ? 0.0 : 1.0,
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOut,
+                    child: IgnorePointer(
+                      ignoring: MediaQuery.viewInsetsOf(context).bottom > 0,
+                      child: Center(
+                        child: BlocBuilder<TripEntityEditorBloc<T>,
+                            TripEntityEditorState<T>>(
+                          buildWhen: (_, current) =>
+                              current is ConflictPlanUpdated ||
+                              current is ConflictPlanConfirmed ||
+                              current is EntityValidationUpdated,
+                          builder: (context, state) {
+                            final conflictPlan =
+                                context.tripEntityUpdatePlan<T>();
+                            final hasUnresolvedConflicts =
+                                conflictPlan != null &&
+                                    conflictPlan.hasConflicts &&
+                                    !conflictPlan.isConfirmed;
+                            final hasValidationErrors =
+                                state is EntityValidationUpdated<T> &&
+                                    state.validationErrors.isNotEmpty;
+                            return _createActionButton(context,
+                                hasUnresolvedConflicts, hasValidationErrors);
+                          },
+                        ),
+                      ),
                     ),
                   ),
                 ),

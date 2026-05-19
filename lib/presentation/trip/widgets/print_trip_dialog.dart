@@ -255,6 +255,7 @@ class _PrintTripDialogState extends State<PrintTripDialog> {
         // ── Title field ─────────────────────────────────────────
         TextFormField(
           controller: _titleController,
+          scrollPadding: const EdgeInsets.only(bottom: 50),
           decoration: InputDecoration(labelText: l10n.documentTitle),
         ),
         const SizedBox(height: 24),

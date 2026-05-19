@@ -6,6 +6,7 @@ import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/contributor_badge.dart';
+import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 
 class DebtSummaryTile extends StatelessWidget {
   const DebtSummaryTile({super.key});
@@ -27,7 +28,27 @@ class DebtSummaryTile extends StatelessWidget {
         final isDone = snapshot.connectionState == ConnectionState.done;
         final hasData = snapshot.hasData && snapshot.data != null;
         if (!isDone) {
-          return const Center(child: CircularProgressIndicator());
+          // Show shimmer skeleton rows while calculating
+          return SingleChildScrollView(
+            padding: const EdgeInsets.only(
+              top: _kRowVerticalPadding,
+              bottom: TripEditorPageConstants.fabContentPaddingBig +
+                  _kRowVerticalPadding,
+            ),
+            child: Column(
+              children: List.generate(
+                3,
+                (i) => Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: ShimmerPlaceholder(
+                    height: 56,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ),
+          );
         }
         final debtDataList =
             hasData ? snapshot.data!.toList() : const <DebtData>[];

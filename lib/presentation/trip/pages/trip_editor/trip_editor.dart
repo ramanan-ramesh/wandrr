@@ -108,39 +108,16 @@ class _TripEditorPageInternal extends StatelessWidget {
         extendBody: bottomNavigationBar == null,
         floatingActionButton: _createAddButton(context),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        body: Column(
-          children: [
-            StreamBuilder<bool>(
-              stream: context.tripRepository.activeTrip!.isFullyLoaded,
-              initialData:
-                  context.tripRepository.activeTrip!.isFullyLoadedValue,
-              builder: (context, snapshot) {
-                final isLoaded = snapshot.data ?? false;
-                if (isLoaded) {
-                  return const SizedBox.shrink();
-                }
-                return const LinearProgressIndicator();
-              },
-            ),
-            Expanded(
-              child: MediaQuery(
-                // Inject the FAB clearance into padding.bottom so that every
-                // descendant scrollable can derive the correct bottom padding
-                // via MediaQuery.of(context).padding.bottom, without the page
-                // widget itself being shrunk (which causes empty whitespace).
-                data: MediaQuery.of(context).copyWith(
-                  padding: MediaQuery.of(context).padding.copyWith(
-                        bottom: MediaQuery.of(context).padding.bottom +
-                            (bottomNavigationBar == null
-                                ? TripEditorPageConstants.fabContentPaddingBig
-                                : TripEditorPageConstants
-                                    .fabContentPaddingSmall),
-                      ),
+        body: MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            padding: MediaQuery.of(context).padding.copyWith(
+                  bottom: MediaQuery.of(context).padding.bottom +
+                      (bottomNavigationBar == null
+                          ? TripEditorPageConstants.fabContentPaddingBig
+                          : TripEditorPageConstants.fabContentPaddingSmall),
                 ),
-                child: body,
-              ),
-            ),
-          ],
+          ),
+          child: body,
         ),
         bottomNavigationBar: bottomNavigationBar,
       ),
@@ -226,34 +203,39 @@ class _TripEditorPageInternal extends StatelessWidget {
   }
 
   Widget _createAddButton(BuildContext pageContext) {
-    var isBigLayout = pageContext.isBigLayout;
-    return Padding(
-      padding: EdgeInsets.only(bottom: isBigLayout ? 24.0 : 0.0),
-      child: SizedBox(
-        height: TripEditorPageConstants.fabSize,
-        width: TripEditorPageConstants.fabSize,
-        child: FittedBox(
-          child: FloatingActionButton(
-            heroTag: isBigLayout
-                ? 'tripEditorAddButtonWithNav'
-                : 'tripEditorAddButton',
-            onPressed: () => _onAddButtonPressed(pageContext),
-            child: const Icon(Icons.add),
+    final isBigLayout = pageContext.isBigLayout;
+    return StreamBuilder<bool>(
+      stream: pageContext.tripRepository.activeTrip!.isFullyLoaded,
+      initialData: pageContext.tripRepository.activeTrip!.isFullyLoadedValue,
+      builder: (context, snapshot) {
+        final isLoaded = snapshot.data ?? false;
+        return Padding(
+          padding: EdgeInsets.only(bottom: isBigLayout ? 24.0 : 0.0),
+          child: AnimatedOpacity(
+            opacity: isLoaded ? 1.0 : 0.45,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOut,
+            child: SizedBox(
+              height: TripEditorPageConstants.fabSize,
+              width: TripEditorPageConstants.fabSize,
+              child: FittedBox(
+                child: FloatingActionButton(
+                  heroTag: isBigLayout
+                      ? 'tripEditorAddButtonWithNav'
+                      : 'tripEditorAddButton',
+                  onPressed:
+                      isLoaded ? () => _onAddButtonPressed(pageContext) : null,
+                  child: const Icon(Icons.add),
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   void _onAddButtonPressed(BuildContext pageContext) {
-    final isLoaded =
-        pageContext.tripRepository.activeTrip?.isFullyLoadedValue ?? false;
-    if (!isLoaded) {
-      ScaffoldMessenger.of(pageContext).showSnackBar(
-        const SnackBar(content: Text('Trip data is still loading...')),
-      );
-      return;
-    }
     _showModalBottomSheet(
       TripEntityCreatorBottomSheet(
         supportedActions: const [
@@ -273,14 +255,6 @@ class _TripEditorPageInternal extends StatelessWidget {
     required BuildContext pageContext,
     ItineraryPlanDataEditorConfig? planDataEditorConfig,
   }) {
-    final isLoaded =
-        pageContext.tripRepository.activeTrip?.isFullyLoadedValue ?? false;
-    if (!isLoaded) {
-      ScaffoldMessenger.of(pageContext).showSnackBar(
-        const SnackBar(content: Text('Trip data is still loading...')),
-      );
-      return;
-    }
     _showModalBottomSheet(
       TripEntityEditorBottomSheet<T>(
         tripEditorAction: tripEditorAction,
@@ -303,7 +277,12 @@ class _TripEditorPageInternal extends StatelessWidget {
         ],
         child: BlocProvider.value(
           value: BlocProvider.of<TripManagementBloc>(pageContext),
-          child: child,
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(dialogContext).viewInsets.bottom,
+            ),
+            child: child,
+          ),
         ),
       ),
     );

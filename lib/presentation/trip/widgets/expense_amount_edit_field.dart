@@ -98,7 +98,7 @@ class _PlatformExpenseAmountEditFieldState
       inputFormatters: [_DecimalTextInputFormatter()],
       decoration: widget.inputDecoration
         ?..copyWith(hintText: context.localizations.enterAmount),
-      scrollPadding: const EdgeInsets.only(bottom: 250),
+      scrollPadding: const EdgeInsets.only(bottom: 50),
     );
   }
 }

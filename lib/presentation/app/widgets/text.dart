@@ -50,6 +50,7 @@ class PlatformTextElements {
       style: const TextStyle(fontSize: PlatformTextElements.formElementSize),
       minLines: 1,
       textInputAction: textInputAction,
+      scrollPadding: const EdgeInsets.only(bottom: 50),
       onChanged: (username) {
         if (onEmailChanged != null) {
           var isValid = _isEmailValid(username);

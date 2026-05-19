@@ -13,7 +13,11 @@ class TotalExpenseDisplay extends StatefulWidget {
   final Function(CurrencyData) onCurrencySelected;
 
   const TotalExpenseDisplay({
-    required this.amount, required this.selectedCurrency, required this.allCurrencies, required this.onCurrencySelected, super.key,
+    required this.amount,
+    required this.selectedCurrency,
+    required this.allCurrencies,
+    required this.onCurrencySelected,
+    super.key,
   });
 
   @override
@@ -198,6 +202,7 @@ class _TotalExpenseDisplayState extends State<TotalExpenseDisplay> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextField(
+                scrollPadding: const EdgeInsets.only(bottom: 50),
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 autofocus: true,

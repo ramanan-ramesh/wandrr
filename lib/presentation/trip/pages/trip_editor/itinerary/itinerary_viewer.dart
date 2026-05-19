@@ -17,6 +17,7 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/tim
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/transit_journey_timeline_item.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/chrome_tab.dart';
+import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 
 import 'timeline_event.dart';
 
@@ -82,7 +83,15 @@ class _ItineraryViewerState extends State<ItineraryViewer>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildTimeline(timelineEvents),
+                    StreamBuilder<bool>(
+                      stream: context.tripRepository.activeTrip!.isFullyLoaded,
+                      initialData:
+                          context.tripRepository.activeTrip!.isFullyLoadedValue,
+                      builder: (ctx, snap) {
+                        final isLoaded = snap.data ?? false;
+                        return _buildTimeline(timelineEvents, isLoaded);
+                      },
+                    ),
                     ItineraryNotesViewer(day: widget.itineraryDay),
                     ItineraryChecklistTab(
                       onChanged: () {},
@@ -114,7 +123,58 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     );
   }
 
-  Widget _buildTimeline(List<TimelineEvent> timelineEvents) {
+  Widget _buildTimeline(List<TimelineEvent> timelineEvents, bool isLoaded) {
+    final isLight = context.isLightTheme;
+    final accentColor =
+        isLight ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
+
+    // Show shimmer skeleton while data is loading and no events yet arrived
+    if (!isLoaded && timelineEvents.isEmpty) {
+      return ListView.builder(
+        padding: EdgeInsets.fromLTRB(
+          12,
+          16,
+          12,
+          MediaQuery.of(context).padding.bottom,
+        ),
+        itemCount: 5,
+        itemBuilder: (_, i) {
+          final h = 72.0 + (i % 3) * 28.0;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Timeline connector
+                Column(
+                  children: [
+                    ShimmerPlaceholder(
+                      width: 12,
+                      height: 12,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    if (i < 4)
+                      Container(
+                        width: 2,
+                        height: h - 12,
+                        color: accentColor.withValues(alpha: 0.15),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ShimmerPlaceholder(
+                    height: h,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    }
+
     if (timelineEvents.isEmpty) {
       return _buildEmptyState();
     }

@@ -347,6 +347,7 @@ class _PasswordFieldState extends State<_PasswordField> {
           controller: widget.controller,
           obscureText: _obscurePassword,
           textInputAction: widget.textInputAction,
+          scrollPadding: const EdgeInsets.only(bottom: 50),
           onChanged: (password) {
             if (_errorText != null) {
               setState(() {

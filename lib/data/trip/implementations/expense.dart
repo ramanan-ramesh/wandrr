@@ -94,8 +94,10 @@ class StandaloneExpenseModelImplementation extends StandaloneExpense
         category: category,
         id: documentSnapshot.id,
         title: documentData[_titleField],
-        expense: ExpenseModelImplementation.fromJson(
-            documentData[_expenseField] as Map<String, dynamic>));
+        expense: documentData.containsKey(_expenseField)
+            ? ExpenseModelImplementation.fromJson(
+                documentData[_expenseField] as Map<String, dynamic>)
+            : ExpenseModelImplementation.fromJson(documentData));
   }
 
   @override

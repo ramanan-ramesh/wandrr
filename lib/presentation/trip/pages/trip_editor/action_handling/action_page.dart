@@ -159,8 +159,15 @@ class _TripEditorActionPageState<T extends TripEntity<Enum>>
               bottom: fabBottomMargin,
               left: 0,
               right: 0,
-              child: Center(
-                child: _createActionButton(context),
+              child: AnimatedOpacity(
+                opacity:
+                    MediaQuery.viewInsetsOf(context).bottom > 0 ? 0.0 : 1.0,
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOut,
+                child: IgnorePointer(
+                  ignoring: MediaQuery.viewInsetsOf(context).bottom > 0,
+                  child: Center(child: _createActionButton(context)),
+                ),
               ),
             ),
         ],

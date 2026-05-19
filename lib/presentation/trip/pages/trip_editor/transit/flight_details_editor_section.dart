@@ -24,7 +24,6 @@ class FlightDetailsEditor extends StatefulWidget {
 class _FlightDetailsEditorState extends State<FlightDetailsEditor>
     with SingleTickerProviderStateMixin {
   // UI styling constants (reused only)
-  static const double _kListTileBorderRadius = 6.0;
   static const double _kListTileHorizontalPadding = 8.0;
   static const double _kListTileVerticalPadding = 4.0;
   static const double _kFlightNumberFontSize = 16.0;
@@ -149,27 +148,61 @@ class _FlightDetailsEditorState extends State<FlightDetailsEditor>
         setState(() {});
       },
       listItem: (airlineData) {
-        return ListTile(
-          selected: this.airlineData.airLineName == airlineData.$1,
-          leading: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: _kListTileHorizontalPadding,
-              vertical: _kListTileVerticalPadding,
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(_kListTileBorderRadius),
-            ),
-            child: Text(
-              airlineData.$2,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
+        final isSelected = this.airlineData.airLineName == airlineData.$1;
+        final theme = Theme.of(context);
+        final isLight = context.isLightTheme;
+        final accentColor =
+            isLight ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
+        final selectedBg = accentColor.withValues(alpha: 0.10);
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          decoration: BoxDecoration(
+            color: isSelected ? selectedBg : Colors.transparent,
+            border: Border(
+              left: BorderSide(
+                color: isSelected ? accentColor : Colors.transparent,
+                width: 3,
               ),
             ),
           ),
-          title: Text(
-            airlineData.$1,
-            style: const TextStyle(fontWeight: FontWeight.w500),
+          padding: const EdgeInsets.symmetric(
+            horizontal: _kListTileHorizontalPadding,
+            vertical: _kListTileVerticalPadding + 4,
+          ),
+          child: Row(
+            children: [
+              // IATA code badge
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color:
+                      accentColor.withValues(alpha: isSelected ? 0.25 : 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  airlineData.$2,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: accentColor,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  airlineData.$1,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                    color:
+                        isSelected ? accentColor : theme.colorScheme.onSurface,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -219,6 +252,7 @@ class _FlightDetailsEditorState extends State<FlightDetailsEditor>
                     key: const ValueKey(
                         'FlightDetailsEditor_FlightNumber_TextField'),
                     keyboardType: TextInputType.number,
+                    scrollPadding: const EdgeInsets.only(bottom: 50),
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(4),

@@ -9,16 +9,19 @@ import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/api_services_repository.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/models/trip_repository.dart';
 import 'package:wandrr/data/trip/services/budgeting_service.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/pages/login_page.dart';
 import 'package:wandrr/presentation/app/pages/onboarding/onboarding_page.dart';
 import 'package:wandrr/presentation/app/pages/startup_page.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/home/home_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 
 /// Route path constants
 class AppRoutes {
@@ -90,14 +93,42 @@ class AppRouter {
             // Trips list route
             GoRoute(
               path: AppRoutes.trips,
-              builder: (context, state) => const _TripsListPage(),
+              pageBuilder: (context, state) => CustomTransitionPage(
+                key: state.pageKey,
+                child: const _TripsListPage(),
+                transitionDuration: const Duration(milliseconds: 380),
+                reverseTransitionDuration: const Duration(milliseconds: 280),
+                transitionsBuilder: (context, animation, secondary, child) =>
+                    FadeTransition(
+                  opacity:
+                      CurvedAnimation(parent: animation, curve: Curves.easeOut),
+                  child: child,
+                ),
+              ),
             ),
-            // Trip editor route
+            // Trip editor route — slides in from the right with a fade
             GoRoute(
               path: AppRoutes.tripEditor,
-              builder: (context, state) {
-                final tripId = state.pathParameters['tripId'];
-                return _TripEditorPage(tripId: tripId!);
+              pageBuilder: (context, state) {
+                final tripId = state.pathParameters['tripId']!;
+                return CustomTransitionPage(
+                  key: state.pageKey,
+                  child: _TripEditorPage(tripId: tripId),
+                  transitionDuration: const Duration(milliseconds: 420),
+                  reverseTransitionDuration: const Duration(milliseconds: 300),
+                  transitionsBuilder: (context, animation, secondary, child) {
+                    final slide = Tween<Offset>(
+                      begin: const Offset(0.06, 0),
+                      end: Offset.zero,
+                    ).animate(CurvedAnimation(
+                        parent: animation, curve: Curves.easeOutCubic));
+                    return FadeTransition(
+                      opacity: CurvedAnimation(
+                          parent: animation, curve: Curves.easeOut),
+                      child: SlideTransition(position: slide, child: child),
+                    );
+                  },
+                );
               },
             ),
           ],
@@ -424,7 +455,8 @@ class _TripsListPageState extends State<_TripsListPage> {
   }
 }
 
-/// Trip editor page widget that handles loading a specific trip
+/// Trip editor page widget that handles loading a specific trip.
+/// Shows available trip metadata immediately; content shimmers until fully loaded.
 class _TripEditorPage extends StatefulWidget {
   final String tripId;
 
@@ -435,27 +467,10 @@ class _TripEditorPage extends StatefulWidget {
 }
 
 class _TripEditorPageState extends State<_TripEditorPage> {
-  static const _minimumAnimationTime = Duration(seconds: 2);
-  final _minimumWalkTimeCompletionNotifier = ValueNotifier(false);
   bool _hasTriedLoadingTrip = false;
-  bool _isLoadingComplete = false;
   ApiServicesRepositoryFacade? _apiServicesRepository;
   BudgetingServiceFacade? _budgetingService;
-
-  final _walkAnimation = SimpleAnimation('Walk');
-  final _waveAnimation = SimpleAnimation('Wave');
-
-  @override
-  void initState() {
-    super.initState();
-    _startLoadingAnimation();
-  }
-
-  @override
-  void dispose() {
-    _minimumWalkTimeCompletionNotifier.dispose();
-    super.dispose();
-  }
+  TripMetadataFacade? _loadingMetadata;
 
   @override
   void didChangeDependencies() {
@@ -468,51 +483,10 @@ class _TripEditorPageState extends State<_TripEditorPage> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.tripId != widget.tripId) {
       _hasTriedLoadingTrip = false;
-      _isLoadingComplete = false;
-      _startLoadingAnimation();
+      _apiServicesRepository = null;
+      _budgetingService = null;
+      _loadingMetadata = null;
       _tryLoadTrip();
-    }
-  }
-
-  void _startLoadingAnimation() {
-    _walkAnimation.isActive = true;
-    _waveAnimation.isActive = false;
-    _minimumWalkTimeCompletionNotifier.value = false;
-    Future.delayed(_minimumAnimationTime, () {
-      if (mounted) {
-        _minimumWalkTimeCompletionNotifier.value = true;
-        // Check if trip is already loaded
-        final state = context.tripManagementState;
-        if (state is ActivatedTrip) {
-          _onWalkAnimationComplete();
-        }
-      }
-    });
-  }
-
-  void _tryStopWalkStartWaveAnimation() {
-    if (_minimumWalkTimeCompletionNotifier.value) {
-      _onWalkAnimationComplete();
-    } else {
-      _minimumWalkTimeCompletionNotifier.addListener(_onWalkAnimationComplete);
-    }
-  }
-
-  void _onWalkAnimationComplete() {
-    _minimumWalkTimeCompletionNotifier.removeListener(_onWalkAnimationComplete);
-    if (_minimumWalkTimeCompletionNotifier.value && mounted) {
-      setState(() {
-        _walkAnimation.isActive = false;
-        _waveAnimation.isActive = true;
-      });
-      Future.delayed(_minimumAnimationTime, () {
-        if (mounted) {
-          setState(() {
-            _waveAnimation.isActive = false;
-            _isLoadingComplete = true;
-          });
-        }
-      });
     }
   }
 
@@ -522,25 +496,20 @@ class _TripEditorPageState extends State<_TripEditorPage> {
     }
 
     final state = context.tripManagementState;
-
-    // If we have a loaded repository or are in a state where we can load a trip
     if (state is LoadedRepository ||
         state is NavigateToHome ||
         state is UpdatedTripEntity) {
       _loadTripById();
     } else if (state is ActivatedTrip) {
-      // Already viewing a trip - check if it's the right one
       final tripRepo = context.tripRepository;
       if (tripRepo.activeTrip?.tripMetadata.id != widget.tripId) {
         _loadTripById();
       } else {
         _hasTriedLoadingTrip = true;
-        _tryStopWalkStartWaveAnimation();
       }
     } else if (state is LoadingTripManagement || state is LoadingTrip) {
-      // Still loading, will be handled by listener
+      // Handled by listener
     } else {
-      // For any other state, try to load the trip
       _loadTripById();
     }
   }
@@ -551,119 +520,241 @@ class _TripEditorPageState extends State<_TripEditorPage> {
     final tripMetadata = tripRepo.tripMetadataCollection.items
         .where((trip) => trip.id == widget.tripId)
         .firstOrNull;
-
     if (tripMetadata != null) {
       context.addTripManagementEvent(
         LoadTrip(tripMetadata: tripMetadata, shouldActivateTrip: true),
       );
     } else {
-      // Trip not found, redirect to trips list
       context.go(AppRoutes.trips);
     }
-  }
-
-  Widget _buildAnimatedLoadingScreen(BuildContext context) {
-    final state = context.tripManagementState;
-    var textToDisplay = context.localizations.loadingTripData;
-
-    if (state is ActivatedTrip) {
-      textToDisplay = context.localizations.launchingTrip;
-    }
-
-    return Stack(
-      children: [
-        RiveAnimation.asset(
-          Assets.walkAnimation,
-          fit: BoxFit.fitHeight,
-          controllers: [
-            _minimumWalkTimeCompletionNotifier.value
-                ? _waveAnimation
-                : _walkAnimation
-          ],
-        ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 32),
-            child: Text(
-              textToDisplay,
-              style: TextStyle(
-                fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
-                color: Colors.black,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
-      listenWhen: (previous, current) =>
+      listenWhen: (_, current) =>
           current is LoadedRepository ||
           current is NavigateToHome ||
-          current is ActivatedTrip,
+          current is ActivatedTrip ||
+          current is LoadingTrip,
       listener: (context, state) {
-        // If we're back to a loaded state and haven't tried loading, try now
-        if ((state is LoadedRepository || state is NavigateToHome) &&
+        if (state is LoadingTrip) {
+          setState(() => _loadingMetadata = state.tripMetadataFacade);
+        } else if ((state is LoadedRepository || state is NavigateToHome) &&
             !_hasTriedLoadingTrip) {
           _tryLoadTrip();
         } else if (state is ActivatedTrip) {
-          // Store both services for later use
-          _apiServicesRepository = state.apiServicesRepository;
-          _budgetingService = state.budgetingService;
-          _tryStopWalkStartWaveAnimation();
+          setState(() {
+            _apiServicesRepository = state.apiServicesRepository;
+            _budgetingService = state.budgetingService;
+          });
         }
       },
       builder: (context, state) {
-        // When navigating away (state is NavigateToHome or LoadedRepository),
-        // don't show animation - just show an empty placeholder since we're leaving
         if (state is NavigateToHome || state is LoadedRepository) {
           _apiServicesRepository = null;
           _budgetingService = null;
           return const SizedBox.shrink();
         }
 
-        // Show animation while loading or completing the animation
-        if (!_isLoadingComplete ||
-            _walkAnimation.isActive ||
-            _waveAnimation.isActive) {
-          return _buildAnimatedLoadingScreen(context);
-        }
+        final repos = _apiServicesRepository;
+        final service = _budgetingService;
 
-        // Use stored repositories if available (handles UpdatedTripEntity states)
-        if (_apiServicesRepository != null && _budgetingService != null) {
-          return MultiRepositoryProvider(
-            providers: [
-              RepositoryProvider<ApiServicesRepositoryFacade>.value(
-                  value: _apiServicesRepository!),
-              RepositoryProvider<BudgetingServiceFacade>.value(
-                  value: _budgetingService!),
-            ],
-            child: const TripEditorPage(),
-          );
-        }
-
-        // If ActivatedTrip state, store and provide both repositories
-        if (state is ActivatedTrip) {
-          _apiServicesRepository = state.apiServicesRepository;
-          _budgetingService = state.budgetingService;
-          return MultiRepositoryProvider(
-            providers: [
-              RepositoryProvider<ApiServicesRepositoryFacade>.value(
-                  value: _apiServicesRepository!),
-              RepositoryProvider<BudgetingServiceFacade>.value(
-                  value: _budgetingService!),
-            ],
-            child: const TripEditorPage(),
-          );
-        }
-
-        // Fallback for other states (e.g., LoadingTrip) - show animation
-        return _buildAnimatedLoadingScreen(context);
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 500),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+            child: child,
+          ),
+          child: (repos != null && service != null)
+              ? KeyedSubtree(
+                  key: const ValueKey('trip_editor_ready'),
+                  child: MultiRepositoryProvider(
+                    providers: [
+                      RepositoryProvider<ApiServicesRepositoryFacade>.value(
+                          value: repos),
+                      RepositoryProvider<BudgetingServiceFacade>.value(
+                          value: service),
+                    ],
+                    child: const TripEditorPage(),
+                  ),
+                )
+              : KeyedSubtree(
+                  key: const ValueKey('trip_editor_skeleton'),
+                  child: _TripLoadingSkeleton(metadata: _loadingMetadata),
+                ),
+        );
       },
+    );
+  }
+}
+
+/// Skeleton scaffold shown while trip services are initialising.
+/// Displays available metadata (name, dates) immediately and uses
+/// shimmer placeholders for content that isn't yet available.
+class _TripLoadingSkeleton extends StatelessWidget {
+  final TripMetadataFacade? metadata;
+
+  const _TripLoadingSkeleton({this.metadata});
+
+  static const _months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
+  String _fmt(DateTime d) => '${d.day} ${_months[d.month - 1]}';
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isLight = theme.brightness == Brightness.light;
+    final accentColor =
+        isLight ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: Icon(Icons.home_rounded, color: isLight ? Colors.white : null),
+        backgroundColor: isLight ? AppColors.brandPrimary : null,
+        title: metadata != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    metadata!.name,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isLight ? Colors.white : null,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (metadata!.startDate != null && metadata!.endDate != null)
+                    Text(
+                      '${_fmt(metadata!.startDate!)} – ${_fmt(metadata!.endDate!)}',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: isLight
+                            ? Colors.white.withValues(alpha: 0.85)
+                            : null,
+                      ),
+                    ),
+                ],
+              )
+            : ShimmerPlaceholder(
+                width: 160,
+                height: 14,
+                borderRadius: BorderRadius.circular(6),
+              ),
+      ),
+      body: Column(
+        children: [
+          // Day-navigation shimmer
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            child: Row(
+              children: [
+                ShimmerPlaceholder(
+                    width: 40,
+                    height: 40,
+                    borderRadius: BorderRadius.circular(8)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ShimmerPlaceholder(
+                      height: 34, borderRadius: BorderRadius.circular(20)),
+                ),
+                const SizedBox(width: 8),
+                ShimmerPlaceholder(
+                    width: 40,
+                    height: 40,
+                    borderRadius: BorderRadius.circular(8)),
+              ],
+            ),
+          ),
+          // Chrome tab-bar shimmer (4 tabs)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+            child: Row(
+              children: List.generate(
+                4,
+                (i) => Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(left: i == 0 ? 0 : 6),
+                    child: ShimmerPlaceholder(
+                        height: 36, borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Divider matching ChromeTabBar styling
+          Divider(
+            height: 1,
+            color: accentColor.withValues(alpha: 0.18),
+          ),
+          // Timeline shimmer items
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.fromLTRB(12, 16, 12, 24),
+              itemCount: 5,
+              itemBuilder: (_, i) {
+                // Stagger heights for a realistic skeleton
+                final h = 72.0 + (i % 3) * 24.0;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Timeline dot + line
+                      Column(
+                        children: [
+                          ShimmerPlaceholder(
+                              width: 12,
+                              height: 12,
+                              borderRadius: BorderRadius.circular(6)),
+                          if (i < 4)
+                            Container(
+                              width: 2,
+                              height: h - 12,
+                              color: accentColor.withValues(alpha: 0.15),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ShimmerPlaceholder(
+                          height: h,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      // Loading indicator in the bottom-centre where FAB would appear
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: SizedBox(
+        width: 56,
+        height: 56,
+        child: ShimmerPlaceholder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
     );
   }
 }

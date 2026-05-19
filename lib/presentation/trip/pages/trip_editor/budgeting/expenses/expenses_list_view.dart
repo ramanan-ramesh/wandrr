@@ -188,24 +188,21 @@ class _ExpenseListViewState extends State<ExpenseListView> {
   }
 
   Widget _buildLoading() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: _kLoadingIndicatorSize,
-            height: _kLoadingIndicatorSize,
-            child: CircularProgressIndicator(
-              strokeWidth: 5,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            context.localizations.loading,
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-        ],
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(
+        vertical: _kListItemVerticalPadding,
+        horizontal: _kListItemHorizontalPadding,
+      ),
+      itemCount: 4,
+      itemBuilder: (_, i) => Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: _kListItemVerticalPadding,
+          horizontal: _kListItemHorizontalPadding,
+        ),
+        child: ShimmerPlaceholder(
+          height: 70,
+          borderRadius: BorderRadius.circular(_kListItemBorderRadius),
+        ),
       ),
     );
   }

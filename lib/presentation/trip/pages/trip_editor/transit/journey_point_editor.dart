@@ -26,7 +26,13 @@ class JourneyPointEditor extends StatelessWidget {
   final DateTime? minDateTime;
 
   const JourneyPointEditor({
-    required this.transitFacade, required this.isDeparture, required this.onLocationChanged, required this.onDateTimeChanged, required this.platform, required this.onPlatformChanged, Key? key,
+    required this.transitFacade,
+    required this.isDeparture,
+    required this.onLocationChanged,
+    required this.onDateTimeChanged,
+    required this.platform,
+    required this.onPlatformChanged,
+    Key? key,
     this.minDateTime,
   }) : super(key: key);
 
@@ -112,10 +118,13 @@ class JourneyPointEditor extends StatelessWidget {
     final platformLabel = isFlight ? 'Terminal' : 'Platform';
 
     return TextFormField(
-      key: ValueKey('JourneyPointEditor_Platform_TextField_${isDeparture ? 'Departure' : 'Arrival'}'),
+      key: ValueKey(
+          'JourneyPointEditor_Platform_TextField_${isDeparture ? 'Departure' : 'Arrival'}'),
+      scrollPadding: const EdgeInsets.only(bottom: 50),
       decoration: InputDecoration(
         labelText: platformLabel,
-        prefixIcon: Icon(isFlight ? Icons.flight_takeoff_rounded : Icons.train_rounded),
+        prefixIcon:
+            Icon(isFlight ? Icons.flight_takeoff_rounded : Icons.train_rounded),
         filled: true,
         fillColor: Colors.transparent,
         border: OutlineInputBorder(
@@ -187,7 +196,9 @@ class JourneyCityName extends StatelessWidget {
   final Color color;
 
   const JourneyCityName({
-    required this.cityName, required this.color, Key? key,
+    required this.cityName,
+    required this.color,
+    Key? key,
   }) : super(key: key);
 
   @override

@@ -98,17 +98,14 @@ class TravelEditorForm {
       matching: find
           .byKey(ValueKey('TravelEditor_TripmateSeat_TextField_$userName')));
 
-  // Select a transit option from drop-down
+  // Select a transit option from chip bar
   Future<void> selectTransitOption(
       WidgetTester tester, TransitOption option) async {
-    await TestHelpers.tapWidget(tester, transitOptionPicker);
-    final transitOptionPickerDropDown =
-        tester.widget<DropdownButton>(transitOptionPicker);
-    final dropDownMenuItemToSelect = transitOptionPickerDropDown.items!
-        .singleWhere((menuItem) => menuItem.value == option);
-    final dropDownMenuItemFinder = find.byWidget(dropDownMenuItemToSelect);
-    await TestHelpers.tapWidget(tester, dropDownMenuItemFinder,
-        warnIfMissed: false);
+    final chipKey = ValueKey('TransitOptionChip_${option.name}');
+    final chipFinder = find.byKey(chipKey);
+    expect(chipFinder, findsOneWidget,
+        reason: 'TransitOptionChip for ${option.name} must be present');
+    await TestHelpers.tapWidget(tester, chipFinder);
     print('  [OK] Transit type switched to ${option.name}');
   }
 

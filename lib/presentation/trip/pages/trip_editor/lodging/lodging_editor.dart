@@ -72,6 +72,7 @@ class _LodgingEditorState extends State<LodgingEditor> {
     return EditorTheme.createSection(
       context: context,
       child: TextFormField(
+        scrollPadding: const EdgeInsets.only(bottom: 50),
         decoration: EditorTheme.createTextFieldDecoration(
           labelText: '${context.localizations.confirmation} ID',
           prefixIcon: Icons.tag,

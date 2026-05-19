@@ -114,6 +114,7 @@ class TripCreatorDialog extends StatelessWidget {
       key: const Key('TripCreatorDialog_TripNameField'),
       onChanged: _updateTripName,
       textInputAction: TextInputAction.next,
+      scrollPadding: const EdgeInsets.only(bottom: 50),
       decoration: InputDecoration(
         labelText: context.localizations.tripName,
       ),

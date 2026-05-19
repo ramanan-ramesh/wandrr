@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 class PlatformAutoComplete<T extends Object> extends StatefulWidget {
   final FutureOr<Iterable<T>> Function(String searchValue) optionsBuilder;
@@ -248,6 +249,7 @@ class _PlatformAutoCompleteState<T extends Object>
                     ),
                   Expanded(
                     child: TextFormField(
+                      scrollPadding: const EdgeInsets.only(bottom: 50),
                       key: const ValueKey('PlatformAutoComplete_TextField'),
                       controller: _textEditingController,
                       focusNode: _focusNode,
@@ -270,29 +272,53 @@ class _PlatformAutoCompleteState<T extends Object>
                 AutocompleteOnSelected<T> onSelected, Iterable<T> options) {
               final width =
                   widget.optionsViewWidth ?? _constraints?.maxWidth ?? 300.0;
+              final theme = Theme.of(context);
+              final isLight = theme.brightness == Brightness.light;
               return Align(
                 alignment: Alignment.topLeft,
-                child: Material(
-                  elevation: 4.0,
-                  child: Container(
-                    color: Theme.of(context).dialogTheme.backgroundColor,
-                    width: width,
-                    child: ListView.separated(
-                      padding: EdgeInsets.zero,
-                      shrinkWrap: true,
-                      itemBuilder: (BuildContext context, int index) {
-                        final option = options.elementAt(index);
-                        return InkWell(
-                          key: const ValueKey('PlatformAutoComplete_ListTile'),
-                          onTap: () => onSelected(option),
-                          child: Builder(
-                            builder: (BuildContext context) =>
-                                widget.listItem(option),
-                          ),
-                        );
-                      },
-                      separatorBuilder: (context, index) => const Divider(),
-                      itemCount: options.length,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, child) => Opacity(
+                    opacity: value,
+                    child: Transform.translate(
+                      offset: Offset(0, (1 - value) * -6),
+                      child: child,
+                    ),
+                  ),
+                  child: Material(
+                    elevation: 8.0,
+                    shadowColor: (isLight ? AppColors.neutral900 : Colors.black)
+                        .withValues(alpha: 0.18),
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: width,
+                          maxHeight: 300,
+                        ),
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          shrinkWrap: true,
+                          itemCount: options.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final option = options.elementAt(index);
+                            return InkWell(
+                              key: const ValueKey(
+                                  'PlatformAutoComplete_ListTile'),
+                              onTap: () => onSelected(option),
+                              borderRadius: BorderRadius.circular(10),
+                              child: Builder(
+                                builder: (BuildContext context) =>
+                                    widget.listItem(option),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   ),
                 ),

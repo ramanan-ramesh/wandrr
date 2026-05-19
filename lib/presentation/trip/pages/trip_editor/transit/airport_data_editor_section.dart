@@ -24,7 +24,6 @@ class AirportsDataEditorSection extends StatefulWidget {
 }
 
 class _AirportsDataEditorSectionState extends State<AirportsDataEditorSection> {
-  static const double _kListTileBorderRadius = 6.0;
   static const double _kListTileHorizontalPadding = 8.0;
   static const double _kListTileVerticalPadding = 4.0;
   static const EdgeInsets _kContentPadding = EdgeInsets.symmetric(
@@ -70,61 +69,70 @@ class _AirportsDataEditorSectionState extends State<AirportsDataEditorSection> {
   Widget _buildAirportTile(LocationFacade airportData) {
     final airport = airportData.context as AirportLocationContext;
     final isSelected = _location == airportData;
-    final isLightTheme = context.isLightTheme;
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
+    final isLight = context.isLightTheme;
+    final accentColor =
+        isLight ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
+    final selectedBg = accentColor.withValues(alpha: 0.10);
 
-    // Background color only for selected to keep list layout unchanged.
-    final backgroundColor = isSelected
-        ? (isLightTheme ? AppColors.neutral200 : AppColors.darkSurfaceHeader)
-        : null;
-
-    // Code & city row styled similarly to ListTile's title/subtitle layout.
-    return Container(
-      padding: _kContentPadding,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(_kListTileBorderRadius),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Text(
-                  airport.airportCode,
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Text(
-                    airport.city,
-                    style: textTheme.titleMedium,
-                  ),
-                ),
-              ),
-              if (isSelected)
-                Icon(
-                  Icons.check_circle,
-                  size: 18,
-                  color: isLightTheme
-                      ? theme.colorScheme.primary
-                      : AppColors.brandPrimaryLight,
-                ),
-            ],
+        color: isSelected ? selectedBg : Colors.transparent,
+        border: Border(
+          left: BorderSide(
+            color: isSelected ? accentColor : Colors.transparent,
+            width: 3,
           ),
-          Padding(
-            padding: const EdgeInsets.all(4.0),
+        ),
+      ),
+      padding: _kContentPadding,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Airport code badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: isSelected ? 0.25 : 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
             child: Text(
-              airport.name,
-              style: textTheme.bodyMedium,
+              airport.airportCode,
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: accentColor,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          // City + name
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  airport.city,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                    color:
+                        isSelected ? accentColor : theme.colorScheme.onSurface,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  airport.name,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
         ],

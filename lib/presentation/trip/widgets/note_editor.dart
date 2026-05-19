@@ -166,7 +166,7 @@ class _NoteEditorState extends State<NoteEditor>
             controller: _controller,
             keyboardType: TextInputType.multiline,
             maxLines: null,
-            scrollPadding: const EdgeInsets.only(bottom: 250),
+            scrollPadding: const EdgeInsets.only(bottom: 50),
             decoration: InputDecoration(
               hintText: '${context.localizations.writeYourNoteHere}…',
               filled: true,

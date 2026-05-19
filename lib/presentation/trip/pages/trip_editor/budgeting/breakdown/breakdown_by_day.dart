@@ -7,6 +7,7 @@ import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/widgets/text.dart';
 import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 
 class BreakdownByDayChart extends StatefulWidget {
   const BreakdownByDayChart({super.key});
@@ -53,7 +54,24 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
         final isDone = snapshot.connectionState == ConnectionState.done;
         final data = snapshot.data;
         if (!isDone) {
-          return const Center(child: CircularProgressIndicator());
+          // Provide shimmer bar-card skeleton while grouping completes
+          return ConstrainedBox(
+            constraints: const BoxConstraints(
+                minHeight: _kMinHeight, maxHeight: _kMaxHeight),
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: _kOuterPadding, vertical: _kOuterPadding / 2),
+              itemCount: 4,
+              itemBuilder: (_, i) => Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: _kOuterPadding / 2),
+                child: ShimmerPlaceholder(
+                  height: 80,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+          );
         }
         if (data == null ||
             data.isEmpty ||

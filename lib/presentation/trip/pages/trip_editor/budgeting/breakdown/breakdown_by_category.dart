@@ -4,6 +4,7 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 
 import '../expenses/expenses_list_view.dart';
 
@@ -48,7 +49,7 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
         return Container(
           constraints: const BoxConstraints(minHeight: 300, maxHeight: 600),
           child: isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? _buildShimmerSkeleton(context)
               : hasValidData
                   ? _InteractivePieChart(
                       data: data,
@@ -61,7 +62,55 @@ class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
   }
 }
 
-/// Isolated widget that owns touch interaction. Rebuilds only itself via
+Widget _buildShimmerSkeleton(BuildContext context) {
+  return Padding(
+    padding: const EdgeInsets.all(24),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Pie-chart circle placeholder
+        Center(
+          child: ShimmerPlaceholder(
+            width: 180,
+            height: 180,
+            borderRadius: BorderRadius.circular(90),
+          ),
+        ),
+        const SizedBox(height: 24),
+        // Legend rows
+        ...List.generate(
+          4,
+          (i) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+            child: Row(
+              children: [
+                ShimmerPlaceholder(
+                  width: 14,
+                  height: 14,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ShimmerPlaceholder(
+                    height: 14,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                ShimmerPlaceholder(
+                  width: 48,
+                  height: 14,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 /// ValueNotifier — the FutureBuilder above is never triggered again.
 class _InteractivePieChart extends StatelessWidget {
   final Map<ExpenseCategory, double> data;

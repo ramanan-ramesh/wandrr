@@ -5,6 +5,7 @@ import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/date_picker.dart';
+import 'package:wandrr/presentation/app/widgets/option_grid_picker.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/expenditure_edit_tile.dart';
 import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
@@ -89,6 +90,14 @@ class ExpenseEditor extends StatelessWidget {
   }
 
   Widget _buildCategoryBadge(BuildContext context) {
+    final items = _categoryNames.entries
+        .map((e) => OptionGridItem<ExpenseCategory>(
+              value: e.key,
+              icon: _iconsForCategories[e.key]!,
+              label: e.value,
+            ))
+        .toList();
+
     return Row(
       children: [
         Flexible(
@@ -98,13 +107,14 @@ class ExpenseEditor extends StatelessWidget {
               horizontal: _kBadgeHorizontalPadding,
               vertical: _kBadgeVerticalPadding,
             ),
-            child: _CategoryPicker(
-              callback: (category) {
+            child: OptionGridPicker<ExpenseCategory>(
+              items: items,
+              selectedValue: expenseBearingTripEntity.category,
+              overlayTitle: context.localizations.category,
+              onChanged: (category) {
                 expenseBearingTripEntity.category = category;
                 onExpenseUpdated();
               },
-              category: expenseBearingTripEntity.category,
-              categories: _categoryNames,
             ),
           ),
         ),
@@ -225,6 +235,7 @@ class ExpenseEditor extends StatelessWidget {
     final isEditable = expenseBearingTripEntity is StandaloneExpense;
     return TextField(
       controller: _titleEditingController,
+      scrollPadding: const EdgeInsets.only(bottom: 50),
       onChanged: isEditable
           ? (newTitle) {
               expenseBearingTripEntity.title = newTitle;
@@ -236,102 +247,6 @@ class ExpenseEditor extends StatelessWidget {
         hintText: 'Enter expense name...',
       ),
       enabled: isEditable,
-    );
-  }
-}
-
-class _CategoryPicker extends StatefulWidget {
-  final Function(ExpenseCategory expenseCategory)? callback;
-  final Map<ExpenseCategory, String> categories;
-  final ExpenseCategory category;
-
-  const _CategoryPicker({
-    required this.callback,
-    required this.category,
-    required this.categories,
-  });
-
-  @override
-  State<_CategoryPicker> createState() => _CategoryPickerState();
-}
-
-class _CategoryPickerState extends State<_CategoryPicker> {
-  late ExpenseCategory _category;
-
-  @override
-  void initState() {
-    super.initState();
-    _category = widget.category;
-  }
-
-  @override
-  void didUpdateWidget(covariant _CategoryPicker oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.category != widget.category) {
-      setState(() {
-        _category = widget.category;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return DropdownButton<ExpenseCategory>(
-      value: _category,
-      isExpanded: true,
-      selectedItemBuilder: (context) => widget.categories.keys
-          .map(
-            (expenseCategory) => DropdownMenuItem<ExpenseCategory>(
-              value: expenseCategory,
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: Icon(_iconsForCategories[expenseCategory]!),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: Text(widget.categories[expenseCategory]!),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          )
-          .toList(),
-      items: widget.categories.keys
-          .map(
-            (expenseCategory) => DropdownMenuItem<ExpenseCategory>(
-              value: expenseCategory,
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: Icon(_iconsForCategories[expenseCategory]!),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: Text(widget.categories[expenseCategory]!),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          )
-          .toList(),
-      onChanged: widget.callback == null
-          ? null
-          : (selectedExpenseCategory) {
-              if (selectedExpenseCategory != null) {
-                _category = selectedExpenseCategory;
-                setState(() {});
-                widget.callback!(selectedExpenseCategory);
-              }
-            },
     );
   }
 }

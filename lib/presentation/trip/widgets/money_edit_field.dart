@@ -180,6 +180,7 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
           focusNode: _searchFocusNode,
           autofocus: true,
           onChanged: _updateSearch,
+          scrollPadding: const EdgeInsets.only(bottom: 50),
           decoration: InputDecoration(
             hintText: context.localizations.searchForCurrency,
             prefixIcon: Material(
@@ -194,7 +195,6 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
             ),
           ),
           textInputAction: TextInputAction.done,
-          scrollPadding: const EdgeInsets.only(bottom: 250),
         ),
         if (_filteredCurrencies.isNotEmpty)
           Container(
@@ -211,7 +211,8 @@ class _PlatformMoneyEditFieldState extends State<PlatformMoneyEditField> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 3.0),
                     child: ListTile(
-                      key: Key('PlatformMoneyEditField_CurrencyListTile_${currency.code}'),
+                      key: Key(
+                          'PlatformMoneyEditField_CurrencyListTile_${currency.code}'),
                       selected: isSelected,
                       onTap: () => _selectCurrency(currency),
                       leading: Text(

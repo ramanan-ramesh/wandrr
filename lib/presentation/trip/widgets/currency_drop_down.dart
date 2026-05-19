@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/l10n/extension.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 /// Controller for managing currency dropdown state and overlay lifecycle.
 /// Handles opening/closing dropdown overlay and managing layer link positioning.
@@ -147,13 +148,25 @@ class _CurrencyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isLight = theme.brightness == Brightness.light;
+    final accentColor =
+        isLight ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
     return Material(
-      shape: const CircleBorder(),
-      child: IconButton(
-        onPressed: onPressed,
-        icon: Text(
-          selectedCurrency.symbol,
-          style: Theme.of(context).textTheme.titleLarge,
+      color: accentColor.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Text(
+            selectedCurrency.symbol,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: accentColor,
+            ),
+          ),
         ),
       ),
     );
@@ -184,6 +197,8 @@ class _CurrencyDropdownOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isLight = theme.brightness == Brightness.light;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onClose,
@@ -196,21 +211,39 @@ class _CurrencyDropdownOverlay extends StatelessWidget {
             followerAnchor: Alignment.topLeft,
             child: GestureDetector(
               onTap: () {},
-              child: Material(
-                elevation: 4.0,
-                color: Theme.of(context).dialogTheme.backgroundColor,
-                child: ScrollConfiguration(
-                  behavior: ScrollConfiguration.of(context),
-                  child: SizedBox(
-                    width: triggerSize.width,
-                    child: Container(
-                      constraints: const BoxConstraints(maxHeight: 300),
-                      child: _CurrencySearchableDropdown(
-                        allCurrencies: allCurrencies,
-                        selectedCurrency: selectedCurrency,
-                        onCurrencySelected: onCurrencySelected,
-                        onClose: onClose,
-                        prefix: prefix,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                builder: (context, value, child) => Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, (1 - value) * -6),
+                    child: child,
+                  ),
+                ),
+                child: Material(
+                  elevation: 8.0,
+                  shadowColor: (isLight ? AppColors.neutral900 : Colors.black)
+                      .withValues(alpha: 0.18),
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: ScrollConfiguration(
+                      behavior: ScrollConfiguration.of(context),
+                      child: SizedBox(
+                        width: triggerSize.width,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxHeight: 300),
+                          child: _CurrencySearchableDropdown(
+                            allCurrencies: allCurrencies,
+                            selectedCurrency: selectedCurrency,
+                            onCurrencySelected: onCurrencySelected,
+                            onClose: onClose,
+                            prefix: prefix,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -290,6 +323,7 @@ class _CurrencySearchableDropdownState
       mainAxisSize: MainAxisSize.min,
       children: [
         TextField(
+          scrollPadding: const EdgeInsets.only(bottom: 50),
           controller: _searchController,
           autofocus: true,
           onChanged: _updateSearch,
@@ -303,7 +337,6 @@ class _CurrencySearchableDropdownState
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 3.0),
             child: ListView(
-              // padding: EdgeInsets.all(8.0),
               shrinkWrap: true,
               children: _filteredCurrencies
                   .map(
@@ -345,68 +378,90 @@ class _CurrencyListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSelected = currency == selectedCurrency;
-    final textColor = isSelected || isDropDownButton
-        ? Theme.of(context).listTileTheme.selectedColor
-        : Theme.of(context).listTileTheme.textColor;
-    final backgroundColor = isSelected
-        ? Theme.of(context).listTileTheme.selectedTileColor
-        : Theme.of(context).listTileTheme.tileColor;
+    final theme = Theme.of(context);
+    final isLight = theme.brightness == Brightness.light;
+    final accentColor =
+        isLight ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
+    final selectedBg = accentColor.withValues(alpha: 0.10);
 
-    return SizedBox(
-      height: 30,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 160),
       width: width,
-      child: Container(
-        color: backgroundColor,
-        child: InkWell(
-          onTap: isDropDownButton ? null : onTap,
+      decoration: BoxDecoration(
+        color:
+            isSelected && !isDropDownButton ? selectedBg : Colors.transparent,
+        border: !isDropDownButton
+            ? Border(
+                left: BorderSide(
+                  color: isSelected ? accentColor : Colors.transparent,
+                  width: 3,
+                ),
+              )
+            : null,
+      ),
+      child: InkWell(
+        onTap: isDropDownButton ? null : onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3.0),
+              // Symbol badge
+              Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(
+                      alpha: isSelected || isDropDownButton ? 0.25 : 0.10),
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
                     currency.symbol,
-                    style: TextStyle(
-                      fontSize:
-                          Theme.of(context).textTheme.titleLarge!.fontSize,
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: accentColor,
                     ),
                   ),
                 ),
               ),
+              const SizedBox(width: 10),
+              // Name + code
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          currency.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: textColor),
-                        ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      currency.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: isSelected || isDropDownButton
+                            ? FontWeight.w700
+                            : FontWeight.w600,
+                        color: isSelected || isDropDownButton
+                            ? accentColor
+                            : theme.colorScheme.onSurface,
                       ),
-                      Text(
-                        currency.code,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: textColor),
+                    ),
+                    Text(
+                      currency.code,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.55),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               if (isDropDownButton)
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 3.0),
-                  child: Icon(Icons.arrow_drop_down),
-                )
+                Icon(Icons.arrow_drop_down_rounded,
+                    color: accentColor, size: 22),
             ],
           ),
         ),

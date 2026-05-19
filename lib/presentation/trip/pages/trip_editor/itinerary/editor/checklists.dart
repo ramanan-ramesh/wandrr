@@ -14,7 +14,9 @@ class ItineraryChecklistsEditor extends StatelessWidget {
   final int? initialExpandedIndex;
 
   const ItineraryChecklistsEditor({
-    required this.checklists, required this.onChecklistsChanged, super.key,
+    required this.checklists,
+    required this.onChecklistsChanged,
+    super.key,
     this.initialExpandedIndex,
   });
 
@@ -164,9 +166,8 @@ class _ChecklistEditorContentState extends State<_ChecklistEditorContent> {
             ),
             filled: true,
           ),
-          scrollPadding: const EdgeInsets.only(bottom: 250),
+          scrollPadding: const EdgeInsets.only(bottom: 50),
           onChanged: (val) {
-            widget.checklist.title = val;
             widget.onChanged();
           },
         ),
@@ -218,7 +219,12 @@ class _ChecklistItemRow extends StatefulWidget {
   final VoidCallback onToggleChecked;
 
   const _ChecklistItemRow({
-    required this.item, required this.itemNumber, required this.onChanged, required this.onDelete, required this.onToggleChecked, super.key,
+    required this.item,
+    required this.itemNumber,
+    required this.onChanged,
+    required this.onDelete,
+    required this.onToggleChecked,
+    super.key,
   });
 
   @override
@@ -294,9 +300,8 @@ class _ChecklistItemRowState extends State<_ChecklistItemRow> {
                         ?.withValues(alpha: 0.6)
                     : null,
               ),
-              scrollPadding: const EdgeInsets.only(bottom: 250),
+              scrollPadding: const EdgeInsets.only(bottom: 50),
               onChanged: (val) {
-                widget.item.item = val;
                 widget.onChanged();
               },
             ),
