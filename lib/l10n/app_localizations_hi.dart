@@ -110,6 +110,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get checklists => 'चेकलिस्ट';
 
   @override
+  String get clearTime => 'समय मिटाएं';
+
+  @override
   String get checklist => 'चेकलिस्ट';
 
   @override
@@ -603,4 +606,8 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get breakdown => 'विश्लेषण';
+
+  @override
+  String get noEventsScheduled =>
+      'इस दिन के लिए कोई कार्यक्रम निर्धारित नहीं है';
 }

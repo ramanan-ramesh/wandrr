@@ -406,39 +406,53 @@ class _ExpenseListItemState extends State<_ExpenseListItem> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.addTripManagementEvent(
-        SelectExpenseForDetails(tripEntity: _expenseBearingTripEntity),
-      ),
-      child: Material(
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(alpha: context.isLightTheme ? 0.96 : 0.98),
-        elevation: 5,
+    final isLight = context.isLightTheme;
+    return Material(
+      color: isLight ? Colors.white : AppColors.darkSurface,
+      elevation: 0,
+      borderRadius:
+          BorderRadius.circular(_ExpenseListViewState._kListItemBorderRadius),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.addTripManagementEvent(
+          SelectExpenseForDetails(tripEntity: _expenseBearingTripEntity),
+        ),
         borderRadius:
             BorderRadius.circular(_ExpenseListViewState._kListItemBorderRadius),
-        shadowColor: AppColors.neutral900.withValues(alpha: 0.10),
+        splashColor:
+            Theme.of(context).colorScheme.primary.withValues(alpha: 0.10),
+        highlightColor:
+            Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(
                 _ExpenseListViewState._kListItemBorderRadius),
-            border: Border.all(width: 2.2),
+            boxShadow: [
+              BoxShadow(
+                color: isLight
+                    ? Colors.black.withValues(alpha: 0.10)
+                    : Colors.black.withValues(alpha: 0.35),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
-          child: TripEntityUpdateHandler<ExpenseBearingTripEntity>(
-            shouldRebuild: (beforeUpdate, afterUpdate) {
-              if (beforeUpdate.id == _expenseBearingTripEntity.id) {
-                _expenseBearingTripEntity = afterUpdate;
-                return true;
-              }
-              return false;
-            },
-            widgetBuilder: (context) {
-              return ReadonlyExpenseListItem(
-                categoryNames: widget.categoryNames,
-                expenseBearingTripEntity: _expenseBearingTripEntity,
-              );
-            },
+          child: IntrinsicHeight(
+            child: TripEntityUpdateHandler<ExpenseBearingTripEntity>(
+              shouldRebuild: (beforeUpdate, afterUpdate) {
+                if (beforeUpdate.id == _expenseBearingTripEntity.id) {
+                  _expenseBearingTripEntity = afterUpdate;
+                  return true;
+                }
+                return false;
+              },
+              widgetBuilder: (context) {
+                return ReadonlyExpenseListItem(
+                  categoryNames: widget.categoryNames,
+                  expenseBearingTripEntity: _expenseBearingTripEntity,
+                );
+              },
+            ),
           ),
         ),
       ),

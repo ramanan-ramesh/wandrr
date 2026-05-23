@@ -4,24 +4,22 @@ import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
-import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_event_factory.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_rebuild_helper.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_theme_helper.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/transit_journey_timeline_event.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/checklists.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/notes.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/sights.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/animated_list_item.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/timeline_item.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/transit_journey_timeline_item.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
-import 'package:wandrr/presentation/trip/widgets/chrome_tab.dart';
 import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 
 import 'timeline_event.dart';
 
-/// Main widget for displaying and managing the itinerary for a specific day
+/// Timeline-only view for a specific itinerary day.
+/// Tab management is handled by [ItineraryNavigator].
 class ItineraryViewer extends StatefulWidget {
   final DateTime itineraryDay;
 
@@ -31,22 +29,13 @@ class ItineraryViewer extends StatefulWidget {
   State<ItineraryViewer> createState() => _ItineraryViewerState();
 }
 
-class _ItineraryViewerState extends State<ItineraryViewer>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
+class _ItineraryViewerState extends State<ItineraryViewer> {
   late TimelineRebuildHelper _rebuildHelper;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
     _rebuildHelper = TimelineRebuildHelper(widget.itineraryDay);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   @override
@@ -72,54 +61,15 @@ class _ItineraryViewerState extends State<ItineraryViewer>
         );
         final timelineEvents = eventFactory.collectTimelineEvents(itinerary);
 
-        return Column(
-          children: [
-            _buildTabIndicators(),
-            Expanded(
-              child: ColoredBox(
-                color: context.isLightTheme
-                    ? Colors.white
-                    : AppColors.darkSurfaceVariant,
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    StreamBuilder<bool>(
-                      stream: context.tripRepository.activeTrip!.isFullyLoaded,
-                      initialData:
-                          context.tripRepository.activeTrip!.isFullyLoadedValue,
-                      builder: (ctx, snap) {
-                        final isLoaded = snap.data ?? false;
-                        return _buildTimeline(timelineEvents, isLoaded);
-                      },
-                    ),
-                    ItineraryNotesViewer(day: widget.itineraryDay),
-                    ItineraryChecklistTab(
-                      onChanged: () {},
-                      day: widget.itineraryDay,
-                    ),
-                    ItinerarySightsViewer(
-                      tripId: context.activeTripId,
-                      day: widget.itineraryDay,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+        return StreamBuilder<bool>(
+          stream: context.tripRepository.activeTrip!.isFullyLoaded,
+          initialData: context.tripRepository.activeTrip!.isFullyLoadedValue,
+          builder: (ctx, snap) {
+            final isLoaded = snap.data ?? false;
+            return _buildTimeline(timelineEvents, isLoaded);
+          },
         );
       },
-    );
-  }
-
-  Widget _buildTabIndicators() {
-    return ChromeTabBar(
-      iconsAndTitles: {
-        Icons.timeline: context.localizations.timeline,
-        Icons.note_outlined: context.localizations.notes,
-        Icons.checklist_outlined: context.localizations.checklists,
-        Icons.place_outlined: context.localizations.places,
-      },
-      tabController: _tabController,
     );
   }
 
@@ -182,31 +132,34 @@ class _ItineraryViewerState extends State<ItineraryViewer>
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
         12,
-        16,
         12,
-        // Use the FAB-clearance injected via MediaQuery so the last timeline
-        // item is never hidden behind the floating action button.
+        12,
         MediaQuery.of(context).padding.bottom,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 16),
           ...timelineEvents.asMap().entries.map((entry) {
             final isLast = entry.key == timelineEvents.length - 1;
             final event = entry.value;
 
+            Widget item;
             // Use TransitJourneyTimelineItem for connected transit legs
             if (event is TransitJourneyTimelineEvent) {
-              return TransitJourneyTimelineItem(
+              item = TransitJourneyTimelineItem(
                 event: event,
                 isLastInTimeline: isLast,
               );
+            } else {
+              item = TimelineItem(
+                event: event,
+                isLast: isLast,
+              );
             }
 
-            return TimelineItem(
-              event: event,
-              isLast: isLast,
+            return AnimatedListItem(
+              index: entry.key,
+              child: item,
             );
           }),
         ],
@@ -225,13 +178,13 @@ class _ItineraryViewerState extends State<ItineraryViewer>
           children: [
             Icon(
               Icons.event_available,
-              size: 80,
+              size: 64,
               color: themeHelper.getEmptyStateIconColor(),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Text(
-              'No events scheduled for this day',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              context.localizations.noEventsScheduled,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: themeHelper.getEmptyStateTextColor(),
                   ),
             ),

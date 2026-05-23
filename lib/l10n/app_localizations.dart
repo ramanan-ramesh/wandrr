@@ -298,6 +298,12 @@ abstract class AppLocalizations {
   /// **'Checklists'**
   String get checklists;
 
+  /// No description provided for @clearTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Time'**
+  String get clearTime;
+
   /// No description provided for @checklist.
   ///
   /// In en, this message translates to:
@@ -1233,6 +1239,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Breakdown'**
   String get breakdown;
+
+  /// No description provided for @noEventsScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'No events scheduled for this day'**
+  String get noEventsScheduled;
 }
 
 class _AppLocalizationsDelegate

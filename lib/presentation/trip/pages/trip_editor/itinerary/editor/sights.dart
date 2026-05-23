@@ -124,6 +124,19 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
   String _formatTime(DateTime dt) =>
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
+  RelativeRect _getButtonPosition(BuildContext context) {
+    final RenderBox button = context.findRenderObject()! as RenderBox;
+    final RenderBox overlay =
+        Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
+    final offset = button.localToGlobal(Offset.zero, ancestor: overlay);
+    return RelativeRect.fromLTRB(
+      offset.dx,
+      offset.dy + button.size.height,
+      overlay.size.width - offset.dx - button.size.width,
+      overlay.size.height - offset.dy - button.size.height,
+    );
+  }
+
   Widget _buildSightEditor(
       BuildContext context, SightFacade sight, VoidCallback notifyParent) {
     return Column(
@@ -189,50 +202,80 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
                 ? AppColors.brandPrimary
                 : AppColors.brandPrimaryLight),
         const SizedBox(height: _kSpacingMedium),
-        Row(
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             if (sight.location != null)
-              Flexible(
-                flex: 0,
-                child: TimezoneIndicator(location: sight.location!),
+              TimezoneIndicator(location: sight.location!),
+            // Combined set/clear time button
+            OutlinedButton.icon(
+              icon: Icon(
+                timeOfDay == null
+                    ? Icons.access_time
+                    : Icons.access_time_filled_rounded,
+                size: 18,
               ),
-            if (sight.location != null)
-              const SizedBox(
-                width: _kSpacingMedium,
-              ),
-            Flexible(
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.access_time),
-                label: Text(timeOfDay == null
+              label: Text(
+                timeOfDay == null
                     ? context.localizations.setTime
-                    : timeOfDay.format(context)),
-                onPressed: () async {
-                  final picked = await showTimePicker(
-                    context: context,
-                    initialTime: timeOfDay ?? TimeOfDay.now(),
-                    builder: (context, child) => Theme(
-                      data: Theme.of(context),
-                      child: child!,
-                    ),
-                  );
-                  if (picked != null) {
-                    final d = sight.day;
-                    sight.visitTime = DateTime(
-                        d.year, d.month, d.day, picked.hour, picked.minute);
-                    notifyParent();
-                  }
-                },
+                    : timeOfDay.format(context),
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-            const SizedBox(width: _kSpacingMedium),
-            IconButton(
-              onPressed: timeOfDay == null
-                  ? null
-                  : () {
-                      sight.visitTime = null;
-                      notifyParent();
-                    },
-              icon: const Icon(Icons.clear_rounded),
+              onPressed: () async {
+                // If time is set, show a menu: edit or clear
+                if (timeOfDay != null) {
+                  final action = await showMenu<String>(
+                    context: context,
+                    position: _getButtonPosition(context),
+                    items: [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.edit_rounded, size: 18),
+                            const SizedBox(width: 8),
+                            Text(context.localizations.setTime),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'clear',
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.clear_rounded, size: 18),
+                            const SizedBox(width: 8),
+                            Text(context.localizations.clearTime),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                  if (action == 'clear') {
+                    sight.visitTime = null;
+                    notifyParent();
+                    return;
+                  }
+                  if (action != 'edit') return;
+                }
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: timeOfDay ?? TimeOfDay.now(),
+                  builder: (context, child) => Theme(
+                    data: Theme.of(context),
+                    child: child!,
+                  ),
+                );
+                if (picked != null) {
+                  final d = sight.day;
+                  sight.visitTime = DateTime(
+                      d.year, d.month, d.day, picked.hour, picked.minute);
+                  notifyParent();
+                }
+              },
             ),
           ],
         ),

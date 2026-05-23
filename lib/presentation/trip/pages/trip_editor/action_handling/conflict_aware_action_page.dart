@@ -155,12 +155,27 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
             ),
             BlocListener<TripManagementBloc, TripManagementState>(
               listenWhen: (_, current) =>
-                  _isSubmitting && current.isTripEntityUpdated<T>(),
+                  _isSubmitting && current.isTripEntityStateFor<T>(),
               listener: (context, state) {
                 if (!_isSubmitting) {
                   return;
                 }
                 if (state is UpdatedTripEntity) {
+                  if (!state.isOperationSuccess) {
+                    // Operation failed — show error and reset
+                    setState(() {
+                      _isSubmitting = false;
+                      _pendingOperations = 0;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Operation failed. Please check your connection and try again.'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                    return;
+                  }
                   _pendingOperations--;
                   if (_pendingOperations <= 0) {
                     _isSubmitting = false;
@@ -515,11 +530,6 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
   }
 
   void _handleEntitySubmitted(BuildContext context, T editableEntity) {
-    final conflictPlan = context.tripEntityUpdatePlan<T>();
-    if (conflictPlan != null && conflictPlan.isConfirmed) {
-      context.addTripManagementEvent(
-          ApplyTripDataUpdatePlan(updatePlan: conflictPlan));
-    }
     final operationCount = widget.onActionInvoked(context);
     // operationCount == 0 means the entity was unchanged — no Firestore echo
     // will arrive, so we pop immediately rather than spinning forever.
@@ -527,10 +537,19 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
       if (mounted) Navigator.of(context).pop();
       return;
     }
+
+    final conflictPlan = context.tripEntityUpdatePlan<T>();
+    if (conflictPlan != null && conflictPlan.isConfirmed) {
+      context.addTripManagementEvent(
+          ApplyTripDataUpdatePlan(updatePlan: conflictPlan));
+    }
     setState(() {
       _isSubmitting = true;
       _pendingOperations = operationCount;
     });
+    // Timeout is now handled by TripManagementBloc: it emits UpdatedTripEntity
+    // with isOperationSuccess: false after 5 seconds if no Firestore echo
+    // arrives, which triggers the failure path in the BlocListener above.
   }
 }
 

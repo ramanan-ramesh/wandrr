@@ -478,16 +478,39 @@ class JourneyRouteHeader extends StatelessWidget {
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: onDeleteJourney,
-                icon: const Icon(Icons.delete_outline, size: 18),
-                label: const Text('Delete Journey'),
-                style: TextButton.styleFrom(
-                  foregroundColor:
-                      isLightTheme ? AppColors.error : AppColors.errorLight,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
+              child: Material(
+                color: isLightTheme
+                    ? AppColors.error.withValues(alpha: 0.1)
+                    : AppColors.error.withValues(alpha: 0.2),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: onDeleteJourney,
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.delete_rounded,
+                            size: 18,
+                            color: isLightTheme
+                                ? AppColors.error
+                                : AppColors.errorLight),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Delete Journey',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isLightTheme
+                                ? AppColors.error
+                                : AppColors.errorLight,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

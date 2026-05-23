@@ -21,8 +21,6 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
   late final Future<Map<DateTime, double>> _dataFuture;
 
   // UI constants
-  static const double _kMinHeight = 300;
-  static const double _kMaxHeight = 500;
   static const double _kCardPadding = 8.0;
   static const double _kOuterPadding = 20.0;
   static const double _kTitleFontSize = 16.0;
@@ -53,18 +51,15 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
       builder: (context, snapshot) {
         final isDone = snapshot.connectionState == ConnectionState.done;
         final data = snapshot.data;
+
+        // Shimmer skeleton while data loads — Column avoids a nested scroller
         if (!isDone) {
-          // Provide shimmer bar-card skeleton while grouping completes
-          return ConstrainedBox(
-            constraints: const BoxConstraints(
-                minHeight: _kMinHeight, maxHeight: _kMaxHeight),
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: _kOuterPadding, vertical: _kOuterPadding / 2),
-              itemCount: 4,
-              itemBuilder: (_, i) => Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: _kOuterPadding / 2),
+          return Column(
+            children: List.generate(
+              4,
+              (i) => Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: _kOuterPadding, vertical: _kOuterPadding / 2),
                 child: ShimmerPlaceholder(
                   height: 80,
                   borderRadius: BorderRadius.circular(16),
@@ -73,6 +68,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
             ),
           );
         }
+
         if (data == null ||
             data.isEmpty ||
             budgetingService.totalExpenditure == 0) {
@@ -88,13 +84,12 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
         final totalExpense = data.values.fold<double>(0, (a, b) => a + b);
         final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-        final indicators =
+        final items =
             data.entries.where((e) => e.value > 0).map((dailyExpense) {
           final percentage =
               totalExpense == 0 ? 0.0 : dailyExpense.value / totalExpense;
           final dateLabel = dailyExpense.key.dayDateMonthFormat;
 
-          // Use theme colors for better visual appeal
           final cardColor =
               Theme.of(context).colorScheme.surfaceContainerHighest;
           final textColor = Theme.of(context).colorScheme.onSurface;
@@ -119,10 +114,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
                   borderRadius: BorderRadius.circular(16),
                   gradient: LinearGradient(
                     colors: isDarkMode
-                        ? [
-                            cardColor,
-                            cardColor.withValues(alpha: 0.95),
-                          ]
+                        ? [cardColor, cardColor.withValues(alpha: 0.95)]
                         : [
                             cardColor.withValues(alpha: 0.9),
                             cardColor.withValues(alpha: 0.95),
@@ -142,11 +134,8 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
                         children: [
                           Row(
                             children: [
-                              Icon(
-                                Icons.calendar_today_rounded,
-                                color: accentColor,
-                                size: 20,
-                              ),
+                              Icon(Icons.calendar_today_rounded,
+                                  color: accentColor, size: 20),
                               const SizedBox(width: 8),
                               Text(
                                 dateLabel,
@@ -160,9 +149,7 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               color: accentColor.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(12),
@@ -183,21 +170,15 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
                         ],
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: LinearProgressIndicator(
-                                value: percentage,
-                                minHeight: 8,
-                                backgroundColor: progressBgColor,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(accentColor),
-                              ),
-                            ),
-                          ),
-                        ],
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: percentage,
+                          minHeight: 8,
+                          backgroundColor: progressBgColor,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(accentColor),
+                        ),
                       ),
                     ],
                   ),
@@ -207,11 +188,9 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
           );
         }).toList();
 
-        return ConstrainedBox(
-          constraints: const BoxConstraints(
-              minHeight: _kMinHeight, maxHeight: _kMaxHeight),
-          child: ListView(children: indicators),
-        );
+        // Column instead of ListView — no independent scroller,
+        // parent SingleChildScrollView handles all scrolling.
+        return Column(children: items);
       },
     );
   }

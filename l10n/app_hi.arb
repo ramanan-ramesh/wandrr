@@ -31,6 +31,7 @@
   "checkListTitleMustBeAtleast3Characters": "चेकलिस्ट शीर्षक कम से कम 3 अक्षर होना चाहिए",
   "checkOut": "चेक आउट",
   "checklists": "चेकलिस्ट",
+  "clearTime": "समय मिटाएं",
   "checklist": "चेकलिस्ट",
   "chooseDefaultCurrency": "डिफ़ॉल्ट मुद्रा:",
   "chooseTripThumbnail": "लघुचित्र चुनें",
@@ -195,5 +196,6 @@
   "startYourAdventure": "अपना साहसिक सफर शुरू करें",
   "noTripsSubtitle": "अपनी पहली यात्रा की योजना बनाएं और यादें बनाएं जो जीवन भर रहें।",
   "debt": "ऋण",
-  "breakdown": "विश्लेषण"
+  "breakdown": "विश्लेषण",
+  "noEventsScheduled": "इस दिन के लिए कोई कार्यक्रम निर्धारित नहीं है"
 }

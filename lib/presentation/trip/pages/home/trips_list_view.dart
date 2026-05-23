@@ -372,6 +372,8 @@ class _TripCardState extends State<_TripCard> {
           onTapDown: (_) => setState(() => _isPressed = true),
           onTapUp: (_) => setState(() => _isPressed = false),
           onTapCancel: () => setState(() => _isPressed = false),
+          splashColor: Colors.white.withValues(alpha: 0.20),
+          highlightColor: Colors.white.withValues(alpha: 0.10),
           child: Stack(
             fit: StackFit.expand,
             children: [

@@ -7,6 +7,7 @@ import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/bloc_extensions.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/animated_list_item.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
@@ -66,192 +67,203 @@ class ItinerarySightsViewer extends StatelessWidget {
             final hasExpense = s.expense.totalExpense.amount > 0;
             final isLightTheme = Theme.of(c).brightness == Brightness.light;
 
-            return DecoratedBox(
-              decoration: BoxDecoration(
-                color: isLightTheme
-                    ? Colors.white
-                    : AppColors.darkSurface.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: AppColors.travelAccents[0].withValues(alpha: 0.2),
-                  width: 1,
+            return AnimatedListItem(
+              index: i,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: isLightTheme
+                      ? Colors.white
+                      : AppColors.darkSurface.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black
+                          .withValues(alpha: isLightTheme ? 0.05 : 0.12),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black
-                        .withValues(alpha: isLightTheme ? 0.06 : 0.15),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => context.addTripManagementEvent(
-                    EditItineraryPlanData(
-                      day: day,
-                      planDataEditorConfig:
-                          UpdateItineraryPlanDataComponentConfig(
-                        planDataType: PlanDataType.sight,
-                        index: i,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => context.addTripManagementEvent(
+                      EditItineraryPlanData(
+                        day: day,
+                        planDataEditorConfig:
+                            UpdateItineraryPlanDataComponentConfig(
+                          planDataType: PlanDataType.sight,
+                          index: i,
+                        ),
                       ),
                     ),
-                  ),
-                  borderRadius: BorderRadius.circular(18),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                sightName,
-                                style:
-                                    Theme.of(c).textTheme.titleMedium?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          color: isLightTheme
-                                              ? AppColors.neutral900
-                                              : AppColors.neutral100,
-                                        ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 6),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 6,
-                                children: [
-                                  if (s.visitTime != null)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.brandPrimary
-                                            .withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(
-                                            Icons.access_time_rounded,
-                                            size: 12,
-                                            color: AppColors.brandPrimary,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            _formatTime(s.visitTime!),
-                                            style: Theme.of(c)
-                                                .textTheme
-                                                .bodySmall
-                                                ?.copyWith(
-                                                  color: AppColors.brandPrimary,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 11,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  if (locationName != null &&
-                                      locationName != sightName)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    splashColor:
+                        Theme.of(c).colorScheme.primary.withValues(alpha: 0.10),
+                    highlightColor:
+                        Theme.of(c).colorScheme.primary.withValues(alpha: 0.05),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14.0, vertical: 12.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  sightName,
+                                  style: Theme.of(c)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w600,
                                         color: isLightTheme
-                                            ? AppColors.neutral200
-                                            : AppColors.neutral700,
-                                        borderRadius: BorderRadius.circular(6),
+                                            ? AppColors.neutral900
+                                            : AppColors.neutral100,
                                       ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.location_on_rounded,
-                                            size: 12,
-                                            color: isLightTheme
-                                                ? AppColors.neutral600
-                                                : AppColors.neutral400,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Flexible(
-                                            child: Text(
-                                              locationName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 6),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 6,
+                                  children: [
+                                    if (s.visitTime != null)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.brandPrimary
+                                              .withValues(alpha: 0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.access_time_rounded,
+                                              size: 12,
+                                              color: AppColors.brandPrimary,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              _formatTime(s.visitTime!),
                                               style: Theme.of(c)
                                                   .textTheme
                                                   .bodySmall
                                                   ?.copyWith(
-                                                    color: isLightTheme
-                                                        ? AppColors.neutral600
-                                                        : AppColors.neutral400,
+                                                    color:
+                                                        AppColors.brandPrimary,
+                                                    fontWeight: FontWeight.w600,
                                                     fontSize: 11,
                                                   ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  if (hasExpense)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
+                                    if (locationName != null &&
+                                        locationName != sightName)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isLightTheme
+                                              ? AppColors.neutral200
+                                              : AppColors.neutral700,
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.location_on_rounded,
+                                              size: 12,
+                                              color: isLightTheme
+                                                  ? AppColors.neutral600
+                                                  : AppColors.neutral400,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Flexible(
+                                              child: Text(
+                                                locationName,
+                                                style: Theme.of(c)
+                                                    .textTheme
+                                                    .bodySmall
+                                                    ?.copyWith(
+                                                      color: isLightTheme
+                                                          ? AppColors.neutral600
+                                                          : AppColors
+                                                              .neutral400,
+                                                      fontSize: 11,
+                                                    ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.warning
-                                            .withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(6),
+                                    if (hasExpense)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.warning
+                                              .withValues(alpha: 0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.payments_rounded,
+                                              size: 12,
+                                              color: AppColors.warning,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              context.budgetingService
+                                                  .formatCurrency(
+                                                      s.expense.totalExpense),
+                                              style: Theme.of(c)
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.copyWith(
+                                                    color: AppColors.warning,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 11,
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(
-                                            Icons.payments_rounded,
-                                            size: 12,
-                                            color: AppColors.warning,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            context.budgetingService
-                                                .formatCurrency(
-                                                    s.expense.totalExpense),
-                                            style: Theme.of(c)
-                                                .textTheme
-                                                .bodySmall
-                                                ?.copyWith(
-                                                  color: AppColors.warning,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 11,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ],
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          color: isLightTheme
-                              ? AppColors.neutral400
-                              : AppColors.neutral500,
-                          size: 20,
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            color: isLightTheme
+                                ? AppColors.neutral400
+                                : AppColors.neutral500,
+                            size: 20,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

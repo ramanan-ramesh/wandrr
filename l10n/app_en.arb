@@ -32,6 +32,7 @@
   "checkListTitleMustBeAtleast3Characters": "Checklist title must be at least 3 characters",
   "checkOut": "Check-Out",
   "checklists": "Checklists",
+  "clearTime": "Clear Time",
   "checklist": "Checklist",
   "chooseTripThumbnail": "Choose a thumbnail",
   "confirmation": "Confirmation",
@@ -218,5 +219,6 @@
   "startYourAdventure": "Start your adventure",
   "noTripsSubtitle": "Plan your first trip and make memories that last a lifetime.",
   "debt": "Debt",
-  "breakdown": "Breakdown"
+  "breakdown": "Breakdown",
+  "noEventsScheduled": "No events scheduled for this day"
 }

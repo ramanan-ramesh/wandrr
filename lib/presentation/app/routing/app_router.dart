@@ -106,7 +106,7 @@ class AppRouter {
                 ),
               ),
             ),
-            // Trip editor route — slides in from the right with a fade
+            // Trip editor route — immersive hero-like transition
             GoRoute(
               path: AppRoutes.tripEditor,
               pageBuilder: (context, state) {
@@ -114,18 +114,28 @@ class AppRouter {
                 return CustomTransitionPage(
                   key: state.pageKey,
                   child: _TripEditorPage(tripId: tripId),
-                  transitionDuration: const Duration(milliseconds: 420),
-                  reverseTransitionDuration: const Duration(milliseconds: 300),
+                  transitionDuration: const Duration(milliseconds: 450),
+                  reverseTransitionDuration: const Duration(milliseconds: 320),
                   transitionsBuilder: (context, animation, secondary, child) {
+                    // Slide from right
                     final slide = Tween<Offset>(
-                      begin: const Offset(0.06, 0),
+                      begin: const Offset(0.08, 0),
                       end: Offset.zero,
                     ).animate(CurvedAnimation(
                         parent: animation, curve: Curves.easeOutCubic));
+                    // Fade in
+                    final fade = CurvedAnimation(
+                        parent: animation, curve: Curves.easeOut);
+                    // Subtle scale from 0.96 to 1.0
+                    final scale = Tween<double>(begin: 0.96, end: 1.0).animate(
+                        CurvedAnimation(
+                            parent: animation, curve: Curves.easeOutCubic));
                     return FadeTransition(
-                      opacity: CurvedAnimation(
-                          parent: animation, curve: Curves.easeOut),
-                      child: SlideTransition(position: slide, child: child),
+                      opacity: fade,
+                      child: ScaleTransition(
+                        scale: scale,
+                        child: SlideTransition(position: slide, child: child),
+                      ),
                     );
                   },
                 );

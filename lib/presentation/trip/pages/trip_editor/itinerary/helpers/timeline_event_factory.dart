@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lat_lng_to_timezone/lat_lng_to_timezone.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
-import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
@@ -62,8 +60,7 @@ class TimelineEventFactory {
     if (checkout != null) {
       yield TimelineEvent<LodgingFacade>(
         time: checkout.checkoutDateTime!,
-        title:
-            '${localizations.checkOut} • ${checkout.checkoutDateTime!.hourMinuteAmPmFormat}',
+        title: localizations.checkOut,
         subtitle: _formatter.getLodgingLocationDetail(checkout),
         icon: Icons.logout,
         iconColor: AppColors.warning,
@@ -77,8 +74,7 @@ class TimelineEventFactory {
     if (checkin != null) {
       yield TimelineEvent<LodgingFacade>(
         time: checkin.checkinDateTime!,
-        title:
-            '${localizations.checkIn} • ${checkin.checkinDateTime!.hourMinuteAmPmFormat}',
+        title: localizations.checkIn,
         subtitle: _formatter.getLodgingLocationDetail(checkin),
         icon: Icons.login,
         iconColor: AppColors.success,
@@ -193,7 +189,9 @@ class TimelineEventFactory {
     return TimelineEvent<TransitFacade>(
       time: transitEventData.eventTime,
       title: transitEventData.title,
-      subtitle: _formatter.getTransitOperatorInfo(transit),
+      subtitle: transitEventData.subtitle.isNotEmpty
+          ? transitEventData.subtitle
+          : _formatter.getTransitOperatorInfo(transit),
       icon: metadata.icon,
       iconColor: AppColors.info,
       data: transit,
@@ -221,30 +219,16 @@ class TimelineEventFactory {
     String subtitle;
 
     if (isMultiDay) {
-      // Multi-day journey: show directional narrative instead of "A → B"
       if (isDepartureDayView) {
-        title = 'Departing $depLocation to $arrLocation';
-        final depTime =
-            transit.departureDateTime?.hourMinuteAmPmFormat ?? '--:--';
-        final operatorInfo = _formatter.getTransitOperatorInfo(transit);
-        subtitle =
-            '$depTime${operatorInfo.isNotEmpty ? ' • $operatorInfo' : ''}';
+        title = '$depLocation → $arrLocation';
+        subtitle = _formatter.getTransitOperatorInfo(transit);
       } else {
-        title = 'Arriving at $arrLocation from $depLocation';
-        final arrTime =
-            transit.arrivalDateTime?.hourMinuteAmPmFormat ?? '--:--';
-        final operatorInfo = _formatter.getTransitOperatorInfo(transit);
-        subtitle =
-            '$arrTime${operatorInfo.isNotEmpty ? ' • $operatorInfo' : ''}';
+        title = '$depLocation → $arrLocation';
+        subtitle = _formatter.getTransitOperatorInfo(transit);
       }
     } else {
       title = '$depLocation → $arrLocation';
-      final depTime =
-          transit.departureDateTime?.hourMinuteAmPmFormat ?? '--:--';
-      final arrTime = transit.arrivalDateTime?.hourMinuteAmPmFormat ?? '--:--';
-      final operatorInfo = _formatter.getTransitOperatorInfo(transit);
-      subtitle =
-          '$depTime → $arrTime${operatorInfo.isNotEmpty ? ' • $operatorInfo' : ''}';
+      subtitle = _formatter.getTransitOperatorInfo(transit);
     }
 
     return TransitJourneyTimelineEvent(
@@ -300,17 +284,11 @@ class TimelineEventFactory {
         continue;
       }
 
-      String dateTimeDetails;
-      if (sight.location != null) {
-        var timezoneString = latLngToTimezoneString(
-            sight.location!.latitude, sight.location!.longitude);
-        dateTimeDetails = '${visitTime.hourMinuteAmPmFormat} ($timezoneString)';
-      } else {
-        dateTimeDetails = visitTime.hourMinuteAmPmFormat;
-      }
       yield TimelineEvent<SightFacade>(
         time: visitTime,
-        title: '${sight.name} • $dateTimeDetails',
+        title: sight.name.isNotEmpty
+            ? sight.name
+            : (sight.location?.context.name ?? ''),
         subtitle: _formatter.getSightSubtitle(sight),
         icon: Icons.place_rounded,
         iconColor: AppColors.brandAccent,

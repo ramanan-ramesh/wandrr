@@ -110,6 +110,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checklists => 'Checklists';
 
   @override
+  String get clearTime => 'Clear Time';
+
+  @override
   String get checklist => 'Checklist';
 
   @override
@@ -602,4 +605,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get breakdown => 'Breakdown';
+
+  @override
+  String get noEventsScheduled => 'No events scheduled for this day';
 }

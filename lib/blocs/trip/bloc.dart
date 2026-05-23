@@ -45,6 +45,11 @@ class TripManagementBloc
   TripMetadataSubscriptionHandler? _metadataSubscriptionHandler;
   ItinerarySubscriptionHandler? _itinerarySubscriptionHandler;
 
+  // Operation timeout tracking — entity reference is the map key so each
+  // in-flight operation is tracked individually (no string key collision risk).
+  final Map<TripEntity, _PendingOperationTimer> _pendingTimers = {};
+  static const Duration _kOperationTimeout = Duration(seconds: 5);
+
   TripDataModelEventHandler? get _activeTrip => _tripRepository?.activeTrip;
 
   // ---------------------------------------------------------------------------
@@ -100,6 +105,7 @@ class TripManagementBloc
     on<UpdateTripEntity<TripMetadataFacade>>(_onUpdateTripMetadata);
     on<UpdateTripEntity<ItineraryPlanData>>(_onUpdateItineraryData);
     on<_UpdateTripEntityInternalEvent>(_onTripEntityUpdateInternal);
+    on<_TimeoutOperationInternalEvent>(_onOperationTimeout);
     on<EditItineraryPlanData>(_onEditItineraryPlanData);
     on<CopyTrip>(_onCopyTrip);
 
@@ -108,6 +114,7 @@ class TripManagementBloc
 
   @override
   Future<void> close() async {
+    _cancelAllTimers();
     await _subscriptionManager.dispose();
     await _tripRepository?.dispose();
     await _apiServicesRepository?.dispose();
@@ -181,6 +188,7 @@ class TripManagementBloc
 
   FutureOr<void> _onUpdateTransit(UpdateTripEntity<TransitFacade> event,
       Emitter<TripManagementState> emit) async {
+    _schedulePendingOperationTimeout(event.tripEntity, event.dataState);
     await _updateHandler.updateTripEntityAndEmitState<TransitFacade>(
       tripEntity: event.tripEntity,
       requestedDataState: event.dataState,
@@ -191,6 +199,7 @@ class TripManagementBloc
 
   FutureOr<void> _onUpdateLodging(UpdateTripEntity<LodgingFacade> event,
       Emitter<TripManagementState> emit) async {
+    _schedulePendingOperationTimeout(event.tripEntity, event.dataState);
     await _updateHandler.updateTripEntityAndEmitState<LodgingFacade>(
       tripEntity: event.tripEntity,
       requestedDataState: event.dataState,
@@ -201,6 +210,7 @@ class TripManagementBloc
 
   FutureOr<void> _onUpdateExpense(UpdateTripEntity<StandaloneExpense> event,
       Emitter<TripManagementState> emit) async {
+    _schedulePendingOperationTimeout(event.tripEntity, event.dataState);
     await _updateHandler.updateTripEntityAndEmitState<StandaloneExpense>(
       tripEntity: event.tripEntity,
       requestedDataState: event.dataState,
@@ -237,6 +247,7 @@ class TripManagementBloc
       }
       return;
     }
+    _schedulePendingOperationTimeout(event.tripEntity, event.dataState);
     await _updateHandler.updateTripEntityAndEmitState<TripMetadataFacade>(
       tripEntity: event.tripEntity,
       requestedDataState: event.dataState,
@@ -248,6 +259,9 @@ class TripManagementBloc
   FutureOr<void> _onTripEntityUpdateInternal<T>(
       _UpdateTripEntityInternalEvent<T> event,
       Emitter<TripManagementState> emit) {
+    // Cancel any pending timeout timer for this operation since it succeeded.
+    _cancelPendingTimerFor(
+        event.updateData.collectionItemChange, event.dateState);
     switch (event.dateState) {
       case DataState.create:
         emit(UpdatedTripEntity<T>.created(
@@ -450,6 +464,165 @@ class TripManagementBloc
     await _tripRepository!.copyTrip(
         event.sourceTripMetadata, newTripMetadata, _apiServicesRepository!);
   }
+
+  // ---------------------------------------------------------------------------
+  // Operation timeout helpers
+  // ---------------------------------------------------------------------------
+
+  /// Schedules a 5-second timeout for a CRUD operation on [entity].
+  /// The entity reference itself is the map key, so concurrent operations on
+  /// different entity instances are tracked independently and accurately.
+  void _schedulePendingOperationTimeout(TripEntity entity, DataState state) {
+    if (state != DataState.create &&
+        state != DataState.delete &&
+        state != DataState.update) {
+      return;
+    }
+    _pendingTimers[entity]?.timer.cancel();
+    _pendingTimers[entity] = _PendingOperationTimer(
+      timer: Timer(_kOperationTimeout, () {
+        _pendingTimers.remove(entity);
+        if (!isClosed) {
+          add(_TimeoutOperationInternalEvent(entity, state));
+        }
+      }),
+      state: state,
+    );
+  }
+
+  /// Cancels the pending timeout timer for the operation that just echoed back
+  /// from Firestore, confirming it completed successfully.
+  void _cancelPendingTimerFor(dynamic change, DataState state) {
+    TripEntity? incomingEntity;
+
+    if (change is Changeset) {
+      final after = change.afterUpdate;
+      if (after is TripEntity) incomingEntity = after;
+    } else if (change is TripEntity) {
+      incomingEntity = change;
+    }
+
+    if (incomingEntity == null) return;
+
+    TripEntity? keyToRemove;
+    for (final entry in _pendingTimers.entries) {
+      if (entry.value.state != state) continue;
+      if (entry.key.runtimeType != incomingEntity.runtimeType) continue;
+
+      if (state == DataState.create) {
+        // For creates the pending entity has id == null while the echoed-back
+        // entity carries a fresh Firestore id.  Match by non-id key properties.
+        if (_entitiesMatchForCreate(entry.key, incomingEntity)) {
+          keyToRemove = entry.key;
+          break;
+        }
+      } else if (entry.key.id == incomingEntity.id) {
+        keyToRemove = entry.key;
+        break;
+      }
+    }
+
+    if (keyToRemove != null) {
+      _pendingTimers.remove(keyToRemove)?.timer.cancel();
+    }
+  }
+
+  /// Returns `true` when [pending] (the locally-created entity, `id == null`)
+  /// and [incoming] (the Firestore-echoed entity, `id != null`) represent the
+  /// same just-created record, compared by their non-id key properties.
+  ///
+  /// Each entity type uses the minimal set of fields that together uniquely
+  /// identify a "just submitted" record:
+  ///   - [TransitFacade]       : tripId + transitOption + depart/arrive datetimes
+  ///   - [LodgingFacade]       : tripId + checkin/checkout datetimes
+  ///   - [StandaloneExpense]   : tripId + title + category + total amount
+  ///   - [TripMetadataFacade]  : name + startDate + endDate
+  bool _entitiesMatchForCreate(TripEntity pending, TripEntity incoming) {
+    if (pending.runtimeType != incoming.runtimeType) return false;
+
+    if (pending is TransitFacade && incoming is TransitFacade) {
+      return pending.tripId == incoming.tripId &&
+          pending.transitOption == incoming.transitOption &&
+          pending.departureDateTime == incoming.departureDateTime &&
+          pending.arrivalDateTime == incoming.arrivalDateTime;
+    }
+
+    if (pending is LodgingFacade && incoming is LodgingFacade) {
+      return pending.tripId == incoming.tripId &&
+          pending.checkinDateTime == incoming.checkinDateTime &&
+          pending.checkoutDateTime == incoming.checkoutDateTime;
+    }
+
+    if (pending is StandaloneExpense && incoming is StandaloneExpense) {
+      return pending.tripId == incoming.tripId &&
+          pending.title == incoming.title &&
+          pending.category == incoming.category &&
+          pending.expense.totalExpense == incoming.expense.totalExpense;
+    }
+
+    if (pending is TripMetadataFacade && incoming is TripMetadataFacade) {
+      return pending.name == incoming.name &&
+          pending.startDate == incoming.startDate &&
+          pending.endDate == incoming.endDate;
+    }
+
+    // Fallback for unknown entity types: same runtime type is enough.
+    return true;
+  }
+
+  void _cancelAllTimers() {
+    for (final entry in _pendingTimers.values) {
+      entry.timer.cancel();
+    }
+    _pendingTimers.clear();
+  }
+
+  void _onOperationTimeout(
+      _TimeoutOperationInternalEvent event, Emitter<TripManagementState> emit) {
+    final entity = event.entity;
+    final state = event.state;
+    final data = CollectionItemChangeMetadata<dynamic>(entity,
+        isFromExplicitAction: true);
+
+    if (entity is TransitFacade) {
+      _emitTimeoutState<TransitFacade>(state, data, emit);
+    } else if (entity is LodgingFacade) {
+      _emitTimeoutState<LodgingFacade>(state, data, emit);
+    } else if (entity is StandaloneExpense) {
+      _emitTimeoutState<StandaloneExpense>(state, data, emit);
+    } else if (entity is TripMetadataFacade) {
+      _emitTimeoutState<TripMetadataFacade>(state, data, emit);
+    }
+  }
+
+  void _emitTimeoutState<T>(
+      DataState state,
+      CollectionItemChangeMetadata<dynamic> data,
+      Emitter<TripManagementState> emit) {
+    switch (state) {
+      case DataState.create:
+        emit(UpdatedTripEntity<T>.created(
+            tripEntityModificationData: data, isOperationSuccess: false));
+        break;
+      case DataState.delete:
+        emit(UpdatedTripEntity<T>.deleted(
+            tripEntityModificationData: data, isOperationSuccess: false));
+        break;
+      case DataState.update:
+        emit(UpdatedTripEntity<T>.updated(
+            tripEntityModificationData: data, isOperationSuccess: false));
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+class _TimeoutOperationInternalEvent extends TripManagementEvent {
+  final TripEntity entity;
+  final DataState state;
+
+  const _TimeoutOperationInternalEvent(this.entity, this.state);
 }
 
 class _UpdateTripEntityInternalEvent<T> extends TripManagementEvent {
@@ -472,4 +645,11 @@ class _UpdateTripEntityInternalEvent<T> extends TripManagementEvent {
 
 class _OnStartup extends TripManagementEvent {
   const _OnStartup();
+}
+
+class _PendingOperationTimer {
+  final Timer timer;
+  final DataState state;
+
+  _PendingOperationTimer({required this.timer, required this.state});
 }

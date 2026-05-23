@@ -7,6 +7,7 @@ import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/bloc_extensions.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/animated_list_item.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
@@ -71,93 +72,101 @@ class _ItineraryNotesViewerState extends State<ItineraryNotesViewer> {
             final preview = raw.replaceAll('\n', ' ');
             final isLightTheme = Theme.of(ctx).brightness == Brightness.light;
 
-            return Container(
-              margin: EdgeInsets.only(
-                  bottom: i < notes.length - 1 ? _kSpacingMedium : 0),
-              decoration: BoxDecoration(
-                color: isLightTheme
-                    ? Colors.white
-                    : AppColors.darkSurface.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: AppColors.brandPrimary.withValues(alpha: 0.2),
-                  width: 1,
+            return AnimatedListItem(
+              index: i,
+              child: Container(
+                margin: EdgeInsets.only(
+                    bottom: i < notes.length - 1 ? _kSpacingMedium : 0),
+                decoration: BoxDecoration(
+                  color: isLightTheme
+                      ? Colors.white
+                      : AppColors.darkSurface.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black
+                          .withValues(alpha: isLightTheme ? 0.05 : 0.12),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black
-                        .withValues(alpha: isLightTheme ? 0.06 : 0.15),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => context.addTripManagementEvent(
-                    EditItineraryPlanData(
-                      day: widget.day,
-                      planDataEditorConfig:
-                          UpdateItineraryPlanDataComponentConfig(
-                        planDataType: PlanDataType.note,
-                        index: i,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => context.addTripManagementEvent(
+                      EditItineraryPlanData(
+                        day: widget.day,
+                        planDataEditorConfig:
+                            UpdateItineraryPlanDataComponentConfig(
+                          planDataType: PlanDataType.note,
+                          index: i,
+                        ),
                       ),
                     ),
-                  ),
-                  borderRadius: BorderRadius.circular(18),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title.isEmpty ? 'Untitled' : title,
-                                style: Theme.of(ctx)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: isLightTheme
-                                          ? AppColors.neutral900
-                                          : AppColors.neutral100,
-                                    ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (preview.isNotEmpty && preview != title) ...[
-                                const SizedBox(height: 6),
+                    borderRadius: BorderRadius.circular(14),
+                    splashColor: Theme.of(ctx)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.10),
+                    highlightColor: Theme.of(ctx)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.05),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14.0, vertical: 12.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Text(
-                                  preview,
+                                  title.isEmpty ? 'Untitled' : title,
                                   style: Theme.of(ctx)
                                       .textTheme
-                                      .bodyMedium
+                                      .titleMedium
                                       ?.copyWith(
+                                        fontWeight: FontWeight.w600,
                                         color: isLightTheme
-                                            ? AppColors.neutral600
-                                            : AppColors.neutral400,
-                                        height: 1.4,
+                                            ? AppColors.neutral900
+                                            : AppColors.neutral100,
                                       ),
-                                  maxLines: 2,
+                                  maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
+                                if (preview.isNotEmpty && preview != title) ...[
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    preview,
+                                    style: Theme.of(ctx)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: isLightTheme
+                                              ? AppColors.neutral600
+                                              : AppColors.neutral400,
+                                          height: 1.4,
+                                        ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          color: isLightTheme
-                              ? AppColors.neutral400
-                              : AppColors.neutral500,
-                          size: 20,
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            color: isLightTheme
+                                ? AppColors.neutral400
+                                : AppColors.neutral500,
+                            size: 20,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

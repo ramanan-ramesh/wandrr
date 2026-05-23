@@ -331,6 +331,14 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
     2. **Budgeting** (expenses, debt, breakdown).
 - **Tablet/Web:** Both sections displayed side-by-side. No bottom navigation bar.
 
+### REQ-TE-001a — Page Transition Animation
+
+- Navigation from Trip List (Home Page) to Trip Editor uses an **immersive hero-like transition**:
+    - Slide from right (8% offset), fade in, and scale up (from 96% to 100%).
+    - Duration: 450ms forward, 320ms reverse.
+    - Curves: easeOutCubic for slide/scale, easeOut for fade.
+- The transition creates a zoom-in effect suggesting diving into the trip details.
+
 ### REQ-TE-002 — App Bar
 
 - Shows the trip name (or a loading indicator) and action buttons.
@@ -436,19 +444,25 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-IT-001 — Day Navigation
 
-- The itinerary shows the current day with left/right arrow buttons to move between trip days.
-- A calendar icon opens a date picker allowing direct jump to any trip day.
+- The itinerary shows a **horizontal scrollable date strip** at the top with all trip days rendered
+  as compact chips. Each chip displays two lines: day abbreviation + date number (e.g. "Sat 30")
+  and month abbreviation (e.g. "Jan"). The selected day is highlighted with brand color.
+- Rounded chevron buttons appear at each end for quick scrolling.
 - Day transitions animate with fade + slide.
 - The currently viewed day is preserved when switching between app tabs and returning to the
   itinerary.
 
 ### REQ-IT-002 — Day View Tabs
 
-- Each day view has **4 tabs**:
+- Each day view has **4 tabs** shown in a **bubble tab bar** (44px height) with pill-shaped
+  indicators:
     1. **Timeline** — Chronological list of all events for the day.
     2. **Notes** — Viewer for day notes.
     3. **Checklists** — Viewer for day checklists.
     4. **Sights** — Viewer for day sights.
+- Selected tabs display with a pill-shaped bubble background highlighting the icon.
+- Icons remain visible and appropriately tinted in both selected and unselected states.
+- Icons include semantic labels for accessibility.
 
 ### REQ-IT-003 — Timeline Events
 
@@ -467,18 +481,48 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
     - Time (formatted).
     - Title (descriptive, e.g., "Stay at Hotel X from Jan 5 to Jan 7").
     - Subtitle (contextual detail, e.g., location name).
-    - Notes preview (if any).
-    - Confirmation ID badge (if any).
-    - Platform/Terminal (if any).
+    - **Icon-only indicators** for notes (sticky-note icon with tooltip) and confirmation ID
+      (confirmation icon with tooltip) — no full text displayed to reduce clutter.
+    - Platform/Terminal (if any, on transit cards).
+    - A **prominent delete button** with contrasted background, rounded 8px corners, and adequate
+      tap target (Material InkWell).
 - Tapping an event opens its editor.
-- Swiping an event offers a delete option.
 
-### REQ-IT-005 — Connected Journey Display
+### REQ-IT-004a — Entrance Animations
+
+- All viewer list items (timeline events, notes, checklists, sights) use **staggered fade + slide-up
+  entrance animations** via `AnimatedListItem` widget.
+- Each item animates with a 50ms stagger delay capped at index 10, using 300ms easeOutCubic curves.
+- Viewer cards use **borderless** design with subtle shadows (no explicit borders) and 14px border
+  radius for a clean, modern look.
 
 - Transit legs belonging to the same journey are rendered as connected segments.
-- Each leg shows its position: start / middle / end / standalone.
+- Each leg shows its position with a **compact circled number badge** (1, 2, 3...) for intermediate
+  legs and a checkmark (✓) for the final leg.
 - Layover duration is displayed between connected legs.
 - Tapping any leg in a journey opens the full journey editor for that journey.
+
+### REQ-IT-005a — Immersive Card Styling
+
+- Timeline and viewer cards use **borderless** design with subtle shadows (no explicit border lines).
+- Cards use **white** surface (light) / full-opacity dark surface (dark), placed against the grey
+  scaffold background (`AppColors.lightBackground` / `darkSurfaceVariant`) for strong contrast.
+- Box shadows use 10px blur radius with stronger alpha (0.10 light / 0.35 dark) at offset (0,3).
+- Delete button **always pinned to card's top-right corner** via `Positioned(top: 4, right: 4)`.
+- Timeline icon container: 30×30, icon: 15px, connector: 2.5px width.
+
+### REQ-IT-005b — Transit Card Text Layout
+
+- Departure time shown ONLY in the left timeline column (not repeated in card).
+- **Same-day or departure card:**
+    - Line 1 (bold): "Depart from `<DepartureLocation>`"
+    - Line 2 (subtitle): "Arrive at `<ArrivalLocation>` on `<ArrivalTime>`"
+- **Multi-day arrival card:**
+    - Line 1 (bold): "Arrive at `<ArrivalLocation>`"
+    - Line 2 (subtitle): "from `<DepartureLocation>`"
+- No "N stops" or "MULTI-DAY" badges shown.
+- Layover indicator positioned between card areas (right of timeline column), not left-aligned.
+- Seat number and platform info shown below the location lines.
 
 ### REQ-IT-006 — Timeline Rebuild
 
@@ -777,10 +821,12 @@ sheets. When the trip's currency is updated, budgeting data reflects the change 
 
 ### REQ-BU-001 — Budgeting Page Structure
 
-- Three collapsible sections:
-    1. **Expenses** (initially expanded).
-    2. **Debt** (collapsed).
-    3. **Breakdown** (collapsed).
+- Three tabs displayed via a **bubble tab bar** (48px height, with labels):
+    1. **Expenses** (wallet icon + label) — default selected.
+    2. **Debt** (money-off icon + label).
+    3. **Breakdown** (pie-chart icon + label).
+- Selected tabs display with a pill-shaped bubble background highlighting the icon + label.
+- Tabs are swipeable (TabBarView).
 
 ### REQ-BU-002 — Expenses List
 
@@ -794,25 +840,33 @@ sheets. When the trip's currency is updated, budgeting data reflects the change 
 
 ### REQ-BU-003 — Expense List Item Display
 
+- Immersive card styling matching itinerary timeline cards (white surface on grey background,
+  strong shadow, left colour-coded accent bar per category).
 - Each item shows:
-    - Category icon.
+    - Left accent bar (blue for flights, green for lodging, orange for food, purple for activities, etc.)
+    - Category icon in a tinted circle.
     - Title / display name.
-    - Formatted total amount.
-    - Payer initials/badges.
+    - Date paid (month + day).
+    - Formatted total amount (right-aligned).
+- Delete button pinned to top-right corner (standalone expenses only).
+- No description or notes visible in the list view; full details shown on tap.
 - Tapping opens the expense editor (for standalone) or the parent entity editor.
-- Swipe to delete.
 
 ### REQ-BU-004 — Debt Summary
 
-- Shows each debt as: "\[person\] needs to pay \[person\] \[amount\]".
-- Contributors are shown as badges; the current user is labelled "You".
-- If there are no expenses or total expenditure is 0, shows "No expenses to split".
+- Individual debt entries shown as immersive cards with left accent bar:
+    - **Red** accent if the current user owes the debt.
+    - **Green** accent if the debt is owed to the current user.
+- Card layout: owedBy badge → "needs to pay" → owedTo badge → amount badge on right.
+- Amount shown in a coloured tinted pill.
+- Empty state: centered icon (handshake) + "No expenses to split" + helpful subtitle text.
 
 ### REQ-BU-005 — Budget Breakdown
 
-- **By Category:** Interactive pie chart of total spending per expense category. Tapping a section
-  highlights it without unnecessary re-renders.
-- **By Day:** Breakdown of total spending per trip day.
+- Single scrollable view (no nested tabs) with two sections:
+    1. **By Category:** Section header (icon + label) → interactive pie chart.
+    2. **By Day:** Section header (icon + label) → day-by-day progress cards.
+- Sections separated by adequate spacing and clear headings.
 
 ### REQ-BU-006 — Expense List Rebuild
 
@@ -954,6 +1008,17 @@ sheets. When the trip's currency is updated, budgeting data reflects the change 
 ### REQ-UP-002 — Atomic Save
 
 - All related changes are saved together as a single operation to prevent partial updates.
+
+### REQ-UP-002a — Operation Timeout & Error Handling
+
+- After the save FAB is pressed and operations are dispatched, a **15-second timeout** is enforced.
+- If updates do not complete (no `UpdatedTripEntity` state received) within the timeout:
+    - The FAB spinner stops.
+    - An error SnackBar is shown: "Operation timed out. Changes may not have been saved."
+- If `UpdatedTripEntity.isOperationSuccess` is `false`:
+    - The FAB spinner stops immediately.
+    - An error SnackBar is shown: "Operation failed. Please check your connection and try again."
+- On success, the editor bottom sheet is dismissed.
 
 ### REQ-UP-003 — Expense Selection in Conflict Plan
 

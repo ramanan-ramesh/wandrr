@@ -32,23 +32,21 @@ class TripEditorPage extends StatefulWidget {
 }
 
 class _TripEditorPageState extends State<TripEditorPage> {
-  final ValueNotifier<DateTime> _currentDateNotifier =
-      ValueNotifier<DateTime>(DateTime.now());
-
+  late DateTime _currentDisplayedDate;
   int _currentPageIndex = 0;
 
   // Created once and shared by both layout branches so that each page retains
   // its state (e.g. ItineraryNavigator's current-day selection) across
   // tab switches and layout changes.
   late final Widget _itineraryPage = ItineraryNavigator(
-    onNavigatedToDate: (date) => _currentDateNotifier.value = date,
+    onNavigatedToDate: (date) => _currentDisplayedDate = date,
   );
   late final Widget _budgetingPage = const BudgetingPage();
 
   @override
-  void dispose() {
-    _currentDateNotifier.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _currentDisplayedDate = context.activeTrip.tripMetadata.startDate!;
   }
 
   @override
@@ -57,7 +55,7 @@ class _TripEditorPageState extends State<TripEditorPage> {
 
     if (isBigLayout) {
       return _TripEditorPageInternal(
-        getDisplayedDate: () => _currentDateNotifier.value,
+        getDisplayedDate: () => _currentDisplayedDate,
         body: Row(
           children: [
             Expanded(child: _itineraryPage),
@@ -68,10 +66,28 @@ class _TripEditorPageState extends State<TripEditorPage> {
     }
 
     return _TripEditorPageInternal(
-      getDisplayedDate: () => _currentDateNotifier.value,
-      body: IndexedStack(
-        index: _currentPageIndex,
-        children: [_itineraryPage, _budgetingPage],
+      getDisplayedDate: () => _currentDisplayedDate,
+      body: Stack(
+        children: [
+          IgnorePointer(
+            ignoring: _currentPageIndex != 0,
+            child: AnimatedOpacity(
+              opacity: _currentPageIndex == 0 ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeInOut,
+              child: _itineraryPage,
+            ),
+          ),
+          IgnorePointer(
+            ignoring: _currentPageIndex != 1,
+            child: AnimatedOpacity(
+              opacity: _currentPageIndex == 1 ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeInOut,
+              child: _budgetingPage,
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: BottomNavBar(
         selectedIndex: _currentPageIndex,

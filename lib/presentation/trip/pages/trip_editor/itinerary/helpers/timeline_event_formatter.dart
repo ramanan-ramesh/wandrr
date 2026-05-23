@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lat_lng_to_timezone/lat_lng_to_timezone.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
@@ -43,12 +42,10 @@ class TimelineEventFormatter {
     final arrCity = transit.arrivalLocation!.context.city;
 
     // Same city: show place names with city mentioned once
-    if (depCity != null &&
-        arrCity != null &&
-        depCity == arrCity) {
+    if (depCity != null && arrCity != null && depCity == arrCity) {
       final isDepNameCity = depName.isEmpty || depName == depCity;
       final isArrNameCity = arrName.isEmpty || arrName == arrCity;
-      
+
       if (isDepNameCity && isArrNameCity) {
         return depCity;
       } else if (isArrNameCity) {
@@ -62,9 +59,13 @@ class TimelineEventFormatter {
     }
 
     // Different cities: prefer city names, fall back to place names
-    final depLabel = (depCity != null && depCity.isNotEmpty) ? depCity : (depName.isEmpty ? '?' : depName);
-    final arrLabel = (arrCity != null && arrCity.isNotEmpty) ? arrCity : (arrName.isEmpty ? '?' : arrName);
-    
+    final depLabel = (depCity != null && depCity.isNotEmpty)
+        ? depCity
+        : (depName.isEmpty ? '?' : depName);
+    final arrLabel = (arrCity != null && arrCity.isNotEmpty)
+        ? arrCity
+        : (arrName.isEmpty ? '?' : arrName);
+
     if (depLabel == arrLabel) {
       return depLabel;
     }
@@ -91,51 +92,37 @@ class TimelineEventFormatter {
     return parts.join(' • ');
   }
 
-  /// Gets transit event data (time and title)
-  ({DateTime eventTime, String title}) getTransitEventData(
+  /// Gets transit event data (time, title, and subtitle)
+  ({DateTime eventTime, String title, String subtitle}) getTransitEventData(
       {required TransitFacade transit, required DateTime itineraryDay}) {
     final departure = transit.departureDateTime!;
     final arrival = transit.arrivalDateTime!;
     final isDepartingToday = departure.isOnSameDayAs(itineraryDay);
     final isArrivingToday = arrival.isOnSameDayAs(itineraryDay);
     final localizations = context.localizations;
-    final departureTimezone = latLngToTimezoneString(
-        transit.departureLocation!.latitude,
-        transit.departureLocation!.longitude);
-    final arrivalTimezone = latLngToTimezoneString(
-        transit.arrivalLocation!.latitude, transit.arrivalLocation!.longitude);
 
     if (isDepartingToday && isArrivingToday) {
-      final areTimezonesEqual = departureTimezone == arrivalTimezone;
-      String dateTimeText;
-      if (areTimezonesEqual) {
-        dateTimeText =
-            '${departure.hourMinuteAmPmFormat} - ${arrival.hourMinuteAmPmFormat} ($departureTimezone)';
-      } else {
-        dateTimeText =
-            '${departure.hourMinuteAmPmFormat} - ${arrival.hourMinuteAmPmFormat}\n$departureTimezone - $arrivalTimezone';
-      }
+      final operatorInfo = getTransitOperatorInfo(transit);
       return (
         eventTime: departure,
-        title: '${getTransitLocationDetail(transit)}\n$dateTimeText',
+        title: getTransitLocationDetail(transit),
+        subtitle: operatorInfo,
       );
     } else if (isDepartingToday) {
-      // Multi-day: show both origin and destination
       final depName = _getOriginName(transit);
       final destName = _getDestinationName(transit);
       return (
         eventTime: departure,
-        title:
-            '${localizations.departAt} ${departure.hourMinuteAmPmFormat} ($departureTimezone)\n$depName → $destName',
+        title: '${localizations.depart} $depName → $destName',
+        subtitle: getTransitOperatorInfo(transit),
       );
     } else {
-      // Multi-day: show both origin and destination
       final originName = _getOriginName(transit);
       final destName = _getDestinationName(transit);
       return (
         eventTime: arrival,
-        title:
-            '${localizations.arriveAt} ${arrival.hourMinuteAmPmFormat} ($arrivalTimezone)\n$originName → $destName',
+        title: '${localizations.arrive} $originName → $destName',
+        subtitle: getTransitOperatorInfo(transit),
       );
     }
   }

@@ -34,14 +34,28 @@ class BottomNavBar extends StatelessWidget {
   final Function(int) onNavBarItemTapped;
 
   const BottomNavBar({
-    required this.selectedIndex, required this.onNavBarItemTapped, super.key,
+    required this.selectedIndex,
+    required this.onNavBarItemTapped,
+    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isLight = context.isLightTheme;
     return Container(
       height: _kNavBarHeight,
-      color: Colors.transparent,
+      // Subtle top shadow to clearly separate nav bar from scaffold content
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: isLight
+                ? Colors.black.withValues(alpha: 0.10)
+                : Colors.black.withValues(alpha: 0.40),
+            blurRadius: 12,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
       child: ClipRRect(
         clipBehavior: Clip.hardEdge,
         borderRadius: const BorderRadius.only(
@@ -123,8 +137,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconSize =
-        selected ? _kIconSizeSelected : _kIconSizeUnselected;
+    final iconSize = selected ? _kIconSizeSelected : _kIconSizeUnselected;
     final iconColor = selected
         ? context.navBarIconSelectedColor
         : context.navBarIconUnselectedColor;

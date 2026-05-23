@@ -31,6 +31,21 @@ abstract class TripManagementState {
     return false;
   }
 
+  /// Returns true if this state is an [UpdatedTripEntity] for the given entity
+  /// type [T], regardless of whether the operation succeeded or failed.
+  /// Used in [listenWhen] predicates that need to react to both successes
+  /// and failures (including bloc-emitted timeouts).
+  bool isTripEntityStateFor<T>() {
+    if (this is! UpdatedTripEntity) return false;
+    if (this is UpdatedTripEntity<T>) return true;
+    final change = (this as UpdatedTripEntity)
+        .tripEntityModificationData
+        .collectionItemChange;
+    if (change is T) return true;
+    if (change is Changeset && change.afterUpdate is T) return true;
+    return false;
+  }
+
   const TripManagementState();
 }
 

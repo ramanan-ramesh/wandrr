@@ -112,6 +112,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get checklists => 'சரிபார்ப்புப் பட்டியல்கள்';
 
   @override
+  String get clearTime => 'நேரத்தை அழி';
+
+  @override
   String get checklist => 'சரிபார்ப்புப் பட்டியல்';
 
   @override
@@ -608,4 +611,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get breakdown => 'விவரம்';
+
+  @override
+  String get noEventsScheduled => 'இந்த நாளுக்கு நிகழ்வுகள் திட்டமிடப்படவில்லை';
 }

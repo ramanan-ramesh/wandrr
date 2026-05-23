@@ -9,7 +9,6 @@ import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/editor/checklists.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
-import 'package:wandrr/presentation/trip/widgets/chrome_tab.dart';
 import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
 
 import 'editor/notes.dart';
@@ -228,8 +227,8 @@ class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
                 icon: Icon(
                   Icons.edit_calendar_rounded,
                   color: context.isLightTheme
-                      ? AppColors.brandPrimary
-                      : AppColors.brandPrimaryLight,
+                      ? AppColors.info
+                      : AppColors.infoLight,
                   size: 22,
                 ),
                 tooltip: 'Change date',
@@ -285,13 +284,50 @@ class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
   }
 
   Widget _buildTabBar() {
-    return ChromeTabBar(
-      iconsAndTitles: {
-        Icons.place_outlined: 'Places',
-        Icons.note_outlined: 'Notes',
-        Icons.checklist_outlined: 'Checklists',
-      },
-      tabController: _tabController,
+    final isLight = context.isLightTheme;
+    final selectedColor =
+        isLight ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
+    final unselectedColor =
+        isLight ? AppColors.neutral500 : AppColors.neutral400;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: isLight ? AppColors.neutral200 : AppColors.darkSurface,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TabBar(
+        controller: _tabController,
+        labelColor: selectedColor,
+        unselectedLabelColor: unselectedColor,
+        indicatorColor: selectedColor,
+        indicatorWeight: 3,
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerHeight: 0,
+        labelPadding: EdgeInsets.zero,
+        labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+        unselectedLabelStyle:
+            const TextStyle(fontSize: 11, fontWeight: FontWeight.normal),
+        tabs: [
+          Tab(
+            height: 44,
+            icon: const Icon(Icons.place_outlined, size: 20),
+            iconMargin: const EdgeInsets.only(bottom: 2),
+            text: context.localizations.places,
+          ),
+          Tab(
+            height: 44,
+            icon: const Icon(Icons.note_outlined, size: 20),
+            iconMargin: const EdgeInsets.only(bottom: 2),
+            text: context.localizations.notes,
+          ),
+          Tab(
+            height: 44,
+            icon: const Icon(Icons.checklist_outlined, size: 20),
+            iconMargin: const EdgeInsets.only(bottom: 2),
+            text: context.localizations.checklists,
+          ),
+        ],
+      ),
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_theme_helper.dart';
@@ -32,20 +33,17 @@ class TransitJourneyTimelineItem extends StatelessWidget {
 
         // The actual transit card
         IntrinsicHeight(
-          child: GestureDetector(
-            onTap: () => event.onPressed(context),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _ConnectedTimelineIconColumn(
-                  event: event,
-                  isLastInTimeline: isLastInTimeline,
-                ),
-                Expanded(
-                  child: _ConnectedTransitCard(event: event),
-                ),
-              ],
-            ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _ConnectedTimelineIconColumn(
+                event: event,
+                isLastInTimeline: isLastInTimeline,
+              ),
+              Expanded(
+                child: _ConnectedTransitCard(event: event),
+              ),
+            ],
           ),
         ),
       ],
@@ -53,7 +51,7 @@ class TransitJourneyTimelineItem extends StatelessWidget {
   }
 }
 
-/// Icon column for connected transit legs
+/// Icon column for connected transit legs — includes departure time
 class _ConnectedTimelineIconColumn extends StatelessWidget {
   final TransitJourneyTimelineEvent event;
   final bool isLastInTimeline;
@@ -66,11 +64,27 @@ class _ConnectedTimelineIconColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final showConnector = !isLastInTimeline || event.hasConnectionAfter;
+    final isLight = context.isLightTheme;
+    final depTime = event.data.departureDateTime;
+    final timeLabel = depTime?.hourMinuteAmPmFormat ?? '';
 
     return SizedBox(
-      width: 48,
+      width: 56,
       child: Column(
         children: [
+          // Departure time above the icon
+          if (timeLabel.isNotEmpty)
+            Text(
+              timeLabel,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: isLight ? AppColors.neutral700 : AppColors.neutral300,
+                height: 1.1,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          if (timeLabel.isNotEmpty) const SizedBox(height: 4),
           _ConnectedTimelineIcon(event: event),
           if (showConnector)
             Expanded(
@@ -156,71 +170,61 @@ class _JourneyConnectionLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final isLightTheme = context.isLightTheme;
 
-    return Container(
-      margin: const EdgeInsets.only(left: 22),
-      child: Row(
-        children: [
-          // Vertical dotted/dashed connection
-          Container(
-            width: 4,
-            height: 24,
-            decoration: BoxDecoration(
-              color: AppColors.info.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          // Layover duration badge
-          if (layoverDuration != null)
-            Padding(
-              padding: const EdgeInsets.only(left: 12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
+    return Row(
+      children: [
+        // Spacer matching the icon column width (56) so we align with the card area
+        const SizedBox(width: 56),
+        // Layover duration badge shifted into the card region
+        if (layoverDuration != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 15),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: isLightTheme
+                    ? AppColors.warning.withValues(alpha: 0.15)
+                    : AppColors.warningLight.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
                   color: isLightTheme
-                      ? AppColors.warning.withValues(alpha: 0.15)
-                      : AppColors.warningLight.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: isLightTheme
-                        ? AppColors.warning.withValues(alpha: 0.4)
-                        : AppColors.warningLight.withValues(alpha: 0.4),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.schedule_rounded,
-                      size: 12,
-                      color: isLightTheme
-                          ? AppColors.warning
-                          : AppColors.warningLight,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Layover: $layoverDuration',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isLightTheme
-                                ? AppColors.warning
-                                : AppColors.warningLight,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 11,
-                          ),
-                    ),
-                  ],
+                      ? AppColors.warning.withValues(alpha: 0.4)
+                      : AppColors.warningLight.withValues(alpha: 0.4),
                 ),
               ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.schedule_rounded,
+                    size: 12,
+                    color: isLightTheme
+                        ? AppColors.warning
+                        : AppColors.warningLight,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Layover: $layoverDuration',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: isLightTheme
+                              ? AppColors.warning
+                              : AppColors.warningLight,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                        ),
+                  ),
+                ],
+              ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }
 
-/// Compact card for connected transit legs
+/// Compact card for connected transit legs — unified surface with left accent bar
 class _ConnectedTransitCard extends StatelessWidget {
   final TransitJourneyTimelineEvent event;
 
@@ -236,11 +240,9 @@ class _ConnectedTransitCard extends StatelessWidget {
     final parts = <String>[];
 
     if (!event.isMultiDay) {
-      // Same-day transit: show both platforms compactly.
       final hasArrival = arr != null && arr.isNotEmpty;
       final hasDeparture = dep != null && dep.isNotEmpty;
       if (hasDeparture && hasArrival) {
-        // Identical platforms → show once; different → "Dep: A → Arr: B".
         parts.add('$label: $dep → $arr');
       } else if (hasDeparture) {
         parts.add('Dep $label: $dep');
@@ -248,7 +250,6 @@ class _ConnectedTransitCard extends StatelessWidget {
         parts.add('Arr $label: $arr');
       }
     } else {
-      // Multi-day: show only the platform relevant to this day's view.
       final platform = event.isDepartureDayView ? dep : arr;
       if (platform != null && platform.isNotEmpty) {
         parts.add('$label: $platform');
@@ -293,12 +294,12 @@ class _ConnectedTransitCard extends StatelessWidget {
   String _getPositionLabel() {
     switch (event.position) {
       case TravelLegConnectionPosition.start:
-        return 'LEG 1';
+        return '1';
       case TravelLegConnectionPosition.middle:
         final legIndex = event.journey.legs.indexOf(event.data) + 1;
-        return 'LEG $legIndex';
+        return '$legIndex';
       case TravelLegConnectionPosition.end:
-        return 'FINAL';
+        return '✓';
       case TravelLegConnectionPosition.standalone:
         return '';
     }
@@ -315,221 +316,220 @@ class _ConnectedTransitCard extends StatelessWidget {
     return isLightTheme ? AppColors.info : AppColors.infoLight;
   }
 
-  IconData _positionBadgeIcon() {
-    if (event.isMultiDay) {
-      return event.isDepartureDayView
-          ? Icons.flight_takeoff_rounded
-          : Icons.flight_land_rounded;
-    }
-    return Icons.connecting_airports_rounded;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final themeHelper = TimelineThemeHelper(context);
     final isLightTheme = context.isLightTheme;
     final isPartOfJourney =
         event.position != TravelLegConnectionPosition.standalone;
     final positionLabel = _getPositionLabel();
-    final transitStopCount = event.journey.legs.length - 1;
+
+    final arrTime = event.data.arrivalDateTime;
+    final depLocation = event.data.departureLocation?.toString() ?? '?';
+    final arrLocation = event.data.arrivalLocation?.toString() ?? '?';
+
+    // Arrival card = multi-day leg shown on the arrival day
+    final isArrivalCard = event.isMultiDay && !event.isDepartureDayView;
+
+    final subtitleColor =
+        isLightTheme ? AppColors.neutral600 : AppColors.neutral400;
+    final textTheme = Theme.of(context).textTheme;
 
     return Container(
       margin: EdgeInsets.only(
-        left: 8,
+        left: 6,
         bottom: event.hasConnectionAfter ? 0 : TimelineConstants.spacing,
-        top: event.hasConnectionBefore ? 0 : 0,
       ),
-      padding: const EdgeInsets.all(10),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: themeHelper.getCardBackgroundColor(),
+        color: isLightTheme ? Colors.white : AppColors.darkSurface,
         borderRadius: _getBorderRadius(),
-        border: Border.all(
-          color: isPartOfJourney
-              ? AppColors.info.withValues(alpha: 0.6)
-              : AppColors.info.withValues(alpha: 0.4),
-          width: isPartOfJourney ? 2 : 1.5,
-        ),
         boxShadow: [
           BoxShadow(
-            color: themeHelper.getCardShadowColor(),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+            color: isLightTheme
+                ? Colors.black.withValues(alpha: 0.10)
+                : Colors.black.withValues(alpha: 0.35),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Journey position indicator (for multi-leg journeys)
-          if (isPartOfJourney && positionLabel.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => event.onPressed(context),
+          splashColor: AppColors.info.withValues(alpha: 0.15),
+          highlightColor: AppColors.info.withValues(alpha: 0.08),
+          child: Stack(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: _positionBadgeColor(isLightTheme)
-                          .withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _positionBadgeIcon(),
-                          size: 10,
-                          color: _positionBadgeColor(isLightTheme),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          positionLabel,
-                          style:
-                              Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: _positionBadgeColor(isLightTheme),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 9,
-                                    letterSpacing: 0.5,
-                                  ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Multi-day badge
-                  if (event.isMultiDay) ...[
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: isLightTheme
-                            ? AppColors.warning.withValues(alpha: 0.15)
-                            : AppColors.warningLight.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
+                  // Left accent bar (info blue for transit)
+                  Container(width: 4, color: AppColors.info),
+                  // Content — right padding reserves space for delete button
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 10, 40, 10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.date_range_rounded,
-                            size: 10,
-                            color: isLightTheme
-                                ? AppColors.warning
-                                : AppColors.warningLight,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'MULTI-DAY',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(
-                                  color: isLightTheme
-                                      ? AppColors.warning
-                                      : AppColors.warningLight,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 9,
-                                  letterSpacing: 0.5,
+                          // Compact leg position badge — just number or ✓, no extra labels
+                          if (isPartOfJourney && positionLabel.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: Container(
+                                width: 20,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  color: _positionBadgeColor(isLightTheme),
+                                  shape: BoxShape.circle,
                                 ),
-                          ),
+                                alignment: Alignment.center,
+                                child: positionLabel == '✓'
+                                    ? const Icon(Icons.check_rounded,
+                                        size: 12, color: Colors.white)
+                                    : Text(
+                                        positionLabel,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                              ),
+                            ),
+
+                          // ── Location lines ──
+                          if (isArrivalCard) ...[
+                            // Multi-day arrival card: "Arrive at Y" + "from X"
+                            Text(
+                              'Arrive at $arrLocation',
+                              style: textTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'from $depLocation',
+                              style: textTheme.bodySmall
+                                  ?.copyWith(color: subtitleColor),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ] else ...[
+                            // Same-day or multi-day departure: "Depart from X"
+                            Text(
+                              'Depart from $depLocation',
+                              style: textTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            // "Arrive at Y on <time>"
+                            if (arrTime != null) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                'Arrive at $arrLocation on '
+                                '${arrTime.hourMinuteAmPmFormat}',
+                                style: textTheme.bodySmall
+                                    ?.copyWith(color: subtitleColor),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
+
+                          // Operator / subtitle
+                          if (event.subtitle.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              event.subtitle,
+                              style: textTheme.bodySmall
+                                  ?.copyWith(color: subtitleColor),
+                            ),
+                          ],
+
+                          // Platform / seat info
+                          if (_getPlatformSeatText(context) != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              _getPlatformSeatText(context)!,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: isLightTheme
+                                    ? Colors.grey.shade800
+                                    : Colors.grey.shade300,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+
+                          // Confirmation / notes indicators
+                          if ((event.confirmationId?.isNotEmpty ?? false) ||
+                              (event.notes?.isNotEmpty ?? false)) ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                if (event.confirmationId?.isNotEmpty ?? false)
+                                  Tooltip(
+                                    message: event.confirmationId!,
+                                    child: const Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 2),
+                                      child: Icon(
+                                          Icons.confirmation_number_rounded,
+                                          size: 14,
+                                          color: AppColors.success),
+                                    ),
+                                  ),
+                                if (event.notes?.isNotEmpty ?? false)
+                                  Tooltip(
+                                    message: event.notes!.length > 80
+                                        ? '${event.notes!.substring(0, 80)}…'
+                                        : event.notes!,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 2),
+                                      child: Icon(Icons.sticky_note_2_rounded,
+                                          size: 14,
+                                          color: isLightTheme
+                                              ? AppColors.neutral500
+                                              : AppColors.neutral400),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
-                  ],
-                  const Spacer(),
-                  // Total legs indicator (on first leg only)
-                  if (event.position == TravelLegConnectionPosition.start)
-                    Text(
-                      '$transitStopCount stop${transitStopCount != 1 ? 's' : ''}',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: isLightTheme
-                                ? Colors.grey.shade500
-                                : Colors.grey.shade400,
-                            fontSize: 10,
-                          ),
-                    ),
+                  ),
                 ],
               ),
-            ),
-          // Main content row
-          Row(
-            children: [
-              // Route info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      event.title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+              // Delete button always pinned to top-right corner
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Material(
+                  color: AppColors.error
+                      .withValues(alpha: isLightTheme ? 0.12 : 0.22),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () => event.onDelete(context),
+                    child: const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Icon(Icons.delete_rounded,
+                          size: 14, color: AppColors.error),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      event.subtitle,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isLightTheme
-                                ? Colors.grey.shade600
-                                : Colors.grey.shade400,
-                          ),
-                    ),
-                    if (_getPlatformSeatText(context) != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        _getPlatformSeatText(context)!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isLightTheme
-                                  ? Colors.grey.shade800
-                                  : Colors.grey.shade300,
-                              fontWeight: FontWeight.w500,
-                            ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              // Confirmation ID badge (compact)
-              if (event.confirmationId?.isNotEmpty ?? false)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    event.confirmationId!,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.success,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 10,
-                        ),
-                  ),
-                ),
-              const SizedBox(width: 4),
-              // Delete button
-              GestureDetector(
-                onTap: () => event.onDelete(context),
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: AppColors.error.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.delete_outline,
-                    size: 16,
-                    color: AppColors.error,
                   ),
                 ),
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_theme_helper.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/timeline_event.dart';
@@ -20,21 +21,18 @@ class TimelineItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IntrinsicHeight(
-      child: GestureDetector(
-        onTap: () => event.onPressed(context),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _TimelineIconColumn(event: event, isLast: isLast),
-            Expanded(child: _TimelineEventCard(event: event)),
-          ],
-        ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _TimelineIconColumn(event: event, isLast: isLast),
+          Expanded(child: _TimelineEventCard(event: event)),
+        ],
       ),
     );
   }
 }
 
-/// Timeline icon column with connector
+/// Timeline icon column with connector and time label
 class _TimelineIconColumn extends StatelessWidget {
   final TimelineEvent event;
   final bool isLast;
@@ -46,10 +44,25 @@ class _TimelineIconColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final timeLabel = event.time.hourMinuteAmPmFormat;
+    final isLight = context.isLightTheme;
+
     return SizedBox(
-      width: 48,
+      width: 56,
       child: Column(
         children: [
+          // Time label above the icon
+          Text(
+            timeLabel,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: isLight ? AppColors.neutral700 : AppColors.neutral300,
+              height: 1.1,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
           _TimelineIcon(event: event),
           if (!isLast) _TimelineConnector(),
         ],
@@ -114,7 +127,7 @@ class _TimelineConnector extends StatelessWidget {
   }
 }
 
-/// Card displaying event details
+/// Card displaying event details — immersive surface with left accent bar
 class _TimelineEventCard extends StatelessWidget {
   final TimelineEvent event;
 
@@ -123,98 +136,150 @@ class _TimelineEventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeHelper = TimelineThemeHelper(context);
+    final isLight = context.isLightTheme;
 
     return Container(
       margin: const EdgeInsets.only(
-        left: 8,
+        left: 6,
         bottom: TimelineConstants.spacing,
       ),
-      padding: const EdgeInsets.all(TimelineConstants.cardPadding),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: themeHelper.getCardBackgroundColor(),
+        // White cards against grey scaffold → strong contrast
+        color: isLight ? Colors.white : AppColors.darkSurface,
         borderRadius: BorderRadius.circular(TimelineConstants.cardRadius),
-        border: Border.all(
-          color: themeHelper.getCardBorderColor(),
-          width: TimelineConstants.cardBorderWidth,
-        ),
         boxShadow: [
           BoxShadow(
-            color: themeHelper.getCardShadowColor(),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: isLight
+                ? Colors.black.withValues(alpha: 0.10)
+                : Colors.black.withValues(alpha: 0.35),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _EventHeader(event: event),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => event.onPressed(context),
+          splashColor: event.iconColor.withValues(alpha: 0.15),
+          highlightColor: event.iconColor.withValues(alpha: 0.08),
+          child: Stack(
             children: [
-              Flexible(
-                flex: 1,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (event.subtitle.isNotEmpty)
-                      _EventSubtitle(subtitle: event.subtitle),
-                    if (event.confirmationId?.isNotEmpty ?? false) ...[
-                      const SizedBox(height: 8),
-                      _ConfirmationChip(confirmationId: event.confirmationId!),
-                    ],
-                  ],
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Left accent bar
+                  Container(
+                    width: 4,
+                    decoration: BoxDecoration(
+                      color: event.iconColor,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(TimelineConstants.cardRadius),
+                        bottomLeft:
+                            Radius.circular(TimelineConstants.cardRadius),
+                      ),
+                    ),
+                  ),
+                  // Content — right padding reserves space for the delete button
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 8, 38, 8),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Title row with indicator icons (no delete here)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  event.title,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: themeHelper.getTextColor(),
+                                      ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              // Icon-only indicators for confirmation & notes
+                              if (event.confirmationId?.isNotEmpty ?? false)
+                                _IconIndicator(
+                                  icon: Icons.confirmation_number_rounded,
+                                  color: AppColors.success,
+                                  tooltip: event.confirmationId!,
+                                ),
+                              if (event.notes?.isNotEmpty ?? false)
+                                _IconIndicator(
+                                  icon: Icons.sticky_note_2_rounded,
+                                  color: themeHelper.getSubtitleColor(),
+                                  tooltip: event.notes!.length > 80
+                                      ? '${event.notes!.substring(0, 80)}…'
+                                      : event.notes!,
+                                ),
+                            ],
+                          ),
+                          if (event.subtitle.isNotEmpty) ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              event.subtitle,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: themeHelper.getSubtitleColor(),
+                                  ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              if (event.notes?.isNotEmpty ?? false) ...[
-                const SizedBox(width: 8),
-                Flexible(
-                  flex: 1,
-                  child: _EventNotes(notes: event.notes!),
-                ),
-              ],
+              // Delete button always pinned to top-right corner
+              Positioned(
+                top: 4,
+                right: 4,
+                child: _DeleteButton(event: event),
+              ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-/// Event header with title and delete button
-class _EventHeader extends StatelessWidget {
-  final TimelineEvent event;
+/// Compact icon indicator with tooltip (for confirmation ID, notes)
+class _IconIndicator extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String tooltip;
 
-  const _EventHeader({required this.event});
+  const _IconIndicator({
+    required this.icon,
+    required this.color,
+    required this.tooltip,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final themeHelper = TimelineThemeHelper(context);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Text(
-            event.title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: themeHelper.getTextColor(),
-                ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        _DeleteButton(event: event),
-      ],
+    return Tooltip(
+      message: tooltip,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        child: Icon(icon, size: 16, color: color),
+      ),
     );
   }
 }
 
-/// Delete button for event
+/// Delete button for event — prominent with clear contrast and adequate tap target
 class _DeleteButton extends StatelessWidget {
   final TimelineEvent event;
 
@@ -222,126 +287,21 @@ class _DeleteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeHelper = TimelineThemeHelper(context);
-
-    return GestureDetector(
-      onTap: () => event.onDelete(context),
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: themeHelper.getDeleteButtonBackgroundColor(),
-          shape: BoxShape.circle,
-        ),
-        child: const Icon(
-          Icons.delete_outline,
-          size: 18,
-          color: AppColors.error,
-        ),
-      ),
-    );
-  }
-}
-
-/// Event subtitle text
-class _EventSubtitle extends StatelessWidget {
-  final String subtitle;
-
-  const _EventSubtitle({required this.subtitle});
-
-  @override
-  Widget build(BuildContext context) {
-    final themeHelper = TimelineThemeHelper(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 6),
-      child: Text(
-        subtitle,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: themeHelper.getSubtitleColor(),
-            ),
-      ),
-    );
-  }
-}
-
-/// Confirmation ID chip
-class _ConfirmationChip extends StatelessWidget {
-  final String confirmationId;
-
-  const _ConfirmationChip({required this.confirmationId});
-
-  @override
-  Widget build(BuildContext context) {
-    final isLightTheme = context.isLightTheme;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.success.withValues(alpha: isLightTheme ? 0.12 : 0.2),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: AppColors.success.withValues(alpha: isLightTheme ? 0.4 : 0.5),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.confirmation_number_rounded,
+    return Material(
+      color:
+          AppColors.error.withValues(alpha: context.isLightTheme ? 0.12 : 0.22),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => event.onDelete(context),
+        child: const Padding(
+          padding: EdgeInsets.all(6),
+          child: Icon(
+            Icons.delete_rounded,
             size: 16,
-            color: AppColors.success,
+            color: AppColors.error,
           ),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              confirmationId,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.success,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12,
-                    letterSpacing: 0.5,
-                  ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Event notes display
-class _EventNotes extends StatelessWidget {
-  final String notes;
-
-  const _EventNotes({required this.notes});
-
-  String _truncateNotes(String notes) {
-    if (notes.length <= TimelineConstants.notesMaxLength) {
-      return notes;
-    }
-    return '${notes.substring(0, TimelineConstants.notesMaxLength)}...';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final themeHelper = TimelineThemeHelper(context);
-
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: themeHelper.getNotesBackgroundColor(),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        _truncateNotes(notes),
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: themeHelper.getSubtitleColor(),
-              fontStyle: FontStyle.italic,
-            ),
-        maxLines: 5,
-        overflow: TextOverflow.ellipsis,
+        ),
       ),
     );
   }

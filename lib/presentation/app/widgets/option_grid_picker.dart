@@ -81,6 +81,7 @@ class _OptionGridPickerState<T> extends State<OptionGridPicker<T>>
     final isLight = theme.brightness == Brightness.light;
     final accent =
         isLight ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
+    final contentColor = theme.colorScheme.onSurface;
     final item = _selectedItem;
 
     return GestureDetector(
@@ -89,7 +90,7 @@ class _OptionGridPickerState<T> extends State<OptionGridPicker<T>>
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: accent.withValues(alpha: isLight ? 0.10 : 0.16),
+          color: isLight ? AppColors.neutral200 : AppColors.darkSurfaceVariant,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: accent.withValues(alpha: 0.45),
@@ -116,7 +117,7 @@ class _OptionGridPickerState<T> extends State<OptionGridPicker<T>>
                 item.label,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: accent,
+                  color: contentColor,
                 ),
               ),
               const SizedBox(width: 8),
@@ -137,7 +138,7 @@ class _OptionGridPickerState<T> extends State<OptionGridPicker<T>>
               child: Icon(
                 Icons.keyboard_arrow_down_rounded,
                 size: 20,
-                color: accent.withValues(alpha: 0.80),
+                color: contentColor.withValues(alpha: 0.60),
               ),
             ),
           ],
