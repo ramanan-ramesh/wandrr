@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
-import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
+import 'package:wandrr/presentation/app/widgets/bubble_tab_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/editor/checklists.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/note_editor.dart';
@@ -38,10 +36,6 @@ class ItineraryPlanDataEditor extends StatefulWidget {
 
 class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
     with SingleTickerProviderStateMixin {
-  static const double _kSpacingSmall = 8.0;
-  static const double _kSpacingMedium = 12.0;
-  static const double _kHeaderIconSize = 26.0;
-
   late final TabController _tabController;
 
   // ---------------------------------------------------------------------------
@@ -58,15 +52,9 @@ class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
 
   ItineraryPlanData get planData => widget.planData;
 
-  late final DateTime originalDate;
-  bool isCopyIntent = false;
-
-  bool get shouldCopy => planData.day != originalDate && isCopyIntent;
-
   @override
   void initState() {
     super.initState();
-    originalDate = widget.planData.day;
     _tabController = TabController(length: 3, vsync: this);
     _tabController.index = _initialTabIndex(widget.config.planDataType);
     _tabController.addListener(_onTabChanged);
@@ -121,6 +109,8 @@ class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
   void _onDataChanged() {
     syncToEntity();
     widget.onPlanDataUpdated();
+    // Refresh tab bar so item counts stay up-to-date.
+    setState(() {});
   }
 
   List<Widget> _buildTabWidgets() => [
@@ -182,10 +172,10 @@ class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildHeader(),
-        const SizedBox(height: _kSpacingMedium),
+        _buildDateHeader(),
+        const SizedBox(height: 8),
         _buildTabBar(),
-        const SizedBox(height: _kSpacingSmall),
+        const SizedBox(height: 6),
         if (_tabWidgetsInitialized)
           IndexedStack(
             index: _tabController.index,
@@ -198,136 +188,77 @@ class ItineraryPlanDataEditorState extends State<ItineraryPlanDataEditor>
     );
   }
 
-  Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        EditorTheme.createSection(
-          context: context,
-          child: Row(
-            children: [
-              Icon(
-                Icons.explore_rounded,
-                color:
-                    context.isLightTheme ? AppColors.info : AppColors.infoLight,
-                size: _kHeaderIconSize,
-              ),
-              const SizedBox(width: _kSpacingMedium),
-              Expanded(
-                child: Text(
-                  '${context.localizations.itinerary} - '
-                  '${planData.day.day}/${planData.day.month}/${planData.day.year}',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.edit_calendar_rounded,
-                  color: context.isLightTheme
-                      ? AppColors.info
-                      : AppColors.infoLight,
-                  size: 22,
-                ),
-                tooltip: 'Change date',
-                onPressed: _showDatePicker,
-              ),
-            ],
-          ),
-        ),
-        if (planData.day != originalDate)
-          Padding(
-            padding: const EdgeInsets.only(
-                top: _kSpacingSmall,
-                left: _kSpacingSmall,
-                right: _kSpacingSmall),
-            child: EditorTheme.createSection(
-              context: context,
-              child: Row(children: [
-                Expanded(
-                  child: Text(
-                    "Keep original date's itinerary?",
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ),
-                Switch(
-                  value: isCopyIntent,
-                  activeThumbColor: AppColors.brandPrimary,
-                  onChanged: (val) {
-                    setState(() => isCopyIntent = val);
-                  },
-                ),
-              ]),
-            ),
-          ),
-      ],
-    );
-  }
+  /// Read-only date header — shows the itinerary day using the app's standard
+  /// text colour (no blue accent) so it matches the rest of the trip editor.
+  Widget _buildDateHeader() {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    final day = planData.day;
+    final dateLabel = '${months[day.month - 1]} ${day.day}, ${day.year}';
 
-  void _showDatePicker() {
-    final tripMetadata = context.activeTrip.tripMetadata;
-    showDatePicker(
-      context: context,
-      initialDate: planData.day,
-      firstDate: tripMetadata.startDate!,
-      lastDate: tripMetadata.endDate!,
-    ).then((picked) {
-      if (picked != null && picked != planData.day) {
-        setState(() {
-          planData.day = picked;
-        });
-        widget.onPlanDataUpdated();
-      }
-    });
-  }
-
-  Widget _buildTabBar() {
-    final isLight = context.isLightTheme;
-    final selectedColor =
-        isLight ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
-    final unselectedColor =
-        isLight ? AppColors.neutral500 : AppColors.neutral400;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: isLight ? AppColors.neutral200 : AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: TabBar(
-        controller: _tabController,
-        labelColor: selectedColor,
-        unselectedLabelColor: unselectedColor,
-        indicatorColor: selectedColor,
-        indicatorWeight: 3,
-        indicatorSize: TabBarIndicatorSize.tab,
-        dividerHeight: 0,
-        labelPadding: EdgeInsets.zero,
-        labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-        unselectedLabelStyle:
-            const TextStyle(fontSize: 11, fontWeight: FontWeight.normal),
-        tabs: [
-          Tab(
-            height: 44,
-            icon: const Icon(Icons.place_outlined, size: 20),
-            iconMargin: const EdgeInsets.only(bottom: 2),
-            text: context.localizations.places,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
+      child: Row(
+        children: [
+          Icon(
+            Icons.calendar_today_rounded,
+            size: 16,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-          Tab(
-            height: 44,
-            icon: const Icon(Icons.note_outlined, size: 20),
-            iconMargin: const EdgeInsets.only(bottom: 2),
-            text: context.localizations.notes,
-          ),
-          Tab(
-            height: 44,
-            icon: const Icon(Icons.checklist_outlined, size: 20),
-            iconMargin: const EdgeInsets.only(bottom: 2),
-            text: context.localizations.checklists,
+          const SizedBox(width: 8),
+          Text(
+            dateLabel,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTabBar() {
+    // Show counts next to tab labels so users know how many items exist per tab.
+    // Format: "Places (3)" — only shown when the list is non-empty.
+    String countedLabel(String base, int count) =>
+        count > 0 ? '$base ($count)' : base;
+
+    return BubbleTabBar(
+      controller: _tabController,
+      showLabels: true,
+      height: 46,
+      tabs: [
+        BubbleTabData(
+          icon: Icons.place_outlined,
+          semanticLabel: context.localizations.places,
+          label:
+              countedLabel(context.localizations.places, _stableSights.length),
+        ),
+        BubbleTabData(
+          icon: Icons.note_outlined,
+          semanticLabel: context.localizations.notes,
+          label: countedLabel(context.localizations.notes, _stableNotes.length),
+        ),
+        BubbleTabData(
+          icon: Icons.checklist_outlined,
+          semanticLabel: context.localizations.checklists,
+          label: countedLabel(
+              context.localizations.checklists, _stableChecklists.length),
+        ),
+      ],
     );
   }
 

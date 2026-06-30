@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
-import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
@@ -88,49 +87,12 @@ class EditorPageFactory {
       onActionInvoked: (ctx) {
         final editableEntity = ctx.editableEntity<ItineraryPlanData>();
         // Write stable lists → entity right before the update event is emitted.
-        final currentState = editorKey.currentState;
-        currentState?.syncToEntity();
+        editorKey.currentState?.syncToEntity();
 
-        if (currentState?.shouldCopy == true) {
-          final copy = editableEntity.clone();
-          copy.id = null;
-          for (final sight in copy.sights) {
-            sight.id = null;
-          }
-          for (final checkList in copy.checkLists) {
-            checkList.id = null;
-          }
-          ctx.addTripManagementEvent(
-              UpdateTripEntity<ItineraryPlanData>.create(tripEntity: copy));
-          return 1;
-        } else {
-          final dateChanged = currentState != null &&
-              !currentState.planData.day
-                  .isOnSameDayAs(currentState.originalDate);
-
-          if (dateChanged) {
-            // It's a MOVE.
-            // 1. Delete content at the old date
-            final emptyOldPlan = ItineraryPlanData.newEntry(
-              tripId: editableEntity.tripId,
-              day: currentState.originalDate,
-            );
-            ctx.addTripManagementEvent(
-                UpdateTripEntity<ItineraryPlanData>.delete(
-                    tripEntity: emptyOldPlan));
-
-            // 2. Update/Create content at the new date
-            ctx.addTripManagementEvent(
-                UpdateTripEntity<ItineraryPlanData>.update(
-                    tripEntity: editableEntity));
-            return 2;
-          }
-
-          // Simple update — skip if the entity is unchanged.
-          if (isEditing && editableEntity == entity) return 0;
-          _emitUpdateEvent<ItineraryPlanData>(ctx, editableEntity);
-          return 1;
-        }
+        // Simple update — skip if the entity is unchanged.
+        if (isEditing && editableEntity == entity) return 0;
+        _emitUpdateEvent<ItineraryPlanData>(ctx, editableEntity);
+        return 1;
       },
       scrollController: scrollController,
       actionIcon: _actionIcon,
