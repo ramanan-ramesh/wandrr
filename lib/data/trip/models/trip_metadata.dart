@@ -95,5 +95,6 @@ class TripMetadataFacade extends Equatable
         name,
         ([...contributors]..sort()),
         budget,
+        thumbnailTag
       ];
 }

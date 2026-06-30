@@ -27,7 +27,7 @@ class CheckListFacade extends Equatable
       title: title);
 
   @override
-  List<Object?> get props => [title, items, tripId];
+  List<Object?> get props => [title, items, tripId, id];
 
   @override
   Iterable<CheckListValidationError> getValidationErrors() {

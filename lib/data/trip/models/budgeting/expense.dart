@@ -60,12 +60,8 @@ class ExpenseFacade extends Equatable {
 
   bool get isValid => paidBy.isNotEmpty && splitBy.isNotEmpty;
 
-  // Normalise empty description to null so "" == null in equality checks.
-  static String? _n(String? s) => (s == null || s.isEmpty) ? null : s;
-
   @override
-  List<Object?> get props =>
-      [_n(description), currency, paidBy, splitBy, dateTime];
+  List<Object?> get props => [description, currency, paidBy, splitBy, dateTime];
 }
 
 /// Interface for trip entities that carry an attached expense (facade).
@@ -119,7 +115,7 @@ class StandaloneExpense extends Equatable
   }
 
   @override
-  List<Object?> get props => [expense, id];
+  List<Object?> get props => [tripId, expense, id, title, category];
 
   @override
   Iterable<ExpenseValidationError> getValidationErrors() {

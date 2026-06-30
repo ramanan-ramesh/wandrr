@@ -36,7 +36,7 @@ class LocationFacade extends Equatable implements TripEntity<Never> {
   Iterable<Never> getValidationErrors() => const [];
 
   @override
-  List<Object?> get props => [latitude, longitude, context];
+  List<Object?> get props => [latitude, longitude, context, id];
 }
 
 enum LocationType {

@@ -147,7 +147,15 @@ class ItineraryModelImplementation implements ItineraryFacade {
       );
 
   @override
-  List<Object?> get props => [tripId, day, planData, transits, checkInLodging];
+  List<Object?> get props => [
+        tripId,
+        day,
+        planData,
+        transits,
+        checkInLodging,
+        checkOutLodging,
+        fullDayLodging
+      ];
 
   @override
   bool? get stringify => true;
