@@ -42,20 +42,40 @@ class _TripDetailsEditorState extends State<TripDetailsEditor>
 
   @override
   Widget build(BuildContext context) {
+    final isBig = context.isBigLayout;
+    final contributors = TripContributorsEditorSection(
+      contributors: List.of(widget.tripMetadataFacade.contributors),
+      onContributorsChanged: (updatedContributors) {
+        widget.tripMetadataFacade.contributors = List.of(updatedContributors);
+        widget.onTripMetadataUpdated();
+      },
+    );
+
+    if (isBig) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title + Trip Duration side by side
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 2, child: _buildTitleSection(context)),
+              Expanded(flex: 3, child: _buildDatesSection(context)),
+            ],
+          ),
+          _buildBudgetSection(context),
+          contributors,
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildTitleSection(context),
         _buildDatesSection(context),
         _buildBudgetSection(context),
-        TripContributorsEditorSection(
-          contributors: List.of(widget.tripMetadataFacade.contributors),
-          onContributorsChanged: (updatedContributors) {
-            widget.tripMetadataFacade.contributors =
-                List.of(updatedContributors);
-            widget.onTripMetadataUpdated();
-          },
-        ),
+        contributors,
       ],
     );
   }

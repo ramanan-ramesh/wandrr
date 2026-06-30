@@ -12,6 +12,7 @@ import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
+import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/creator_bottom_sheet.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/editor_bottom_sheet.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_page.dart';
@@ -56,11 +57,26 @@ class _TripEditorPageState extends State<TripEditorPage> {
     if (isBigLayout) {
       return _TripEditorPageInternal(
         getDisplayedDate: () => _currentDisplayedDate,
-        body: Row(
-          children: [
-            Expanded(child: _itineraryPage),
-            Expanded(child: _budgetingPage),
-          ],
+        body: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _TripEditorPanel(
+                  accentColor: AppColors.brandPrimary,
+                  child: _itineraryPage,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _TripEditorPanel(
+                  accentColor: AppColors.info,
+                  child: _budgetingPage,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -344,6 +360,66 @@ class _TripEditorPageInternal extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Elegant panel container used on tablets to visually distinguish the
+/// Itinerary and Budgeting sections.  Each panel has:
+///   • White / dark-surface background for strong contrast against the scaffold
+///   • A 4 px accent bar at the top, colour-coded per section
+///   • Rounded corners + depth shadow
+class _TripEditorPanel extends StatelessWidget {
+  final Widget child;
+
+  /// Accent colour — brandPrimary for Itinerary, info-blue for Budgeting.
+  final Color accentColor;
+
+  const _TripEditorPanel({
+    required this.child,
+    required this.accentColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isLight = context.isLightTheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: isLight ? Colors.white : AppColors.darkSurface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: isLight
+                ? accentColor.withValues(alpha: 0.12)
+                : Colors.black.withValues(alpha: 0.45),
+            blurRadius: 22,
+            offset: const Offset(0, 5),
+          ),
+        ],
+        border: Border.all(
+          color: isLight
+              ? accentColor.withValues(alpha: 0.18)
+              : accentColor.withValues(alpha: 0.12),
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          // 4 px accent strip at the top — provides instant visual identity
+          Container(
+            height: 4,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  accentColor,
+                  accentColor.withValues(alpha: 0.45),
+                ],
+              ),
+            ),
+          ),
+          Expanded(child: child),
+        ],
       ),
     );
   }

@@ -351,13 +351,13 @@ class _CollapsibleEntry<T> extends StatelessWidget {
                   ReorderableDragStartListener(
                     index: index,
                     child: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
                         color: accentColor.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child:
-                          Icon(Icons.drag_handle_rounded, color: accentColor),
+                      child: Icon(Icons.drag_handle_rounded,
+                          color: accentColor, size: 18),
                     ),
                   ),
                   const SizedBox(width: 12),

@@ -66,10 +66,36 @@ class _TravelEditorState extends State<TravelEditor> {
           minDepartureDateTime: widget.minDepartureDateTime,
         ),
         _buildSeatNumbersSection(),
-        if (_needsPriorBooking) _buildConfirmationIdSection(),
-        _buildNotesSection(),
+        // Confirmation + notes combined in one section
+        if (_needsPriorBooking)
+          _buildConfirmationAndNotesSection()
+        else
+          _buildNotesSection(),
         if (_needsPriorBooking) _createPaymentDetailsSection(context),
       ],
+    );
+  }
+
+  /// Combines confirmation ID field + notes into a single section card.
+  /// Used on small screens to reduce per-section margin overhead.
+  Widget _buildConfirmationAndNotesSection() {
+    final note = Note(_transitFacade.notes ?? '');
+    return EditorTheme.createSection(
+      context: context,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildConfirmationField(context),
+          const SizedBox(height: 10),
+          NoteEditor(
+            note: note,
+            onChanged: () {
+              _transitFacade.notes = note.text;
+              widget.onTransitUpdated(needsRebuild: false);
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -151,7 +177,8 @@ class _TravelEditorState extends State<TravelEditor> {
                     child: TextFormField(
                       key: ValueKey(
                           'TravelEditor_TripmateSeat_TextField_$userName'),
-                      scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
+                      scrollPadding:
+                          const EdgeInsets.only(top: 24.0, bottom: 50),
                       decoration: InputDecoration(
                         label: Text(
                           "$userName's Seat",
@@ -268,13 +295,6 @@ class _TravelEditorState extends State<TravelEditor> {
       transitOption: _transitFacade.transitOption,
       initialOperator: _transitFacade.operator,
       onOperatorChanged: _handleOperatorChanged,
-    );
-  }
-
-  Widget _buildConfirmationIdSection() {
-    return EditorTheme.createSection(
-      context: context,
-      child: _buildConfirmationField(context),
     );
   }
 
