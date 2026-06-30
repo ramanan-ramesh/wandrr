@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
+import 'package:wandrr/data/trip/models/location/location.dart';
+import 'package:wandrr/data/trip/models/location/location_timezone_date_time.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
@@ -28,6 +30,13 @@ class LodgingEditor extends StatefulWidget {
 
 class _LodgingEditorState extends State<LodgingEditor> {
   LodgingFacade get _lodging => widget.lodging;
+  late LocationFacade? _lastKnownLocation;
+
+  @override
+  void initState() {
+    super.initState();
+    _lastKnownLocation = _lodging.location;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +46,29 @@ class _LodgingEditorState extends State<LodgingEditor> {
       children: [
         StayDetails(
           lodging: _lodging,
-          onLocationUpdated: widget.onLodgingUpdated,
+          onLocationUpdated: () {
+            final newLocation = _lodging.location;
+            setState(() {
+              if (_lodging.checkinDateTime != null) {
+                _lodging.checkinDateTime =
+                    LocationTimezoneDateTime.retargetStoredDateTime(
+                  storedDateTime: _lodging.checkinDateTime!,
+                  oldLocation: _lastKnownLocation,
+                  newLocation: newLocation,
+                );
+              }
+              if (_lodging.checkoutDateTime != null) {
+                _lodging.checkoutDateTime =
+                    LocationTimezoneDateTime.retargetStoredDateTime(
+                  storedDateTime: _lodging.checkoutDateTime!,
+                  oldLocation: _lastKnownLocation,
+                  newLocation: newLocation,
+                );
+              }
+              _lastKnownLocation = newLocation;
+            });
+            widget.onLodgingUpdated();
+          },
         ),
         _buildDatesSection(context, tripMetadata),
         _buildConfirmationSection(context),
@@ -59,8 +90,18 @@ class _LodgingEditorState extends State<LodgingEditor> {
         location: _lodging.location,
         onStayRangeChanged: (checkin, checkout) {
           setState(() {
-            _lodging.checkinDateTime = checkin;
-            _lodging.checkoutDateTime = checkout;
+            final location = _lodging.location;
+            _lodging.checkinDateTime =
+                LocationTimezoneDateTime.encodeWallClockToUtc(
+              wallClock: checkin,
+              location: location,
+            );
+            _lodging.checkoutDateTime =
+                LocationTimezoneDateTime.encodeWallClockToUtc(
+              wallClock: checkout,
+              location: location,
+            );
+            _lastKnownLocation = location;
           });
           widget.onLodgingUpdated();
         },

@@ -1,7 +1,7 @@
 # Wandrr — Product Requirements Specification
 
 > **Version:** 1.3  
-> **Last Updated:** 2026-04-26
+> **Last Updated:** 2026-06-21  
 > **Status:** Active
 
 ---
@@ -504,7 +504,8 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ### REQ-IT-005a — Immersive Card Styling
 
-- Timeline and viewer cards use **borderless** design with subtle shadows (no explicit border lines).
+- Timeline and viewer cards use **borderless** design with subtle shadows (no explicit border
+  lines).
 - Cards use **white** surface (light) / full-opacity dark surface (dark), placed against the grey
   scaffold background (`AppColors.lightBackground` / `darkSurfaceVariant`) for strong contrast.
 - Box shadows use 10px blur radius with stronger alpha (0.10 light / 0.35 dark) at offset (0,3).
@@ -565,17 +566,17 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 - Format: "Stay at \<location\> from \<month day\> to \<month day\>".
 - Falls back to "Unnamed Entry" if location or dates are incomplete.
 
+### REQ-ST-005 — Stay Date-Time Timezone Semantics
+
+- Check-in/check-out values entered in the Stay editor are interpreted as wall-clock times in the
+  selected stay location timezone.
+- Reopening the editor or viewing stay events in timeline/print must show the same entered
+  wall-clock date/time for that stay location.
+
 ---
 
 ## 15. Module: Transit Editor (Single Leg)
 
-### REQ-TR-001 — Displayed Fields
-
-1. **Travel type:** Dropdown showing all travel modes (bus, flight, rented vehicle, train, walk,
-   ferry, cruise, vehicle, public transport, taxi), each with an icon.
-2. **Operator section (conditional):** Shown only for modes that need prior booking (all except walk
-   and vehicle).
-    - For **flight:** A specialized airline + flight number editor.
     - For **other bookable types:** A simple text field for operator name.
 3. **Departure:** Location search with autocomplete + date-time picker. For flights,
    airport-specific search.
@@ -585,10 +586,11 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 6. **Platform / Terminal:** Entered per location (Departure/Arrival) in the location editor.
 7. **Notes:** Optional expandable text area.
 8. **Payment Details (Expense):** Shared expense editing component.
-9. **Seat Numbers:** Managing seat numbers for all tripmates. Managed via an expandable section under the departure/arrival details.
-   - Shows active user's seat by default.
-   - Expandable to show all tripmates (email-based usernames).
-   - Handles long usernames with truncation.
+9. **Seat Numbers:** Managing seat numbers for all tripmates. Managed via an expandable section
+   under the departure/arrival details.
+    - Shows active user's seat by default.
+    - Expandable to show all tripmates (email-based usernames).
+    - Handles long usernames with truncation.
 
 ### REQ-TR-002 — Validation
 
@@ -626,14 +628,26 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
   York → Europe/London".
 
 ### REQ-TR-007 — Platform / Terminal per Location
-- Platform or Terminal information is associated with specific locations (Departure/Arrival) rather than the transit leg as a whole.
+
+- Platform or Terminal information is associated with specific locations (Departure/Arrival) rather
+  than the transit leg as a whole.
 - The input field is only visible after a location is selected.
 
 ### REQ-TR-008 — Seat Number Management UI
+
 - Seat numbers are managed via a specialized section.
 - Primary input for the current user is always visible.
 - An "Expand" option reveals input fields for all tripmates.
-- Usernames (which may be long email addresses) are truncated with ellipsis to prevent layout overflow.
+- Usernames (which may be long email addresses) are truncated with ellipsis to prevent layout
+  overflow.
+
+### REQ-TR-009 — Transit Date-Time Timezone Semantics
+
+- Departure date-time is interpreted in the departure location timezone.
+- Arrival date-time is interpreted in the arrival location timezone.
+- Timeline and print views must render transit times using those respective location timezones so
+  the
+  displayed wall-clock values match what was entered.
 
 ---
 
@@ -648,14 +662,6 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 ### REQ-JE-002 — Journey Display
 
 - Each leg is shown in a collapsible panel.
-- The selected/initial leg is expanded by default.
-- A journey overview header shows the overall departure → arrival with layover summary.
-
-### REQ-JE-003 — Add / Remove Legs
-
-- An "Add Connecting Leg" button appends a new empty leg.
-- New legs inherit the travel type and use the previous leg's arrival location as their departure.
-- Each leg except the first can be removed.
 - Removing a leg only takes effect when the user saves (clicks the confirm button); it is not
   immediately committed.
 
@@ -749,6 +755,11 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 - Closing the editor without saving discards all changes.
 - Reopening the editor shows the last saved state, not the unsaved edits.
 
+### REQ-IPD-009 — Sight Visit Time Timezone Semantics
+
+- Sight visit time is interpreted as wall-clock time in the selected sight location timezone.
+- Timeline and print views must display the same wall-clock visit time for the sight location.
+
 ---
 
 ## 18. Module: Standalone Expense Editor
@@ -778,17 +789,6 @@ Wandrr is a cross-platform travel planning app (Android, iOS, Web) that lets use
 
 ---
 
-## 19. Module: Expense Split & Payment Details (Shared Component)
-
-### REQ-EX-001 — Component Structure
-
-- Two tabs: **Paid By** and **Split By**.
-- A currency selector + total amount display at the top.
-
-### REQ-EX-002 — Paid By Tab
-
-- Shows all trip contributors.
-- Each contributor has an amount field (how much they paid).
 - Total expense is computed as the sum of all paid-by amounts.
 
 ### REQ-EX-003 — Split By Tab
@@ -843,7 +843,8 @@ sheets. When the trip's currency is updated, budgeting data reflects the change 
 - Immersive card styling matching itinerary timeline cards (white surface on grey background,
   strong shadow, left colour-coded accent bar per category).
 - Each item shows:
-    - Left accent bar (blue for flights, green for lodging, orange for food, purple for activities, etc.)
+    - Left accent bar (blue for flights, green for lodging, orange for food, purple for activities,
+      etc.)
     - Category icon in a tinted circle.
     - Title / display name.
     - Date paid (month + day).
@@ -1285,16 +1286,25 @@ printed.
 
 ### Bug Fixes
 
-- **Trip List Thumbnail Loading (Web):** Fixed layout shift where trip name text appeared at top with empty space below while the asset image loaded. Now shows a shimmer placeholder that reserves the full space until the image is ready.
-- **BudgetingModule Total Expenditure:** Fixed total expenditure not being calculated on initial load. The module now waits for transit, lodging, and expense collections to finish loading before computing totals.
+- **Trip List Thumbnail Loading (Web):** Fixed layout shift where trip name text appeared at top
+  with empty space below while the asset image loaded. Now shows a shimmer placeholder that reserves
+  the full space until the image is ready.
+- **BudgetingModule Total Expenditure:** Fixed total expenditure not being calculated on initial
+  load. The module now waits for transit, lodging, and expense collections to finish loading before
+  computing totals.
 
 ### Refactoring
 
 - **TripEntityEditorBloc Events Consolidation:**
-  - Removed `EntityUpdated`, `UpdateEntityTimeRange`, `UpdateJourneyTimeRange`, and `UpdateSightsTimeRange` events.
-  - Introduced `UpdateEntity<T>` (for stays, sights, trip metadata) which reads updated time ranges from the already-mutated `editableEntity`.
-  - Introduced `UpdateJourney` (for transits) which carries the full list of transit legs for conflict detection.
-  - Centralized entity-update dispatch in `ConflictAwareActionPage._onEntityUpdated` callback: automatically dispatches `UpdateEntity<T>()` for non-transit types; transit editors dispatch `UpdateJourney` directly with leg data.
+    - Removed `EntityUpdated`, `UpdateEntityTimeRange`, `UpdateJourneyTimeRange`, and
+      `UpdateSightsTimeRange` events.
+    - Introduced `UpdateEntity<T>` (for stays, sights, trip metadata) which reads updated time
+      ranges from the already-mutated `editableEntity`.
+    - Introduced `UpdateJourney` (for transits) which carries the full list of transit legs for
+      conflict detection.
+    - Centralized entity-update dispatch in `ConflictAwareActionPage._onEntityUpdated` callback:
+      automatically dispatches `UpdateEntity<T>()` for non-transit types; transit editors dispatch
+      `UpdateJourney` directly with leg data.
 
 ---
 
@@ -1303,13 +1313,22 @@ printed.
 ### Refactoring
 
 - **TripEntityEditorBloc States Simplification:**
-  - Replaced `PlanUpdated`, `PlanItemsUpdated`, and `PlanCleared` states with a single `ConflictPlanUpdated` state. The UI reads plan data from `bloc.currentPlan` directly; the state is a simple notification signal.
-  - Retained `ConflictedEntityTimeRangeError`, `ConflictPlanConfirmed`, and `EntitySubmitted` states unchanged.
+    - Replaced `PlanUpdated`, `PlanItemsUpdated`, and `PlanCleared` states with a single
+      `ConflictPlanUpdated` state. The UI reads plan data from `bloc.currentPlan` directly; the
+      state is a simple notification signal.
+    - Retained `ConflictedEntityTimeRangeError`, `ConflictPlanConfirmed`, and `EntitySubmitted`
+      states unchanged.
 
 - **Journey Validation Improvements:**
-  - Moved `TransitJourneyServiceFacade` instantiation into the bloc (from `_tripData.transitCollection`), removing it from the `UpdateJourney` event payload. The service is now bloc-internal.
-  - Journey validation (per-leg + cross-leg sequence) runs before conflict detection. If validation fails, conflict detection is skipped entirely and `EntityValidationUpdated` is emitted with `JourneyValidationResult` enums.
-  - `TransitJourneyServiceFacade.validateJourney()` returns `List<JourneyValidationResult>` (enum-based) instead of the old `String?` approach, keeping error messaging as a UI-layer concern.
+    - Moved `TransitJourneyServiceFacade` instantiation into the bloc (from
+      `_tripData.transitCollection`), removing it from the `UpdateJourney` event payload. The
+      service is now bloc-internal.
+    - Journey validation (per-leg + cross-leg sequence) runs before conflict detection. If
+      validation fails, conflict detection is skipped entirely and `EntityValidationUpdated` is
+      emitted with `JourneyValidationResult` enums.
+    - `TransitJourneyServiceFacade.validateJourney()` returns `List<JourneyValidationResult>` (
+      enum-based) instead of the old `String?` approach, keeping error messaging as a UI-layer
+      concern.
 
 ---
 
@@ -1317,33 +1336,62 @@ printed.
 
 ### Bug Fixes
 
-- **CopyTripDialog phone layout:** Reduced dialog margin and padding on phones (12px horizontal margin, 16px content padding) so content area is maximised on small screens.
-- **LodgingEditor time overflow:** Changed `_DateTimeSection` header from a single `Row` to `Wrap`, so date button + time chip wrap to a second line on narrow phones instead of overflowing.
-- **BudgetTile multi-line text:** Added `FittedBox(scaleDown)` and `maxLines: 1` + `TextOverflow.ellipsis` to currency amounts in the vertical phone layout.
-- **ItineraryPlanDataEditor "Set time" overflow:** Changed `TimezoneIndicator` to `Flexible(flex: 0)` and the `OutlinedButton` from `Expanded` to `Flexible` so they share available space without overflowing.
-- **EditorTheme section header overflow:** Wrapped the inner icon+title `Row` in `Expanded > Flexible` with `maxLines: 2` ellipsis, preventing overflow with long i18n strings (Hindi/Tamil).
+- **CopyTripDialog phone layout:** Reduced dialog margin and padding on phones (12px horizontal
+  margin, 16px content padding) so content area is maximised on small screens.
+- **Android dependency namespaces:** Added a root Gradle fallback that assigns a namespace from a
+  subproject's group when a plugin omits `android.namespace`.
+- **Android JVM target alignment:** Aligned app and subproject Kotlin/Java targets to Java 17 to
+  avoid compile-time mismatches with modern Android Gradle Plugin versions.
+- **Native timezone plugin migration:** Replaced vendored `flutter_native_timezone` with
+  `flutter_timezone` (maintained fork) for Android-compatible timezone resolution.
+- **LodgingEditor time overflow:** Changed `_DateTimeSection` header from a single `Row` to `Wrap`,
+  so date button + time chip wrap to a second line on narrow phones instead of overflowing.
+- **BudgetTile multi-line text:** Added `FittedBox(scaleDown)` and `maxLines: 1` +
+  `TextOverflow.ellipsis` to currency amounts in the vertical phone layout.
+- **ItineraryPlanDataEditor "Set time" overflow:** Changed `TimezoneIndicator` to
+  `Flexible(flex: 0)` and the `OutlinedButton` from `Expanded` to `Flexible` so they share available
+  space without overflowing.
+- **EditorTheme section header overflow:** Wrapped the inner icon+title `Row` in
+  `Expanded > Flexible` with `maxLines: 2` ellipsis, preventing overflow with long i18n strings (
+  Hindi/Tamil).
 
 ### Refactoring
 
-- **Validation consolidation:** Removed `_validityNotifier` (`ValueNotifier<bool>`) from `ConflictAwareActionPage`, `EditorPageFactory`, `LodgingEditor`, and `JourneyEditor`. The FAB now relies solely on `state.validationErrors` from `TripEntityEditorBloc` — no redundant `entity.validate()` calls in UI callbacks. `pageContentCreator` signature simplified from `(T, ValueNotifier, VoidCallback)` to `(T, VoidCallback)`.
+- **Validation consolidation:** Removed `_validityNotifier` (`ValueNotifier<bool>`) from
+  `ConflictAwareActionPage`, `EditorPageFactory`, `LodgingEditor`, and `JourneyEditor`. The FAB now
+  relies solely on `state.validationErrors` from `TripEntityEditorBloc` — no redundant
+  `entity.validate()` calls in UI callbacks. `pageContentCreator` signature simplified from
+  `(T, ValueNotifier, VoidCallback)` to `(T, VoidCallback)`.
 
 ### Phone Layout Audit — Remaining Items to Watch
 
-The following areas should be monitored for text overflow when using Hindi/Tamil localizations on small phones (< 360dp width):
+The following areas should be monitored for text overflow when using Hindi/Tamil localizations on
+small phones (< 360dp width):
 
-| File | Risk |
-|------|------|
-| `journey_editor.dart` — `_LegSectionHeader` route text | Long city names in `"City → City"` format |
-| `journey_editor.dart` — `_SummaryItem` label | Currency amounts with long currency codes |
+| File                                                        | Risk                                             |
+|-------------------------------------------------------------|--------------------------------------------------|
+| `journey_editor.dart` — `_LegSectionHeader` route text      | Long city names in `"City → City"` format        |
+| `journey_editor.dart` — `_SummaryItem` label                | Currency amounts with long currency codes        |
 | `conflict_aware_action_page.dart` — `_StickyConflictBanner` | "Resolve to save" + "Review" button in tight Row |
-| `expenses_list_view.dart` — sort toggle row | `BudgetTile` + `ToggleButtons` compete for width |
-| `unified_trip_dialog.dart` — header title | `headlineSmall` with long i18n titles |
-
+| `expenses_list_view.dart` — sort toggle row                 | `BudgetTile` + `ToggleButtons` compete for width |
+| `unified_trip_dialog.dart` — header title                   | `headlineSmall` with long i18n titles            |
 
 ### Architecture — BudgetingModule → BudgetingServiceFacade Refactoring
 
-- **Extracted service layer facade:** `BudgetingServiceFacade` (`lib/data/trip/models/services/budgeting_service.dart`) is a read-only abstract interface for budgeting operations (debt calculation, expense grouping, sorting, currency formatting, total expenditure stream). It lives in the models/services layer so the UI and BLoC layers can depend on it without importing implementation details.
-- **Lifecycle-bound:** The service is instantiated alongside `TripDataFacade` and shares its lifecycle. Once the trip data is disposed, the service must not be used. `TripDataFacade` now exposes `BudgetingServiceFacade get budgetingService` (previously `BudgetingModuleFacade get budgetingModule`).
-- **Internal event handler preserved:** `BudgetingModuleEventHandler` (internal) still extends `BudgetingServiceFacade` and adds mutation methods (`recalculateTotalExpenditure`, `updateCurrency`, `dispose`). Only the BLoC/implementation layer uses the event handler.
-- **Constructor simplified:** `BudgetingModule.createInstance` now accepts `TripDataFacade` plus `currencyConverter`, `supportedCurrencies`, and `currentUserName` — no longer needs individual collection references.
-- **All UI references renamed:** `context.activeTrip.budgetingModule` → `context.activeTrip.budgetingService` across all presentation widgets and integration tests.
+- **Extracted service layer facade:** `BudgetingServiceFacade` (
+  `lib/data/trip/models/services/budgeting_service.dart`) is a read-only abstract interface for
+  budgeting operations (debt calculation, expense grouping, sorting, currency formatting, total
+  expenditure stream). It lives in the models/services layer so the UI and BLoC layers can depend on
+  it without importing implementation details.
+- **Lifecycle-bound:** The service is instantiated alongside `TripDataFacade` and shares its
+  lifecycle. Once the trip data is disposed, the service must not be used. `TripDataFacade` now
+  exposes `BudgetingServiceFacade get budgetingService` (previously
+  `BudgetingModuleFacade get budgetingModule`).
+- **Internal event handler preserved:** `BudgetingModuleEventHandler` (internal) still extends
+  `BudgetingServiceFacade` and adds mutation methods (`recalculateTotalExpenditure`,
+  `updateCurrency`, `dispose`). Only the BLoC/implementation layer uses the event handler.
+- **Constructor simplified:** `BudgetingModule.createInstance` now accepts `TripDataFacade` plus
+  `currencyConverter`, `supportedCurrencies`, and `currentUserName` — no longer needs individual
+  collection references.
+- **All UI references renamed:** `context.activeTrip.budgetingModule` →
+  `context.activeTrip.budgetingService` across all presentation widgets and integration tests.

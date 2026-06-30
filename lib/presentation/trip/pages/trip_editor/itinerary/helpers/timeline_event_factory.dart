@@ -4,6 +4,8 @@ import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
+import 'package:wandrr/data/trip/models/location/location.dart';
+import 'package:wandrr/data/trip/models/location/location_timezone_date_time.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_journey.dart';
@@ -154,12 +156,24 @@ class TimelineEventFactory {
         // Detect multi-day legs (departure and arrival on different calendar days)
         final dep = leg.departureDateTime;
         final arr = leg.arrivalDateTime;
-        final isMultiDay = dep != null && arr != null && !_isSameDay(dep, arr);
+        final isMultiDay = dep != null &&
+            arr != null &&
+            !_isSameDayInLocation(
+              dep,
+              arr,
+              transitLocation: leg.departureLocation,
+              comparisonLocation: leg.arrivalLocation,
+            );
 
         // For a multi-day leg showing on the departure day: departure-day view.
         // For a multi-day leg showing on the arrival day: arrival-day view.
         // The leg appears on this itinerary day either via its departure or arrival.
-        final isDepartureDayView = dep == null || _isSameDay(dep, itineraryDay);
+        final isDepartureDayView = dep == null ||
+            LocationTimezoneDateTime.isOnSameDay(
+              storedDateTime: dep,
+              day: itineraryDay,
+              location: leg.departureLocation,
+            );
 
         yield _createConnectedTransitEvent(
           transit: leg,
@@ -249,9 +263,24 @@ class TimelineEventFactory {
     );
   }
 
-  /// Returns true when [a] and [b] fall on the same calendar day.
-  bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
+  bool _isSameDayInLocation(
+    DateTime first,
+    DateTime second, {
+    required LocationFacade? transitLocation,
+    required LocationFacade? comparisonLocation,
+  }) {
+    final firstWallClock = LocationTimezoneDateTime.decodeUtcToWallClock(
+      storedDateTime: first,
+      location: transitLocation,
+    );
+    final secondWallClock = LocationTimezoneDateTime.decodeUtcToWallClock(
+      storedDateTime: second,
+      location: comparisonLocation,
+    );
+    return firstWallClock.year == secondWallClock.year &&
+        firstWallClock.month == secondWallClock.month &&
+        firstWallClock.day == secondWallClock.day;
+  }
 
   /// Calculate layover duration string
   String? _calculateLayoverString(DateTime? arrival, DateTime? departure) {

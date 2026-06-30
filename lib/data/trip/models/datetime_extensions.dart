@@ -9,8 +9,11 @@ extension DateTimeExt on DateTime {
     return numberOfDaysOfTrip.abs() + (includeBoundaryDay ? 1 : 0);
   }
 
-  bool isOnSameDayAs(DateTime dateTime) =>
-      year == dateTime.year && month == dateTime.month && day == dateTime.day;
+  bool isOnSameDayAs(DateTime dateTime) {
+    return year == dateTime.year &&
+        month == dateTime.month &&
+        day == dateTime.day;
+  }
 
   int differenceInDays(DateTime dateTime) => DateTime(year, month, day)
       .difference(DateTime(dateTime.year, dateTime.month, dateTime.day))
@@ -25,8 +28,8 @@ extension DateTimeExt on DateTime {
   String get monthFormat => DateFormat.MMM().format(this); // Sep
   String get dayFormat => DateFormat('EEE').format(this); // Wed
   String get dateMonthFormat => DateFormat('dd MMM').format(this); // 24 Sep
-  String get hourMinuteAmPmFormat =>
-      DateFormat('hh:mm a').format(this); // 08:30 AM
+  String get hourMinuteAmPmFormat => DateFormat('h:mm a').format(this);
+
   String get hourMinuteDateFormat =>
       DateFormat('dd MMM hh:mm a').format(this); // 24 Jan 14:00
 }

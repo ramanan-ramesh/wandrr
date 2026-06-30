@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
 import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
+import 'package:wandrr/data/trip/models/location/location_timezone_date_time.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/l10n/extension.dart';
 
-/// Helper class for formatting timeline event details
+/// Helper class for formatting itinerary timeline event details
 class TimelineEventFormatter {
   final BuildContext context;
 
@@ -97,8 +97,16 @@ class TimelineEventFormatter {
       {required TransitFacade transit, required DateTime itineraryDay}) {
     final departure = transit.departureDateTime!;
     final arrival = transit.arrivalDateTime!;
-    final isDepartingToday = departure.isOnSameDayAs(itineraryDay);
-    final isArrivingToday = arrival.isOnSameDayAs(itineraryDay);
+    final isDepartingToday = LocationTimezoneDateTime.isOnSameDay(
+      storedDateTime: departure,
+      day: itineraryDay,
+      location: transit.departureLocation,
+    );
+    final isArrivingToday = LocationTimezoneDateTime.isOnSameDay(
+      storedDateTime: arrival,
+      day: itineraryDay,
+      location: transit.arrivalLocation,
+    );
     final localizations = context.localizations;
 
     if (isDepartingToday && isArrivingToday) {
@@ -139,3 +147,4 @@ class TimelineEventFormatter {
           ? (transit.arrivalLocation!.context as AirportLocationContext).city
           : transit.arrivalLocation.toString();
 }
+

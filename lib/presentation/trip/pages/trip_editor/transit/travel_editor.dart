@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
+import 'package:wandrr/data/trip/models/location/location_timezone_date_time.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
@@ -332,8 +333,26 @@ class _TravelEditorState extends State<TravelEditor> {
   void _updateLocation({required bool isArrival, LocationFacade? newLocation}) {
     setState(() {
       if (isArrival) {
+        final oldLocation = _transitFacade.arrivalLocation;
+        if (_transitFacade.arrivalDateTime != null) {
+          _transitFacade.arrivalDateTime =
+              LocationTimezoneDateTime.retargetStoredDateTime(
+            storedDateTime: _transitFacade.arrivalDateTime!,
+            oldLocation: oldLocation,
+            newLocation: newLocation,
+          );
+        }
         _transitFacade.arrivalLocation = newLocation;
       } else {
+        final oldLocation = _transitFacade.departureLocation;
+        if (_transitFacade.departureDateTime != null) {
+          _transitFacade.departureDateTime =
+              LocationTimezoneDateTime.retargetStoredDateTime(
+            storedDateTime: _transitFacade.departureDateTime!,
+            oldLocation: oldLocation,
+            newLocation: newLocation,
+          );
+        }
         _transitFacade.departureLocation = newLocation;
       }
     });
@@ -343,9 +362,17 @@ class _TravelEditorState extends State<TravelEditor> {
   void _updateDateTime(DateTime updatedDateTime, {required bool isArrival}) {
     setState(() {
       if (isArrival) {
-        _transitFacade.arrivalDateTime = updatedDateTime;
+        _transitFacade.arrivalDateTime =
+            LocationTimezoneDateTime.encodeWallClockToUtc(
+          wallClock: updatedDateTime,
+          location: _transitFacade.arrivalLocation,
+        );
       } else {
-        _transitFacade.departureDateTime = updatedDateTime;
+        _transitFacade.departureDateTime =
+            LocationTimezoneDateTime.encodeWallClockToUtc(
+          wallClock: updatedDateTime,
+          location: _transitFacade.departureLocation,
+        );
       }
     });
     widget.onTransitUpdated(needsRebuild: true);

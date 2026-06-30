@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
+import 'package:wandrr/data/trip/models/location/location_timezone_date_time.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
 import 'package:wandrr/presentation/trip/widgets/time_zone_indicator.dart';
@@ -46,6 +47,20 @@ class StayDateTimeRangeEditor extends StatefulWidget {
 }
 
 class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
+  DateTime? _asWallClock(DateTime? storedDateTime) {
+    if (storedDateTime == null) {
+      return null;
+    }
+    return LocationTimezoneDateTime.decodeUtcToWallClock(
+      storedDateTime: storedDateTime,
+      location: widget.location,
+    );
+  }
+
+  DateTime? get _displayCheckinDateTime => _asWallClock(widget.checkinDateTime);
+  DateTime? get _displayCheckoutDateTime =>
+      _asWallClock(widget.checkoutDateTime);
+
   @override
   Widget build(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
@@ -71,8 +86,8 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
 
   Widget _buildOriginalTimesChip(BuildContext context,
       {required bool isLightTheme}) {
-    final originalCheckin = widget.originalCheckinDateTime!;
-    final originalCheckout = widget.originalCheckoutDateTime!;
+    final originalCheckin = _asWallClock(widget.originalCheckinDateTime!)!;
+    final originalCheckout = _asWallClock(widget.originalCheckoutDateTime!)!;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -119,11 +134,11 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
       label: 'Check-in',
       icon: Icons.login_rounded,
       iconColor: isLightTheme ? AppColors.success : AppColors.successLight,
-      dateTime: widget.checkinDateTime,
+      dateTime: _displayCheckinDateTime,
       isLightTheme: isLightTheme,
       onDateButtonPressed: () => _showDateRangePicker(context),
       onTimeChanged: (time) {
-        final date = widget.checkinDateTime!;
+        final date = _displayCheckinDateTime!;
         widget.onStayRangeChanged(
           DateTime(
             date.year,
@@ -132,7 +147,7 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
             time.hour,
             time.minute,
           ),
-          widget.checkoutDateTime!,
+          _displayCheckoutDateTime!,
         );
       },
     );
@@ -144,13 +159,13 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
       label: 'Check-out',
       icon: Icons.logout_rounded,
       iconColor: isLightTheme ? AppColors.warning : AppColors.warningLight,
-      dateTime: widget.checkoutDateTime,
+      dateTime: _displayCheckoutDateTime,
       isLightTheme: isLightTheme,
       onDateButtonPressed: () => _showDateRangePicker(context),
       onTimeChanged: (time) {
-        final date = widget.checkoutDateTime!;
+        final date = _displayCheckoutDateTime!;
         widget.onStayRangeChanged(
-          widget.checkinDateTime!,
+          _displayCheckinDateTime!,
           DateTime(
             date.year,
             date.month,
@@ -184,7 +199,7 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
               },
               config: _createCalendarConfig(isLightTheme: isLightTheme),
               onValueChanged: _handleDateRangeChanged,
-              value: [widget.checkinDateTime, widget.checkoutDateTime],
+              value: [_displayCheckinDateTime, _displayCheckoutDateTime],
             ),
           ),
         );
@@ -255,13 +270,13 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
       return;
     }
 
-    var checkin = widget.checkinDateTime ?? DateTime.now();
-    var checkout = widget.checkoutDateTime ?? DateTime.now();
+    var checkin = _displayCheckinDateTime ?? DateTime.now();
+    var checkout = _displayCheckoutDateTime ?? DateTime.now();
     var changed = false;
 
     if (dates.isNotEmpty && dates.first != null) {
       final newCheckin = dates.first!;
-      final currentCheckin = widget.checkinDateTime;
+      final currentCheckin = _displayCheckinDateTime;
       final hour = currentCheckin?.hour ?? 14;
       final minute = currentCheckin?.minute ?? 0;
       checkin = DateTime(
@@ -276,7 +291,7 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
 
     if (dates.length >= 2 && dates[1] != null) {
       final newCheckout = dates[1]!;
-      final currentCheckout = widget.checkoutDateTime;
+      final currentCheckout = _displayCheckoutDateTime;
       final hour = currentCheckout?.hour ?? 11;
       final minute = currentCheckout?.minute ?? 0;
       checkout = DateTime(
@@ -297,7 +312,7 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
   Widget _buildFooterIndicators(BuildContext context,
       {required bool isLightTheme}) {
     final nights =
-        widget.checkoutDateTime!.differenceInDays(widget.checkinDateTime!);
+        _displayCheckoutDateTime!.differenceInDays(_displayCheckinDateTime!);
 
     return Row(
       children: [

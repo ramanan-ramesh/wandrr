@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip_entity_editor/events.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
+import 'package:wandrr/data/trip/models/location/location_timezone_date_time.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/transit_journey.dart';
 import 'package:wandrr/data/trip/services/transit_journey_service.dart';
@@ -861,11 +862,22 @@ class _LegSectionHeader extends StatelessWidget {
       return 'Times not set';
     }
 
+    final depLocal = dep == null
+        ? null
+        : LocationTimezoneDateTime.decodeUtcToWallClock(
+            storedDateTime: dep,
+            location: leg.departureLocation,
+          );
+
     final depStr = dep != null
-        ? '${dep.day}/${dep.month} ${dep.hour.toString().padLeft(2, '0')}:${dep.minute.toString().padLeft(2, '0')}'
+        ? '${depLocal!.day}/${depLocal.month} '
+            '${LocationTimezoneDateTime.formatHourMinuteAmPm(storedDateTime: dep, location: leg.departureLocation)}'
         : '--';
     final arrStr = arr != null
-        ? '${arr.hour.toString().padLeft(2, '0')}:${arr.minute.toString().padLeft(2, '0')}'
+        ? LocationTimezoneDateTime.formatHourMinuteAmPm(
+            storedDateTime: arr,
+            location: leg.arrivalLocation,
+          )
         : '--';
     return '$depStr → $arrStr';
   }

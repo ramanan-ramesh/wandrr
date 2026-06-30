@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
+import 'package:wandrr/data/trip/models/location/location_timezone_date_time.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_theme.dart';
@@ -105,7 +106,7 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
                   children: [
                     const Icon(Icons.access_time, size: 16),
                     const SizedBox(width: 4),
-                    Text(_formatTime(s.visitTime!),
+                    Text(_formatTime(_displayVisitTime(s)!),
                         style: Theme.of(ctx).textTheme.labelSmall),
                   ],
                 )
@@ -124,9 +125,19 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
   String _formatTime(DateTime dt) =>
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
+  DateTime? _displayVisitTime(SightFacade sight) {
+    if (sight.visitTime == null) {
+      return null;
+    }
+    return LocationTimezoneDateTime.decodeUtcToWallClock(
+      storedDateTime: sight.visitTime!,
+      location: sight.location,
+    );
+  }
+
   RelativeRect _getButtonPosition(BuildContext context) {
-    final RenderBox button = context.findRenderObject()! as RenderBox;
-    final RenderBox overlay =
+    final button = context.findRenderObject()! as RenderBox;
+    final overlay =
         Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
     final offset = button.localToGlobal(Offset.zero, ancestor: overlay);
     return RelativeRect.fromLTRB(
@@ -179,6 +190,13 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
         PlatformGeoLocationAutoComplete(
           selectedLocation: sight.location,
           onLocationSelected: (loc) {
+            if (sight.visitTime != null) {
+              sight.visitTime = LocationTimezoneDateTime.retargetStoredDateTime(
+                storedDateTime: sight.visitTime!,
+                oldLocation: sight.location,
+                newLocation: loc,
+              );
+            }
             sight.location = loc;
             notifyParent();
           },
@@ -189,8 +207,9 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
 
   Widget _buildTimeSection(
       BuildContext context, SightFacade sight, VoidCallback notifyParent) {
-    final timeOfDay = sight.visitTime != null
-        ? TimeOfDay.fromDateTime(sight.visitTime!)
+    final visitTimeForDisplay = _displayVisitTime(sight);
+    final timeOfDay = visitTimeForDisplay != null
+        ? TimeOfDay.fromDateTime(visitTimeForDisplay)
         : null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,7 +278,12 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
                     notifyParent();
                     return;
                   }
-                  if (action != 'edit') return;
+                  if (action != 'edit') {
+                    return;
+                  }
+                }
+                if (!mounted || !context.mounted) {
+                  return;
                 }
                 final picked = await showTimePicker(
                   context: context,
@@ -269,10 +293,23 @@ class _ItinerarySightsEditorState extends State<ItinerarySightsEditor> {
                     child: child!,
                   ),
                 );
+                if (!mounted || !context.mounted) {
+                  return;
+                }
                 if (picked != null) {
                   final d = sight.day;
-                  sight.visitTime = DateTime(
-                      d.year, d.month, d.day, picked.hour, picked.minute);
+                  final wallClock = DateTime(
+                    d.year,
+                    d.month,
+                    d.day,
+                    picked.hour,
+                    picked.minute,
+                  );
+                  sight.visitTime =
+                      LocationTimezoneDateTime.encodeWallClockToUtc(
+                    wallClock: wallClock,
+                    location: sight.location,
+                  );
                   notifyParent();
                 }
               },

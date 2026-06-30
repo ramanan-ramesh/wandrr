@@ -10,6 +10,7 @@ import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/check_list.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
+import 'package:wandrr/data/trip/models/location/location_timezone_date_time.dart';
 import 'package:wandrr/data/trip/models/print_options.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
@@ -324,13 +325,20 @@ class TripPrintService {
     // Check-out
     final checkOut = dd.itinerary.checkOutLodging;
     if (checkOut?.checkoutDateTime != null &&
-        checkOut!.checkoutDateTime!.isOnSameDayAs(day)) {
+        LocationTimezoneDateTime.isOnSameDay(
+          storedDateTime: checkOut!.checkoutDateTime!,
+          day: day,
+          location: checkOut.location,
+        )) {
       events.add(_TimelineEvent(
         time: checkOut.checkoutDateTime!,
         widget: _eventRow(
           label: 'CHECK-OUT',
           title: checkOut.location?.toString() ?? 'Accommodation',
-          time: checkOut.checkoutDateTime!.hourMinuteAmPmFormat,
+          time: LocationTimezoneDateTime.formatHourMinuteAmPm(
+            storedDateTime: checkOut.checkoutDateTime!,
+            location: checkOut.location,
+          ),
         ),
       ));
     }
@@ -355,7 +363,11 @@ class TripPrintService {
         final last = legs.last;
         // Show departure on departure day
         if (first.departureDateTime != null &&
-            first.departureDateTime!.isOnSameDayAs(day)) {
+            LocationTimezoneDateTime.isOnSameDay(
+              storedDateTime: first.departureDateTime!,
+              day: day,
+              location: first.departureLocation,
+            )) {
           events.add(_TimelineEvent(
             time: first.departureDateTime!,
             widget: _mergedJourneyEventRow(first, last),
@@ -363,9 +375,17 @@ class TripPrintService {
         }
         // Show arrival on arrival day (if different from departure day)
         if (last.arrivalDateTime != null &&
-            last.arrivalDateTime!.isOnSameDayAs(day) &&
+            LocationTimezoneDateTime.isOnSameDay(
+              storedDateTime: last.arrivalDateTime!,
+              day: day,
+              location: last.arrivalLocation,
+            ) &&
             !(first.departureDateTime != null &&
-                first.departureDateTime!.isOnSameDayAs(day))) {
+                LocationTimezoneDateTime.isOnSameDay(
+                  storedDateTime: first.departureDateTime!,
+                  day: day,
+                  location: first.departureLocation,
+                ))) {
           events.add(_TimelineEvent(
             time: last.arrivalDateTime!,
             widget: _transitArrivalRow(last),
@@ -375,9 +395,17 @@ class TripPrintService {
       } else {
         // Standalone or non-merged journey leg — single combined event
         final hasDep = t.departureDateTime != null &&
-            t.departureDateTime!.isOnSameDayAs(day);
-        final hasArr =
-            t.arrivalDateTime != null && t.arrivalDateTime!.isOnSameDayAs(day);
+            LocationTimezoneDateTime.isOnSameDay(
+              storedDateTime: t.departureDateTime!,
+              day: day,
+              location: t.departureLocation,
+            );
+        final hasArr = t.arrivalDateTime != null &&
+            LocationTimezoneDateTime.isOnSameDay(
+              storedDateTime: t.arrivalDateTime!,
+              day: day,
+              location: t.arrivalLocation,
+            );
 
         if (hasDep) {
           // Show combined departure → arrival on departure day
@@ -410,13 +438,20 @@ class TripPrintService {
     // Check-in
     final checkIn = dd.itinerary.checkInLodging;
     if (checkIn?.checkinDateTime != null &&
-        checkIn!.checkinDateTime!.isOnSameDayAs(day)) {
+        LocationTimezoneDateTime.isOnSameDay(
+          storedDateTime: checkIn!.checkinDateTime!,
+          day: day,
+          location: checkIn.location,
+        )) {
       events.add(_TimelineEvent(
         time: checkIn.checkinDateTime!,
         widget: _eventRow(
           label: 'CHECK-IN',
           title: checkIn.location?.toString() ?? 'Accommodation',
-          time: checkIn.checkinDateTime!.hourMinuteAmPmFormat,
+          time: LocationTimezoneDateTime.formatHourMinuteAmPm(
+            storedDateTime: checkIn.checkinDateTime!,
+            location: checkIn.location,
+          ),
         ),
       ));
     }
@@ -497,8 +532,18 @@ class TripPrintService {
     final type = _transitLabel(t.transitOption).toUpperCase();
     final from = t.departureLocation?.toString() ?? '?';
     final to = t.arrivalLocation?.toString() ?? '?';
-    final depTime = t.departureDateTime?.hourMinuteAmPmFormat ?? '\u2013';
-    final arrTime = t.arrivalDateTime?.hourMinuteAmPmFormat ?? '\u2013';
+    final depTime = t.departureDateTime == null
+        ? '\u2013'
+        : LocationTimezoneDateTime.formatHourMinuteAmPm(
+            storedDateTime: t.departureDateTime!,
+            location: t.departureLocation,
+          );
+    final arrTime = t.arrivalDateTime == null
+        ? '\u2013'
+        : LocationTimezoneDateTime.formatHourMinuteAmPm(
+            storedDateTime: t.arrivalDateTime!,
+            location: t.arrivalLocation,
+          );
 
     return pw.Padding(
         padding: const pw.EdgeInsets.only(bottom: 4),
@@ -535,7 +580,12 @@ class TripPrintService {
   pw.Widget _transitArrivalRow(TransitFacade t) {
     final type = _transitLabel(t.transitOption).toUpperCase();
     final location = t.arrivalLocation?.toString() ?? '?';
-    final time = t.arrivalDateTime?.hourMinuteAmPmFormat ?? '\u2013';
+    final time = t.arrivalDateTime == null
+        ? '\u2013'
+        : LocationTimezoneDateTime.formatHourMinuteAmPm(
+            storedDateTime: t.arrivalDateTime!,
+            location: t.arrivalLocation,
+          );
 
     return pw.Padding(
         padding: const pw.EdgeInsets.only(bottom: 4),
@@ -571,9 +621,18 @@ class TripPrintService {
     final type = _transitLabel(firstLeg.transitOption).toUpperCase();
     final from = firstLeg.departureLocation?.toString() ?? '?';
     final to = lastLeg.arrivalLocation?.toString() ?? '?';
-    final depTime =
-        firstLeg.departureDateTime?.hourMinuteAmPmFormat ?? '\u2013';
-    final arrTime = lastLeg.arrivalDateTime?.hourMinuteAmPmFormat ?? '\u2013';
+    final depTime = firstLeg.departureDateTime == null
+        ? '\u2013'
+        : LocationTimezoneDateTime.formatHourMinuteAmPm(
+            storedDateTime: firstLeg.departureDateTime!,
+            location: firstLeg.departureLocation,
+          );
+    final arrTime = lastLeg.arrivalDateTime == null
+        ? '\u2013'
+        : LocationTimezoneDateTime.formatHourMinuteAmPm(
+            storedDateTime: lastLeg.arrivalDateTime!,
+            location: lastLeg.arrivalLocation,
+          );
 
     return pw.Padding(
         padding: const pw.EdgeInsets.only(bottom: 4),
@@ -614,7 +673,11 @@ class TripPrintService {
                       fontWeight: pw.FontWeight.bold,
                       color: _black)),
               if (sight.visitTime != null)
-                pw.Text(sight.visitTime!.hourMinuteAmPmFormat,
+                pw.Text(
+                    LocationTimezoneDateTime.formatHourMinuteAmPm(
+                      storedDateTime: sight.visitTime!,
+                      location: sight.location,
+                    ),
                     style: const pw.TextStyle(fontSize: 8, color: _mid)),
               if (sight.description != null && sight.description!.isNotEmpty)
                 pw.Padding(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/data/trip/models/location/location_timezone_date_time.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_theme_helper.dart';
@@ -66,7 +66,12 @@ class _ConnectedTimelineIconColumn extends StatelessWidget {
     final showConnector = !isLastInTimeline || event.hasConnectionAfter;
     final isLight = context.isLightTheme;
     final depTime = event.data.departureDateTime;
-    final timeLabel = depTime?.hourMinuteAmPmFormat ?? '';
+    final timeLabel = depTime == null
+        ? ''
+        : LocationTimezoneDateTime.formatHourMinuteAmPm(
+            storedDateTime: depTime,
+            location: event.data.departureLocation,
+          );
 
     return SizedBox(
       width: 56,
@@ -324,6 +329,12 @@ class _ConnectedTransitCard extends StatelessWidget {
     final positionLabel = _getPositionLabel();
 
     final arrTime = event.data.arrivalDateTime;
+    final arrivalTimeLabel = arrTime == null
+        ? null
+        : LocationTimezoneDateTime.formatHourMinuteAmPm(
+            storedDateTime: arrTime,
+            location: event.data.arrivalLocation,
+          );
     final depLocation = event.data.departureLocation?.toString() ?? '?';
     final arrLocation = event.data.arrivalLocation?.toString() ?? '?';
 
@@ -432,7 +443,7 @@ class _ConnectedTransitCard extends StatelessWidget {
                               const SizedBox(height: 2),
                               Text(
                                 'Arrive at $arrLocation on '
-                                '${arrTime.hourMinuteAmPmFormat}',
+                                '$arrivalTimeLabel',
                                 style: textTheme.bodySmall
                                     ?.copyWith(color: subtitleColor),
                                 maxLines: 2,

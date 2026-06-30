@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
-import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/data/trip/models/itinerary/sight.dart';
+import 'package:wandrr/data/trip/models/location/location.dart';
+import 'package:wandrr/data/trip/models/location/location_timezone_date_time.dart';
+import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_theme_helper.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/timeline_event.dart';
@@ -44,7 +47,10 @@ class _TimelineIconColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final timeLabel = event.time.hourMinuteAmPmFormat;
+    final timeLabel = LocationTimezoneDateTime.formatHourMinuteAmPm(
+      storedDateTime: event.time,
+      location: _eventLocation(event),
+    );
     final isLight = context.isLightTheme;
 
     return SizedBox(
@@ -68,6 +74,17 @@ class _TimelineIconColumn extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  LocationFacade? _eventLocation(TimelineEvent event) {
+    final data = event.data;
+    if (data is LodgingFacade) {
+      return data.location;
+    }
+    if (data is SightFacade) {
+      return data.location;
+    }
+    return null;
   }
 }
 

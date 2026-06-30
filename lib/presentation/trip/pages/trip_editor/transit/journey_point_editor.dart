@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wandrr/data/trip/models/location/airport_location_context.dart';
 import 'package:wandrr/data/trip/models/location/geo_location_api_context.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
+import 'package:wandrr/data/trip/models/location/location_timezone_date_time.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
@@ -50,10 +51,22 @@ class JourneyPointEditor extends StatelessWidget {
     if (isDeparture) {
       // For departure: use minDateTime (previous leg's arrival) if provided,
       // otherwise use trip start date
-      startDateTime = minDateTime ?? tripMetadata.startDate!;
+      final minForPoint = minDateTime ?? tripMetadata.startDate!;
+      startDateTime = location == null
+          ? minForPoint
+          : LocationTimezoneDateTime.decodeUtcToWallClock(
+              storedDateTime: minForPoint,
+              location: location,
+            );
     } else {
       // For arrival: must be at least 1 minute after departure
-      startDateTime = _getStartDateTime(true, tripMetadata.startDate!);
+      final minForPoint = _getStartDateTime(true, tripMetadata.startDate!);
+      startDateTime = location == null
+          ? minForPoint
+          : LocationTimezoneDateTime.decodeUtcToWallClock(
+              storedDateTime: minForPoint,
+              location: location,
+            );
     }
 
     final endDateTime = _getEndDateTime(tripMetadata.endDate!);
@@ -139,6 +152,16 @@ class JourneyPointEditor extends StatelessWidget {
 
   Widget _createDateTimeDetails(
       DateTime startDateTime, DateTime endDateTime, LocationFacade? location) {
+    final currentDateTime = isDeparture
+        ? transitFacade.departureDateTime
+        : transitFacade.arrivalDateTime;
+    final displayDateTime = currentDateTime == null
+        ? null
+        : LocationTimezoneDateTime.decodeUtcToWallClock(
+            storedDateTime: currentDateTime,
+            location: location,
+          );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -146,9 +169,7 @@ class JourneyPointEditor extends StatelessWidget {
           dateTimeUpdated: onDateTimeChanged,
           startDateTime: startDateTime,
           endDateTime: endDateTime,
-          currentDateTime: isDeparture
-              ? transitFacade.departureDateTime
-              : transitFacade.arrivalDateTime,
+          currentDateTime: displayDateTime,
         ),
       ],
     );
