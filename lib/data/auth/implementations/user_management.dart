@@ -8,13 +8,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wandrr/data/auth/models/platform_user.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 import 'package:wandrr/data/auth/models/user_management.dart';
-import 'package:wandrr/data/trip/implementations/collection_names.dart';
 
 class UserManagement implements UserManagementModifier {
   static const _userNameField = 'userName';
   static const _userIDField = 'userID';
   static const String _usersDBCollectionName = 'users';
-  static const String _googleWebClientIdField = 'webClientId';
 
   static const _userNotFoundErrorMessage = 'user-not-found';
   static const String _invalidEmailError = 'invalid-email';
@@ -120,36 +118,28 @@ class UserManagement implements UserManagementModifier {
   @override
   Future<AuthStatus> trySignInWithGoogle() async {
     try {
-      GoogleSignIn googleSignIn;
       if (kIsWeb) {
-        final googleConfigDocument = await FirebaseFirestore.instance
-            .collection(FirestoreCollections.appConfig)
-            .doc('google')
-            .get();
-        String googleWebClientId =
-            googleConfigDocument[_googleWebClientIdField];
-        googleSignIn = GoogleSignIn(
-          clientId: googleWebClientId,
-          scopes: ['email', 'profile'],
-        );
-      } else {
-        googleSignIn = GoogleSignIn(
-          scopes: ['email', 'profile'],
-        );
+        // On web, signInWithPopup uses the GIS library already loaded in
+        // index.html and does NOT require gapi.client. The google_sign_in
+        // package's signIn() hangs on web because it depends on gapi.client.
+        final googleProvider = GoogleAuthProvider()
+          ..addScope('email')
+          ..addScope('profile');
+        final userCredential =
+            await FirebaseAuth.instance.signInWithPopup(googleProvider);
+        if (userCredential.user == null) return AuthStatus.undefined;
+        final existingUserId =
+            await _retrieveUserIDForUserName(userCredential.user!.email!);
+        return await _signInWithCredential(userCredential, existingUserId);
       }
 
+      // Native (Android / iOS / desktop) — use google_sign_in package.
+      final googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
       final googleUser = await googleSignIn.signIn();
-
-      if (googleUser == null) {
-        // User cancelled the sign-in
-        return AuthStatus.undefined;
-      }
+      if (googleUser == null) return AuthStatus.undefined;
 
       final googleAuth = await googleUser.authentication;
-
-      if (googleAuth.idToken == null) {
-        return AuthStatus.undefined;
-      }
+      if (googleAuth.idToken == null) return AuthStatus.undefined;
 
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
