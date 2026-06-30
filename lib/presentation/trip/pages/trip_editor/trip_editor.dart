@@ -164,6 +164,7 @@ class _TripEditorPageInternal extends StatelessWidget {
         tripEditorAction: TripEditorAction.expense,
         tripEntity: expenseBearingTripEntity,
         pageContext: context,
+        showAsExpenseEditor: true,
       );
     } else if (state is UpdatedTripEntity &&
         state.dataState == DataState.update) {
@@ -286,12 +287,14 @@ class _TripEditorPageInternal extends StatelessWidget {
     required TripEditorAction tripEditorAction,
     required BuildContext pageContext,
     ItineraryPlanDataEditorConfig? planDataEditorConfig,
+    bool showAsExpenseEditor = false,
   }) {
     _showModalBottomSheet(
       TripEntityEditorBottomSheet<T>(
         tripEditorAction: tripEditorAction,
         tripEntity: tripEntity,
         planDataEditorConfig: planDataEditorConfig,
+        showAsExpenseEditor: showAsExpenseEditor,
       ),
       pageContext,
     );

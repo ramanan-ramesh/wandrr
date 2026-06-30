@@ -42,13 +42,12 @@ class _ExpenseListViewState extends State<ExpenseListView> {
   static const double _kSortRowVerticalPadding = 12.0;
   static const double _kSortRowHorizontalPadding = 16.0;
   static const double _kEmptyListHeight = 200.0;
-  static const double _kListItemBorderRadius = 23.0;
+  static const double _kListItemBorderRadius = 12.0;
   static const double _kListItemVerticalPadding = 7.0;
   static const double _kListItemHorizontalPadding = 4.0;
   static const double _kToggleMinHeight = 40.0;
   static const double _kToggleMinWidth = 48.0;
   static const double _kIconSpacing = 4.0;
-  static const double _kLoadingIndicatorSize = 68.0;
 
   @override
   Widget build(BuildContext context) {

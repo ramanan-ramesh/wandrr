@@ -49,25 +49,30 @@ class ReadonlyExpenseListItem extends StatelessWidget {
         ? '${_expense.dateTime!.monthFormat} ${_expense.dateTime!.day}'
         : '';
     final isStandalone = expenseBearingTripEntity is StandaloneExpense;
+    // Match the timeline card structure: left accent bar + icon + content
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // Left accent bar — same 4 px bar used in timeline cards
+        Container(width: 4, color: accent),
+        // Category icon
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
           child: Container(
-            width: 36,
-            height: 36,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
               color: accent.withValues(alpha: isLight ? 0.12 : 0.20),
               shape: BoxShape.circle,
             ),
             child: Icon(
               iconsForCategories[expenseBearingTripEntity.category],
-              size: 18,
+              size: 17,
               color: accent,
             ),
           ),
         ),
+        // Title + date
         Expanded(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(0, 10, 8, 10),

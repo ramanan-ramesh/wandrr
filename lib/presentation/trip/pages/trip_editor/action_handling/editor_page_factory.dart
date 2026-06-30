@@ -177,6 +177,44 @@ class EditorPageFactory {
     );
   }
 
+  /// Creates a page that always shows [ExpenseEditor] for any
+  /// [ExpenseBearingTripEntity], regardless of its concrete type.
+  /// Used when tapping an item from the expense list view.
+  Widget? createExpenseEditorPage(ExpenseBearingTripEntity entity) {
+    if (entity is StandaloneExpense) {
+      return _createExpensePage(entity);
+    } else if (entity is TransitFacade) {
+      return _createExpenseBearingTripEntityEditorPage<TransitFacade>(entity);
+    } else if (entity is LodgingFacade) {
+      return _createExpenseBearingTripEntityEditorPage<LodgingFacade>(entity);
+    }
+    // Fallback: let the default router handle it
+    return createPage(entity as TripEntity<Enum>);
+  }
+
+  Widget _createExpenseBearingTripEntityEditorPage<
+      T extends ExpenseBearingTripEntity>(T entity) {
+    return ConflictAwareActionPage<T>(
+      tripEntity: entity,
+      tripData: tripData,
+      isEditing: isEditing,
+      title: title,
+      onClosePressed: onClosePressed,
+      onActionInvoked: (ctx) {
+        final editable = ctx.editableEntity<T>();
+        if (isEditing && editable == entity) return 0;
+        _emitUpdateEvent<T>(ctx, editable);
+        return 1;
+      },
+      scrollController: scrollController,
+      actionIcon: _actionIcon,
+      pageContentCreator: (editableEntity, onUpdated) => ExpenseEditor(
+        expenseBearingTripEntity: editableEntity,
+        onExpenseUpdated: onUpdated,
+      ),
+    );
+  }
+
   IconData get _actionIcon =>
       isEditing ? Icons.check_rounded : Icons.add_rounded;
 

@@ -21,7 +21,6 @@ class ExpenseEditor extends StatelessWidget {
   // UI constants
   static const double _kBadgeHorizontalPadding = 12.0;
   static const double _kBadgeVerticalPadding = 8.0;
-  static const double _kSectionSpacingLarge = 16.0;
   static const double _kSectionSpacingSmall = 12.0;
 
   ExpenseFacade get _expense => expenseBearingTripEntity.expense;
@@ -37,54 +36,39 @@ class ExpenseEditor extends StatelessWidget {
     _descriptionFieldController.text = _expense.description ?? '';
     _titleEditingController.text = expenseBearingTripEntity.title;
     _initializeCategoryNames(context);
-    return context.isBigLayout
-        ? _buildBigLayout(context)
-        : _buildSmallLayout(context);
-  }
-
-  Column _buildSmallLayout(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildCategoryBadge(context),
+        // Title + Paid On combined — saves one full section's worth of margins
         EditorTheme.createSection(
           context: context,
-          child: _buildTitleField(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTitleField(context),
+              const SizedBox(height: 10),
+              EditorTheme.createSectionHeader(
+                context,
+                icon: Icons.calendar_today_rounded,
+                title: 'Paid On',
+                iconColor: context.isLightTheme
+                    ? AppColors.success
+                    : AppColors.successLight,
+              ),
+              const SizedBox(height: 8),
+              PlatformDatePicker(
+                onDateSelected: (dateTime) {
+                  _expense.dateTime = dateTime;
+                  onExpenseUpdated();
+                },
+                selectedDate: _expense.dateTime,
+              ),
+            ],
+          ),
         ),
-        _buildPaidOnSection(context),
         _buildDescriptionSection(context),
         _buildPaymentDetailsSection(context),
-      ],
-    );
-  }
-
-  Column _buildBigLayout(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _buildCategoryBadge(context),
-        EditorTheme.createSection(
-          context: context,
-          child: _buildTitleField(context),
-        ),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 2,
-              child: Column(
-                children: [
-                  _buildPaidOnSection(context),
-                  _buildDescriptionSection(context),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: _buildPaymentDetailsSection(context),
-            ),
-          ],
-        ),
       ],
     );
   }
@@ -146,7 +130,6 @@ class ExpenseEditor extends StatelessWidget {
         title: 'Payment Details',
         iconColor:
             context.isLightTheme ? AppColors.error : AppColors.errorLight,
-        useLargeText: context.isBigLayout,
       ),
       ExpenditureEditTile(
         callback: (paidBy, splitBy, totalExpense) {
@@ -175,26 +158,6 @@ class ExpenseEditor extends StatelessWidget {
     );
   }
 
-  Widget _buildPaidOnSection(BuildContext context) {
-    return _wrapInSection(
-      context,
-      EditorTheme.createSectionHeader(
-        context,
-        icon: Icons.calendar_today_rounded,
-        title: 'Paid On',
-        iconColor:
-            context.isLightTheme ? AppColors.success : AppColors.successLight,
-      ),
-      PlatformDatePicker(
-        onDateSelected: (dateTime) {
-          _expense.dateTime = dateTime;
-          onExpenseUpdated();
-        },
-        selectedDate: _expense.dateTime,
-      ),
-    );
-  }
-
   Widget _wrapInSection(BuildContext context, Widget header, Widget child) {
     return EditorTheme.createSection(
       context: context,
@@ -202,10 +165,7 @@ class ExpenseEditor extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           header,
-          SizedBox(
-              height: context.isBigLayout
-                  ? _kSectionSpacingLarge
-                  : _kSectionSpacingSmall),
+          const SizedBox(height: _kSectionSpacingSmall),
           child,
         ],
       ),

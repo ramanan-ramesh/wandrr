@@ -1,21 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/editor_page_factory.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
-class TripEntityEditorBottomSheet<T extends TripEntity<Enum>> extends StatefulWidget {
+class TripEntityEditorBottomSheet<T extends TripEntity<Enum>>
+    extends StatefulWidget {
   final TripEditorAction tripEditorAction;
   final T tripEntity;
   final ItineraryPlanDataEditorConfig? planDataEditorConfig;
+
+  /// When true, always shows the expense editor for the entity regardless of its
+  /// concrete type.  Used when opening an entity from the expense list view.
+  final bool showAsExpenseEditor;
 
   const TripEntityEditorBottomSheet({
     required this.tripEditorAction,
     required this.tripEntity,
     super.key,
     this.planDataEditorConfig,
+    this.showAsExpenseEditor = false,
   });
 
   @override
@@ -62,8 +69,15 @@ class _TripEntityEditorBottomSheetState<T extends TripEntity<Enum>>
             scrollController: scrollController,
             itineraryConfig: widget.planDataEditorConfig,
           );
-          _editorPage =
-              factory.createPage(widget.tripEntity) ?? const SizedBox.shrink();
+          if (widget.showAsExpenseEditor &&
+              widget.tripEntity is ExpenseBearingTripEntity) {
+            _editorPage = factory.createExpenseEditorPage(
+                    widget.tripEntity as ExpenseBearingTripEntity) ??
+                const SizedBox.shrink();
+          } else {
+            _editorPage = factory.createPage(widget.tripEntity) ??
+                const SizedBox.shrink();
+          }
         }
         return _editorPage;
       },
