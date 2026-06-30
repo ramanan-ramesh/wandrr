@@ -188,27 +188,59 @@ class TimelineEventFactory {
     }
   }
 
-  /// Creates a single transit event (standalone)
-  TimelineEvent<TransitFacade> _createSingleTransitEvent(
+  /// Creates a single transit event (standalone).
+  ///
+  /// Uses [TransitJourneyTimelineEvent] with [TravelLegConnectionPosition.standalone]
+  /// so the card renders the same "Depart from X / Arrive at Y on time" layout
+  /// as multi-leg journey cards — keeping the timeline visually consistent.
+  TransitJourneyTimelineEvent _createSingleTransitEvent(
     TransitFacade transit,
     TravelLegConnectionPosition position,
   ) {
     final metadata = context.getTransitOptionMetadata(transit.transitOption);
 
-    final transitEventData = _formatter.getTransitEventData(
-      transit: transit,
-      itineraryDay: itineraryDay,
+    final dep = transit.departureDateTime;
+    final arr = transit.arrivalDateTime;
+
+    // Determine whether this is a multi-day leg and which day we're viewing.
+    final isMultiDay = dep != null &&
+        arr != null &&
+        !_isSameDayInLocation(
+          dep,
+          arr,
+          transitLocation: transit.departureLocation,
+          comparisonLocation: transit.arrivalLocation,
+        );
+    final isDepartureDayView = dep == null ||
+        LocationTimezoneDateTime.isOnSameDay(
+          storedDateTime: dep,
+          day: itineraryDay,
+          location: transit.departureLocation,
+        );
+
+    final depLocation = transit.departureLocation?.toString() ?? '?';
+    final arrLocation = transit.arrivalLocation?.toString() ?? '?';
+
+    // Wrap the single transit in a minimal journey so _ConnectedTransitCard
+    // can access journey metadata (e.g. for layover logic — always null here).
+    final syntheticJourney = TransitJourneyFacade(
+      journeyId: transit.id ?? '',
+      tripId: transit.tripId,
+      unsortedLegs: [transit],
     );
 
-    return TimelineEvent<TransitFacade>(
-      time: transitEventData.eventTime,
-      title: transitEventData.title,
-      subtitle: transitEventData.subtitle.isNotEmpty
-          ? transitEventData.subtitle
-          : _formatter.getTransitOperatorInfo(transit),
+    return TransitJourneyTimelineEvent(
+      time: dep ?? DateTime.now(),
+      title: '$depLocation → $arrLocation',
+      subtitle: _formatter.getTransitOperatorInfo(transit),
       icon: metadata.icon,
       iconColor: AppColors.info,
       data: transit,
+      journeyId: transit.id ?? '',
+      position: position, // TravelLegConnectionPosition.standalone
+      journey: syntheticJourney,
+      isMultiDay: isMultiDay,
+      isDepartureDayView: isDepartureDayView,
       notes: transit.notes,
       confirmationId: transit.confirmationId,
     );
