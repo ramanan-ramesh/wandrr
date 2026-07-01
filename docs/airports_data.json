@@ -373,8 +373,8 @@
   {
     "name": "Century City Heliport",
     "city": "Los Angeles",
-    "lat": 34.060798645,
-    "lon": -118.417999268,
+    "lat": 34.061015,
+    "lon": -118.417344,
     "iata": "CCD"
   },
   {
@@ -1108,8 +1108,8 @@
   {
     "name": "Kimberley Downs Airport",
     "city": "Kimberley Downs",
-    "lat": -17.39780044555664,
-    "lon": 124.3550033569336,
+    "lat": -17.398577,
+    "lon": 124.355565,
     "iata": "KBD"
   },
   {
@@ -2515,8 +2515,8 @@
   {
     "name": "Safia Airport",
     "city": "Safia",
-    "lat": -9.59305555556,
-    "lon": 148.636111111,
+    "lat": -9.594471,
+    "lon": 148.639305,
     "iata": "SFU"
   },
   {
@@ -3467,8 +3467,8 @@
   {
     "name": "Brighton Downs Airport",
     "city": "Brighton Downs",
-    "lat": -23.363333,
-    "lon": 141.562778,
+    "lat": -23.365763,
+    "lon": 141.562947,
     "iata": "BHT"
   },
   {
@@ -8430,8 +8430,8 @@
   {
     "name": "Dalnerechensk Airport",
     "city": "Dalnerechensk",
-    "lat": 45.877949,
-    "lon": 133.735822,
+    "lat": 45.879857,
+    "lon": 133.737629,
     "iata": "DLR"
   },
   {
@@ -8806,7 +8806,7 @@
     "iata": "GNE"
   },
   {
-    "name": "Flanders International Airport Kortrijk-Wevelgem",
+    "name": "Kortrijk-Wevelgem International Airport",
     "city": "Wevelgem",
     "lat": 50.818878,
     "lon": 3.209551,
@@ -9074,8 +9074,8 @@
   {
     "name": "Hamburg-Finkenwerder Airport",
     "city": "Hamburg",
-    "lat": 53.5352783203125,
-    "lon": 9.835556030273438,
+    "lat": 53.535278,
+    "lon": 9.835556,
     "iata": "XFW"
   },
   {
@@ -9686,13 +9686,6 @@
     "lat": 52.453899,
     "lon": -1.74803,
     "iata": "BHX"
-  },
-  {
-    "name": "Coventry Airport",
-    "city": "Coventry, West Midlands",
-    "lat": 52.369701,
-    "lon": -1.47972,
-    "iata": "CVT"
   },
   {
     "name": "Gloucestershire Airport",
@@ -12195,9 +12188,9 @@
   },
   {
     "name": "Vryburg Airport",
-    "city": "Vyrburg",
-    "lat": -26.9824008942,
-    "lon": 24.7287998199,
+    "city": "Vryburg",
+    "lat": -26.982401,
+    "lon": 24.7288,
     "iata": "VRU"
   },
   {
@@ -13265,7 +13258,7 @@
     "iata": "MJN"
   },
   {
-    "name": "Nosy Be-Fascene International Airport",
+    "name": "Nosy Be International Airport",
     "city": "Nosy Be",
     "lat": -13.3121,
     "lon": 48.3148,
@@ -15198,7 +15191,7 @@
   },
   {
     "name": "Nara Airport",
-    "city": "Nara",
+    "city": "Keibane",
     "lat": 15.22913,
     "lon": -7.261965,
     "iata": "NRM"
@@ -15209,13 +15202,6 @@
     "lat": 15.2381,
     "lon": -9.57611,
     "iata": "NIX"
-  },
-  {
-    "name": "Sikasso Airport",
-    "city": "Sikasso",
-    "lat": 11.328611,
-    "lon": -5.684722,
-    "iata": "KSS"
   },
   {
     "name": "Tombouktou Airport",
@@ -15255,8 +15241,8 @@
   {
     "name": "Foula Airfield",
     "city": "Foula",
-    "lat": 60.121725,
-    "lon": -2.053202,
+    "lat": 60.121916,
+    "lon": -2.053439,
     "iata": "FOA"
   },
   {
@@ -15268,7 +15254,7 @@
   },
   {
     "name": "Banjul International Airport",
-    "city": "Yundum",
+    "city": "Banjul (Yundum)",
     "lat": 13.338,
     "lon": -16.652201,
     "iata": "BJL"
@@ -16758,7 +16744,7 @@
     "iata": "SKV"
   },
   {
-    "name": "Sohag International Airport",
+    "name": "Suhaj International Airport",
     "city": "Suhaj",
     "lat": 26.342515,
     "lon": 31.743017,
@@ -18102,7 +18088,7 @@
     "iata": "JRA"
   },
   {
-    "name": "Downtown Manhattan Heliport",
+    "name": "Downtown Skyport Heliport",
     "city": "New York",
     "lat": 40.700711,
     "lon": -74.008573,
@@ -19371,8 +19357,8 @@
   {
     "name": "Bell Island Hot Springs Seaplane Base",
     "city": "Bell Island",
-    "lat": 55.9291000366,
-    "lon": -131.572006226,
+    "lat": 55.9291,
+    "lon": -131.572006,
     "iata": "KBE"
   },
   {
@@ -23114,10 +23100,10 @@
     "iata": "HEE"
   },
   {
-    "name": "Manassas Regional Airport/Harry P. Davis Field",
+    "name": "Washington Manassas Harry P. Davis Field",
     "city": "Manassas",
-    "lat": 38.721401,
-    "lon": -77.515404,
+    "lat": 38.723021,
+    "lon": -77.515422,
     "iata": "MNZ"
   },
   {
@@ -23767,8 +23753,8 @@
   {
     "name": "Winkler County Airport",
     "city": "Wink",
-    "lat": 31.779600143399996,
-    "lon": -103.200996399,
+    "lat": 31.7796,
+    "lon": -103.200996,
     "iata": "INK"
   },
   {
@@ -24390,8 +24376,8 @@
   {
     "name": "Laguna Army Airfield",
     "city": "Yuma Proving Ground(Yuma)",
-    "lat": 32.86000061,
-    "lon": -114.3970032,
+    "lat": 32.860794,
+    "lon": -114.39615,
     "iata": "LGF"
   },
   {
@@ -26110,7 +26096,7 @@
     "iata": "OAJ"
   },
   {
-    "name": "San Francisco Bay Oakland International Airport",
+    "name": "Oakland San Francisco Bay Airport",
     "city": "Oakland",
     "lat": 37.720085,
     "lon": -122.221184,
@@ -28184,8 +28170,8 @@
   {
     "name": "Shreveport Regional Airport",
     "city": "Shreveport",
-    "lat": 32.446602,
-    "lon": -93.8256,
+    "lat": 32.444747,
+    "lon": -93.826741,
     "iata": "SHV"
   },
   {
@@ -28852,6 +28838,13 @@
     "lat": 28.514799118042,
     "lon": -80.799201965332,
     "iata": "TIX"
+  },
+  {
+    "name": "McKinney National Airport",
+    "city": "Dallas",
+    "lat": 33.177898,
+    "lon": -96.5905,
+    "iata": "DTX"
   },
   {
     "name": "Kennett Memorial Airport",
@@ -40523,6 +40516,20 @@
     "iata": "BRH"
   },
   {
+    "name": "Bimin Airport",
+    "city": "Bimin",
+    "lat": -5.289378,
+    "lon": 142.014039,
+    "iata": "BIZ"
+  },
+  {
+    "name": "Kisengam Airport [CLOSED]",
+    "city": "Kisenden",
+    "lat": -6.362,
+    "lon": 146.709999,
+    "iata": "KSG"
+  },
+  {
     "name": "Pambwa Airstrip",
     "city": "Pambwa Station",
     "lat": -11.402966,
@@ -41001,8 +41008,8 @@
   {
     "name": "Taitung Airport",
     "city": "Taitung City",
-    "lat": 22.7549991607666,
-    "lon": 121.10199737548828,
+    "lat": 22.754856,
+    "lon": 121.101794,
     "iata": "TTT"
   },
   {
@@ -41057,8 +41064,8 @@
   {
     "name": "Matsu Beigan Airport",
     "city": "Matsu (Beigan)",
-    "lat": 26.224199,
-    "lon": 120.002998,
+    "lat": 26.22414,
+    "lon": 120.002679,
     "iata": "MFK"
   },
   {
@@ -41081,13 +41088,6 @@
     "lat": 23.568701,
     "lon": 119.627998,
     "iata": "MZG"
-  },
-  {
-    "name": "Pingtung Air Force Base North",
-    "city": "Pingtung",
-    "lat": 22.700199,
-    "lon": 120.482002,
-    "iata": "PIF"
   },
   {
     "name": "Taipei Songshan International Airport",
@@ -42530,6 +42530,13 @@
     "lat": 50.877144,
     "lon": 142.17561,
     "iata": "UHS"
+  },
+  {
+    "name": "Velikiye Luki Airport",
+    "city": "Velikiye Luki",
+    "lat": 56.381066,
+    "lon": 30.607846,
+    "iata": "VLU"
   },
   {
     "name": "Kirovsk-Apatity Airport",
@@ -47532,8 +47539,8 @@
   {
     "name": "Eduard Alexander Gummels Airport",
     "city": "Kwatta",
-    "lat": 5.8604,
-    "lon": -55.192,
+    "lat": 5.863807,
+    "lon": -55.189504,
     "iata": "EAX"
   },
   {
@@ -48372,8 +48379,8 @@
   {
     "name": "Canarana Airport",
     "city": "Canarana",
-    "lat": -13.574444,
-    "lon": -52.270557,
+    "lat": -13.576545,
+    "lon": -52.268296,
     "iata": "CQA"
   },
   {
@@ -50323,13 +50330,6 @@
     "iata": "KGO"
   },
   {
-    "name": "Ihor Sikorsky Kyiv International Airport (Zhuliany)",
-    "city": "Kyiv",
-    "lat": 50.40194,
-    "lon": 30.45194,
-    "iata": "IEV"
-  },
-  {
     "name": "Zhytomyr Airport",
     "city": "Zhytomyr",
     "lat": 50.270556,
@@ -50430,8 +50430,8 @@
   {
     "name": "Leshukonskoye Airport",
     "city": "Leshukonskoye",
-    "lat": 64.8960037231,
-    "lon": 45.7229995728,
+    "lat": 64.896004,
+    "lon": 45.723,
     "iata": "LDG"
   },
   {
@@ -50444,8 +50444,8 @@
   {
     "name": "Solovki Airport",
     "city": "Solovetsky Islands",
-    "lat": 65.029999,
-    "lon": 35.733334,
+    "lat": 65.029996,
+    "lon": 35.730558,
     "iata": "CSH"
   },
   {
@@ -50857,8 +50857,8 @@
   {
     "name": "Elista Airport",
     "city": "Elista",
-    "lat": 46.3739013671875,
-    "lon": 44.33089828491211,
+    "lat": 46.373901,
+    "lon": 44.330898,
     "iata": "ESL"
   },
   {
@@ -51417,8 +51417,8 @@
   {
     "name": "Voronezh International Airport",
     "city": "Voronezh",
-    "lat": 51.813683,
-    "lon": 39.231711,
+    "lat": 51.814324,
+    "lon": 39.230948,
     "iata": "VOZ"
   },
   {
@@ -51564,8 +51564,8 @@
   {
     "name": "Penza Airport",
     "city": "Penza",
-    "lat": 53.110599517822266,
-    "lon": 45.02109909057617,
+    "lat": 53.1106,
+    "lon": 45.021099,
     "iata": "PEZ"
   },
   {
@@ -52432,8 +52432,8 @@
   {
     "name": "Osmany International Airport",
     "city": "Sylhet",
-    "lat": 24.963071,
-    "lon": 91.866903,
+    "lat": 24.963993,
+    "lon": 91.864749,
     "iata": "ZYL"
   },
   {
@@ -57855,6 +57855,13 @@
     "iata": "NAA"
   },
   {
+    "name": "Ngukurr Airport",
+    "city": "Roper River",
+    "lat": -14.7228,
+    "lon": 134.746994,
+    "iata": "RPM"
+  },
+  {
     "name": "Nambucca Heads Airport",
     "city": "Nambucca Heads",
     "lat": -30.673058,
@@ -59522,9 +59529,9 @@
   },
   {
     "name": "Xi'an Xianyang International Airport",
-    "city": "Xianyang (Weicheng)",
-    "lat": 34.447102,
-    "lon": 108.751999,
+    "city": "Xi'an",
+    "lat": 34.442207,
+    "lon": 108.762385,
     "iata": "XIY"
   },
   {
