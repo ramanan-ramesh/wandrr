@@ -632,6 +632,10 @@
     "iata": "I5"
   },
   {
+    "name": "AirBorneo",
+    "iata": "MY"
+  },
+  {
     "name": "Atlantic Airlines",
     "iata": "EX"
   },
@@ -3325,7 +3329,7 @@
   },
   {
     "name": "MASwings",
-    "iata": "MY"
+    "iata": "MH"
   },
   {
     "name": "MAT Macedonian Airlines",
