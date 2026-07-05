@@ -1,7 +1,7 @@
 # Wandrr — Product Requirements Specification
 
 > **Version:** 1.3  
-> **Last Updated:** 2026-06-21  
+> **Last Updated:** 2026-07-05  
 > **Status:** Active
 
 ---
@@ -1191,17 +1191,27 @@ expense table — all controlled by user-selectable options.
 | Location                 | Trigger                                                                                                                                                                                                  |
 |--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Trip Editor toolbar      | Print icon button (all layouts).                                                                                                                                                                         |
-| Trips List overflow menu | "Print trip" menu item — works for any trip. If the trip is already open, the dialog opens directly. Otherwise, the trip is loaded in the background first, and the dialog opens once loading completes. |
+| Trips List overflow menu | "Print trip" menu item — works for any trip. If the trip is already open, the print page opens directly. Otherwise, the trip is loaded reactively and the print page transitions from loading state to ready state. |
 
 ### Loading State
 
-- All form content (title field, section chips, transit filter toggles) is shown **immediately**
-  when the dialog opens.
-- If the trip data is not yet fully loaded, the transit selection area shows a progress bar.
-- A **minimum visual delay of 1 second** is enforced: even if loading completes quickly, the
-  progress indicator stays visible for the full duration to avoid a jarring flash.
-- Once the trip data is ready and the minimum delay has passed, transit items appear.
+- Print now opens as a dedicated full page (`/trips/:tripId/print`) for both phone and tablet/web.
+- Print page app bar must use a surfaced theme treatment (distinct from page background) so title,
+  navigation, and elevation remain visually clear in both light and dark themes.
+- The print route must activate/load the requested trip reactively (same loading approach as trip
+  editor route) before rendering interactive print controls.
+- If trip data is not yet fully loaded, the print page layout is still shown (title field, include
+  chips, transit filters, and footer action), but all interactive controls remain disabled.
+- During loading, only the transit list area shows shimmer placeholders (phone and tablet/web
+  layouts) while the rest of the page remains visible and stable.
+- A **minimum visual delay of 2 seconds** is enforced for loading shimmers: even if loading
+  completes quickly, transit shimmer placeholders remain visible for the full duration to avoid a
+  jarring flash.
+- Once trip data is ready and the minimum delay has passed, print sections enter with staggered
+  fade+slide animations to avoid abrupt layout jumps.
 - The Generate PDF button is disabled until transits are ready.
+- While trip data is loading, the title field remains visible/populated from trip metadata and only
+  the transit list area shows loading placeholders.
 
 ### Print Options Dialog
 
@@ -1219,6 +1229,8 @@ fixed footer with action buttons.
 - **Section title** — "Transit Options".
 - **Inter-city travels** and **Intra-city travels** — Two compact switches displayed side-by-side.
   Both enabled by default. Toggling filters the visible transit list below.
+  On large screens, label and switch controls remain compactly grouped (no excessive gap between
+  text and switch).
 
 #### Transit Selection List
 
@@ -1237,6 +1249,8 @@ Below the transit options, each transit is shown as a selectable item:
     - A journey-level checkbox toggles all legs at once.
 - All transits are selected by default.
 - Only selected transits appear in the generated PDF.
+- On large screens, if the transit list exceeds the visible transit area, the list is split into
+  two equal vertical columns (first half left, second half right) to improve scanning.
 
 #### Inter-City / Intra-City Classification
 
@@ -1248,6 +1262,14 @@ Below the transit options, each transit is shown as a selectable item:
 
 - Cancel (text button) and Generate PDF (filled button with print icon).
 - While generating, the button shows a loading indicator and is disabled.
+- On large screens, the Generate PDF action is shown as a single centered docked footer button
+  (without a right-side summary panel).
+
+### Section Availability Rules
+
+- Include-section chips (Checklists, Expenses, Sights/Places, Notes) default to selected while data
+  is loading.
+- After data is ready, a chip is disabled if the trip has no entries for that section.
 
 ### PDF Layout
 
@@ -1256,6 +1278,12 @@ typography weight, letter-spacing, borders, and spatial hierarchy to remain visu
 printed.
 
 - **Page header** — App logo and app name "Wandrr". The trip name is **not** shown in the header.
+- Header logo rendering must be resilient across preview/print targets; if direct asset decoding
+  fails, a fallback wordmark marker is rendered so the header still has branded identity.
+- PDF text rendering must support extended Unicode content (for example: arrows, bullets,
+  accented Latin characters like `Č/ý`, and numbered-keycap input). If a glyph sequence is not
+  directly supported by the PDF font stack, a readable fallback representation must be emitted
+  instead of tofu/empty boxes.
 - **Page footer** — Page number ("Page X of Y").
 - **Cover block** — Trip title (large bold), date range, and info pills (day count, travellers,
   budget) inside a bordered container.
@@ -1395,3 +1423,31 @@ small phones (< 360dp width):
   collection references.
 - **All UI references renamed:** `context.activeTrip.budgetingModule` →
   `context.activeTrip.budgetingService` across all presentation widgets and integration tests.
+
+---
+
+## Changelog — v1.5 (2026-07-05)
+
+### UI Polish — Light Theme Contrast
+
+- **REQ-PRINT-UI-001:** In `PrintPage`, transit selection card outlines must remain clearly visible in light theme (no low-contrast borders against light backgrounds).
+- **REQ-PRINT-UI-002:** Print loading placeholders must use pronounced shimmer surfaces (instead of flat static placeholders) to communicate loading progress in both themes.
+- **REQ-TRIPLIST-UI-001:** Year `ChoiceChip` controls in Trips list must have visible outlines in light theme and a stronger selected emphasis (border weight + text weight + tinted selected background).
+
+### Trip Editor Loading Experience
+
+- **REQ-TE-LOAD-001:** While a trip is loading, the Trip Editor app bar must display available `TripMetadata` values (trip name and date range) whenever metadata is known.
+- **REQ-TE-LOAD-002:** Trip loading skeleton should prioritize core editor content areas by showing shimmer only for itinerary sections (timeline/notes/places) and expense list items.
+- **REQ-TE-LOAD-003:** Budget summary visuals must animate on trip-load completion and on value updates:
+  - total expense display animates when amount changes;
+  - budget-to-expense ratio/progress animates with updated values.
+- **REQ-TE-APPBAR-001:** In Trip Editor app bar collaborator avatars, failed remote user-photo loads (for example throttled Google profile URLs returning HTTP 429) must gracefully fall back to the default person icon without breaking avatar layout.
+
+### Print Loading UX and Resilience
+
+- **REQ-PRINT-LOAD-001:** Print page controls (title field, include-section chips, transit filter switches, and generate button) must remain visible immediately on route entry, but stay disabled until trip data is fully loaded.
+- **REQ-PRINT-LOAD-002:** While print data is loading, shimmer placeholders are shown only in the transit list region (small and large layouts); non-transit regions must not be replaced by full-page loading placeholders.
+- **REQ-PRINT-LOAD-003:** Any print/loading shimmer state must remain visible for a minimum of 2 seconds before transitioning to loaded content.
+- **REQ-PRINT-PDF-001:** PDF rendering must gracefully handle unsupported Unicode glyph sequences with readable fallbacks and resilient font/logo loading paths.
+- **REQ-DATERANGE-UI-001:** Date range picker labels and values must avoid overflow across compact and expanded layouts via a unified responsive date row style.
+
