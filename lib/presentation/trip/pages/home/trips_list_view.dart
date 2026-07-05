@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -20,7 +18,6 @@ import 'package:wandrr/presentation/trip/pages/home/copy_trip_dialog.dart';
 import 'package:wandrr/presentation/trip/pages/home/thumbnail_selector.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/delete_trip_dialog.dart';
-import 'package:wandrr/presentation/trip/widgets/print_trip_dialog.dart';
 import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 import 'package:wandrr/presentation/trip/widgets/unified_trip_dialog.dart';
@@ -251,21 +248,39 @@ class _YearChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: years.map((year) {
+          final isSelected = selectedYear == year;
+          final activeColor =
+              isLight ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
+          final borderColor = isSelected
+              ? activeColor
+              : (isLight ? AppColors.neutral400 : AppColors.neutral500);
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: ChoiceChip(
               label: Text(year.toString()),
-              selected: selectedYear == year,
+              selected: isSelected,
               onSelected: (selected) {
-                if (selected) {
-                  onSelected(year);
-                }
+                if (selected) onSelected(year);
               },
+              side: BorderSide(
+                color: borderColor,
+                width: isSelected ? 2.0 : 1.5,
+              ),
+              backgroundColor: Colors.transparent,
+              selectedColor: activeColor.withValues(alpha: 0.14),
+              checkmarkColor: activeColor,
+              labelStyle: TextStyle(
+                color: isSelected
+                    ? activeColor
+                    : Theme.of(context).colorScheme.onSurface,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+              ),
             ),
           );
         }).toList(),
@@ -530,29 +545,9 @@ class _TripCardState extends State<_TripCard> {
   }
 
   void _showPrintDialog(BuildContext context, TripMetadataFacade trip) {
-    final activeTrip = context.tripRepository.activeTrip;
-    if (activeTrip != null && activeTrip.tripMetadata.id == trip.id) {
-      showDialog(
-        context: context,
-        builder: (_) => PrintTripDialog(tripData: activeTrip),
-      );
-      return;
-    }
-    late final StreamSubscription<TripManagementState> sub;
-    sub = BlocProvider.of<TripManagementBloc>(context).stream.listen((s) {
-      if (s is LoadedTripPreview) {
-        sub.cancel();
-        if (context.mounted) {
-          showDialog(
-            context: context,
-            builder: (_) => PrintTripDialog(tripData: s.tripData),
-          );
-        }
-      }
-    });
-    context.addTripManagementEvent(
-      LoadTrip(tripMetadata: trip, shouldActivateTrip: false),
-    );
+    if (trip.id == null) return;
+    // Navigate directly — _TripPrintPage in the router handles reactive loading.
+    context.push(AppRoutes.printTripPath(trip.id!));
   }
 
   void _showCopyDialog(BuildContext context, TripMetadataFacade trip) {

@@ -28,4 +28,30 @@ class PrintOptions {
     this.selectedTransitIds,
     this.mergedJourneyIds = const {},
   });
+
+  PrintOptions copyWith({
+    String? title,
+    bool? includeChecklist,
+    bool? includeExpenses,
+    bool? includeSights,
+    bool? includeNotes,
+    bool? includeInterCityTransit,
+    bool? includeIntraCityTransit,
+    Set<String>? selectedTransitIds,
+    Set<String>? mergedJourneyIds,
+  }) {
+    return PrintOptions(
+      title: title ?? this.title,
+      includeChecklist: includeChecklist ?? this.includeChecklist,
+      includeExpenses: includeExpenses ?? this.includeExpenses,
+      includeSights: includeSights ?? this.includeSights,
+      includeNotes: includeNotes ?? this.includeNotes,
+      includeInterCityTransit:
+          includeInterCityTransit ?? this.includeInterCityTransit,
+      includeIntraCityTransit:
+          includeIntraCityTransit ?? this.includeIntraCityTransit,
+      selectedTransitIds: selectedTransitIds ?? this.selectedTransitIds,
+      mergedJourneyIds: mergedJourneyIds ?? this.mergedJourneyIds,
+    );
+  }
 }

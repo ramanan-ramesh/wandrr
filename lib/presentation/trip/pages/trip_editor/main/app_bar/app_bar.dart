@@ -8,14 +8,14 @@ import 'package:wandrr/presentation/app/routing/app_router.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
-import 'package:wandrr/presentation/trip/widgets/print_trip_dialog.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
 import 'collaborator_list.dart';
 
 class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
+  // Extra 2 px for the animated loading bar at the bottom of the AppBar.
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 2);
 
   const TripEditorAppBar({super.key});
 
@@ -36,6 +36,31 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
           : [
               _createPrintButton(context),
             ],
+      // Thin animated progress bar at the bottom — visible only while the full
+      // trip data is being fetched from Firestore.
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(2),
+        child: StreamBuilder<bool>(
+          stream: context.tripRepository.activeTrip!.isFullyLoaded,
+          initialData: context.tripRepository.activeTrip!.isFullyLoadedValue,
+          builder: (context, snapshot) {
+            final isLoaded = snapshot.data ?? false;
+            return AnimatedOpacity(
+              opacity: isLoaded ? 0.0 : 1.0,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeOut,
+              child: LinearProgressIndicator(
+                backgroundColor: Colors.transparent,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  context.isLightTheme
+                      ? AppColors.brandPrimary.withValues(alpha: 0.55)
+                      : AppColors.brandPrimaryLight.withValues(alpha: 0.55),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -119,12 +144,11 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   void _showPrintDialog(BuildContext pageContext) {
-    showDialog(
-      context: pageContext,
-      builder: (_) => PrintTripDialog(
-        tripData: pageContext.activeTrip,
-      ),
-    );
+    final tripId = pageContext.activeTrip.tripMetadata.id;
+    if (tripId == null) {
+      return;
+    }
+    pageContext.push(AppRoutes.printTripPath(tripId));
   }
 
   void _selectTripMetadata(BuildContext context) {

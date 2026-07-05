@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -19,6 +21,8 @@ import 'package:wandrr/presentation/app/pages/startup_page.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/home/home_page.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/print/print_page.dart';
+import 'package:wandrr/presentation/trip/pages/trip_editor/print/trip_print_loading_shell.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
@@ -30,9 +34,13 @@ class AppRoutes {
   static const String onboarding = '/onboarding';
   static const String trips = '/trips';
   static const String tripEditor = '/trips/:tripId';
+  static const String printTrip = '/trips/:tripId/print';
 
   /// Generate trip editor path with specific trip ID
   static String tripEditorPath(String tripId) => '/trips/$tripId';
+
+  /// Generate print trip path with specific trip ID
+  static String printTripPath(String tripId) => '/trips/$tripId/print';
 }
 
 /// Creates and manages the app's router configuration
@@ -138,6 +146,25 @@ class AppRouter {
                       ),
                     );
                   },
+                );
+              },
+            ),
+            // Print trip page route
+            GoRoute(
+              path: AppRoutes.printTrip,
+              pageBuilder: (context, state) {
+                final tripId = state.pathParameters['tripId']!;
+                return CustomTransitionPage(
+                  key: state.pageKey,
+                  child: _TripPrintPage(tripId: tripId),
+                  transitionDuration: const Duration(milliseconds: 380),
+                  reverseTransitionDuration: const Duration(milliseconds: 280),
+                  transitionsBuilder: (context, animation, secondary, child) =>
+                      FadeTransition(
+                    opacity: CurvedAnimation(
+                        parent: animation, curve: Curves.easeOut),
+                    child: child,
+                  ),
                 );
               },
             ),
@@ -531,6 +558,7 @@ class _TripEditorPageState extends State<_TripEditorPage> {
         .where((trip) => trip.id == widget.tripId)
         .firstOrNull;
     if (tripMetadata != null) {
+      _loadingMetadata = tripMetadata;
       context.addTripManagementEvent(
         LoadTrip(tripMetadata: tripMetadata, shouldActivateTrip: true),
       );
@@ -594,6 +622,153 @@ class _TripEditorPageState extends State<_TripEditorPage> {
               : KeyedSubtree(
                   key: const ValueKey('trip_editor_skeleton'),
                   child: _TripLoadingSkeleton(metadata: _loadingMetadata),
+                ),
+        );
+      },
+    );
+  }
+}
+
+class _TripPrintPage extends StatefulWidget {
+  final String tripId;
+
+  const _TripPrintPage({required this.tripId});
+
+  @override
+  State<_TripPrintPage> createState() => _TripPrintPageState();
+}
+
+class _TripPrintPageState extends State<_TripPrintPage> {
+  static const _kMinLoadingShellDuration = Duration(seconds: 2);
+
+  bool _hasTriedLoadingTrip = false;
+  bool _minLoadingDurationPassed = false;
+  TripMetadataFacade? _loadingMetadata;
+  Timer? _loadingShellTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startLoadingShellMinimumDelay();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _tryLoadTrip();
+  }
+
+  @override
+  void didUpdateWidget(covariant _TripPrintPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.tripId != widget.tripId) {
+      _hasTriedLoadingTrip = false;
+      _minLoadingDurationPassed = false;
+      _loadingMetadata = null;
+      _startLoadingShellMinimumDelay();
+      _tryLoadTrip();
+    }
+  }
+
+  @override
+  void dispose() {
+    _loadingShellTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startLoadingShellMinimumDelay() {
+    _loadingShellTimer?.cancel();
+    _loadingShellTimer = Timer(_kMinLoadingShellDuration, () {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _minLoadingDurationPassed = true);
+    });
+  }
+
+  void _tryLoadTrip() {
+    if (_hasTriedLoadingTrip) {
+      return;
+    }
+
+    final state = context.tripManagementState;
+    if (state is LoadedRepository ||
+        state is NavigateToHome ||
+        state is UpdatedTripEntity) {
+      _loadTripById();
+    } else if (state is ActivatedTrip) {
+      final activeTripId = context.tripRepository.activeTrip?.tripMetadata.id;
+      if (activeTripId == widget.tripId) {
+        _hasTriedLoadingTrip = true;
+      } else {
+        _loadTripById();
+      }
+    } else if (state is LoadingTripManagement || state is LoadingTrip) {
+      // Listener below handles this.
+    } else {
+      _loadTripById();
+    }
+  }
+
+  void _loadTripById() {
+    _hasTriedLoadingTrip = true;
+    final tripRepo = context.tripRepository;
+    final tripMetadata = tripRepo.tripMetadataCollection.items
+        .where((trip) => trip.id == widget.tripId)
+        .firstOrNull;
+
+    if (tripMetadata == null) {
+      context.go(AppRoutes.trips);
+      return;
+    }
+
+    context.addTripManagementEvent(
+      LoadTrip(tripMetadata: tripMetadata, shouldActivateTrip: true),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<TripManagementBloc, TripManagementState>(
+      listenWhen: (_, current) =>
+          current is LoadedRepository ||
+          current is NavigateToHome ||
+          current is ActivatedTrip ||
+          current is LoadingTrip,
+      listener: (context, state) {
+        if (state is LoadingTrip) {
+          setState(() => _loadingMetadata = state.tripMetadataFacade);
+        } else if ((state is LoadedRepository || state is NavigateToHome) &&
+            !_hasTriedLoadingTrip) {
+          _tryLoadTrip();
+        }
+      },
+      builder: (context, state) {
+        if (state is NavigateToHome || state is LoadedRepository) {
+          return const SizedBox.shrink();
+        }
+
+        final activeTrip = context.tripRepository.activeTrip;
+        final canRenderPrintPage =
+            activeTrip?.tripMetadata.id == widget.tripId &&
+                _minLoadingDurationPassed;
+
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 420),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+            child: child,
+          ),
+          child: canRenderPrintPage
+              ? KeyedSubtree(
+                  key: const ValueKey('print_page_ready'),
+                  child: PrintPage(tripData: activeTrip!),
+                )
+              : KeyedSubtree(
+                  key: const ValueKey('print_page_loading'),
+                  child: TripPrintLoadingShell(metadata: _loadingMetadata),
                 ),
         );
       },
@@ -668,93 +843,96 @@ class _TripLoadingSkeleton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6),
               ),
       ),
-      body: Column(
-        children: [
-          // Day-navigation shimmer
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            child: Row(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isBigLayout = constraints.maxWidth >= 900;
+
+          Widget itinerarySkeleton() {
+            return Column(
               children: [
-                ShimmerPlaceholder(
-                    width: 40,
-                    height: 40,
-                    borderRadius: BorderRadius.circular(8)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ShimmerPlaceholder(
-                      height: 34, borderRadius: BorderRadius.circular(20)),
-                ),
-                const SizedBox(width: 8),
-                ShimmerPlaceholder(
-                    width: 40,
-                    height: 40,
-                    borderRadius: BorderRadius.circular(8)),
-              ],
-            ),
-          ),
-          // Chrome tab-bar shimmer (4 tabs)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
-            child: Row(
-              children: List.generate(
-                4,
-                (i) => Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(left: i == 0 ? 0 : 6),
-                    child: ShimmerPlaceholder(
-                        height: 36, borderRadius: BorderRadius.circular(8)),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
+                  child: Row(
+                    children: List.generate(
+                      3,
+                      (i) => Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(left: i == 0 ? 0 : 6),
+                          child: ShimmerPlaceholder(
+                            height: 36,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ),
-          // Divider matching ChromeTabBar styling
-          Divider(
-            height: 1,
-            color: accentColor.withValues(alpha: 0.18),
-          ),
-          // Timeline shimmer items
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(12, 16, 12, 24),
-              itemCount: 5,
-              itemBuilder: (_, i) {
-                // Stagger heights for a realistic skeleton
-                final h = 72.0 + (i % 3) * 24.0;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                Divider(
+                  height: 1,
+                  color: accentColor.withValues(alpha: 0.18),
+                ),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(12, 16, 12, 24),
                     children: [
-                      // Timeline dot + line
-                      Column(
-                        children: [
-                          ShimmerPlaceholder(
-                              width: 12,
-                              height: 12,
-                              borderRadius: BorderRadius.circular(6)),
-                          if (i < 4)
-                            Container(
-                              width: 2,
-                              height: h - 12,
-                              color: accentColor.withValues(alpha: 0.15),
-                            ),
-                        ],
+                      for (var i = 0; i < 2; i++) ...[
+                        _TripTimelineSkeletonItem(
+                            index: i, accentColor: accentColor),
+                        const SizedBox(height: 12),
+                      ],
+                      ShimmerPlaceholder(
+                        height: 68,
+                        borderRadius: BorderRadius.circular(14),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ShimmerPlaceholder(
-                          height: h,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
+                      const SizedBox(height: 12),
+                      ShimmerPlaceholder(
+                        height: 72,
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ],
                   ),
-                );
-              },
-            ),
-          ),
-        ],
+                ),
+              ],
+            );
+          }
+
+          Widget expenseListSkeleton() {
+            return ListView.builder(
+              padding: const EdgeInsets.fromLTRB(8, 12, 8, 24),
+              itemCount: 4,
+              itemBuilder: (_, i) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: ShimmerPlaceholder(
+                  height: 72,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            );
+          }
+
+          if (isBigLayout) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
+              child: Row(
+                children: [
+                  Expanded(child: itinerarySkeleton()),
+                  const SizedBox(width: 8),
+                  Expanded(child: expenseListSkeleton()),
+                ],
+              ),
+            );
+          }
+
+          return Column(
+            children: [
+              Expanded(child: itinerarySkeleton()),
+              SizedBox(
+                height: 230,
+                child: expenseListSkeleton(),
+              ),
+            ],
+          );
+        },
       ),
       // Loading indicator in the bottom-centre where FAB would appear
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -765,6 +943,47 @@ class _TripLoadingSkeleton extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
         ),
       ),
+    );
+  }
+}
+
+class _TripTimelineSkeletonItem extends StatelessWidget {
+  final int index;
+  final Color accentColor;
+
+  const _TripTimelineSkeletonItem({
+    required this.index,
+    required this.accentColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final height = 72.0 + (index % 3) * 20.0;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            ShimmerPlaceholder(
+              width: 12,
+              height: 12,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            Container(
+              width: 2,
+              height: height - 12,
+              color: accentColor.withValues(alpha: 0.15),
+            ),
+          ],
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ShimmerPlaceholder(
+            height: height,
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ],
     );
   }
 }
