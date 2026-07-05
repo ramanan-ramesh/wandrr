@@ -73,14 +73,14 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(3.0),
-            child: _createDateForSmallLayout(
+            child: _createDate(
                 context.localizations.dateRangePickerStart, startDateText),
           ),
         ),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(3.0),
-            child: _createDateForSmallLayout(
+            child: _createDate(
                 context.localizations.dateRangePickerEnd, endDateText),
           ),
         ),
@@ -94,14 +94,14 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(3.0),
-            child: _createDateForBigLayout(
+            child: _createDate(
                 context.localizations.dateRangePickerStart, startDateText),
           ),
         ),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(3.0),
-            child: _createDateForBigLayout(
+            child: _createDate(
                 context.localizations.dateRangePickerEnd, endDateText),
           ),
         ),
@@ -109,37 +109,7 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
     );
   }
 
-  Widget _createDateForBigLayout(String label, String startDateText) {
-    return Container(
-      alignment: Alignment.centerLeft,
-      constraints: const BoxConstraints(minHeight: 24),
-      child: Row(
-        children: [
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(color: context.isLightTheme ? null : Colors.black),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            startDateText,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
-                ?.copyWith(color: context.isLightTheme ? null : Colors.black),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _createDateForSmallLayout(String label, String dateText) {
+  Widget _createDate(String label, String dateText) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

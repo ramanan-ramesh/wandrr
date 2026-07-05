@@ -1,8 +1,10 @@
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/widgets.dart' as pdf;
+import 'package:printing/printing.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
@@ -29,6 +31,7 @@ class TripPrintService {
   static const _muted = PdfColor.fromInt(0xFF999999);
   static const _rule = PdfColor.fromInt(0xFFBBBBBB);
   static const _lightBg = PdfColor.fromInt(0xFFF5F5F5);
+  static final RegExp _keycapEmojiRegex = RegExp('([0-9#*])\uFE0F?\u20E3');
 
   // ── Timeline constants ────────────────────────────────────────────────
   static const double _dotSize = 6.0;
@@ -37,11 +40,10 @@ class TripPrintService {
 
   Future<Uint8List> generatePdf(
       TripDataFacade tripData, PrintOptions options) async {
-    final logoBytes =
-        (await rootBundle.load(Assets.images.logo.path)).buffer.asUint8List();
-    final logoImage = pw.MemoryImage(logoBytes);
+    final logoImage = await _loadLogoImage();
+    final pdfTheme = await _buildPdfTheme();
 
-    final pdf = pw.Document(title: options.title, author: 'Wandrr');
+    final pdfDocument = pdf.Document(title: options.title, author: 'Wandrr');
     final meta = tripData.tripMetadata;
     final startDate = meta.startDate!;
     final endDate = meta.endDate!;
@@ -79,170 +81,229 @@ class TripPrintService {
     }
 
     final dateRange =
-        '${startDate.monthDateYearFormat} \u2013 ${endDate.monthDateYearFormat}';
+        '${startDate.monthDateYearFormat} - ${endDate.monthDateYearFormat}';
 
-    pdf.addPage(pw.MultiPage(
+    pdfDocument.addPage(pdf.MultiPage(
+      theme: pdfTheme,
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.all(40),
+      margin: const pdf.EdgeInsets.all(40),
       header: (_) => _pageHeader(logoImage),
-      footer: (ctx) => pw.Container(
-          alignment: pw.Alignment.centerRight,
-          margin: const pw.EdgeInsets.only(top: 12),
-          child: pw.Text('Page ${ctx.pageNumber} of ${ctx.pagesCount}',
-              style: const pw.TextStyle(fontSize: 8, color: _muted))),
+      footer: (ctx) => pdf.Container(
+          alignment: pdf.Alignment.centerRight,
+          margin: const pdf.EdgeInsets.only(top: 12),
+          child: pdf.Text('Page ${ctx.pageNumber} of ${ctx.pagesCount}',
+              style: const pdf.TextStyle(fontSize: 8, color: _muted))),
       build: (_) => [
         _coverSection(options.title, dateRange, totalDays, meta.contributors,
             meta.budget),
-        pw.SizedBox(height: 24),
+        pdf.SizedBox(height: 24),
         // Per-day timeline
         ...itineraryDays
             .expand((d) => _itineraryDay(d, options, filteredTransits)),
         // Untimed sights
         if (untimedSights.isNotEmpty) ...[
           _sectionHeader('SIGHTS / PLACES'),
-          pw.SizedBox(height: 6),
+          pdf.SizedBox(height: 6),
           ...untimedSights.map(_untimedSightRow),
-          pw.SizedBox(height: 20),
+          pdf.SizedBox(height: 20),
         ],
         if (options.includeExpenses && allExpenses.isNotEmpty) ...[
           _sectionHeader('EXPENSES'),
-          pw.SizedBox(height: 6),
+          pdf.SizedBox(height: 6),
           _expenseTable(allExpenses, meta.budget.currency),
-          pw.SizedBox(height: 20),
+          pdf.SizedBox(height: 20),
         ],
       ],
     ));
 
-    return pdf.save();
+    return pdfDocument.save();
+  }
+
+  Future<pdf.ThemeData?> _buildPdfTheme() async {
+    try {
+      final baseFont = await PdfGoogleFonts.notoSansRegular();
+      final boldFont = await PdfGoogleFonts.notoSansBold();
+      return pdf.ThemeData.withFont(base: baseFont, bold: boldFont);
+    } on Exception {
+      // Graceful fallback to package default fonts if Google font load fails.
+      return null;
+    }
+  }
+
+  String _sanitizePdfText(String value) {
+    return value
+        .replaceAllMapped(_keycapEmojiRegex, (match) => match.group(1)!)
+        .replaceAll('\uFE0F', '');
   }
 
   // ── Page header ───────────────────────────────────────────────────────
 
-  pw.Widget _pageHeader(pw.ImageProvider logo) => pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 12),
-      padding: const pw.EdgeInsets.only(bottom: 8),
-      decoration: const pw.BoxDecoration(
-          border: pw.Border(bottom: pw.BorderSide(color: _rule, width: 0.5))),
-      child: pw.Row(children: [
-        pw.Image(logo, width: 18, height: 18),
-        pw.SizedBox(width: 6),
-        pw.Text('Wandrr',
-            style: pw.TextStyle(
-                fontSize: 11, color: _dark, fontWeight: pw.FontWeight.bold)),
+  Future<pdf.MemoryImage?> _loadLogoImage() async {
+    try {
+      final source = await rootBundle.load(Assets.images.logo.path);
+      final codec = await ui.instantiateImageCodec(source.buffer.asUint8List());
+      final frame = await codec.getNextFrame();
+      final bytes =
+          await frame.image.toByteData(format: ui.ImageByteFormat.png);
+      frame.image.dispose();
+      codec.dispose();
+      if (bytes == null) {
+        return null;
+      }
+      return pdf.MemoryImage(bytes.buffer.asUint8List());
+    } on Exception {
+      return null;
+    }
+  }
+
+  pdf.Widget _pageHeader(pdf.ImageProvider? logo) => pdf.Container(
+      margin: const pdf.EdgeInsets.only(bottom: 12),
+      padding: const pdf.EdgeInsets.only(bottom: 8),
+      decoration: const pdf.BoxDecoration(
+          border: pdf.Border(bottom: pdf.BorderSide(color: _rule, width: 0.5))),
+      child: pdf.Row(children: [
+        if (logo != null)
+          pdf.Image(logo, width: 18, height: 18)
+        else
+          pdf.Container(
+              width: 18,
+              height: 18,
+              alignment: pdf.Alignment.center,
+              decoration: pdf.BoxDecoration(
+                border: pdf.Border.all(color: _rule, width: 0.5),
+                borderRadius: pdf.BorderRadius.circular(3),
+              ),
+              child: pdf.Text('W',
+                  style: pdf.TextStyle(
+                      fontSize: 9,
+                      color: _dark,
+                      fontWeight: pdf.FontWeight.bold))),
+        pdf.SizedBox(width: 6),
+        pdf.Text('Wandrr',
+            style: pdf.TextStyle(
+                fontSize: 11, color: _dark, fontWeight: pdf.FontWeight.bold)),
       ]));
 
   // ── Cover ─────────────────────────────────────────────────────────────
 
-  pw.Widget _coverSection(String title, String dateRange, int totalDays,
+  pdf.Widget _coverSection(String title, String dateRange, int totalDays,
       List<String> contributors, Money budget) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.all(20),
-      decoration: pw.BoxDecoration(
-          border: pw.Border.all(color: _dark, width: 1.5),
-          borderRadius: pw.BorderRadius.circular(4)),
-      child:
-          pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-        pw.Text(title,
-            style: pw.TextStyle(
-                fontSize: 26, fontWeight: pw.FontWeight.bold, color: _black)),
-        pw.SizedBox(height: 6),
-        pw.Text(dateRange,
-            style: const pw.TextStyle(fontSize: 12, color: _mid)),
-        pw.SizedBox(height: 12),
-        pw.Divider(color: _rule, thickness: 0.5),
-        pw.SizedBox(height: 8),
-        pw.Row(children: [
-          _infoPill('$totalDays days'),
-          pw.SizedBox(width: 10),
-          if (contributors.isNotEmpty) ...[
-            _infoPill(
-                '${contributors.length} traveller${contributors.length > 1 ? "s" : ""}'),
-            pw.SizedBox(width: 10),
-          ],
-          _infoPill('Budget: $budget'),
-        ]),
-      ]),
+    final sanitizedTitle = _sanitizePdfText(title);
+    return pdf.Container(
+      padding: const pdf.EdgeInsets.all(20),
+      decoration: pdf.BoxDecoration(
+          border: pdf.Border.all(color: _dark, width: 1.5),
+          borderRadius: pdf.BorderRadius.circular(4)),
+      child: pdf.Column(
+          crossAxisAlignment: pdf.CrossAxisAlignment.start,
+          children: [
+            pdf.Text(sanitizedTitle,
+                style: pdf.TextStyle(
+                    fontSize: 26,
+                    fontWeight: pdf.FontWeight.bold,
+                    color: _black)),
+            pdf.SizedBox(height: 6),
+            pdf.Text(dateRange,
+                style: const pdf.TextStyle(fontSize: 12, color: _mid)),
+            pdf.SizedBox(height: 12),
+            pdf.Divider(color: _rule, thickness: 0.5),
+            pdf.SizedBox(height: 8),
+            pdf.Row(children: [
+              _infoPill('$totalDays days'),
+              pdf.SizedBox(width: 10),
+              if (contributors.isNotEmpty) ...[
+                _infoPill(
+                    '${contributors.length} traveller${contributors.length > 1 ? "s" : ""}'),
+                pdf.SizedBox(width: 10),
+              ],
+              _infoPill('Budget: $budget'),
+            ]),
+          ]),
     );
   }
 
-  pw.Widget _infoPill(String text) => pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: pw.BoxDecoration(
+  pdf.Widget _infoPill(String text) => pdf.Container(
+      padding: const pdf.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: pdf.BoxDecoration(
           color: _lightBg,
-          border: pw.Border.all(color: _rule, width: 0.5),
-          borderRadius: pw.BorderRadius.circular(3)),
-      child: pw.Text(text,
-          style: pw.TextStyle(
-              fontSize: 9, color: _dark, fontWeight: pw.FontWeight.bold)));
+          border: pdf.Border.all(color: _rule, width: 0.5),
+          borderRadius: pdf.BorderRadius.circular(3)),
+      child: pdf.Text(text,
+          style: pdf.TextStyle(
+              fontSize: 9, color: _dark, fontWeight: pdf.FontWeight.bold)));
 
   // ── Section header ────────────────────────────────────────────────────
 
-  pw.Widget _sectionHeader(String title) => pw.Container(
-      padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-      decoration: pw.BoxDecoration(
-          color: _black, borderRadius: pw.BorderRadius.circular(2)),
-      child: pw.Text(title,
-          style: pw.TextStyle(
+  pdf.Widget _sectionHeader(String title) => pdf.Container(
+      padding: const pdf.EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      decoration: pdf.BoxDecoration(
+          color: _black, borderRadius: pdf.BorderRadius.circular(2)),
+      child: pdf.Text(title,
+          style: pdf.TextStyle(
               fontSize: 10,
-              fontWeight: pw.FontWeight.bold,
+              fontWeight: pdf.FontWeight.bold,
               color: PdfColors.white,
               letterSpacing: 1.5)));
 
   // ── Timeline node (diamond marker + thin connecting line) ────────────
 
-  pw.Widget _timelineRow({required pw.Widget content, bool isLast = false}) {
-    return pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-      pw.SizedBox(
+  pdf.Widget _timelineRow({required pdf.Widget content, bool isLast = false}) {
+    return pdf.Row(crossAxisAlignment: pdf.CrossAxisAlignment.start, children: [
+      pdf.SizedBox(
           width: _timelineColWidth,
-          child: pw.Column(children: [
+          child: pdf.Column(children: [
             // Small filled diamond marker
-            pw.Container(
+            pdf.Container(
                 width: _dotSize,
                 height: _dotSize,
-                margin: const pw.EdgeInsets.only(top: 4),
-                decoration: const pw.BoxDecoration(
+                margin: const pdf.EdgeInsets.only(top: 4),
+                decoration: const pdf.BoxDecoration(
                     color: _dark,
                     borderRadius:
-                        pw.BorderRadius.all(pw.Radius.circular(1.5)))),
+                        pdf.BorderRadius.all(pdf.Radius.circular(1.5)))),
             // Thin connecting line
             if (!isLast)
-              pw.Container(width: _lineWidth, height: 14, color: _rule),
+              pdf.Container(width: _lineWidth, height: 14, color: _rule),
           ])),
-      pw.SizedBox(width: 6),
-      pw.Expanded(child: content),
+      pdf.SizedBox(width: 6),
+      pdf.Expanded(child: content),
     ]);
   }
 
   // ── Untimed sight row (for standalone section) ────────────────────────
 
-  pw.Widget _untimedSightRow(SightFacade sight) {
-    return pw.Container(
-        margin: const pw.EdgeInsets.only(bottom: 4),
-        padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-        decoration: const pw.BoxDecoration(
-            border: pw.Border(left: pw.BorderSide(color: _dark, width: 3))),
-        child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+  pdf.Widget _untimedSightRow(SightFacade sight) {
+    final sightName = _sanitizePdfText(sight.name);
+    final sightDescription =
+        sight.description == null ? null : _sanitizePdfText(sight.description!);
+    return pdf.Container(
+        margin: const pdf.EdgeInsets.only(bottom: 4),
+        padding: const pdf.EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+        decoration: const pdf.BoxDecoration(
+            border: pdf.Border(left: pdf.BorderSide(color: _dark, width: 3))),
+        child: pdf.Column(
+            crossAxisAlignment: pdf.CrossAxisAlignment.start,
             children: [
-              pw.Text(sight.name,
-                  style: pw.TextStyle(
+              pdf.Text(sightName,
+                  style: pdf.TextStyle(
                       fontSize: 10,
-                      fontWeight: pw.FontWeight.bold,
+                      fontWeight: pdf.FontWeight.bold,
                       color: _black)),
-              pw.SizedBox(height: 1),
-              pw.Text(sight.day.dayDateMonthFormat,
-                  style: const pw.TextStyle(fontSize: 8, color: _mid)),
-              if (sight.description != null && sight.description!.isNotEmpty)
-                pw.Padding(
-                    padding: const pw.EdgeInsets.only(top: 1),
-                    child: pw.Text(sight.description!,
-                        style: const pw.TextStyle(fontSize: 8, color: _muted))),
+              pdf.SizedBox(height: 1),
+              pdf.Text(sight.day.dayDateMonthFormat,
+                  style: const pdf.TextStyle(fontSize: 8, color: _mid)),
+              if (sightDescription != null && sightDescription.isNotEmpty)
+                pdf.Padding(
+                    padding: const pdf.EdgeInsets.only(top: 1),
+                    child: pdf.Text(sightDescription,
+                        style:
+                            const pdf.TextStyle(fontSize: 8, color: _muted))),
             ]));
   }
 
   // ── Expense table ─────────────────────────────────────────────────────
 
-  pw.Widget _expenseTable(
+  pdf.Widget _expenseTable(
       List<ExpenseBearingTripEntity> expenses, String currency) {
     expenses.sort((a, b) => (a.expense.dateTime ?? DateTime(9999))
         .compareTo(b.expense.dateTime ?? DateTime(9999)));
@@ -250,71 +311,69 @@ class TripPrintService {
     final total = expenses.fold<double>(
         0, (sum, e) => sum + e.expense.totalExpense.amount);
 
-    return pw.Table(
-        border: pw.TableBorder.all(color: _rule, width: 0.5),
+    return pdf.Table(
+        border: pdf.TableBorder.all(color: _rule, width: 0.5),
         columnWidths: const {
-          0: pw.FlexColumnWidth(2.5),
-          1: pw.FlexColumnWidth(1.5),
-          2: pw.FlexColumnWidth(1.2),
-          3: pw.FlexColumnWidth(1.5),
+          0: pdf.FlexColumnWidth(2.5),
+          1: pdf.FlexColumnWidth(1.5),
+          2: pdf.FlexColumnWidth(1.2),
+          3: pdf.FlexColumnWidth(1.5),
         },
         children: [
           _tableHeaderRow(['Title', 'Category', 'Amount', 'Date']),
           ...expenses.map((e) => _tableDataRow([
-                e.title.isNotEmpty
-                    ? e.title
-                    : (e.expense.description ?? '\u2013'),
+                e.title.isNotEmpty ? e.title : (e.expense.description ?? '-'),
                 e.category.name,
                 e.expense.totalExpense.toString(),
-                e.expense.dateTime?.dayDateMonthFormat ?? '\u2013',
+                e.expense.dateTime?.dayDateMonthFormat ?? '-',
               ])),
           // Total row
-          pw.TableRow(
-              decoration: const pw.BoxDecoration(color: _lightBg),
+          pdf.TableRow(
+              decoration: const pdf.BoxDecoration(color: _lightBg),
               children: [
-                pw.Padding(
-                    padding: const pw.EdgeInsets.all(6),
-                    child: pw.Text('TOTAL',
-                        style: pw.TextStyle(
+                pdf.Padding(
+                    padding: const pdf.EdgeInsets.all(6),
+                    child: pdf.Text('TOTAL',
+                        style: pdf.TextStyle(
                             fontSize: 9,
-                            fontWeight: pw.FontWeight.bold,
+                            fontWeight: pdf.FontWeight.bold,
                             color: _black))),
-                pw.SizedBox(),
-                pw.Padding(
-                    padding: const pw.EdgeInsets.all(6),
-                    child: pw.Text('${total.toStringAsFixed(2)} $currency',
-                        style: pw.TextStyle(
+                pdf.SizedBox(),
+                pdf.Padding(
+                    padding: const pdf.EdgeInsets.all(6),
+                    child: pdf.Text('${total.toStringAsFixed(2)} $currency',
+                        style: pdf.TextStyle(
                             fontSize: 9,
-                            fontWeight: pw.FontWeight.bold,
+                            fontWeight: pdf.FontWeight.bold,
                             color: _black))),
-                pw.SizedBox(),
+                pdf.SizedBox(),
               ]),
         ]);
   }
 
-  pw.TableRow _tableHeaderRow(List<String> cells) => pw.TableRow(
-      decoration: const pw.BoxDecoration(color: _black),
+  pdf.TableRow _tableHeaderRow(List<String> cells) => pdf.TableRow(
+      decoration: const pdf.BoxDecoration(color: _black),
       children: cells
-          .map((c) => pw.Padding(
-              padding: const pw.EdgeInsets.all(6),
-              child: pw.Text(c,
-                  style: pw.TextStyle(
+          .map((c) => pdf.Padding(
+              padding: const pdf.EdgeInsets.all(6),
+              child: pdf.Text(c,
+                  style: pdf.TextStyle(
                       fontSize: 9,
-                      fontWeight: pw.FontWeight.bold,
+                      fontWeight: pdf.FontWeight.bold,
                       color: PdfColors.white))))
           .toList());
 
-  pw.TableRow _tableDataRow(List<String> cells) => pw.TableRow(
+  pdf.TableRow _tableDataRow(List<String> cells) => pdf.TableRow(
       children: cells
-          .map((c) => pw.Padding(
-              padding: const pw.EdgeInsets.all(6),
-              child: pw.Text(c,
-                  style: const pw.TextStyle(fontSize: 9, color: _dark))))
+          .map((c) => pdf.Padding(
+              padding: const pdf.EdgeInsets.all(6),
+              child: pdf.Text(_sanitizePdfText(c),
+                  style: const pdf.TextStyle(fontSize: 9, color: _dark))))
           .toList());
 
   // ── Itinerary day (unified chronological timeline) ────────────────────
 
-  List<pw.Widget> _itineraryDay(
+  List<pdf.Widget> _itineraryDay(
       _DayData dd, PrintOptions options, List<TransitFacade> transits) {
     final plan = dd.itinerary.planData;
     final day = dd.day;
@@ -470,27 +529,27 @@ class TripPrintService {
     }
 
     // Merge timeline events + non-timeline items
-    final allEntries = <pw.Widget>[
+    final allEntries = <pdf.Widget>[
       ...events.map((e) => e.widget),
       if (hasNotes) _notesEntry(plan.notes),
       if (hasChecklists) ...plan.checkLists.map(_checklistEntry),
     ];
 
     return [
-      pw.SizedBox(height: 14),
+      pdf.SizedBox(height: 14),
       // Day header
-      pw.Container(
-          padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-          decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: _dark, width: 1),
-              borderRadius: pw.BorderRadius.circular(2)),
-          child: pw.Text(day.dayDateMonthFormat.toUpperCase(),
-              style: pw.TextStyle(
+      pdf.Container(
+          padding: const pdf.EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+          decoration: pdf.BoxDecoration(
+              border: pdf.Border.all(color: _dark, width: 1),
+              borderRadius: pdf.BorderRadius.circular(2)),
+          child: pdf.Text(day.dayDateMonthFormat.toUpperCase(),
+              style: pdf.TextStyle(
                   fontSize: 10,
-                  fontWeight: pw.FontWeight.bold,
+                  fontWeight: pdf.FontWeight.bold,
                   color: _black,
                   letterSpacing: 1))),
-      pw.SizedBox(height: 6),
+      pdf.SizedBox(height: 6),
       for (var i = 0; i < allEntries.length; i++)
         _timelineRow(
             content: allEntries[i], isLast: i == allEntries.length - 1),
@@ -499,77 +558,80 @@ class TripPrintService {
 
   // ── Timeline event renderers ──────────────────────────────────────────
 
-  pw.Widget _eventRow({
+  pdf.Widget _eventRow({
     required String label,
     required String title,
     required String time,
   }) {
-    return pw.Padding(
-        padding: const pw.EdgeInsets.only(bottom: 4),
-        child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+    final safeLabel = _sanitizePdfText(label);
+    final safeTitle = _sanitizePdfText(title);
+    final safeTime = _sanitizePdfText(time);
+    return pdf.Padding(
+        padding: const pdf.EdgeInsets.only(bottom: 4),
+        child: pdf.Column(
+            crossAxisAlignment: pdf.CrossAxisAlignment.start,
             children: [
-              pw.Text(label,
-                  style: pw.TextStyle(
+              pdf.Text(safeLabel,
+                  style: pdf.TextStyle(
                       fontSize: 8,
-                      fontWeight: pw.FontWeight.bold,
+                      fontWeight: pdf.FontWeight.bold,
                       color: _mid,
                       letterSpacing: 0.8)),
-              pw.SizedBox(height: 1),
-              pw.Text(title,
-                  style: pw.TextStyle(
+              pdf.SizedBox(height: 1),
+              pdf.Text(safeTitle,
+                  style: pdf.TextStyle(
                       fontSize: 10,
-                      fontWeight: pw.FontWeight.bold,
+                      fontWeight: pdf.FontWeight.bold,
                       color: _black)),
-              pw.Text(time,
-                  style: const pw.TextStyle(fontSize: 8, color: _mid)),
+              pdf.Text(safeTime,
+                  style: const pdf.TextStyle(fontSize: 8, color: _mid)),
             ]));
   }
 
   /// Renders a transit as a single combined timeline event showing
   /// departure → arrival with both locations and times.
-  pw.Widget _transitCombinedRow(TransitFacade t) {
+  pdf.Widget _transitCombinedRow(TransitFacade t) {
     final type = _transitLabel(t.transitOption).toUpperCase();
-    final from = t.departureLocation?.toString() ?? '?';
-    final to = t.arrivalLocation?.toString() ?? '?';
+    final from = _sanitizePdfText(t.departureLocation?.toString() ?? '?');
+    final to = _sanitizePdfText(t.arrivalLocation?.toString() ?? '?');
     final depTime = t.departureDateTime == null
-        ? '\u2013'
+        ? '-'
         : LocationTimezoneDateTime.formatHourMinuteAmPm(
             storedDateTime: t.departureDateTime!,
             location: t.departureLocation,
           );
     final arrTime = t.arrivalDateTime == null
-        ? '\u2013'
+        ? '-'
         : LocationTimezoneDateTime.formatHourMinuteAmPm(
             storedDateTime: t.arrivalDateTime!,
             location: t.arrivalLocation,
           );
 
-    return pw.Padding(
-        padding: const pw.EdgeInsets.only(bottom: 4),
-        child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+    return pdf.Padding(
+        padding: const pdf.EdgeInsets.only(bottom: 4),
+        child: pdf.Column(
+            crossAxisAlignment: pdf.CrossAxisAlignment.start,
             children: [
-              pw.Text(type,
-                  style: pw.TextStyle(
+              pdf.Text(type,
+                  style: pdf.TextStyle(
                       fontSize: 8,
-                      fontWeight: pw.FontWeight.bold,
+                      fontWeight: pdf.FontWeight.bold,
                       color: _mid,
                       letterSpacing: 0.8)),
-              pw.SizedBox(height: 1),
-              pw.Text('$from  \u2192  $to',
-                  style: pw.TextStyle(
+              pdf.SizedBox(height: 1),
+              pdf.Text('$from  ->  $to',
+                  style: pdf.TextStyle(
                       fontSize: 10,
-                      fontWeight: pw.FontWeight.bold,
+                      fontWeight: pdf.FontWeight.bold,
                       color: _black)),
-              pw.Text('$depTime  \u2013  $arrTime',
-                  style: const pw.TextStyle(fontSize: 8, color: _mid)),
+              pdf.Text('$depTime  -  $arrTime',
+                  style: const pdf.TextStyle(fontSize: 8, color: _mid)),
               if (t.operator != null && t.operator!.isNotEmpty)
-                pw.Text(t.operator!,
-                    style: const pw.TextStyle(fontSize: 8, color: _muted)),
+                pdf.Text(_sanitizePdfText(t.operator!),
+                    style: const pdf.TextStyle(fontSize: 8, color: _muted)),
               if (_platformAndSeatsWidget(t) != null)
-                pw.Padding(
-                  padding: const pw.EdgeInsets.only(top: 1),
+                pdf.Padding(
+                  padding: const pdf.EdgeInsets.only(top: 1),
                   child: _platformAndSeatsWidget(t)!,
                 ),
             ]));
@@ -577,38 +639,38 @@ class TripPrintService {
 
   /// Renders a transit arrival-only event (when arrival is on a different
   /// day from departure).
-  pw.Widget _transitArrivalRow(TransitFacade t) {
+  pdf.Widget _transitArrivalRow(TransitFacade t) {
     final type = _transitLabel(t.transitOption).toUpperCase();
-    final location = t.arrivalLocation?.toString() ?? '?';
+    final location = _sanitizePdfText(t.arrivalLocation?.toString() ?? '?');
     final time = t.arrivalDateTime == null
-        ? '\u2013'
+        ? '-'
         : LocationTimezoneDateTime.formatHourMinuteAmPm(
             storedDateTime: t.arrivalDateTime!,
             location: t.arrivalLocation,
           );
 
-    return pw.Padding(
-        padding: const pw.EdgeInsets.only(bottom: 4),
-        child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+    return pdf.Padding(
+        padding: const pdf.EdgeInsets.only(bottom: 4),
+        child: pdf.Column(
+            crossAxisAlignment: pdf.CrossAxisAlignment.start,
             children: [
-              pw.Text('$type \u2013 ARRIVE',
-                  style: pw.TextStyle(
+              pdf.Text('$type - ARRIVE',
+                  style: pdf.TextStyle(
                       fontSize: 8,
-                      fontWeight: pw.FontWeight.bold,
+                      fontWeight: pdf.FontWeight.bold,
                       color: _mid,
                       letterSpacing: 0.8)),
-              pw.SizedBox(height: 1),
-              pw.Text(location,
-                  style: pw.TextStyle(
+              pdf.SizedBox(height: 1),
+              pdf.Text(location,
+                  style: pdf.TextStyle(
                       fontSize: 10,
-                      fontWeight: pw.FontWeight.bold,
+                      fontWeight: pdf.FontWeight.bold,
                       color: _black)),
-              pw.Text(time,
-                  style: const pw.TextStyle(fontSize: 8, color: _mid)),
+              pdf.Text(time,
+                  style: const pdf.TextStyle(fontSize: 8, color: _mid)),
               if (_platformAndSeatsWidget(t, isArrival: true) != null)
-                pw.Padding(
-                  padding: const pw.EdgeInsets.only(top: 1),
+                pdf.Padding(
+                  padding: const pdf.EdgeInsets.only(top: 1),
                   child: _platformAndSeatsWidget(t, isArrival: true)!,
                 ),
             ]));
@@ -616,127 +678,135 @@ class TripPrintService {
 
   /// Renders a merged multi-leg journey as a single timeline entry showing
   /// the first leg's departure and the last leg's arrival.
-  pw.Widget _mergedJourneyEventRow(
+  pdf.Widget _mergedJourneyEventRow(
       TransitFacade firstLeg, TransitFacade lastLeg) {
     final type = _transitLabel(firstLeg.transitOption).toUpperCase();
-    final from = firstLeg.departureLocation?.toString() ?? '?';
-    final to = lastLeg.arrivalLocation?.toString() ?? '?';
+    final from =
+        _sanitizePdfText(firstLeg.departureLocation?.toString() ?? '?');
+    final to = _sanitizePdfText(lastLeg.arrivalLocation?.toString() ?? '?');
     final depTime = firstLeg.departureDateTime == null
-        ? '\u2013'
+        ? '-'
         : LocationTimezoneDateTime.formatHourMinuteAmPm(
             storedDateTime: firstLeg.departureDateTime!,
             location: firstLeg.departureLocation,
           );
     final arrTime = lastLeg.arrivalDateTime == null
-        ? '\u2013'
+        ? '-'
         : LocationTimezoneDateTime.formatHourMinuteAmPm(
             storedDateTime: lastLeg.arrivalDateTime!,
             location: lastLeg.arrivalLocation,
           );
 
-    return pw.Padding(
-        padding: const pw.EdgeInsets.only(bottom: 4),
-        child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+    return pdf.Padding(
+        padding: const pdf.EdgeInsets.only(bottom: 4),
+        child: pdf.Column(
+            crossAxisAlignment: pdf.CrossAxisAlignment.start,
             children: [
-              pw.Text('$type \u2013 JOURNEY',
-                  style: pw.TextStyle(
+              pdf.Text('$type - JOURNEY',
+                  style: pdf.TextStyle(
                       fontSize: 8,
-                      fontWeight: pw.FontWeight.bold,
+                      fontWeight: pdf.FontWeight.bold,
                       color: _mid,
                       letterSpacing: 0.8)),
-              pw.SizedBox(height: 1),
-              pw.Text('$from  \u2192  $to',
-                  style: pw.TextStyle(
+              pdf.SizedBox(height: 1),
+              pdf.Text('$from  ->  $to',
+                  style: pdf.TextStyle(
                       fontSize: 10,
-                      fontWeight: pw.FontWeight.bold,
+                      fontWeight: pdf.FontWeight.bold,
                       color: _black)),
-              pw.Text('Depart $depTime  \u2022  Arrive $arrTime',
-                  style: const pw.TextStyle(fontSize: 8, color: _mid)),
+              pdf.Text('Depart $depTime  |  Arrive $arrTime',
+                  style: const pdf.TextStyle(fontSize: 8, color: _mid)),
               if (_platformAndSeatsWidget(firstLeg) != null)
-                pw.Padding(
-                  padding: const pw.EdgeInsets.only(top: 1),
+                pdf.Padding(
+                  padding: const pdf.EdgeInsets.only(top: 1),
                   child: _platformAndSeatsWidget(firstLeg)!,
                 ),
             ]));
   }
 
-  pw.Widget _sightEventRow(SightFacade sight) {
-    return pw.Padding(
-        padding: const pw.EdgeInsets.only(bottom: 4),
-        child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+  pdf.Widget _sightEventRow(SightFacade sight) {
+    final sightName = _sanitizePdfText(sight.name);
+    final sightDescription =
+        sight.description == null ? null : _sanitizePdfText(sight.description!);
+    return pdf.Padding(
+        padding: const pdf.EdgeInsets.only(bottom: 4),
+        child: pdf.Column(
+            crossAxisAlignment: pdf.CrossAxisAlignment.start,
             children: [
-              pw.Text(sight.name,
-                  style: pw.TextStyle(
+              pdf.Text(sightName,
+                  style: pdf.TextStyle(
                       fontSize: 10,
-                      fontWeight: pw.FontWeight.bold,
+                      fontWeight: pdf.FontWeight.bold,
                       color: _black)),
               if (sight.visitTime != null)
-                pw.Text(
+                pdf.Text(
                     LocationTimezoneDateTime.formatHourMinuteAmPm(
                       storedDateTime: sight.visitTime!,
                       location: sight.location,
                     ),
-                    style: const pw.TextStyle(fontSize: 8, color: _mid)),
-              if (sight.description != null && sight.description!.isNotEmpty)
-                pw.Padding(
-                    padding: const pw.EdgeInsets.only(top: 1),
-                    child: pw.Text(sight.description!,
-                        style: const pw.TextStyle(fontSize: 8, color: _muted))),
+                    style: const pdf.TextStyle(fontSize: 8, color: _mid)),
+              if (sightDescription != null && sightDescription.isNotEmpty)
+                pdf.Padding(
+                    padding: const pdf.EdgeInsets.only(top: 1),
+                    child: pdf.Text(sightDescription,
+                        style:
+                            const pdf.TextStyle(fontSize: 8, color: _muted))),
             ]));
   }
 
-  pw.Widget _notesEntry(List<String> notes) {
-    return pw.Padding(
-        padding: const pw.EdgeInsets.only(bottom: 4),
-        child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+  pdf.Widget _notesEntry(List<String> notes) {
+    final sanitizedNotes = notes.map(_sanitizePdfText).toList();
+    return pdf.Padding(
+        padding: const pdf.EdgeInsets.only(bottom: 4),
+        child: pdf.Column(
+            crossAxisAlignment: pdf.CrossAxisAlignment.start,
             children: [
-              pw.Text('NOTES',
-                  style: pw.TextStyle(
+              pdf.Text('NOTES',
+                  style: pdf.TextStyle(
                       fontSize: 8,
-                      fontWeight: pw.FontWeight.bold,
+                      fontWeight: pdf.FontWeight.bold,
                       color: _mid,
                       letterSpacing: 0.8)),
-              pw.SizedBox(height: 2),
-              ...notes.map((note) => pw.Padding(
-                  padding: const pw.EdgeInsets.only(bottom: 1),
-                  child: pw.Text('\u2022  $note',
-                      style: const pw.TextStyle(fontSize: 9, color: _dark)))),
+              pdf.SizedBox(height: 2),
+              ...sanitizedNotes.map((note) => pdf.Padding(
+                  padding: const pdf.EdgeInsets.only(bottom: 1),
+                  child: pdf.Text('-  $note',
+                      style: const pdf.TextStyle(fontSize: 9, color: _dark)))),
             ]));
   }
 
-  pw.Widget _checklistEntry(CheckListFacade cl) {
-    return pw.Padding(
-        padding: const pw.EdgeInsets.only(bottom: 4),
-        child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+  pdf.Widget _checklistEntry(CheckListFacade cl) {
+    final checklistTitle =
+        _sanitizePdfText(cl.title ?? 'Checklist').toUpperCase();
+    return pdf.Padding(
+        padding: const pdf.EdgeInsets.only(bottom: 4),
+        child: pdf.Column(
+            crossAxisAlignment: pdf.CrossAxisAlignment.start,
             children: [
-              pw.Text((cl.title ?? 'Checklist').toUpperCase(),
-                  style: pw.TextStyle(
+              pdf.Text(checklistTitle,
+                  style: pdf.TextStyle(
                       fontSize: 8,
-                      fontWeight: pw.FontWeight.bold,
+                      fontWeight: pdf.FontWeight.bold,
                       color: _mid,
                       letterSpacing: 0.8)),
-              pw.SizedBox(height: 2),
-              ...cl.items.map<pw.Widget>((item) => pw.Padding(
-                  padding: const pw.EdgeInsets.only(bottom: 1),
-                  child: pw.Row(children: [
-                    pw.Container(
+              pdf.SizedBox(height: 2),
+              ...cl.items.map<pdf.Widget>((item) => pdf.Padding(
+                  padding: const pdf.EdgeInsets.only(bottom: 1),
+                  child: pdf.Row(children: [
+                    pdf.Container(
                         width: 9,
                         height: 9,
-                        decoration: pw.BoxDecoration(
-                            border: pw.Border.all(color: _dark, width: 1),
-                            borderRadius: pw.BorderRadius.circular(1.5),
+                        decoration: pdf.BoxDecoration(
+                            border: pdf.Border.all(color: _dark, width: 1),
+                            borderRadius: pdf.BorderRadius.circular(1.5),
                             color: item.isChecked ? _dark : PdfColors.white)),
-                    pw.SizedBox(width: 5),
-                    pw.Expanded(
-                        child: pw.Text(item.item,
-                            style: pw.TextStyle(
+                    pdf.SizedBox(width: 5),
+                    pdf.Expanded(
+                        child: pdf.Text(_sanitizePdfText(item.item),
+                            style: pdf.TextStyle(
                                 fontSize: 9,
                                 decoration: item.isChecked
-                                    ? pw.TextDecoration.lineThrough
+                                    ? pdf.TextDecoration.lineThrough
                                     : null,
                                 color: item.isChecked ? _muted : _dark))),
                   ]))),
@@ -745,7 +815,7 @@ class TripPrintService {
 
   // ── Helpers ───────────────────────────────────────────────────────────
 
-  pw.Widget? _platformAndSeatsWidget(TransitFacade t, {bool? isArrival}) {
+  pdf.Widget? _platformAndSeatsWidget(TransitFacade t, {bool? isArrival}) {
     final isFlight = t.transitOption == TransitOption.flight;
     final platformLabel = isFlight ? 'Terminal' : 'Platform';
 
@@ -771,7 +841,7 @@ class TripPrintService {
           .map((e) => '${e.key} (${e.value})')
           .join(', ');
       if (seatStrings.isNotEmpty) {
-        parts.add('Seats: $seatStrings');
+        parts.add('Seat${seatStrings.length > 1 ? 's' : ''}: $seatStrings');
       }
     }
 
@@ -779,8 +849,8 @@ class TripPrintService {
       return null;
     }
 
-    return pw.Text(parts.join('  \u2022  '),
-        style: const pw.TextStyle(fontSize: 8, color: _dark));
+    return pdf.Text(_sanitizePdfText(parts.join('  |  ')),
+        style: const pdf.TextStyle(fontSize: 8, color: _dark));
   }
 
   List<TransitFacade> _filterTransits(
@@ -837,7 +907,7 @@ class TripPrintService {
 /// A timed event in the per-day timeline.
 class _TimelineEvent {
   final DateTime time;
-  final pw.Widget widget;
+  final pdf.Widget widget;
 
   const _TimelineEvent({required this.time, required this.widget});
 }
