@@ -4,51 +4,43 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/home/app_bar/toolbar.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final double? contentWidth;
-
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
-  const HomeAppBar({Key? key, this.contentWidth}) : super(key: key);
+  const HomeAppBar({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      centerTitle: contentWidth != null,
-      flexibleSpace: FractionallySizedBox(
-        widthFactor: context.isBigLayout ? 0.5 : 1.0,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 5.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _createAppLogo(context),
-                const Toolbar(),
-              ],
-            ),
-          ),
+      title: _createAppLogo(context),
+      actions: const [
+        Padding(
+          padding: EdgeInsets.only(right: 8.0), // or 16.0 for more space
+          child: Toolbar(),
         ),
-      ),
+      ],
     );
   }
 
   Widget _createAppLogo(BuildContext context) {
-    return FloatingActionButton.extended(
-      heroTag: 'homeAppBarLogo',
-      elevation: 0,
-      onPressed: null,
-      label: Text(
-        'wandrr',
-        style: TextStyle(
-          fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
+    return SizedBox(
+      height: kToolbarHeight - 16,
+      child: FloatingActionButton.extended(
+        heroTag: 'homeAppBarLogo',
+        elevation: 0,
+        onPressed: null,
+        label: Text(
+          'wandrr',
+          style: TextStyle(
+            fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
+          ),
         ),
-      ),
-      icon: Image(
-        image: Assets.images.logo.provider(),
-        color: context.isLightTheme ? Colors.white : Colors.black,
-        width: 40,
-        height: 40,
+        icon: Image(
+          image: Assets.images.logo.provider(),
+          color: context.isLightTheme ? Colors.white : Colors.black,
+          width: 40,
+          height: 40,
+        ),
       ),
     );
   }
