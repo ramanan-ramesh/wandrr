@@ -41,11 +41,13 @@ class _ShimmerPlaceholderState extends State<ShimmerPlaceholder>
   @override
   Widget build(BuildContext context) {
     final isLight = Theme.of(context).brightness == Brightness.light;
+    // Light theme: use a noticeably darker base so the sweep is visible against
+    // the off-white (F1F5F9) app background; highlight lifts to near-white.
     final baseColor =
-        isLight ? AppColors.neutral200 : AppColors.darkSurfaceVariant;
+        isLight ? AppColors.neutral300 : AppColors.darkSurfaceVariant;
     final highlightColor = isLight
-        ? AppColors.brandPrimaryLight.withValues(alpha: 0.25)
-        : AppColors.brandPrimaryLight.withValues(alpha: 0.12);
+        ? Colors.white.withValues(alpha: 0.90)
+        : AppColors.brandPrimaryLight.withValues(alpha: 0.14);
 
     return AnimatedBuilder(
       animation: _controller,

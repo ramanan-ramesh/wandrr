@@ -28,6 +28,7 @@ class _TotalExpenseDisplayState extends State<TotalExpenseDisplay> {
   bool _isSearchingCurrency = false;
   late TextEditingController _searchController;
   late List<CurrencyData> _filteredCurrencies;
+  late double _previousAmount;
   final FocusNode _searchFocusNode = FocusNode();
   final GlobalKey _buttonKey = GlobalKey();
 
@@ -36,6 +37,15 @@ class _TotalExpenseDisplayState extends State<TotalExpenseDisplay> {
     super.initState();
     _searchController = TextEditingController();
     _filteredCurrencies = widget.allCurrencies.toList();
+    _previousAmount = widget.amount;
+  }
+
+  @override
+  void didUpdateWidget(covariant TotalExpenseDisplay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.amount != widget.amount) {
+      _previousAmount = oldWidget.amount;
+    }
   }
 
   @override
@@ -96,7 +106,6 @@ class _TotalExpenseDisplayState extends State<TotalExpenseDisplay> {
 
   Widget _buildDisplayMode(BuildContext context) {
     final isLightTheme = Theme.of(context).brightness == Brightness.light;
-    final formattedAmount = widget.amount.toStringAsFixed(2);
 
     return Container(
       width: double.infinity,
@@ -161,11 +170,21 @@ class _TotalExpenseDisplayState extends State<TotalExpenseDisplay> {
           const SizedBox(width: 8),
           // Amount display (read-only)
           Expanded(
-            child: Text(
-              formattedAmount,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+            child: TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 420),
+              curve: Curves.easeOutCubic,
+              tween: Tween<double>(
+                begin: _previousAmount,
+                end: widget.amount,
+              ),
+              builder: (context, animatedAmount, _) {
+                return Text(
+                  animatedAmount.toStringAsFixed(2),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                );
+              },
             ),
           ),
         ],

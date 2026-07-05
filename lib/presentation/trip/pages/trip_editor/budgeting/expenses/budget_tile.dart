@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
@@ -6,13 +8,73 @@ import 'package:wandrr/data/trip/services/budgeting_service.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
-class BudgetTile extends StatelessWidget {
+class BudgetTile extends StatefulWidget {
   static const Duration _kAnimationDuration = Duration(milliseconds: 500);
 
   const BudgetTile({super.key});
 
   @override
+  State<BudgetTile> createState() => _BudgetTileState();
+}
+
+class _BudgetTileState extends State<BudgetTile>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _entranceController;
+  late final Animation<double> _fadeAnim;
+  late final Animation<Offset> _slideAnim;
+  StreamSubscription<bool>? _loadSub;
+  bool _entranceTriggered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _entranceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 650),
+    );
+    _fadeAnim =
+        CurvedAnimation(parent: _entranceController, curve: Curves.easeOut);
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.12),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+        parent: _entranceController, curve: Curves.easeOutCubic));
+  }
+
+  void _attachLoadSubscription(BuildContext context) {
+    if (_loadSub != null) {
+      return;
+    }
+    final activeTrip = context.tripRepository.activeTrip;
+    if (activeTrip == null) {
+      return;
+    }
+
+    if (activeTrip.isFullyLoadedValue) {
+      // Already loaded — skip entrance animation, show immediately.
+      _entranceTriggered = true;
+      _entranceController.value = 1.0;
+    } else {
+      _loadSub = activeTrip.isFullyLoaded.listen((loaded) {
+        if (loaded && mounted && !_entranceTriggered) {
+          _entranceTriggered = true;
+          _entranceController.forward();
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _loadSub?.cancel();
+    _entranceController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    _attachLoadSubscription(context);
+
     return TripEntityUpdateHandler<TripMetadataFacade>(
       widgetBuilder: _createTile,
       shouldRebuild: (beforeUpdate, afterUpdate) {
@@ -37,29 +99,35 @@ class BudgetTile extends StatelessWidget {
             ? Theme.of(context).colorScheme.error
             : Theme.of(context).colorScheme.primary;
 
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: color.withValues(alpha: 0.3),
-              width: 1.5,
+        return FadeTransition(
+          opacity: _fadeAnim,
+          child: SlideTransition(
+            position: _slideAnim,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: color.withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  context.isBigLayout
+                      ? _buildHorizontalBudgetDisplay(context, budgetingService,
+                          budget, color, totalExpenditure)
+                      : _buildVerticalBudgetDisplay(context, budgetingService,
+                          budget, color, totalExpenditure, isOverBudget),
+                  const SizedBox(height: 4),
+                  _createTotalExpensePercentageDisplay(
+                      context, budget.amount, totalExpenditure, color),
+                ],
+              ),
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              context.isBigLayout
-                  ? _buildHorizontalBudgetDisplay(context, budgetingService,
-                      budget, color, totalExpenditure)
-                  : _buildVerticalBudgetDisplay(context, budgetingService,
-                      budget, color, totalExpenditure, isOverBudget),
-              const SizedBox(height: 4),
-              _createTotalExpensePercentageDisplay(
-                  context, budget.amount, totalExpenditure, color),
-            ],
           ),
         );
       },
@@ -79,12 +147,9 @@ class BudgetTile extends StatelessWidget {
           ? _buildAnimatedOverBudgetProgressBar(
               context, budgetAmount, totalExpenditure)
           : TweenAnimationBuilder<double>(
-              duration: _kAnimationDuration,
+              duration: BudgetTile._kAnimationDuration,
               curve: Curves.easeInOut,
-              tween: Tween<double>(
-                begin: 0,
-                end: percentageUsed / 100,
-              ),
+              tween: Tween<double>(end: percentageUsed / 100),
               builder: (context, value, child) {
                 return LinearProgressIndicator(
                   value: value,
@@ -117,14 +182,22 @@ class BudgetTile extends StatelessWidget {
           size: 16,
           color: color,
         ),
-        Text(
-          budgetingService.formatCurrency(
-            Money(currency: budget.currency, amount: totalExpenditure),
-          ),
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: color,
-                fontWeight: FontWeight.bold,
+        // Animated count-up for the expenditure amount
+        TweenAnimationBuilder<double>(
+          duration: BudgetTile._kAnimationDuration,
+          curve: Curves.easeOut,
+          tween: Tween<double>(end: totalExpenditure),
+          builder: (context, animatedValue, _) {
+            return Text(
+              budgetingService.formatCurrency(
+                Money(currency: budget.currency, amount: animatedValue),
               ),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                  ),
+            );
+          },
         ),
         Text(
           'out of',
@@ -162,20 +235,28 @@ class BudgetTile extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  budgetingService.formatCurrency(
-                    Money(currency: budget.currency, amount: totalExpenditure),
-                  ),
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: color,
-                        fontWeight: FontWeight.bold,
+              // Animated count-up for the expenditure amount
+              child: TweenAnimationBuilder<double>(
+                duration: BudgetTile._kAnimationDuration,
+                curve: Curves.easeOut,
+                tween: Tween<double>(end: totalExpenditure),
+                builder: (context, animatedValue, _) {
+                  return FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      budgetingService.formatCurrency(
+                        Money(currency: budget.currency, amount: animatedValue),
                       ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: color,
+                            fontWeight: FontWeight.bold,
+                          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -196,12 +277,9 @@ class BudgetTile extends StatelessWidget {
     final budgetPercentage = budgetAmount / totalExpenditure;
 
     return TweenAnimationBuilder<double>(
-      duration: _kAnimationDuration,
+      duration: BudgetTile._kAnimationDuration,
       curve: Curves.easeInOut,
-      tween: Tween<double>(
-        begin: 0,
-        end: budgetPercentage,
-      ),
+      tween: Tween<double>(end: budgetPercentage),
       builder: (context, animatedBudgetPercentage, child) {
         final animatedExcessPercentage = 1.0 - animatedBudgetPercentage;
 

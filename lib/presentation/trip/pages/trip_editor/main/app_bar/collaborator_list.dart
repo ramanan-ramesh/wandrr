@@ -40,11 +40,14 @@ class CollaboratorList extends StatelessWidget {
         radius: _kAvatarRadius,
         child: context.activeUser!.photoUrl != null
             ? ClipOval(
-                child: Image(
-                  image: NetworkImage(context.activeUser!.photoUrl!),
+                child: Image.network(
+                  context.activeUser!.photoUrl!,
                   width: _kAvatarRadius * 2,
                   height: _kAvatarRadius * 2,
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.person, size: _kAvatarRadius * 2);
+                  },
                 ),
               )
             : const Icon(Icons.person, size: _kAvatarOffset),

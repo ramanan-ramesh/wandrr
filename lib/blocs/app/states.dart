@@ -17,10 +17,22 @@ class LoadedRepository extends MasterPageState {
 
 class ActiveLanguageChanged extends MasterPageState {
   const ActiveLanguageChanged();
+
+  @override
+  bool operator ==(Object other) => false;
+
+  @override
+  int get hashCode => identityHashCode(this);
 }
 
 class ActiveThemeModeChanged extends MasterPageState {
   const ActiveThemeModeChanged();
+
+  @override
+  bool operator ==(Object other) => false;
+
+  @override
+  int get hashCode => identityHashCode(this);
 }
 
 class AuthStateChanged extends MasterPageState {

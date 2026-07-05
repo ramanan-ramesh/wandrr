@@ -9,6 +9,7 @@ import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/animated_list_item.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
+import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 
 /// Combined viewer for Notes and Checklists for a given itinerary day.
@@ -39,7 +40,9 @@ class _ItineraryNotesAndChecklistsViewerState
       shouldRebuild: (before, after) {
         final relevant = before.day.isOnSameDayAs(widget.day) ||
             after.day.isOnSameDayAs(widget.day);
-        if (!relevant) return false;
+        if (!relevant) {
+          return false;
+        }
         return !listEquals(before.notes, after.notes) ||
             !listEquals(before.checkLists, after.checkLists);
       },
@@ -50,123 +53,172 @@ class _ItineraryNotesAndChecklistsViewerState
         final notes = planData.notes;
         final checklists = planData.checkLists;
 
-        return ListView(
-          padding: EdgeInsets.fromLTRB(
-            _kPadding,
-            _kPadding,
-            _kPadding,
-            MediaQuery.of(context).padding.bottom + 80,
-          ),
-          children: [
-            // ── Notes section ────────────────────────────────────────────
-            _SectionHeader(
-              icon: Icons.sticky_note_2_rounded,
-              label: context.localizations.notes,
-              onAdd: () => context.addTripManagementEvent(
-                EditItineraryPlanData(
-                  day: widget.day,
-                  planDataEditorConfig:
-                      CreateNewItineraryPlanDataComponentConfig(
-                    planDataType: PlanDataType.note,
-                    date: widget.day,
-                  ),
-                ),
+        return StreamBuilder<bool>(
+          stream: context.tripRepository.activeTrip!.isFullyLoaded,
+          initialData: context.tripRepository.activeTrip!.isFullyLoadedValue,
+          builder: (context, snap) {
+            final isLoaded = snap.data ?? false;
+
+            // Show shimmer skeleton while trip data is still loading and the
+            // day has no entries yet.
+            if (!isLoaded && notes.isEmpty && checklists.isEmpty) {
+              return _buildShimmerSkeleton(context);
+            }
+
+            return ListView(
+              padding: EdgeInsets.fromLTRB(
+                _kPadding,
+                _kPadding,
+                _kPadding,
+                MediaQuery.of(context).padding.bottom + 80,
               ),
-            ),
-            const SizedBox(height: 8),
-            if (notes.isEmpty)
-              _EmptyPlaceholder(text: context.localizations.noNotesCreated)
-            else
-              ...notes.asMap().entries.map((e) {
-                final i = e.key;
-                final note = e.value;
-                final raw = note.trim();
-                final title = raw.isEmpty ? 'Untitled' : raw.split('\n').first;
-                final preview = raw.replaceAll('\n', ' ');
-                return AnimatedListItem(
-                  index: i,
-                  child: _NoteCard(
-                    title: title,
-                    preview: preview,
-                    onTap: () => context.addTripManagementEvent(
-                      EditItineraryPlanData(
-                        day: widget.day,
-                        planDataEditorConfig:
-                            UpdateItineraryPlanDataComponentConfig(
-                          planDataType: PlanDataType.note,
-                          index: i,
-                        ),
+              children: [
+                // ── Notes section ────────────────────────────────────────────
+                _SectionHeader(
+                  icon: Icons.sticky_note_2_rounded,
+                  label: context.localizations.notes,
+                  onAdd: () => context.addTripManagementEvent(
+                    EditItineraryPlanData(
+                      day: widget.day,
+                      planDataEditorConfig:
+                          CreateNewItineraryPlanDataComponentConfig(
+                        planDataType: PlanDataType.note,
+                        date: widget.day,
                       ),
                     ),
                   ),
-                );
-              }),
-
-            const SizedBox(height: _kSectionSpacing),
-
-            // ── Checklists section ───────────────────────────────────────
-            _SectionHeader(
-              icon: Icons.checklist_rounded,
-              label: context.localizations.checklists,
-              onAdd: () => context.addTripManagementEvent(
-                EditItineraryPlanData(
-                  day: widget.day,
-                  planDataEditorConfig:
-                      CreateNewItineraryPlanDataComponentConfig(
-                    planDataType: PlanDataType.checklist,
-                    date: widget.day,
-                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            if (checklists.isEmpty)
-              _EmptyPlaceholder(text: context.localizations.noChecklistsCreated)
-            else
-              ...checklists.asMap().entries.map((e) {
-                final i = e.key;
-                final cl = e.value;
-                final title = cl.title?.trim().isEmpty ?? true
-                    ? context.localizations.untitledChecklist
-                    : cl.title!.trim();
-                final completed =
-                    cl.items.where((item) => item.isChecked).length;
-                final total = cl.items.length;
-                final progress = total > 0 ? completed / total : 0.0;
-                final isExpanded = _expandedChecklists.contains(i);
-
-                return AnimatedListItem(
-                  index: i,
-                  child: _ChecklistCard(
-                    title: title,
-                    progress: progress,
-                    completed: completed,
-                    total: total,
-                    isExpanded: isExpanded,
-                    items: cl.items,
-                    onToggleExpand: () => setState(() {
-                      if (isExpanded) {
-                        _expandedChecklists.remove(i);
-                      } else {
-                        _expandedChecklists.add(i);
-                      }
-                    }),
-                    onEdit: () => context.addTripManagementEvent(
-                      EditItineraryPlanData(
-                        day: widget.day,
-                        planDataEditorConfig:
-                            UpdateItineraryPlanDataComponentConfig(
-                          planDataType: PlanDataType.checklist,
-                          index: i,
+                const SizedBox(height: 8),
+                if (notes.isEmpty)
+                  _EmptyPlaceholder(text: context.localizations.noNotesCreated)
+                else
+                  ...notes.asMap().entries.map((e) {
+                    final i = e.key;
+                    final note = e.value;
+                    final raw = note.trim();
+                    final title =
+                        raw.isEmpty ? 'Untitled' : raw.split('\n').first;
+                    final preview = raw.replaceAll('\n', ' ');
+                    return AnimatedListItem(
+                      index: i,
+                      child: _NoteCard(
+                        title: title,
+                        preview: preview,
+                        onTap: () => context.addTripManagementEvent(
+                          EditItineraryPlanData(
+                            day: widget.day,
+                            planDataEditorConfig:
+                                UpdateItineraryPlanDataComponentConfig(
+                              planDataType: PlanDataType.note,
+                              index: i,
+                            ),
+                          ),
                         ),
+                      ),
+                    );
+                  }),
+
+                const SizedBox(height: _kSectionSpacing),
+
+                // ── Checklists section ───────────────────────────────────────
+                _SectionHeader(
+                  icon: Icons.checklist_rounded,
+                  label: context.localizations.checklists,
+                  onAdd: () => context.addTripManagementEvent(
+                    EditItineraryPlanData(
+                      day: widget.day,
+                      planDataEditorConfig:
+                          CreateNewItineraryPlanDataComponentConfig(
+                        planDataType: PlanDataType.checklist,
+                        date: widget.day,
                       ),
                     ),
                   ),
-                );
-              }),
-          ],
+                ),
+                const SizedBox(height: 8),
+                if (checklists.isEmpty)
+                  _EmptyPlaceholder(
+                      text: context.localizations.noChecklistsCreated)
+                else
+                  ...checklists.asMap().entries.map((e) {
+                    final i = e.key;
+                    final cl = e.value;
+                    final title = cl.title?.trim().isEmpty ?? true
+                        ? context.localizations.untitledChecklist
+                        : cl.title!.trim();
+                    final completed =
+                        cl.items.where((item) => item.isChecked).length;
+                    final total = cl.items.length;
+                    final progress = total > 0 ? completed / total : 0.0;
+                    final isExpanded = _expandedChecklists.contains(i);
+
+                    return AnimatedListItem(
+                      index: i,
+                      child: _ChecklistCard(
+                        title: title,
+                        progress: progress,
+                        completed: completed,
+                        total: total,
+                        isExpanded: isExpanded,
+                        items: cl.items,
+                        onToggleExpand: () => setState(() {
+                          if (isExpanded) {
+                            _expandedChecklists.remove(i);
+                          } else {
+                            _expandedChecklists.add(i);
+                          }
+                        }),
+                        onEdit: () => context.addTripManagementEvent(
+                          EditItineraryPlanData(
+                            day: widget.day,
+                            planDataEditorConfig:
+                                UpdateItineraryPlanDataComponentConfig(
+                              planDataType: PlanDataType.checklist,
+                              index: i,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+              ],
+            );
+          },
         );
       },
+    );
+  }
+
+  Widget _buildShimmerSkeleton(BuildContext context) {
+    Widget shimmerLine(double height, {double? width}) => Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: ShimmerPlaceholder(
+            width: width ?? double.infinity,
+            height: height,
+            borderRadius: BorderRadius.circular(12),
+          ),
+        );
+
+    return ListView(
+      padding: EdgeInsets.fromLTRB(
+        _kPadding,
+        _kPadding,
+        _kPadding,
+        MediaQuery.of(context).padding.bottom + 80,
+      ),
+      children: [
+        // Notes section shimmer
+        shimmerLine(22, width: 80),
+        const SizedBox(height: 4),
+        shimmerLine(68),
+        shimmerLine(52),
+        const SizedBox(height: _kSectionSpacing),
+        // Checklists section shimmer
+        shimmerLine(22, width: 100),
+        const SizedBox(height: 4),
+        shimmerLine(72),
+        shimmerLine(60),
+      ],
     );
   }
 }
