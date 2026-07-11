@@ -9,6 +9,7 @@ import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/presentation/app/routing/app_router.dart';
+import 'package:wandrr/presentation/app/routing/app_routes.dart';
 import 'package:wandrr/presentation/app/theming/dark_theme_data.dart';
 import 'package:wandrr/presentation/app/theming/light_theme_data.dart';
 

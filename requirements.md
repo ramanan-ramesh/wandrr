@@ -1442,12 +1442,27 @@ small phones (< 360dp width):
   - total expense display animates when amount changes;
   - budget-to-expense ratio/progress animates with updated values.
 - **REQ-TE-APPBAR-001:** In Trip Editor app bar collaborator avatars, failed remote user-photo loads (for example throttled Google profile URLs returning HTTP 429) must gracefully fall back to the default person icon without breaking avatar layout.
+- **REQ-TE-LOAD-004:** Navigating from `PrintPage` to `TripEditorPage` for an already-active trip must reuse the activated trip dependencies immediately (no indefinite skeleton/shimmer state).
+- **REQ-TE-LOAD-005:** `TripEditorPage` loading skeleton timing constraints apply only to route-level shells; superseded by `REQ-TE-LOAD-006` where route-level shell rendering is removed.
+- **REQ-TE-LOAD-006:** Remove redundant route-level `TripEditorPage` shimmer shell in router; rely on existing `isTripLoaded`-driven loading states inside `ItineraryViewer` and `ExpensesListView` to avoid double-skeleton rendering.
 
 ### Print Loading UX and Resilience
 
 - **REQ-PRINT-LOAD-001:** Print page controls (title field, include-section chips, transit filter switches, and generate button) must remain visible immediately on route entry, but stay disabled until trip data is fully loaded.
 - **REQ-PRINT-LOAD-002:** While print data is loading, shimmer placeholders are shown only in the transit list region (small and large layouts); non-transit regions must not be replaced by full-page loading placeholders.
-- **REQ-PRINT-LOAD-003:** Any print/loading shimmer state must remain visible for a minimum of 2 seconds before transitioning to loaded content.
+- **REQ-PRINT-LOAD-003:** Any print/loading shimmer state must remain visible for a minimum of 1.5 seconds before transitioning to loaded content.
+- **REQ-PRINT-LOAD-004:** `PrintTripPage` must resolve trip data for print without activating the trip (no `ApiServicesRepositoryFacade` / `BudgetingServiceFacade` overhead): reuse the currently active trip if it already matches the requested id, otherwise dispatch `LoadTrip(shouldActivateTrip: false)` and listen exclusively for the bloc's `LoadedTripPreview` state to obtain the `TripDataFacade`. The page must not depend on `LoadedRepository`, `NavigateToHome`, or `UpdatedTripEntity` states, since it only ever mounts after the enclosing trip shell has already loaded the repository. The loading shimmer remains visible until both `LoadedTripPreview` is received and the resulting trip data's `isFullyLoaded` becomes `true`.
 - **REQ-PRINT-PDF-001:** PDF rendering must gracefully handle unsupported Unicode glyph sequences with readable fallbacks and resilient font/logo loading paths.
 - **REQ-DATERANGE-UI-001:** Date range picker labels and values must avoid overflow across compact and expanded layouts via a unified responsive date row style.
+
+### Routing Architecture and SOLID
+
+- **REQ-ROUTER-ARCH-001:** `AppRouter` must remain route-configuration focused (path definitions, redirects, and transition wiring only). Complex trip-shell behavior, trip activation flow, and route-level loading UI belong in dedicated route page classes.
+- **REQ-ROUTER-ARCH-002:** Route constants must be centralized in a dedicated routing contract (`app_routes.dart`) to avoid circular dependencies and improve single-responsibility boundaries.
+- **REQ-ROUTER-ARCH-003:** Route error fallback UI must live in a dedicated page widget (`NotFoundRoutePage`) rather than inline in router configuration.
+
+### Print Screen Architecture
+
+- **REQ-PRINT-ARCH-001:** Print routing must navigate directly to `PrintTripPage` (not a separate route shell class). `PrintTripPage` is responsible for dispatching `LoadTrip`, waiting for `ActivatedTrip`, and rendering print UI states.
+- **REQ-PRINT-ARCH-002:** Print UI should use one primary page implementation (`PrintPage`) for both loading and ready phases: form controls remain visible but disabled while loading, and only transit list region shows shimmer until data is ready.
 

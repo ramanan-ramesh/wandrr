@@ -1,30 +1,137 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:printing/printing.dart';
+import 'package:wandrr/blocs/trip/bloc.dart';
+import 'package:wandrr/blocs/trip/events.dart';
+import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/print_options.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_data.dart';
+import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/data/trip/services/trip_print_service.dart';
 import 'package:wandrr/l10n/app_localizations.dart';
 import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/print/models/print_transit_group.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/print/widgets/print_action_panel.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/print/widgets/print_form_content.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/print/widgets/print_transit_group_tile.dart';
+import 'package:wandrr/presentation/trip/repository_extensions.dart';
+
+/// Route entry point for the print flow.
+///
+/// Resolves [tripId] to a [TripDataFacade] by reusing the currently active
+/// trip when it already matches, or by dispatching a non-activating
+/// [LoadTrip] (`shouldActivateTrip: false`) so the trip data can be loaded
+/// for preview purposes only — no API services / budgeting service overhead
+/// is spun up just to print a trip. The bloc responds with
+/// [LoadedTripPreview] once the requested trip data is available, which this
+/// widget listens for exclusively.
+class PrintTripPage extends StatefulWidget {
+  final String tripId;
+
+  const PrintTripPage({required this.tripId, super.key});
+
+  @override
+  State<PrintTripPage> createState() => _PrintTripPageState();
+}
+
+class _PrintTripPageState extends State<PrintTripPage> {
+  TripDataFacade? _tripData;
+  bool _hasRequestedPreviewLoad = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _ensureTripDataAvailable();
+  }
+
+  @override
+  void didUpdateWidget(covariant PrintTripPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.tripId == widget.tripId) {
+      return;
+    }
+
+    _tripData = null;
+    _hasRequestedPreviewLoad = false;
+    _ensureTripDataAvailable();
+  }
+
+  void _ensureTripDataAvailable() {
+    final tripRepository = context.tripRepository;
+    if (_hasRequestedPreviewLoad) {
+      return;
+    }
+
+    final metadata = tripRepository.tripMetadataCollection.items
+        .where((trip) => trip.id == widget.tripId)
+        .single;
+    _hasRequestedPreviewLoad = true;
+    context.addTripManagementEvent(
+      LoadTrip(tripMetadata: metadata, shouldActivateTrip: false),
+    );
+  }
+
+  TripMetadataFacade? get _displayMetadata =>
+      _tripData?.tripMetadata ??
+      context.tripRepository.tripMetadataCollection.items
+          .where((trip) => trip.id == widget.tripId)
+          .firstOrNull;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<TripManagementBloc, TripManagementState>(
+        buildWhen: (_, state) => state is LoadedTripPreview,
+        builder: (context, state) {
+          if (state is LoadedTripPreview) {
+            _tripData = state.tripData;
+          }
+
+          return AnimatedSwitcher(
+            duration: const Duration(milliseconds: 420),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity:
+                  CurvedAnimation(parent: animation, curve: Curves.easeOut),
+              child: child,
+            ),
+            child: _tripData != null
+                ? KeyedSubtree(
+                    key: const ValueKey('print_page_ready'),
+                    child: PrintPage(tripData: _tripData!),
+                  )
+                : KeyedSubtree(
+                    key: const ValueKey('print_page_loading'),
+                    child: PrintPage.loading(metadata: _displayMetadata),
+                  ),
+          );
+        });
+  }
+}
 
 class PrintPage extends StatefulWidget {
-  final TripDataFacade tripData;
+  final TripDataFacade? tripData;
+  final TripMetadataFacade? metadata;
 
-  const PrintPage({required this.tripData, super.key});
+  PrintPage({required TripDataFacade tripData, super.key})
+      : tripData = tripData,
+        metadata = tripData.tripMetadata;
+
+  const PrintPage.loading({this.metadata, super.key}) : tripData = null;
 
   @override
   State<PrintPage> createState() => _PrintPageState();
 }
 
 class _PrintPageState extends State<PrintPage> {
+  static const _minimumTransitLoadingDuration = Duration(milliseconds: 1500);
+
   late final TextEditingController _titleController;
   late PrintOptions _options;
 
@@ -36,25 +143,32 @@ class _PrintPageState extends State<PrintPage> {
   StreamSubscription<bool>? _loadSub;
   Timer? _minDelayTimer;
 
+  TripDataFacade? get _tripData => widget.tripData;
+
   @override
   void initState() {
     super.initState();
-    _titleController =
-        TextEditingController(text: widget.tripData.tripMetadata.name);
+    final initialTitle = widget.metadata?.name ?? '';
+    _titleController = TextEditingController(text: initialTitle);
     _options = PrintOptions(
-      title: widget.tripData.tripMetadata.name,
+      title: initialTitle,
       selectedTransitIds: const <String>{},
     );
     _allTransits = [];
 
-    if (widget.tripData.isFullyLoadedValue) {
+    final tripData = _tripData;
+    if (tripData == null) {
+      return;
+    }
+
+    if (tripData.isFullyLoadedValue) {
       _hydrateLoadedData();
       _transitsReady = true;
       return;
     }
 
     final openTime = DateTime.now();
-    _loadSub = widget.tripData.isFullyLoaded.listen((loaded) {
+    _loadSub = tripData.isFullyLoaded.listen((loaded) {
       if (!loaded || !mounted) {
         return;
       }
@@ -63,7 +177,7 @@ class _PrintPageState extends State<PrintPage> {
       _hydrateLoadedData();
 
       final elapsed = DateTime.now().difference(openTime);
-      final remaining = const Duration(seconds: 2) - elapsed;
+      final remaining = _minimumTransitLoadingDuration - elapsed;
       if (remaining > Duration.zero) {
         _minDelayTimer = Timer(remaining, () {
           if (!mounted) {
@@ -91,7 +205,12 @@ class _PrintPageState extends State<PrintPage> {
   }
 
   void _initTransits() {
-    _allTransits = widget.tripData.transitCollection.items.toList()
+    final tripData = _tripData;
+    if (tripData == null) {
+      return;
+    }
+
+    _allTransits = tripData.transitCollection.items.toList()
       ..sort((a, b) => (a.departureDateTime ?? DateTime(0))
           .compareTo(b.departureDateTime ?? DateTime(0)));
     final allIds =
@@ -110,8 +229,13 @@ class _PrintPageState extends State<PrintPage> {
   }
 
   _PrintSectionAvailability _computeSectionAvailability() {
-    final start = widget.tripData.tripMetadata.startDate;
-    final end = widget.tripData.tripMetadata.endDate;
+    final tripData = _tripData;
+    if (tripData == null) {
+      return const _PrintSectionAvailability.allEnabled();
+    }
+
+    final start = tripData.tripMetadata.startDate;
+    final end = tripData.tripMetadata.endDate;
 
     var hasChecklist = false;
     var hasSights = false;
@@ -122,9 +246,8 @@ class _PrintPageState extends State<PrintPage> {
           start.calculateDaysInBetween(end, includeBoundaryDay: true);
       for (var i = 0; i < totalDays; i++) {
         final day = start.add(Duration(days: i));
-        final planData = widget.tripData.itineraryCollection
-            .getItineraryForDay(day)
-            .planData;
+        final planData =
+            tripData.itineraryCollection.getItineraryForDay(day).planData;
         hasChecklist = hasChecklist || planData.checkLists.isNotEmpty;
         hasSights = hasSights || planData.sights.isNotEmpty;
         hasNotes = hasNotes || planData.notes.isNotEmpty;
@@ -136,7 +259,7 @@ class _PrintPageState extends State<PrintPage> {
 
     return _PrintSectionAvailability(
       hasChecklist: hasChecklist,
-      hasExpenses: widget.tripData.expenseCollection.items.isNotEmpty,
+      hasExpenses: tripData.expenseCollection.items.isNotEmpty,
       hasSights: hasSights,
       hasNotes: hasNotes,
     );
@@ -202,9 +325,10 @@ class _PrintPageState extends State<PrintPage> {
     final selectedIds = (_options.selectedTransitIds ?? const <String>{})
         .intersection(visibleIds);
 
+    final fallbackTitle = widget.metadata?.name ?? '';
     return _options.copyWith(
       title: _titleController.text.trim().isEmpty
-          ? widget.tripData.tripMetadata.name
+          ? fallbackTitle
           : _titleController.text.trim(),
       selectedTransitIds: selectedIds,
       mergedJourneyIds: Set<String>.from(_options.mergedJourneyIds),
@@ -212,11 +336,15 @@ class _PrintPageState extends State<PrintPage> {
   }
 
   Future<void> _onGenerate() async {
+    final tripData = _tripData;
+    if (tripData == null) {
+      return;
+    }
+
     setState(() => _isGenerating = true);
     try {
       final options = _buildOptions();
-      final pdfBytes =
-          await TripPrintService().generatePdf(widget.tripData, options);
+      final pdfBytes = await TripPrintService().generatePdf(tripData, options);
 
       if (!mounted) {
         return;
@@ -251,6 +379,8 @@ class _PrintPageState extends State<PrintPage> {
     final pageBackground =
         isLight ? AppColors.lightBackground : AppColors.darkSurfaceVariant;
 
+    final controlsEnabled = _tripData != null && _transitsReady;
+
     return Scaffold(
       backgroundColor: pageBackground,
       appBar: AppBar(
@@ -270,12 +400,15 @@ class _PrintPageState extends State<PrintPage> {
               return Column(
                 children: [
                   Expanded(
-                    child: _buildFormContent(context,
-                        isLargeScreen: isLargeScreen),
+                    child: _buildFormContent(
+                      context,
+                      isLargeScreen: isLargeScreen,
+                      controlsEnabled: controlsEnabled,
+                    ),
                   ),
                   PrintActionPanel(
                     isLargeScreen: isLargeScreen,
-                    transitsReady: _transitsReady,
+                    transitsReady: controlsEnabled,
                     isGenerating: _isGenerating,
                     onGenerate: _onGenerate,
                   ),
@@ -288,25 +421,28 @@ class _PrintPageState extends State<PrintPage> {
     );
   }
 
-  Widget _buildFormContent(BuildContext context,
-      {required bool isLargeScreen}) {
-    final availability = _transitsReady
+  Widget _buildFormContent(
+    BuildContext context, {
+    required bool isLargeScreen,
+    required bool controlsEnabled,
+  }) {
+    final availability = controlsEnabled
         ? _computeSectionAvailability()
         : const _PrintSectionAvailability.allEnabled();
 
     return PrintFormContent(
       isLargeScreen: isLargeScreen,
       transitsReady: _transitsReady,
-      controlsEnabled: _transitsReady,
+      controlsEnabled: controlsEnabled,
       titleController: _titleController,
       includeChecklist: _options.includeChecklist,
       includeExpenses: _options.includeExpenses,
       includeSights: _options.includeSights,
       includeNotes: _options.includeNotes,
-      checklistEnabled: _transitsReady && availability.hasChecklist,
-      expensesEnabled: _transitsReady && availability.hasExpenses,
-      sightsEnabled: _transitsReady && availability.hasSights,
-      notesEnabled: _transitsReady && availability.hasNotes,
+      checklistEnabled: controlsEnabled && availability.hasChecklist,
+      expensesEnabled: controlsEnabled && availability.hasExpenses,
+      sightsEnabled: controlsEnabled && availability.hasSights,
+      notesEnabled: controlsEnabled && availability.hasNotes,
       includeInterCityTransit: _options.includeInterCityTransit,
       includeIntraCityTransit: _options.includeIntraCityTransit,
       onIncludeChecklistChanged: (v) =>
@@ -328,8 +464,10 @@ class _PrintPageState extends State<PrintPage> {
     );
   }
 
-  Widget _buildTransitSelectionContent(BuildContext context,
-      {required bool isLargeScreen}) {
+  Widget _buildTransitSelectionContent(
+    BuildContext context, {
+    required bool isLargeScreen,
+  }) {
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
     final groups = _transitGroups;
