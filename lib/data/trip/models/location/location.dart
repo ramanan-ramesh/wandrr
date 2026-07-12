@@ -11,6 +11,21 @@ class LocationFacade extends Equatable implements TripEntity<Never> {
 
   final LocationContext context;
 
+  /// IANA timezone identifier (e.g. `Europe/Prague`), resolved once when a
+  /// location is first persisted (see `LocationModelImplementation`) so that
+  /// later date/time conversions don't need to re-infer it from coordinates.
+  ///
+  /// Null for locations that haven't been resolved yet, or that were
+  /// persisted before this field existed. Callers should resolve via
+  /// `TimezoneResolver` rather than reading this directly, since that class
+  /// transparently falls back to coordinate-based inference.
+  ///
+  /// Excluded from [props] intentionally: it is derived data, not part of a
+  /// location's semantic identity, so two locations with the same
+  /// coordinates/context/id must stay equal regardless of whether this has
+  /// been resolved yet.
+  final String? timezoneId;
+
   @override
   String? id;
 
@@ -18,11 +33,16 @@ class LocationFacade extends Equatable implements TripEntity<Never> {
       {required this.latitude,
       required this.longitude,
       required this.context,
-      this.id});
+      this.id,
+      this.timezoneId});
 
   @override
   LocationFacade clone() => LocationFacade(
-      latitude: latitude, longitude: longitude, context: context, id: id);
+      latitude: latitude,
+      longitude: longitude,
+      context: context,
+      id: id,
+      timezoneId: timezoneId);
 
   @override
   String toString() {

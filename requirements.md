@@ -1466,3 +1466,12 @@ small phones (< 360dp width):
 - **REQ-PRINT-ARCH-001:** Print routing must navigate directly to `PrintTripPage` (not a separate route shell class). `PrintTripPage` is responsible for dispatching `LoadTrip`, waiting for `ActivatedTrip`, and rendering print UI states.
 - **REQ-PRINT-ARCH-002:** Print UI should use one primary page implementation (`PrintPage`) for both loading and ready phases: form controls remain visible but disabled while loading, and only transit list region shows shimmer until data is ready.
 
+---
+
+## Changelog — v1.6 (2026-07-11)
+
+### Architecture and Codebase Consistency
+
+- **REQ-ARCH-IMPORT-001:** All intra-project imports inside the `lib/` directory must use absolute `package:wandrr/...` paths. Relative imports (for example `../` or `../../`) are disallowed to keep module boundaries explicit and prevent path-fragility during refactors.
+- **REQ-ARCH-IMPORT-002:** Expense domain model types (such as `ExpenseCategory`) must be imported via a single canonical `package:wandrr/...` URI across all entities and interfaces to avoid duplicate type identity and `invalid_override` errors.
+

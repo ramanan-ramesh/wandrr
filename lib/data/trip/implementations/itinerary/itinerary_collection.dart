@@ -9,6 +9,7 @@ import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/itinerary/sight.dart';
+import 'package:wandrr/data/trip/models/location/location_timezone_date_time.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
@@ -412,16 +413,35 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
     }
   }
 
+  /// Determines which itinerary (trip) days a transit leg touches by
+  /// decoding its departure/arrival instants into each location's own
+  /// wall-clock time before comparing against calendar days.
+  ///
+  /// Comparing raw stored UTC instants directly against a bare calendar day
+  /// (as this used to do) can misassign a leg to the wrong day whenever the
+  /// departure/arrival location's UTC offset shifts the wall-clock date
+  /// relative to the UTC date — e.g. a flight departing 11pm local time can
+  /// still be a different UTC calendar day. Decoding first keeps this
+  /// consistent with the location-aware day checks already used by the
+  /// timeline and print views (`LocationTimezoneDateTime.isOnSameDay`).
   void _addOrRemoveTransitToItinerary(TransitFacade transit, bool toDelete) {
+    final departureWallClock = LocationTimezoneDateTime.decodeUtcToWallClock(
+      storedDateTime: transit.departureDateTime!,
+      location: transit.departureLocation,
+    );
+    final arrivalWallClock = LocationTimezoneDateTime.decodeUtcToWallClock(
+      storedDateTime: transit.arrivalDateTime!,
+      location: transit.arrivalLocation,
+    );
     for (final itinerary in _itineraries) {
       var isItineraryDayOnOrAfterDeparture =
-          itinerary.day.isOnSameDayAs(transit.departureDateTime!) ||
-              itinerary.day.isAfter(transit.departureDateTime!);
+          itinerary.day.isOnSameDayAs(departureWallClock) ||
+              itinerary.day.isAfter(departureWallClock);
       var isItineraryDayOnOrBeforeArrival =
-          itinerary.day.isOnSameDayAs(transit.arrivalDateTime!) ||
+          itinerary.day.isOnSameDayAs(arrivalWallClock) ||
               itinerary.day
                   .copyWith(hour: 23, minute: 59, second: 59)
-                  .isBefore(transit.arrivalDateTime!);
+                  .isBefore(arrivalWallClock);
       if (isItineraryDayOnOrAfterDeparture && isItineraryDayOnOrBeforeArrival) {
         if (toDelete) {
           itinerary.removeTransit(transit.id!);
@@ -432,18 +452,29 @@ class ItineraryCollection extends ItineraryFacadeCollectionEventHandler {
     }
   }
 
+  /// Same location-aware day-bucketing rationale as
+  /// [_addOrRemoveTransitToItinerary], decoding check-in/check-out via the
+  /// stay's location before comparing against calendar days.
   void _addOrRemoveLodgingToItinerary(LodgingFacade lodging, bool toDelete) {
+    final checkinWallClock = LocationTimezoneDateTime.decodeUtcToWallClock(
+      storedDateTime: lodging.checkinDateTime!,
+      location: lodging.location,
+    );
+    final checkoutWallClock = LocationTimezoneDateTime.decodeUtcToWallClock(
+      storedDateTime: lodging.checkoutDateTime!,
+      location: lodging.location,
+    );
     for (final itinerary in _itineraries) {
-      if (itinerary.day.isOnSameDayAs(lodging.checkinDateTime!)) {
+      if (itinerary.day.isOnSameDayAs(checkinWallClock)) {
         itinerary.checkInLodging = toDelete ? null : lodging;
       }
-      if (itinerary.day.isOnSameDayAs(lodging.checkoutDateTime!)) {
+      if (itinerary.day.isOnSameDayAs(checkoutWallClock)) {
         itinerary.checkOutLodging = toDelete ? null : lodging;
       }
-      if (itinerary.day.isAfter(lodging.checkinDateTime!) &&
+      if (itinerary.day.isAfter(checkinWallClock) &&
           itinerary.day
               .copyWith(hour: 23, minute: 59, second: 59)
-              .isBefore(lodging.checkoutDateTime!)) {
+              .isBefore(checkoutWallClock)) {
         itinerary.fullDayLodging = toDelete ? null : lodging;
       }
     }

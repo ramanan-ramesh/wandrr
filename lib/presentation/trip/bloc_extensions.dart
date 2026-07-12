@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wandrr/blocs/app/bloc.dart';
+import 'package:wandrr/blocs/app/events.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
 import 'package:wandrr/blocs/trip/states.dart';
@@ -7,9 +9,6 @@ import 'package:wandrr/blocs/trip_entity_editor/bloc.dart';
 import 'package:wandrr/blocs/trip_entity_editor/events.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/services/conflict_detection/trip_entity_update_plan.dart';
-
-import '../../blocs/app/bloc.dart';
-import '../../blocs/app/events.dart';
 
 extension BlocProviderExt on BuildContext {
   MasterPageBloc get masterPageBloc => BlocProvider.of<MasterPageBloc>(this);

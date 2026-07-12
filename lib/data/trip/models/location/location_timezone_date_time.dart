@@ -1,8 +1,8 @@
 import 'package:intl/intl.dart';
-import 'package:lat_lng_to_timezone/lat_lng_to_timezone.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'location.dart';
+import 'timezone_resolver.dart';
 
 /// Converts wall-clock times between storage (UTC) and location timezone views.
 class LocationTimezoneDateTime {
@@ -14,7 +14,7 @@ class LocationTimezoneDateTime {
       return _asUtcWithSameClock(wallClock);
     }
 
-    final tzLocation = _resolveLocation(location);
+    final tzLocation = TimezoneResolver.resolveLocation(location);
     if (tzLocation == null) {
       return _asUtcWithSameClock(wallClock);
     }
@@ -40,7 +40,8 @@ class LocationTimezoneDateTime {
   }) {
     final utcDateTime =
         storedDateTime.isUtc ? storedDateTime : storedDateTime.toUtc();
-    final tzLocation = location == null ? null : _resolveLocation(location);
+    final tzLocation =
+        location == null ? null : TimezoneResolver.resolveLocation(location);
     if (tzLocation == null) {
       return DateTime(
         utcDateTime.year,
@@ -117,14 +118,4 @@ class LocationTimezoneDateTime {
         dateTime.millisecond,
         dateTime.microsecond,
       );
-
-  static tz.Location? _resolveLocation(LocationFacade location) {
-    final timezoneId =
-        latLngToTimezoneString(location.latitude, location.longitude);
-    try {
-      return tz.getLocation(timezoneId);
-    } on Exception catch (_) {
-      return null;
-    }
-  }
 }

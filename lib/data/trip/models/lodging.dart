@@ -1,10 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:wandrr/data/trip/models/budgeting/expense.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
 import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
-
-import 'budgeting/expense_category.dart';
 
 // ignore: must_be_immutable
 class LodgingFacade extends Equatable
@@ -73,14 +72,11 @@ class LodgingFacade extends Equatable
 
   void copyWith(LodgingFacade lodgingModelFacade) {
     location = lodgingModelFacade.location;
-    checkinDateTime = DateTime(
-        lodgingModelFacade.checkinDateTime!.year,
-        lodgingModelFacade.checkinDateTime!.month,
-        lodgingModelFacade.checkinDateTime!.day);
-    checkoutDateTime = DateTime(
-        lodgingModelFacade.checkoutDateTime!.year,
-        lodgingModelFacade.checkoutDateTime!.month,
-        lodgingModelFacade.checkoutDateTime!.day);
+    // Preserve the full check-in/check-out instant (date + wall-clock time),
+    // mirroring TransitFacade.copyWith. Previously this truncated to
+    // midnight, silently discarding the time-of-day component.
+    checkinDateTime = lodgingModelFacade.checkinDateTime;
+    checkoutDateTime = lodgingModelFacade.checkoutDateTime;
     confirmationId = lodgingModelFacade.confirmationId;
     expense = lodgingModelFacade.expense;
     notes = lodgingModelFacade.notes;

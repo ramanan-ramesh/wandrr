@@ -206,7 +206,7 @@ class FirestoreModelCollection<TModel>
     // Fire-and-forget — no need to await.
     _typedCollectionReference
         .doc(docId)
-        .set(collectionDocument, SetOptions(merge: true));
+        .set(collectionDocument, SetOptions(merge: false));
   }
 
   void _onCollectionDataUpdate(

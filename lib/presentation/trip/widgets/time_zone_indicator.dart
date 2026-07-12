@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lat_lng_to_timezone/lat_lng_to_timezone.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/location/location.dart';
+import 'package:wandrr/data/trip/models/location/timezone_resolver.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 
 class TimezoneIndicator extends StatelessWidget {
@@ -18,8 +18,7 @@ class TimezoneIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLightTheme = context.isLightTheme;
-    var timezoneString =
-        latLngToTimezoneString(location.latitude, location.longitude);
+    var timezoneString = TimezoneResolver.resolveTimezoneId(location) ?? '';
     timezoneString = timezoneString.replaceAll('_', ' ');
     return _buildAnimatedChip(context, timezoneString,
         isLightTheme: isLightTheme);
@@ -115,12 +114,12 @@ class DualTimezoneIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final isLightTheme = context.isLightTheme;
 
-    final departureTz = latLngToTimezoneString(
-            departureLocation.latitude, departureLocation.longitude)
-        .replaceAll('_', ' ');
-    final arrivalTz = latLngToTimezoneString(
-            arrivalLocation.latitude, arrivalLocation.longitude)
-        .replaceAll('_', ' ');
+    final departureTz =
+        (TimezoneResolver.resolveTimezoneId(departureLocation) ?? '')
+            .replaceAll('_', ' ');
+    final arrivalTz =
+        (TimezoneResolver.resolveTimezoneId(arrivalLocation) ?? '')
+            .replaceAll('_', ' ');
 
     // Same timezone → show only one
     if (departureTz == arrivalTz) {

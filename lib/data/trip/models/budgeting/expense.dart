@@ -1,9 +1,8 @@
 import 'package:equatable/equatable.dart';
+import 'package:wandrr/data/trip/models/budgeting/expense_category.dart';
+import 'package:wandrr/data/trip/models/budgeting/money.dart';
 import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_entity_validation_result.dart';
-
-import 'expense_category.dart';
-import 'money.dart';
 
 /// Data holder for expense details.
 class ExpenseFacade extends Equatable {
