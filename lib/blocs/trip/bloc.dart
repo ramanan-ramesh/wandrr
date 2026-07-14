@@ -158,7 +158,7 @@ class TripManagementBloc
 
     final apiServices = await _getOrCreateApiServices();
 
-    if (event.shouldActivateTrip) {
+    if (event.isTripActivated) {
       if (_activeTrip != null) {
         await _teardownActiveTripSubscriptions();
       }

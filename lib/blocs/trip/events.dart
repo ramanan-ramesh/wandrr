@@ -31,20 +31,12 @@ class UpdateTripEntity<T extends TripEntity<Enum>> extends TripManagementEvent {
       : dataState = DataState.select;
 }
 
-/// Dispatched when the user taps an [ExpenseBearingTripEntity] inside the
-/// BudgetingPage (expense list).  Using a dedicated event (not a generic
-/// [UpdateTripEntity]) avoids Dart's covariant generic subtyping issue that
-/// would otherwise cause the timeline's type-specific handlers
-/// (e.g. [UpdateTripEntity<TransitFacade>]) to also fire when a transit / stay
-/// is tapped on the timeline, producing two bottom sheets simultaneously.
 class SelectExpenseForDetails extends TripManagementEvent {
   final ExpenseBearingTripEntity tripEntity;
 
   const SelectExpenseForDetails({required this.tripEntity});
 }
 
-/// Event to apply a pre-computed update plan for trip metadata changes.
-/// This is the preferred way to handle trip metadata changes as it uses batch writes.
 class ApplyTripDataUpdatePlan extends TripManagementEvent {
   final TripEntityUpdatePlan updatePlan;
 
@@ -53,10 +45,9 @@ class ApplyTripDataUpdatePlan extends TripManagementEvent {
 
 class LoadTrip extends TripManagementEvent {
   final TripMetadataFacade tripMetadata;
-  final bool shouldActivateTrip;
+  final bool isTripActivated;
 
-  const LoadTrip(
-      {required this.tripMetadata, required this.shouldActivateTrip});
+  const LoadTrip({required this.tripMetadata, required this.isTripActivated});
 }
 
 class EditItineraryPlanData extends TripManagementEvent {

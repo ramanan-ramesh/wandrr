@@ -64,7 +64,7 @@ class TripMetadataSubscriptionHandler {
         return;
       }
 
-      if (eventData.isFromExplicitAction || _isBlocClosed()) {
+      if (_isBlocClosed()) {
         return;
       }
 
@@ -87,7 +87,7 @@ class TripMetadataSubscriptionHandler {
         return;
       }
 
-      if (eventData.isFromExplicitAction || _isBlocClosed()) {
+      if (_isBlocClosed()) {
         return;
       }
 
@@ -109,7 +109,7 @@ class TripMetadataSubscriptionHandler {
         return;
       }
 
-      if (eventData.isFromExplicitAction || _isBlocClosed()) {
+      if (_isBlocClosed()) {
         return;
       }
 

@@ -73,7 +73,7 @@ class _PrintTripPageState extends State<PrintTripPage> {
         .single;
     _hasRequestedPreviewLoad = true;
     context.addTripManagementEvent(
-      LoadTrip(tripMetadata: metadata, shouldActivateTrip: false),
+      LoadTrip(tripMetadata: metadata, isTripActivated: false),
     );
   }
 

@@ -1,1 +1,1 @@
-enum DataState { create, update, delete, select, none }
+enum DataState { create, update, delete, select }

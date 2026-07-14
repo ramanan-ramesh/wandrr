@@ -72,10 +72,7 @@ class ConflictedEntityTimeRangeError<T extends TripEntity<Enum>>
   /// The entity that [change]'s modified time conflicts with.
   final TripEntity conflictingEntity;
 
-  final dynamic oldTimeValues;
-
-  const ConflictedEntityTimeRangeError(
-      this.change, this.conflictingEntity, this.oldTimeValues);
+  const ConflictedEntityTimeRangeError(this.change, this.conflictingEntity);
 }
 
 // ---------------------------------------------------------------------------

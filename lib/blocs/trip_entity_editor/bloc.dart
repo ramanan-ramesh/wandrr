@@ -175,7 +175,7 @@ class TripEntityEditorBloc<TEntity extends TripEntity<Enum>>
 
     if (!result.isValid) {
       emit(ConflictedEntityTimeRangeError<TEntity>(
-          event.change, result.conflictingEntity!, event.change.original));
+          event.change, result.conflictingEntity!));
       return;
     }
 

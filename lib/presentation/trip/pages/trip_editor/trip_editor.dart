@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
-import 'package:wandrr/blocs/trip/itinerary_plan_data_editor_config.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
@@ -10,21 +9,18 @@ import 'package:wandrr/data/trip/models/budgeting/expense.dart';
 import 'package:wandrr/data/trip/models/itinerary/itinerary_plan_data.dart';
 import 'package:wandrr/data/trip/models/lodging.dart';
 import 'package:wandrr/data/trip/models/transit.dart';
-import 'package:wandrr/data/trip/models/trip_entity.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
-import 'package:wandrr/presentation/app/theming/app_colors.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/creator_bottom_sheet.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/action_handling/editor_bottom_sheet.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/budgeting/budgeting_page.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/editor_action.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/app_bar/app_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/main/bottom_nav_bar.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/trip_editor_constants.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 
+import 'action_handling/creator_bottom_sheet.dart';
+import 'action_handling/editor_bottom_sheet.dart';
+import 'budgeting/budgeting_page.dart';
 import 'itinerary/itinerary_navigator.dart';
 
-/// Main entry point for the trip editor page.
 class TripEditorPage extends StatefulWidget {
   const TripEditorPage({super.key});
 
@@ -34,11 +30,12 @@ class TripEditorPage extends StatefulWidget {
 
 class _TripEditorPageState extends State<TripEditorPage> {
   late DateTime _currentDisplayedDate;
-  int _currentPageIndex = 0;
+  static const _padding = 8.0;
+  static const _topPaneRadius = BorderRadius.only(
+    topLeft: Radius.circular(20),
+    topRight: Radius.circular(20),
+  );
 
-  // Created once and shared by both layout branches so that each page retains
-  // its state (e.g. ItineraryNavigator's current-day selection) across
-  // tab switches and layout changes.
   late final Widget _itineraryPage = ItineraryNavigator(
     onNavigatedToDate: (date) => _currentDisplayedDate = date,
   );
@@ -58,20 +55,20 @@ class _TripEditorPageState extends State<TripEditorPage> {
       return _TripEditorPageInternal(
         getDisplayedDate: () => _currentDisplayedDate,
         body: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
+          padding: const EdgeInsets.fromLTRB(_padding, _padding, _padding, 0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: _TripEditorPanel(
-                  accentColor: AppColors.brandPrimary,
+                child: ClipRRect(
+                  borderRadius: _topPaneRadius,
                   child: _itineraryPage,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: _padding),
               Expanded(
-                child: _TripEditorPanel(
-                  accentColor: AppColors.info,
+                child: ClipRRect(
+                  borderRadius: _topPaneRadius,
                   child: _budgetingPage,
                 ),
               ),
@@ -81,26 +78,60 @@ class _TripEditorPageState extends State<TripEditorPage> {
       );
     }
 
-    return _TripEditorPageInternal(
+    return _TripEditorSmallLayout(
       getDisplayedDate: () => _currentDisplayedDate,
+      itineraryPage: _itineraryPage,
+      budgetingPage: _budgetingPage,
+    );
+  }
+}
+
+class _TripEditorSmallLayout extends StatefulWidget {
+  final Widget itineraryPage;
+  final Widget budgetingPage;
+  final DateTime Function() getDisplayedDate;
+
+  _TripEditorSmallLayout({
+    required this.itineraryPage,
+    required this.budgetingPage,
+    required this.getDisplayedDate,
+  });
+
+  @override
+  State<_TripEditorSmallLayout> createState() => _TripEditorSmallLayoutState();
+}
+
+class _TripEditorSmallLayoutState extends State<_TripEditorSmallLayout> {
+  int _currentPageIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return _TripEditorPageInternal(
+      getDisplayedDate: widget.getDisplayedDate,
       body: Stack(
         children: [
-          IgnorePointer(
-            ignoring: _currentPageIndex != 0,
-            child: AnimatedOpacity(
-              opacity: _currentPageIndex == 0 ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeInOut,
-              child: _itineraryPage,
+          ExcludeSemantics(
+            excluding: _currentPageIndex != 0,
+            child: IgnorePointer(
+              ignoring: _currentPageIndex != 0,
+              child: AnimatedOpacity(
+                opacity: _currentPageIndex == 0 ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: widget.itineraryPage,
+              ),
             ),
           ),
-          IgnorePointer(
-            ignoring: _currentPageIndex != 1,
-            child: AnimatedOpacity(
-              opacity: _currentPageIndex == 1 ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeInOut,
-              child: _budgetingPage,
+          ExcludeSemantics(
+            excluding: _currentPageIndex != 1,
+            child: IgnorePointer(
+              ignoring: _currentPageIndex != 1,
+              child: AnimatedOpacity(
+                opacity: _currentPageIndex == 1 ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: widget.budgetingPage,
+              ),
             ),
           ),
         ],
@@ -133,21 +164,28 @@ class _TripEditorPageInternal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
     return BlocListener<TripManagementBloc, TripManagementState>(
       listener: _onBlocStateChanged,
       child: Scaffold(
         appBar: const TripEditorAppBar(),
         extendBody: bottomNavigationBar == null,
-        floatingActionButton: _createAddButton(context),
+        floatingActionButton: Padding(
+          padding: EdgeInsets.only(
+              bottom: context.isBigLayout
+                  ? TripEditorPageConstants.fabBottomPadding
+                  : 0.0),
+          child: _createAddButton(context),
+        ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         body: MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            padding: MediaQuery.of(context).padding.copyWith(
-                  bottom: MediaQuery.of(context).padding.bottom +
-                      (bottomNavigationBar == null
-                          ? TripEditorPageConstants.fabContentPaddingBig
-                          : TripEditorPageConstants.fabContentPaddingSmall),
-                ),
+          data: mediaQuery.copyWith(
+            padding: mediaQuery.padding.copyWith(
+              bottom: mediaQuery.padding.bottom +
+                  (bottomNavigationBar == null
+                      ? TripEditorPageConstants.fabContentPaddingBig
+                      : TripEditorPageConstants.fabContentPaddingSmall),
+            ),
           ),
           child: body,
         ),
@@ -160,11 +198,13 @@ class _TripEditorPageInternal extends StatelessWidget {
     if (state is SelectedExpenseBearingTripEntity) {
       final expenseBearingTripEntity =
           state.tripEntityModificationData.collectionItemChange;
-      _showTripEntityEditorBottomSheet<ExpenseBearingTripEntity>(
-        tripEditorAction: TripEditorAction.expense,
-        tripEntity: expenseBearingTripEntity,
-        pageContext: context,
-        showAsExpenseEditor: true,
+      _showModalBottomSheet(
+        TripEntityEditorBottomSheet<ExpenseBearingTripEntity>(
+          tripEditorAction: TripEditorAction.expense,
+          tripEntity: expenseBearingTripEntity,
+          showAsExpenseEditor: true,
+        ),
+        context,
       );
     } else if (state is UpdatedTripEntity &&
         state.dataState == DataState.update) {
@@ -181,30 +221,38 @@ class _TripEditorPageInternal extends StatelessWidget {
         state.dataState == DataState.select) {
       final tripEntity = state.tripEntityModificationData.collectionItemChange;
       if (tripEntity is TransitFacade) {
-        _showTripEntityEditorBottomSheet<TransitFacade>(
-          tripEditorAction: TripEditorAction.travel,
-          tripEntity: tripEntity,
-          pageContext: context,
+        _showModalBottomSheet(
+          TripEntityEditorBottomSheet<TransitFacade>(
+            tripEditorAction: TripEditorAction.travel,
+            tripEntity: tripEntity,
+          ),
+          context,
         );
       } else if (tripEntity is LodgingFacade) {
-        _showTripEntityEditorBottomSheet<LodgingFacade>(
-          tripEditorAction: TripEditorAction.stay,
-          tripEntity: tripEntity,
-          pageContext: context,
+        _showModalBottomSheet(
+          TripEntityEditorBottomSheet<LodgingFacade>(
+            tripEditorAction: TripEditorAction.stay,
+            tripEntity: tripEntity,
+          ),
+          context,
         );
       } else if (tripEntity is TripMetadataFacade) {
-        _showTripEntityEditorBottomSheet<TripMetadataFacade>(
-          tripEditorAction: TripEditorAction.tripDetails,
-          tripEntity: tripEntity,
-          pageContext: context,
+        _showModalBottomSheet(
+          TripEntityEditorBottomSheet<TripMetadataFacade>(
+            tripEditorAction: TripEditorAction.tripDetails,
+            tripEntity: tripEntity,
+          ),
+          context,
         );
       }
     } else if (state is SelectedItineraryPlanData) {
-      _showTripEntityEditorBottomSheet<ItineraryPlanData>(
-        tripEditorAction: TripEditorAction.itineraryData,
-        tripEntity: state.planData,
-        pageContext: context,
-        planDataEditorConfig: state.planDataEditorConfig,
+      _showModalBottomSheet(
+        TripEntityEditorBottomSheet<ItineraryPlanData>(
+          tripEditorAction: TripEditorAction.itineraryData,
+          tripEntity: state.planData,
+          planDataEditorConfig: state.planDataEditorConfig,
+        ),
+        context,
       );
     }
   }
@@ -242,25 +290,20 @@ class _TripEditorPageInternal extends StatelessWidget {
       initialData: pageContext.tripRepository.activeTrip!.isFullyLoadedValue,
       builder: (context, snapshot) {
         final isLoaded = snapshot.data ?? false;
-        return Padding(
-          padding: EdgeInsets.only(bottom: isBigLayout ? 24.0 : 0.0),
-          child: AnimatedOpacity(
-            opacity: isLoaded ? 1.0 : 0.45,
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeOut,
-            child: SizedBox(
-              height: TripEditorPageConstants.fabSize,
-              width: TripEditorPageConstants.fabSize,
-              child: FittedBox(
-                child: FloatingActionButton(
-                  heroTag: isBigLayout
-                      ? 'tripEditorAddButtonWithNav'
-                      : 'tripEditorAddButton',
-                  onPressed:
-                      isLoaded ? () => _onAddButtonPressed(pageContext) : null,
-                  child: const Icon(Icons.add),
-                ),
-              ),
+        return AnimatedOpacity(
+          opacity: isLoaded ? 1.0 : 0.45,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOut,
+          child: SizedBox(
+            height: TripEditorPageConstants.fabSize,
+            width: TripEditorPageConstants.fabSize,
+            child: FloatingActionButton(
+              heroTag: isBigLayout
+                  ? 'tripEditorAddButtonWithNav'
+                  : 'tripEditorAddButton',
+              onPressed:
+                  isLoaded ? () => _onAddButtonPressed(pageContext) : null,
+              child: const Icon(Icons.add),
             ),
           ),
         );
@@ -282,24 +325,6 @@ class _TripEditorPageInternal extends StatelessWidget {
     );
   }
 
-  void _showTripEntityEditorBottomSheet<T extends TripEntity<Enum>>({
-    required T tripEntity,
-    required TripEditorAction tripEditorAction,
-    required BuildContext pageContext,
-    ItineraryPlanDataEditorConfig? planDataEditorConfig,
-    bool showAsExpenseEditor = false,
-  }) {
-    _showModalBottomSheet(
-      TripEntityEditorBottomSheet<T>(
-        tripEditorAction: tripEditorAction,
-        tripEntity: tripEntity,
-        planDataEditorConfig: planDataEditorConfig,
-        showAsExpenseEditor: showAsExpenseEditor,
-      ),
-      pageContext,
-    );
-  }
-
   void _showModalBottomSheet(Widget child, BuildContext pageContext) {
     showModalBottomSheet(
       context: pageContext,
@@ -312,48 +337,10 @@ class _TripEditorPageInternal extends StatelessWidget {
         ],
         child: BlocProvider.value(
           value: BlocProvider.of<TripManagementBloc>(pageContext),
-          // When the user scrolls the bottom-sheet content while an autocomplete
-          // options overlay is open, the overlay (rendered in the Overlay widget
-          // tree) stays fixed while the field scrolls away.
-          //
-          // Strategy: listen to ScrollUpdateNotifications (which fire continuously
-          // during a drag) and check whether the currently-focused widget is still
-          // within the visible screen area using localToGlobal.  We unfocus only
-          // when the field has scrolled *completely* out of view, so:
-          //   • Scrolling slowly inside the sheet keeps the dropdown open as long
-          //     as the field is still visible.
-          //   • Scrolling within the autocomplete options list itself is unaffected
-          //     because that list lives in a separate Overlay widget tree and its
-          //     ScrollUpdateNotifications never reach this listener.
           child: NotificationListener<ScrollUpdateNotification>(
             onNotification: (notification) {
-              final primaryFocus = FocusManager.instance.primaryFocus;
-              if (primaryFocus == null) {
-                return false;
-              }
-              final focusedContext = primaryFocus.context;
-              if (focusedContext == null) {
-                return false;
-              }
-              final renderBox = focusedContext.findRenderObject();
-              if (renderBox is! RenderBox ||
-                  !renderBox.hasSize ||
-                  !renderBox.attached) {
-                return false;
-              }
-
-              // Convert the focused widget's top-left corner to screen coordinates.
-              final topLeft = renderBox.localToGlobal(Offset.zero);
-              final fieldHeight = renderBox.size.height;
-              final screenHeight = MediaQuery.sizeOf(dialogContext).height;
-
-              // Dismiss only when the field is fully outside the visible area.
-              final scrolledAbove = topLeft.dy + fieldHeight < 0;
-              final scrolledBelow = topLeft.dy > screenHeight;
-              if (scrolledAbove || scrolledBelow) {
-                primaryFocus.unfocus();
-              }
-              return false; // let the notification keep bubbling
+              FocusManager.instance.primaryFocus?.unfocus();
+              return false;
             },
             child: Padding(
               padding: EdgeInsets.only(
@@ -363,66 +350,6 @@ class _TripEditorPageInternal extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Elegant panel container used on tablets to visually distinguish the
-/// Itinerary and Budgeting sections.  Each panel has:
-///   • White / dark-surface background for strong contrast against the scaffold
-///   • A 4 px accent bar at the top, colour-coded per section
-///   • Rounded corners + depth shadow
-class _TripEditorPanel extends StatelessWidget {
-  final Widget child;
-
-  /// Accent colour — brandPrimary for Itinerary, info-blue for Budgeting.
-  final Color accentColor;
-
-  const _TripEditorPanel({
-    required this.child,
-    required this.accentColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isLight = context.isLightTheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: isLight ? Colors.white : AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: isLight
-                ? accentColor.withValues(alpha: 0.12)
-                : Colors.black.withValues(alpha: 0.45),
-            blurRadius: 22,
-            offset: const Offset(0, 5),
-          ),
-        ],
-        border: Border.all(
-          color: isLight
-              ? accentColor.withValues(alpha: 0.18)
-              : accentColor.withValues(alpha: 0.12),
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          // 4 px accent strip at the top — provides instant visual identity
-          Container(
-            height: 4,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  accentColor,
-                  accentColor.withValues(alpha: 0.45),
-                ],
-              ),
-            ),
-          ),
-          Expanded(child: child),
-        ],
       ),
     );
   }

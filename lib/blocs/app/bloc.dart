@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -60,8 +61,12 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
 
   FutureOr<void> _onThemeChange(
       ChangeTheme event, Emitter<MasterPageState> emit) async {
+    if (_appDataRepository!.activeThemeMode == event.themeModeToChangeTo) {
+      return;
+    }
     await _appDataRepository!.setActiveThemeMode(event.themeModeToChangeTo);
-    emit(const ActiveThemeModeChanged());
+    emit(
+        ActiveThemeModeChanged(themeMode: _appDataRepository!.activeThemeMode));
   }
 
   FutureOr<void> _onLanguageChange(
@@ -70,7 +75,8 @@ class MasterPageBloc extends Bloc<MasterPageEvent, MasterPageState> {
       return;
     }
     await _appDataRepository!.setActiveLanguage(event.languageToChangeTo);
-    emit(const ActiveLanguageChanged());
+    emit(ActiveLanguageChanged(
+        locale: Locale(_appDataRepository!.activeLanguage)));
   }
 
   FutureOr<void> _onLogout(Logout event, Emitter<MasterPageState> emit) async {

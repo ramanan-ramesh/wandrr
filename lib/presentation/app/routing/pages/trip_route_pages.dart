@@ -92,7 +92,7 @@ class _TripEditorRoutePageState extends State<TripEditorRoutePage> {
     }
 
     context.addTripManagementEvent(
-      LoadTrip(tripMetadata: metadata, shouldActivateTrip: true),
+      LoadTrip(tripMetadata: metadata, isTripActivated: true),
     );
   }
 

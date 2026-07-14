@@ -78,5 +78,5 @@ For each feature:
 ## Code Style and Best Practices
 
 * Dart: Null safety, async/await for Futures, Streams for real-time. Immutable models with copyWith.
-* Performance: Optimize Firestore queries (e.g., limit results, use indexes). Lazy-load
+* Performance: Optimize Firestore queries and loading of pages dependent on trip data. Lazy-load
   images/assets.

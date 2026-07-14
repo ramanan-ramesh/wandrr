@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:wandrr/data/app/models/app_data.dart';
 import 'package:wandrr/data/auth/models/status.dart';
 
@@ -16,23 +17,15 @@ class LoadedRepository extends MasterPageState {
 }
 
 class ActiveLanguageChanged extends MasterPageState {
-  const ActiveLanguageChanged();
+  final Locale locale;
 
-  @override
-  bool operator ==(Object other) => false;
-
-  @override
-  int get hashCode => identityHashCode(this);
+  const ActiveLanguageChanged({required this.locale});
 }
 
 class ActiveThemeModeChanged extends MasterPageState {
-  const ActiveThemeModeChanged();
+  final ThemeMode themeMode;
 
-  @override
-  bool operator ==(Object other) => false;
-
-  @override
-  int get hashCode => identityHashCode(this);
+  const ActiveThemeModeChanged({required this.themeMode});
 }
 
 class AuthStateChanged extends MasterPageState {
