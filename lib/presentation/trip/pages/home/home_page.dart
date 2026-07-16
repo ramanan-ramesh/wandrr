@@ -26,7 +26,10 @@ class HomePage extends StatelessWidget {
               icon: const Icon(Icons.add_location_alt_rounded),
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      body: const TripListView(),
+      body: const Padding(
+        padding: EdgeInsets.only(top: 10, left: 10, right: 10, bottom: 10),
+        child: TripListView(),
+      ),
     );
   }
 }

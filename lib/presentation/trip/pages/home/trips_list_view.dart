@@ -22,8 +22,6 @@ import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 import 'package:wandrr/presentation/trip/widgets/trip_entity_update_handler.dart';
 import 'package:wandrr/presentation/trip/widgets/unified_trip_dialog.dart';
 
-// Extra clearance so the last card is never hidden behind the centered-float FAB.
-// Extended-FAB height (≈56) + kFloatingActionButtonMargin (16) + comfortable buffer.
 const double _kFabBottomClearance = 80.0;
 
 class TripListView extends StatefulWidget {
@@ -39,84 +37,32 @@ class _TripListViewState extends State<TripListView> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10, left: 10, right: 10, bottom: 10),
-      child: BlocConsumer<TripManagementBloc, TripManagementState>(
-        buildWhen: _shouldBuildListView,
-        listener: (context, state) {},
-        builder: (context, state) {
-          return StreamBuilder<bool>(
-            stream: context.tripRepository.tripMetadataCollection.onLoaded,
-            initialData: context.tripRepository.tripMetadataCollection.isLoaded,
-            builder: (context, snapshot) {
-              final isLoaded = snapshot.data ?? false;
-              final tripMetadatas = context
-                  .tripRepository.tripMetadataCollection.items
-                  .toList(growable: false)
-                ..sort((a, b) => a.startDate!.compareTo(b.startDate!));
+    return BlocBuilder<TripManagementBloc, TripManagementState>(
+      buildWhen: _shouldBuildListView,
+      builder: (context, state) {
+        final tripMetadatas = context
+            .tripRepository.tripMetadataCollection.items
+            .toList(growable: false);
 
-              if (!isLoaded && tripMetadatas.isEmpty) {
-                return _buildShimmerGrid();
-              }
+        if (tripMetadatas.isNotEmpty) {
+          return _buildTripsSections(context, tripMetadatas);
+        }
 
-              if (tripMetadatas.isNotEmpty) {
-                return _buildTripsSections(context, tripMetadatas, isLoaded);
-              }
-
-              return _EmptyState();
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildShimmerGrid() {
-    return GridView.builder(
-      padding: const EdgeInsets.only(bottom: _kFabBottomClearance),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 300,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-        childAspectRatio: 0.72,
-      ),
-      itemCount: 3,
-      itemBuilder: (_, __) =>
-          ShimmerPlaceholder(borderRadius: BorderRadius.circular(16)),
+        return _EmptyState();
+      },
     );
   }
 
   Widget _buildTripsSections(
-      BuildContext context, List<TripMetadataFacade> trips, bool isLoaded) {
-    final today = DateTime.now().toMidnight();
-
-    final upcomingRaw =
-        trips.where((t) => !t.endDate!.isBefore(today)).toList();
-    final pastRaw = trips.where((t) => t.endDate!.isBefore(today)).toList();
-
-    final upcomingYears = upcomingRaw
-        .map((t) => t.startDate!.year)
-        .toSet()
-        .toList()
-      ..sort((a, b) => b.compareTo(a));
-    final pastYears = pastRaw.map((t) => t.startDate!.year).toSet().toList()
-      ..sort((a, b) => b.compareTo(a));
-
-    // Sync selections when the year list changes.
-    if (upcomingYears.isNotEmpty &&
-        (_selectedUpcomingYear == null ||
-            !upcomingYears.contains(_selectedUpcomingYear))) {
-      _selectedUpcomingYear = upcomingYears.first;
-    }
-    if (pastYears.isNotEmpty &&
-        (_selectedPastYear == null || !pastYears.contains(_selectedPastYear))) {
-      _selectedPastYear = pastYears.first;
-    }
+      BuildContext context, List<TripMetadataFacade> trips) {
+    final groupedTrips = _partitionTripsByYear(trips);
+    _initializeSelectedUpcomingYear(groupedTrips.upcomingYears);
+    _initializeSelectedPastYear(groupedTrips.pastYears);
 
     final slivers = <Widget>[];
 
-    if (upcomingRaw.isNotEmpty) {
-      slivers.add(_buildSectionHeader(
+    if (groupedTrips.upcomingYears.isNotEmpty) {
+      slivers.add(_buildSectionHeaderSliver(
         context,
         label: context.localizations.upcomingTrips,
         icon: Icons.flight_takeoff_rounded,
@@ -124,19 +70,17 @@ class _TripListViewState extends State<TripListView> {
       ));
       slivers.add(SliverToBoxAdapter(
         child: _YearChips(
-          years: upcomingYears,
+          years: groupedTrips.upcomingYears,
           selectedYear: _selectedUpcomingYear,
           onSelected: (y) => setState(() => _selectedUpcomingYear = y),
         ),
       ));
-      final filtered = upcomingRaw
-          .where((t) => t.startDate!.year == _selectedUpcomingYear)
-          .toList();
-      slivers.add(_buildTripGrid(filtered, isLoaded));
+      final filtered = groupedTrips.upcoming[_selectedUpcomingYear] ?? const [];
+      slivers.add(_buildTripSliverGrid(filtered));
     }
 
-    if (pastRaw.isNotEmpty) {
-      slivers.add(_buildSectionHeader(
+    if (groupedTrips.pastYears.isNotEmpty) {
+      slivers.add(_buildSectionHeaderSliver(
         context,
         label: context.localizations.pastTrips,
         icon: Icons.history_rounded,
@@ -144,16 +88,13 @@ class _TripListViewState extends State<TripListView> {
       ));
       slivers.add(SliverToBoxAdapter(
         child: _YearChips(
-          years: pastYears,
+          years: groupedTrips.pastYears,
           selectedYear: _selectedPastYear,
           onSelected: (y) => setState(() => _selectedPastYear = y),
         ),
       ));
-      final filtered = pastRaw
-          .where((t) => t.startDate!.year == _selectedPastYear)
-          .toList()
-        ..sort((a, b) => b.startDate!.compareTo(a.startDate!));
-      slivers.add(_buildTripGrid(filtered, isLoaded));
+      final filtered = groupedTrips.past[_selectedPastYear] ?? const [];
+      slivers.add(_buildTripSliverGrid(filtered));
     }
 
     // Ensure last cards are never hidden behind the FAB.
@@ -164,7 +105,64 @@ class _TripListViewState extends State<TripListView> {
     return CustomScrollView(slivers: slivers);
   }
 
-  Widget _buildSectionHeader(
+  _TripsByYear _partitionTripsByYear(List<TripMetadataFacade> trips) {
+    final today = DateTime.now().toMidnight();
+    final sortedTrips = trips.toList()
+      ..sort((a, b) {
+        final aStart = a.startDate;
+        final bStart = b.startDate;
+        if (aStart == null && bStart == null) {
+          return 0;
+        }
+        if (aStart == null) {
+          return 1;
+        }
+        if (bStart == null) {
+          return -1;
+        }
+        return bStart.compareTo(aStart);
+      });
+
+    final upcoming = <int, List<TripMetadataFacade>>{};
+    final past = <int, List<TripMetadataFacade>>{};
+
+    for (final trip in sortedTrips) {
+      final startDate = trip.startDate;
+      final endDate = trip.endDate;
+      if (startDate == null || endDate == null) {
+        continue;
+      }
+
+      final groupedMap =
+          !endDate.toMidnight().isBefore(today) ? upcoming : past;
+      groupedMap.putIfAbsent(startDate.year, () => []).add(trip);
+    }
+
+    return _TripsByYear(upcoming: upcoming, past: past);
+  }
+
+  void _initializeSelectedUpcomingYear(List<int> years) {
+    if (years.isEmpty) {
+      _selectedUpcomingYear = null;
+      return;
+    }
+    if (_selectedUpcomingYear == null ||
+        !years.contains(_selectedUpcomingYear)) {
+      _selectedUpcomingYear = years.first;
+    }
+  }
+
+  void _initializeSelectedPastYear(List<int> years) {
+    if (years.isEmpty) {
+      _selectedPastYear = null;
+      return;
+    }
+    if (_selectedPastYear == null || !years.contains(_selectedPastYear)) {
+      _selectedPastYear = years.first;
+    }
+  }
+
+  SliverToBoxAdapter _buildSectionHeaderSliver(
     BuildContext context, {
     required String label,
     required IconData icon,
@@ -199,9 +197,7 @@ class _TripListViewState extends State<TripListView> {
     );
   }
 
-  Widget _buildTripGrid(List<TripMetadataFacade> trips, bool isLoaded) {
-    final itemCount =
-        isLoaded ? trips.length : (trips.length < 3 ? 3 : trips.length + 1);
+  SliverGrid _buildTripSliverGrid(List<TripMetadataFacade> trips) {
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 300,
@@ -210,13 +206,8 @@ class _TripListViewState extends State<TripListView> {
         childAspectRatio: 0.72,
       ),
       delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          if (index < trips.length) {
-            return _TripCard(tripId: trips[index].id!);
-          }
-          return ShimmerPlaceholder(borderRadius: BorderRadius.circular(16));
-        },
-        childCount: itemCount,
+        (context, index) => _TripCard(tripId: trips[index].id!),
+        childCount: trips.length,
       ),
     );
   }
@@ -266,7 +257,9 @@ class _YearChips extends StatelessWidget {
               label: Text(year.toString()),
               selected: isSelected,
               onSelected: (selected) {
-                if (selected) onSelected(year);
+                if (selected) {
+                  onSelected(year);
+                }
               },
               side: BorderSide(
                 color: borderColor,
@@ -362,16 +355,16 @@ class _TripCardState extends State<_TripCard> {
   }
 
   Widget _buildWithTrip(BuildContext context) {
-    final trip = context.tripRepository.tripMetadataCollection.items
-        .firstWhere((e) => e.id == widget.tripId);
+    final trip = _findTripById(context);
+    if (trip == null) {
+      return const SizedBox.shrink();
+    }
 
-    final thumbnail = Assets.images.tripThumbnails.values.firstWhere(
-      (e) => e.keyName.split('/').last.split('.').first == trip.thumbnailTag,
-    );
+    final thumbnail = _resolveThumbnail(trip.thumbnailTag);
 
     final dateRange =
         '${trip.startDate!.dayDateMonthFormat} – ${trip.endDate!.dayDateMonthFormat}';
-    final statusText = _computeStatusLabel(context, trip);
+    final statusBadge = _computeStatusBadge(context, trip);
 
     return AnimatedScale(
       scale: _isPressed ? 0.96 : 1.0,
@@ -445,13 +438,13 @@ class _TripCardState extends State<_TripCard> {
               ),
 
               // ── Status badge (top-left) ──────────────────────────────
-              if (statusText != null)
+              if (statusBadge != null)
                 Positioned(
                   top: 10,
                   left: 10,
                   child: _StatusBadge(
-                    label: statusText,
-                    color: _statusColor(statusText),
+                    label: statusBadge.label,
+                    color: statusBadge.color,
                   ),
                 ),
 
@@ -476,34 +469,53 @@ class _TripCardState extends State<_TripCard> {
 
   // ── Status badge helpers ─────────────────────────────────────────────────
 
-  String? _computeStatusLabel(BuildContext context, TripMetadataFacade trip) {
+  TripMetadataFacade? _findTripById(BuildContext context) {
+    for (final trip in context.tripRepository.tripMetadataCollection.items) {
+      if (trip.id == widget.tripId) {
+        return trip;
+      }
+    }
+    return null;
+  }
+
+  AssetGenImage _resolveThumbnail(String thumbnailTag) {
+    for (final asset in Assets.images.tripThumbnails.values) {
+      final tag = asset.keyName.split('/').last.split('.').first;
+      if (tag == thumbnailTag) {
+        return asset;
+      }
+    }
+    return Assets.images.tripThumbnails.values.first;
+  }
+
+  _TripStatusBadgeData? _computeStatusBadge(
+      BuildContext context, TripMetadataFacade trip) {
     final today = DateTime.now().toMidnight();
     final start = trip.startDate!.toMidnight();
     final end = trip.endDate!.toMidnight();
 
     // Currently active
     if (!today.isBefore(start) && !today.isAfter(end)) {
-      return context.localizations.tripStatusActive;
+      return _TripStatusBadgeData(
+        label: context.localizations.tripStatusActive,
+        color: AppColors.brandPrimary,
+      );
     }
 
     final daysUntil = start.difference(today).inDays;
     if (daysUntil == 1) {
-      return context.localizations.tripStatusTomorrow;
+      return _TripStatusBadgeData(
+        label: context.localizations.tripStatusTomorrow,
+        color: AppColors.warning,
+      );
     }
     if (daysUntil > 1 && daysUntil <= 30) {
-      return context.localizations.tripStatusInDays(daysUntil);
+      return _TripStatusBadgeData(
+        label: context.localizations.tripStatusInDays(daysUntil),
+        color: AppColors.brandSecondaryLight,
+      );
     }
     return null;
-  }
-
-  Color _statusColor(String label) {
-    if (label == context.localizations.tripStatusActive) {
-      return AppColors.brandPrimary;
-    }
-    if (label == context.localizations.tripStatusTomorrow) {
-      return AppColors.warning;
-    }
-    return AppColors.brandSecondaryLight;
   }
 
   // ── Dialog helpers ───────────────────────────────────────────────────────
@@ -515,12 +527,15 @@ class _TripCardState extends State<_TripCard> {
       (dialogContext) => UnifiedTripDialog(
         title: dialogContext.localizations.chooseTripThumbnail,
         icon: const Icon(Icons.image_rounded),
-        content: TripThumbnailCarouselSelector(
-          selectedThumbnailTag: selectedTag,
-          onChanged: (tag) {
-            selectedTag = tag;
-            (dialogContext as Element).markNeedsBuild();
-          },
+        content: StatefulBuilder(
+          builder: (context, setStateDialog) => TripThumbnailCarouselSelector(
+            selectedThumbnailTag: selectedTag,
+            onChanged: (tag) {
+              setStateDialog(() {
+                selectedTag = tag;
+              });
+            },
+          ),
         ),
         actions: [
           TextButton(
@@ -545,7 +560,9 @@ class _TripCardState extends State<_TripCard> {
   }
 
   void _showPrintDialog(BuildContext context, TripMetadataFacade trip) {
-    if (trip.id == null) return;
+    if (trip.id == null) {
+      return;
+    }
     // Navigate directly — _TripPrintPage in the router handles reactive loading.
     context.push(AppRoutes.printTripPath(trip.id!));
   }
@@ -688,4 +705,21 @@ class _StatusBadge extends StatelessWidget {
 
 extension _DateTimeExt on DateTime {
   DateTime toMidnight() => DateTime(year, month, day);
+}
+
+class _TripsByYear {
+  final Map<int, List<TripMetadataFacade>> upcoming;
+  final Map<int, List<TripMetadataFacade>> past;
+
+  const _TripsByYear({required this.upcoming, required this.past});
+
+  List<int> get upcomingYears => upcoming.keys.toList(growable: false);
+  List<int> get pastYears => past.keys.toList(growable: false);
+}
+
+class _TripStatusBadgeData {
+  final String label;
+  final Color color;
+
+  const _TripStatusBadgeData({required this.label, required this.color});
 }
