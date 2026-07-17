@@ -61,9 +61,99 @@ palettes.
 * No business logic in UI
 * Avoid tightly coupling layers
 * Ensure responsive layouts
-* Always update requirements.md file
+* Update requirements if needed
 * Move displayed words in UI to localizations arb files. Translate the corresponding entry for each
   word.
+* Run code analyzers to ensure no errors/warnings(except must_be_immutable)/infos, ensure code compiles and don't run tests
+
+## Requirements documents
+The requirements documents under /docs/requirements are the canonical description of the product.
+
+Whenever a user-visible behaviour changes, you MUST update the corresponding requirements before or alongside the implementation.
+
+Never describe implementation details.
+
+### Requirements shall describe only:
+
+- visible information
+- user actions
+- business rules
+- navigation
+- validation
+- empty states
+- loading states
+- error states
+- responsive differences only when behaviour differs
+
+### Requirements shall never describe:
+
+- widgets
+- framework APIs
+- state management
+- theming
+- typography
+- animations
+- spacing
+- implementation details
+
+Every requirement shall:
+
+- have exactly one unique REQ_<PAGE>_<NUMBER> identifier
+- belong to exactly one Path
+- describe one behaviour or one atomic piece of UI entity(ItineraryViewer/Timeline/Journeys(or Stays or Sights)/Multi-leg(or Single-leg) etc.)
+- be independently testable
+- remain stable across refactoring
+
+
+### Requirements Organization
+
+Store functional requirements under `/docs/requirements`.
+
+Example:
+
+docs/
+└── requirements/
+├── README.md
+├── Login.md
+├── TripsListView.md
+├── TripEditor.md
+├────── ItineraryViewer.md
+├────────── Itinerary.md
+├────── BudgetingPage.md
+└── ExpenseEditor.md
+
+Each file represents one logical page or reusable user-facing component.
+
+Within each file, organize requirements hierarchically using stable, self-explanatory Paths:
+
+#### TripsListView
+- TripsListView
+- TripsListView.UpcomingTrips
+- TripsListView.UpcomingTrips.YearFilter
+- TripsListView.UpcomingTrips.TripCard
+- TripsListView.UpcomingTrips.TripCard.StatusBadge
+- TripsListView.UpcomingTrips.TripCard.Actions
+- TripsListView.PastTrips
+- TripsListView.PlanATrip
+- TripsListView.EmptyState
+
+#### TripEditor
+- TripEditor
+- TripEditor.Overview
+- TripEditor.Itinerary
+- TripEditor.Itinerary.Timeline
+- TripEditor.Itinerary.Timeline.Transits
+- TripEditor.Itinerary.Navigator
+- TripEditor.Expenses
+- TripEditor.Settings
+
+Each requirement shall:
+- Have a unique, permanent ID (e.g. `REQ_TLV_001`, `REQ_TED_042`).
+- Belong to exactly one Path.
+- Describe exactly one observable user-visible behaviour or business rule.
+- Avoid implementation details (widgets, animations, colors, layouts, state management, etc.).
+
+Never reuse or renumber requirement IDs.
 
 ## Testing
 
