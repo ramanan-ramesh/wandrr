@@ -1156,6 +1156,12 @@ abstract class AppLocalizations {
   /// **'Failed to generate PDF'**
   String get pdfGenerationFailed;
 
+  /// No description provided for @tripCreationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while creating your trip. Please try again.'**
+  String get tripCreationFailed;
+
   /// No description provided for @mergeLegs.
   ///
   /// In en, this message translates to:

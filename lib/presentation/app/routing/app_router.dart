@@ -15,11 +15,9 @@ import 'pages/trip_route_pages.dart';
 class AppRouter {
   final AppDataFacade appDataRepository;
   late final GoRouter router;
-
   AppRouter({required this.appDataRepository}) {
     router = _createRouter();
   }
-
   GoRouter _createRouter() {
     return GoRouter(
       initialLocation: AppRoutes.root,
@@ -66,9 +64,17 @@ class AppRouter {
             path: AppRoutes.printTrip,
             pageBuilder: (context, state) {
               final tripId = state.pathParameters['tripId']!;
+              // The page that should be shown when the user closes print.
+              // Passed via `extra` (not a query param) so the URL stays a
+              // single stable '/trips/:tripId/print' regardless of whether
+              // print was opened from the trips list or the trip editor.
+              // Falls back to the trip editor if `extra` is unavailable
+              // (e.g. a hard refresh/deep link directly into this route).
+              final returnPath =
+                  state.extra as String? ?? AppRoutes.tripEditorPath(tripId);
               return _fadePage(
                 state: state,
-                child: PrintTripPage(tripId: tripId),
+                child: PrintTripPage(tripId: tripId, returnPath: returnPath),
               );
             },
           ),
@@ -134,7 +140,6 @@ class AppRouter {
         final scale = Tween<double>(begin: 0.96, end: 1.0).animate(
           CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
         );
-
         return FadeTransition(
           opacity: fade,
           child: ScaleTransition(
@@ -150,23 +155,19 @@ class AppRouter {
     final activeUser = appDataRepository.userManagement.activeUser;
     final isLoggedIn = activeUser != null;
     final currentPath = state.uri.path;
-
     const publicRoutes = [
       AppRoutes.root,
       AppRoutes.login,
       AppRoutes.onboarding,
     ];
-
     if (isLoggedIn &&
         (currentPath == AppRoutes.login ||
             currentPath == AppRoutes.onboarding)) {
       return AppRoutes.trips;
     }
-
     if (!isLoggedIn && !publicRoutes.contains(currentPath)) {
       return AppRoutes.root;
     }
-
     return null;
   }
 }

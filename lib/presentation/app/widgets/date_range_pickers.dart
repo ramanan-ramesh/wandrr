@@ -53,79 +53,92 @@ class _PlatformDateRangePickerState extends State<PlatformDateRangePicker> {
 
   @override
   Widget build(BuildContext context) {
-    final isBigLayout = context.isBigLayout;
-    var startDateText = _startDate?.dayDateMonthFormat ?? '';
-    var endDateText = _endDate?.dayDateMonthFormat ?? '';
-    return IntrinsicHeight(
-      child: TextButton(
+    var startDateText =
+        _startDate?.dayDateMonthFormat ?? context.localizations.select;
+    var endDateText =
+        _endDate?.dayDateMonthFormat ?? context.localizations.select;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         key: _dateRangePickerKey,
-        onPressed: _showDateRangePickerDialog,
-        child: isBigLayout
-            ? _createButtonForBigLayout(startDateText, endDateText)
-            : _createButtonForSmallLayout(startDateText, endDateText),
+        onTap: _showDateRangePickerDialog,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(),
+            color: Theme.of(context)
+                .colorScheme
+                .surfaceContainerHighest
+                .withValues(alpha: 0.3),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.calendar_today_rounded,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _createDateColumn(
+                        context.localizations.dateRangePickerStart,
+                        startDateText,
+                        _startDate != null,
+                      ),
+                    ),
+                    Container(
+                      height: 24,
+                      width: 1,
+                      color:
+                          Theme.of(context).dividerColor.withValues(alpha: 0.2),
+                      margin: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                    Expanded(
+                      child: _createDateColumn(
+                        context.localizations.dateRangePickerEnd,
+                        endDateText,
+                        _endDate != null,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _createButtonForSmallLayout(String startDateText, String endDateText) {
-    return Row(
-      children: [
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(3.0),
-            child: _createDate(
-                context.localizations.dateRangePickerStart, startDateText),
-          ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(3.0),
-            child: _createDate(
-                context.localizations.dateRangePickerEnd, endDateText),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _createButtonForBigLayout(String startDateText, String endDateText) {
-    return Row(
-      children: [
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(3.0),
-            child: _createDate(
-                context.localizations.dateRangePickerStart, startDateText),
-          ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(3.0),
-            child: _createDate(
-                context.localizations.dateRangePickerEnd, endDateText),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _createDate(String label, String dateText) {
+  Widget _createDateColumn(String label, String dateText, bool hasValue) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.headlineSmall,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
         ),
-        Container(
-          alignment: Alignment.centerLeft,
-          constraints: const BoxConstraints(minHeight: 24),
-          child: Text(
-            dateText,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+        Text(
+          dateText,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: hasValue ? FontWeight.bold : FontWeight.normal,
+                color: hasValue
+                    ? Theme.of(context).colorScheme.onSurface
+                    : Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.5),
+              ),
         ),
       ],
     );

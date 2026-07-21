@@ -566,6 +566,10 @@ class AppLocalizationsTa extends AppLocalizations {
   String get pdfGenerationFailed => 'Failed to generate PDF';
 
   @override
+  String get tripCreationFailed =>
+      'உங்கள் பயணத்தை உருவாக்கும்போது ஏதோ தவறு நடந்தது. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
   String get mergeLegs => 'Merge legs';
 
   @override

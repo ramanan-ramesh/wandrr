@@ -561,6 +561,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get pdfGenerationFailed => 'Failed to generate PDF';
 
   @override
+  String get tripCreationFailed =>
+      'आपकी यात्रा बनाते समय कुछ गड़बड़ हो गई। कृपया पुनः प्रयास करें।';
+
+  @override
   String get mergeLegs => 'Merge legs';
 
   @override

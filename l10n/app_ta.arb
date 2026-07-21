@@ -176,6 +176,7 @@
   "generatePdf": "Generate PDF",
   "generatingPdf": "Generating…",
   "pdfGenerationFailed": "Failed to generate PDF",
+  "tripCreationFailed": "உங்கள் பயணத்தை உருவாக்கும்போது ஏதோ தவறு நடந்தது. மீண்டும் முயற்சிக்கவும்.",
   "mergeLegs": "Merge legs",
   "showLegs": "Show legs",
   "nLegs": "{count} legs",

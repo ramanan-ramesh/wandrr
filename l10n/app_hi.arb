@@ -176,6 +176,7 @@
   "generatePdf": "Generate PDF",
   "generatingPdf": "Generating…",
   "pdfGenerationFailed": "Failed to generate PDF",
+  "tripCreationFailed": "आपकी यात्रा बनाते समय कुछ गड़बड़ हो गई। कृपया पुनः प्रयास करें।",
   "mergeLegs": "Merge legs",
   "showLegs": "Show legs",
   "nLegs": "{count} legs",

@@ -12,6 +12,8 @@
 
 - **REQ_PRN_003**: Opening print for a trip shows the print page for that trip.
 
+- **REQ_PRN_054**: Closing the print page returns the user to wherever they opened it from — the trips list or the trip editor.
+
 #### PrintTrip.Loading
 
 - **REQ_PRN_004**: While print data is loading, the print page keeps available options visible and communicates that required data is not ready yet.

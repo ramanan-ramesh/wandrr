@@ -192,6 +192,7 @@
   "generatePdf": "Generate PDF",
   "generatingPdf": "Generating…",
   "pdfGenerationFailed": "Failed to generate PDF",
+  "tripCreationFailed": "Something went wrong while creating your trip. Please try again.",
   "mergeLegs": "Merge legs",
   "showLegs": "Show legs",
   "nLegs": "{count} legs",

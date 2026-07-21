@@ -6,6 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart' as routes show showGeneralDialog;
 
 class PlatformDialogElements {
+  /// The close/open transition duration used by [showGeneralDialog]. Exposed
+  /// so callers can `await Future.delayed(PlatformDialogElements
+  /// .generalDialogTransitionDuration)` after popping a dialog shown via
+  /// [showGeneralDialog], to sequence follow-up work (e.g. navigation) to
+  /// start only once the dialog has visually finished closing — popping a
+  /// route completes its Future immediately, well before its reverse
+  /// transition animation actually finishes playing.
+  static const Duration generalDialogTransitionDuration =
+      Duration(milliseconds: 280);
+
   static void showAlignedDialog(
       {required BuildContext context,
       required WidgetBuilder dialogContentCreator,
@@ -89,6 +99,15 @@ class PlatformDialogElements {
     unawaited(routes
         .showGeneralDialog(
       context: scaffoldContext,
+      // Attach to the *nearest* Navigator (e.g. the ShellRoute's own nested
+      // Navigator) rather than the app's root Navigator. Using the root
+      // Navigator would place the dialog as a sibling of the ShellRoute's
+      // routed content instead of a descendant of it, outside the reach of
+      // any BlocProvider/RepositoryProvider established inside the shell
+      // (e.g. TripManagementBloc), even though callers explicitly re-provide
+      // those dependencies into the dialog's own subtree.
+      useRootNavigator: false,
+      transitionDuration: generalDialogTransitionDuration,
       pageBuilder: (BuildContext context, Animation<double> animation,
           Animation<double> secondaryAnimation) {
         return Material(
@@ -102,7 +121,7 @@ class PlatformDialogElements {
         child: AnimatedOpacity(
           opacity: anim1.value,
           curve: Curves.easeInOutBack,
-          duration: const Duration(milliseconds: 500),
+          duration: generalDialogTransitionDuration,
           child: child,
         ),
       ),

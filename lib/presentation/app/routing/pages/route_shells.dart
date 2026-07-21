@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -12,14 +14,11 @@ import 'package:wandrr/presentation/app/routing/app_routes.dart';
 import 'package:wandrr/presentation/trip/bloc_extensions.dart';
 
 // ---------------------------------------------------------------------------
-// PageShell — consistent Material/SafeArea wrapper for every route.
+// PageShell - consistent Material/SafeArea wrapper for every route.
 // ---------------------------------------------------------------------------
-
 class PageShell extends StatelessWidget {
   final Widget child;
-
   const PageShell({required this.child, super.key});
-
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -31,12 +30,10 @@ class PageShell extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// InitialRedirectPage — navigates to /trips after the first frame.
+// InitialRedirectPage - navigates to /trips after the first frame.
 // ---------------------------------------------------------------------------
-
 class InitialRedirectPage extends StatefulWidget {
   const InitialRedirectPage({super.key});
-
   @override
   State<InitialRedirectPage> createState() => _InitialRedirectPageState();
 }
@@ -60,27 +57,23 @@ class _InitialRedirectPageState extends State<InitialRedirectPage> {
 }
 
 // ---------------------------------------------------------------------------
-// TripShell — owns the TripManagementBloc lifetime and the walk/wave
+// TripShell - owns the TripManagementBloc lifetime and the walk/wave
 // loading animation shown while the trip repository is being set up.
 // ---------------------------------------------------------------------------
-
 class TripShell extends StatefulWidget {
   final Widget child;
   final bool skipShellAnimation;
-
   const TripShell({
     required this.child,
     this.skipShellAnimation = false,
     super.key,
   });
-
   @override
   State<TripShell> createState() => _TripShellState();
 }
 
 class _TripShellState extends State<TripShell> {
   TripManagementBloc? _bloc;
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -98,7 +91,6 @@ class _TripShellState extends State<TripShell> {
     if (_bloc == null) {
       return const SizedBox.shrink();
     }
-
     return BlocProvider<TripManagementBloc>.value(
       value: _bloc!,
       child: _TripShellContent(
@@ -112,41 +104,73 @@ class _TripShellState extends State<TripShell> {
 class _TripShellContent extends StatefulWidget {
   final Widget child;
   final bool skipShellAnimation;
-
   const _TripShellContent({
     required this.child,
     this.skipShellAnimation = false,
   });
-
   @override
   State<_TripShellContent> createState() => _TripShellContentState();
 }
 
+/// Walk -> Wave -> Done animation phases shown while the trip repository is
+/// being set up. Progression is driven by a periodic poll (see
+/// [_TripShellContentState._evaluateProgress]) rather than one-shot
+/// listeners/timers, so it self-corrects regardless of *when* the
+/// [TripManagementBloc] actually reaches [LoadedRepository] relative to
+/// this widget's lifecycle (fresh page load, browser refresh, hot-restart,
+/// slow network, etc.) instead of relying on catching a single transition
+/// event at exactly the right moment.
+enum _LoadingPhase { walk, wave, done }
+
 class _TripShellContentState extends State<_TripShellContent> {
   static const _minimumAnimationTime = Duration(seconds: 2);
+  static const _pollInterval = Duration(milliseconds: 150);
   static const _cutOffPageWidth = 1000.0;
-
-  final _minimumWalkTimeCompletionNotifier = ValueNotifier(false);
   final _walkAnimation = SimpleAnimation('Walk');
   final _waveAnimation = SimpleAnimation('Wave');
-
   TripRepositoryFacade? _tripRepository;
-  bool _isInitialLoadComplete = false;
-
+  _LoadingPhase _phase = _LoadingPhase.walk;
+  DateTime _phaseStartedAt = DateTime.now();
+  Timer? _pollTimer;
   @override
   void initState() {
     super.initState();
-    if (widget.skipShellAnimation) {
-      _walkAnimation.isActive = false;
-      _waveAnimation.isActive = false;
-    } else {
-      _startWalkAnimation();
-    }
+    // Even when the shell animation is skipped (navigating between /trips/*
+    // sub-routes where the repository is normally already loaded), the
+    // repository may still be null on a *fresh* page load/refresh directly
+    // into a sub-route (e.g. opening /trips/:tripId/print in a new tab). In
+    // that case we must still wait for LoadedRepository before rendering
+    // widget.child - never eagerly mark ourselves done. _evaluateProgress
+    // (called from didChangeDependencies/listener/poll) will fast-track to
+    // `done` the moment the repository is available, without the minimum
+    // animation delay.
+    _walkAnimation.isActive = !widget.skipShellAnimation;
+    _waveAnimation.isActive = false;
+    _phaseStartedAt = DateTime.now();
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _evaluateProgress());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Defensive catch-up: the TripManagementBloc may have already reached
+    // LoadedRepository before this widget started listening (e.g. a
+    // cached/singleton repository resolving synchronously on a fresh page
+    // load or web hot-restart). Capture that directly instead of relying
+    // solely on the BlocConsumer listener below to observe a *future*
+    // transition.
+    _tripRepository ??=
+        _repositoryIfLoaded(context.read<TripManagementBloc>().state);
+    _evaluateProgress();
+  }
+
+  TripRepositoryFacade? _repositoryIfLoaded(TripManagementState state) {
+    return state is LoadedRepository ? state.tripRepository : null;
   }
 
   @override
   void dispose() {
-    _minimumWalkTimeCompletionNotifier.dispose();
+    _pollTimer?.cancel();
     super.dispose();
   }
 
@@ -154,25 +178,17 @@ class _TripShellContentState extends State<_TripShellContent> {
   Widget build(BuildContext context) {
     return BlocConsumer<TripManagementBloc, TripManagementState>(
       listener: (context, state) {
-        if (state is! LoadedRepository) {
-          return;
-        }
-        _tripRepository = state.tripRepository;
-        if (widget.skipShellAnimation) {
-          setState(() => _isInitialLoadComplete = true);
-        } else {
-          _transitionFromWalkToWave();
-        }
+        _tripRepository ??= _repositoryIfLoaded(state);
+        _evaluateProgress();
       },
       builder: (context, state) {
-        final shouldShowShell = !_isInitialLoadComplete ||
-            _walkAnimation.isActive ||
-            _waveAnimation.isActive;
-
-        if (shouldShowShell) {
-          return PageShell(child: _buildAnimatedLoadingScreen(context));
+        if (_phase != _LoadingPhase.done) {
+          return PageShell(
+            child: widget.skipShellAnimation
+                ? const Center(child: CircularProgressIndicator())
+                : _buildAnimatedLoadingScreen(context),
+          );
         }
-
         return PageShell(
           child: RepositoryProvider<TripRepositoryFacade>.value(
             value: _tripRepository!,
@@ -188,6 +204,44 @@ class _TripShellContentState extends State<_TripShellContent> {
     );
   }
 
+  /// Re-evaluates whether the current loading phase should advance. Safe to
+  /// call redundantly/idempotently from the poll timer, the bloc listener,
+  /// and [didChangeDependencies] alike.
+  void _evaluateProgress() {
+    if (!mounted || _phase == _LoadingPhase.done) {
+      return;
+    }
+    if (widget.skipShellAnimation) {
+      if (_tripRepository != null) {
+        _advanceTo(_LoadingPhase.done);
+      }
+      return;
+    }
+    final elapsedInPhase = DateTime.now().difference(_phaseStartedAt);
+    if (elapsedInPhase < _minimumAnimationTime) {
+      return;
+    }
+    if (_phase == _LoadingPhase.walk) {
+      if (_tripRepository != null) {
+        _advanceTo(_LoadingPhase.wave);
+      }
+    } else if (_phase == _LoadingPhase.wave) {
+      _advanceTo(_LoadingPhase.done);
+    }
+  }
+
+  void _advanceTo(_LoadingPhase phase) {
+    if (phase == _LoadingPhase.done) {
+      _pollTimer?.cancel();
+    }
+    setState(() {
+      _phase = phase;
+      _phaseStartedAt = DateTime.now();
+      _walkAnimation.isActive = phase == _LoadingPhase.walk;
+      _waveAnimation.isActive = phase == _LoadingPhase.wave;
+    });
+  }
+
   Widget _buildAnimatedLoadingScreen(BuildContext context) {
     final state = context.tripManagementState;
     var text = context.localizations.loading;
@@ -196,16 +250,13 @@ class _TripShellContentState extends State<_TripShellContent> {
     } else if (state is LoadedRepository) {
       text = context.localizations.loadedYourTrips;
     }
-
     return Stack(
       children: [
         RiveAnimation.asset(
           Assets.walkAnimation,
           fit: BoxFit.fitHeight,
           controllers: [
-            _minimumWalkTimeCompletionNotifier.value
-                ? _waveAnimation
-                : _walkAnimation,
+            _phase == _LoadingPhase.wave ? _waveAnimation : _walkAnimation,
           ],
         ),
         Align(
@@ -223,51 +274,5 @@ class _TripShellContentState extends State<_TripShellContent> {
         ),
       ],
     );
-  }
-
-  void _startWalkAnimation() {
-    _walkAnimation.isActive = true;
-    _waveAnimation.isActive = false;
-    _minimumWalkTimeCompletionNotifier.value = false;
-
-    Future.delayed(_minimumAnimationTime, () {
-      if (!mounted) {
-        return;
-      }
-      _minimumWalkTimeCompletionNotifier.value = true;
-      if (_tripRepository != null) {
-        _onWalkAnimationComplete();
-      }
-    });
-  }
-
-  void _transitionFromWalkToWave() {
-    if (_minimumWalkTimeCompletionNotifier.value) {
-      _onWalkAnimationComplete();
-    } else {
-      _minimumWalkTimeCompletionNotifier.addListener(_onWalkAnimationComplete);
-    }
-  }
-
-  void _onWalkAnimationComplete() {
-    _minimumWalkTimeCompletionNotifier.removeListener(_onWalkAnimationComplete);
-    if (!_minimumWalkTimeCompletionNotifier.value || !mounted) {
-      return;
-    }
-
-    setState(() {
-      _walkAnimation.isActive = false;
-      _waveAnimation.isActive = true;
-    });
-
-    Future.delayed(_minimumAnimationTime, () {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _waveAnimation.isActive = false;
-        _isInitialLoadComplete = true;
-      });
-    });
   }
 }

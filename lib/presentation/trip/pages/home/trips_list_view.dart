@@ -55,13 +55,16 @@ class _TripListViewState extends State<TripListView> {
 
   Widget _buildTripsSections(
       BuildContext context, List<TripMetadataFacade> trips) {
-    final groupedTrips = _partitionTripsByYear(trips);
-    _initializeSelectedUpcomingYear(groupedTrips.upcomingYears);
-    _initializeSelectedPastYear(groupedTrips.pastYears);
+    final upcomingTrips =
+        _partitionTripsByYear(trips, filterUpcomingTrips: true);
+    final pastTrips = _partitionTripsByYear(trips, filterUpcomingTrips: false);
+
+    _initializeSelectedUpcomingYear(upcomingTrips.keys);
+    _initializeSelectedPastYear(pastTrips.keys);
 
     final slivers = <Widget>[];
 
-    if (groupedTrips.upcomingYears.isNotEmpty) {
+    if (upcomingTrips.keys.isNotEmpty) {
       slivers.add(_buildSectionHeaderSliver(
         context,
         label: context.localizations.upcomingTrips,
@@ -70,16 +73,17 @@ class _TripListViewState extends State<TripListView> {
       ));
       slivers.add(SliverToBoxAdapter(
         child: _YearChips(
-          years: groupedTrips.upcomingYears,
+          years: upcomingTrips.keys,
           selectedYear: _selectedUpcomingYear,
-          onSelected: (y) => setState(() => _selectedUpcomingYear = y),
+          onSelected: (year) => setState(() => _selectedUpcomingYear = year),
         ),
       ));
-      final filtered = groupedTrips.upcoming[_selectedUpcomingYear] ?? const [];
-      slivers.add(_buildTripSliverGrid(filtered));
+      final upcomingTripsForSelectedYear =
+          upcomingTrips[_selectedUpcomingYear] ?? const [];
+      slivers.add(_buildTripSliverGrid(upcomingTripsForSelectedYear));
     }
 
-    if (groupedTrips.pastYears.isNotEmpty) {
+    if (pastTrips.keys.isNotEmpty) {
       slivers.add(_buildSectionHeaderSliver(
         context,
         label: context.localizations.pastTrips,
@@ -88,16 +92,15 @@ class _TripListViewState extends State<TripListView> {
       ));
       slivers.add(SliverToBoxAdapter(
         child: _YearChips(
-          years: groupedTrips.pastYears,
+          years: pastTrips.keys,
           selectedYear: _selectedPastYear,
-          onSelected: (y) => setState(() => _selectedPastYear = y),
+          onSelected: (year) => setState(() => _selectedPastYear = year),
         ),
       ));
-      final filtered = groupedTrips.past[_selectedPastYear] ?? const [];
-      slivers.add(_buildTripSliverGrid(filtered));
+      final pastTripsForSelectedYear = pastTrips[_selectedPastYear] ?? const [];
+      slivers.add(_buildTripSliverGrid(pastTripsForSelectedYear));
     }
 
-    // Ensure last cards are never hidden behind the FAB.
     slivers.add(const SliverPadding(
       padding: EdgeInsets.only(bottom: _kFabBottomClearance),
     ));
@@ -105,43 +108,30 @@ class _TripListViewState extends State<TripListView> {
     return CustomScrollView(slivers: slivers);
   }
 
-  _TripsByYear _partitionTripsByYear(List<TripMetadataFacade> trips) {
+  Map<int, Iterable<TripMetadataFacade>> _partitionTripsByYear(
+    List<TripMetadataFacade> trips, {
+    required bool filterUpcomingTrips,
+  }) {
     final today = DateTime.now().toMidnight();
-    final sortedTrips = trips.toList()
-      ..sort((a, b) {
-        final aStart = a.startDate;
-        final bStart = b.startDate;
-        if (aStart == null && bStart == null) {
-          return 0;
-        }
-        if (aStart == null) {
-          return 1;
-        }
-        if (bStart == null) {
-          return -1;
-        }
-        return bStart.compareTo(aStart);
-      });
+    final recentToPastTrips = trips.toList()
+      ..sort((a, b) => b.startDate!.compareTo(a.startDate!));
 
-    final upcoming = <int, List<TripMetadataFacade>>{};
-    final past = <int, List<TripMetadataFacade>>{};
+    final tripsPerYear = <int, List<TripMetadataFacade>>{};
 
-    for (final trip in sortedTrips) {
+    for (final trip in recentToPastTrips) {
       final startDate = trip.startDate;
       final endDate = trip.endDate;
-      if (startDate == null || endDate == null) {
-        continue;
-      }
 
-      final groupedMap =
-          !endDate.toMidnight().isBefore(today) ? upcoming : past;
-      groupedMap.putIfAbsent(startDate.year, () => []).add(trip);
+      final isUpcoming = !endDate!.toMidnight().isBefore(today);
+      if (isUpcoming == filterUpcomingTrips) {
+        tripsPerYear.putIfAbsent(startDate!.year, () => []).add(trip);
+      }
     }
 
-    return _TripsByYear(upcoming: upcoming, past: past);
+    return tripsPerYear;
   }
 
-  void _initializeSelectedUpcomingYear(List<int> years) {
+  void _initializeSelectedUpcomingYear(Iterable<int> years) {
     if (years.isEmpty) {
       _selectedUpcomingYear = null;
       return;
@@ -152,7 +142,7 @@ class _TripListViewState extends State<TripListView> {
     }
   }
 
-  void _initializeSelectedPastYear(List<int> years) {
+  void _initializeSelectedPastYear(Iterable<int> years) {
     if (years.isEmpty) {
       _selectedPastYear = null;
       return;
@@ -197,7 +187,7 @@ class _TripListViewState extends State<TripListView> {
     );
   }
 
-  SliverGrid _buildTripSliverGrid(List<TripMetadataFacade> trips) {
+  SliverGrid _buildTripSliverGrid(Iterable<TripMetadataFacade> trips) {
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 300,
@@ -206,7 +196,7 @@ class _TripListViewState extends State<TripListView> {
         childAspectRatio: 0.72,
       ),
       delegate: SliverChildBuilderDelegate(
-        (context, index) => _TripCard(tripId: trips[index].id!),
+        (context, index) => _TripCard(tripId: trips.elementAt(index).id!),
         childCount: trips.length,
       ),
     );
@@ -227,7 +217,7 @@ class _TripListViewState extends State<TripListView> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _YearChips extends StatelessWidget {
-  final List<int> years;
+  final Iterable<int> years;
   final int? selectedYear;
   final ValueChanged<int> onSelected;
 
@@ -282,10 +272,6 @@ class _YearChips extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Empty state
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -324,10 +310,6 @@ class _EmptyState extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Trip card
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _TripCard extends StatefulWidget {
   final String tripId;
@@ -563,8 +545,12 @@ class _TripCardState extends State<_TripCard> {
     if (trip.id == null) {
       return;
     }
-    // Navigate directly — _TripPrintPage in the router handles reactive loading.
-    context.push(AppRoutes.printTripPath(trip.id!));
+    // Uses go() (not push()) so the address bar reflects '.../print':
+    // go_router's push() creates an ImperativeRouteMatch whose location is
+    // excluded from the browser's reported URI. The origin page to return
+    // to on close is passed via `extra` (not a query param) so the print
+    // route itself stays a single stable URL.
+    context.go(AppRoutes.printTripPath(trip.id!), extra: AppRoutes.trips);
   }
 
   void _showCopyDialog(BuildContext context, TripMetadataFacade trip) {
@@ -705,16 +691,6 @@ class _StatusBadge extends StatelessWidget {
 
 extension _DateTimeExt on DateTime {
   DateTime toMidnight() => DateTime(year, month, day);
-}
-
-class _TripsByYear {
-  final Map<int, List<TripMetadataFacade>> upcoming;
-  final Map<int, List<TripMetadataFacade>> past;
-
-  const _TripsByYear({required this.upcoming, required this.past});
-
-  List<int> get upcomingYears => upcoming.keys.toList(growable: false);
-  List<int> get pastYears => past.keys.toList(growable: false);
 }
 
 class _TripStatusBadgeData {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/events.dart';
@@ -34,7 +35,15 @@ import 'package:wandrr/presentation/trip/repository_extensions.dart';
 class PrintTripPage extends StatefulWidget {
   final String tripId;
 
-  const PrintTripPage({required this.tripId, super.key});
+  /// Where to navigate when the user closes this page — either the trips
+  /// list or the trip editor, depending on where print was opened from.
+  final String returnPath;
+
+  const PrintTripPage({
+    required this.tripId,
+    required this.returnPath,
+    super.key,
+  });
 
   @override
   State<PrintTripPage> createState() => _PrintTripPageState();
@@ -85,10 +94,23 @@ class _PrintTripPageState extends State<PrintTripPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Defensive guard: a freshly-mounted BlocBuilder initializes its cached
+    // state from whatever the bloc's *current* state happens to be, which
+    // may still be a stale LoadedTripPreview left over from a previously
+    // viewed trip (e.g. switching print from trip A directly to trip B).
+    // Never trust locally-held trip data unless it actually matches the
+    // trip this page is currently showing.
+    if (_tripData != null && _tripData!.tripMetadata.id != widget.tripId) {
+      _tripData = null;
+    }
+
     return BlocBuilder<TripManagementBloc, TripManagementState>(
-        buildWhen: (_, state) => state is LoadedTripPreview,
+        buildWhen: (_, state) =>
+            state is LoadedTripPreview &&
+            state.tripData.tripMetadata.id == widget.tripId,
         builder: (context, state) {
-          if (state is LoadedTripPreview) {
+          if (state is LoadedTripPreview &&
+              state.tripData.tripMetadata.id == widget.tripId) {
             _tripData = state.tripData;
           }
 
@@ -104,11 +126,17 @@ class _PrintTripPageState extends State<PrintTripPage> {
             child: _tripData != null
                 ? KeyedSubtree(
                     key: const ValueKey('print_page_ready'),
-                    child: PrintPage(tripData: _tripData!),
+                    child: PrintPage(
+                      tripData: _tripData!,
+                      returnPath: widget.returnPath,
+                    ),
                   )
                 : KeyedSubtree(
                     key: const ValueKey('print_page_loading'),
-                    child: PrintPage.loading(metadata: _displayMetadata),
+                    child: PrintPage.loading(
+                      metadata: _displayMetadata,
+                      returnPath: widget.returnPath,
+                    ),
                   ),
           );
         });
@@ -118,12 +146,15 @@ class _PrintTripPageState extends State<PrintTripPage> {
 class PrintPage extends StatefulWidget {
   final TripDataFacade? tripData;
   final TripMetadataFacade? metadata;
+  final String returnPath;
 
-  PrintPage({required TripDataFacade tripData, super.key})
+  PrintPage(
+      {required TripDataFacade tripData, required this.returnPath, super.key})
       : tripData = tripData,
         metadata = tripData.tripMetadata;
 
-  const PrintPage.loading({this.metadata, super.key}) : tripData = null;
+  const PrintPage.loading({required this.returnPath, this.metadata, super.key})
+      : tripData = null;
 
   @override
   State<PrintPage> createState() => _PrintPageState();
@@ -384,7 +415,7 @@ class _PrintPageState extends State<PrintPage> {
     return Scaffold(
       backgroundColor: pageBackground,
       appBar: AppBar(
-        leading: BackButton(onPressed: () => Navigator.of(context).pop()),
+        leading: BackButton(onPressed: () => context.go(widget.returnPath)),
         title: Text(l10n.printTrip),
         elevation: 0,
         scrolledUnderElevation: 2,

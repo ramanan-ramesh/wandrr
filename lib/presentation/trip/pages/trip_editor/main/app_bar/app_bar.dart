@@ -148,7 +148,11 @@ class TripEditorAppBar extends StatelessWidget implements PreferredSizeWidget {
     if (tripId == null) {
       return;
     }
-    pageContext.push(AppRoutes.printTripPath(tripId));
+
+    pageContext.go(
+      AppRoutes.printTripPath(tripId),
+      extra: AppRoutes.tripEditorPath(tripId),
+    );
   }
 
   void _selectTripMetadata(BuildContext context) {

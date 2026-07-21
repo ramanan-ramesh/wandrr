@@ -560,6 +560,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pdfGenerationFailed => 'Failed to generate PDF';
 
   @override
+  String get tripCreationFailed =>
+      'Something went wrong while creating your trip. Please try again.';
+
+  @override
   String get mergeLegs => 'Merge legs';
 
   @override

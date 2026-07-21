@@ -110,7 +110,8 @@ class _TripThumbnailCarouselSelectorState
             },
             child: AnimatedScale(
               scale: scale,
-              duration: const Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.elasticOut,
               child: _createThumbnail(selected, index, unselectedImageSize),
             ),
           );
@@ -141,7 +142,7 @@ class _TripThumbnailCarouselSelectorState
       bool selected, int index, double unselectedImageSize) {
     final horizontalSpacing = context.horizontalSpacing;
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 300),
       margin: EdgeInsets.symmetric(
         horizontal: horizontalSpacing / 2,
         vertical: selected
@@ -150,14 +151,27 @@ class _TripThumbnailCarouselSelectorState
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(_kThumbnailContainerBorderRadius),
+        boxShadow: selected
+            ? [
+                BoxShadow(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  spreadRadius: 2,
+                )
+              ]
+            : null,
         border: selected
             ? Border.all(
-                color: context.isLightTheme
-                    ? Colors.black
-                    : Colors.white, // Sharp contrast border
-                width: 4,
+                color: Theme.of(context).colorScheme.primary,
+                width: 3,
               )
-            : null,
+            : Border.all(
+                color: Colors.transparent,
+                width: 3,
+              ),
       ),
       clipBehavior: Clip.hardEdge,
       child: thumbnails[index].image(
