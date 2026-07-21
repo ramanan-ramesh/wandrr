@@ -11,6 +11,7 @@ import 'tests/crud_operations/crud_operations_test.dart' as crud;
 import 'tests/home_page_test.dart' as home;
 import 'tests/itinerary_viewer/itinerary_viewer_test.dart' as itinerary;
 import 'tests/multi_collaborator_test.dart' as multi_collaborator;
+import 'tests/print/print_page_test.dart' as print_trip;
 import 'tests/startup_page_test.dart' as startup;
 import 'tests/trip_editor_page_test.dart' as trip_editor;
 import 'tests/trip_metadata_update_test.dart' as trip_metadata;
@@ -58,5 +59,7 @@ void main() {
     group('Trip Metadata Update Tests', trip_metadata.runTests);
 
     group('Conflict Detection Tests', conflict_detection.runTests);
+
+    group('Print Trip Tests', print_trip.runTests);
   });
 }

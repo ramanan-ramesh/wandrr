@@ -14,7 +14,8 @@ ThemeData createDarkThemeData(BuildContext context) {
     ),
     textButtonTheme: TextButtonThemeData(
       style: ButtonStyle(
-        backgroundColor: const WidgetStatePropertyAll(AppColors.brandPrimaryLight),
+        backgroundColor:
+            const WidgetStatePropertyAll(AppColors.brandPrimaryLight),
         foregroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.disabled)) {
             return AppColors.neutral100; // More pronounced for disabled
@@ -107,7 +108,8 @@ ThemeData createDarkThemeData(BuildContext context) {
     iconButtonTheme: IconButtonThemeData(
       style: ButtonStyle(
         iconColor: const WidgetStatePropertyAll(AppColors.brandSecondary),
-        backgroundColor: const WidgetStatePropertyAll(AppColors.brandPrimaryLight),
+        backgroundColor:
+            const WidgetStatePropertyAll(AppColors.brandPrimaryLight),
         foregroundColor: const WidgetStatePropertyAll(AppColors.brandSecondary),
         shape: WidgetStatePropertyAll(
           RoundedRectangleBorder(

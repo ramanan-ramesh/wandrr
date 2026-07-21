@@ -229,15 +229,15 @@ class _YearChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLight = Theme.of(context).brightness == Brightness.light;
+    final isLight = context.isLightTheme;
+    final activeColor =
+        isLight ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: years.map((year) {
           final isSelected = selectedYear == year;
-          final activeColor =
-              isLight ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
           final borderColor = isSelected
               ? activeColor
               : (isLight ? AppColors.neutral400 : AppColors.neutral500);

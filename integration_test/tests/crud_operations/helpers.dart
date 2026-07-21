@@ -6,13 +6,64 @@ import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/presentation/app/widgets/date_picker.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/app/widgets/date_time_picker.dart';
-import 'package:wandrr/presentation/trip/pages/trip_editor/transit/travel_editor.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/paid_by_tab.dart';
 import 'package:wandrr/presentation/trip/widgets/expense_editing/split_by_tab.dart';
 
 import '../../helpers/test_helpers.dart';
 
+/// Asserts an expense-list entry with [expectedTitle] and [expectedCategoryIcon]
+/// is present (scrolling the list if necessary). Shared by every CRUD test
+/// suite whose entity carries an expense (transit/stay/expense/sight).
+Future<void> verifyExpenseListEntry(
+  WidgetTester tester, {
+  required String expectedTitle,
+  required IconData expectedCategoryIcon,
+}) async {
+  final listView = find.byKey(const ValueKey('ExpensesListView_ListView'));
+  final listScrollable =
+      find.ancestor(of: listView, matching: find.byType(ListView)).first;
+
+  final found = await TestHelpers.scrollUntilPresent(
+    tester,
+    scrollableFinder: listScrollable,
+    widgetFinder: find.text(expectedTitle),
+    reason: 'Expense list must contain "$expectedTitle"',
+  );
+  expect(found, isTrue,
+      reason: 'Expense list entry "$expectedTitle" not found');
+  print('  [OK] Expense list entry found: "$expectedTitle"');
+
+  final card = find
+      .ancestor(of: find.text(expectedTitle), matching: find.byType(Material))
+      .first;
+  expect(
+    find.descendant(of: card, matching: find.byIcon(expectedCategoryIcon)),
+    findsAtLeastNWidgets(1),
+    reason:
+        'Category icon must appear alongside "$expectedTitle" in expense list',
+  );
+  print('  [OK] Category icon present for "$expectedTitle"');
+}
+
+/// Asserts that [title] is NOT present in the expense list (zero-cost entities).
+Future<void> verifyNoExpenseListEntry(WidgetTester tester,
+    {required String title}) async {
+  final listView = find.byKey(const ValueKey('ExpensesListView_ListView'));
+  if (listView.evaluate().isEmpty) {
+    print('  [OK] Expense list not visible – zero-cost entity not included');
+    return;
+  }
+  await TestHelpers.scrollGuardVerifyNotPresent(
+    tester,
+    scrollableFinder: listView,
+    widgetFinder: find.text(title),
+    reason: 'Expense list should not contain "$title" (zero-cost entity)',
+  );
+  print('  [OK] Confirmed "$title" absent from expense list (zero-cost)');
+}
+
 /// Taps the add FAB on the current [Scaffold], then opens the creator
+
 /// bottom-sheet entry matching [entityName]/[icon]/[title]/[subTitle] and
 /// asserts that [editorType] is visible inside the [DraggableScrollableSheet].
 ///
@@ -318,14 +369,24 @@ class ExpenseEditorHelpers {
     await TestHelpers.tapWidget(tester, currencyListTile, warnIfMissed: false);
   }
 
-  Future<void> switchToPaidByTab(WidgetTester tester) async {
-    final controller = tester
-        .widget<SingleChildScrollView>(find.ancestor(
-          of: find.byType(TravelEditor),
-          matching: find.byType(SingleChildScrollView),
-        ))
-        .controller;
+  /// Scrolls the editor's own [SingleChildScrollView] down so tab controls
+  /// that may be below the fold (e.g. Paid By / Split Among) become visible.
+  /// Generalised to any [editorPage] type (not hardcoded to a single editor).
+  void _scrollEditorDown(WidgetTester tester) {
+    final scrollable = find.ancestor(
+      of: find.byType(editorPage),
+      matching: find.byType(SingleChildScrollView),
+    );
+    if (scrollable.evaluate().isEmpty) {
+      return;
+    }
+    final controller =
+        tester.widget<SingleChildScrollView>(scrollable.first).controller;
     controller?.jumpTo(500.0);
+  }
+
+  Future<void> switchToPaidByTab(WidgetTester tester) async {
+    _scrollEditorDown(tester);
     await tester.pumpAndSettle();
     final paidByTab = find.descendant(
         of: find.byType(editorPage),
@@ -335,13 +396,7 @@ class ExpenseEditorHelpers {
   }
 
   Future<void> switchToSplitTab(WidgetTester tester) async {
-    final controller = tester
-        .widget<SingleChildScrollView>(find.ancestor(
-          of: find.byType(TravelEditor),
-          matching: find.byType(SingleChildScrollView),
-        ))
-        .controller;
-    controller?.jumpTo(500.0);
+    _scrollEditorDown(tester);
     await tester.pumpAndSettle();
     var splitByByTab = find.descendant(
         of: find.byType(editorPage),

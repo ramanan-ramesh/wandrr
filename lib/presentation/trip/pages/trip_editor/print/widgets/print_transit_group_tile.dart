@@ -215,6 +215,8 @@ class _JourneyGroupTileState extends State<_JourneyGroupTile>
                       width: 24,
                       height: 24,
                       child: Checkbox(
+                        key: ValueKey(
+                            'PrintJourneyGroupTile_SelectAll_${widget.group.journeyId}'),
                         value: allSelected,
                         onChanged: (v) {
                           final select = v ?? false;
@@ -270,6 +272,8 @@ class _JourneyGroupTileState extends State<_JourneyGroupTile>
                       ),
                     ),
                     _MergeToggle(
+                      key: ValueKey(
+                          'PrintJourneyGroupTile_MergeToggle_${widget.group.journeyId}'),
                       isMerged: widget.isMerged,
                       onTap: () => widget.onMergeToggled(!widget.isMerged),
                     ),
@@ -306,6 +310,8 @@ class _JourneyGroupTileState extends State<_JourneyGroupTile>
                               width: 20,
                               height: 20,
                               child: Checkbox(
+                                key: ValueKey(
+                                    'PrintJourneyGroupTile_LegCheckbox_${leg.id}'),
                                 value: legSelected,
                                 onChanged: (v) {
                                   if (leg.id != null) {
@@ -350,6 +356,7 @@ class _MergeToggle extends StatelessWidget {
   const _MergeToggle({
     required this.isMerged,
     required this.onTap,
+    super.key,
   });
 
   @override

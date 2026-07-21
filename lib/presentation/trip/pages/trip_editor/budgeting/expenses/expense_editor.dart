@@ -194,6 +194,7 @@ class ExpenseEditor extends StatelessWidget {
   Widget _buildTitleField(BuildContext context) {
     final isEditable = expenseBearingTripEntity is StandaloneExpense;
     return TextField(
+      key: const ValueKey('ExpenseEditor_Title_TextField'),
       controller: _titleEditingController,
       scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
       onChanged: isEditable
