@@ -6,10 +6,6 @@ const double _kHeaderIconBorderRadius = 12.0;
 const double _kHeaderIconPadding = 10.0;
 const double _kHeaderChevronSize = 32.0;
 const double _kHeaderChevronPadding = 6.0;
-const double _kHeaderTitleFontSizeExpanded = 20.0;
-const double _kHeaderTitleFontSizeCollapsed = 18.0;
-const double _kHeaderTitleLetterSpacingExpanded = 0.5;
-const double _kHeaderTitleLetterSpacingCollapsed = 0.2;
 const double _kHeaderBoxShadowBlur = 8.0;
 const double _kHeaderBoxShadowOffsetY = 2.0;
 const double _kHeaderHorizontalPadding = 10.0;
@@ -99,17 +95,13 @@ class SectionHeader extends StatelessWidget {
   }
 
   Widget _buildTitle(ThemeData theme, _SectionHeaderColors colors) {
+    final baseStyle =
+        isExpanded ? theme.textTheme.titleLarge : theme.textTheme.titleMedium;
     return Text(
       title,
-      style: theme.textTheme.titleLarge!.copyWith(
+      style: baseStyle?.copyWith(
         fontWeight: isExpanded ? FontWeight.bold : FontWeight.w600,
-        fontSize: isExpanded
-            ? _kHeaderTitleFontSizeExpanded
-            : _kHeaderTitleFontSizeCollapsed,
         color: colors.textColor,
-        letterSpacing: isExpanded
-            ? _kHeaderTitleLetterSpacingExpanded
-            : _kHeaderTitleLetterSpacingCollapsed,
       ),
     );
   }

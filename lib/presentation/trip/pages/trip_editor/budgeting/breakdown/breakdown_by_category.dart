@@ -119,8 +119,7 @@ class _InteractivePieChart extends StatelessWidget {
   static const double _kCenterSpaceRadius = 30.0;
   static const double _kTouchedRadius = 110.0;
   static const double _kUntouchedRadius = 100.0;
-  static const double _kTouchedFontSize = 20.0;
-  static const double _kUntouchedFontSize = 16.0;
+  static const double _kTouchedFontSizeBoost = 4.0;
   static const double _kBadgeTouchedSize = 55.0;
   static const double _kBadgeUntouchedSize = 40.0;
   static const _expenseChartSectionColors = AppColors.travelAccents;
@@ -159,6 +158,7 @@ class _InteractivePieChart extends StatelessWidget {
   }
 
   List<PieChartSectionData> _buildSections(BuildContext context, int touched) {
+    final baseLabelStyle = Theme.of(context).textTheme.labelLarge;
     return List.generate(data.length, (i) {
       final isTouched = i == touched;
       final entry = data.entries.elementAt(i);
@@ -168,9 +168,10 @@ class _InteractivePieChart extends StatelessWidget {
         value: entry.value,
         title: entry.value.toStringAsFixed(2),
         radius: isTouched ? _kTouchedRadius : _kUntouchedRadius,
-        titleStyle: TextStyle(
-          fontSize: isTouched ? _kTouchedFontSize : _kUntouchedFontSize,
-          fontWeight: FontWeight.bold,
+        titleStyle: baseLabelStyle?.copyWith(
+          fontSize: (baseLabelStyle.fontSize ?? 15) +
+              (isTouched ? _kTouchedFontSizeBoost : 0),
+          fontWeight: FontWeight.w700,
           color: Theme.of(context).colorScheme.onPrimary,
           shadows: const [Shadow(color: Colors.black, blurRadius: 2)],
         ),

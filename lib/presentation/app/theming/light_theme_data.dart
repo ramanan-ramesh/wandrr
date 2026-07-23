@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
+import 'package:wandrr/presentation/app/theming/app_typography.dart';
 import 'package:wandrr/presentation/app/theming/constants.dart';
 
 ThemeData createLightThemeData(BuildContext context) {
+  final textTheme = AppTypography.textTheme(AppColors.lightColorScheme);
   return ThemeData(
     brightness: Brightness.light,
     visualDensity: VisualDensity.adaptivePlatformDensity,
     colorScheme: AppColors.lightColorScheme,
+    textTheme: textTheme,
+    primaryTextTheme: textTheme,
     scrollbarTheme: ScrollbarThemeData(
       thumbColor: WidgetStateProperty.all(AppColors.brandPrimary),
       trackColor: WidgetStateProperty.all(AppColors.neutral300),
@@ -38,6 +42,12 @@ ThemeData createLightThemeData(BuildContext context) {
     dialogTheme: DialogThemeData(
       backgroundColor: AppColors.neutral400, // Pale mint for strong contrast
       elevation: 12, // Increased elevation for better prominence
+      titleTextStyle: textTheme.titleLarge?.copyWith(
+        color: AppColors.brandSecondary,
+      ),
+      contentTextStyle: textTheme.bodyMedium?.copyWith(
+        color: AppColors.brandSecondary,
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(ThemeConstants.cardBorderRadius),
         side: const BorderSide(
@@ -140,16 +150,11 @@ ThemeData createLightThemeData(BuildContext context) {
         ), // More vibrant gradient for visibility
       ),
       indicatorSize: TabBarIndicatorSize.tab,
-      labelStyle: const TextStyle(
-        inherit: true,
-        fontWeight: FontWeight.w600,
-        fontSize: 16,
+      labelStyle: textTheme.titleSmall?.copyWith(
         color: Colors.white,
       ),
-      unselectedLabelStyle: const TextStyle(
-        inherit: true,
+      unselectedLabelStyle: textTheme.titleSmall?.copyWith(
         fontWeight: FontWeight.w500,
-        fontSize: 16,
         color: AppColors.neutral600,
       ),
       labelColor: Colors.white,
@@ -164,10 +169,8 @@ ThemeData createLightThemeData(BuildContext context) {
       elevation: 4,
       shadowColor: AppColors.withOpacity(AppColors.brandPrimaryDark, 0.22),
       centerTitle: true,
-      titleTextStyle: const TextStyle(
+      titleTextStyle: textTheme.titleLarge?.copyWith(
         color: Colors.white,
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
       ),
     ),
     textSelectionTheme: TextSelectionThemeData(
@@ -186,19 +189,19 @@ ThemeData createLightThemeData(BuildContext context) {
         ),
       ),
     ),
-    inputDecorationTheme: const InputDecorationTheme(
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      hintStyle: TextStyle(
+    inputDecorationTheme: InputDecorationTheme(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      hintStyle: textTheme.bodyMedium?.copyWith(
         fontStyle: FontStyle.italic,
         color: AppColors.neutral500,
       ),
       filled: true,
       fillColor: AppColors.lightSurfaceVariant,
-      floatingLabelStyle: TextStyle(
+      floatingLabelStyle: textTheme.bodyMedium?.copyWith(
         color: AppColors.brandSecondary,
         fontWeight: FontWeight.w600,
       ),
-      border: OutlineInputBorder(
+      border: const OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
@@ -207,7 +210,7 @@ ThemeData createLightThemeData(BuildContext context) {
           width: 1.5,
         ),
       ),
-      enabledBorder: OutlineInputBorder(
+      enabledBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
@@ -216,7 +219,7 @@ ThemeData createLightThemeData(BuildContext context) {
           width: 1.5,
         ),
       ),
-      focusedBorder: OutlineInputBorder(
+      focusedBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
@@ -225,7 +228,7 @@ ThemeData createLightThemeData(BuildContext context) {
           width: 2,
         ),
       ),
-      errorBorder: OutlineInputBorder(
+      errorBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
@@ -234,7 +237,7 @@ ThemeData createLightThemeData(BuildContext context) {
           width: 1.5,
         ),
       ),
-      focusedErrorBorder: OutlineInputBorder(
+      focusedErrorBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),

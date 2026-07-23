@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'app_typography.dart';
 import 'constants.dart';
 
 ThemeData createDarkThemeData(BuildContext context) {
+  final textTheme = AppTypography.textTheme(AppColors.darkColorScheme);
   return ThemeData(
     brightness: Brightness.dark,
     visualDensity: VisualDensity.adaptivePlatformDensity,
     colorScheme: AppColors.darkColorScheme,
+    textTheme: textTheme,
+    primaryTextTheme: textTheme,
     scrollbarTheme: ScrollbarThemeData(
       thumbColor: WidgetStateProperty.all(AppColors.brandPrimaryLight),
       trackColor: WidgetStateProperty.all(AppColors.neutral700),
@@ -39,6 +43,12 @@ ThemeData createDarkThemeData(BuildContext context) {
     dialogTheme: DialogThemeData(
       backgroundColor: AppColors.darkSurface,
       elevation: 8,
+      titleTextStyle: textTheme.titleLarge?.copyWith(
+        color: Colors.white,
+      ),
+      contentTextStyle: textTheme.bodyMedium?.copyWith(
+        color: AppColors.neutral100,
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(ThemeConstants.cardBorderRadius),
       ),
@@ -70,16 +80,14 @@ ThemeData createDarkThemeData(BuildContext context) {
         ),
       ),
     ),
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: AppColors.darkSurfaceHeader,
       // More pronounced, lighter dark shade
       foregroundColor: Colors.white,
       elevation: 6,
-      iconTheme: IconThemeData(color: Colors.white),
-      titleTextStyle: TextStyle(
+      iconTheme: const IconThemeData(color: Colors.white),
+      titleTextStyle: textTheme.titleLarge?.copyWith(
         color: Colors.white,
-        fontWeight: FontWeight.bold,
-        fontSize: 20,
       ),
     ),
     cardTheme: CardThemeData(
@@ -140,15 +148,12 @@ ThemeData createDarkThemeData(BuildContext context) {
         ),
       ),
       indicatorSize: TabBarIndicatorSize.tab,
-      labelStyle: const TextStyle(
-        inherit: true,
-        fontWeight: FontWeight.w600,
-        fontSize: 16,
+      labelStyle: textTheme.titleSmall?.copyWith(
+        color: AppColors.brandSecondary,
       ),
-      unselectedLabelStyle: const TextStyle(
-        inherit: true,
+      unselectedLabelStyle: textTheme.titleSmall?.copyWith(
         fontWeight: FontWeight.w500,
-        fontSize: 16,
+        color: AppColors.neutral400,
       ),
       indicatorColor: Colors.transparent,
       labelColor: AppColors.brandSecondary,
@@ -171,19 +176,19 @@ ThemeData createDarkThemeData(BuildContext context) {
         ),
       ),
     ),
-    inputDecorationTheme: const InputDecorationTheme(
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      hintStyle: TextStyle(
+    inputDecorationTheme: InputDecorationTheme(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      hintStyle: textTheme.bodyMedium?.copyWith(
         fontStyle: FontStyle.italic,
         color: AppColors.neutral500,
       ),
       filled: true,
       fillColor: AppColors.darkSurfaceVariant,
-      floatingLabelStyle: TextStyle(
+      floatingLabelStyle: textTheme.bodyMedium?.copyWith(
         color: Colors.white,
         fontWeight: FontWeight.w600,
       ),
-      border: OutlineInputBorder(
+      border: const OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
@@ -192,7 +197,7 @@ ThemeData createDarkThemeData(BuildContext context) {
           width: 1.5,
         ),
       ),
-      enabledBorder: OutlineInputBorder(
+      enabledBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
@@ -201,7 +206,7 @@ ThemeData createDarkThemeData(BuildContext context) {
           width: 1.5,
         ),
       ),
-      focusedBorder: OutlineInputBorder(
+      focusedBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
@@ -210,7 +215,7 @@ ThemeData createDarkThemeData(BuildContext context) {
           width: 2,
         ),
       ),
-      errorBorder: OutlineInputBorder(
+      errorBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),
@@ -219,7 +224,7 @@ ThemeData createDarkThemeData(BuildContext context) {
           width: 1.5,
         ),
       ),
-      focusedErrorBorder: OutlineInputBorder(
+      focusedErrorBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(
           Radius.circular(ThemeConstants.cardBorderRadius / 2),
         ),

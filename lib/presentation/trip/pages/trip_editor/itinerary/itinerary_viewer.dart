@@ -4,6 +4,7 @@ import 'package:wandrr/blocs/trip/bloc.dart';
 import 'package:wandrr/blocs/trip/states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/datetime_extensions.dart';
+import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/app/theming/app_colors.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_event_factory.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/helpers/timeline_rebuild_helper.dart';
@@ -12,14 +13,13 @@ import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/transit_jou
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/viewer/animated_list_item.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/timeline_item.dart';
 import 'package:wandrr/presentation/trip/pages/trip_editor/itinerary/widgets/transit_journey_timeline_item.dart';
-import 'package:wandrr/l10n/extension.dart';
 import 'package:wandrr/presentation/trip/repository_extensions.dart';
 import 'package:wandrr/presentation/trip/widgets/shimmer_placeholder.dart';
 
 import 'timeline_event.dart';
 
 /// Timeline-only view for a specific itinerary day.
-/// Tab management is handled by [ItineraryNavigator].
+/// Tab management is handled by `ItineraryNavigator`.
 class ItineraryViewer extends StatefulWidget {
   final DateTime itineraryDay;
 

@@ -253,10 +253,10 @@ class _JourneyGroupTileState extends State<_JourneyGroupTile>
                               if (date.isNotEmpty) ...[
                                 Text(
                                   ' - ',
-                                  style: TextStyle(
-                                    color: cs.onSurfaceVariant,
-                                    fontSize: 10,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelSmall
+                                      ?.copyWith(color: cs.onSurfaceVariant),
                                 ),
                                 Text(
                                   date,

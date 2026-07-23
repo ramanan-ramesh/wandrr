@@ -150,14 +150,14 @@ class PrintSectionChip extends StatelessWidget {
                 : cs.outline,
         width: selected ? 1.5 : 1.0,
       ),
-      labelStyle: TextStyle(
-        color: !enabled
-            ? cs.onSurfaceVariant.withValues(alpha: 0.7)
-            : selected
-                ? cs.onPrimaryContainer
-                : cs.onSurfaceVariant,
-        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-      ),
+      labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+            color: !enabled
+                ? cs.onSurfaceVariant.withValues(alpha: 0.7)
+                : selected
+                    ? cs.onPrimaryContainer
+                    : cs.onSurfaceVariant,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+          ),
     );
   }
 }

@@ -28,10 +28,8 @@ Future<void> runStartupPageTest(
   expect(find.byType(StartupPage), findsOneWidget);
 
   if (isLarge) {
-    // ==================== LARGE SCREEN SCENARIO ====================
     _runLargeScreenTest(tester);
   } else {
-    // ==================== SMALL SCREEN SCENARIO ====================
     await _runSmallScreenTest(tester);
   }
 }

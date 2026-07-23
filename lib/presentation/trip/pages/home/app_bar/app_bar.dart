@@ -108,9 +108,7 @@ class _AppLogoState extends State<_AppLogo> with TickerProviderStateMixin {
           onPressed: null,
           label: Text(
             'wandrr',
-            style: TextStyle(
-              fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
-            ),
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           icon: Image(
             image: Assets.images.logo.provider(),

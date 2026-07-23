@@ -65,7 +65,7 @@ class _TripEditorPageState extends State<TripEditorPage> {
                   child: _itineraryPage,
                 ),
               ),
-              SizedBox(width: _padding),
+              const SizedBox(width: _padding),
               Expanded(
                 child: ClipRRect(
                   borderRadius: _topPaneRadius,

@@ -100,19 +100,19 @@ class PaidByTab extends StatelessWidget {
               displayName,
               softWrap: true,
               maxLines: 2,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: contributor == currentUserName
-                    ? FontWeight.w600
-                    : FontWeight.normal,
-                color: isNoLongerTripmate
-                    ? (isLightTheme
-                        ? AppColors.warning
-                        : AppColors.warningLight)
-                    : null,
-                fontStyle:
-                    isNoLongerTripmate ? FontStyle.italic : FontStyle.normal,
-              ),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: contributor == currentUserName
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                    color: isNoLongerTripmate
+                        ? (isLightTheme
+                            ? AppColors.warning
+                            : AppColors.warningLight)
+                        : null,
+                    fontStyle: isNoLongerTripmate
+                        ? FontStyle.italic
+                        : FontStyle.normal,
+                  ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -179,9 +179,10 @@ class _ExpenseEditFieldState extends State<_ExpenseEditField> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         suffix: Text(
           widget.currencySymbol,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(context)
+              .textTheme
+              .labelMedium
+              ?.copyWith(fontWeight: FontWeight.w600),
         ),
       ),
     );

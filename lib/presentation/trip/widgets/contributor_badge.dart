@@ -10,7 +10,10 @@ class ContributorBadge extends StatelessWidget {
   final String? localizedYouText;
 
   const ContributorBadge({
-    required this.contributorName, required this.currentUserName, required this.currentContributors, super.key,
+    required this.contributorName,
+    required this.currentUserName,
+    required this.currentContributors,
+    super.key,
     this.localizedYouText,
   });
 
@@ -41,9 +44,9 @@ class ContributorBadge extends StatelessWidget {
       onPressed: null,
       label: Text(
         displayName,
-        style: TextStyle(
-          fontWeight: isCurrentUser ? FontWeight.w600 : FontWeight.normal,
-        ),
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: isCurrentUser ? FontWeight.w600 : FontWeight.normal,
+            ),
       ),
     );
   }
@@ -99,7 +102,10 @@ class CompactContributorBadge extends StatelessWidget {
   final TextStyle? textStyle;
 
   const CompactContributorBadge({
-    required this.contributorName, required this.currentUserName, required this.currentContributors, super.key,
+    required this.contributorName,
+    required this.currentUserName,
+    required this.currentContributors,
+    super.key,
     this.localizedYouText,
     this.textStyle,
   });

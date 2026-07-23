@@ -502,13 +502,12 @@ class JourneyRouteHeader extends StatelessWidget {
                         const SizedBox(width: 6),
                         Text(
                           'Delete Journey',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: isLightTheme
-                                ? AppColors.error
-                                : AppColors.errorLight,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.labelMedium?.copyWith(
+                                    color: isLightTheme
+                                        ? AppColors.error
+                                        : AppColors.errorLight,
+                                  ),
                         ),
                       ],
                     ),
@@ -697,7 +696,6 @@ class _ConnectionSegment extends StatelessWidget {
                 duration!,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Colors.grey.shade600,
-                      fontSize: 10,
                     ),
               ),
             ),
@@ -734,7 +732,6 @@ class _LayoverChip extends StatelessWidget {
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: isLightTheme ? AppColors.warning : AppColors.warningLight,
               fontWeight: FontWeight.w600,
-              fontSize: 10,
             ),
       ),
     );
@@ -983,11 +980,10 @@ class _LegNumberBadge extends StatelessWidget {
         child: isValid
             ? Text(
                 '$number',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
               )
             : const Icon(Icons.error, color: Colors.white, size: 16),
       ),

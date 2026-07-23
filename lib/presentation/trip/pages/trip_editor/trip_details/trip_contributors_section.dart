@@ -179,11 +179,10 @@ class _TripContributorsEditorSectionState
                   : AppColors.brandPrimaryLight,
               child: Text(
                 contributor.isNotEmpty ? contributor[0].toUpperCase() : '?',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12.0,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
             ),
             const SizedBox(width: 8),

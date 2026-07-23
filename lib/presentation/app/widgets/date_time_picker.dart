@@ -57,7 +57,7 @@ class _PlatformDateTimePickerState extends State<PlatformDateTimePicker> {
           currentTime: _dateTime,
           context,
           showTitleActions: true,
-          theme: _createDatePickerTheme(isLightTheme),
+          theme: _createDatePickerTheme(context, isLightTheme),
           onConfirm: (date) {
             if (_dateTime == null) {
               _dateTime = date;
@@ -84,25 +84,24 @@ class _PlatformDateTimePickerState extends State<PlatformDateTimePicker> {
     );
   }
 
-  app_data_picker.DatePickerTheme _createDatePickerTheme(bool isLightTheme) {
+  app_data_picker.DatePickerTheme _createDatePickerTheme(
+      BuildContext context, bool isLightTheme) {
+    final textTheme = Theme.of(context).textTheme;
     if (isLightTheme) {
       return app_data_picker.DatePickerTheme(
         backgroundColor: AppColors.lightSurface,
         headerColor: AppColors.brandPrimary,
-        itemStyle: const TextStyle(
+        itemStyle: (textTheme.titleMedium ?? const TextStyle()).copyWith(
           color: AppColors.brandSecondary,
           fontWeight: FontWeight.w500,
-          fontSize: 18,
         ),
-        doneStyle: const TextStyle(
+        doneStyle: (textTheme.labelLarge ?? const TextStyle()).copyWith(
           color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
+          fontWeight: FontWeight.w700,
         ),
-        cancelStyle: TextStyle(
+        cancelStyle: (textTheme.labelLarge ?? const TextStyle()).copyWith(
           color: Colors.white.withValues(alpha: 0.85),
           fontWeight: FontWeight.w500,
-          fontSize: 16,
         ),
         itemHeight: 48,
         containerHeight: 240,
@@ -111,20 +110,17 @@ class _PlatformDateTimePickerState extends State<PlatformDateTimePicker> {
       return app_data_picker.DatePickerTheme(
         backgroundColor: AppColors.darkSurface,
         headerColor: AppColors.darkSurfaceHeader,
-        itemStyle: const TextStyle(
+        itemStyle: (textTheme.titleMedium ?? const TextStyle()).copyWith(
           color: AppColors.neutral100,
           fontWeight: FontWeight.w500,
-          fontSize: 18,
         ),
-        doneStyle: const TextStyle(
+        doneStyle: (textTheme.labelLarge ?? const TextStyle()).copyWith(
           color: AppColors.brandPrimaryLight,
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
+          fontWeight: FontWeight.w700,
         ),
-        cancelStyle: TextStyle(
+        cancelStyle: (textTheme.labelLarge ?? const TextStyle()).copyWith(
           color: AppColors.neutral400.withValues(alpha: 0.85),
           fontWeight: FontWeight.w500,
-          fontSize: 16,
         ),
         itemHeight: 48,
         containerHeight: 240,

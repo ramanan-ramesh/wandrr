@@ -23,7 +23,6 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
   // UI constants
   static const double _kCardPadding = 8.0;
   static const double _kOuterPadding = 20.0;
-  static const double _kTitleFontSize = 16.0;
 
   @override
   bool get wantKeepAlive => true;
@@ -139,11 +138,10 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
                               const SizedBox(width: 8),
                               Text(
                                 dateLabel,
-                                style: TextStyle(
-                                  fontSize: _kTitleFontSize,
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(color: textColor),
                               ),
                             ],
                           ),
@@ -160,11 +158,10 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
                                     currency: budgetCurrency,
                                     amount: dailyExpense.value),
                               ),
-                              style: TextStyle(
-                                color: accentColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge
+                                  ?.copyWith(color: accentColor),
                             ),
                           ),
                         ],

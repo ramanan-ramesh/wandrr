@@ -89,15 +89,17 @@ class BubbleTabBar extends StatelessWidget {
                               const SizedBox(width: 6),
                               Text(
                                 tab.label!,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.normal,
-                                  color: isSelected
-                                      ? selectedColor
-                                      : unselectedColor,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                      color: isSelected
+                                          ? selectedColor
+                                          : unselectedColor,
+                                    ),
                               ),
                             ],
                           ],

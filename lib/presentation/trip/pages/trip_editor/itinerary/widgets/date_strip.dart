@@ -260,29 +260,28 @@ class _DateChip extends StatelessWidget {
             // "Sat 30"
             Text(
               '$dayLabel $dateNum',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                color: isSelected
-                    ? (isLight ? Colors.white : AppColors.brandSecondary)
-                    : (isLight ? AppColors.neutral800 : AppColors.neutral200),
-                height: 1.2,
-              ),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                    color: isSelected
+                        ? (isLight ? Colors.white : AppColors.brandSecondary)
+                        : (isLight
+                            ? AppColors.neutral800
+                            : AppColors.neutral200),
+                  ),
             ),
             const SizedBox(height: 2),
             // "Jan"
             Text(
               monthLabel,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: isSelected
-                    ? (isLight
-                        ? Colors.white.withValues(alpha: 0.85)
-                        : AppColors.brandSecondary.withValues(alpha: 0.7))
-                    : (isLight ? AppColors.neutral500 : AppColors.neutral400),
-                height: 1.2,
-              ),
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: isSelected
+                        ? (isLight
+                            ? Colors.white.withValues(alpha: 0.85)
+                            : AppColors.brandSecondary.withValues(alpha: 0.7))
+                        : (isLight
+                            ? AppColors.neutral500
+                            : AppColors.neutral400),
+                  ),
             ),
           ],
         ),

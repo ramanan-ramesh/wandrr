@@ -24,10 +24,9 @@ class OnBoardingImage extends StatelessWidget {
             child: FittedBox(
                 child: Text(
               context.localizations.plan_itinerary,
-              style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 45,
-                  fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    color: Colors.black,
+                  ),
               textAlign: TextAlign.center,
               overflow: TextOverflow.visible,
             )),

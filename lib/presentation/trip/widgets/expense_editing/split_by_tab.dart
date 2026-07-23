@@ -69,17 +69,18 @@ class _SplitByTabState extends State<SplitByTab> {
               displayName,
               maxLines: 2,
               softWrap: true,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isCurrentUser ? FontWeight.w600 : FontWeight.normal,
-                color: isNoLongerTripmate
-                    ? (isLightTheme
-                        ? AppColors.warning
-                        : AppColors.warningLight)
-                    : Theme.of(context).textTheme.bodyMedium?.color,
-                fontStyle:
-                    isNoLongerTripmate ? FontStyle.italic : FontStyle.normal,
-              ),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight:
+                        isCurrentUser ? FontWeight.w600 : FontWeight.normal,
+                    color: isNoLongerTripmate
+                        ? (isLightTheme
+                            ? AppColors.warning
+                            : AppColors.warningLight)
+                        : null,
+                    fontStyle: isNoLongerTripmate
+                        ? FontStyle.italic
+                        : FontStyle.normal,
+                  ),
               overflow: TextOverflow.ellipsis,
             ),
           ),

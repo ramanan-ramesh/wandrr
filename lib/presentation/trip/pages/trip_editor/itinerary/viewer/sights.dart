@@ -178,7 +178,6 @@ class ItinerarySightsViewer extends StatelessWidget {
                                                             .brandPrimary,
                                                         fontWeight:
                                                             FontWeight.w600,
-                                                        fontSize: 11,
                                                       ),
                                                 ),
                                               ],
@@ -221,7 +220,6 @@ class ItinerarySightsViewer extends StatelessWidget {
                                                                   .neutral600
                                                               : AppColors
                                                                   .neutral400,
-                                                          fontSize: 11,
                                                         ),
                                                     maxLines: 1,
                                                     overflow:
@@ -264,7 +262,6 @@ class ItinerarySightsViewer extends StatelessWidget {
                                                             AppColors.warning,
                                                         fontWeight:
                                                             FontWeight.w600,
-                                                        fontSize: 11,
                                                       ),
                                                 ),
                                               ],

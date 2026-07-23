@@ -71,6 +71,9 @@ class _TripListViewState extends State<TripListView> {
         icon: Icons.flight_takeoff_rounded,
         color: AppColors.brandPrimary,
       ));
+      slivers.add(const SliverToBoxAdapter(
+        child: SizedBox(height: 10),
+      ));
       slivers.add(SliverToBoxAdapter(
         child: _YearChips(
           years: upcomingTrips.keys,
@@ -89,6 +92,9 @@ class _TripListViewState extends State<TripListView> {
         label: context.localizations.pastTrips,
         icon: Icons.history_rounded,
         color: AppColors.neutral500,
+      ));
+      slivers.add(const SliverToBoxAdapter(
+        child: SizedBox(height: 10),
       ));
       slivers.add(SliverToBoxAdapter(
         child: _YearChips(
@@ -159,30 +165,27 @@ class _TripListViewState extends State<TripListView> {
     required Color color,
   }) {
     return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 16, bottom: 10),
-        child: Row(
-          children: [
-            Container(
-              width: 3,
-              height: 22,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(2),
-              ),
+      child: Row(
+        children: [
+          Container(
+            width: 3,
+            height: 22,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(2),
             ),
-            const SizedBox(width: 10),
-            Icon(icon, size: 18, color: color),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.3,
-                  ),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 10),
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
+          ),
+        ],
       ),
     );
   }
@@ -234,7 +237,6 @@ class _YearChips extends StatelessWidget {
         isLight ? AppColors.brandPrimary : AppColors.brandPrimaryLight;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: years.map((year) {
           final isSelected = selectedYear == year;
@@ -255,15 +257,14 @@ class _YearChips extends StatelessWidget {
                 color: borderColor,
                 width: isSelected ? 2.0 : 1.5,
               ),
-              backgroundColor: Colors.transparent,
               selectedColor: activeColor.withValues(alpha: 0.14),
               checkmarkColor: activeColor,
-              labelStyle: TextStyle(
-                color: isSelected
-                    ? activeColor
-                    : Theme.of(context).colorScheme.onSurface,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
-              ),
+              labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: isSelected
+                        ? activeColor
+                        : Theme.of(context).colorScheme.onSurface,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                  ),
             ),
           );
         }).toList(),
@@ -399,19 +400,18 @@ class _TripCardState extends State<_TripCard> {
                     children: [
                       Text(
                         trip.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: Colors.white,
+                            ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 3),
                       Text(
                         dateRange,
-                        style: const TextStyle(
-                            color: Colors.white70, fontSize: 11),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: Colors.white70,
+                            ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -674,12 +674,11 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.2,
-        ),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.2,
+            ),
       ),
     );
   }

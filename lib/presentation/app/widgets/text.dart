@@ -4,15 +4,13 @@ import 'package:wandrr/l10n/extension.dart';
 typedef OnEmailChangedCallback = void Function(String, {required bool isValid});
 
 class PlatformTextElements {
-  static const double subHeaderSize = 17;
-  static const double formElementSize = 15;
   static final _emailRegExValidator = RegExp(r'^[^@]+@[^@]+\.[a-zA-Z]+$');
 
   static Text createHeader(
       {required BuildContext context, required String text, Color? color}) {
     return Text(
       text,
-      style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold, color: color),
+      style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: color),
     );
   }
 
@@ -22,14 +20,15 @@ class PlatformTextElements {
       Color? color,
       TextAlign? textAlign,
       bool shouldBold = false}) {
+    final baseStyle = Theme.of(context).textTheme.titleMedium;
     return Text(
       text,
       softWrap: true,
       textAlign: textAlign,
-      style: TextStyle(
-          color: color,
-          fontSize: subHeaderSize,
-          fontWeight: shouldBold ? FontWeight.bold : null),
+      style: baseStyle?.copyWith(
+        color: color,
+        fontWeight: shouldBold ? FontWeight.w700 : baseStyle.fontWeight,
+      ),
     );
   }
 
@@ -47,7 +46,7 @@ class PlatformTextElements {
     return TextFormField(
       key: key ?? formKey,
       readOnly: readonly,
-      style: const TextStyle(fontSize: PlatformTextElements.formElementSize),
+      style: Theme.of(context).textTheme.bodyLarge,
       minLines: 1,
       textInputAction: textInputAction,
       scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),

@@ -81,12 +81,12 @@ class _ConnectedTimelineIconColumn extends StatelessWidget {
           if (timeLabel.isNotEmpty)
             Text(
               timeLabel,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: isLight ? AppColors.neutral700 : AppColors.neutral300,
-                height: 1.1,
-              ),
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color:
+                        isLight ? AppColors.neutral700 : AppColors.neutral300,
+                    height: 1.1,
+                  ),
               textAlign: TextAlign.center,
             ),
           if (timeLabel.isNotEmpty) const SizedBox(height: 4),
@@ -217,7 +217,6 @@ class _JourneyConnectionLine extends StatelessWidget {
                               ? AppColors.warning
                               : AppColors.warningLight,
                           fontWeight: FontWeight.w600,
-                          fontSize: 11,
                         ),
                   ),
                 ],
@@ -402,11 +401,13 @@ class _ConnectedTransitCard extends StatelessWidget {
                                         size: 12, color: Colors.white)
                                     : Text(
                                         positionLabel,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 10,
-                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelSmall
+                                            ?.copyWith(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w700,
+                                            ),
                                       ),
                               ),
                             ),

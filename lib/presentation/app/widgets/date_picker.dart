@@ -89,7 +89,8 @@ class PlatformDatePicker extends StatefulWidget {
   final Alignment? widgetAnchor, dialogAnchor;
 
   const PlatformDatePicker({
-    required this.onDateSelected, super.key,
+    required this.onDateSelected,
+    super.key,
     this.selectedDate,
     this.calendarConfig,
     this.widgetAnchor,
@@ -150,26 +151,28 @@ class _PlatformDatePickerState extends State<PlatformDatePicker> {
 CalendarDatePicker2WithActionButtonsConfig _createDefaultDatePickerConfig(
     BuildContext dialogContext, BuildContext parentContext) {
   var isLightTheme = parentContext.isLightTheme;
+  final textTheme = Theme.of(parentContext).textTheme;
   return CalendarDatePicker2WithActionButtonsConfig(
     calendarType: CalendarDatePicker2Type.single,
     firstDayOfWeek: 1,
     centerAlignModePicker: true,
-    controlsTextStyle:
-        TextStyle(color: isLightTheme ? Colors.black87 : Colors.white),
-    dayTextStyle:
-        TextStyle(color: isLightTheme ? Colors.black87 : Colors.white),
+    controlsTextStyle: textTheme.titleSmall
+        ?.copyWith(color: isLightTheme ? Colors.black87 : Colors.white),
+    dayTextStyle: textTheme.bodyMedium
+        ?.copyWith(color: isLightTheme ? Colors.black87 : Colors.white),
     selectedDayHighlightColor: AppColors.brandPrimary,
-    selectedDayTextStyle: const TextStyle(color: Colors.white),
+    selectedDayTextStyle: textTheme.bodyMedium?.copyWith(color: Colors.white),
     selectedRangeHighlightColor: AppColors.brandPrimaryLight,
-    selectedRangeDayTextStyle:
-        TextStyle(color: isLightTheme ? Colors.black87 : Colors.white),
-    todayTextStyle: TextStyle(
+    selectedRangeDayTextStyle: textTheme.bodyMedium
+        ?.copyWith(color: isLightTheme ? Colors.black87 : Colors.white),
+    todayTextStyle: textTheme.bodyMedium?.copyWith(
         color: isLightTheme
             ? AppColors.brandPrimary
             : AppColors.brandPrimaryLight),
-    okButtonTextStyle: const TextStyle(color: AppColors.brandPrimary),
-    cancelButtonTextStyle:
-        TextStyle(color: !isLightTheme ? Colors.black54 : Colors.white70),
+    okButtonTextStyle:
+        textTheme.labelLarge?.copyWith(color: AppColors.brandPrimary),
+    cancelButtonTextStyle: textTheme.labelLarge
+        ?.copyWith(color: !isLightTheme ? Colors.black54 : Colors.white70),
     cancelButton: TextButton(
       onPressed: () {
         Navigator.of(dialogContext).pop();

@@ -45,14 +45,11 @@ class ChromeTabBar extends StatelessWidget {
           dividerColor:
               isLightTheme ? AppColors.neutral300 : AppColors.neutral700,
           dividerHeight: 1,
-          labelStyle: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.normal,
-            fontSize: 14,
-          ),
+          labelStyle: Theme.of(context).textTheme.titleSmall,
+          unselectedLabelStyle: Theme.of(context)
+              .textTheme
+              .titleSmall
+              ?.copyWith(fontWeight: FontWeight.normal),
           labelPadding: EdgeInsets.zero,
           tabs: iconsAndTitles.entries.map((entry) {
             return Tab(

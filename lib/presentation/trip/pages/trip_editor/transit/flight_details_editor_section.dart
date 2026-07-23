@@ -26,8 +26,6 @@ class _FlightDetailsEditorState extends State<FlightDetailsEditor>
   // UI styling constants (reused only)
   static const double _kListTileHorizontalPadding = 8.0;
   static const double _kListTileVerticalPadding = 4.0;
-  static const double _kFlightNumberFontSize = 16.0;
-  static const double _kSeparatorFontSize = 18.0;
   static const double _kFlightNumberLetterSpacing = 1.2;
   static const double _kFlightNumberInputHorizontalPadding = 12.0;
   static const double _kFlightNumberInputVerticalPadding = 10.0;
@@ -218,6 +216,11 @@ class _FlightDetailsEditorState extends State<FlightDetailsEditor>
         isLightTheme ? AppColors.neutral600 : AppColors.neutral400;
     final separatorColor =
         isLightTheme ? AppColors.neutral500 : AppColors.neutral500;
+    final textTheme = Theme.of(context).textTheme;
+    final flightNumberStyle = textTheme.titleLarge?.copyWith(
+      color: textColor,
+      letterSpacing: _kFlightNumberLetterSpacing,
+    );
 
     return FadeTransition(
       opacity: _fadeAnimation,
@@ -230,21 +233,12 @@ class _FlightDetailsEditorState extends State<FlightDetailsEditor>
               children: [
                 Text(
                   airlineData.airLineCode ?? '',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: _kFlightNumberFontSize,
-                    color: textColor,
-                    letterSpacing: _kFlightNumberLetterSpacing,
-                  ),
+                  style: flightNumberStyle,
                 ),
                 const SizedBox(width: _kFlightNumberSectionSpacing),
                 Text(
                   '-',
-                  style: TextStyle(
-                    color: separatorColor,
-                    fontSize: _kSeparatorFontSize,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: textTheme.titleLarge?.copyWith(color: separatorColor),
                 ),
                 const SizedBox(width: _kFlightNumberSectionSpacing),
                 Expanded(
@@ -259,17 +253,14 @@ class _FlightDetailsEditorState extends State<FlightDetailsEditor>
                     ],
                     maxLines: 1,
                     minLines: 1,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: _kFlightNumberFontSize,
-                      color: textColor,
-                      letterSpacing: _kFlightNumberLetterSpacing,
-                    ),
+                    style: flightNumberStyle,
                     decoration: InputDecoration(
                       labelText: context.localizations.flightNumber,
-                      labelStyle: TextStyle(color: labelColor),
+                      labelStyle: textTheme.bodyMedium?.copyWith(
+                        color: labelColor,
+                      ),
                       hintText: '0000',
-                      hintStyle: TextStyle(
+                      hintStyle: textTheme.bodyMedium?.copyWith(
                         color: labelColor,
                         letterSpacing: _kFlightNumberLetterSpacing,
                       ),

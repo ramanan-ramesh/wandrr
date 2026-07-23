@@ -14,7 +14,7 @@ import 'itinerary_plan_data_implementation.dart';
 /// Concrete itinerary. Implements the public [ItineraryFacade] read interface.
 ///
 /// Mutation methods (transit/lodging writes, plan-data application) are
-/// package-internal: they are only called from [ItineraryCollection] which
+/// package-internal: they are only called from `ItineraryCollection` which
 /// stores and manages instances of this type directly.
 class ItineraryModelImplementation implements ItineraryFacade {
   // ── factory / constructor ─────────────────────────────────────────────────

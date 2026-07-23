@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:wandrr/asset_manager/assets.gen.dart';
 import 'package:wandrr/asset_manager/extension.dart';
 import 'package:wandrr/blocs/trip/bloc.dart';
@@ -10,9 +9,9 @@ import 'package:wandrr/data/app/models/data_states.dart';
 import 'package:wandrr/data/app/repository_extensions.dart';
 import 'package:wandrr/data/trip/models/budgeting/currency_data.dart';
 import 'package:wandrr/data/trip/models/budgeting/money.dart';
+import 'package:wandrr/data/trip/models/datetime_extensions.dart';
 import 'package:wandrr/data/trip/models/trip_metadata.dart';
 import 'package:wandrr/l10n/extension.dart';
-import 'package:wandrr/presentation/app/routing/app_routes.dart';
 import 'package:wandrr/presentation/app/widgets/button.dart';
 import 'package:wandrr/presentation/app/widgets/date_range_pickers.dart';
 import 'package:wandrr/presentation/app/widgets/dialog.dart';
@@ -35,7 +34,7 @@ class _TripCreatorDialogState extends State<TripCreatorDialog>
   static const String _defaultCurrency = 'INR';
 
   late final TripMetadataFacade _currentTripMetadata;
-  late final ValueNotifier<bool> _tripCreationMetadataValidityNotifier;
+  late final ValueNotifier<bool> _tripMetadataValidityNotifier;
   late final TextEditingController _tripNameEditingController;
   late final AnimationController _staggerController;
   final ValueNotifier<bool> _isSubmitting = ValueNotifier(false);
@@ -49,7 +48,7 @@ class _TripCreatorDialogState extends State<TripCreatorDialog>
       defaultCurrency: _defaultCurrency,
       thumbnailTag: Assets.images.tripThumbnails.roadTrip.fileName,
     );
-    _tripCreationMetadataValidityNotifier = ValueNotifier(false);
+    _tripMetadataValidityNotifier = ValueNotifier(false);
     _tripNameEditingController = TextEditingController();
 
     _staggerController = AnimationController(
@@ -60,7 +59,7 @@ class _TripCreatorDialogState extends State<TripCreatorDialog>
 
   @override
   void dispose() {
-    _tripCreationMetadataValidityNotifier.dispose();
+    _tripMetadataValidityNotifier.dispose();
     _tripNameEditingController.dispose();
     _staggerController.dispose();
     _isSubmitting.dispose();
@@ -74,9 +73,23 @@ class _TripCreatorDialogState extends State<TripCreatorDialog>
     });
 
     return BlocListener<TripManagementBloc, TripManagementState>(
-      listenWhen: (previous, current) =>
-          current is UpdatedTripEntity<TripMetadataFacade> &&
-          current.dataState == DataState.create,
+      listenWhen: (previous, current) {
+        if (current is UpdatedTripEntity<TripMetadataFacade> &&
+            current.dataState == DataState.create) {
+          final createdTrip = current.tripEntityModificationData
+              .collectionItemChange as TripMetadataFacade;
+          if (createdTrip.budget == _currentTripMetadata.budget &&
+              createdTrip.name == _currentTripMetadata.name &&
+              createdTrip.thumbnailTag == _currentTripMetadata.thumbnailTag &&
+              createdTrip.startDate!
+                  .isOnSameDayAs(_currentTripMetadata.startDate!) &&
+              createdTrip.endDate!
+                  .isOnSameDayAs(_currentTripMetadata.endDate!)) {
+            return true;
+          }
+        }
+        return false;
+      },
       listener: _handleTripCreationResult,
       child: UnifiedTripDialog(
         title: context.localizations.planTrip,
@@ -123,25 +136,11 @@ class _TripCreatorDialogState extends State<TripCreatorDialog>
       return;
     }
 
-    final createdTripMetadata =
-        createdState.tripEntityModificationData.collectionItemChange;
     _isSubmitting.value = false;
 
-    // Close the dialog first and let its transition fully finish playing
-    // before loading/activating the trip — popping a route completes
-    // immediately, well before its reverse animation actually finishes, so
-    // we explicitly wait for it to avoid the two transitions overlapping.
     Navigator.of(context).pop();
     await Future.delayed(
         PlatformDialogElements.generalDialogTransitionDuration);
-    if (!context.mounted) {
-      return;
-    }
-
-    context.addTripManagementEvent(
-      LoadTrip(tripMetadata: createdTripMetadata, isTripActivated: true),
-    );
-    context.go(AppRoutes.tripEditorPath(createdTripMetadata.id!));
   }
 
   Widget _buildAnimatedItem(int index, Widget child) {
@@ -241,7 +240,7 @@ class _TripCreatorDialogState extends State<TripCreatorDialog>
       callback: (startDate, endDate) {
         _currentTripMetadata.startDate = startDate;
         _currentTripMetadata.endDate = endDate;
-        _tripCreationMetadataValidityNotifier.value =
+        _tripMetadataValidityNotifier.value =
             _currentTripMetadata.getValidationErrors().isEmpty;
       },
     );
@@ -262,7 +261,7 @@ class _TripCreatorDialogState extends State<TripCreatorDialog>
         _currentTripMetadata.budget = Money(
             currency: selectedCurrency.code,
             amount: _currentTripMetadata.budget.amount);
-        _tripCreationMetadataValidityNotifier.value =
+        _tripMetadataValidityNotifier.value =
             _currentTripMetadata.getValidationErrors().isEmpty;
       },
       isAmountEditable: true,
@@ -271,7 +270,7 @@ class _TripCreatorDialogState extends State<TripCreatorDialog>
 
   void _updateTripName(String newTripName) {
     _currentTripMetadata.name = newTripName;
-    _tripCreationMetadataValidityNotifier.value =
+    _tripMetadataValidityNotifier.value =
         _currentTripMetadata.getValidationErrors().isEmpty;
   }
 
@@ -281,7 +280,7 @@ class _TripCreatorDialogState extends State<TripCreatorDialog>
       builder: (context, isSubmitting, _) {
         return PlatformSubmitterFAB.conditionallyEnabled(
           key: const Key('TripCreatorDialog_SubmitButton'),
-          valueNotifier: _tripCreationMetadataValidityNotifier,
+          valueNotifier: _tripMetadataValidityNotifier,
           isSubmitted: isSubmitting,
           callback: () => _submitTripCreationEvent(context),
           child: const Icon(Icons.done_rounded, color: Colors.white),

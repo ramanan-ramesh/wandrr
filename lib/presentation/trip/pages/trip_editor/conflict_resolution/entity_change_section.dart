@@ -265,7 +265,6 @@ class EntityChangeItemCard extends StatelessWidget {
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: Colors.grey,
-                                    fontSize: 11,
                                   ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -331,11 +330,10 @@ class _StatusChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: color,
-        ),
+        style: Theme.of(context)
+            .textTheme
+            .labelSmall
+            ?.copyWith(color: color, fontWeight: FontWeight.w700),
       ),
     );
   }

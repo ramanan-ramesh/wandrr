@@ -265,10 +265,10 @@ class _TripShellContentState extends State<_TripShellContent> {
             padding: const EdgeInsets.only(bottom: 32),
             child: Text(
               text,
-              style: TextStyle(
-                fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
-                color: Colors.black,
-              ),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(color: Colors.black),
             ),
           ),
         ),

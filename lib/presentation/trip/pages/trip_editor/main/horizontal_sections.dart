@@ -19,7 +19,9 @@ class HorizontalSectionsList extends StatelessWidget {
   final void Function(int) onSectionTap;
 
   const HorizontalSectionsList({
-    required this.sections, required this.onSectionTap, super.key,
+    required this.sections,
+    required this.onSectionTap,
+    super.key,
   });
 
   @override
@@ -109,7 +111,6 @@ class _CompactSectionItem extends StatelessWidget {
       section.title,
       style: theme.textTheme.bodySmall?.copyWith(
         fontWeight: FontWeight.w600,
-        fontSize: 11,
       ),
       textAlign: TextAlign.center,
       maxLines: 2,

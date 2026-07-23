@@ -288,18 +288,18 @@ class _ChecklistItemRowState extends State<_ChecklistItemRow> {
                   vertical: 12,
                 ),
               ),
-              style: TextStyle(
-                decoration: widget.item.isChecked
-                    ? TextDecoration.lineThrough
-                    : TextDecoration.none,
-                color: widget.item.isChecked
-                    ? Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.color
-                        ?.withValues(alpha: 0.6)
-                    : null,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    decoration: widget.item.isChecked
+                        ? TextDecoration.lineThrough
+                        : TextDecoration.none,
+                    color: widget.item.isChecked
+                        ? Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.color
+                            ?.withValues(alpha: 0.6)
+                        : null,
+                  ),
               scrollPadding: const EdgeInsets.only(top: 24.0, bottom: 50),
               onChanged: (val) {
                 widget.onChanged();

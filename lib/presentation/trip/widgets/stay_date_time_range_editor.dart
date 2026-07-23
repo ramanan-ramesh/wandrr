@@ -209,6 +209,7 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
 
   CalendarDatePicker2WithActionButtonsConfig _createCalendarConfig(
       {required bool isLightTheme}) {
+    final textTheme = Theme.of(context).textTheme;
     return CalendarDatePicker2WithActionButtonsConfig(
       firstDate: widget.tripStartDate,
       lastDate: widget.tripEndDate.add(const Duration(days: 1)),
@@ -217,16 +218,17 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
       firstDayOfWeek: 1,
       calendarType: CalendarDatePicker2Type.range,
       centerAlignModePicker: true,
-      controlsTextStyle:
-          TextStyle(color: isLightTheme ? Colors.black87 : Colors.white),
-      dayTextStyle:
-          TextStyle(color: isLightTheme ? Colors.black87 : Colors.white),
+      controlsTextStyle: textTheme.titleSmall?.copyWith(
+          color: isLightTheme ? Colors.black87 : Colors.white),
+      dayTextStyle: textTheme.bodyMedium
+          ?.copyWith(color: isLightTheme ? Colors.black87 : Colors.white),
       selectedDayHighlightColor: AppColors.brandPrimary,
-      selectedDayTextStyle: const TextStyle(color: Colors.white),
+      selectedDayTextStyle:
+          textTheme.bodyMedium?.copyWith(color: Colors.white),
       selectedRangeHighlightColor: AppColors.brandPrimaryLight,
-      selectedRangeDayTextStyle:
-          TextStyle(color: isLightTheme ? Colors.black87 : Colors.white),
-      todayTextStyle: TextStyle(
+      selectedRangeDayTextStyle: textTheme.bodyMedium
+          ?.copyWith(color: isLightTheme ? Colors.black87 : Colors.white),
+      todayTextStyle: textTheme.bodyMedium?.copyWith(
           color: isLightTheme
               ? AppColors.brandPrimary
               : AppColors.brandPrimaryLight),
@@ -238,10 +240,8 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
         ),
         child: Text(
           'Cancel',
-          style: TextStyle(
+          style: textTheme.labelLarge?.copyWith(
             color: isLightTheme ? Colors.grey.shade700 : Colors.grey.shade300,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
           ),
         ),
       ),
@@ -253,13 +253,9 @@ class _StayDateTimeRangeEditorState extends State<StayDateTimeRangeEditor> {
               : AppColors.brandPrimaryLight,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Text(
+        child: Text(
           'Confirm',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
+          style: textTheme.labelLarge?.copyWith(color: Colors.white),
         ),
       ),
     );
@@ -603,7 +599,6 @@ class _TimeSlider extends StatelessWidget {
       text,
       style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: Colors.grey.shade500,
-            fontSize: 10,
           ),
     );
   }

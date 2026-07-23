@@ -27,9 +27,6 @@ class TripEntityUpdateHandler {
 
       case DataState.select:
         _handleSelect(tripEntity, modelCollection, emit);
-
-      default:
-        break;
     }
   }
 

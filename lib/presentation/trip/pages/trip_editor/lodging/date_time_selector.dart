@@ -324,9 +324,8 @@ class _TimeSlider extends StatelessWidget {
       BuildContext context, String label, bool isLightTheme) {
     return Text(
       label,
-      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: AppColors.neutral500,
-            fontSize: 10,
           ),
     );
   }

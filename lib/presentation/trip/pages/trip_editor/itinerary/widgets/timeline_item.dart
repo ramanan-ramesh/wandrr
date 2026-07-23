@@ -60,12 +60,10 @@ class _TimelineIconColumn extends StatelessWidget {
           // Time label above the icon
           Text(
             timeLabel,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: isLight ? AppColors.neutral700 : AppColors.neutral300,
-              height: 1.1,
-            ),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: isLight ? AppColors.neutral700 : AppColors.neutral300,
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),

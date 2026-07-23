@@ -223,6 +223,7 @@ class _LanguageSubMenuEntry extends StatelessWidget {
     final delay = Duration(milliseconds: 100 * index);
     final isCurrentLocale =
         Localizations.localeOf(context).languageCode == languageMetadata.locale;
+    final masterPageBloc = context.masterPageBloc;
     return FutureBuilder(
       future: Future.delayed(delay),
       builder: (context, snapshot) {
@@ -260,7 +261,7 @@ class _LanguageSubMenuEntry extends StatelessWidget {
                     )
                   : null,
               onPressed: () {
-                context.addMasterPageEvent(
+                masterPageBloc.add(
                   ChangeLanguage(languageToChangeTo: languageMetadata.locale),
                 );
               },

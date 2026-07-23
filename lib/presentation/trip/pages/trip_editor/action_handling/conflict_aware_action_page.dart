@@ -440,11 +440,10 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
               ),
               child: Text(
                 conflictsCount.toString(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -480,11 +479,10 @@ class _ConflictAwareActionPageState<T extends TripEntity<Enum>>
               ),
               child: Text(
                 errorCount.toString(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -613,18 +611,16 @@ class _StickyConflictBanner<T extends TripEntity<Enum>>
                     Text(
                       _buildDetailedMessage(clampedCount, deletionCount),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w400,
                             color: isLightTheme
                                 ? Colors.grey.shade700
                                 : Colors.grey.shade300,
-                            fontSize: 11,
                           ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              _createReviewButton(isLightTheme),
+              _createReviewButton(context, isLightTheme),
             ],
           ),
         ),
@@ -646,8 +642,7 @@ class _StickyConflictBanner<T extends TripEntity<Enum>>
             '${conflictPlan.conflictCount} CONFLICT${conflictPlan.conflictCount > 1 ? 'S' : ''}',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
                 ),
           ),
         ),
@@ -665,7 +660,7 @@ class _StickyConflictBanner<T extends TripEntity<Enum>>
     );
   }
 
-  Widget _createReviewButton(bool isLightTheme) {
+  Widget _createReviewButton(BuildContext context, bool isLightTheme) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -677,11 +672,9 @@ class _StickyConflictBanner<T extends TripEntity<Enum>>
         children: [
           Text(
             'Review',
-            style: TextStyle(
-              color: isLightTheme ? Colors.white : Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: isLightTheme ? Colors.white : Colors.black,
+                ),
           ),
           const SizedBox(width: 4),
           Icon(

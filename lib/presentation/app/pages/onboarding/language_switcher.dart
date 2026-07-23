@@ -86,7 +86,7 @@ class _LanguageButton extends StatelessWidget {
               },
               label: Text(
                 _languageMetadata.name,
-                style: const TextStyle(fontSize: 16.0),
+                style: Theme.of(context).textTheme.labelLarge,
               ),
               icon: ClipRRect(
                 borderRadius: const BorderRadius.all(Radius.circular(20)),
