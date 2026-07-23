@@ -5,66 +5,78 @@ app enables users to create and manage trips, including accommodations, transit,
 expenses, and collaborative features like expense splitting and debt settlement. It supports
 multi-user collaboration with real-time updates and conflict resolution for timeline entities.
 
-## Core Architecture
+This document describes **how Wandrr is built**: architecture, technology choices, and project
+policy. It intentionally does not contain code-review heuristics or UI design guidance — those live
+in the dedicated skills:
 
-* State Management: BLoC pattern.
-* Clean Architecture Layers:
-    * Data Layer: Define models (TripData/Stay/Expense) as immutable Dart classes with JSON
-      serialization (toJson/fromJson). Use repositories for data access.
-    * Domain Layer: Implement use cases in the services layer (JourneyService/ConflictDetection).
-      These encapsulate business logic, calling repositories and handling errors.
-    * Presentation Layer: UI widgets react to BLoC states. Use BlocBuilder/BlocSelector for
-      rebuilding on state changes and BlocListener for side effects (e.g., showing snackbars on
-      errors).
-* Firebase Integration: Enable real-time listeners for collaborative features. Use type-safe
-  Firestore converters for data mapping.
-* Internationalization: Support English, Hindi, Tamil via flutter_localizations and l10n.yaml. Use
-  AppLocalizations for strings in UI.
-* Navigation: Use go_router for routes.
-* Only the Bloc layer can use Implementation layer. UI should only use the model, bloc and services
-  layer.
+* `.github/skills/flutter-code-reviewer/SKILL.md` — how to evaluate code quality.
+* `.github/skills/flutter-ui-architect/SKILL.md` — how to design and compose new screens/UI.
 
-### UI/UX Design Principles
+## Architecture
 
-Prioritize a unique, expressive design that feels modern and adventurous, inspired by travel
-themes (e.g., subtle gradients evoking landscapes, icons with a wanderlust flair like custom map
-pins or backpack motifs). Ensure consistency across the app: use Material 3 components with custom
-ThemeData extensions for colors, typography, and elevations. Support light/dark modes with adaptive
-palettes.
+### Layers
 
-* User-Friendly Focus: Make interfaces intuitive and minimalistic—top priority. Avoid clutter: use
-  whitespace generously, hide advanced options in collapsible sections or drawers. Employ clear
-  hierarchies (e.g., bold headings for trip names, subtle text for details).
-* Efficient Screen Utilization: Optimize layouts for all devices. Adapt on small screens (phones),
-  stack elements vertically with scrollabl lists; on large screens (tablets/web), use grids or split
-  views (e.g., timeline on left, details on right). Handle orientations: ensure timelines remain
-  readable in landscape.
-* Responsive and Expressive: Incorporate subtle animations (e.g., fade transitions for state
-  changes) to make interactions feel lively. Unique elements: expressive custom widgets like
-  ConnectedTimelineItemWidget for multi-level itineraries, with color-coded bars for activities (
-  green for stays, blue for transit). Should be interactive and scale gracefully.
+* **Data Layer**: Models (TripData/Stay/Expense) as immutable Dart classes with JSON
+  serialization (toJson/fromJson). Repositories are the only data-access surface.
+* **Domain Layer**: Use cases live in the services layer (JourneyService/ConflictDetection).
+  Services encapsulate business logic, call repositories, and handle errors.
+* **Presentation Layer**: UI widgets react to BLoC state. Use BlocBuilder/BlocSelector for
+  rebuilds and BlocListener for side effects (e.g., showing snackbars on errors).
 
-## Key Features Implementation
+### Layer Access Rules
 
-* UI must be **minimal, clean, modern, and clutter-free**
-* Prioritize **user-friendliness above everything**
-* Use consistent:
-    * Typography
-    * Spacing
-    * Colors
-    * Border radius
-    * Component styles
-* Use screen space efficiently. Layout must adapt smoothly to:
-    * Small phones
-    * Tablets
-* Prefer progressive disclosure over dense layouts
-* No business logic in UI
-* Avoid tightly coupling layers
-* Ensure responsive layouts
-* Update requirements if needed
-* Move displayed words in UI to localizations arb files. Translate the corresponding entry for each
-  word.
-* Run code analyzers to ensure no errors/warnings(except must_be_immutable)/infos, ensure code compiles and don't run tests
+* Only the Bloc layer may depend on the repository/implementation layer.
+* UI (presentation) may only depend on Models, Blocs, and the Services layer.
+* Business logic belongs in Services — never in the UI, and never duplicated across Blocs.
+
+### Folder Structure (`lib/`)
+
+* `asset_manager/` — asset loading/registration
+* `blocs/` — BLoC state management
+* `data/` — models and repositories
+* `l10n/` — generated localization
+* `presentation/` — screens and widgets
+
+## Technology Stack
+
+* **State management**: flutter_bloc
+* **Navigation**: go_router
+* **Backend**: Firebase (Firestore real-time listeners, Firebase Auth, Remote Config)
+* **Localization**: flutter_localizations + l10n.yaml, generated AppLocalizations
+  (English, Hindi, Tamil)
+* **UI**: Material 3 with custom ThemeData extensions for colors, typography, and elevations;
+  light/dark adaptive palettes
+
+## Firebase Integration
+
+* Use type-safe Firestore converters for data mapping.
+* Enable real-time listeners for collaborative features (multi-user edits, conflict resolution on
+  timeline entities).
+
+## Product Design Philosophy
+
+* UI must be minimal, clean, modern, and clutter-free; user-friendliness is the top priority.
+* Visual identity is travel-themed (gradients evoking landscapes, wanderlust iconography) expressed
+  consistently through the shared theme rather than ad hoc per screen.
+* Prefer progressive disclosure over dense layouts: surface only what's needed, move advanced
+  options into collapsible sections or drawers.
+* Layouts must adapt smoothly between small phones and large screens (tablets/web): stacked
+  scrollable lists on phones, grids or split views (e.g., timeline on left, details on right) on
+  larger screens. Timelines must remain readable in both portrait and landscape.
+* Prefer static interfaces by default. Introduce animation only when it improves comprehension,
+  continuity, or perceived responsiveness — favor implicit Material animations before custom
+  animation implementations.
+
+## Internationalization
+
+* All user-visible strings must come from AppLocalizations / .arb files — no hardcoded UI text.
+* Every new string requires a translated entry in app_en.arb, app_hi.arb, and app_ta.arb.
+
+## Delivery Checklist
+
+* Run code analyzers to ensure no errors/warnings (except must_be_immutable)/infos, ensure code
+  compiles, and don't run tests.
+* Update requirements alongside any user-visible behaviour change.
 
 ## Requirements documents
 The requirements documents under /docs/requirements are the canonical description of the product.
