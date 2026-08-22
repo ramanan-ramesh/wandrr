@@ -30,6 +30,7 @@ class TripEditorPage extends StatefulWidget {
 
 class _TripEditorPageState extends State<TripEditorPage> {
   late DateTime _currentDisplayedDate;
+  String? _activeTripId;
   static const _padding = 8.0;
   static const _topPaneRadius = BorderRadius.only(
     topLeft: Radius.circular(20),
@@ -42,9 +43,14 @@ class _TripEditorPageState extends State<TripEditorPage> {
   late final Widget _budgetingPage = const BudgetingPage();
 
   @override
-  void initState() {
-    super.initState();
-    _currentDisplayedDate = context.activeTrip.tripMetadata.startDate!;
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final activeTrip = context.activeTrip;
+    final activeTripId = activeTrip.tripMetadata.id;
+    if (_activeTripId != activeTripId) {
+      _activeTripId = activeTripId;
+      _currentDisplayedDate = activeTrip.tripMetadata.startDate!;
+    }
   }
 
   @override
@@ -91,7 +97,7 @@ class _TripEditorSmallLayout extends StatefulWidget {
   final Widget budgetingPage;
   final DateTime Function() getDisplayedDate;
 
-  _TripEditorSmallLayout({
+  const _TripEditorSmallLayout({
     required this.itineraryPage,
     required this.budgetingPage,
     required this.getDisplayedDate,

@@ -18,7 +18,8 @@ class BreakdownByDayChart extends StatefulWidget {
 
 class _BreakdownByDayChartState extends State<BreakdownByDayChart>
     with AutomaticKeepAliveClientMixin {
-  late final Future<Map<DateTime, double>> _dataFuture;
+  late Future<Map<DateTime, double>> _dataFuture;
+  String? _activeTripId;
 
   // UI constants
   static const double _kCardPadding = 8.0;
@@ -28,13 +29,17 @@ class _BreakdownByDayChartState extends State<BreakdownByDayChart>
   bool get wantKeepAlive => true;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     final activeTrip = context.activeTrip;
-    _dataFuture = context.budgetingService.groupExpensePerDay(
-      activeTrip.tripMetadata.startDate!,
-      activeTrip.tripMetadata.endDate!,
-    );
+    final activeTripId = activeTrip.tripMetadata.id;
+    if (_activeTripId != activeTripId) {
+      _activeTripId = activeTripId;
+      _dataFuture = context.budgetingService.groupExpensePerDay(
+        activeTrip.tripMetadata.startDate!,
+        activeTrip.tripMetadata.endDate!,
+      );
+    }
   }
 
   @override

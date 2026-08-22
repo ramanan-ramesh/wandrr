@@ -16,17 +16,21 @@ class BreakdownByCategoryChart extends StatefulWidget {
 }
 
 class _BreakdownByCategoryChartState extends State<BreakdownByCategoryChart> {
-  // Cached once in initState — never recreated on scroll/tab switches within
-  // the same refresh cycle. Recreated intentionally when ValueKey changes.
-  late final Future<Map<ExpenseCategory, double>> _dataFuture;
+  // Cached while the same trip is active; recreated when the active trip changes.
+  late Future<Map<ExpenseCategory, double>> _dataFuture;
+  String? _activeTripId;
 
   // ValueNotifier so only the PieChart rebuilds on touch, not the FutureBuilder.
   final ValueNotifier<int> _touchedIndex = ValueNotifier<int>(-1);
 
   @override
-  void initState() {
-    super.initState();
-    _dataFuture = context.budgetingService.groupExpensePerCategory();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final activeTripId = context.activeTrip.tripMetadata.id;
+    if (_activeTripId != activeTripId) {
+      _activeTripId = activeTripId;
+      _dataFuture = context.budgetingService.groupExpensePerCategory();
+    }
   }
 
   @override
