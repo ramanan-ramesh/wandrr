@@ -497,6 +497,13 @@
     "iata": "ACM"
   },
   {
+    "name": "Andorra la Vella Heliport",
+    "city": "Escaldes-Engordany",
+    "lat": 42.511227,
+    "lon": 1.53365,
+    "iata": "ALV"
+  },
+  {
     "name": "El Daein Airport",
     "city": "El Daein",
     "lat": 11.4023,
@@ -1015,13 +1022,6 @@
     "iata": "CPG"
   },
   {
-    "name": "[Duplicate] Wolf's Fang Runway",
-    "city": "Queen Maud Island",
-    "lat": -71.5264,
-    "lon": 8.799459,
-    "iata": "WFR"
-  },
-  {
     "name": "Lady Elliot Island Airstrip",
     "city": "Lady Elliot Island",
     "lat": -24.1129,
@@ -1034,6 +1034,13 @@
     "lat": -28.034548,
     "lon": 123.81506,
     "iata": "GYZ"
+  },
+  {
+    "name": "Western Sydney International (Nancy-Bird Walton) Airport",
+    "city": "Sydney",
+    "lat": -33.883461,
+    "lon": 150.712981,
+    "iata": "WSI"
   },
   {
     "name": "Agnew Airport",
@@ -4788,6 +4795,13 @@
     "iata": "HEW"
   },
   {
+    "name": "Leshan Airport",
+    "city": "Leshan (Wutongqiao)",
+    "lat": 29.438627,
+    "lon": 103.749218,
+    "iata": "LSG"
+  },
+  {
     "name": "Jiande Qiandaohu General Airport",
     "city": "Hangzhou",
     "lat": 29.360905,
@@ -4900,7 +4914,7 @@
     "iata": "JBK"
   },
   {
-    "name": "Zhaotong Zhaoyang Airport （Not fully opened)",
+    "name": "Zhaotong Zhaoyang Airport",
     "city": "Zhaotong",
     "lat": 27.205843,
     "lon": 103.691511,
@@ -5756,8 +5770,8 @@
   {
     "name": "Vancouver Harbour Water Aerodrome",
     "city": "Vancouver",
-    "lat": 49.291265,
-    "lon": -123.11717,
+    "lat": 49.290739,
+    "lon": -123.118541,
     "iata": "CXH"
   },
   {
@@ -7737,8 +7751,8 @@
   {
     "name": "Mecheria Airport",
     "city": "Mecheria",
-    "lat": 33.535900116,
-    "lon": -0.242353007197,
+    "lat": 33.5359,
+    "lon": -0.242353,
     "iata": "MZW"
   },
   {
@@ -8094,8 +8108,8 @@
   {
     "name": "Fada N'gourma Airport",
     "city": "Fada N'gourma",
-    "lat": 12.033,
-    "lon": 0.35,
+    "lat": 12.038931,
+    "lon": 0.362798,
     "iata": "FNG"
   },
   {
@@ -8279,13 +8293,6 @@
     "lat": 44.558748,
     "lon": 135.490005,
     "iata": "DHG"
-  },
-  {
-    "name": "Ad-Dali Airport",
-    "city": "Ad-Dali",
-    "lat": 13.73846,
-    "lon": 44.72719,
-    "iata": "DHL"
   },
   {
     "name": "Aboisso Airport",
@@ -8703,8 +8710,8 @@
   {
     "name": "Gafsa Ksar International Airport",
     "city": "Gafsa",
-    "lat": 34.422000885009766,
-    "lon": 8.822500228881836,
+    "lat": 34.422001,
+    "lon": 8.8225,
     "iata": "GAF"
   },
   {
@@ -10137,7 +10144,7 @@
   },
   {
     "name": "Edinburgh Airport",
-    "city": "Edinburgh",
+    "city": "Ingliston, Edinburgh",
     "lat": 55.950145,
     "lon": -3.372288,
     "iata": "EDI"
@@ -11422,13 +11429,6 @@
     "lat": 57.525799,
     "lon": 15.8233,
     "iata": "HLF"
-  },
-  {
-    "name": "Gävle Sandviken Airport",
-    "city": "Gävle / Sandviken",
-    "lat": 60.5933,
-    "lon": 16.951401,
-    "iata": "GVX"
   },
   {
     "name": "Linköping City Airport",
@@ -13008,8 +13008,8 @@
   {
     "name": "Flat Airport",
     "city": "Flat",
-    "lat": 62.452598571799996,
-    "lon": -157.988998413,
+    "lat": 62.452599,
+    "lon": -157.988998,
     "iata": "FLT"
   },
   {
@@ -13522,13 +13522,6 @@
     "lat": -15.1603,
     "lon": 19.156099,
     "iata": "CTI"
-  },
-  {
-    "name": "Camaxilo Airport",
-    "city": "Camaxilo",
-    "lat": -8.37361,
-    "lon": 18.923599,
-    "iata": "CXM"
   },
   {
     "name": "Cazombo Airport",
@@ -15204,6 +15197,13 @@
     "iata": "NIX"
   },
   {
+    "name": "Sikasso (Dignangan) Airport",
+    "city": "Sikasso",
+    "lat": 11.598382,
+    "lon": -5.798896,
+    "iata": "KSS"
+  },
+  {
     "name": "Tombouktou Airport",
     "city": "Timbuktu",
     "lat": 16.730499,
@@ -16007,13 +16007,6 @@
     "lat": 16.7414,
     "lon": -22.9494,
     "iata": "SID"
-  },
-  {
-    "name": "Agostinho Neto Airport",
-    "city": "Ponta do Sol",
-    "lat": 17.202800750732422,
-    "lon": -25.090599060058594,
-    "iata": "NTO"
   },
   {
     "name": "Aristides Pereira International Airport",
@@ -17089,8 +17082,8 @@
   {
     "name": "Ghat Airport",
     "city": "Ghat",
-    "lat": 25.1455993652,
-    "lon": 10.142600059500001,
+    "lat": 25.145599,
+    "lon": 10.1426,
     "iata": "GHT"
   },
   {
@@ -17901,8 +17894,8 @@
   {
     "name": "Mentawai Airport",
     "city": "Sipura Island",
-    "lat": -2.094167,
-    "lon": 99.699167,
+    "lat": -2.1001,
+    "lon": 99.7044,
     "iata": "RKI"
   },
   {
@@ -17946,6 +17939,13 @@
     "lat": 26.747736,
     "lon": 82.163664,
     "iata": "AYJ"
+  },
+  {
+    "name": "Amravati  Airport",
+    "city": "Amravati",
+    "lat": 20.814608,
+    "lon": 77.717765,
+    "iata": "AVR"
   },
   {
     "name": "Sindhudurg Airport",
@@ -22828,9 +22828,9 @@
   },
   {
     "name": "Gray Army Air Field",
-    "city": "Fort Lewis/Tacoma",
-    "lat": 47.07920074,
-    "lon": -122.5810013,
+    "city": "Joint Base Lewis McChord",
+    "lat": 47.079201,
+    "lon": -122.581001,
     "iata": "GRF"
   },
   {
@@ -22967,10 +22967,10 @@
     "iata": "GWO"
   },
   {
-    "name": "Glenwood Springs Municipal Airport",
+    "name": "Sumers Airpark",
     "city": "Glenwood Springs",
-    "lat": 39.5083007812,
-    "lon": -107.310997009,
+    "lat": 39.506083,
+    "lon": -107.309232,
     "iata": "GWS"
   },
   {
@@ -24990,7 +24990,7 @@
     "iata": "MEI"
   },
   {
-    "name": "Memphis International Airport",
+    "name": "Frederick W. Smith International Airport",
     "city": "Memphis",
     "lat": 35.043845,
     "lon": -89.97634,
@@ -26698,11 +26698,11 @@
     "iata": "PBG"
   },
   {
-    "name": "Palm Beach International Airport",
+    "name": "President Donald J. Trump International Airport",
     "city": "West Palm Beach",
     "lat": 26.683201,
     "lon": -80.095596,
-    "iata": "PBI"
+    "iata": "DJT"
   },
   {
     "name": "Pike County Airport Hatcher Field",
@@ -27902,7 +27902,7 @@
     "iata": "SAV"
   },
   {
-    "name": "Marquette/Sawyer International Airport",
+    "name": "Marquette Sawyer Regional Airport",
     "city": "Gwinn",
     "lat": 46.351498,
     "lon": -87.395884,
@@ -28196,7 +28196,7 @@
     "iata": "SIY"
   },
   {
-    "name": "Norman Y. Mineta San Jose International Airport",
+    "name": "Mineta San Jose International Airport",
     "city": "San Jose",
     "lat": 37.362452,
     "lon": -121.929188,
@@ -28912,8 +28912,8 @@
   {
     "name": "Tonopah Test Range Airport",
     "city": "Tonopah",
-    "lat": 37.7988014221,
-    "lon": -116.78099823,
+    "lat": 37.798801,
+    "lon": -116.780998,
     "iata": "XSD"
   },
   {
@@ -29869,7 +29869,7 @@
     "iata": "ECN"
   },
   {
-    "name": "Lefkoniko Airport / Geçitkale Air Base",
+    "name": "Geçitkale Airbase",
     "city": "Lefkoniko (Geçitkale)",
     "lat": 35.23591,
     "lon": 33.720088,
@@ -34468,6 +34468,13 @@
     "iata": "ZLO"
   },
   {
+    "name": "Bulagtai Resort Airport",
+    "city": "Khankhongor",
+    "lat": 43.749167,
+    "lon": 104.114722,
+    "iata": "UGT"
+  },
+  {
     "name": "Bluefields Airport",
     "city": "Bluefields",
     "lat": 11.991,
@@ -34685,7 +34692,7 @@
     "iata": "BCL"
   },
   {
-    "name": "Barra del Tortuguero",
+    "name": "Tortuguero Airport",
     "city": "Tortuguero",
     "lat": 10.569,
     "lon": -83.5149,
@@ -35537,6 +35544,13 @@
     "lat": 17.539951,
     "lon": -88.303556,
     "iata": "BZE"
+  },
+  {
+    "name": "Manatee Airport",
+    "city": "Spanish Lookout",
+    "lat": 17.27846,
+    "lon": -89.0238,
+    "iata": "MZE"
   },
   {
     "name": "San Ignacio Town (Maya Flats) Airstrip",
@@ -36871,8 +36885,8 @@
   {
     "name": "Nelson Airport",
     "city": "Nelson",
-    "lat": -41.298302,
-    "lon": 173.220993,
+    "lat": -41.296709,
+    "lon": 173.224323,
     "iata": "NSN"
   },
   {
@@ -40567,8 +40581,8 @@
   {
     "name": "Lake Murray Airport",
     "city": "Lake Murray",
-    "lat": -7.00992012024,
-    "lon": 141.494003296,
+    "lat": -7.00992,
+    "lon": 141.494003,
     "iata": "LMY"
   },
   {
@@ -40766,13 +40780,6 @@
     "lat": 33.96099853515625,
     "lon": 73.4520034790039,
     "iata": "BHC"
-  },
-  {
-    "name": "Campbellpore Airport",
-    "city": "Campbellpore",
-    "lat": 33.766700744628906,
-    "lon": 72.36689758300781,
-    "iata": "CWP"
   },
   {
     "name": "Gujrat Airport",
@@ -41825,7 +41832,7 @@
     "iata": "OSN"
   },
   {
-    "name": "Gimpo International Airport",
+    "name": "Seoul Gimpo International Airport",
     "city": "Seoul",
     "lat": 37.5583,
     "lon": 126.791,
@@ -41837,13 +41844,6 @@
     "lat": 37.239399,
     "lon": 127.007004,
     "iata": "SWU"
-  },
-  {
-    "name": "Taean Airport",
-    "city": "Taean",
-    "lat": 36.593781,
-    "lon": 126.29662,
-    "iata": "QDY"
   },
   {
     "name": "Pohang Airport (G-815/K-3)",
@@ -43073,8 +43073,8 @@
   {
     "name": "El Calafate - Commander Armando Tola International Airport",
     "city": "El Calafate",
-    "lat": -50.281997,
-    "lon": -72.053949,
+    "lat": -50.280267,
+    "lon": -72.053401,
     "iata": "FTE"
   },
   {
@@ -43589,7 +43589,7 @@
     "iata": "FOR"
   },
   {
-    "name": "Rio Galeão – Tom Jobim International Airport",
+    "name": "Rio de Janeiro Galeão – Tom Jobim International Airport",
     "city": "Rio De Janeiro",
     "lat": -22.809999,
     "lon": -43.250557,
@@ -44791,6 +44791,13 @@
     "lat": 61.768087,
     "lon": 17.080715,
     "iata": "HUV"
+  },
+  {
+    "name": "Gävle–Sandviken Airport",
+    "city": "Sandviken",
+    "lat": 60.594444,
+    "lon": 16.951111,
+    "iata": "GVX"
   },
   {
     "name": "Chachoán Regional Airport",
@@ -46664,8 +46671,8 @@
   {
     "name": "Dr. Luciano de Arruda Coelho Regional Airport",
     "city": "Sobral",
-    "lat": -3.614488,
-    "lon": -40.231426,
+    "lat": -3.614769,
+    "lon": -40.232208,
     "iata": "JSO"
   },
   {
@@ -46776,8 +46783,8 @@
   {
     "name": "Sócrates Rezende Airport",
     "city": "Canavieiras",
-    "lat": -15.666999816895,
-    "lon": -38.954700469971,
+    "lat": -15.667,
+    "lon": -38.9547,
     "iata": "CNV"
   },
   {
@@ -48701,8 +48708,8 @@
   {
     "name": "Karanambo Airport",
     "city": "Karanambo",
-    "lat": 3.752572,
-    "lon": -59.30902,
+    "lat": 3.769883,
+    "lon": -59.344409,
     "iata": "KRM"
   },
   {
@@ -49016,8 +49023,8 @@
   {
     "name": "Eugenio Maria De Hostos Airport",
     "city": "Mayaguez",
-    "lat": 18.255699157714844,
-    "lon": -67.14849853515625,
+    "lat": 18.255699,
+    "lon": -67.148499,
     "iata": "MAZ"
   },
   {
@@ -49173,13 +49180,6 @@
     "lat": 18.204773,
     "lon": -63.05383,
     "iata": "AXA"
-  },
-  {
-    "name": "Serik Bus Station Helipad",
-    "city": "Serik",
-    "lat": 36.913289,
-    "lon": 31.083723,
-    "iata": "XXX"
   },
   {
     "name": "John A. Osborne Airport",
@@ -49681,8 +49681,8 @@
   {
     "name": "Aldan Airport",
     "city": "Aldan",
-    "lat": 58.60279846191406,
-    "lon": 125.40899658203125,
+    "lat": 58.602798,
+    "lon": 125.408997,
     "iata": "ADH"
   },
   {
@@ -49737,8 +49737,8 @@
   {
     "name": "Ust-Maya Airport",
     "city": "Ust-Maya",
-    "lat": 60.356998443604,
-    "lon": 134.43499755859,
+    "lat": 60.357437,
+    "lon": 134.43731,
     "iata": "UMS"
   },
   {
@@ -49772,8 +49772,8 @@
   {
     "name": "Lensk Airport",
     "city": "Lensk",
-    "lat": 60.7206001282,
-    "lon": 114.825996399,
+    "lat": 60.723594,
+    "lon": 114.825319,
     "iata": "ULK"
   },
   {
@@ -49828,8 +49828,8 @@
   {
     "name": "Cherskiy Airport",
     "city": "Cherskiy",
-    "lat": 68.7406005859375,
-    "lon": 161.33799743652344,
+    "lat": 68.740601,
+    "lon": 161.337997,
     "iata": "CYX"
   },
   {
@@ -49912,8 +49912,8 @@
   {
     "name": "Ignatyevo Airport",
     "city": "Blagoveschensk",
-    "lat": 50.42539978027344,
-    "lon": 127.41200256347656,
+    "lat": 50.426723,
+    "lon": 127.415502,
     "iata": "BQS"
   },
   {
@@ -49940,8 +49940,8 @@
   {
     "name": "Komsomolsk-on-Amur Airport",
     "city": "Komsomolsk-on-Amur",
-    "lat": 50.409000396728516,
-    "lon": 136.9340057373047,
+    "lat": 50.409,
+    "lon": 136.934006,
     "iata": "KXK"
   },
   {
@@ -49961,8 +49961,8 @@
   {
     "name": "Provideniya Bay Airport",
     "city": "Chukotka",
-    "lat": 64.37809753417969,
-    "lon": -173.2429962158203,
+    "lat": 64.378098,
+    "lon": -173.242996,
     "iata": "PVS"
   },
   {
@@ -50234,8 +50234,8 @@
   {
     "name": "Mariupol International Airport",
     "city": "Mariupol",
-    "lat": 47.07609939575195,
-    "lon": 37.44960021972656,
+    "lat": 47.076099,
+    "lon": 37.4496,
     "iata": "MPW"
   },
   {
@@ -50262,8 +50262,8 @@
   {
     "name": "Kryvyi Rih International Airport",
     "city": "Kryvyi Rih",
-    "lat": 48.04330062866211,
-    "lon": 33.209999084472656,
+    "lat": 48.043301,
+    "lon": 33.209999,
     "iata": "KWG"
   },
   {
@@ -50330,6 +50330,13 @@
     "iata": "KGO"
   },
   {
+    "name": "Igor Sikorsky Kyiv International Airport (Zhuliany)",
+    "city": "Kyiv",
+    "lat": 50.40194,
+    "lon": 30.45194,
+    "iata": "IEV"
+  },
+  {
     "name": "Zhytomyr Airport",
     "city": "Zhytomyr",
     "lat": 50.270556,
@@ -50353,8 +50360,8 @@
   {
     "name": "Ivano-Frankivsk International Airport",
     "city": "Ivano-Frankivsk",
-    "lat": 48.88420104980469,
-    "lon": 24.686100006103516,
+    "lat": 48.884201,
+    "lon": 24.6861,
     "iata": "IFO"
   },
   {
@@ -50367,15 +50374,15 @@
   {
     "name": "Chernivtsi International Airport",
     "city": "Chernivtsi",
-    "lat": 48.259300231933594,
-    "lon": 25.98080062866211,
+    "lat": 48.2593,
+    "lon": 25.980801,
     "iata": "CWC"
   },
   {
     "name": "Rivne International Airport",
     "city": "Rivne",
-    "lat": 50.60710144042969,
-    "lon": 26.141599655151367,
+    "lat": 50.607101,
+    "lon": 26.1416,
     "iata": "RWN"
   },
   {
@@ -50398,6 +50405,13 @@
     "lat": 46.6758,
     "lon": 32.506401,
     "iata": "KHE"
+  },
+  {
+    "name": "Mykolaiv International Airport [CLOSED]",
+    "city": "Mykolaiv",
+    "lat": 47.057899,
+    "lon": 31.9198,
+    "iata": "NLV"
   },
   {
     "name": "Odesa International Airport",
@@ -50451,8 +50465,8 @@
   {
     "name": "Amderma Airport",
     "city": "Amderma",
-    "lat": 69.76329803466797,
-    "lon": 61.556400299072266,
+    "lat": 69.763712,
+    "lon": 61.556711,
     "iata": "AMV"
   },
   {
@@ -50836,8 +50850,8 @@
   {
     "name": "Taganrog Yuzhny Airport",
     "city": "Taganrog",
-    "lat": 47.1983333,
-    "lon": 38.8491667,
+    "lat": 47.198333,
+    "lon": 38.849167,
     "iata": "TGK"
   },
   {
@@ -51396,22 +51410,22 @@
   {
     "name": "Belgorod International Airport",
     "city": "Belgorod",
-    "lat": 50.643798828125,
-    "lon": 36.5900993347168,
+    "lat": 50.643799,
+    "lon": 36.590099,
     "iata": "EGO"
   },
   {
     "name": "Kursk East Airport",
     "city": "Kursk",
-    "lat": 51.7505989074707,
-    "lon": 36.29560089111328,
+    "lat": 51.750599,
+    "lon": 36.295601,
     "iata": "URS"
   },
   {
     "name": "Lipetsk Airport",
     "city": "Lipetsk",
-    "lat": 52.70280075073242,
-    "lon": 39.53779983520508,
+    "lat": 52.702801,
+    "lon": 39.5378,
     "iata": "LPK"
   },
   {
@@ -51606,8 +51620,8 @@
   {
     "name": "Ufa International Airport",
     "city": "Ufa",
-    "lat": 54.557498931885,
-    "lon": 55.874401092529,
+    "lat": 54.557499,
+    "lon": 55.874401,
     "iata": "UFA"
   },
   {
@@ -52332,13 +52346,6 @@
     "iata": "UKE"
   },
   {
-    "name": "Visakhapatnam International Airport",
-    "city": "Visakhapatnam",
-    "lat": 17.723506,
-    "lon": 83.227729,
-    "iata": "VTZ"
-  },
-  {
     "name": "Ziro Airport",
     "city": "Ziro",
     "lat": 27.588301,
@@ -52668,7 +52675,7 @@
     "iata": "SWN"
   },
   {
-    "name": "Sheikh ul Alam International Airport",
+    "name": "Srinagar International Airport",
     "city": "Srinagar",
     "lat": 33.987099,
     "lon": 74.7742,
@@ -53331,6 +53338,13 @@
     "lat": 8.481889,
     "lon": 76.920029,
     "iata": "TRV"
+  },
+  {
+    "name": "Alluri Sitarama Raju International Airport (Vizag)",
+    "city": "Visakhapatnam",
+    "lat": 17.971512,
+    "lon": 83.503617,
+    "iata": "VTZ"
   },
   {
     "name": "Warangal Airport",
@@ -54392,8 +54406,8 @@
   {
     "name": "Toraja Airport",
     "city": "Toraja",
-    "lat": -3.185833,
-    "lon": 119.91775,
+    "lat": -3.184359,
+    "lon": 119.919104,
     "iata": "TRT"
   },
   {
@@ -54637,8 +54651,8 @@
   {
     "name": "Tanjung Harapan Airport",
     "city": "Tanjung Selor-Borneo Island",
-    "lat": 2.835833,
-    "lon": 117.373611,
+    "lat": 2.838139,
+    "lon": 117.374584,
     "iata": "TJS"
   },
   {
@@ -55237,6 +55251,13 @@
     "iata": "KDI"
   },
   {
+    "name": "Anduki Airport",
+    "city": "Seria",
+    "lat": 4.635158,
+    "lon": 114.378748,
+    "iata": "KUB"
+  },
+  {
     "name": "Stebbins Airport",
     "city": "Stebbins",
     "lat": 63.515999,
@@ -55580,10 +55601,10 @@
     "iata": "CBN"
   },
   {
-    "name": "Cibeureum Airport",
-    "city": "Tasikmalaya-Java Island",
-    "lat": -7.3466,
-    "lon": 108.246002,
+    "name": "Wiriadinata Airport",
+    "city": "Cibeureum, Tasikmalaya-Java Island",
+    "lat": -7.347967,
+    "lon": 108.246998,
     "iata": "TSY"
   },
   {
@@ -57563,8 +57584,8 @@
   {
     "name": "Longreach Airport",
     "city": "Longreach",
-    "lat": -23.4342,
-    "lon": 144.279999,
+    "lat": -23.43202,
+    "lon": 144.277492,
     "iata": "LRE"
   },
   {
@@ -57923,6 +57944,13 @@
     "lat": -23.417800903299998,
     "lon": 119.803001404,
     "iata": "ZNE"
+  },
+  {
+    "name": "Oban Airport",
+    "city": "Oban",
+    "lat": -21.234797,
+    "lon": 139.033231,
+    "iata": "OBA"
   },
   {
     "name": "Opinaca Aerodrome",
@@ -58378,13 +58406,6 @@
     "lat": -35.163484,
     "lon": 147.46832,
     "iata": "WGA"
-  },
-  {
-    "name": "[Duplicate] Western Sydney International Airport",
-    "city": "Sydney",
-    "lat": -33.88806,
-    "lon": 150.71472,
-    "iata": "WSI"
   },
   {
     "name": "Tarcoola Airport",
@@ -59603,13 +59624,6 @@
     "lat": 48.85499954223633,
     "lon": 103.47599792480469,
     "iata": "UGA"
-  },
-  {
-    "name": "Bulagtai Resort Airport",
-    "city": "Khankhongor",
-    "lat": 43.749304,
-    "lon": 104.114985,
-    "iata": "UGT"
   },
   {
     "name": "Bulgan Sum Airport",
