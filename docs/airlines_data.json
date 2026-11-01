@@ -64,7 +64,7 @@
     "iata": "Q5"
   },
   {
-    "name": "Aerro Direkt S.R.L.",
+    "name": "Flyyo",
     "iata": "4D"
   },
   {
@@ -1100,7 +1100,7 @@
     "iata": "2K"
   },
   {
-    "name": "Azul Linhas Aéreas Brasileiras",
+    "name": "Azul Brazilian Airlines",
     "iata": "AD"
   },
   {
@@ -1594,6 +1594,10 @@
   {
     "name": "Cirrus Airlines",
     "iata": "C9"
+  },
+  {
+    "name": "Citilink",
+    "iata": "QZ"
   },
   {
     "name": "City Connexion Airlines",
@@ -2696,7 +2700,7 @@
     "iata": "ID"
   },
   {
-    "name": "Intersky",
+    "name": "InterSky",
     "iata": "3L"
   },
   {
@@ -4872,6 +4876,10 @@
     "iata": "Q4"
   },
   {
+    "name": "Sun PhuQuoc Airways",
+    "iata": "9G"
+  },
+  {
     "name": "Sunexpress Deutschland",
     "iata": "XG"
   },
@@ -5082,6 +5090,10 @@
   {
     "name": "TransMeridian Airlines",
     "iata": "T9"
+  },
+  {
+    "name": "TransNusa",
+    "iata": "8B"
   },
   {
     "name": "Raya Airways",
@@ -5454,6 +5466,10 @@
   {
     "name": "Wien Air Alaska",
     "iata": "WC"
+  },
+  {
+    "name": "Wingo (airline)",
+    "iata": "P5"
   },
   {
     "name": "Wind Jet",
